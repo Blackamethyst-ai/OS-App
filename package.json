@@ -1,5 +1,5 @@
 {
-  "name": "copy-of-structura-ai",
+  "name": "metaventions-ai-v1",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,10 +9,14 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "recharts": "^3.5.1",
+    "framer-motion": "^12.23.25",
+    "lucide-react": "^0.556.0",
+    "react": "^19.2.1",
     "@google/genai": "^1.31.0",
     "react-dom": "^19.2.1",
-    "lucide-react": "^0.556.0",
-    "react": "^19.2.1"
+    "zustand": "^5.0.9",
+    "@xyflow/react": "^12.10.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

@@ -1,5 +1,8 @@
 {
-  "name": "Copy of Structura AI",
-  "description": "A multimodal architecture and process visualizer compatible with MCP standards. Generate mind maps, system diagrams, and high-fidelity assets using Gemini 3 Pro.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ],
+  "name": "Metaventions AI V1",
+  "description": ""
 }
