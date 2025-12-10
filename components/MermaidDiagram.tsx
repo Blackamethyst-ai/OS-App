@@ -19,6 +19,10 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
   useEffect(() => {
     if (!code) return;
 
+    let isMounted = true;
+    let attempt = 0;
+    const maxAttempts = 50; // 5 seconds timeout
+
     const renderDiagram = async () => {
       try {
         setError(null);
@@ -27,26 +31,38 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
         const id = `mermaid-${Math.random().toString(36).substr(2, 9)}`;
         
         // @ts-ignore
-        if (window.mermaid) {
-          // @ts-ignore
-          window.mermaid.initialize({ 
-            startOnLoad: false,
-            theme: 'dark',
-            securityLevel: 'loose',
-            fontFamily: 'Fira Code',
-          });
-          
-          // @ts-ignore
-          const { svg } = await window.mermaid.render(id, code);
-          setSvgData(svg);
-        }
+        window.mermaid.initialize({ 
+          startOnLoad: false,
+          theme: 'dark',
+          securityLevel: 'loose',
+          fontFamily: 'Fira Code',
+        });
+        
+        // @ts-ignore
+        const { svg } = await window.mermaid.render(id, code);
+        if (isMounted) setSvgData(svg);
+
       } catch (err) {
         console.error('Mermaid render error:', err);
-        setError('Failed to render diagram. Syntax might be invalid.');
+        if (isMounted) setError('Failed to render diagram. Syntax might be invalid.');
       }
     };
 
-    renderDiagram();
+    const checkMermaid = () => {
+        // @ts-ignore
+        if (window.mermaid) {
+            renderDiagram();
+        } else if (attempt < maxAttempts) {
+            attempt++;
+            setTimeout(checkMermaid, 100);
+        } else {
+            if (isMounted) setError("Visualization Engine failed to load (Timeout).");
+        }
+    };
+
+    checkMermaid();
+
+    return () => { isMounted = false; };
   }, [code]);
 
   const downloadBlob = (blob: Blob, filename: string) => {
