@@ -1,4 +1,5 @@
 
+
 export enum AppMode {
   DASHBOARD = 'DASHBOARD',
   PROCESS_MAP = 'PROCESS_MAP',
@@ -7,6 +8,7 @@ export enum AppMode {
   BIBLIOMORPHIC = 'BIBLIOMORPHIC',
   HARDWARE_ENGINEER = 'HARDWARE_ENGINEER',
   VOICE_MODE = 'VOICE_MODE',
+  CODE_STUDIO = 'CODE_STUDIO',
 }
 
 export enum ImageSize {
@@ -165,6 +167,8 @@ export interface ArchitectureProposal {
 }
 
 export interface BookDNA {
+  id?: string;
+  timestamp?: number;
   title: string;
   author: string;
   extractionRate: number; // 0-100
@@ -235,6 +239,40 @@ export interface VoiceState {
   error: string | null;
 }
 
+// --- Code Studio Types ---
+
+export interface CodeStudioState {
+  prompt: string;
+  generatedCode: string | null;
+  language: string;
+  isLoading: boolean;
+  isExecuting: boolean; // New: Runtime simulation
+  executionOutput: string | null; // New: Simulated Terminal Output
+  error: string | null;
+  history: { prompt: string; code: string; timestamp: number }[];
+}
+
+// --- Global Search Types ---
+
+export interface SearchResultItem {
+  id: string;
+  title: string;
+  description: string;
+  type: 'NAV' | 'ACTION' | 'QUERY';
+  meta?: {
+    targetMode?: string; // e.g., 'CODE_STUDIO'
+    actionType?: string; // e.g., 'GENERATE_IMAGE'
+    payload?: any;
+  };
+}
+
+export interface GlobalSearchState {
+  query: string;
+  results: SearchResultItem[];
+  isSearching: boolean;
+  isOpen: boolean;
+}
+
 // -----------------------------------------
 
 export interface ProcessState {
@@ -288,7 +326,10 @@ export type IntentAction =
   | 'NAVIGATE'
   | 'CONFIGURE_GOVERNANCE'
   | 'CONFIGURE_IMAGE'
-  | 'ANALYZE_POWER';
+  | 'ANALYZE_POWER'
+  | 'GENERATE_CODE'
+  | 'HARDWARE_SEARCH'
+  | 'ACTIVATE_VOICE';
 
 export interface UserIntent {
   action: IntentAction;

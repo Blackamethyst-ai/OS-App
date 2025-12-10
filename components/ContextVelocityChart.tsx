@@ -107,7 +107,7 @@ const ContextVelocityChart: React.FC<ContextVelocityChartProps> = ({ onDrillDown
         </div>
       </div>
       
-      <div className="flex-1 p-2 w-full min-h-0">
+      <div className="flex-1 p-2 w-full min-h-[100px]">
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart 
             data={data}
