@@ -1,6 +1,7 @@
 
+
 import { create } from 'zustand';
-import { AppMode, ProcessState, ImageGenState, AspectRatio, ImageSize, DashboardState, BibliomorphicState, HardwareState, VoiceState } from './types';
+import { AppMode, ProcessState, ImageGenState, AspectRatio, ImageSize, DashboardState, BibliomorphicState, HardwareState, VoiceState, CodeStudioState, GlobalSearchState } from './types';
 
 interface AppState {
   mode: AppMode;
@@ -10,6 +11,8 @@ interface AppState {
   bibliomorphic: BibliomorphicState;
   hardware: HardwareState;
   voice: VoiceState;
+  codeStudio: CodeStudioState;
+  search: GlobalSearchState; // Added Search State
   isCommandPaletteOpen: boolean;
   
   setMode: (mode: AppMode) => void;
@@ -19,6 +22,8 @@ interface AppState {
   setBibliomorphicState: (update: Partial<BibliomorphicState> | ((prev: BibliomorphicState) => Partial<BibliomorphicState>)) => void;
   setHardwareState: (update: Partial<HardwareState> | ((prev: HardwareState) => Partial<HardwareState>)) => void;
   setVoiceState: (update: Partial<VoiceState> | ((prev: VoiceState) => Partial<VoiceState>)) => void;
+  setCodeStudioState: (update: Partial<CodeStudioState> | ((prev: CodeStudioState) => Partial<CodeStudioState>)) => void;
+  setSearchState: (update: Partial<GlobalSearchState> | ((prev: GlobalSearchState) => Partial<GlobalSearchState>)) => void;
   toggleCommandPalette: (isOpen?: boolean) => void;
   reset: () => void;
 }
@@ -80,6 +85,22 @@ export const useAppStore = create<AppState>((set) => ({
     transcripts: [],
     error: null
   },
+  codeStudio: {
+    prompt: '',
+    generatedCode: null,
+    language: 'typescript',
+    isLoading: false,
+    isExecuting: false,
+    executionOutput: null,
+    error: null,
+    history: []
+  },
+  search: {
+    query: '',
+    results: [],
+    isSearching: false,
+    isOpen: false
+  },
   
   setMode: (mode) => set({ mode }),
   
@@ -105,6 +126,14 @@ export const useAppStore = create<AppState>((set) => ({
 
   setVoiceState: (update) => set((state) => ({ 
     voice: { ...state.voice, ...(typeof update === 'function' ? update(state.voice) : update) } 
+  })),
+
+  setCodeStudioState: (update) => set((state) => ({ 
+    codeStudio: { ...state.codeStudio, ...(typeof update === 'function' ? update(state.codeStudio) : update) } 
+  })),
+
+  setSearchState: (update) => set((state) => ({ 
+    search: { ...state.search, ...(typeof update === 'function' ? update(state.search) : update) } 
   })),
   
   toggleCommandPalette: (isOpen) => set((state) => ({ 
