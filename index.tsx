@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+import React, { ReactNode, ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 
@@ -11,7 +11,7 @@ interface ErrorBoundaryState {
 }
 
 // Root Error Boundary for Sovereign OS Crash Handling
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   public state: ErrorBoundaryState = { hasError: false };
 
   static getDerivedStateFromError(_: Error): ErrorBoundaryState {
