@@ -1,4 +1,5 @@
 
+
 import { GoogleGenAI, Type, Schema, FunctionDeclaration, LiveServerMessage, Modality } from "@google/genai";
 import { AspectRatio, ImageSize, AnalysisResult, BookDNA, AutopoieticFramework, ComponentRecommendation, ArtifactAnalysis, UserIntent, ArtifactNode, FileData, SearchResultItem, GovernanceSchema } from '../types';
 
@@ -308,10 +309,16 @@ export async function researchComponents(query: string): Promise<ComponentRecomm
 
   const rawResults = JSON.parse(formatResponse.text || "[]");
   
-  // Transform back to Record<string, string> for UI compatibility
-  return rawResults.map((item: any) => ({
+  if (!Array.isArray(rawResults)) return [];
+
+  // Transform back to Record<string, string> for UI compatibility with robust checking
+  return rawResults
+    .filter((item: any) => item && typeof item === 'object')
+    .map((item: any) => ({
       ...item,
-      specs: item.specs ? item.specs.reduce((acc: any, curr: any) => ({ ...acc, [curr.key]: curr.value }), {}) : {}
+      specs: (item.specs && Array.isArray(item.specs)) 
+        ? item.specs.reduce((acc: any, curr: any) => ({ ...acc, [curr.key]: curr.value }), {}) 
+        : {}
   }));
 }
 
@@ -690,7 +697,11 @@ class LiveSessionHandler {
   public onTranscriptUpdate: (role: 'user' | 'model', text: string) => void = () => {};
   public onDisconnect: () => void = () => {};
   
+  // Voice Command Listener
+  public onCommand: (cmd: UserIntent) => void = () => {};
+
   private audioContext: AudioContext | null = null;
+  private inputAudioContext: AudioContext | null = null; // Track input context
   private analyser: AnalyserNode | null = null;
   private inputAnalyser: AnalyserNode | null = null;
   private inputDataArray: Uint8Array | null = null;
@@ -710,14 +721,30 @@ class LiveSessionHandler {
     
     // Setup Audio Input
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const inputContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-    const source = inputContext.createMediaStreamSource(stream);
+    // Use stored inputAudioContext
+    this.inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+    const source = this.inputAudioContext.createMediaStreamSource(stream);
     
     // Setup Input Analyser
-    this.inputAnalyser = inputContext.createAnalyser();
+    this.inputAnalyser = this.inputAudioContext.createAnalyser();
     this.inputAnalyser.fftSize = 128;
     this.inputDataArray = new Uint8Array(this.inputAnalyser.frequencyBinCount);
     source.connect(this.inputAnalyser);
+
+    // Define System Control Tool
+    const controlSystemTool: FunctionDeclaration = {
+        name: 'control_system',
+        description: 'Control the application interface, navigate to modules, or execute system commands.',
+        parameters: {
+            type: Type.OBJECT,
+            properties: {
+                action: { type: Type.STRING, enum: ['NAVIGATE', 'GENERATE_CODE', 'ANALYZE', 'SEARCH'], description: "The type of action to perform." },
+                target: { type: Type.STRING, description: "The target module or object (e.g. 'DASHBOARD', 'HARDWARE', 'CODE_STUDIO')" },
+                payload: { type: Type.STRING, description: "Additional parameters for the action (e.g. search query, prompt)" }
+            },
+            required: ['action']
+        }
+    };
 
     const sessionPromise = ai.live.connect({
       model: 'gemini-2.5-flash-native-audio-preview-09-2025',
@@ -725,6 +752,8 @@ class LiveSessionHandler {
         responseModalities: [Modality.AUDIO],
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
         inputAudioTranscription: {},
+        tools: [{ functionDeclarations: [controlSystemTool] }],
+        systemInstruction: "You are the Voice Core of Sovereign OS. You can control the UI and execute commands. When asked to navigate or perform tasks, use the control_system tool."
       },
       callbacks: {
           onopen: () => console.log('Session connected'),
@@ -737,7 +766,7 @@ class LiveSessionHandler {
     this.session = await sessionPromise;
     
     // Processor
-    const scriptProcessor = inputContext.createScriptProcessor(4096, 1, 1);
+    const scriptProcessor = this.inputAudioContext.createScriptProcessor(4096, 1, 1);
     scriptProcessor.onaudioprocess = (e) => {
       if (!this.session) return;
       const inputData = e.inputBuffer.getChannelData(0);
@@ -747,12 +776,42 @@ class LiveSessionHandler {
     };
     
     source.connect(scriptProcessor);
-    scriptProcessor.connect(inputContext.destination);
+    scriptProcessor.connect(this.inputAudioContext.destination);
 
     this.analyzeLoop();
   }
 
   async handleMessage(msg: LiveServerMessage) {
+    // Tool Calls (Function Calling)
+    if (msg.toolCall) {
+        for (const fc of msg.toolCall.functionCalls) {
+            if (fc.name === 'control_system') {
+                let action = fc.args['action'] as string;
+                
+                // Map generic actions to specific intent types if needed
+                if (action === 'SEARCH') action = 'HARDWARE_SEARCH';
+
+                const intent: UserIntent = {
+                    action: action as any,
+                    target: fc.args['target'] as any,
+                    reasoning: "Voice Command Execution"
+                };
+                
+                // Trigger callback
+                this.onCommand(intent);
+
+                // Send response back
+                this.session.sendToolResponse({
+                    functionResponses: {
+                        id: fc.id,
+                        name: fc.name,
+                        response: { result: "Command Executed Successfully" }
+                    }
+                });
+            }
+        }
+    }
+
     // Audio Output
     const data = msg.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
     if (data) {
@@ -851,7 +910,23 @@ class LiveSessionHandler {
           this.session.close();
       }
       this.session = null;
-      this.audioContext?.close();
+      
+      // Defensively close output context
+      if (this.audioContext) {
+          if (this.audioContext.state !== 'closed') {
+              this.audioContext.close().catch(e => console.warn("Output AudioContext close error:", e));
+          }
+          this.audioContext = null;
+      }
+
+      // Defensively close input context
+      if (this.inputAudioContext) {
+          if (this.inputAudioContext.state !== 'closed') {
+              this.inputAudioContext.close().catch(e => console.warn("Input AudioContext close error:", e));
+          }
+          this.inputAudioContext = null;
+      }
+      
       this.onDisconnect();
       this.sources.clear();
   }

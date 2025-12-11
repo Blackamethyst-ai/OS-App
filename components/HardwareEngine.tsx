@@ -32,8 +32,9 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ message, onRetry }) => (
 const ComponentInspector: React.FC<{ component: ComponentRecommendation; onClose: () => void; onAdd: () => void }> = ({ component, onClose, onAdd }) => {
     // Simulate Price History
     const priceData = useMemo(() => {
+        if (!component) return [];
         // Deterministic random based on part number length to keep it consistent-ish for the session
-        let basePrice = 100 + (component.partNumber.length * 50) + (Math.random() * 200);
+        let basePrice = 100 + ((component.partNumber?.length || 5) * 50) + (Math.random() * 200);
         const data = [];
         const today = new Date();
         
@@ -54,9 +55,11 @@ const ComponentInspector: React.FC<{ component: ComponentRecommendation; onClose
         return data;
     }, [component]);
 
-    const currentPrice = priceData[priceData.length - 1].price;
-    const startPrice = priceData[0].price;
-    const trend = ((currentPrice - startPrice) / startPrice) * 100;
+    if (!component) return null;
+
+    const currentPrice = priceData.length > 0 ? priceData[priceData.length - 1].price : 0;
+    const startPrice = priceData.length > 0 ? priceData[0].price : 0;
+    const trend = startPrice > 0 ? ((currentPrice - startPrice) / startPrice) * 100 : 0;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-8" onClick={onClose}>
@@ -801,12 +804,14 @@ const HardwareEngine: React.FC = () => {
   const isInitializedRef = useRef(false);
 
   // Compute unique manufacturers for filter dropdown
-  const uniqueManufacturers = Array.from(new Set(hardware.recommendations.map(r => r.manufacturer))).sort();
+  const uniqueManufacturers = Array.from(new Set(hardware.recommendations.map(r => r?.manufacturer).filter(Boolean))).sort();
 
   // Filter recommendations logic
   const filteredRecommendations = hardware.recommendations.filter(rec => {
+      if (!rec) return false;
       const matchesMfg = manufacturerFilter === 'ALL' || rec.manufacturer === manufacturerFilter;
-      const stockStatus = Object.entries(rec.specs || {}).find(([k]) => /stock|availability/i.test(k))?.[1] || '';
+      const specs = rec.specs || {};
+      const stockStatus = Object.entries(specs).find(([k]) => /stock|availability/i.test(k))?.[1] || '';
       const matchesStock = !stockFilter || /in stock|available|instock|yes/i.test(String(stockStatus));
       return matchesMfg && matchesStock;
   });
@@ -1043,12 +1048,24 @@ const HardwareEngine: React.FC = () => {
   };
 
   const addToBom = (rec: ComponentRecommendation) => {
+      if (!rec) return;
       if (!bom.find(i => i.partNumber === rec.partNumber)) { setBom(prev => [...prev, rec]); }
   };
 
   const exportBom = () => {
       const headers = ["Part Number", "Manufacturer", "Description", "Lead Time", "Stock", "Link"];
-      const rows = bom.map(i => [i.partNumber, i.manufacturer, `"${i.description.replace(/"/g, '""')}"`, i.specs["Lead Time"] || "N/A", i.specs["Stock Status"] || "N/A", i.specs["Buy Link"] || "N/A"]);
+      const rows = bom.map(i => {
+          if (!i) return ["N/A", "N/A", "N/A", "N/A", "N/A", "N/A"];
+          const specs = i.specs || {};
+          return [
+            i.partNumber || "N/A", 
+            i.manufacturer || "N/A", 
+            `"${(i.description || "").replace(/"/g, '""')}"`, 
+            specs["Lead Time"] || "N/A", 
+            specs["Stock Status"] || "N/A", 
+            specs["Buy Link"] || "N/A"
+          ];
+      });
       const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + rows.map(e => e.join(",")).join("\n");
       const encodedUri = encodeURI(csvContent);
       const link = document.createElement("a");

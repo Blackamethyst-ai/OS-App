@@ -3,9 +3,195 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { generateArchitectureImage, promptSelectKey, fileToGenerativePart } from '../services/geminiService';
 import { AspectRatio, ImageSize } from '../types';
-import { Activity, Shield, Image as ImageIcon, Sparkles, RefreshCw, Cpu, Clock, Users, ArrowUpRight, X, ScanFace, Terminal, Zap, Network, Database, Globe, Lock, Wifi, AlertCircle, Radio, Hexagon } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, Cell } from 'recharts';
+import { Activity, Shield, Image as ImageIcon, Sparkles, RefreshCw, Cpu, Clock, Users, ArrowUpRight, X, ScanFace, Terminal, Zap, Network, Database, Globe, Lock, Wifi, AlertCircle, Radio, Hexagon, TrendingUp, TrendingDown, DollarSign, BarChart3, RadioReceiver, Search, Filter } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, Cell, LineChart, Line } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// --- Types for The Oracle ---
+interface Signal {
+    id: string;
+    timestamp: number;
+    headline: string;
+    tags: string[];
+    source: string;
+    veracity: number; // 0-100
+    leverage: 'CRITICAL' | 'HIGH' | 'MODERATE' | 'LOW';
+}
+
+// --- ORACLE COMPONENT ---
+const OraclePanel: React.FC = () => {
+    // BASIX Feed State
+    const [h100Price, setH100Price] = useState(28450);
+    const [energyPrice, setEnergyPrice] = useState(0.142);
+    const [arbIndex, setArbIndex] = useState(14.2);
+    const [priceHistory, setPriceHistory] = useState<{time: number, price: number}[]>([]);
+
+    // Signals State
+    const [signals, setSignals] = useState<Signal[]>([
+        { id: 'sig-001', timestamp: Date.now() - 100000, headline: 'NVIDIA securing sovereign energy rights in Iceland', tags: ['#Geopolitics', '#Energy'], source: 'Reuters (Encrypted)', veracity: 98, leverage: 'CRITICAL' },
+        { id: 'sig-002', timestamp: Date.now() - 500000, headline: 'Blackwell architecture leak suggests 4x throughput', tags: ['#Hardware', '#PatternRecognition'], source: 'DarkWeb Relay', veracity: 65, leverage: 'HIGH' },
+        { id: 'sig-003', timestamp: Date.now() - 1200000, headline: 'Global lithium supply chain contraction projected Q3', tags: ['#SupplyChain', '#ComputeArbitrage'], source: 'Bloomberg Terminal', veracity: 89, leverage: 'MODERATE' },
+        { id: 'sig-004', timestamp: Date.now() - 3600000, headline: 'New recursive self-improvement algo detected in wild', tags: ['#AI_Safety', '#Evolution'], source: 'NetSec Monitor', veracity: 42, leverage: 'CRITICAL' },
+        { id: 'sig-005', timestamp: Date.now() - 7200000, headline: 'TSMC increasing wafer pricing by 12% for Tier 2', tags: ['#Market', '#Hardware'], source: 'Industry Insider', veracity: 92, leverage: 'HIGH' },
+    ]);
+
+    // Simulation Loop for Ticker
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const time = Date.now();
+            setH100Price(p => p + (Math.random() * 100 - 40));
+            setEnergyPrice(p => Math.max(0.05, p + (Math.random() * 0.002 - 0.001)));
+            setArbIndex(p => p + (Math.random() * 0.2 - 0.1));
+            
+            setPriceHistory(prev => {
+                const newHist = [...prev, { time, price: h100Price }];
+                return newHist.slice(-20);
+            });
+        }, 2000);
+        return () => clearInterval(interval);
+    }, [h100Price]);
+
+    const getVeracityColor = (score: number) => {
+        if (score >= 90) return 'bg-[#42be65]';
+        if (score >= 70) return 'bg-[#22d3ee]';
+        if (score >= 50) return 'bg-[#f59e0b]';
+        return 'bg-[#ef4444]';
+    };
+
+    const getLeverageColor = (level: string) => {
+        switch (level) {
+            case 'CRITICAL': return 'text-[#ef4444] border-[#ef4444]/30 bg-[#ef4444]/10';
+            case 'HIGH': return 'text-[#f59e0b] border-[#f59e0b]/30 bg-[#f59e0b]/10';
+            case 'MODERATE': return 'text-[#22d3ee] border-[#22d3ee]/30 bg-[#22d3ee]/10';
+            default: return 'text-gray-500 border-gray-500/30 bg-gray-500/10';
+        }
+    };
+
+    return (
+        <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg overflow-hidden shadow-2xl flex flex-col h-96">
+            {/* Header */}
+            <div className="h-10 bg-[#111] border-b border-[#1f1f1f] flex items-center justify-between px-4">
+                <div className="flex items-center gap-2">
+                    <RadioReceiver className="w-4 h-4 text-[#9d4edd] animate-pulse" />
+                    <h2 className="text-xs font-bold font-mono uppercase tracking-widest text-white">
+                        THE ORACLE <span className="text-gray-600">//</span> INTELLIGENCE L0
+                    </h2>
+                </div>
+                <div className="flex items-center gap-4 text-[9px] font-mono text-gray-500">
+                    <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-[#42be65]"></div> FEED_ACTIVE</span>
+                    <span>LATENCY: 12ms</span>
+                </div>
+            </div>
+
+            <div className="flex flex-1 overflow-hidden">
+                {/* Left: BASIX Feed */}
+                <div className="w-64 border-r border-[#1f1f1f] bg-[#050505] p-4 flex flex-col gap-4">
+                    <div className="text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider mb-1 border-b border-[#333] pb-2">
+                        BASIX Index Feed
+                    </div>
+                    
+                    {/* H100 Ticker */}
+                    <div>
+                        <div className="text-[9px] text-gray-500 font-mono uppercase mb-1">H100 Spot Price</div>
+                        <div className="flex items-end justify-between">
+                            <span className="text-xl font-mono font-bold text-white">${h100Price.toLocaleString(undefined, {maximumFractionDigits: 0})}</span>
+                            <span className="text-[9px] font-mono text-[#42be65] flex items-center mb-1">
+                                <TrendingUp className="w-3 h-3 mr-1" /> +2.4%
+                            </span>
+                        </div>
+                        <div className="h-8 w-full mt-2 opacity-50">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <LineChart data={priceHistory}>
+                                    <Line type="monotone" dataKey="price" stroke="#42be65" strokeWidth={2} dot={false} />
+                                </LineChart>
+                            </ResponsiveContainer>
+                        </div>
+                    </div>
+
+                    {/* Energy Ticker */}
+                    <div>
+                        <div className="text-[9px] text-gray-500 font-mono uppercase mb-1">Global Energy / kWh</div>
+                        <div className="flex items-end justify-between">
+                            <span className="text-xl font-mono font-bold text-white">${energyPrice.toFixed(3)}</span>
+                            <span className="text-[9px] font-mono text-red-400 flex items-center mb-1">
+                                <TrendingDown className="w-3 h-3 mr-1" /> -0.1%
+                            </span>
+                        </div>
+                    </div>
+
+                    {/* Arb Index */}
+                    <div className="mt-auto bg-[#111] p-3 rounded border border-[#222]">
+                        <div className="text-[9px] text-gray-500 font-mono uppercase mb-1 flex items-center gap-1">
+                            <Zap className="w-3 h-3 text-[#f59e0b]" /> Compute Arb
+                        </div>
+                        <div className="text-2xl font-mono font-bold text-[#f59e0b]">{arbIndex.toFixed(1)}x</div>
+                        <div className="w-full bg-[#333] h-1 mt-2 rounded-full overflow-hidden">
+                            <div className="h-full bg-[#f59e0b]" style={{ width: `${(arbIndex/20)*100}%` }}></div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right: Signal Database */}
+                <div className="flex-1 flex flex-col bg-[#030303] overflow-hidden relative">
+                    {/* Toolbar */}
+                    <div className="h-10 border-b border-[#1f1f1f] flex items-center px-4 gap-4 bg-[#080808]">
+                        <div className="flex items-center gap-2 text-gray-500 bg-[#111] px-2 py-1 rounded border border-[#222] flex-1">
+                            <Search className="w-3 h-3" />
+                            <input type="text" placeholder="Search Signal Database..." className="bg-transparent text-[10px] font-mono outline-none text-white w-full placeholder:text-gray-700"/>
+                        </div>
+                        <button className="text-gray-500 hover:text-white transition-colors"><Filter className="w-3 h-3" /></button>
+                        <button className="text-[#9d4edd] text-[10px] font-mono uppercase hover:underline">Sync Intelligence Rail</button>
+                    </div>
+
+                    {/* Table Header */}
+                    <div className="grid grid-cols-12 bg-[#0a0a0a] border-b border-[#1f1f1f] py-2 px-4 text-[9px] font-mono uppercase text-gray-500 tracking-wider">
+                        <div className="col-span-5">Signal / Headline</div>
+                        <div className="col-span-2">Tags</div>
+                        <div className="col-span-2">Source</div>
+                        <div className="col-span-2">Veracity</div>
+                        <div className="col-span-1 text-right">Leverage</div>
+                    </div>
+
+                    {/* Table Body */}
+                    <div className="overflow-y-auto custom-scrollbar flex-1 p-0">
+                        {signals.map((signal) => (
+                            <div key={signal.id} className="grid grid-cols-12 py-3 px-4 border-b border-[#1f1f1f] hover:bg-[#0f0f0f] transition-colors group cursor-pointer items-center">
+                                <div className="col-span-5 pr-4">
+                                    <div className="text-xs font-bold text-gray-300 font-mono group-hover:text-white truncate">{signal.headline}</div>
+                                    <div className="text-[9px] text-gray-600 font-mono mt-0.5">{new Date(signal.timestamp).toLocaleTimeString()} // ID: {signal.id}</div>
+                                </div>
+                                <div className="col-span-2 flex flex-wrap gap-1">
+                                    {signal.tags.map(tag => (
+                                        <span key={tag} className="text-[8px] font-mono text-[#9d4edd] bg-[#9d4edd]/10 px-1 rounded border border-[#9d4edd]/20">
+                                            {tag}
+                                        </span>
+                                    ))}
+                                </div>
+                                <div className="col-span-2 text-[10px] font-mono text-gray-400 truncate">
+                                    {signal.source}
+                                </div>
+                                <div className="col-span-2 flex items-center gap-2">
+                                    <div className="w-16 h-1.5 bg-[#222] rounded-full overflow-hidden">
+                                        <div className={`h-full ${getVeracityColor(signal.veracity)}`} style={{ width: `${signal.veracity}%` }}></div>
+                                    </div>
+                                    <span className="text-[9px] font-mono text-gray-500">{signal.veracity}%</span>
+                                </div>
+                                <div className="col-span-1 text-right">
+                                    <span className={`text-[8px] font-bold font-mono px-1.5 py-0.5 rounded border ${getLeverageColor(signal.leverage)}`}>
+                                        {signal.leverage}
+                                    </span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                    
+                    {/* Scanline Overlay */}
+                    <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.02)_1px,transparent_1px)] bg-[size:100%_3px] pointer-events-none"></div>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 const Dashboard: React.FC = () => {
   const { dashboard, setDashboardState } = useAppStore();
@@ -441,51 +627,8 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* 3. Protocols Footer */}
-      <div>
-         <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-                <Radio className="w-4 h-4 text-[#9d4edd]" />
-                <h2 className="text-xs font-bold font-mono uppercase tracking-widest text-white">Active Protocol Matrix</h2>
-            </div>
-            <button className="text-[10px] font-mono text-gray-500 hover:text-white uppercase transition-colors">View All Logs</button>
-        </div>
-        
-        <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg overflow-hidden shadow-lg">
-            <div className="grid grid-cols-12 bg-[#111] border-b border-[#1f1f1f] py-3 px-4">
-                <div className="col-span-5 text-[9px] font-mono uppercase text-gray-500 tracking-wider">Protocol Designation</div>
-                <div className="col-span-3 text-[9px] font-mono uppercase text-gray-500 tracking-wider">Type</div>
-                <div className="col-span-2 text-[9px] font-mono uppercase text-gray-500 tracking-wider">Status</div>
-                <div className="col-span-2 text-[9px] font-mono uppercase text-gray-500 tracking-wider text-right">Uplink</div>
-            </div>
-            
-            {[
-                { name: 'Mermaid Visualization Engine', type: 'CORE INFRA', status: 'ACTIVE', color: 'text-[#42be65]', bg: 'bg-[#42be65]/10 border-[#42be65]/20' },
-                { name: 'Gemini 3 Pro Image Gen', type: 'GENERATIVE', status: 'DEPLOYED', color: 'text-[#22d3ee]', bg: 'bg-[#22d3ee]/10 border-[#22d3ee]/20' },
-                { name: 'Tactical Oracle (Chat)', type: 'INTELLIGENCE', status: 'ONLINE', color: 'text-[#42be65]', bg: 'bg-[#42be65]/10 border-[#42be65]/20' },
-                { name: 'Deep Dive TTS Audio', type: 'SYNTHESIS', status: 'STANDBY', color: 'text-[#f59e0b]', bg: 'bg-[#f59e0b]/10 border-[#f59e0b]/20' },
-                { name: 'Contextual Memory Bridge', type: 'R&D', status: 'IN DEV', color: 'text-[#8d8d8d]', bg: 'bg-[#8d8d8d]/10 border-[#8d8d8d]/20' },
-            ].map((row, i) => (
-                <div key={i} className="grid grid-cols-12 py-3 px-4 border-b border-[#1f1f1f] last:border-0 hover:bg-[#151515] transition-colors items-center group cursor-pointer">
-                    <div className="col-span-5 text-xs font-bold text-gray-300 font-mono group-hover:text-white transition-colors flex items-center gap-2">
-                        {i === 0 && <div className="w-1.5 h-1.5 rounded-full bg-[#42be65] animate-pulse"></div>}
-                        {row.name}
-                    </div>
-                    <div className="col-span-3 text-[10px] text-gray-600 font-mono uppercase">
-                        {row.type}
-                    </div>
-                    <div className="col-span-2">
-                        <span className={`inline-block px-2 py-0.5 text-[9px] font-mono uppercase tracking-wide border rounded-sm ${row.color} ${row.bg}`}>
-                            {row.status}
-                        </span>
-                    </div>
-                    <div className="col-span-2 text-right opacity-0 group-hover:opacity-100 transition-opacity">
-                        <ArrowUpRight className="w-3.5 h-3.5 text-[#9d4edd] ml-auto" />
-                    </div>
-                </div>
-            ))}
-        </div>
-      </div>
+      {/* 3. The Oracle (Intelligence L0) */}
+      <OraclePanel />
 
     </div>
   );
