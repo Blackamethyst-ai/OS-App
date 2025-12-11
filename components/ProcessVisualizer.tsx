@@ -945,7 +945,7 @@ const ProcessVisualizer: React.FC = () => {
 
                                 <GenesisSection title="Operational Logic Sequence" icon={Cpu} defaultOpen={true} delay={0.2}>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {state.autopoieticFramework.operational_logic.map((step, i) => (
+                                        {state.autopoieticFramework.operational_logic?.map((step, i) => (
                                             <div 
                                                 key={i}
                                                 className="bg-[#0f0f0f] p-5 border border-[#222] hover:border-[#9d4edd] transition-colors group relative overflow-hidden rounded"
