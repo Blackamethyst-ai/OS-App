@@ -955,7 +955,7 @@ const ProcessVisualizer: React.FC = () => {
                                                     <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: state.autopoieticFramework?.visual_signature.color_hex }}></span>
                                                     <span className="text-[10px] font-bold font-mono" style={{ color: state.autopoieticFramework?.visual_signature.color_hex }}>STEP {step.step}</span>
                                                 </div>
-                                                <h3 className="text-sm font-bold text-white uppercase mb-2">{step.designation}</h3>
+                                                <h3 className="text-sm font-bold text-white uppercase mb-2">{step?.designation || 'STEP'}</h3>
                                                 <p className="text-xs text-gray-400 font-mono leading-relaxed">
                                                     {step.execution_vector}
                                                 </p>

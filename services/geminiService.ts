@@ -525,7 +525,18 @@ export async function generateAutopoieticFramework(fileData: FileData, governanc
     type: Type.OBJECT,
     properties: {
         framework_identity: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, acronym: { type: Type.STRING }, philosophical_origin: { type: Type.STRING } } },
-        operational_logic: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { step: { type: Type.STRING }, designation: { type: Type.STRING }, execution_vector: { type: Type.STRING } } } },
+        operational_logic: { 
+            type: Type.ARRAY, 
+            items: { 
+                type: Type.OBJECT, 
+                required: ["step", "designation", "execution_vector"],
+                properties: { 
+                    step: { type: Type.STRING }, 
+                    designation: { type: Type.STRING }, 
+                    execution_vector: { type: Type.STRING } 
+                } 
+            } 
+        },
         governance_mandate: { type: Type.STRING },
         visual_signature: { type: Type.OBJECT, properties: { color_hex: { type: Type.STRING }, icon_metaphor: { type: Type.STRING } } }
     }
@@ -551,6 +562,7 @@ export async function analyzeBookDNA(fileData: FileData): Promise<BookDNA> {
   
   const schema: Schema = {
     type: Type.OBJECT,
+    required: ["title", "author", "kernelIdentity", "axioms", "modules"],
     properties: {
       title: { type: Type.STRING },
       author: { type: Type.STRING },
@@ -583,6 +595,7 @@ export async function analyzeBookDNA(fileData: FileData): Promise<BookDNA> {
       },
       kernelIdentity: {
         type: Type.OBJECT,
+        required: ["designation", "primeDirective", "architecturalPhilosophy"],
         properties: {
           designation: { type: Type.STRING },
           architecturalPhilosophy: { type: Type.STRING },
@@ -652,7 +665,20 @@ export async function analyzeBookDNA(fileData: FileData): Promise<BookDNA> {
   // Extract JSON from markdown block if present
   let text = response.text || "{}";
   if (text.startsWith("```json")) text = text.replace(/```json|```/g, "");
-  return JSON.parse(text);
+  const result = JSON.parse(text);
+  
+  // Defensive: Ensure kernelIdentity exists even if model hallucinations occur
+  if (!result.kernelIdentity) {
+      result.kernelIdentity = {
+          designation: "UNKNOWN_KERNEL",
+          primeDirective: "NO_DATA",
+          architecturalPhilosophy: "UNDEFINED",
+          status: "ERROR",
+          contextIngestion: "FAILED"
+      };
+  }
+  
+  return result;
 }
 
 
