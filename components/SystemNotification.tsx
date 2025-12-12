@@ -88,4 +88,3 @@ const SystemNotification: React.FC = () => {
 };
 
 export default SystemNotification;
-    

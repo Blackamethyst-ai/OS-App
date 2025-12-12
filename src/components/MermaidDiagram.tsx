@@ -5,11 +5,15 @@ import mermaid from 'mermaid';
 import { motion, AnimatePresence } from 'framer-motion';
 import { repairMermaidSyntax, promptSelectKey } from '../services/geminiService'; // New service import
 
+export type DiagramTheme = 'dark' | 'light' | 'contrast';
+
 interface MermaidDiagramProps {
   code: string;
+  theme?: DiagramTheme;
+  showGrid?: boolean;
 }
 
-const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
+const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code, theme = 'dark', showGrid = true }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [svgData, setSvgData] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -23,23 +27,56 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
   const lastMousePosition = useRef({ x: 0, y: 0 });
   const [tooltip, setTooltip] = useState<{ x: number, y: number, text: string } | null>(null);
 
+  // Theme Configuration
   useEffect(() => {
+    const getThemeVariables = () => {
+        switch (theme) {
+            case 'light':
+                return {
+                    primaryColor: '#ffffff',
+                    primaryTextColor: '#000000',
+                    primaryBorderColor: '#9d4edd',
+                    lineColor: '#333333',
+                    secondaryColor: '#f4f4f4',
+                    tertiaryColor: '#fff',
+                    mainBkg: '#ffffff',
+                    nodeBorder: '#000000'
+                };
+            case 'contrast':
+                return {
+                    primaryColor: '#000000',
+                    primaryTextColor: '#00ff00', // Terminal Green
+                    primaryBorderColor: '#00ff00',
+                    lineColor: '#00ff00',
+                    secondaryColor: '#000000',
+                    tertiaryColor: '#000000',
+                    mainBkg: '#000000',
+                    nodeBorder: '#00ff00'
+                };
+            case 'dark':
+            default:
+                return {
+                    primaryColor: '#000000',
+                    primaryTextColor: '#fff',
+                    primaryBorderColor: '#9d4edd',
+                    lineColor: '#555',
+                    secondaryColor: '#000000',
+                    tertiaryColor: '#000000',
+                    mainBkg: '#030303',
+                    nodeBorder: '#9d4edd'
+                };
+        }
+    };
+
     mermaid.initialize({
       startOnLoad: false,
-      theme: 'base',
+      theme: 'base', // We use base to override with variables
       securityLevel: 'loose',
       fontFamily: 'Fira Code',
       flowchart: { htmlLabels: false }, // Disable HTML labels to prevent canvas tainting
-      themeVariables: {
-        primaryColor: '#000000',
-        primaryTextColor: '#fff',
-        primaryBorderColor: '#9d4edd',
-        lineColor: '#555',
-        secondaryColor: '#000000',
-        tertiaryColor: '#000000',
-      }
+      themeVariables: getThemeVariables()
     });
-  }, []);
+  }, [theme]); // Re-run init when theme changes
 
   // Update internal state when prop changes
   useEffect(() => {
@@ -55,18 +92,21 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
       setError(null);
       
       try {
+        // Reset mermaid config for this render cycle if needed, though initialize handles it globally.
+        // We use a unique ID to ensure fresh rendering
         const id = `mermaid-${Date.now()}`;
         const cleanCode = activeCode
           .replace(/```mermaid/g, '')
           .replace(/```/g, '')
           .trim();
 
+        // Render returns { svg }
         const { svg } = await mermaid.render(id, cleanCode);
         
         if (isMounted) {
            setSvgData(svg);
-           // Center the diagram initially
-           setTransform({ x: 0, y: 0, scale: 0.8 });
+           // Center the diagram initially if it's the first load
+           // setTransform({ x: 0, y: 0, scale: 0.8 }); 
         }
       } catch (err: any) {
         console.error("Mermaid Render Error", err);
@@ -81,7 +121,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
     render();
 
     return () => { isMounted = false; };
-  }, [activeCode]);
+  }, [activeCode, theme]); // Re-render on theme change too
 
   const handleAutoRepair = async () => {
       if (!error) return;
@@ -128,7 +168,8 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
           canvas.height = height * scale;
           
           if (ctx) {
-             ctx.fillStyle = '#030303'; 
+             // Background color based on theme for export
+             ctx.fillStyle = theme === 'light' ? '#ffffff' : '#030303'; 
              ctx.fillRect(0, 0, canvas.width, canvas.height);
              ctx.scale(scale, scale);
              ctx.drawImage(img, 0, 0, width, height);
@@ -210,6 +251,11 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
     isDragging.current = false;
   };
 
+  // Theme-based styling for container
+  const containerBg = theme === 'light' ? 'bg-[#f4f4f4]' : 'bg-[#030303]';
+  const borderColor = theme === 'light' ? 'border-gray-300' : (theme === 'contrast' ? 'border-green-500' : 'border-[#1f1f1f]');
+  const gridColor = theme === 'light' ? '#ddd' : '#333';
+
   if (error) {
     return (
       <div className="w-full h-full flex flex-col items-center justify-center bg-red-900/10 p-8 border border-red-500/20 rounded-xl relative overflow-hidden">
@@ -236,7 +282,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
 
   if (isRendering || !svgData) {
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-[#030303] relative overflow-hidden">
+      <div className={`w-full h-full flex flex-col items-center justify-center ${containerBg} relative overflow-hidden`}>
         <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.1)_1px,transparent_1px)] bg-[size:40px_40px] animate-[pulse_2s_infinite]"></div>
         <RefreshCw className="w-12 h-12 text-[#9d4edd] animate-spin mb-6 relative z-10" />
         <p className="text-[#9d4edd] font-mono text-xs tracking-[0.3em] uppercase animate-pulse relative z-10">Constructing Visual Vector...</p>
@@ -245,17 +291,19 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
   }
 
   return (
-    <div className="w-full h-full bg-[#030303] relative overflow-hidden group border border-[#1f1f1f] rounded-lg shadow-2xl">
+    <div className={`w-full h-full ${containerBg} relative overflow-hidden group border ${borderColor} rounded-lg shadow-2xl`}>
       
       {/* Dynamic Background Grid */}
-      <div 
-        className="absolute inset-0 pointer-events-none opacity-20"
-        style={{
-            backgroundImage: `radial-gradient(circle, #333 1px, transparent 1px)`,
-            backgroundSize: `${40 * transform.scale}px ${40 * transform.scale}px`,
-            backgroundPosition: `${transform.x}px ${transform.y}px`
-        }}
-      ></div>
+      {showGrid && (
+        <div 
+            className="absolute inset-0 pointer-events-none opacity-20"
+            style={{
+                backgroundImage: `radial-gradient(circle, ${gridColor} 1px, transparent 1px)`,
+                backgroundSize: `${40 * transform.scale}px ${40 * transform.scale}px`,
+                backgroundPosition: `${transform.x}px ${transform.y}px`
+            }}
+        ></div>
+      )}
 
       {/* Main Canvas */}
       <div 
@@ -299,10 +347,10 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
       
       {/* Overlay Details */}
       <div className="absolute top-4 left-4 pointer-events-none">
-          <h3 className="text-[10px] font-bold text-gray-500 font-mono uppercase tracking-widest">Schematic Visualization</h3>
+          <h3 className={`text-[10px] font-bold font-mono uppercase tracking-widest ${theme === 'light' ? 'text-gray-600' : 'text-gray-500'}`}>Schematic Visualization</h3>
           <div className="flex items-center gap-2 mt-1">
-              <span className="w-2 h-2 rounded-full bg-[#9d4edd] animate-pulse"></span>
-              <span className="text-[9px] text-[#9d4edd] font-mono">LIVE RENDER</span>
+              <span className={`w-2 h-2 rounded-full animate-pulse ${theme === 'contrast' ? 'bg-green-500' : 'bg-[#9d4edd]'}`}></span>
+              <span className={`text-[9px] font-mono ${theme === 'contrast' ? 'text-green-500' : 'text-[#9d4edd]'}`}>LIVE RENDER</span>
           </div>
       </div>
 

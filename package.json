@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host 0.0.0.0",
     "build": "vite build",
     "preview": "vite preview"
   },
@@ -16,7 +16,8 @@
     "@google/genai": "^1.31.0",
     "react-dom": "^19.2.1",
     "zustand": "^5.0.9",
-    "@xyflow/react": "^12.10.0"
+    "@xyflow/react": "^12.10.0",
+    "idb": "^8.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
