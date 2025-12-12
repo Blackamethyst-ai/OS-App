@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
-import { interpretIntent } from '../services/geminiService';
-import { AppMode } from '../types';
-import { Command, Loader2, X, Sparkles, ChevronRight, Code, Cpu, Mic, Zap, Image, BookOpen, Layers, Terminal, Activity } from 'lucide-react';
+import { interpretIntent, predictNextActions, promptSelectKey } from '../services/geminiService';
+import { AppMode, SuggestedAction } from '../types';
+import { Command, Loader2, X, Sparkles, ChevronRight, Code, Cpu, Mic, Zap, Image, BookOpen, Layers, Terminal, Activity, Search, Shield, BrainCircuit, Split } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MotionDiv = motion.div as any;
@@ -17,18 +17,22 @@ const CommandPalette: React.FC = () => {
       setImageGenState,
       setCodeStudioState,
       setHardwareState,
-      mode
+      mode,
+      system
   } = useAppStore();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isPredicting, setIsPredicting] = useState(false);
   const [result, setResult] = useState<string | null>(null);
+  const [aiSuggestions, setAiSuggestions] = useState<SuggestedAction[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Dynamic Suggestions based on active context
-  const suggestions = useMemo(() => {
+  // Dynamic Suggestions based on active context (Hardcoded Fallback)
+  const staticSuggestions = useMemo(() => {
       const base = [
           { id: 'nav-hw', label: 'Navigate to Hardware Core', command: 'Navigate to Hardware', icon: Cpu },
           { id: 'nav-voice', label: 'Initialize Voice Core', command: 'Open Voice Mode', icon: Mic },
+          { id: 'nav-bicameral', label: 'Engage Bicameral Engine', command: 'Open Bicameral Engine', icon: Split },
       ];
 
       switch(mode) {
@@ -55,6 +59,11 @@ const CommandPalette: React.FC = () => {
                   { id: 'bib-dna', label: 'Extract Book DNA', command: 'Analyze the tone and themes of the uploaded text', icon: BookOpen },
                   ...base
               ];
+          case AppMode.PROCESS_MAP:
+              return [
+                  { id: 'bicam-plan', label: 'Generate Execution Plan', command: 'Decompose a complex task', icon: BrainCircuit },
+                  ...base
+              ]
           default:
               return [
                   { id: 'gen-code', label: 'Write Code', command: 'Open Code Studio', icon: Code },
@@ -92,14 +101,35 @@ const CommandPalette: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isCommandPaletteOpen, toggleCommandPalette]);
 
+  // Reset and Fetch AI Predictions on Open
   useEffect(() => {
     if (isCommandPaletteOpen) {
       // Small delay to ensure DOM is ready for focus
       setTimeout(() => inputRef.current?.focus(), 50);
       setInput('');
       setResult(null);
+      setAiSuggestions([]); // Clear previous
+      
+      // Fetch AI Suggestions
+      const fetchSuggestions = async () => {
+          setIsPredicting(true);
+          try {
+              const hasKey = await window.aistudio?.hasSelectedApiKey();
+              if (hasKey) {
+                  const lastLog = system.logs.length > 0 ? system.logs[system.logs.length - 1].message : undefined;
+                  const suggestions = await predictNextActions(mode, lastLog);
+                  setAiSuggestions(suggestions);
+              }
+          } catch(e) {
+              console.error("AI Prediction Failed", e);
+          } finally {
+              setIsPredicting(false);
+          }
+      };
+      
+      fetchSuggestions();
     }
-  }, [isCommandPaletteOpen]);
+  }, [isCommandPaletteOpen, mode]); // Re-fetch if mode changes while open
 
   const executeCommand = async () => {
     if (!input.trim()) return;
@@ -107,6 +137,19 @@ const CommandPalette: React.FC = () => {
     setResult(null);
 
     try {
+      const hasKey = await window.aistudio?.hasSelectedApiKey();
+      if (!hasKey) { await promptSelectKey(); setIsLoading(false); return; }
+
+      // Handle special alias for bicameral engine navigation
+      if (input.toLowerCase().includes('bicameral') || input.toLowerCase().includes('engine')) {
+          setMode(AppMode.PROCESS_MAP);
+          setProcessState({ activeTab: 'workflow', architectMode: 'EXECUTION' });
+          setResult('Engaging Bicameral Architecture...');
+          setTimeout(() => toggleCommandPalette(false), 1000);
+          setIsLoading(false);
+          return;
+      }
+
       const intent = await interpretIntent(input);
       
       switch (intent.action) {
@@ -192,6 +235,20 @@ const CommandPalette: React.FC = () => {
     }
   };
 
+  const getIcon = (name: string) => {
+      switch(name) {
+          case 'Zap': return Zap;
+          case 'Code': return Code;
+          case 'Search': return Search;
+          case 'Cpu': return Cpu;
+          case 'Image': return Image;
+          case 'BookOpen': return BookOpen;
+          case 'Shield': return Shield;
+          case 'Terminal': return Terminal;
+          default: return Sparkles;
+      }
+  };
+
   return (
     <AnimatePresence>
       {isCommandPaletteOpen && (
@@ -226,29 +283,69 @@ const CommandPalette: React.FC = () => {
             
             {/* Suggested Actions */}
             {!input && !isLoading && !result && (
-                <div className="p-2 border-t border-[#1f1f1f]">
-                    <div className="px-3 py-2 text-[9px] text-gray-600 font-mono uppercase tracking-widest mb-1 flex justify-between">
-                        <span>Suggested Directives</span>
-                        <span className="text-[#9d4edd]">{mode.replace('_', ' ')} Context</span>
-                    </div>
-                    {suggestions.map((s) => (
-                        <button
-                          key={s.id}
-                          onClick={() => {
-                              setInput(s.command);
-                              inputRef.current?.focus();
-                          }}
-                          className="w-full flex items-center px-3 py-2 rounded hover:bg-[#111] text-gray-400 hover:text-white transition-colors group"
-                        >
-                            <div className="w-5 h-5 flex items-center justify-center rounded bg-[#1f1f1f] text-gray-500 group-hover:bg-[#9d4edd] group-hover:text-black mr-3 transition-colors">
-                                {s.icon ? <s.icon className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-                            </div>
-                            <span className="text-xs font-mono flex-1 text-left">{s.label}</span>
-                            <span className="text-[9px] font-mono text-gray-600 group-hover:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
-                                EXECUTE
+                <div className="p-0 border-t border-[#1f1f1f]">
+                    {/* AI Suggestions Section */}
+                    <div className="bg-[#0e0e0e]">
+                        <div className="px-4 py-2 text-[9px] text-[#9d4edd] font-mono uppercase tracking-widest flex items-center justify-between border-b border-[#1f1f1f] bg-[#111]">
+                            <span className="flex items-center gap-2">
+                                <BrainCircuit className="w-3 h-3" /> Neural Predictions
                             </span>
-                        </button>
-                    ))}
+                            {isPredicting && <Loader2 className="w-3 h-3 animate-spin text-[#9d4edd]" />}
+                        </div>
+                        
+                        {aiSuggestions.length > 0 ? (
+                            aiSuggestions.map((s) => {
+                                const Icon = getIcon(s.iconName);
+                                return (
+                                    <button
+                                      key={s.id}
+                                      onClick={() => {
+                                          setInput(s.command);
+                                          inputRef.current?.focus();
+                                      }}
+                                      className="w-full flex items-center px-4 py-3 hover:bg-[#1a1a1a] text-gray-300 hover:text-white transition-colors group border-b border-[#1f1f1f] last:border-0"
+                                    >
+                                        <div className="w-6 h-6 flex items-center justify-center rounded bg-[#9d4edd]/10 text-[#9d4edd] border border-[#9d4edd]/20 mr-3 transition-colors group-hover:bg-[#9d4edd] group-hover:text-black">
+                                            <Icon className="w-3.5 h-3.5" />
+                                        </div>
+                                        <div className="flex-1 text-left">
+                                            <div className="text-xs font-bold font-mono">{s.label}</div>
+                                            <div className="text-[9px] text-gray-500 font-mono truncate max-w-sm">{s.reasoning}</div>
+                                        </div>
+                                        <span className="text-[9px] font-mono text-[#9d4edd] opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                                            APPLY <ChevronRight className="w-3 h-3" />
+                                        </span>
+                                    </button>
+                                );
+                            })
+                        ) : !isPredicting && (
+                            <div className="px-4 py-3 text-[10px] text-gray-600 font-mono text-center italic">
+                                No context signals detected.
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Static Suggestions Section */}
+                    <div className="border-t border-[#1f1f1f]">
+                        <div className="px-4 py-2 text-[9px] text-gray-600 font-mono uppercase tracking-widest bg-[#050505]">
+                            Standard Protocols
+                        </div>
+                        {staticSuggestions.map((s) => (
+                            <button
+                              key={s.id}
+                              onClick={() => {
+                                  setInput(s.command);
+                                  inputRef.current?.focus();
+                              }}
+                              className="w-full flex items-center px-4 py-2 hover:bg-[#111] text-gray-400 hover:text-white transition-colors group"
+                            >
+                                <div className="w-5 h-5 flex items-center justify-center rounded bg-[#1f1f1f] text-gray-500 group-hover:text-white mr-3 transition-colors">
+                                    {s.icon ? <s.icon className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                                </div>
+                                <span className="text-xs font-mono flex-1 text-left">{s.label}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             )}
 

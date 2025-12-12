@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const MotionDiv = motion.div as any;
 
 const GlobalSearchBar: React.FC = () => {
-  const { search, setSearchState, setMode, setCodeStudioState, setImageGenState } = useAppStore();
+  const { search, setSearchState, setMode, setCodeStudioState, setImageGenState, addLog } = useAppStore();
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
@@ -51,8 +51,11 @@ const GlobalSearchBar: React.FC = () => {
       if (savedSearch) {
           try {
               const { query, results } = JSON.parse(savedSearch);
-              if (query || results.length > 0) {
-                  setSearchState({ query, results }); 
+              // Restore even if empty to ensure sync, but mostly if we have data
+              if (query || (results && results.length > 0)) {
+                  setSearchState({ query, results, isOpen: false }); 
+                  // Notify user subtly (optional, via system log)
+                  // addLog('SYSTEM', 'RESTORE: Search Context Loaded'); 
               }
           } catch(e) { console.error("Failed to load search state"); }
       }
@@ -67,11 +70,13 @@ const GlobalSearchBar: React.FC = () => {
       }
   }, []);
 
-  // Persist State on Change
+  // Persist State on Change (Debounced)
   useEffect(() => {
-      if (search.query || search.results.length > 0) {
-          localStorage.setItem('global_search_state', JSON.stringify({ query: search.query, results: search.results }));
-      }
+      const timer = setTimeout(() => {
+          const stateToSave = { query: search.query, results: search.results };
+          localStorage.setItem('global_search_state', JSON.stringify(stateToSave));
+      }, 500); // 500ms debounce to prevent thrashing
+      return () => clearTimeout(timer);
   }, [search.query, search.results]);
 
   const addToHistory = (q: string) => {
@@ -109,8 +114,6 @@ const GlobalSearchBar: React.FC = () => {
       setSearchState({ isSearching: true, results: [] });
       performGlobalSearch(q).then(results => {
           setSearchState({ results, isSearching: false });
-          // Ensure persisted state updates
-          localStorage.setItem('global_search_state', JSON.stringify({ query: q, results }));
       }).catch(() => setSearchState({ isSearching: false }));
   };
 
@@ -131,6 +134,9 @@ const GlobalSearchBar: React.FC = () => {
                  const payload = JSON.parse(item.meta.payload);
                  setImageGenState({ prompt: payload.prompt || item.meta.payload });
              } catch(e) { setImageGenState({ prompt: item.meta.payload }); }
+          } else if (item.meta?.targetMode === 'HARDWARE_ENGINEER' && item.meta?.payload) {
+             // Example for other modes
+             setMode(AppMode.HARDWARE_ENGINEER);
           }
       }
       setSearchState({ isOpen: false });
@@ -174,8 +180,8 @@ const GlobalSearchBar: React.FC = () => {
                     value={search.query}
                     onChange={(e) => setSearchState({ query: e.target.value })}
                     onFocus={() => setSearchState({ isOpen: true })}
-                    className="w-full bg-[#0a0a0a] border border-[#333] rounded-full px-10 py-1.5 text-xs font-mono text-white focus:border-[#9d4edd] focus:ring-1 focus:ring-[#9d4edd]/20 outline-none transition-all shadow-inner"
-                    style={{ color: 'transparent', textShadow: '0 0 0 white' }} // Hack to keep text white but hide default placeholder
+                    className="w-full bg-[#0a0a0a] border border-[#333] rounded-full px-10 py-1.5 text-xs font-mono text-white focus:border-[#9d4edd] focus:ring-1 focus:ring-[#9d4edd]/20 outline-none transition-all shadow-inner placeholder-transparent"
+                    placeholder="Search..." 
                 />
                 
                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2">

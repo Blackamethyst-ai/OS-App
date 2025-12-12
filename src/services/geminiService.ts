@@ -1,6 +1,7 @@
 
 import { GoogleGenAI, Type, Schema, FunctionDeclaration, LiveServerMessage, Modality } from "@google/genai";
-import { AspectRatio, ImageSize, AnalysisResult, BookDNA, AutopoieticFramework, ComponentRecommendation, ArtifactAnalysis, UserIntent, ArtifactNode, FileData, SearchResultItem, GovernanceSchema, SystemWorkflow } from '../types';
+import { AspectRatio, ImageSize, AnalysisResult, BookDNA, AutopoieticFramework, ComponentRecommendation, ArtifactAnalysis, UserIntent, ArtifactNode, FileData, SearchResultItem, GovernanceSchema, SystemWorkflow, ProjectTopology, StructuredScaffold, WorkerAgent, SuggestedAction, ResearchTask } from '../types';
+import { useAppStore } from '../store';
 
 // --- Utility: Key Selection ---
 
@@ -27,6 +28,92 @@ export async function fileToGenerativePart(file: File): Promise<FileData> {
     reader.onerror = reject;
     reader.readAsDataURL(file);
   });
+}
+
+// --- Deep Research Agent (Interactions API Simulation) ---
+
+export async function startDeepResearchTask(query: string) {
+    const store = useAppStore.getState();
+    const taskId = `research-${Date.now()}`;
+    
+    // 1. Init Task
+    const newTask: ResearchTask = {
+        id: taskId,
+        query,
+        status: 'QUEUED',
+        progress: 0,
+        logs: ['Task queued for background execution...'],
+        timestamp: Date.now()
+    };
+    store.addResearchTask(newTask);
+
+    try {
+        // 2. Start Execution (Mocking "Background" nature by not awaiting immediately in UI thread logic if simpler, but here we define the flow)
+        store.updateResearchTask(taskId, { status: 'RESEARCHING', progress: 10, logs: ['Agent "deep-research-pro" initialized.', 'Analyzing query intent...'] });
+        
+        const ai = getAI();
+        
+        // Phase 1: Planning & Search
+        // We use gemini-3-pro-preview to simulate the deep research agent
+        const planResponse = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: `You are the Deep Research Agent (preview-12-2025). 
+            GOAL: Create a high-level research plan for: "${query}".
+            Return a list of 3-5 specific search queries to execute to get comprehensive coverage.`,
+            config: { responseMimeType: 'application/json' }
+        });
+        
+        store.updateResearchTask(taskId, { progress: 30, logs: ['Research plan generated.', 'Executing parallel search vectors...'] });
+        
+        // Phase 2: Execution (Real Search)
+        const researchPrompt = `
+        Perform a Deep Research task on: "${query}".
+        
+        Use the 'googleSearch' tool to find detailed, factual, and up-to-date information.
+        Synthesize findings into a comprehensive report.
+        
+        Structure the report with:
+        1. Executive Summary
+        2. Key Findings (with citations/sources)
+        3. Timeline/History (if applicable)
+        4. Technical/Deep Analysis
+        5. Future Outlook / Conclusion
+        `;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: researchPrompt,
+            config: {
+                tools: [{ googleSearch: {} }]
+            }
+        });
+
+        store.updateResearchTask(taskId, { status: 'SYNTHESIZING', progress: 80, logs: ['Aggregating sources...', 'Drafting final report...'] });
+        
+        // Artificial delay to feel "Deep"
+        await new Promise(r => setTimeout(r, 1500));
+
+        const resultText = response.text || "Research completed but no text generated.";
+        
+        // Phase 3: Completion
+        store.updateResearchTask(taskId, { 
+            status: 'COMPLETED', 
+            progress: 100, 
+            logs: ['Research Complete.', 'Report filed to memory.'],
+            result: resultText
+        });
+
+        store.addLog('SUCCESS', `RESEARCH: Task "${query.substring(0, 20)}..." completed.`);
+
+    } catch (err: any) {
+        console.error("Deep Research Failed", err);
+        store.updateResearchTask(taskId, { 
+            status: 'FAILED', 
+            progress: 0, 
+            logs: [`FATAL ERROR: ${err.message}`] 
+        });
+        store.addLog('ERROR', `RESEARCH_FAIL: ${err.message}`);
+    }
 }
 
 // --- 1. Image Generation (Asset Studio) ---
@@ -213,6 +300,42 @@ export async function interpretIntent(input: string): Promise<UserIntent> {
   });
 
   return JSON.parse(response.text || "{}");
+}
+
+export async function predictNextActions(mode: string, lastLog?: string): Promise<SuggestedAction[]> {
+    const ai = getAI();
+    const schema: Schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                label: { type: Type.STRING, description: "Short title for the action button" },
+                command: { type: Type.STRING, description: "The natural language instruction to execute this action" },
+                iconName: { type: Type.STRING, enum: ['Zap', 'Code', 'Search', 'Cpu', 'Image', 'BookOpen', 'Shield', 'Terminal'] },
+                reasoning: { type: Type.STRING }
+            },
+            required: ['label', 'command', 'iconName']
+        }
+    };
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `
+        The user is currently using the "${mode}" module of the Sovereign OS AI system.
+        Last system log: "${lastLog || 'System Idle'}"
+        
+        Suggest 3 highly relevant, specific next actions the user might want to take. 
+        These should be actionable commands like "Generate a 3D isometric view", "Analyze power consumption", "Write a React component", etc.
+        Keep labels short (under 20 chars).
+        `,
+        config: {
+            responseMimeType: 'application/json',
+            responseSchema: schema
+        }
+    });
+
+    const raw = JSON.parse(response.text || "[]");
+    return raw.map((r: any, i: number) => ({ ...r, id: `suggest-${i}` }));
 }
 
 export async function analyzeSchematic(fileData: FileData): Promise<any> {
@@ -839,6 +962,133 @@ export async function generateTaxonomy(items: string[]): Promise<{ category: str
     return JSON.parse(response.text || "[]");
 }
 
+// --- Architect Mode Upgrades ---
+
+export async function determineTopology(files: FileData[]): Promise<ProjectTopology> {
+    const ai = getAI();
+    
+    // We force the model to think like the research paper authors
+    const prompt = `
+    Analyze these project artifacts. Calculate the "Domain Complexity (D)" based on:
+    1. Sequential Interdependence (Do step B depend on step A?)
+    2. Partial Observability (Is information hidden?)
+    3. Tool Complexity (How many tools are needed?)
+
+    Referencing the "Science of Scaling" principles:
+    - If D < 0.4 (Low Complexity): Recommend DECENTRALIZED or INDEPENDENT.
+    - If 0.4 < D < 0.7 (Structured): Recommend CENTRALIZED (High efficiency gain).
+    - If D > 0.7 (Chaotic/Sequential): Recommend SINGLE-AGENT or STRICT HIERARCHY (to prevent -70% degradation).
+
+    Return JSON.
+    `;
+
+    const schema: Schema = {
+        type: Type.OBJECT,
+        properties: {
+            complexityScore: { type: Type.NUMBER },
+            recommendedMode: { type: Type.STRING, enum: ['CENTRALIZED', 'DECENTRALIZED', 'INDEPENDENT', 'HYBRID', 'SINGLE-AGENT', 'STRICT HIERARCHY'] },
+            reasoning: { type: Type.STRING },
+            scalingFactor: { type: Type.NUMBER }
+        },
+        required: ['complexityScore', 'recommendedMode', 'reasoning']
+    };
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: { parts: [...files, { text: prompt }] },
+        config: { responseMimeType: 'application/json', responseSchema: schema }
+    });
+
+    return JSON.parse(response.text || "{}");
+}
+
+export async function generateScaffold(topology: ProjectTopology, governance: GovernanceSchema): Promise<StructuredScaffold> {
+    const ai = getAI();
+    
+    // The scaffold changes physically based on the topology
+    let structuralDirective = "";
+    if (topology.recommendedMode === 'CENTRALIZED' || topology.recommendedMode === 'STRICT HIERARCHY') {
+        structuralDirective = "Create a strictly hierarchical folder structure. MUST include an 'orchestrator/' directory and 'validation_gates/' to prevent error propagation (4.4x containment).";
+    } else if (topology.recommendedMode === 'DECENTRALIZED') {
+        structuralDirective = "Create a flat, module-based structure. MUST include 'shared_context/' and 'event_bus/' for peer-to-peer info fusion.";
+    }
+
+    const prompt = `
+    Design the perfect system architecture and drive organization.
+    TOPOLOGY: ${topology.recommendedMode} (Complexity D=${topology.complexityScore}).
+    DIRECTIVE: ${structuralDirective}
+    GOVERNANCE: ${governance.constraintLevel}
+
+    Output:
+    1. ASCII Tree Structure.
+    2. Protocol Rules (e.g. "All merges require Orchestrator sign-off").
+    3. A Bash script to generate this structure.
+    `;
+
+    const schema: Schema = {
+        type: Type.OBJECT,
+        properties: {
+            tree: { type: Type.STRING },
+            protocols: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { rule: { type: Type.STRING }, type: { type: Type.STRING } } } },
+            script: { type: Type.STRING }
+        },
+        required: ['tree', 'protocols', 'script']
+    };
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: { responseMimeType: 'application/json', responseSchema: schema }
+    });
+
+    return JSON.parse(response.text || "{}");
+}
+
+// --- Swarm Intelligence (O(1) Parallelism) ---
+
+export async function decomposeTask(prompt: string): Promise<WorkerAgent[]> {
+    const ai = getAI();
+    const schema: Schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                task: { type: Type.STRING, description: "Specific sub-task to execute" },
+                role: { type: Type.STRING, description: "Role of the agent (e.g. Researcher, Coder)" }
+            },
+            required: ['task', 'role']
+        }
+    };
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `Break down this complex request into independent, parallelizable sub-tasks for a Multi-Agent Swarm. 
+        Request: "${prompt}"
+        Ensure tasks are atomic and can be executed simultaneously.`,
+        config: {
+            responseMimeType: 'application/json',
+            responseSchema: schema
+        }
+    });
+
+    const tasks = JSON.parse(response.text || "[]");
+    return tasks.map((t: any, i: number) => ({
+        id: `agent-${Date.now()}-${i}`,
+        role: t.role,
+        task: t.task,
+        status: 'IDLE'
+    }));
+}
+
+export async function executeAgentTask(agent: WorkerAgent): Promise<string> {
+    const ai = getAI();
+    // Simulate thinking/network time + actual generation
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: `You are a ${agent.role}. Execute this task concisely: ${agent.task}`
+    });
+    return response.text || "No response generated.";
+}
 
 // --- 3. Live API (Voice Mode) ---
 
@@ -864,7 +1114,7 @@ class LiveSessionHandler {
   private nextStartTime = 0;
   private sources = new Set<AudioBufferSourceNode>();
 
-  async connect(voiceName: string) {
+  async connect(voiceName: string, config?: any) {
     const ai = getAI();
     this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
     
@@ -916,16 +1166,22 @@ class LiveSessionHandler {
         }
     };
 
-    const sessionPromise = ai.live.connect({
-      model: 'gemini-2.5-flash-native-audio-preview-09-2025',
-      config: {
+    // Default Tools
+    const tools = [{ functionDeclarations: [controlSystemTool, telemetryTool, searchTool] }];
+    
+    // Merge config if provided (e.g. from AgoraPanel)
+    const finalConfig = {
         responseModalities: [Modality.AUDIO],
         speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
         inputAudioTranscription: {},
         outputAudioTranscription: {},
-        tools: [{ functionDeclarations: [controlSystemTool, telemetryTool, searchTool] }],
-        systemInstruction: "You are the Voice Core of Sovereign OS. You can control the UI and execute commands. When asked to navigate or perform tasks, use the control_system tool. Use get_telemetry to check system status. Use search_knowledge to find information."
-      },
+        tools: config?.tools || tools,
+        systemInstruction: config?.systemInstruction || "You are the Voice Core of Sovereign OS. You can control the UI and execute commands. When asked to navigate or perform tasks, use the control_system tool. Use get_telemetry to check system status. Use search_knowledge to find information."
+    };
+
+    const sessionPromise = ai.live.connect({
+      model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+      config: finalConfig,
       callbacks: {
           onopen: () => console.log('Session connected'),
           onmessage: (msg: LiveServerMessage) => this.handleMessage(msg),

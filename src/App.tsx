@@ -12,18 +12,20 @@ import BibliomorphicEngine from './components/BibliomorphicEngine';
 import VoiceMode from './components/VoiceMode';
 import HardwareEngine from './components/HardwareEngine';
 import CodeStudio from './components/CodeStudio';
-import MemoryCore from './components/MemoryCore'; // Upgrade
+import MemoryCore from './components/MemoryCore'; 
 import GlobalSearchBar from './components/GlobalSearchBar';
 import SystemNotification from './components/SystemNotification';
 import NeuralHeader from './components/NeuralHeader';
 import OverlayOS from './components/OverlayOS';
 import HoloProjector from './components/HoloProjector'; 
 import SynapticRouter from './components/SynapticRouter'; 
-import TimeTravelScrubber from './components/TimeTravelScrubber'; // Upgrade
-import { useAutoSave } from './hooks/useAutoSave'; // Upgrade
-import { useDaemonSwarm } from './hooks/useDaemonSwarm'; // Upgrade E
-import { useVoiceControl } from './hooks/useVoiceControl'; // Upgrade F
-import { Layout, Image, Settings, Key, Command, LayoutGrid, Activity, BookOpen, Mic, Cpu, Code, HardDrive } from 'lucide-react';
+import TimeTravelScrubber from './components/TimeTravelScrubber'; 
+import BicameralEngine from './components/BicameralEngine'; 
+import ResearchTray from './components/ResearchTray'; // New Import
+import { useAutoSave } from './hooks/useAutoSave'; 
+import { useDaemonSwarm } from './hooks/useDaemonSwarm'; 
+import { useVoiceControl } from './hooks/useVoiceControl'; 
+import { Layout, Image, Settings, Key, Command, LayoutGrid, Activity, BookOpen, Mic, Cpu, Code, HardDrive, Split } from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
 import { audio } from './services/audioService'; 
 import { motion, AnimatePresence } from 'framer-motion';
@@ -174,6 +176,7 @@ const AmbientBackground: React.FC = () => {
           case AppMode.BIBLIOMORPHIC: return ['#f97316', '#7c2d12', 4]; // Orange
           case AppMode.VOICE_MODE: return ['#22d3ee', '#155e75', 3]; // Cyan
           case AppMode.MEMORY_CORE: return ['#9d4edd', '#4c1d95', 6]; // Deep Purple
+          case AppMode.BICAMERAL: return ['#22d3ee', '#9d4edd', 5]; // Cyan/Purple Split
           case AppMode.DASHBOARD: 
           default: return ['#9d4edd', '#4c1d95', 8]; // Deep Purple
       }
@@ -290,7 +293,8 @@ const App: React.FC = () => {
       setHardwareState,
       setImageGenState,
       setBibliomorphicState,
-      setDashboardState 
+      setDashboardState,
+      setBicameralState
   } = useAppStore();
 
   // 1. Activate Auto-Pilot (Persistence)
@@ -322,6 +326,7 @@ const App: React.FC = () => {
           case AppMode.IMAGE_GEN: setImageGenState(savedState); break;
           case AppMode.BIBLIOMORPHIC: setBibliomorphicState(savedState); break;
           case AppMode.DASHBOARD: setDashboardState(savedState); break;
+          case AppMode.BICAMERAL: setBicameralState(savedState); break;
           default: console.warn("State restoration not implemented for this mode");
       }
   };
@@ -340,6 +345,7 @@ const App: React.FC = () => {
       <OverlayOS /> 
       <HoloProjector /> 
       <SynapticRouter /> 
+      <ResearchTray /> {/* New Research Tray Component */}
 
       {/* Navigation Header */}
       <header className="flex-shrink-0 h-16 bg-[#030303]/80 backdrop-blur-md border-b border-[#1f1f1f] z-50 px-6 flex items-center justify-between">
@@ -392,6 +398,17 @@ const App: React.FC = () => {
           >
             <HardDrive className="w-3.5 h-3.5 mr-2" />
             Memory Core
+          </button>
+          <button
+            onClick={() => switchMode(AppMode.BICAMERAL)}
+            onMouseEnter={() => audio.playHover()}
+            className={`flex items-center px-4 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-all duration-300 font-mono whitespace-nowrap
+              ${mode === AppMode.BICAMERAL
+                ? 'bg-[#1f1f1f] text-[#9d4edd] shadow-sm border border-[#333]' 
+                : 'text-gray-500 hover:text-gray-300 hover:bg-[#111]'}`}
+          >
+            <Split className="w-3.5 h-3.5 mr-2" />
+            Bicameral
           </button>
           <button
             onClick={() => switchMode(AppMode.IMAGE_GEN)}
@@ -505,6 +522,7 @@ const App: React.FC = () => {
             {mode === AppMode.HARDWARE_ENGINEER && <HardwareEngine />}
             {mode === AppMode.VOICE_MODE && <VoiceMode />}
             {mode === AppMode.CODE_STUDIO && <CodeStudio />}
+            {mode === AppMode.BICAMERAL && <BicameralEngine />}
         </motion.main>
       </AnimatePresence>
     </div>

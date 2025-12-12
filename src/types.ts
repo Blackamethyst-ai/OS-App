@@ -9,6 +9,7 @@ export enum AppMode {
   VOICE_MODE = 'VOICE_MODE',
   CODE_STUDIO = 'CODE_STUDIO',
   MEMORY_CORE = 'MEMORY_CORE',
+  BICAMERAL = 'BICAMERAL',
 }
 
 export enum ImageSize {
@@ -101,6 +102,30 @@ export interface SystemWorkflow {
     processDiagram?: string;
 }
 
+export interface ProjectTopology {
+    complexityScore: number; // 0.0 - 1.0 (The 'D' metric)
+    recommendedMode: 'CENTRALIZED' | 'DECENTRALIZED' | 'INDEPENDENT' | 'HYBRID' | 'SINGLE-AGENT' | 'STRICT HIERARCHY';
+    reasoning: string;
+    scalingFactor: number; // Predicted efficiency gain/loss
+}
+
+export interface StructuredScaffold {
+    tree: string;
+    protocols: { rule: string; type: 'BLOCKER' | 'ASYNC' | 'SYNC' }[];
+    script: string;
+}
+
+export interface WorkerAgent {
+    id: string;
+    role: string;
+    task: string;
+    status: 'IDLE' | 'WORKING' | 'COMPLETE' | 'FAILED';
+    result?: string;
+    durationMs?: number;
+}
+
+export type ProcessTab = 'living_map' | 'diagram' | 'workflow' | 'genesis' | 'audio';
+
 export interface ProcessState {
   prompt: string;
   governance: GovernanceSchema;
@@ -113,6 +138,13 @@ export interface ProcessState {
   autopoieticFramework: AutopoieticFramework | null;
   generatedWorkflow: SystemWorkflow | null;
   entropyScore: number;
+  swarm: {
+      isActive: boolean;
+      agents: WorkerAgent[];
+      synthesis: string | null;
+  };
+  activeTab: ProcessTab;
+  architectMode: 'BLUEPRINT' | 'EXECUTION';
 }
 
 export interface ImageGenState {
@@ -245,6 +277,60 @@ export interface CodeStudioState {
   history: { prompt: string; code: string; timestamp: number }[];
 }
 
+// Bicameral Engine
+export interface AtomicTask {
+    id: string;
+    description: string;
+    isolated_input: string;
+    instruction: string;
+    weight: number;
+    status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+}
+
+export interface SwarmResult {
+    taskId: string;
+    output: string;
+    confidence: number;
+    agentId: string;
+    executionTime: number;
+    voteLedger: { winner: string; count: number; runnerUp: string; runnerUpCount: number; totalRounds: number; killedAgents: number };
+}
+
+export interface SwarmStatus {
+  taskId: string | null;
+  votes: Record<string, number>;
+  killedAgents: number;
+  currentGap: number;
+  targetGap: number;
+  totalAttempts: number;
+}
+
+export interface BicameralState {
+    goal: string;
+    plan: AtomicTask[];
+    ledger: SwarmResult[];
+    isPlanning: boolean;
+    isSwarming: boolean;
+    activeAgents: number;
+    error: string | null;
+    swarmStatus: SwarmStatus;
+}
+
+// Research Agent (New)
+export interface ResearchTask {
+    id: string;
+    query: string;
+    status: 'QUEUED' | 'RESEARCHING' | 'SYNTHESIZING' | 'COMPLETED' | 'FAILED';
+    progress: number; // 0-100
+    logs: string[];
+    result?: string;
+    timestamp: number;
+}
+
+export interface ResearchState {
+    tasks: ResearchTask[];
+}
+
 // Search
 export interface SearchResultItem {
   id: string;
@@ -296,10 +382,18 @@ export interface UserIntent {
   payload?: string;
 }
 
+export interface SuggestedAction {
+    id: string;
+    label: string;
+    command: string; // The natural language command to execute
+    iconName: 'Zap' | 'Code' | 'Search' | 'Cpu' | 'Image' | 'BookOpen' | 'Shield' | 'Terminal';
+    reasoning: string;
+}
+
 // System / Overlay
 export interface LogEntry {
     id: string;
-    level: 'INFO' | 'WARN' | 'ERROR' | 'SYSTEM';
+    level: 'INFO' | 'WARN' | 'ERROR' | 'SYSTEM' | 'SUCCESS';
     message: string;
     timestamp: string;
 }
@@ -344,6 +438,12 @@ export interface ContextMenuState {
 
 // --- AGORA SIMULATION TYPES ---
 
+export interface MentalState {
+    skepticism: number; // 0-100
+    excitement: number; // 0-100
+    alignment: number;  // 0-100
+}
+
 export interface SyntheticPersona {
     id: string;
     name: string;
@@ -351,6 +451,7 @@ export interface SyntheticPersona {
     avatar_color: string;
     bias: string;
     systemPrompt: string;
+    currentMindset: MentalState;
 }
 
 export interface DebateTurn {
@@ -359,6 +460,7 @@ export interface DebateTurn {
     text: string;
     timestamp: number;
     sentiment: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
+    newMindset?: MentalState;
 }
 
 export interface SimulationReport {
@@ -366,4 +468,5 @@ export interface SimulationReport {
     consensus: string;
     majorFrictionPoints: string[];
     actionableFixes: string[];
+    projectedUpside?: number;
 }

@@ -1,13 +1,15 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useAppStore } from '../store';
-import { generateMermaidDiagram, chatWithFiles, generateAudioOverview, fileToGenerativePart, promptSelectKey, classifyArtifact, generateAutopoieticFramework, generateStructuredWorkflow, calculateEntropy } from '../services/geminiService';
+import { generateMermaidDiagram, chatWithFiles, generateAudioOverview, fileToGenerativePart, promptSelectKey, classifyArtifact, generateAutopoieticFramework, generateStructuredWorkflow, calculateEntropy, determineTopology, generateScaffold, decomposeTask, executeAgentTask, startDeepResearchTask } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService'; // Persistence
-import { FileData, ProcessState, Message, ArtifactNode, GovernanceSchema, IngestionStatus, AppMode } from '../types';
-import MermaidDiagram from './MermaidDiagram';
+import { FileData, ProcessState, Message, ArtifactNode, GovernanceSchema, IngestionStatus, AppMode, ProjectTopology, StructuredScaffold, WorkerAgent, ProcessTab } from '../types';
+import MermaidDiagram, { DiagramTheme } from './MermaidDiagram';
 import ContextVelocityChart from './ContextVelocityChart';
+import BicameralEngine from './BicameralEngine';
 import { 
     ReactFlow, 
+    ReactFlowProvider,
     Background, 
     Controls, 
     MiniMap, 
@@ -18,14 +20,12 @@ import {
     Position, 
     Handle, 
     getSmoothStepPath, 
-    EdgeProps,
+    EdgeProps, 
     NodeProps,
     OnSelectionChangeParams
 } from '@xyflow/react';
-import { Upload, FileText, X, Cpu, GitGraph, BrainCircuit, Headphones, Terminal, Play, Pause, LayoutDashboard, Sparkles, AlertCircle, Send, ArrowRight, Copy, Check, Edit2, RotateCcw, Trash2, MessageSquare, Mic, ShieldCheck, ScanLine, Loader2, Code, FileJson, Activity, Search, Clock, Network, Tag, Database, Zap, Wrench, Atom, Scroll, Layers, Hexagon, ChevronDown, PanelRightOpen, PanelRightClose, MousePointer2, FolderTree, FileCode, CheckCircle, BarChart, Save, Server } from 'lucide-react';
+import { Upload, FileText, X, Cpu, GitGraph, BrainCircuit, Headphones, Terminal, Play, Pause, LayoutDashboard, Sparkles, AlertCircle, Send, ArrowRight, Copy, Check, Edit2, RotateCcw, Trash2, MessageSquare, Mic, ShieldCheck, ScanLine, Loader2, Code, FileJson, Activity, Search, Clock, Network, Tag, Database, Zap, Wrench, Atom, Scroll, Layers, Hexagon, ChevronDown, PanelRightOpen, PanelRightClose, MousePointer2, FolderTree, FileCode, CheckCircle, BarChart, Save, Server, Share2, Shield, Box, GitMerge, Moon, Sun, Contrast, Grid, Split } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-type TabView = 'diagram' | 'audio' | 'living_map' | 'genesis' | 'workflow';
 
 // --- VISUAL CONSTANTS (v13 CINEMATIC) ---
 const THEME = {
@@ -72,9 +72,9 @@ const useGraphSelection = (nodes: Node[], edges: Edge[]) => {
         return {
             id: selectedNode.id,
             type: selectedNode.type,
-            label: selectedNode.data.label,
-            status: selectedNode.data.status,
-            subtext: selectedNode.data.subtext,
+            label: (selectedNode.data.label as string) || 'Node',
+            status: (selectedNode.data.status as string) || 'Unknown',
+            subtext: (selectedNode.data.subtext as string) || '',
             connections: connectionDetails,
             raw: selectedNode.data
         };
@@ -486,18 +486,20 @@ const edgeTypes = { cinematic: AnimatedFlowEdge };
 
 const ProcessVisualizer: React.FC = () => {
   const { process: state, setProcessState: setState, setCodeStudioState, setMode } = useAppStore();
-  const [activeTab, setActiveTab] = useState<TabView>('living_map');
   const [showTelemetry, setShowTelemetry] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isRestored, setIsRestored] = useState(false);
   
-  // NEW: State for Workflow Type Switcher
+  // State for Workflow Type Switcher
   const [workflowType, setWorkflowType] = useState<'DRIVE_ORG' | 'SYSTEM_ARCH'>('DRIVE_ORG');
 
   const [chatInput, setChatInput] = useState('');
   const [isChatProcessing, setIsChatProcessing] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
   
+  // New: Deep Research Toggle
+  const [isDeepResearch, setIsDeepResearch] = useState(false);
+
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   
@@ -612,7 +614,6 @@ const ProcessVisualizer: React.FC = () => {
 
   // --- Living Map Logic ---
   useEffect(() => {
-      // ... (No change to Map Logic, keeping it exactly as is)
       const centerX = 600;
       const centerY = 400;
       const moduleOffset = 280;
@@ -624,6 +625,7 @@ const ProcessVisualizer: React.FC = () => {
       const isScanning = state.artifacts.some(a => a.status === 'scanning');
       const memoryCount = state.artifacts.length;
       const verifiedCount = state.artifacts.filter(a => a.status === 'verified').length;
+      const isSwarming = state.swarm.isActive;
 
       const newNodes: Node[] = [];
       const newEdges: Edge[] = [];
@@ -639,14 +641,55 @@ const ProcessVisualizer: React.FC = () => {
           position: getPos('core', { x: centerX, y: centerY }),
           data: {
               label: 'Sovereign Agent',
-              subtext: isThinking ? 'REASONING ENGINE ACTIVE' : (isActing ? 'EXECUTING PROTOCOLS' : 'SYSTEM IDLE'),
+              subtext: isThinking ? 'REASONING ENGINE ACTIVE' : (isActing ? 'EXECUTING PROTOCOLS' : (isSwarming ? 'SWARM CONTROLLER' : 'SYSTEM IDLE')),
               icon: BrainCircuit,
               color: isThinking ? THEME.accent.tools : (isActing ? THEME.accent.action : THEME.accent.core),
-              status: isThinking ? 'THINKING' : 'ONLINE',
+              status: isSwarming ? 'ORCHESTRATING' : (isThinking ? 'THINKING' : 'ONLINE'),
               metrics: 'V3.2 KERNEL'
           },
           style: { width: 240 }
       });
+
+      // 1.5 SWARM NODES (If active)
+      if (isSwarming) {
+          const swarmRadius = 350;
+          state.swarm.agents.forEach((agent, i) => {
+              const angle = (i / state.swarm.agents.length) * 2 * Math.PI;
+              const defaultPos = {
+                  x: centerX + Math.cos(angle) * swarmRadius,
+                  y: centerY + Math.sin(angle) * swarmRadius
+              };
+              
+              let statusColor = '#555';
+              if (agent.status === 'WORKING') statusColor = '#f1c21b';
+              if (agent.status === 'COMPLETE') statusColor = '#42be65';
+              if (agent.status === 'FAILED') statusColor = '#ef4444';
+
+              newNodes.push({
+                  id: agent.id,
+                  type: 'holographic',
+                  position: getPos(agent.id, defaultPos),
+                  data: {
+                      label: agent.role,
+                      subtext: agent.task.substring(0, 30) + '...',
+                      icon: Cpu,
+                      color: statusColor,
+                      status: agent.status,
+                      metrics: agent.durationMs ? `${agent.durationMs}ms` : 'ACTIVE'
+                  },
+                  style: { width: 200 }
+              });
+
+              // Edge: Core -> Agent
+              newEdges.push({
+                  id: `e-core-${agent.id}`,
+                  source: 'core',
+                  target: agent.id,
+                  type: 'cinematic',
+                  data: { color: statusColor, active: agent.status === 'WORKING', variant: 'stream' }
+              });
+          });
+      }
 
       // 2. MEMORY (Top)
       newNodes.push({
@@ -768,7 +811,7 @@ const ProcessVisualizer: React.FC = () => {
       setNodes(newNodes);
       setEdges(newEdges);
 
-  }, [state.artifacts, isChatProcessing, state.isLoading, state.generatedCode, state.audioUrl, setNodes, setEdges]);
+  }, [state.artifacts, isChatProcessing, state.isLoading, state.generatedCode, state.audioUrl, state.swarm, setNodes, setEdges]);
 
   // --- INTERACTION HANDLERS ---
   
@@ -835,7 +878,7 @@ const ProcessVisualizer: React.FC = () => {
         newArtifacts.push({ id: `art-${Date.now()}-${i}`, file: pendingFiles[i], status: 'scanning', data: null });
       }
       setState(prev => ({ artifacts: [...prev.artifacts, ...newArtifacts] }));
-      if (activeTab === 'diagram') setActiveTab('living_map');
+      if (state.activeTab === 'diagram') setState({ activeTab: 'living_map' });
 
       for (let i = 0; i < pendingFiles.length; i++) {
           const file = pendingFiles[i];
@@ -862,14 +905,13 @@ const ProcessVisualizer: React.FC = () => {
 
   const getVerifiedFiles = () => state.artifacts.filter(a => a.status === 'verified' && a.data).map(a => a.data as FileData);
 
-  const handleGenerate = async (type: TabView) => {
+  const handleGenerate = async (type: ProcessTab) => {
     if (!(await checkApiKey())) return;
     const validFiles = getVerifiedFiles();
 
     if (type === 'genesis') {
         if (validFiles.length === 0) { setState({ error: "Genesis requires verified Source Artifact." }); return; }
-        setActiveTab('genesis');
-        setState({ isLoading: true });
+        setState({ activeTab: 'genesis', isLoading: true });
         try {
             const framework = await generateAutopoieticFramework(validFiles[0], state.governance);
             setState({ autopoieticFramework: framework });
@@ -879,8 +921,7 @@ const ProcessVisualizer: React.FC = () => {
     }
 
     if (type === 'workflow') {
-        setActiveTab('workflow');
-        setState({ isLoading: true });
+        setState({ activeTab: 'workflow', isLoading: true });
         try {
             // Using the new generateStructuredWorkflow which supports types
             const workflow = await generateStructuredWorkflow(validFiles, state.governance, workflowType);
@@ -890,8 +931,7 @@ const ProcessVisualizer: React.FC = () => {
         return;
     }
 
-    setState({ isLoading: true, error: null });
-    setActiveTab(type);
+    setState({ isLoading: true, error: null, activeTab: type });
     try {
       if (type === 'diagram') {
         const code = await generateMermaidDiagram(state.governance, validFiles);
@@ -911,6 +951,14 @@ const ProcessVisualizer: React.FC = () => {
 
   const handleSendChat = async () => {
       if (!chatInput.trim() || isChatProcessing || !(await checkApiKey())) return;
+      
+      // DEEP RESEARCH BRANCH
+      if (isDeepResearch) {
+          startDeepResearchTask(chatInput);
+          setChatInput('');
+          return;
+      }
+
       const userMsg: Message = { role: 'user', text: chatInput, timestamp: Date.now() };
       setState(prev => ({ chatHistory: [...prev.chatHistory, userMsg] }));
       setChatInput(''); setIsChatProcessing(true);
@@ -1040,11 +1088,11 @@ const ProcessVisualizer: React.FC = () => {
             </div>
 
             <button
-                onClick={() => handleGenerate(activeTab === 'living_map' ? 'diagram' : activeTab)} 
+                onClick={() => state.activeTab === 'workflow' ? setState({ architectMode: 'EXECUTION' }) : handleGenerate(state.activeTab === 'living_map' ? 'diagram' : state.activeTab)} 
                 disabled={state.isLoading}
                 className="mx-4 mb-4 py-3 bg-[#9d4edd] text-black font-bold text-[10px] tracking-[0.2em] uppercase font-mono hover:bg-[#b06bf7] transition-all shadow-[0_0_20px_rgba(157,78,221,0.3)]"
             >
-                {state.isLoading ? 'PROCESSING...' : 'RUN SEQUENCE'}
+                {state.isLoading ? 'PROCESSING...' : state.activeTab === 'workflow' ? 'OPEN ENGINE' : 'RUN SEQUENCE'}
             </button>
          </div>
       </div>
@@ -1061,8 +1109,8 @@ const ProcessVisualizer: React.FC = () => {
                 {['living_map', 'diagram', 'workflow', 'genesis', 'audio'].map((tab) => (
                     <button 
                         key={tab}
-                        onClick={() => setActiveTab(tab as TabView)}
-                        className={`flex items-center px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 ${activeTab === tab ? 'border-[#9d4edd] text-[#9d4edd]' : 'border-transparent text-gray-600 hover:text-gray-400'}`}
+                        onClick={() => setState({ activeTab: tab as ProcessTab })}
+                        className={`flex items-center px-4 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all border-b-2 ${state.activeTab === tab ? 'border-[#9d4edd] text-[#9d4edd]' : 'border-transparent text-gray-600 hover:text-gray-400'}`}
                     >
                         {tab === 'living_map' && <Network className="w-3 h-3 mr-2" />}
                         {tab === 'diagram' && <GitGraph className="w-3 h-3 mr-2" />}
@@ -1092,35 +1140,37 @@ const ProcessVisualizer: React.FC = () => {
             
             {/* Main Content Area */}
             <div className="flex-1 relative flex flex-col min-w-0">
-                {activeTab === 'living_map' && (
+                {state.activeTab === 'living_map' && (
                     <div className="h-full w-full bg-black relative">
-                        <ReactFlow
-                            nodes={animatedNodes}
-                            edges={animatedEdges}
-                            nodeTypes={nodeTypes}
-                            edgeTypes={edgeTypes}
-                            onNodeMouseEnter={onNodeMouseEnter}
-                            onNodeMouseLeave={onNodeMouseLeave}
-                            onEdgeMouseEnter={onEdgeMouseEnter}
-                            onEdgeMouseLeave={onEdgeMouseLeave}
-                            onNodesChange={onNodesChange}
-                            onEdgesChange={onEdgesChange}
-                            onNodeDragStop={onNodeDragStop}
-                            onSelectionChange={onSelectionChange} // Hooked into selection logic
-                            onPaneClick={clearSelection}
-                            fitView
-                            className="bg-black"
-                            colorMode="dark"
-                            minZoom={0.1}
-                            maxZoom={4}
-                        >
-                            <Background color="#222" gap={30} size={1} />
-                            <Controls className="bg-[#111] border border-[#333] text-gray-400" />
-                            <MiniMap nodeStrokeColor="#9d4edd" nodeColor="#111" style={{ backgroundColor: '#050505', border: '1px solid #333' }} />
-                        </ReactFlow>
+                        <ReactFlowProvider>
+                            <ReactFlow
+                                nodes={animatedNodes}
+                                edges={animatedEdges}
+                                nodeTypes={nodeTypes}
+                                edgeTypes={edgeTypes}
+                                onNodeMouseEnter={onNodeMouseEnter}
+                                onNodeMouseLeave={onNodeMouseLeave}
+                                onEdgeMouseEnter={onEdgeMouseEnter}
+                                onEdgeMouseLeave={onEdgeMouseLeave}
+                                onNodesChange={onNodesChange}
+                                onEdgesChange={onEdgesChange}
+                                onNodeDragStop={onNodeDragStop}
+                                onSelectionChange={onSelectionChange} 
+                                onPaneClick={clearSelection}
+                                fitView
+                                className="bg-black"
+                                colorMode="dark"
+                                minZoom={0.1}
+                                maxZoom={4}
+                            >
+                                <Background color="#222" gap={30} size={1} />
+                                <Controls className="bg-[#111] border border-[#333] text-gray-400" />
+                                <MiniMap nodeStrokeColor="#9d4edd" nodeColor="#111" style={{ backgroundColor: '#050505', border: '1px solid #333' }} />
+                            </ReactFlow>
+                        </ReactFlowProvider>
                         
                         {/* Status Overlay */}
-                        <div className="absolute top-4 left-4 bg-black/80 backdrop-blur border border-[#333] p-3 rounded-lg shadow-2xl pointer-events-none">
+                        <div className="absolute top-4 left-4 bg-black/80 backdrop-blur border border-[#333] p-3 rounded-lg shadow-2xl pointer-events-none z-10">
                             <div className="text-[10px] font-mono text-[#9d4edd] uppercase tracking-widest mb-1">System Topology</div>
                             <div className="text-[9px] font-mono text-gray-500">
                                 Nodes: {nodes.length} | Edges: {edges.length} | Status: {state.isLoading ? 'SYNCING' : 'STABLE'}
@@ -1130,7 +1180,7 @@ const ProcessVisualizer: React.FC = () => {
                 )}
 
                 {/* Diagram View */}
-                {activeTab === 'diagram' && (
+                {state.activeTab === 'diagram' && (
                     <div className="flex-1 w-full bg-[#030303] relative overflow-hidden">
                         {state.generatedCode ? (
                             <MermaidDiagram code={state.generatedCode} />
@@ -1144,121 +1194,158 @@ const ProcessVisualizer: React.FC = () => {
                 )}
 
                 {/* Upgrade A: Workflow Architect */}
-                {activeTab === 'workflow' && (
-                    <div className="h-full w-full bg-[#050505] overflow-hidden flex flex-col relative">
-                        {!state.generatedWorkflow ? (
-                            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center opacity-70">
-                                <div className="w-20 h-20 bg-[#111] rounded-full border border-[#333] flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(157,78,221,0.1)]">
-                                    {workflowType === 'DRIVE_ORG' ? <FolderTree className="w-8 h-8 text-[#9d4edd]" /> : <Server className="w-8 h-8 text-[#9d4edd]" />}
-                                </div>
-                                <h3 className="text-xl font-bold font-mono text-white mb-2 uppercase tracking-widest">Architect Idle</h3>
-                                <p className="text-xs text-gray-500 font-mono max-w-sm mb-8 leading-relaxed">
-                                    Configure generation parameters for the Architect Engine.
-                                </p>
-                                
-                                {/* WORKFLOW TYPE TOGGLE */}
-                                <div className="flex bg-[#111] border border-[#333] rounded p-1 mb-8">
-                                    <button 
-                                        onClick={() => setWorkflowType('DRIVE_ORG')}
-                                        className={`px-4 py-2 text-[10px] font-mono font-bold uppercase rounded transition-colors ${workflowType === 'DRIVE_ORG' ? 'bg-[#9d4edd] text-black' : 'text-gray-500 hover:text-white'}`}
-                                    >
-                                        Drive Org
-                                    </button>
-                                    <button 
-                                        onClick={() => setWorkflowType('SYSTEM_ARCH')}
-                                        className={`px-4 py-2 text-[10px] font-mono font-bold uppercase rounded transition-colors ${workflowType === 'SYSTEM_ARCH' ? 'bg-[#9d4edd] text-black' : 'text-gray-500 hover:text-white'}`}
-                                    >
-                                        System Arch
-                                    </button>
-                                </div>
-
+                {state.activeTab === 'workflow' && (
+                    state.architectMode === 'EXECUTION' ? (
+                        <div className="w-full h-full relative">
+                            {/* Toggle Header Overlay */}
+                            <div className="absolute top-4 right-4 z-30 bg-[#0a0a0a] border border-[#333] rounded p-1 flex">
                                 <button 
-                                    onClick={() => handleGenerate('workflow')}
-                                    disabled={state.isLoading}
-                                    className="px-8 py-3 bg-[#9d4edd] text-black font-bold uppercase font-mono tracking-widest hover:bg-[#b06bf7] transition-all shadow-[0_0_20px_rgba(157,78,221,0.3)] flex items-center gap-2"
+                                    onClick={() => setState({ architectMode: 'BLUEPRINT' })}
+                                    className="px-3 py-1.5 text-[9px] font-mono font-bold uppercase rounded text-gray-500 hover:text-white transition-colors"
                                 >
-                                    {state.isLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Cpu className="w-4 h-4"/>}
-                                    Generate {workflowType === 'DRIVE_ORG' ? 'Structure' : 'Architecture'}
+                                    View Topology
+                                </button>
+                                <button 
+                                    onClick={() => setState({ architectMode: 'EXECUTION' })}
+                                    className="px-3 py-1.5 text-[9px] font-mono font-bold uppercase rounded bg-[#9d4edd] text-black shadow-sm"
+                                >
+                                    Open Engine
                                 </button>
                             </div>
-                        ) : (
-                            <div className="flex-1 flex overflow-hidden">
-                                {/* Visual Tree & Diagram */}
-                                <div className="w-1/2 border-r border-[#1f1f1f] flex flex-col p-6 overflow-y-auto custom-scrollbar">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <div className="flex items-center gap-2">
-                                            {workflowType === 'DRIVE_ORG' ? <FolderTree className="w-4 h-4 text-[#9d4edd]" /> : <Server className="w-4 h-4 text-[#9d4edd]" />}
-                                            <h3 className="text-xs font-bold font-mono uppercase tracking-widest text-white">
-                                                {workflowType === 'DRIVE_ORG' ? 'Ideal Topology' : 'Component Hierarchy'}
-                                            </h3>
-                                        </div>
-                                        <div className="text-[9px] text-gray-500 font-mono">v1.0 GENERATED</div>
-                                    </div>
-                                    <div className="bg-[#0a0a0a] border border-[#333] rounded p-6 shadow-inner font-mono text-xs text-gray-300 whitespace-pre overflow-auto mb-6 max-h-[40%]">
-                                        {state.generatedWorkflow.structureTree}
-                                    </div>
-
-                                    {state.generatedWorkflow.processDiagram && (
-                                        <div className="flex-1 flex flex-col min-h-[300px]">
-                                            <div className="flex items-center gap-2 mb-4 border-b border-[#333] pb-2">
-                                                <GitGraph className="w-4 h-4 text-[#9d4edd]" />
-                                                <h3 className="text-xs font-bold font-mono uppercase tracking-widest text-white">
-                                                    {workflowType === 'DRIVE_ORG' ? 'Process Lifecycle' : 'Data Flow Diagram'}
-                                                </h3>
-                                            </div>
-                                            <div className="flex-1 bg-[#0a0a0a] border border-[#333] rounded overflow-hidden relative">
-                                                 <MermaidDiagram code={state.generatedWorkflow.processDiagram} />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Protocols & Automation */}
-                                <div className="w-1/2 flex flex-col p-6 overflow-y-auto custom-scrollbar bg-[#080808]">
-                                    <div className="mb-8">
-                                        <div className="flex items-center gap-2 mb-4 border-b border-[#333] pb-2">
-                                            <CheckCircle className="w-4 h-4 text-[#42be65]" />
-                                            <h3 className="text-xs font-bold font-mono uppercase tracking-widest text-white">
-                                                {workflowType === 'DRIVE_ORG' ? 'File Management Workflows' : 'System Architecture Rules'}
-                                            </h3>
-                                        </div>
-                                        <div className="space-y-3">
-                                            {state.generatedWorkflow.protocols.map((p, i) => (
-                                                <div key={i} className="bg-[#111] p-3 rounded border-l-2 border-[#9d4edd]">
-                                                    <div className="text-xs font-bold text-gray-200 mb-1">{p.rule}</div>
-                                                    <div className="text-[10px] text-gray-500 font-mono">{p.reasoning}</div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <div className="flex items-center justify-between mb-4 border-b border-[#333] pb-2">
-                                            <div className="flex items-center gap-2">
-                                                <FileCode className="w-4 h-4 text-[#f59e0b]" />
-                                                <h3 className="text-xs font-bold font-mono uppercase tracking-widest text-white">
-                                                    {workflowType === 'DRIVE_ORG' ? 'Scaffold Automator' : 'Deployment Config'}
-                                                </h3>
-                                            </div>
-                                            <button 
-                                                onClick={() => openInCodeStudio(state.generatedWorkflow!.automationScript)}
-                                                className="text-[9px] text-[#9d4edd] hover:text-white font-mono uppercase border border-[#333] px-2 py-1 rounded bg-[#111] hover:bg-[#222]"
-                                            >
-                                                Open in Code Studio
-                                            </button>
-                                        </div>
-                                        <div className="bg-[#0a0a0a] border border-[#333] rounded p-4 font-mono text-[10px] text-gray-400 overflow-x-auto whitespace-pre max-h-64">
-                                            {state.generatedWorkflow.automationScript}
-                                        </div>
-                                    </div>
-                                </div>
+                            <BicameralEngine />
+                        </div>
+                    ) : (
+                        <div className="h-full w-full bg-[#050505] overflow-hidden flex flex-col relative">
+                            {/* Toggle Header Overlay */}
+                            <div className="absolute top-4 right-4 z-30 bg-[#0a0a0a] border border-[#333] rounded p-1 flex">
+                                <button 
+                                    onClick={() => setState({ architectMode: 'BLUEPRINT' })}
+                                    className="px-3 py-1.5 text-[9px] font-mono font-bold uppercase rounded bg-[#9d4edd] text-black shadow-sm"
+                                >
+                                    View Topology
+                                </button>
+                                <button 
+                                    onClick={() => setState({ architectMode: 'EXECUTION' })}
+                                    className="px-3 py-1.5 text-[9px] font-mono font-bold uppercase rounded text-gray-500 hover:text-white transition-colors"
+                                >
+                                    Open Engine
+                                </button>
                             </div>
-                        )}
-                    </div>
+
+                            {!state.generatedWorkflow ? (
+                                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center opacity-70">
+                                    <div className="w-20 h-20 bg-[#111] rounded-full border border-[#333] flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(157,78,221,0.1)]">
+                                        {workflowType === 'DRIVE_ORG' ? <FolderTree className="w-8 h-8 text-[#9d4edd]" /> : <Server className="w-8 h-8 text-[#9d4edd]" />}
+                                    </div>
+                                    <h3 className="text-xl font-bold font-mono text-white mb-2 uppercase tracking-widest">Architect Idle</h3>
+                                    <p className="text-xs text-gray-500 font-mono max-w-sm mb-8 leading-relaxed">
+                                        Configure generation parameters for the Architect Engine.
+                                    </p>
+                                    
+                                    {/* WORKFLOW TYPE TOGGLE */}
+                                    <div className="flex bg-[#111] border border-[#333] rounded p-1 mb-8">
+                                        <button 
+                                            onClick={() => setWorkflowType('DRIVE_ORG')}
+                                            className={`px-4 py-2 text-[10px] font-mono font-bold uppercase rounded transition-colors ${workflowType === 'DRIVE_ORG' ? 'bg-[#9d4edd] text-black' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            Drive Org
+                                        </button>
+                                        <button 
+                                            onClick={() => setWorkflowType('SYSTEM_ARCH')}
+                                            className={`px-4 py-2 text-[10px] font-mono font-bold uppercase rounded transition-colors ${workflowType === 'SYSTEM_ARCH' ? 'bg-[#9d4edd] text-black' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            System Arch
+                                        </button>
+                                    </div>
+
+                                    <button 
+                                        onClick={() => handleGenerate('workflow')}
+                                        disabled={state.isLoading}
+                                        className="px-8 py-3 bg-[#9d4edd] text-black font-bold uppercase font-mono tracking-widest hover:bg-[#b06bf7] transition-all shadow-[0_0_20px_rgba(157,78,221,0.3)] flex items-center gap-2"
+                                    >
+                                        {state.isLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Cpu className="w-4 h-4"/>}
+                                        Generate {workflowType === 'DRIVE_ORG' ? 'Structure' : 'Architecture'}
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex overflow-hidden">
+                                    {/* Visual Tree & Diagram */}
+                                    <div className="w-1/2 border-r border-[#1f1f1f] flex flex-col p-6 overflow-y-auto custom-scrollbar">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <div className="flex items-center gap-2">
+                                                {workflowType === 'DRIVE_ORG' ? <FolderTree className="w-4 h-4 text-[#9d4edd]" /> : <Server className="w-4 h-4 text-[#9d4edd]" />}
+                                                <h3 className="text-xs font-bold font-mono uppercase tracking-widest text-white">
+                                                    {workflowType === 'DRIVE_ORG' ? 'Ideal Topology' : 'Component Hierarchy'}
+                                                </h3>
+                                            </div>
+                                            <div className="text-[9px] text-gray-500 font-mono">v1.0 GENERATED</div>
+                                        </div>
+                                        <div className="bg-[#0a0a0a] border border-[#333] rounded p-6 shadow-inner font-mono text-xs text-gray-300 whitespace-pre overflow-auto mb-6 max-h-[40%]">
+                                            {state.generatedWorkflow.structureTree}
+                                        </div>
+
+                                        {state.generatedWorkflow.processDiagram && (
+                                            <div className="flex-1 flex flex-col min-h-[300px]">
+                                                <div className="flex items-center gap-2 mb-4 border-b border-[#333] pb-2">
+                                                    <GitGraph className="w-4 h-4 text-[#9d4edd]" />
+                                                    <h3 className="text-xs font-bold font-mono uppercase tracking-widest text-white">
+                                                        {workflowType === 'DRIVE_ORG' ? 'Process Lifecycle' : 'Data Flow Diagram'}
+                                                    </h3>
+                                                </div>
+                                                <div className="flex-1 bg-[#0a0a0a] border border-[#333] rounded overflow-hidden relative">
+                                                     <MermaidDiagram code={state.generatedWorkflow.processDiagram} />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Protocols & Automation */}
+                                    <div className="w-1/2 flex flex-col p-6 overflow-y-auto custom-scrollbar bg-[#080808]">
+                                        <div className="mb-8">
+                                            <div className="flex items-center gap-2 mb-4 border-b border-[#333] pb-2">
+                                                <CheckCircle className="w-4 h-4 text-[#42be65]" />
+                                                <h3 className="text-xs font-bold font-mono uppercase tracking-widest text-white">
+                                                    {workflowType === 'DRIVE_ORG' ? 'File Management Workflows' : 'System Architecture Rules'}
+                                                </h3>
+                                            </div>
+                                            <div className="space-y-3">
+                                                {state.generatedWorkflow.protocols.map((p, i) => (
+                                                    <div key={i} className="bg-[#111] p-3 rounded border-l-2 border-[#9d4edd]">
+                                                        <div className="text-xs font-bold text-gray-200 mb-1">{p.rule}</div>
+                                                        <div className="text-[10px] text-gray-500 font-mono">{p.reasoning}</div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <div className="flex items-center justify-between mb-4 border-b border-[#333] pb-2">
+                                                <div className="flex items-center gap-2">
+                                                    <FileCode className="w-4 h-4 text-[#f59e0b]" />
+                                                    <h3 className="text-xs font-bold font-mono uppercase tracking-widest text-white">
+                                                        {workflowType === 'DRIVE_ORG' ? 'Scaffold Automator' : 'Deployment Config'}
+                                                    </h3>
+                                                </div>
+                                                <button 
+                                                    onClick={() => openInCodeStudio(state.generatedWorkflow!.automationScript)}
+                                                    className="text-[9px] text-[#9d4edd] hover:text-white font-mono uppercase border border-[#333] px-2 py-1 rounded bg-[#111] hover:bg-[#222]"
+                                                >
+                                                    Open in Code Studio
+                                                </button>
+                                            </div>
+                                            <div className="bg-[#0a0a0a] border border-[#333] rounded p-4 font-mono text-[10px] text-gray-400 overflow-x-auto whitespace-pre max-h-64">
+                                                {state.generatedWorkflow.automationScript}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )
                 )}
 
                 {/* Genesis View (Keep as is) */}
-                {activeTab === 'genesis' && (
+                {state.activeTab === 'genesis' && (
                     <div className="h-full w-full min-h-full overflow-y-auto custom-scrollbar bg-[#050505] relative">
                         {/* ... Existing Genesis View code ... */}
                         {!state.autopoieticFramework ? (
@@ -1444,6 +1531,45 @@ const ProcessVisualizer: React.FC = () => {
                             )}
                         </div>
 
+                        {/* Context Header if Node Selected */}
+                        {contextData && (
+                            <div className="mx-3 mt-3 p-3 bg-[#1a1a1a] border-l-2 border-[#9d4edd] rounded-r text-[10px] font-mono">
+                                <div className="flex justify-between items-center mb-2">
+                                    <span className="font-bold text-[#9d4edd] uppercase flex items-center gap-2">
+                                        <MousePointer2 size={12} />
+                                        {contextData.label} 
+                                    </span>
+                                    <span className="text-gray-600">{contextData.id}</span>
+                                </div>
+                                <div className="space-y-1 text-gray-400">
+                                    <div className="flex justify-between">
+                                        <span>Type:</span>
+                                        <span className="text-white">{contextData.type}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span>Status:</span>
+                                        <span className={contextData.status === 'ONLINE' || contextData.status === 'Active' ? 'text-[#42be65]' : 'text-gray-500'}>
+                                            {contextData.status || 'N/A'}
+                                        </span>
+                                    </div>
+                                    <div className="pt-2 border-t border-[#333] mt-2">
+                                        <span className="block mb-1 opacity-50">Connections:</span>
+                                        <div className="max-h-20 overflow-y-auto custom-scrollbar space-y-1">
+                                            {contextData.connections.length > 0 ? (
+                                                contextData.connections.map((c, i) => (
+                                                    <div key={i} className="truncate text-gray-500 hover:text-gray-300" title={c}>
+                                                        - {c}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <span className="italic opacity-50">Isolated Node</span>
+                                            )}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
                              {state.chatHistory.length === 0 && (
                                  <div className="text-center text-gray-600 mt-10">
@@ -1471,20 +1597,33 @@ const ProcessVisualizer: React.FC = () => {
                         </div>
 
                         <div className="p-3 border-t border-[#1f1f1f] bg-[#0a0a0a]">
+                            
+                            {/* DEEP RESEARCH TOGGLE */}
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wider">Mode</span>
+                                <button 
+                                    onClick={() => setIsDeepResearch(!isDeepResearch)}
+                                    className={`flex items-center gap-2 px-2 py-1 rounded text-[9px] font-mono uppercase transition-colors border ${isDeepResearch ? 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd]' : 'bg-[#1f1f1f] border-[#333] text-gray-500 hover:text-white'}`}
+                                >
+                                    {isDeepResearch ? <BrainCircuit className="w-3 h-3 animate-pulse" /> : <Zap className="w-3 h-3" />}
+                                    {isDeepResearch ? 'Deep Research' : 'Fast Response'}
+                                </button>
+                            </div>
+
                             <div className="flex gap-2">
                                 <input 
                                     type="text" 
                                     value={chatInput} 
                                     onChange={e=>setChatInput(e.target.value)} 
                                     onKeyDown={e=>e.key==='Enter'&&handleSendChat()} 
-                                    placeholder={selectedNode ? `Query ${selectedNode.data.label}...` : "Query..."}
+                                    placeholder={isDeepResearch ? "Enter Research Goal..." : selectedNode ? `Query ${selectedNode.data.label}...` : "Query..."}
                                     disabled={isChatProcessing}
                                     className="flex-1 bg-[#111] border border-[#333] px-3 py-2 text-[11px] font-mono text-white focus:border-[#9d4edd] outline-none rounded-sm" 
                                 />
                                 <button 
                                     onClick={handleSendChat} 
                                     disabled={isChatProcessing}
-                                    className="px-3 bg-[#9d4edd] text-black hover:bg-[#b06bf7] rounded-sm disabled:opacity-50"
+                                    className={`px-3 text-black hover:bg-[#b06bf7] rounded-sm disabled:opacity-50 transition-colors ${isDeepResearch ? 'bg-[#9d4edd] shadow-[0_0_10px_#9d4edd]' : 'bg-[#9d4edd]'}`}
                                 >
                                     {isChatProcessing ? <Loader2 className="w-3 h-3 animate-spin"/> : <Send className="w-3 h-3"/>}
                                 </button>

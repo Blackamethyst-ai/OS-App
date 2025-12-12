@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { generateArchitectureImage, promptSelectKey, fileToGenerativePart } from '../services/geminiService';
 import { AspectRatio, ImageSize } from '../types';
-import { Activity, Shield, Image as ImageIcon, Sparkles, RefreshCw, Cpu, Clock, Users, ArrowUpRight, X, ScanFace, Terminal, Zap, Network, Database, Globe, Lock, Wifi, AlertCircle, Radio, Hexagon, TrendingUp, TrendingDown, DollarSign, BarChart3, RadioReceiver, Search, Filter, SortAsc, SortDesc, Bot, BrainCircuit, MapPin, Share2, Server, Radar, Target, Eye } from 'lucide-react';
+import { Activity, Shield, Image as ImageIcon, Sparkles, RefreshCw, Cpu, Clock, Users, ArrowUpRight, X, ScanFace, Terminal, Zap, Network, Database, Globe, Lock, Wifi, AlertCircle, Radio, Hexagon, TrendingUp, TrendingDown, DollarSign, BarChart3, RadioReceiver, Search, Filter, SortAsc, SortDesc, Bot, BrainCircuit, MapPin, Share2, Server, Radar, Target, Eye, AlertTriangle, CheckCircle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, BarChart as RechartsBarChart, Bar } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -123,6 +123,14 @@ const MetricCard = ({ title, value, subtext, icon: Icon, color, data, onClick }:
         return Array.from({ length: 20 }, (_, i) => ({ value: 40 + Math.random() * 40 }));
     }, [data, value]);
 
+    // Calculate trend
+    const trend = useMemo(() => {
+        if (!data || data.length < 2) return 0;
+        const last = data[data.length - 1].value;
+        const prev = data[data.length - 2].value;
+        return ((last - prev) / prev) * 100;
+    }, [data]);
+
     return (
       <MotionDiv 
         onClick={onClick}
@@ -149,6 +157,10 @@ const MetricCard = ({ title, value, subtext, icon: Icon, color, data, onClick }:
                   <div className="text-[10px] font-mono text-gray-600 mt-1 flex items-center gap-1">
                       {subtext}
                   </div>
+              </div>
+              <div className={`flex items-center gap-1 text-[9px] font-mono font-bold px-1.5 py-0.5 rounded border ${trend >= 0 ? 'text-[#42be65] border-[#42be65]/20 bg-[#42be65]/10' : 'text-red-500 border-red-500/20 bg-red-500/10'}`}>
+                  {trend >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                  {Math.abs(trend).toFixed(1)}%
               </div>
           </div>
           
@@ -181,8 +193,8 @@ const MetricCard = ({ title, value, subtext, icon: Icon, color, data, onClick }:
             style={{ backgroundColor: color }}
           ></div>
           
-          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-              <ArrowUpRight className="w-4 h-4 text-gray-500" />
+          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0 text-gray-500">
+              <ArrowUpRight className="w-4 h-4" />
           </div>
       </MotionDiv>
     );
@@ -191,112 +203,133 @@ const MetricCard = ({ title, value, subtext, icon: Icon, color, data, onClick }:
 // 3. Cyber Map (Visualizing Global Nodes - Enhanced)
 const CyberMap: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [activeNodes, setActiveNodes] = useState<{x:number, y:number, life:number}[]>([]);
-    const mousePos = useRef({ x: -100, y: -100 });
-
+    const [hoveredNode, setHoveredNode] = useState<{x:number, y:number, id: string, region: string, latency: number} | null>(null);
+    const pointsRef = useRef<{x:number, y:number, baseAlpha:number, region: string, id: string}[]>([]);
+    
     useEffect(() => {
         const canvas = canvasRef.current;
         if(!canvas) return;
         const ctx = canvas.getContext('2d');
         if(!ctx) return;
 
-        const points: {x:number, y:number, baseAlpha:number}[] = [];
         const cols = 24;
         const rows = 14;
+        const regions = ['NA-EAST', 'EU-WEST', 'ASIA-PAC', 'SA-EAST', 'AF-NORTH'];
         
         const resize = () => {
             canvas.width = canvas.parentElement?.offsetWidth || 300;
             canvas.height = canvas.parentElement?.offsetHeight || 200;
-            points.length = 0;
-            const xStep = canvas.width / cols;
-            const yStep = canvas.height / rows;
             
-            for(let r=0; r<=rows; r++) {
-                for(let c=0; c<=cols; c++) {
-                    const nx = c/cols;
-                    const ny = r/rows;
-                    // World map-ish shape approximation
-                    const isLand = (ny > 0.2 && ny < 0.8) && (nx > 0.1 && nx < 0.9) && Math.random() > 0.45;
-                    if(isLand) {
-                        points.push({
-                            x: c * xStep + (Math.random() * 5),
-                            y: r * yStep + (Math.random() * 5),
-                            baseAlpha: 0.1 + Math.random() * 0.2
-                        });
+            // Regenerate points only if empty or size changed significantly
+            if (pointsRef.current.length === 0 || Math.abs(canvas.width - (pointsRef.current[0]?.x || 0) * cols) > 100) {
+                pointsRef.current = [];
+                const xStep = canvas.width / cols;
+                const yStep = canvas.height / rows;
+                
+                for(let r=0; r<=rows; r++) {
+                    for(let c=0; c<=cols; c++) {
+                        const nx = c/cols;
+                        const ny = r/rows;
+                        // World map-ish shape approximation
+                        const isLand = (ny > 0.2 && ny < 0.8) && (nx > 0.1 && nx < 0.9) && Math.random() > 0.45;
+                        if(isLand) {
+                            pointsRef.current.push({
+                                x: c * xStep + (Math.random() * 5),
+                                y: r * yStep + (Math.random() * 5),
+                                baseAlpha: 0.1 + Math.random() * 0.2,
+                                region: regions[Math.floor(Math.random() * regions.length)],
+                                id: `NODE-${Math.floor(Math.random()*1000)}`
+                            });
+                        }
                     }
                 }
             }
         };
         
+        // Mouse Tracking for Hover
+        let mouseX = -100;
+        let mouseY = -100;
+
         const handleMouseMove = (e: MouseEvent) => {
             const rect = canvas.getBoundingClientRect();
-            mousePos.current = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+            mouseX = e.clientX - rect.left;
+            mouseY = e.clientY - rect.top;
         };
 
         resize();
         window.addEventListener('resize', resize);
         canvas.addEventListener('mousemove', handleMouseMove);
 
+        let activeNodes: {x:number, y:number, life:number}[] = [];
         let frame = 0;
+
         const loop = () => {
             frame++;
             ctx.clearRect(0,0,canvas.width, canvas.height);
             
             // Random packet generation
             if(frame % 15 === 0 && Math.random() > 0.3) {
-                const target = points[Math.floor(Math.random() * points.length)];
-                if(target) setActiveNodes(prev => [...prev, { x: target.x, y: target.y, life: 1.0 }]);
+                const target = pointsRef.current[Math.floor(Math.random() * pointsRef.current.length)];
+                if(target) activeNodes.push({ x: target.x, y: target.y, life: 1.0 });
             }
 
-            points.forEach(p => {
-                const dist = Math.hypot(p.x - mousePos.current.x, p.y - mousePos.current.y);
+            let foundHover = null;
+
+            pointsRef.current.forEach(p => {
+                const dist = Math.hypot(p.x - mouseX, p.y - mouseY);
+                const isHover = dist < 15;
+                
+                if (isHover) {
+                    foundHover = { ...p, latency: Math.floor(Math.random() * 50 + 10) };
+                }
+
                 const hoverEffect = Math.max(0, 100 - dist) / 100;
                 
-                ctx.fillStyle = `rgba(100, 116, 139, ${p.baseAlpha + hoverEffect * 0.6})`; // Slate/Blueish gray
+                ctx.fillStyle = isHover ? '#fff' : `rgba(100, 116, 139, ${p.baseAlpha + hoverEffect * 0.6})`; 
                 ctx.beginPath();
-                ctx.arc(p.x, p.y, 1.5 + hoverEffect * 1.5, 0, Math.PI*2);
+                ctx.arc(p.x, p.y, isHover ? 3 : 1.5 + hoverEffect * 1.5, 0, Math.PI*2);
                 ctx.fill();
+                
+                if (isHover) {
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = '#fff';
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+                }
             });
+
+            // Update React state for tooltip (throttled/checked)
+            if (foundHover?.id !== hoveredNode?.id) {
+                setHoveredNode(foundHover);
+            } else if (!foundHover && hoveredNode) {
+                setHoveredNode(null);
+            }
 
             // Draw connecting lines for active nodes (simulating traffic)
-            setActiveNodes(prev => {
-                const next: typeof prev = [];
-                prev.forEach(node => {
-                    node.life -= 0.015;
-                    if(node.life > 0) {
-                        const size = (1-node.life) * 30;
-                        const alpha = node.life;
-                        
-                        // Expanding Ring
-                        ctx.strokeStyle = `rgba(34, 211, 238, ${alpha * 0.8})`;
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.arc(node.x, node.y, size, 0, Math.PI*2);
-                        ctx.stroke();
+            const nextActiveNodes: typeof activeNodes = [];
+            activeNodes.forEach(node => {
+                node.life -= 0.015;
+                if(node.life > 0) {
+                    const size = (1-node.life) * 30;
+                    const alpha = node.life;
+                    
+                    // Expanding Ring
+                    ctx.strokeStyle = `rgba(34, 211, 238, ${alpha * 0.8})`;
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, size, 0, Math.PI*2);
+                    ctx.stroke();
 
-                        // Core
-                        ctx.fillStyle = `rgba(34, 211, 238, ${alpha})`;
-                        ctx.beginPath();
-                        ctx.arc(node.x, node.y, 2, 0, Math.PI*2);
-                        ctx.fill();
+                    // Core
+                    ctx.fillStyle = `rgba(34, 211, 238, ${alpha})`;
+                    ctx.beginPath();
+                    ctx.arc(node.x, node.y, 2, 0, Math.PI*2);
+                    ctx.fill();
 
-                        // Connections to nearby nodes
-                        points.forEach(p => {
-                            const d = Math.hypot(p.x - node.x, p.y - node.y);
-                            if(d < 60 && Math.random() > 0.9) {
-                                ctx.strokeStyle = `rgba(34, 211, 238, ${alpha * 0.2})`;
-                                ctx.beginPath();
-                                ctx.moveTo(node.x, node.y);
-                                ctx.lineTo(p.x, p.y);
-                                ctx.stroke();
-                            }
-                        });
-
-                        next.push(node);
-                    }
-                });
-                return next;
+                    nextActiveNodes.push(node);
+                }
             });
+            activeNodes = nextActiveNodes;
 
             requestAnimationFrame(loop);
         };
@@ -306,11 +339,11 @@ const CyberMap: React.FC = () => {
             window.removeEventListener('resize', resize);
             canvas.removeEventListener('mousemove', handleMouseMove);
         };
-    }, []);
+    }, []); // Only init once, but referencing mutable refs
 
     return (
         <div className="relative w-full h-56 bg-[#080808] border border-[#1f1f1f] rounded-xl overflow-hidden group">
-            <div className="absolute top-4 left-4 z-10 flex flex-col">
+            <div className="absolute top-4 left-4 z-10 flex flex-col pointer-events-none">
                 <span className="text-[10px] font-bold text-[#22d3ee] font-mono uppercase tracking-widest flex items-center gap-2">
                     <Globe className="w-3 h-3" />
                     Global Node Activity
@@ -318,7 +351,7 @@ const CyberMap: React.FC = () => {
                 <span className="text-[9px] text-gray-500 font-mono">Real-time signal propagation</span>
             </div>
             
-            <div className="absolute bottom-4 right-4 z-10 flex flex-col items-end gap-1 text-[9px] font-mono text-gray-500">
+            <div className="absolute bottom-4 right-4 z-10 flex flex-col items-end gap-1 text-[9px] font-mono text-gray-500 pointer-events-none">
                 <div className="flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-[#22d3ee] rounded-full animate-pulse"></span>
                     <span>ONLINE</span>
@@ -328,12 +361,31 @@ const CyberMap: React.FC = () => {
 
             <canvas ref={canvasRef} className="w-full h-full opacity-80 group-hover:opacity-100 transition-opacity duration-500 cursor-crosshair" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)] pointer-events-none"></div>
+
+            {/* Tooltip Overlay */}
+            <AnimatePresence>
+                {hoveredNode && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="absolute pointer-events-none bg-black/90 backdrop-blur border border-[#22d3ee]/50 px-3 py-2 rounded shadow-xl z-20"
+                        style={{ top: hoveredNode.y - 50, left: hoveredNode.x + 10 }}
+                    >
+                        <div className="text-[10px] font-bold text-[#22d3ee] font-mono">{hoveredNode.id}</div>
+                        <div className="text-[9px] text-gray-400 font-mono">{hoveredNode.region}</div>
+                        <div className="text-[9px] text-white font-mono mt-1">{hoveredNode.latency}ms latency</div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
 
 // 4. Agent Hive (Improved Hex Grid)
 const AgentHive: React.FC<{ count: number }> = ({ count }) => {
+    const [selectedAgent, setSelectedAgent] = useState<number | null>(null);
+
     return (
         <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-5 flex-1 relative overflow-hidden flex flex-col min-h-[220px]">
             <div className="flex items-center justify-between mb-4 relative z-10">
@@ -351,27 +403,34 @@ const AgentHive: React.FC<{ count: number }> = ({ count }) => {
                 {Array.from({ length: 18 }).map((_, i) => {
                     const isActive = i < count;
                     const isWorking = isActive && Math.random() > 0.6;
+                    const isSelected = selectedAgent === i;
+
                     return (
                         <div key={i} className="group relative flex justify-center">
-                            <div className={`w-10 h-11 relative clip-hex transition-all duration-500 
-                                ${isActive 
-                                    ? isWorking 
-                                        ? 'bg-[#9d4edd] scale-105 shadow-[0_0_15px_#9d4edd]' 
-                                        : 'bg-[#1f1f1f] border-2 border-[#9d4edd]/40 hover:bg-[#9d4edd]/20' 
-                                    : 'bg-[#111] opacity-20 border border-gray-800'}
-                            `}>
+                            <button 
+                                onClick={() => isActive && setSelectedAgent(isSelected ? null : i)}
+                                className={`w-10 h-11 relative clip-hex transition-all duration-300 outline-none
+                                    ${isActive 
+                                        ? isWorking 
+                                            ? 'bg-[#9d4edd] scale-105 shadow-[0_0_15px_#9d4edd]' 
+                                            : isSelected 
+                                                ? 'bg-[#fff] scale-110 z-20'
+                                                : 'bg-[#1f1f1f] border-2 border-[#9d4edd]/40 hover:bg-[#9d4edd]/20 hover:scale-110' 
+                                        : 'bg-[#111] opacity-20 border border-gray-800 cursor-default'}
+                                `}
+                            >
                                 <div className="absolute inset-0 flex items-center justify-center">
                                     {isActive ? (
                                         isWorking ? <Activity className="w-4 h-4 text-black animate-spin" /> : 
-                                        <Bot className="w-4 h-4 text-[#9d4edd] group-hover:text-white transition-colors" />
+                                        <Bot className={`w-4 h-4 ${isSelected ? 'text-black' : 'text-[#9d4edd]'} transition-colors`} />
                                     ) : (
                                         <div className="w-1 h-1 bg-gray-600 rounded-full"></div>
                                     )}
                                 </div>
-                            </div>
+                            </button>
                             
                             {/* Hover Tooltip for Agent */}
-                            {isActive && (
+                            {isActive && !isSelected && (
                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-black/90 backdrop-blur border border-[#333] px-3 py-1.5 rounded text-[9px] font-mono text-white opacity-0 group-hover:opacity-100 pointer-events-none z-20 transition-opacity">
                                     <div className="font-bold text-[#9d4edd]">AGENT_0{i}</div>
                                     <div className="text-gray-400">{isWorking ? 'PROCESSING DATA' : 'IDLE / LISTENING'}</div>
@@ -381,6 +440,30 @@ const AgentHive: React.FC<{ count: number }> = ({ count }) => {
                     );
                 })}
             </div>
+
+            {/* Selection Overlay */}
+            <AnimatePresence>
+                {selectedAgent !== null && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                        className="absolute inset-x-4 bottom-4 bg-[#1a1a1a]/95 backdrop-blur border border-[#9d4edd]/50 rounded-lg p-3 z-30 shadow-2xl flex justify-between items-start"
+                    >
+                        <div>
+                            <div className="text-[10px] font-bold text-[#9d4edd] font-mono uppercase mb-1">Agent 0{selectedAgent} Analysis</div>
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-[9px] font-mono text-gray-300">
+                                <span>Status: <span className="text-white">ACTIVE</span></span>
+                                <span>Uptime: <span className="text-white">4h 12m</span></span>
+                                <span>Task: <span className="text-white">Neural Sync</span></span>
+                                <span>Efficiency: <span className="text-[#42be65]">98.2%</span></span>
+                            </div>
+                        </div>
+                        <button onClick={() => setSelectedAgent(null)} className="text-gray-500 hover:text-white"><X className="w-3 h-3"/></button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             <div className="absolute -bottom-10 -right-10 opacity-5 pointer-events-none">
                 <Hexagon className="w-48 h-48 text-[#9d4edd]" strokeWidth={0.5} />
             </div>
@@ -497,10 +580,10 @@ const OraclePanel: React.FC = () => {
                     </div>
                     
                     {/* H100 Price */}
-                    <div className="group">
+                    <div className="group cursor-pointer">
                         <div className="text-[9px] text-gray-500 font-mono uppercase mb-1">H100 Spot Price</div>
                         <div className="flex items-end justify-between">
-                            <span className="text-xl font-mono font-bold text-white">${h100Price.toLocaleString(undefined, {maximumFractionDigits: 0})}</span>
+                            <span className="text-xl font-mono font-bold text-white group-hover:text-[#42be65] transition-colors">${h100Price.toLocaleString(undefined, {maximumFractionDigits: 0})}</span>
                             <span className="text-[9px] font-mono text-[#42be65] flex items-center mb-1"><TrendingUp className="w-3 h-3 mr-1" /> +2.4%</span>
                         </div>
                         <div className="h-10 w-full mt-2 opacity-50 group-hover:opacity-100 transition-opacity">
@@ -578,6 +661,7 @@ const OraclePanel: React.FC = () => {
 // 6. Sentinel Radar (Enhanced Active Defense)
 const SentinelRadar: React.FC<{ packetLoss: number }> = ({ packetLoss }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [selectedThreat, setSelectedThreat] = useState<{r:number, theta:number} | null>(null);
     
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -699,8 +783,22 @@ const SentinelRadar: React.FC<{ packetLoss: number }> = ({ packetLoss }) => {
             </div>
             
             <div className="flex-1 relative z-10 w-full min-h-[150px]">
-                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+                <canvas ref={canvasRef} className="absolute inset-0 w-full h-full cursor-crosshair" />
             </div>
+            
+            {/* Recent Threats List (New) */}
+            {packetLoss > 0.03 && (
+                <div className="mt-2 space-y-1 relative z-10">
+                    <div className="flex items-center gap-2 text-[9px] font-mono text-red-400 bg-red-900/10 px-2 py-1 rounded border border-red-900/30">
+                        <AlertTriangle className="w-3 h-3" />
+                        <span>DDOS_SIG_04 DETECTED</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-[9px] font-mono text-gray-500 px-2">
+                        <Activity className="w-3 h-3" />
+                        <span>Mitigation: Active Rerouting...</span>
+                    </div>
+                </div>
+            )}
             
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>
         </div>

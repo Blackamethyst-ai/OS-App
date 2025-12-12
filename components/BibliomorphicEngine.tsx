@@ -2,9 +2,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { fileToGenerativePart, analyzeBookDNA, promptSelectKey, chatWithFiles } from '../services/geminiService';
-import { BookOpen, Upload, Cpu, Zap, Activity, MessageSquare, Send, Loader2, GitBranch, Database, Layout, Library, Save, Trash2, Clock, Archive, Network, BoxSelect, X, Move } from 'lucide-react';
+import { BookOpen, Upload, Cpu, Zap, Activity, MessageSquare, Send, Loader2, GitBranch, Database, Layout, Library, Save, Trash2, Clock, Archive, Network, BoxSelect, X, Move, ChevronRight, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookDNA, ProposedModule, Axiom } from '../types';
+import AgoraPanel from './AgoraPanel';
 
 const MotionDiv = motion.div as any;
 
@@ -354,41 +355,77 @@ const SynapseGraph: React.FC<{ dna: BookDNA }> = ({ dna }) => {
             <AnimatePresence>
                 {selectedNode && (
                     <MotionDiv
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: 20 }}
-                        className="absolute top-4 right-4 w-64 bg-[#0a0a0a]/90 backdrop-blur border border-[#333] rounded-lg p-4 shadow-2xl z-20"
+                        initial={{ opacity: 0, x: 50, scale: 0.95 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 50, scale: 0.95 }}
+                        transition={{ duration: 0.2, ease: "easeOut" }}
+                        className="absolute right-0 top-0 bottom-0 w-96 bg-[#0a0a0a]/95 backdrop-blur-xl border-l border-[#333] shadow-2xl z-20 flex flex-col"
                     >
-                        <div className="flex justify-between items-start mb-2 border-b border-[#333] pb-2">
-                             <div>
-                                 <div className="text-[9px] text-gray-500 font-mono uppercase tracking-wider">{selectedNode.type} NODE</div>
-                                 <h3 className="text-sm font-bold text-white font-mono leading-tight">{selectedNode.label}</h3>
+                        <div className="flex items-center justify-between p-4 border-b border-[#333]">
+                             <div className="flex items-center gap-2">
+                                 <div className={`w-2 h-2 rounded-full ${selectedNode.type === 'CORE' ? 'bg-white' : selectedNode.type === 'AXIOM' ? 'bg-[#9d4edd]' : 'bg-[#22d3ee]'}`}></div>
+                                 <span className="text-[10px] font-bold font-mono text-gray-400 uppercase tracking-widest">{selectedNode.type} DETAIL</span>
                              </div>
-                             <button onClick={() => setSelectedNode(null)} className="text-gray-500 hover:text-white"><X className="w-3 h-3"/></button>
+                             <button onClick={() => setSelectedNode(null)} className="text-gray-500 hover:text-white transition-colors">
+                                 <X className="w-4 h-4"/>
+                             </button>
                         </div>
                         
-                        <div className="text-[10px] text-gray-300 font-mono space-y-2">
-                             {selectedNode.type === 'CORE' && (
-                                 <>
-                                     <div><span className="text-gray-500">Author:</span> {selectedNode.data.desc}</div>
-                                     <div><span className="text-gray-500">Full Title:</span> {selectedNode.data.full}</div>
-                                 </>
-                             )}
-                             {selectedNode.type === 'AXIOM' && (
-                                 <>
-                                     <div className="bg-[#111] p-2 rounded text-gray-400 border-l-2 border-[#9d4edd]">
-                                         {selectedNode.data.codeSnippet}
-                                     </div>
-                                 </>
-                             )}
-                             {selectedNode.type === 'MODULE' && (
-                                 <>
-                                     <div>{selectedNode.data.description}</div>
-                                     <div className="pt-2 mt-2 border-t border-[#222] text-[9px] text-gray-500">
-                                         Reasoning: {selectedNode.data.reasoning}
-                                     </div>
-                                 </>
-                             )}
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+                             <h2 className="text-xl font-bold text-white font-mono leading-tight mb-4">{selectedNode.label}</h2>
+                             
+                             <div className="space-y-6">
+                                 {selectedNode.type === 'CORE' && (
+                                     <>
+                                         <div>
+                                             <label className="text-[9px] text-gray-500 font-mono uppercase block mb-1">Author / Origin</label>
+                                             <p className="text-sm text-gray-300 font-mono">{selectedNode.data.desc}</p>
+                                         </div>
+                                         <div>
+                                             <label className="text-[9px] text-gray-500 font-mono uppercase block mb-1">Full Designation</label>
+                                             <p className="text-sm text-gray-300 font-mono">{selectedNode.data.full}</p>
+                                         </div>
+                                     </>
+                                 )}
+
+                                 {selectedNode.type === 'AXIOM' && (
+                                     <>
+                                         <div className="bg-[#111] p-4 rounded border-l-2 border-[#9d4edd]">
+                                             <label className="text-[9px] text-[#9d4edd] font-mono uppercase block mb-2 flex items-center gap-2">
+                                                 <Zap className="w-3 h-3" /> System Prompt Injection
+                                             </label>
+                                             <p className="text-xs text-gray-300 font-mono leading-relaxed whitespace-pre-wrap">
+                                                 {selectedNode.data.codeSnippet}
+                                             </p>
+                                         </div>
+                                     </>
+                                 )}
+
+                                 {selectedNode.type === 'MODULE' && (
+                                     <>
+                                         <div>
+                                             <label className="text-[9px] text-gray-500 font-mono uppercase block mb-1">Function Description</label>
+                                             <p className="text-sm text-gray-300 leading-relaxed">{selectedNode.data.description}</p>
+                                         </div>
+                                         
+                                         <div className="pt-4 border-t border-[#222]">
+                                             <label className="text-[9px] text-gray-500 font-mono uppercase block mb-2">Architectural Reasoning</label>
+                                             <div className="text-xs text-gray-400 font-mono italic pl-4 border-l border-[#333]">
+                                                 "{selectedNode.data.reasoning}"
+                                             </div>
+                                         </div>
+                                     </>
+                                 )}
+                             </div>
+                        </div>
+
+                        <div className="p-4 border-t border-[#333] bg-[#050505]">
+                            <button 
+                                onClick={() => setSelectedNode(null)}
+                                className="w-full py-2 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] text-gray-400 text-xs font-mono uppercase tracking-wider transition-colors flex items-center justify-center gap-2"
+                            >
+                                <X className="w-3 h-3" /> Dismiss View
+                            </button>
                         </div>
                     </MotionDiv>
                 )}
@@ -405,7 +442,7 @@ const BibliomorphicEngine: React.FC = () => {
   const scrollRef = useRef<HTMLDivElement>(null);
   
   // New State for Library Management
-  const [activeTab, setActiveTab] = useState<'chat' | 'library'>('chat');
+  const [activeTab, setActiveTab] = useState<'chat' | 'library' | 'agora'>('chat');
   
   // View Toggle: Text vs Graph
   const [viewMode, setViewMode] = useState<'corpus' | 'synapse'>('corpus');
@@ -592,6 +629,13 @@ const BibliomorphicEngine: React.FC = () => {
                       <Library className="w-3 h-3" />
                       Archives
                   </button>
+                  <button 
+                    onClick={() => setActiveTab('agora')}
+                    className={`flex-1 py-3 text-[10px] font-bold font-mono uppercase tracking-wider flex items-center justify-center gap-2 transition-colors ${activeTab === 'agora' ? 'bg-[#111] text-[#f59e0b] border-b-2 border-[#f59e0b]' : 'text-gray-500 hover:text-gray-300'}`}
+                  >
+                      <Users className="w-3 h-3" />
+                      Agora Sim
+                  </button>
               </div>
 
               {/* View: Chat / Upload */}
@@ -704,10 +748,10 @@ const BibliomorphicEngine: React.FC = () => {
               )}
           </div>
 
-          {/* Right Column: DNA Viz */}
+          {/* Right Column: DNA Viz or Agora */}
           <div className="flex-1 relative flex flex-col">
-               {/* View Toggle */}
-               {bibliomorphic.dna && (
+               {/* View Toggle (Only in Chat mode when DNA exists) */}
+               {activeTab === 'chat' && bibliomorphic.dna && (
                    <div className="absolute top-4 right-4 z-20 flex bg-[#111] border border-[#333] rounded p-1 shadow-lg">
                        <button 
                            onClick={() => setViewMode('corpus')}
@@ -726,107 +770,119 @@ const BibliomorphicEngine: React.FC = () => {
                    </div>
                )}
 
-              {!bibliomorphic.dna ? (
-                  <div className="h-full flex flex-col items-center justify-center text-gray-700 opacity-50">
-                      <Activity className="w-16 h-16 mb-6" />
-                      <p className="font-mono text-sm uppercase tracking-widest">Awaiting Neural Sequence</p>
-                  </div>
-              ) : (
-                  viewMode === 'synapse' ? (
-                      <SynapseGraph dna={bibliomorphic.dna} />
+              {activeTab === 'agora' ? (
+                  bibliomorphic.activeBook ? (
+                      <AgoraPanel artifact={bibliomorphic.activeBook} />
                   ) : (
-                      <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-                          <AnimatePresence>
-                              <MotionDiv 
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="space-y-12 max-w-4xl mx-auto"
-                              >
-                                  {/* 1. Kernel Identity */}
-                                  <section>
-                                      <div className="flex items-center gap-2 mb-4 border-b border-[#333] pb-2">
-                                          <Cpu className="w-4 h-4 text-[#9d4edd]" />
-                                          <h2 className="text-xs font-bold font-mono uppercase tracking-widest text-gray-300">Kernel Identity</h2>
-                                      </div>
-                                      <div className="grid grid-cols-2 gap-6">
-                                          <div className="bg-[#0a0a0a] border border-[#333] p-5 rounded">
-                                              <div className="text-[10px] text-gray-500 uppercase mb-2">Designation</div>
-                                              <div className="text-lg text-white font-mono">{bibliomorphic.dna.kernelIdentity?.designation || 'UNKNOWN'}</div>
-                                          </div>
-                                          <div className="bg-[#0a0a0a] border border-[#333] p-5 rounded">
-                                              <div className="text-[10px] text-gray-500 uppercase mb-2">Prime Directive</div>
-                                              <div className="text-sm text-gray-300 italic">"{bibliomorphic.dna.kernelIdentity?.primeDirective || 'N/A'}"</div>
-                                          </div>
-                                      </div>
-                                  </section>
-
-                                  {/* 2. Axioms */}
-                                  <section>
-                                      <div className="flex items-center gap-2 mb-4 border-b border-[#333] pb-2">
-                                          <Zap className="w-4 h-4 text-[#9d4edd]" />
-                                          <h2 className="text-xs font-bold font-mono uppercase tracking-widest text-gray-300">Foundational Axioms</h2>
-                                      </div>
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                          {(bibliomorphic.dna.axioms || []).map((axiom, i) => (
-                                              <div key={i} className="bg-[#0a0a0a] border border-[#333] p-4 hover:border-[#9d4edd] transition-colors group">
-                                                  <div className="flex justify-between items-start mb-2">
-                                                      <span className="text-xs font-bold text-[#9d4edd]">{axiom.concept}</span>
-                                                      <span className="text-[10px] text-gray-600 font-mono">AXIOM_0{i+1}</span>
-                                                  </div>
-                                                  <div className="bg-[#111] p-2 rounded text-[10px] font-mono text-gray-400 border-l-2 border-[#9d4edd] opacity-80 group-hover:opacity-100">
-                                                      {axiom.codeSnippet}
-                                                  </div>
-                                              </div>
-                                          ))}
-                                      </div>
-                                  </section>
-
-                                  {/* 3. Proposed Modules */}
-                                  <section>
-                                      <div className="flex items-center gap-2 mb-4 border-b border-[#333] pb-2">
-                                          <Layout className="w-4 h-4 text-[#9d4edd]" />
-                                          <h2 className="text-xs font-bold font-mono uppercase tracking-widest text-gray-300">Structural Modules</h2>
-                                      </div>
-                                      <div className="space-y-3">
-                                          {(bibliomorphic.dna.modules || []).map((mod, i) => (
-                                              <div key={i} className="flex items-start bg-[#0a0a0a] border border-[#333] p-4 rounded">
-                                                  <div className={`p-2 rounded mr-4 bg-opacity-10 border
-                                                      ${mod.type === 'UI' ? 'bg-blue-500 border-blue-500 text-blue-500' : 
-                                                        mod.type === 'LOGIC' ? 'bg-green-500 border-green-500 text-green-500' : 
-                                                        mod.type === 'DATABASE' ? 'bg-yellow-500 border-yellow-500 text-yellow-500' : 
-                                                        'bg-purple-500 border-purple-500 text-purple-500'}`}>
-                                                      {mod.type === 'UI' ? <Layout className="w-4 h-4" /> : 
-                                                       mod.type === 'LOGIC' ? <Cpu className="w-4 h-4" /> :
-                                                       mod.type === 'DATABASE' ? <Database className="w-4 h-4" /> : <GitBranch className="w-4 h-4" />}
-                                                  </div>
-                                                  <div>
-                                                      <h3 className="text-sm font-bold text-gray-200 mb-1">{mod.title}</h3>
-                                                      <p className="text-xs text-gray-500 mb-2">{mod.description}</p>
-                                                      <p className="text-[10px] text-gray-600 font-mono border-t border-[#222] pt-2 mt-2">
-                                                          // Reason: {mod.reasoning}
-                                                      </p>
-                                                  </div>
-                                              </div>
-                                          ))}
-                                      </div>
-                                  </section>
-
-                                  {/* 4. System Prompt */}
-                                  <section className="pb-12">
-                                       <div className="flex items-center gap-2 mb-4 border-b border-[#333] pb-2">
-                                          <MessageSquare className="w-4 h-4 text-[#9d4edd]" />
-                                          <h2 className="text-xs font-bold font-mono uppercase tracking-widest text-gray-300">Compiled System Prompt</h2>
-                                      </div>
-                                      <div className="bg-[#050505] border border-[#333] p-4 rounded overflow-x-auto">
-                                          <pre className="text-[10px] font-mono text-gray-400 whitespace-pre-wrap">
-                                              {bibliomorphic.dna.systemPrompt}
-                                          </pre>
-                                      </div>
-                                  </section>
-
-                              </MotionDiv>
-                          </AnimatePresence>
+                      <div className="flex-1 flex flex-col items-center justify-center text-gray-600 opacity-50">
+                          <Users className="w-16 h-16 mb-4" />
+                          <p className="text-xs font-mono uppercase tracking-widest">Active Source Required for Simulation</p>
+                          <p className="text-[9px] mt-2">Please upload a document to initialize the Agora.</p>
                       </div>
+                  )
+              ) : (
+                  !bibliomorphic.dna ? (
+                      <div className="h-full flex flex-col items-center justify-center text-gray-700 opacity-50">
+                          <Activity className="w-16 h-16 mb-6" />
+                          <p className="font-mono text-sm uppercase tracking-widest">Awaiting Neural Sequence</p>
+                      </div>
+                  ) : (
+                      viewMode === 'synapse' ? (
+                          <SynapseGraph dna={bibliomorphic.dna} />
+                      ) : (
+                          <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
+                              <AnimatePresence>
+                                  <MotionDiv 
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="space-y-12 max-w-4xl mx-auto"
+                                  >
+                                      {/* 1. Kernel Identity */}
+                                      <section>
+                                          <div className="flex items-center gap-2 mb-4 border-b border-[#333] pb-2">
+                                              <Cpu className="w-4 h-4 text-[#9d4edd]" />
+                                              <h2 className="text-xs font-bold font-mono uppercase tracking-widest text-gray-300">Kernel Identity</h2>
+                                          </div>
+                                          <div className="grid grid-cols-2 gap-6">
+                                              <div className="bg-[#0a0a0a] border border-[#333] p-5 rounded">
+                                                  <div className="text-[10px] text-gray-500 uppercase mb-2">Designation</div>
+                                                  <div className="text-lg text-white font-mono">{bibliomorphic.dna.kernelIdentity?.designation || 'UNKNOWN'}</div>
+                                              </div>
+                                              <div className="bg-[#0a0a0a] border border-[#333] p-5 rounded">
+                                                  <div className="text-[10px] text-gray-500 uppercase mb-2">Prime Directive</div>
+                                                  <div className="text-sm text-gray-300 italic">"{bibliomorphic.dna.kernelIdentity?.primeDirective || 'N/A'}"</div>
+                                              </div>
+                                          </div>
+                                      </section>
+
+                                      {/* 2. Axioms */}
+                                      <section>
+                                          <div className="flex items-center gap-2 mb-4 border-b border-[#333] pb-2">
+                                              <Zap className="w-4 h-4 text-[#9d4edd]" />
+                                              <h2 className="text-xs font-bold font-mono uppercase tracking-widest text-gray-300">Foundational Axioms</h2>
+                                          </div>
+                                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                              {(bibliomorphic.dna.axioms || []).map((axiom, i) => (
+                                                  <div key={i} className="bg-[#0a0a0a] border border-[#333] p-4 hover:border-[#9d4edd] transition-colors group">
+                                                      <div className="flex justify-between items-start mb-2">
+                                                          <span className="text-xs font-bold text-[#9d4edd]">{axiom.concept}</span>
+                                                          <span className="text-[10px] text-gray-600 font-mono">AXIOM_0{i+1}</span>
+                                                      </div>
+                                                      <div className="bg-[#111] p-2 rounded text-[10px] font-mono text-gray-400 border-l-2 border-[#9d4edd] opacity-80 group-hover:opacity-100">
+                                                          {axiom.codeSnippet}
+                                                      </div>
+                                                  </div>
+                                              ))}
+                                          </div>
+                                      </section>
+
+                                      {/* 3. Proposed Modules */}
+                                      <section>
+                                          <div className="flex items-center gap-2 mb-4 border-b border-[#333] pb-2">
+                                              <Layout className="w-4 h-4 text-[#9d4edd]" />
+                                              <h2 className="text-xs font-bold font-mono uppercase tracking-widest text-gray-300">Structural Modules</h2>
+                                          </div>
+                                          <div className="space-y-3">
+                                              {(bibliomorphic.dna.modules || []).map((mod, i) => (
+                                                  <div key={i} className="flex items-start bg-[#0a0a0a] border border-[#333] p-4 rounded">
+                                                      <div className={`p-2 rounded mr-4 bg-opacity-10 border
+                                                          ${mod.type === 'UI' ? 'bg-blue-500 border-blue-500 text-blue-500' : 
+                                                            mod.type === 'LOGIC' ? 'bg-green-500 border-green-500 text-green-500' : 
+                                                            mod.type === 'DATABASE' ? 'bg-yellow-500 border-yellow-500 text-yellow-500' : 
+                                                            'bg-purple-500 border-purple-500 text-purple-500'}`}>
+                                                          {mod.type === 'UI' ? <Layout className="w-4 h-4" /> : 
+                                                           mod.type === 'LOGIC' ? <Cpu className="w-4 h-4" /> :
+                                                           mod.type === 'DATABASE' ? <Database className="w-4 h-4" /> : <GitBranch className="w-4 h-4" />}
+                                                      </div>
+                                                      <div>
+                                                          <h3 className="text-sm font-bold text-gray-200 mb-1">{mod.title}</h3>
+                                                          <p className="text-xs text-gray-500 mb-2">{mod.description}</p>
+                                                          <p className="text-[10px] text-gray-600 font-mono border-t border-[#222] pt-2 mt-2">
+                                                              // Reason: {mod.reasoning}
+                                                          </p>
+                                                      </div>
+                                                  </div>
+                                              ))}
+                                          </div>
+                                      </section>
+
+                                      {/* 4. System Prompt */}
+                                      <section className="pb-12">
+                                           <div className="flex items-center gap-2 mb-4 border-b border-[#333] pb-2">
+                                              <MessageSquare className="w-4 h-4 text-[#9d4edd]" />
+                                              <h2 className="text-xs font-bold font-mono uppercase tracking-widest text-gray-300">Compiled System Prompt</h2>
+                                          </div>
+                                          <div className="bg-[#050505] border border-[#333] p-4 rounded overflow-x-auto">
+                                              <pre className="text-[10px] font-mono text-gray-400 whitespace-pre-wrap">
+                                                  {bibliomorphic.dna.systemPrompt}
+                                              </pre>
+                                          </div>
+                                      </section>
+
+                                  </MotionDiv>
+                              </AnimatePresence>
+                          </div>
+                      )
                   )
               )}
           </div>

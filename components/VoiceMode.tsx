@@ -4,9 +4,10 @@ import { useAppStore } from '../store';
 import { liveSession, promptSelectKey } from '../services/geminiService';
 import { Mic, Activity, Power, Settings, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { neuralVault } from '../services/persistenceService';
 
 const VoiceMode: React.FC = () => {
-  const { voice, setVoiceState } = useAppStore();
+  const { voice, setVoiceState, system } = useAppStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -26,6 +27,46 @@ const VoiceMode: React.FC = () => {
     };
 
     liveSession.onDisconnect = () => setVoiceState({ isActive: false, isConnecting: false });
+
+    // --- TOOL HANDLER INJECTION ---
+    liveSession.onToolCall = async (name, args) => {
+        console.log(`[Voice Core] Executing Tool: ${name}`, args);
+        
+        if (name === 'get_telemetry') {
+            // Fetch live data from store (simulated or real)
+            // Ideally we'd pull from a store selector, but for now we mock based on system state
+            return {
+                cpu_load: Math.floor(Math.random() * 30 + 10) + "%",
+                memory_usage: "4.2GB / 16GB",
+                network_latency: "12ms",
+                active_logs: system.logs.length,
+                status: "OPTIMAL"
+            };
+        }
+
+        if (name === 'search_knowledge') {
+            const query = args.query;
+            try {
+                // Search Neural Vault Artifacts
+                const artifacts = await neuralVault.getArtifacts();
+                const matches = artifacts.filter(a => 
+                    a.name.toLowerCase().includes(query.toLowerCase()) || 
+                    a.tags.some(t => t.toLowerCase().includes(query.toLowerCase()))
+                );
+                
+                if (matches.length === 0) return { result: "No artifacts found matching query." };
+                
+                return {
+                    found_count: matches.length,
+                    top_matches: matches.slice(0, 3).map(m => ({ name: m.name, type: m.type, tags: m.tags }))
+                };
+            } catch (e: any) {
+                return { error: "Database Access Error: " + e.message };
+            }
+        }
+
+        return { error: "Unknown Tool" };
+    };
 
     return () => liveSession.disconnect();
   }, []);

@@ -9,6 +9,8 @@ import {
     BibliomorphicState,
     VoiceState,
     CodeStudioState,
+    BicameralState,
+    ResearchState,
     GlobalSearchState,
     SystemState,
     HoloState,
@@ -16,7 +18,8 @@ import {
     ImageSize,
     AspectRatio,
     DockItem,
-    LogEntry
+    LogEntry,
+    ResearchTask
 } from './types';
 
 interface AppState {
@@ -48,6 +51,14 @@ interface AppState {
 
     codeStudio: CodeStudioState;
     setCodeStudioState: (update: Partial<CodeStudioState> | ((prev: CodeStudioState) => Partial<CodeStudioState>)) => void;
+
+    bicameral: BicameralState;
+    setBicameralState: (update: Partial<BicameralState> | ((prev: BicameralState) => Partial<BicameralState>)) => void;
+
+    research: ResearchState;
+    addResearchTask: (task: ResearchTask) => void;
+    updateResearchTask: (id: string, update: Partial<ResearchTask>) => void;
+    removeResearchTask: (id: string) => void;
 
     search: GlobalSearchState;
     setSearchState: (update: Partial<GlobalSearchState> | ((prev: GlobalSearchState) => Partial<GlobalSearchState>)) => void;
@@ -92,7 +103,14 @@ export const useAppStore = create<AppState>((set) => ({
         error: null,
         autopoieticFramework: null,
         generatedWorkflow: null,
-        entropyScore: 0
+        entropyScore: 0,
+        swarm: {
+            isActive: false,
+            agents: [],
+            synthesis: null
+        },
+        activeTab: 'living_map',
+        architectMode: 'BLUEPRINT'
     },
     setProcessState: (update) => set((state) => ({
         process: { ...state.process, ...(typeof update === 'function' ? update(state.process) : update) }
@@ -169,6 +187,40 @@ export const useAppStore = create<AppState>((set) => ({
     },
     setCodeStudioState: (update) => set((state) => ({
         codeStudio: { ...state.codeStudio, ...(typeof update === 'function' ? update(state.codeStudio) : update) }
+    })),
+
+    bicameral: {
+        goal: '',
+        plan: [],
+        ledger: [],
+        isPlanning: false,
+        isSwarming: false,
+        activeAgents: 0,
+        error: null,
+        swarmStatus: {
+            taskId: null,
+            votes: {},
+            killedAgents: 0,
+            currentGap: 0,
+            targetGap: 3,
+            totalAttempts: 0
+        }
+    },
+    setBicameralState: (update) => set((state) => ({
+        bicameral: { ...state.bicameral, ...(typeof update === 'function' ? update(state.bicameral) : update) }
+    })),
+
+    research: {
+        tasks: []
+    },
+    addResearchTask: (task) => set((state) => ({ 
+        research: { ...state.research, tasks: [task, ...state.research.tasks] } 
+    })),
+    updateResearchTask: (id, update) => set((state) => ({
+        research: { ...state.research, tasks: state.research.tasks.map(t => t.id === id ? { ...t, ...update } : t) }
+    })),
+    removeResearchTask: (id) => set((state) => ({
+        research: { ...state.research, tasks: state.research.tasks.filter(t => t.id !== id) }
     })),
 
     search: {
