@@ -10,17 +10,16 @@ interface TugOfWarProps {
 export const TugOfWarChart: React.FC<TugOfWarProps> = ({ votes, confidenceGap }) => {
   // Sort votes to find Leader vs RunnerUp
   const candidates = Object.entries(votes)
-    .sort(([, a], [, b]) => b - a)
+    .sort(([, a], [, b]) => (b as number) - (a as number))
     .slice(0, 2); // Only care about top 2
 
   const [leader, runnerUp] = candidates;
-  const leaderVotes = leader ? leader[1] : 0;
-  const runnerUpVotes = runnerUp ? runnerUp[1] : 0;
+  const leaderVotes = leader ? (leader[1] as number) : 0;
+  const runnerUpVotes = runnerUp ? (runnerUp[1] as number) : 0;
   
   // Calculate the gap. Max range is usually confidenceGap * 1.5 for visuals
   const currentGap = leaderVotes - runnerUpVotes;
-  const maxRange = Math.max(confidenceGap + 2, currentGap + 2);
-
+  
   return (
     <div className="w-full bg-[#0a0a0a] p-4 rounded-lg border border-[#333] shadow-xl">
       <div className="flex justify-between mb-2 text-[10px] uppercase tracking-widest text-gray-400 font-mono">
@@ -32,7 +31,6 @@ export const TugOfWarChart: React.FC<TugOfWarProps> = ({ votes, confidenceGap })
       <div className="relative h-12 bg-[#1f1f1f] rounded-full overflow-hidden flex items-center justify-center border border-[#333]">
         
         {/* The "Confidence Threshold" Lines (The Finish Line) */}
-        {/* If gap hits this, the bar turns green */}
         <div className="absolute top-0 bottom-0 w-0.5 bg-dashed border-r border-gray-600 left-[calc(50%+20%)] opacity-50" title="Victory Line" />
         
         {/* Runner Up Bar (Pushing Left) */}

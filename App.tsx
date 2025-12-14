@@ -1,7 +1,8 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 // import '@xyflow/react/dist/style.css'; // Styles loaded via index.html in this environment
 import { useAppStore } from './store';
+import useSystemMind from './stores/useSystemMind'; // Updated to use new store location
 import { AppMode } from './types';
 import ImageGen from './components/ImageGen';
 import ProcessVisualizer from './components/ProcessVisualizer';
@@ -12,24 +13,42 @@ import BibliomorphicEngine from './components/BibliomorphicEngine';
 import VoiceMode from './components/VoiceMode';
 import HardwareEngine from './components/HardwareEngine';
 import CodeStudio from './components/CodeStudio';
-import MemoryCore from './components/MemoryCore'; // Upgrade
+import MemoryCore from './components/MemoryCore'; 
 import GlobalSearchBar from './components/GlobalSearchBar';
 import SystemNotification from './components/SystemNotification';
 import NeuralHeader from './components/NeuralHeader';
 import OverlayOS from './components/OverlayOS';
 import HoloProjector from './components/HoloProjector'; 
 import SynapticRouter from './components/SynapticRouter'; 
-import TimeTravelScrubber from './components/TimeTravelScrubber'; // Upgrade
-import { useAutoSave } from './hooks/useAutoSave'; // Upgrade
-import { useDaemonSwarm } from './hooks/useDaemonSwarm'; // Upgrade E
-import { useVoiceControl } from './hooks/useVoiceControl'; // Upgrade F
-import { Layout, Image, Settings, Key, Command, LayoutGrid, Activity, BookOpen, Mic, Cpu, Code, HardDrive } from 'lucide-react';
+import TimeTravelScrubber from './components/TimeTravelScrubber'; 
+import BicameralEngine from './components/BicameralEngine'; 
+import ResearchTray from './components/ResearchTray'; 
+import VoiceManager from './components/VoiceManager'; 
+import VoiceCoreOverlay from './components/VoiceCoreOverlay'; // New Overlay Import
+import { useAutoSave } from './hooks/useAutoSave'; 
+import { useDaemonSwarm } from './hooks/useDaemonSwarm'; 
+import { useVoiceControl } from './hooks/useVoiceControl'; 
+import { Layout, Image, Settings, Key, Command, LayoutGrid, Activity, BookOpen, Mic, Cpu, Code, HardDrive, Split } from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
 import { audio } from './services/audioService'; 
 import { motion, AnimatePresence } from 'framer-motion';
 
+const MotionDiv = motion.div as any;
+const MotionMain = motion.main as any;
+
 const Starfield: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { mode, process, imageGen, hardware, codeStudio, bibliomorphic, voice } = useAppStore();
+
+  // Use refs for values needed inside the animation loop to prevent re-initialization
+  const modeRef = useRef(mode);
+  const isProcessingRef = useRef(false);
+
+  useEffect(() => { modeRef.current = mode; }, [mode]);
+  
+  useEffect(() => { 
+      isProcessingRef.current = process.isLoading || imageGen.isLoading || hardware.isLoading || codeStudio.isLoading || bibliomorphic.isLoading || voice.isConnecting;
+  }, [process.isLoading, imageGen.isLoading, hardware.isLoading, codeStudio.isLoading, bibliomorphic.isLoading, voice.isConnecting]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,9 +57,8 @@ const Starfield: React.FC = () => {
     if (!ctx) return;
 
     let animationFrameId: number;
-    let stars: { x: number; y: number; z: number; size: number; color: string }[] = [];
-    const numStars = 600;
-    const speed = 0.5;
+    let stars: { x: number; y: number; z: number; size: number; color: string; speedMult: number }[] = [];
+    const numStars = 800;
     
     // Mouse interaction
     let mouseX = window.innerWidth / 2;
@@ -48,23 +66,47 @@ const Starfield: React.FC = () => {
     let targetX = mouseX;
     let targetY = mouseY;
 
+    let currentSpeed = 0.5;
+
     const resize = () => {
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
     };
 
+    const getThemeColors = (m: AppMode) => {
+        switch (m) {
+            case AppMode.PROCESS_MAP: return ['#42be65', '#065f46'];
+            case AppMode.IMAGE_GEN: return ['#d946ef', '#701a75'];
+            case AppMode.POWER_XRAY: return ['#f59e0b', '#78350f'];
+            case AppMode.HARDWARE_ENGINEER: return ['#3b82f6', '#1e3a8a'];
+            case AppMode.CODE_STUDIO: return ['#10b981', '#064e3b'];
+            case AppMode.BIBLIOMORPHIC: return ['#f97316', '#7c2d12'];
+            case AppMode.VOICE_MODE: return ['#22d3ee', '#155e75'];
+            case AppMode.MEMORY_CORE: return ['#8b5cf6', '#4c1d95'];
+            default: return ['#ffffff', '#9d4edd'];
+        }
+    };
+
     const initStars = () => {
       stars = [];
-      const colors = ['#ffffff', '#9d4edd', '#22d3ee', '#f59e0b']; 
       for (let i = 0; i < numStars; i++) {
-        stars.push({
+        resetStar(i, true);
+      }
+    };
+
+    const resetStar = (index: number, initial = false) => {
+        const colors = getThemeColors(modeRef.current);
+        // Biased random selection
+        const color = Math.random() > 0.7 ? colors[0] : (Math.random() > 0.5 ? colors[1] : '#555');
+        
+        stars[index] = {
           x: Math.random() * canvas.width - canvas.width / 2,
           y: Math.random() * canvas.height - canvas.height / 2,
-          z: Math.random() * canvas.width,
+          z: initial ? Math.random() * canvas.width : canvas.width,
           size: Math.random() * 2,
-          color: colors[Math.floor(Math.random() * colors.length)]
-        });
-      }
+          color: color,
+          speedMult: Math.random() * 0.5 + 0.5
+        };
     };
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -73,8 +115,13 @@ const Starfield: React.FC = () => {
     };
 
     const draw = () => {
-      // Trail effect: clear with transparency
-      ctx.fillStyle = 'rgba(3, 3, 3, 0.25)';
+      const processing = isProcessingRef.current;
+      const targetSpeed = processing ? 8.0 : 0.2;
+      currentSpeed += (targetSpeed - currentSpeed) * 0.05;
+
+      // Trail effect: clear with transparency (longer trails when fast)
+      const alpha = processing ? 0.1 : 0.25;
+      ctx.fillStyle = `rgba(3, 3, 3, ${alpha})`;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       
       // Smooth mouse follow
@@ -85,27 +132,43 @@ const Starfield: React.FC = () => {
       const cy = canvas.height / 2;
 
       // Parallax
-      const offsetX = (mouseX - cx) * 0.5;
-      const offsetY = (mouseY - cy) * 0.5;
+      const offsetX = (mouseX - cx) * 0.2;
+      const offsetY = (mouseY - cy) * 0.2;
 
-      stars.forEach((star) => {
-        star.z -= speed;
+      stars.forEach((star, i) => {
+        star.z -= currentSpeed * star.speedMult;
+
         if (star.z <= 0) {
+          resetStar(i);
           star.z = canvas.width;
-          star.x = Math.random() * canvas.width - canvas.width / 2;
-          star.y = Math.random() * canvas.height - canvas.height / 2;
         }
 
         const x = ((star.x - offsetX) / star.z) * canvas.width + cx;
         const y = ((star.y - offsetY) / star.z) * canvas.width + cy;
-        const s = (1 - star.z / canvas.width) * star.size * 2.5;
+        
+        const scale = (1 - star.z / canvas.width);
+        const s = scale * star.size * (processing ? 3 : 2.5);
 
-        const alpha = (1 - star.z / canvas.width);
         ctx.fillStyle = star.color;
-        ctx.globalAlpha = alpha;
+        ctx.globalAlpha = scale;
+        
         ctx.beginPath();
-        ctx.arc(x, y, s > 0 ? s : 0, 0, Math.PI * 2);
-        ctx.fill();
+        // Warp streak effect
+        if (currentSpeed > 2) {
+            const streakLen = currentSpeed * scale * 2;
+            const angle = Math.atan2(y - cy, x - cx);
+            const x2 = x - Math.cos(angle) * streakLen;
+            const y2 = y - Math.sin(angle) * streakLen;
+            
+            ctx.moveTo(x, y);
+            ctx.lineTo(x2, y2);
+            ctx.lineWidth = s;
+            ctx.strokeStyle = star.color;
+            ctx.stroke();
+        } else {
+            ctx.arc(x, y, s > 0 ? s : 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
         ctx.globalAlpha = 1;
       });
 
@@ -123,7 +186,7 @@ const Starfield: React.FC = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       cancelAnimationFrame(animationFrameId);
     };
-  }, []);
+  }, []); // Empty dependency array to prevent canvas reset
 
   return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0 opacity-80" />;
 };
@@ -173,7 +236,8 @@ const AmbientBackground: React.FC = () => {
           case AppMode.CODE_STUDIO: return ['#10b981', '#064e3b', 5]; // Emerald
           case AppMode.BIBLIOMORPHIC: return ['#f97316', '#7c2d12', 4]; // Orange
           case AppMode.VOICE_MODE: return ['#22d3ee', '#155e75', 3]; // Cyan
-          case AppMode.MEMORY_CORE: return ['#9d4edd', '#4c1d95', 6]; // Deep Purple
+          case AppMode.MEMORY_CORE: return ['#8b5cf6', '#4c1d95', 6]; // Deep Purple
+          case AppMode.BICAMERAL: return ['#f43f5e', '#881337', 4]; // Rose/Red
           case AppMode.DASHBOARD: 
           default: return ['#9d4edd', '#4c1d95', 8]; // Deep Purple
       }
@@ -189,10 +253,26 @@ const AmbientBackground: React.FC = () => {
     ? [1, 1 + Math.min(voice.volume / 60, 0.4), 1] 
     : [1, 1.05, 1];
 
+  const isTechnicalMode = [AppMode.PROCESS_MAP, AppMode.HARDWARE_ENGINEER, AppMode.CODE_STUDIO, AppMode.POWER_XRAY].includes(mode);
+
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none z-0 opacity-40 transition-colors duration-1000">
+        
+        {/* Technical Grid Overlay for Engineering Modes */}
+        <AnimatePresence>
+            {isTechnicalMode && (
+                <MotionDiv
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 0.15 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 1 }}
+                    className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:100px_100px]"
+                />
+            )}
+        </AnimatePresence>
+
         {/* Dynamic Blobs with Drifting Animation */}
-        <motion.div 
+        <MotionDiv 
             animate={{ 
                 background: `radial-gradient(circle at center, ${color1} 0%, transparent 60%)`,
                 opacity: baseOpacity,
@@ -208,7 +288,7 @@ const AmbientBackground: React.FC = () => {
             className="absolute top-[-30%] left-[-10%] w-[80vw] h-[80vw] blur-[120px] rounded-full mix-blend-screen origin-center"
         />
         
-        <motion.div 
+        <MotionDiv 
             animate={{ 
                 background: `radial-gradient(circle at center, ${color2} 0%, transparent 60%)`,
                 opacity: baseOpacity * 0.8,
@@ -225,7 +305,7 @@ const AmbientBackground: React.FC = () => {
         />
 
         {/* Global Activity Pulse */}
-        <motion.div
+        <MotionDiv
             animate={{
                 opacity: [0.02, 0.08, 0.02],
                 scale: pulseScale
@@ -239,7 +319,7 @@ const AmbientBackground: React.FC = () => {
         />
 
         {/* Vertical Scanline */}
-        <motion.div
+        <MotionDiv
             initial={{ top: '-10%' }}
             animate={{ top: '110%' }}
             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
@@ -248,7 +328,7 @@ const AmbientBackground: React.FC = () => {
 
         {/* Interactive Ripples */}
         {ripples.map(r => (
-            <motion.div
+            <MotionDiv
                 key={r.id}
                 initial={{ opacity: 0.6, scale: 0, borderWidth: '2px' }}
                 animate={{ opacity: 0, scale: 4, borderWidth: '0px' }}
@@ -290,8 +370,11 @@ const App: React.FC = () => {
       setHardwareState,
       setImageGenState,
       setBibliomorphicState,
-      setDashboardState 
+      setDashboardState,
+      setBicameralState
   } = useAppStore();
+  
+  const { setSector } = useSystemMind(); 
 
   // 1. Activate Auto-Pilot (Persistence)
   useAutoSave(); 
@@ -301,6 +384,11 @@ const App: React.FC = () => {
 
   // 3. Activate Synaptic Bridge (Multimodality)
   useVoiceControl();
+
+  // 4. Update System Sector when mode changes (Context Awareness)
+  useEffect(() => {
+      setSector(mode);
+  }, [mode, setSector]);
 
   const handleKeySelection = async () => {
     audio.playClick();
@@ -312,7 +400,7 @@ const App: React.FC = () => {
       setMode(newMode);
   };
 
-  // 4. Define Restore Logic
+  // 5. Define Restore Logic
   const handleRestoreState = (savedState: any) => {
       audio.playTransition();
       switch (mode) {
@@ -322,6 +410,7 @@ const App: React.FC = () => {
           case AppMode.IMAGE_GEN: setImageGenState(savedState); break;
           case AppMode.BIBLIOMORPHIC: setBibliomorphicState(savedState); break;
           case AppMode.DASHBOARD: setDashboardState(savedState); break;
+          case AppMode.BICAMERAL: setBicameralState(savedState); break;
           default: console.warn("State restoration not implemented for this mode");
       }
   };
@@ -334,12 +423,15 @@ const App: React.FC = () => {
       <AmbientBackground />
       
       {/* System Overlays */}
+      <VoiceCoreOverlay /> {/* NEW PERSISTENT VOICE LAYER */}
       <CommandPalette />
       <SystemNotification />
       <TimeTravelScrubber mode={mode} onRestore={handleRestoreState} className="mb-12" />
       <OverlayOS /> 
       <HoloProjector /> 
       <SynapticRouter /> 
+      <ResearchTray />
+      <VoiceManager /> 
 
       {/* Navigation Header */}
       <header className="flex-shrink-0 h-16 bg-[#030303]/80 backdrop-blur-md border-b border-[#1f1f1f] z-50 px-6 flex items-center justify-between">
@@ -392,6 +484,17 @@ const App: React.FC = () => {
           >
             <HardDrive className="w-3.5 h-3.5 mr-2" />
             Memory Core
+          </button>
+          <button
+            onClick={() => switchMode(AppMode.BICAMERAL)}
+            onMouseEnter={() => audio.playHover()}
+            className={`flex items-center px-4 py-1.5 rounded-sm text-[10px] font-bold uppercase tracking-wider transition-all duration-300 font-mono whitespace-nowrap
+              ${mode === AppMode.BICAMERAL
+                ? 'bg-[#1f1f1f] text-[#9d4edd] shadow-sm border border-[#333]' 
+                : 'text-gray-500 hover:text-gray-300 hover:bg-[#111]'}`}
+          >
+            <Split className="w-3.5 h-3.5 mr-2" />
+            Bicameral
           </button>
           <button
             onClick={() => switchMode(AppMode.IMAGE_GEN)}
@@ -488,7 +591,7 @@ const App: React.FC = () => {
 
       {/* Main Content with Transition */}
       <AnimatePresence mode="wait">
-        <motion.main 
+        <MotionMain 
             key={mode}
             initial={{ opacity: 0, scale: 0.98, filter: 'blur(10px)' }}
             animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
@@ -505,7 +608,8 @@ const App: React.FC = () => {
             {mode === AppMode.HARDWARE_ENGINEER && <HardwareEngine />}
             {mode === AppMode.VOICE_MODE && <VoiceMode />}
             {mode === AppMode.CODE_STUDIO && <CodeStudio />}
-        </motion.main>
+            {mode === AppMode.BICAMERAL && <BicameralEngine />}
+        </MotionMain>
       </AnimatePresence>
     </div>
   );

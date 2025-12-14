@@ -51,7 +51,7 @@ const GlobalSearchBar: React.FC = () => {
       if (savedSearch) {
           try {
               const { query, results } = JSON.parse(savedSearch);
-              if (query || results.length > 0) {
+              if (query || (results && results.length > 0)) {
                   setSearchState({ query, results }); 
               }
           } catch(e) { console.error("Failed to load search state"); }
@@ -69,9 +69,7 @@ const GlobalSearchBar: React.FC = () => {
 
   // Persist State on Change
   useEffect(() => {
-      if (search.query || search.results.length > 0) {
-          localStorage.setItem('global_search_state', JSON.stringify({ query: search.query, results: search.results }));
-      }
+      localStorage.setItem('global_search_state', JSON.stringify({ query: search.query, results: search.results }));
   }, [search.query, search.results]);
 
   const addToHistory = (q: string) => {
@@ -86,6 +84,12 @@ const GlobalSearchBar: React.FC = () => {
       e.stopPropagation();
       setSearchState({ history: [] });
       localStorage.removeItem('global_search_history');
+  };
+
+  const clearSearch = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      setSearchState({ query: '', results: [], isOpen: false });
+      inputRef.current?.focus();
   };
 
   const handleSearch = async (e?: React.FormEvent) => {
@@ -185,9 +189,16 @@ const GlobalSearchBar: React.FC = () => {
                         <Search className="w-3.5 h-3.5 text-gray-500 group-focus-within:text-[#9d4edd] transition-colors" />
                     )}
                 </div>
+                
                 {search.query && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-gray-600 font-mono hidden group-focus-within:block">
-                        ENTER
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                        <button
+                            type="button"
+                            onClick={clearSearch}
+                            className="text-gray-500 hover:text-white transition-colors p-1"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
                     </div>
                 )}
             </div>

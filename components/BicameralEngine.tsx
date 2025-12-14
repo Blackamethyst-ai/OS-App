@@ -5,8 +5,8 @@ import { generateDecompositionMap, consensusEngine } from '../services/bicameral
 import { promptSelectKey } from '../services/geminiService';
 import { BrainCircuit, Zap, Layers, Cpu, ArrowRight, CheckCircle2, Loader2, GitBranch, AlertOctagon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TugOfWarChart } from './visualizations/TugOfWarChart';
-import { AgentGraveyard } from './visualizations/AgentGraveyard';
+import { TugOfWarChart } from './Visualizations/TugOfWarChart';
+import { AgentGraveyard } from './Visualizations/AgentGraveyard';
 import { SwarmStatus } from '../types';
 
 const BicameralEngine: React.FC = () => {
