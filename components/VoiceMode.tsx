@@ -10,67 +10,6 @@ const VoiceMode: React.FC = () => {
   const { voice, setVoiceState, system } = useAppStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
-    liveSession.onVolumeUpdate = (vol) => setVoiceState({ volume: vol });
-    
-    liveSession.onTranscriptUpdate = (role, text) => {
-        setVoiceState(prev => {
-            const last = prev.transcripts[prev.transcripts.length - 1];
-            if (last && last.role === role) {
-                const newTranscripts = [...prev.transcripts];
-                newTranscripts[newTranscripts.length - 1] = { role, text: last.text + text };
-                return { transcripts: newTranscripts };
-            } else {
-                return { transcripts: [...prev.transcripts, { role, text }] };
-            }
-        });
-    };
-
-    liveSession.onDisconnect = () => setVoiceState({ isActive: false, isConnecting: false });
-
-    // --- TOOL HANDLER INJECTION ---
-    liveSession.onToolCall = async (name, args) => {
-        console.log(`[Voice Core] Executing Tool: ${name}`, args);
-        
-        if (name === 'get_telemetry') {
-            // Fetch live data from store (simulated or real)
-            // Ideally we'd pull from a store selector, but for now we mock based on system state
-            return {
-                cpu_load: Math.floor(Math.random() * 30 + 10) + "%",
-                memory_usage: "4.2GB / 16GB",
-                network_latency: "12ms",
-                active_logs: system.logs.length,
-                status: "OPTIMAL"
-            };
-        }
-
-        if (name === 'search_knowledge') {
-            const query = args.query;
-            try {
-                // Search Neural Vault Artifacts
-                const artifacts = await neuralVault.getArtifacts();
-                const matches = artifacts.filter(a => 
-                    a.name.toLowerCase().includes(query.toLowerCase()) || 
-                    a.tags.some(t => t.toLowerCase().includes(query.toLowerCase()))
-                );
-                
-                if (matches.length === 0) return { result: "No artifacts found matching query." };
-                
-                return {
-                    found_count: matches.length,
-                    top_matches: matches.slice(0, 3).map(m => ({ name: m.name, type: m.type, tags: m.tags }))
-                };
-            } catch (e: any) {
-                return { error: "Database Access Error: " + e.message };
-            }
-        }
-
-        return { error: "Unknown Tool" };
-    };
-
-    return () => liveSession.disconnect();
-  }, []);
-
   // --- SOVEREIGN DUAL-RING VISUALIZER ---
   useEffect(() => {
     let animationFrameId: number;
@@ -216,7 +155,7 @@ const VoiceMode: React.FC = () => {
 
   const toggleSession = async () => {
     if (voice.isActive) {
-        liveSession.disconnect();
+        // Disconnect handled by VoiceManager reacting to store state change
         setVoiceState({ isActive: false });
     } else {
         setVoiceState({ isConnecting: true, error: null });
@@ -224,8 +163,8 @@ const VoiceMode: React.FC = () => {
             const hasKey = await window.aistudio?.hasSelectedApiKey();
             if (!hasKey) await promptSelectKey();
             
-            await liveSession.connect(voice.voiceName);
-            setVoiceState({ isActive: true, isConnecting: false });
+            // Set both active and connecting. VoiceManager will see isActive, connect, then set isConnecting to false.
+            setVoiceState({ isActive: true, isConnecting: true });
         } catch (err: any) {
             console.error(err);
             setVoiceState({ isConnecting: false, error: "Uplink Failed: " + err.message });

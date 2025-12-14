@@ -7,6 +7,8 @@ import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, LineChart, Line, Ca
 import { ComponentRecommendation, PowerRail, SchematicIssue } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 
+const MotionDiv = motion.div as any;
+
 // --- Missing Definitions ---
 
 interface HeatSource {
@@ -79,7 +81,7 @@ const SchematicAnalysisPanel: React.FC<{ analysis: any, onRescan: () => void, is
                 <div className="text-[9px] font-mono text-gray-500 uppercase">Power Rails</div>
                 <AnimatePresence>
                     {analysis.powerRails?.map((rail: any, i: number) => (
-                        <motion.div 
+                        <MotionDiv 
                             key={i} 
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
@@ -90,7 +92,7 @@ const SchematicAnalysisPanel: React.FC<{ analysis: any, onRescan: () => void, is
                             <span className={`text-[8px] uppercase px-1.5 py-0.5 rounded ${rail.status === 'stable' ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400'}`}>
                                 {rail.status}
                             </span>
-                        </motion.div>
+                        </MotionDiv>
                     ))}
                 </AnimatePresence>
             </div>
@@ -99,7 +101,7 @@ const SchematicAnalysisPanel: React.FC<{ analysis: any, onRescan: () => void, is
                 <div className="text-[9px] font-mono text-gray-500 uppercase">Identified Issues</div>
                 <AnimatePresence>
                     {analysis.issues?.map((issue: any, i: number) => (
-                        <motion.div 
+                        <MotionDiv 
                             key={i} 
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
@@ -112,7 +114,7 @@ const SchematicAnalysisPanel: React.FC<{ analysis: any, onRescan: () => void, is
                             </div>
                             <p className="text-[9px] text-gray-300 leading-tight mb-1">{issue.description}</p>
                             <p className="text-[8px] text-[#9d4edd] font-mono">{issue.recommendation}</p>
-                        </motion.div>
+                        </MotionDiv>
                     ))}
                 </AnimatePresence>
             </div>

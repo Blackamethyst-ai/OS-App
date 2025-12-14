@@ -9,6 +9,7 @@ export enum AppMode {
   VOICE_MODE = 'VOICE_MODE',
   CODE_STUDIO = 'CODE_STUDIO',
   MEMORY_CORE = 'MEMORY_CORE',
+  BICAMERAL = 'BICAMERAL',
 }
 
 export enum ImageSize {
@@ -101,6 +102,16 @@ export interface SystemWorkflow {
     processDiagram?: string;
 }
 
+export type ProcessTab = 'living_map' | 'diagram' | 'workflow' | 'genesis' | 'audio';
+
+export interface WorkerAgent {
+    id: string;
+    role: string;
+    status: 'IDLE' | 'WORKING' | 'COMPLETE' | 'FAILED';
+    task: string;
+    durationMs?: number;
+}
+
 export interface ProcessState {
   prompt: string;
   governance: GovernanceSchema;
@@ -109,10 +120,17 @@ export interface ProcessState {
   generatedCode: string;
   chatHistory: Message[];
   audioUrl: string | null;
+  audioTranscript: string | null;
   error: string | null;
   autopoieticFramework: AutopoieticFramework | null;
   generatedWorkflow: SystemWorkflow | null;
   entropyScore: number;
+  activeTab?: ProcessTab;
+  architectMode?: 'BLUEPRINT' | 'EXECUTION';
+  swarm?: {
+      isActive: boolean;
+      agents: WorkerAgent[];
+  };
 }
 
 export interface ImageGenState {
@@ -296,10 +314,19 @@ export interface UserIntent {
   payload?: string;
 }
 
+// Command Palette
+export interface SuggestedAction {
+    id: string;
+    label: string;
+    command: string;
+    reasoning: string;
+    iconName: string;
+}
+
 // System / Overlay
 export interface LogEntry {
     id: string;
-    level: 'INFO' | 'WARN' | 'ERROR' | 'SYSTEM';
+    level: 'INFO' | 'WARN' | 'ERROR' | 'SYSTEM' | 'SUCCESS';
     message: string;
     timestamp: string;
 }
@@ -344,6 +371,12 @@ export interface ContextMenuState {
 
 // --- AGORA SIMULATION TYPES ---
 
+export interface MentalState {
+    skepticism: number;
+    excitement: number;
+    alignment: number;
+}
+
 export interface SyntheticPersona {
     id: string;
     name: string;
@@ -351,6 +384,8 @@ export interface SyntheticPersona {
     avatar_color: string;
     bias: string;
     systemPrompt: string;
+    currentMindset: MentalState;
+    voiceName: 'Puck' | 'Charon' | 'Kore' | 'Fenrir' | 'Zephyr';
 }
 
 export interface DebateTurn {
@@ -359,6 +394,7 @@ export interface DebateTurn {
     text: string;
     timestamp: number;
     sentiment: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
+    newMindset?: MentalState;
 }
 
 export interface SimulationReport {
@@ -366,4 +402,79 @@ export interface SimulationReport {
     consensus: string;
     majorFrictionPoints: string[];
     actionableFixes: string[];
+    projectedUpside?: number;
+}
+
+// --- BICAMERAL ENGINE TYPES ---
+
+export interface AtomicTask {
+    id: string;
+    description: string;
+    isolated_input: string;
+    instruction: string;
+    weight: number;
+    status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+}
+
+export interface VoteLedger {
+    winner: string;
+    count: number;
+    runnerUp: string;
+    runnerUpCount: number;
+    totalRounds: number;
+    killedAgents: number;
+}
+
+export interface SwarmResult {
+    taskId: string;
+    output: string;
+    confidence: number;
+    agentId: string;
+    executionTime: number;
+    voteLedger: VoteLedger;
+}
+
+export interface SwarmStatus {
+    taskId: string;
+    votes: Record<string, number>;
+    killedAgents: number;
+    currentGap: number;
+    targetGap: number;
+    totalAttempts: number;
+}
+
+export interface BicameralState {
+    goal: string;
+    plan: AtomicTask[];
+    ledger: SwarmResult[];
+    isPlanning: boolean;
+    isSwarming: boolean;
+    error: string | null;
+    swarmStatus: SwarmStatus;
+}
+
+// --- RESEARCH TYPES ---
+
+export interface ResearchTask {
+    id: string;
+    query: string;
+    status: 'ACTIVE' | 'COMPLETED' | 'FAILED';
+    progress: number; // 0-100
+    logs: string[];
+    result?: string;
+    timestamp: number;
+}
+
+export interface ResearchState {
+    tasks: ResearchTask[];
+}
+
+export interface ProjectTopology {
+    // Placeholder if needed
+    name: string;
+}
+
+export interface StructuredScaffold {
+    // Placeholder if needed
+    files: string[];
 }

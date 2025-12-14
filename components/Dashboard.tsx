@@ -3,9 +3,10 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { generateArchitectureImage, promptSelectKey, fileToGenerativePart } from '../services/geminiService';
 import { AspectRatio, ImageSize } from '../types';
-import { Activity, Shield, Image as ImageIcon, Sparkles, RefreshCw, Cpu, Clock, Users, ArrowUpRight, X, ScanFace, Terminal, Zap, Network, Database, Globe, Lock, Wifi, AlertCircle, Radio, Hexagon, TrendingUp, TrendingDown, DollarSign, BarChart3, RadioReceiver, Search, Filter, SortAsc, SortDesc, Bot, BrainCircuit, MapPin, Share2, Server, Radar, Target, Eye } from 'lucide-react';
+import { Activity, Shield, Image as ImageIcon, Sparkles, RefreshCw, Cpu, Clock, Users, ArrowUpRight, X, ScanFace, Terminal, Zap, Network, Database, Globe, Lock, Wifi, AlertCircle, Radio, Hexagon, TrendingUp, TrendingDown, DollarSign, BarChart3, RadioReceiver, Search, Filter, SortAsc, SortDesc, Bot, BrainCircuit, MapPin, Share2, Server, Radar, Target, Eye, FileText, FolderGit2, HardDrive } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line, CartesianGrid, BarChart as RechartsBarChart, Bar } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useVoiceExpose } from '../hooks/useVoiceExpose'; 
 
 const MotionDiv = motion.div as any;
 
@@ -188,7 +189,6 @@ const MetricCard = ({ title, value, subtext, icon: Icon, color, data, onClick }:
     );
 };
 
-// 3. Cyber Map (Visualizing Global Nodes - Enhanced)
 const CyberMap: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [activeNodes, setActiveNodes] = useState<{x:number, y:number, life:number}[]>([]);
@@ -215,7 +215,6 @@ const CyberMap: React.FC = () => {
                 for(let c=0; c<=cols; c++) {
                     const nx = c/cols;
                     const ny = r/rows;
-                    // World map-ish shape approximation
                     const isLand = (ny > 0.2 && ny < 0.8) && (nx > 0.1 && nx < 0.9) && Math.random() > 0.45;
                     if(isLand) {
                         points.push({
@@ -242,7 +241,6 @@ const CyberMap: React.FC = () => {
             frame++;
             ctx.clearRect(0,0,canvas.width, canvas.height);
             
-            // Random packet generation
             if(frame % 15 === 0 && Math.random() > 0.3) {
                 const target = points[Math.floor(Math.random() * points.length)];
                 if(target) setActiveNodes(prev => [...prev, { x: target.x, y: target.y, life: 1.0 }]);
@@ -251,14 +249,12 @@ const CyberMap: React.FC = () => {
             points.forEach(p => {
                 const dist = Math.hypot(p.x - mousePos.current.x, p.y - mousePos.current.y);
                 const hoverEffect = Math.max(0, 100 - dist) / 100;
-                
-                ctx.fillStyle = `rgba(100, 116, 139, ${p.baseAlpha + hoverEffect * 0.6})`; // Slate/Blueish gray
+                ctx.fillStyle = `rgba(100, 116, 139, ${p.baseAlpha + hoverEffect * 0.6})`;
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, 1.5 + hoverEffect * 1.5, 0, Math.PI*2);
                 ctx.fill();
             });
 
-            // Draw connecting lines for active nodes (simulating traffic)
             setActiveNodes(prev => {
                 const next: typeof prev = [];
                 prev.forEach(node => {
@@ -266,21 +262,15 @@ const CyberMap: React.FC = () => {
                     if(node.life > 0) {
                         const size = (1-node.life) * 30;
                         const alpha = node.life;
-                        
-                        // Expanding Ring
                         ctx.strokeStyle = `rgba(34, 211, 238, ${alpha * 0.8})`;
                         ctx.lineWidth = 1;
                         ctx.beginPath();
                         ctx.arc(node.x, node.y, size, 0, Math.PI*2);
                         ctx.stroke();
-
-                        // Core
                         ctx.fillStyle = `rgba(34, 211, 238, ${alpha})`;
                         ctx.beginPath();
                         ctx.arc(node.x, node.y, 2, 0, Math.PI*2);
                         ctx.fill();
-
-                        // Connections to nearby nodes
                         points.forEach(p => {
                             const d = Math.hypot(p.x - node.x, p.y - node.y);
                             if(d < 60 && Math.random() > 0.9) {
@@ -291,17 +281,14 @@ const CyberMap: React.FC = () => {
                                 ctx.stroke();
                             }
                         });
-
                         next.push(node);
                     }
                 });
                 return next;
             });
-
             requestAnimationFrame(loop);
         };
         loop();
-
         return () => {
             window.removeEventListener('resize', resize);
             canvas.removeEventListener('mousemove', handleMouseMove);
@@ -332,7 +319,6 @@ const CyberMap: React.FC = () => {
     );
 };
 
-// 4. Agent Hive (Improved Hex Grid)
 const AgentHive: React.FC<{ count: number }> = ({ count }) => {
     return (
         <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-5 flex-1 relative overflow-hidden flex flex-col min-h-[220px]">
@@ -369,14 +355,6 @@ const AgentHive: React.FC<{ count: number }> = ({ count }) => {
                                     )}
                                 </div>
                             </div>
-                            
-                            {/* Hover Tooltip for Agent */}
-                            {isActive && (
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-max bg-black/90 backdrop-blur border border-[#333] px-3 py-1.5 rounded text-[9px] font-mono text-white opacity-0 group-hover:opacity-100 pointer-events-none z-20 transition-opacity">
-                                    <div className="font-bold text-[#9d4edd]">AGENT_0{i}</div>
-                                    <div className="text-gray-400">{isWorking ? 'PROCESSING DATA' : 'IDLE / LISTENING'}</div>
-                                </div>
-                            )}
                         </div>
                     );
                 })}
@@ -393,298 +371,203 @@ const AgentHive: React.FC<{ count: number }> = ({ count }) => {
     );
 };
 
-// 5. Oracle Panel (Signals - Enhanced)
 const OraclePanel: React.FC = () => {
-    const [h100Price, setH100Price] = useState(28450);
-    const [energyPrice, setEnergyPrice] = useState(0.142);
-    const [arbIndex, setArbIndex] = useState(14.2);
-    const [priceHistory, setPriceHistory] = useState<{time: number, price: number}[]>([]);
-    const [isBooting, setIsBooting] = useState(true);
-    const [sortBy, setSortBy] = useState<'veracity' | 'leverage' | 'time'>('time');
-    const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
-
-    const [signals, setSignals] = useState<Signal[]>([
-        { id: 'sig-001', timestamp: Date.now() - 100000, headline: 'NVIDIA securing sovereign energy rights in Iceland', tags: ['#Geopolitics', '#Energy'], source: 'Reuters (Encrypted)', veracity: 98, leverage: 'CRITICAL' },
-        { id: 'sig-002', timestamp: Date.now() - 500000, headline: 'Blackwell architecture leak suggests 4x throughput', tags: ['#Hardware', '#PatternRecognition'], source: 'DarkWeb Relay', veracity: 65, leverage: 'HIGH' },
-        { id: 'sig-003', timestamp: Date.now() - 1200000, headline: 'Global lithium supply chain contraction projected Q3', tags: ['#SupplyChain', '#ComputeArbitrage'], source: 'Bloomberg Terminal', veracity: 89, leverage: 'MODERATE' },
-        { id: 'sig-004', timestamp: Date.now() - 3600000, headline: 'New recursive self-improvement algo detected in wild', tags: ['#AI_Safety', '#Evolution'], source: 'NetSec Monitor', veracity: 42, leverage: 'CRITICAL' },
-        { id: 'sig-005', timestamp: Date.now() - 7200000, headline: 'TSMC increasing wafer pricing by 12% for Tier 2', tags: ['#Market', '#Hardware'], source: 'Industry Insider', veracity: 92, leverage: 'HIGH' },
-    ]);
-
-    useEffect(() => {
-        const interval = setInterval(() => {
-            const time = Date.now();
-            setH100Price(p => p + (Math.random() * 100 - 40));
-            setEnergyPrice(p => Math.max(0.05, p + (Math.random() * 0.002 - 0.001)));
-            setArbIndex(p => p + (Math.random() * 0.2 - 0.1));
-            setPriceHistory(prev => [...prev, { time, price: h100Price }].slice(-30));
-        }, 2000);
-        return () => clearInterval(interval);
-    }, [h100Price]);
-
-    useEffect(() => {
-        const timer = setTimeout(() => setIsBooting(false), 1500);
-        return () => clearTimeout(timer);
-    }, []);
-
-    const getVeracityColor = (score: number) => {
-        if (score >= 90) return 'bg-[#42be65]';
-        if (score >= 70) return 'bg-[#22d3ee]';
-        if (score >= 50) return 'bg-[#f59e0b]';
-        return 'bg-[#ef4444]';
-    };
-
-    const getLeverageColor = (level: string) => {
-        switch (level) {
-            case 'CRITICAL': return 'text-[#ef4444] border-[#ef4444]/30 bg-[#ef4444]/10';
-            case 'HIGH': return 'text-[#f59e0b] border-[#f59e0b]/30 bg-[#f59e0b]/10';
-            case 'MODERATE': return 'text-[#22d3ee] border-[#22d3ee]/30 bg-[#22d3ee]/10';
-            default: return 'text-gray-500 border-gray-500/30 bg-gray-500/10';
-        }
-    };
+    // Live Intelligence State
+    const [signals, setSignals] = useState<{id: number, text: string, type: string, trend?: 'up' | 'down'}[]>([]);
+    const [systemLoad, setSystemLoad] = useState<number[]>(new Array(20).fill(20));
     
-    const sortedSignals = [...signals].sort((a, b) => {
-        let valA, valB;
-        if (sortBy === 'veracity') { valA = a.veracity; valB = b.veracity; } 
-        else if (sortBy === 'leverage') {
-            const map = { 'CRITICAL': 3, 'HIGH': 2, 'MODERATE': 1, 'LOW': 0 };
-            valA = map[a.leverage]; valB = map[b.leverage];
-        } else { valA = a.timestamp; valB = b.timestamp; }
-        return sortDir === 'asc' ? valA - valB : valB - valA;
+    // EXPOSE DATA TO VOICE CORE
+    useVoiceExpose('oracle-market-feed', {
+        type: 'Market Intelligence',
+        metrics: {
+            status: 'LIVE_FEED_ACTIVE',
+            active_signals: signals.length,
+            latest_signal: signals[0]?.text || 'Initializing...'
+        }
     });
 
-    const toggleSort = (key: 'veracity' | 'leverage' | 'time') => {
-        if (sortBy === key) setSortDir(prev => prev === 'asc' ? 'desc' : 'asc');
-        else { setSortBy(key); setSortDir('desc'); }
-    };
+    useEffect(() => {
+        const events = [
+            { text: "DRIVE_ORG: Optimizing Sector 7 file allocation...", type: "SYS" },
+            { text: "ARCH: Rebuilding drive index tree...", type: "SYS" },
+            { text: "MARKET: GPU Compute Spot Price +4%", type: "MKT", trend: 'up' },
+            { text: "NET: 40TB Data Ingest Complete", type: "NET" },
+            { text: "SEC: Analyzing drive permissions...", type: "SEC" },
+            { text: "MARKET: Storage Credits -2%", type: "MKT", trend: 'down' },
+            { text: "WORKFLOW: Initiating Auto-Sort Protocol...", type: "PROC" },
+            { text: "ARCH: Defragmenting Neural Lattice...", type: "SYS" },
+            { text: "DRIVE_ORG: 1,024 Orphaned files archived", type: "SYS" }
+        ];
 
-    if (isBooting) {
-        return (
-            <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl overflow-hidden shadow-2xl h-96 flex flex-col items-center justify-center p-8 relative">
-                <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(157,78,221,0.05)_50%,transparent_75%,transparent)] bg-[length:30px_30px] animate-[pulse_4s_infinite]"></div>
-                <div className="w-full max-w-sm space-y-3 font-mono text-xs text-[#9d4edd]">
-                    <div className="flex justify-between border-b border-[#333] pb-1"><span>INIT_ORACLE_PROTOCOL</span><span>OK</span></div>
-                    <div className="flex justify-between border-b border-[#333] pb-1"><span>CONNECTING_DARK_POOLS</span><span>OK</span></div>
-                    <div className="flex justify-between border-b border-[#333] pb-1"><span>SYNC_BASIX_INDEX</span><span className="animate-pulse">...</span></div>
-                    <div className="h-1 w-full bg-[#222] rounded overflow-hidden mt-6">
-                        <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} transition={{ duration: 1.5, ease: "easeInOut" }} className="h-full bg-[#9d4edd]" />
-                    </div>
-                </div>
-            </div>
-        );
-    }
+        const interval = setInterval(() => {
+            const evt = events[Math.floor(Math.random() * events.length)];
+            setSignals(prev => [{ id: Date.now(), text: evt.text, type: evt.type, trend: evt.trend as any }, ...prev].slice(0, 8));
+            
+            setSystemLoad(prev => [...prev.slice(1), 20 + Math.random() * 60]);
+        }, 1500);
+        return () => clearInterval(interval);
+    }, []);
 
     return (
-        <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl overflow-hidden shadow-2xl flex flex-col h-96">
-            <div className="h-10 bg-[#111] border-b border-[#1f1f1f] flex items-center justify-between px-4">
+        <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl overflow-hidden shadow-2xl flex flex-col h-96 relative group">
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.02)_1px,transparent_1px)] bg-[size:20px_20px] pointer-events-none"></div>
+            
+            <div className="h-10 bg-[#111] border-b border-[#1f1f1f] flex items-center justify-between px-4 relative z-10">
                 <div className="flex items-center gap-2">
                     <RadioReceiver className="w-4 h-4 text-[#9d4edd] animate-pulse" />
                     <h2 className="text-xs font-bold font-mono uppercase tracking-widest text-white">
                         THE ORACLE <span className="text-gray-600">//</span> INTELLIGENCE L0
                     </h2>
                 </div>
-                <div className="flex items-center gap-4 text-[9px] font-mono text-gray-500">
-                    <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-[#42be65]"></div> FEED_ACTIVE</span>
-                    <span>LATENCY: 12ms</span>
+                <div className="flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#42be65] animate-pulse"></span>
+                    <span className="text-[9px] font-mono text-[#42be65]">LIVE STREAM</span>
                 </div>
             </div>
-
-            <div className="flex flex-1 overflow-hidden">
-                {/* Left: Financial Data */}
-                <div className="w-64 border-r border-[#1f1f1f] bg-[#080808] p-4 flex flex-col gap-4">
-                    <div className="text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider mb-1 border-b border-[#333] pb-2">
-                        BASIX Index Feed
+            
+            <div className="flex flex-1 p-4 gap-4 relative z-10 overflow-hidden">
+                {/* Left: Signal Stream */}
+                <div className="flex-1 bg-[#050505] border border-[#222] rounded p-2 flex flex-col overflow-hidden">
+                    <div className="flex justify-between items-center mb-2 px-2 border-b border-[#222] pb-1">
+                        <span className="text-[9px] text-gray-500 font-mono uppercase">Incoming Signals</span>
+                        <Activity className="w-3 h-3 text-gray-600" />
                     </div>
-                    
-                    {/* H100 Price */}
-                    <div className="group">
-                        <div className="text-[9px] text-gray-500 font-mono uppercase mb-1">H100 Spot Price</div>
-                        <div className="flex items-end justify-between">
-                            <span className="text-xl font-mono font-bold text-white">${h100Price.toLocaleString(undefined, {maximumFractionDigits: 0})}</span>
-                            <span className="text-[9px] font-mono text-[#42be65] flex items-center mb-1"><TrendingUp className="w-3 h-3 mr-1" /> +2.4%</span>
-                        </div>
-                        <div className="h-10 w-full mt-2 opacity-50 group-hover:opacity-100 transition-opacity">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart data={priceHistory}>
-                                    <Line type="step" dataKey="price" stroke="#42be65" strokeWidth={2} dot={false} isAnimationActive={false} />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-                    </div>
-
-                    {/* Energy Price */}
-                    <div className="mt-2">
-                        <div className="text-[9px] text-gray-500 font-mono uppercase mb-1">Global Energy / kWh</div>
-                        <div className="flex items-end justify-between">
-                            <span className="text-xl font-mono font-bold text-white">${energyPrice.toFixed(3)}</span>
-                            <span className="text-[9px] font-mono text-red-400 flex items-center mb-1"><TrendingDown className="w-3 h-3 mr-1" /> -0.1%</span>
-                        </div>
-                    </div>
-
-                    <div className="mt-auto bg-[#111] p-3 rounded border border-[#222]">
-                        <div className="text-[9px] text-gray-500 font-mono uppercase mb-1 flex items-center gap-1"><Zap className="w-3 h-3 text-[#f59e0b]" /> Compute Arb</div>
-                        <div className="text-2xl font-mono font-bold text-[#f59e0b]">{arbIndex.toFixed(1)}x</div>
-                        <div className="w-full bg-[#333] h-1 mt-2 rounded-full overflow-hidden">
-                            <div className="h-full bg-[#f59e0b]" style={{ width: `${(arbIndex/20)*100}%` }}></div>
-                        </div>
+                    <div className="flex-1 overflow-hidden space-y-1">
+                        <AnimatePresence initial={false}>
+                            {signals.map((sig) => (
+                                <motion.div 
+                                    key={sig.id}
+                                    initial={{ opacity: 0, x: -20, height: 0 }}
+                                    animate={{ opacity: 1, x: 0, height: 'auto' }}
+                                    exit={{ opacity: 0 }}
+                                    className="flex items-center gap-3 p-2 rounded hover:bg-[#111] border border-transparent hover:border-[#333] transition-colors"
+                                >
+                                    <span className={`text-[8px] font-bold font-mono px-1.5 rounded border ${
+                                        sig.type === 'MKT' ? 'text-[#f59e0b] border-[#f59e0b]/30 bg-[#f59e0b]/10' :
+                                        sig.type === 'SEC' ? 'text-[#ef4444] border-[#ef4444]/30 bg-[#ef4444]/10' :
+                                        sig.type === 'SYS' ? 'text-[#9d4edd] border-[#9d4edd]/30 bg-[#9d4edd]/10' :
+                                        'text-[#22d3ee] border-[#22d3ee]/30 bg-[#22d3ee]/10'
+                                    }`}>
+                                        {sig.type}
+                                    </span>
+                                    <span className="text-[10px] font-mono text-gray-300 truncate flex-1">{sig.text}</span>
+                                    {sig.trend && (
+                                        sig.trend === 'up' ? 
+                                        <TrendingUp className="w-3 h-3 text-[#42be65]" /> : 
+                                        <TrendingDown className="w-3 h-3 text-[#ef4444]" />
+                                    )}
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
                     </div>
                 </div>
 
-                {/* Right: Signal List */}
-                <div className="flex-1 flex flex-col bg-[#030303] overflow-hidden relative">
-                    <div className="h-10 border-b border-[#1f1f1f] flex items-center px-4 gap-4 bg-[#080808]">
-                        <div className="flex items-center gap-2 text-gray-500 bg-[#111] px-2 py-1 rounded border border-[#222] flex-1 focus-within:border-[#9d4edd] transition-colors">
-                            <Search className="w-3 h-3" />
-                            <input type="text" placeholder="Search Signal Database..." className="bg-transparent text-[10px] font-mono outline-none text-white w-full placeholder:text-gray-700"/>
+                {/* Right: Visualizers */}
+                <div className="w-1/3 flex flex-col gap-4">
+                    {/* System Load */}
+                    <div className="flex-1 bg-[#050505] border border-[#222] rounded p-2 flex flex-col">
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="text-[9px] text-gray-500 font-mono uppercase">Processing Load</span>
+                            <span className="text-[9px] text-[#9d4edd] font-mono">{Math.round(systemLoad[systemLoad.length-1])}%</span>
                         </div>
-                        <button className="text-gray-500 hover:text-white transition-colors"><Filter className="w-3 h-3" /></button>
-                        <button className="text-[#9d4edd] text-[10px] font-mono uppercase hover:underline">Sync Intelligence Rail</button>
+                        <div className="flex-1 flex items-end gap-0.5 opacity-80">
+                            {systemLoad.map((val, i) => (
+                                <div 
+                                    key={i} 
+                                    className="flex-1 bg-[#9d4edd] transition-all duration-300"
+                                    style={{ height: `${val}%`, opacity: 0.3 + (i/20)*0.7 }}
+                                ></div>
+                            ))}
+                        </div>
                     </div>
-                    <div className="grid grid-cols-12 bg-[#0a0a0a] border-b border-[#1f1f1f] py-2 px-4 text-[9px] font-mono uppercase text-gray-500 tracking-wider">
-                        <div className="col-span-5 flex items-center cursor-pointer hover:text-white" onClick={() => toggleSort('time')}>Signal / Headline {sortBy === 'time' && (sortDir === 'asc' ? <SortAsc className="w-3 h-3 ml-1"/> : <SortDesc className="w-3 h-3 ml-1"/>)}</div>
-                        <div className="col-span-2">Tags</div>
-                        <div className="col-span-2">Source</div>
-                        <div className="col-span-2 flex items-center cursor-pointer hover:text-white" onClick={() => toggleSort('veracity')}>Veracity {sortBy === 'veracity' && (sortDir === 'asc' ? <SortAsc className="w-3 h-3 ml-1"/> : <SortDesc className="w-3 h-3 ml-1"/>)}</div>
-                        <div className="col-span-1 text-right flex items-center justify-end cursor-pointer hover:text-white" onClick={() => toggleSort('leverage')}>Leverage {sortBy === 'leverage' && (sortDir === 'asc' ? <SortAsc className="w-3 h-3 ml-1"/> : <SortDesc className="w-3 h-3 ml-1"/>)}</div>
+
+                    {/* Drive Status */}
+                    <div className="flex-1 bg-[#050505] border border-[#222] rounded p-2 flex flex-col justify-center gap-2">
+                        <div className="flex items-center gap-2 text-gray-400">
+                            <HardDrive className="w-3 h-3" />
+                            <span className="text-[9px] font-mono uppercase">Drive Health</span>
+                        </div>
+                        <div className="w-full bg-[#111] h-1.5 rounded-full overflow-hidden">
+                            <div className="h-full bg-[#42be65] w-[92%] shadow-[0_0_10px_#42be65]"></div>
+                        </div>
+                        <div className="flex justify-between text-[8px] font-mono text-gray-600">
+                            <span>OPTIMIZED</span>
+                            <span>92%</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-gray-400 mt-1">
+                            <FolderGit2 className="w-3 h-3" />
+                            <span className="text-[9px] font-mono uppercase">Workflow</span>
+                        </div>
+                        <div className="flex gap-1">
+                            {[1,1,1,0,0].map((v, i) => (
+                                <div key={i} className={`h-1 flex-1 rounded-full ${v ? 'bg-[#22d3ee]' : 'bg-[#111]'}`}></div>
+                            ))}
+                        </div>
                     </div>
-                    <div className="overflow-y-auto custom-scrollbar flex-1 p-0">
-                        {sortedSignals.map((signal) => (
-                            <div key={signal.id} className="grid grid-cols-12 py-3 px-4 border-b border-[#1f1f1f] hover:bg-[#0f0f0f] transition-colors group cursor-pointer items-center">
-                                <div className="col-span-5 pr-4">
-                                    <div className="text-xs font-bold text-gray-300 font-mono group-hover:text-white truncate">{signal.headline}</div>
-                                    <div className="text-[9px] text-gray-600 font-mono mt-0.5">{new Date(signal.timestamp).toLocaleTimeString()} // ID: {signal.id}</div>
-                                </div>
-                                <div className="col-span-2 flex flex-wrap gap-1">
-                                    {signal.tags.map(tag => (<span key={tag} className="text-[8px] font-mono text-[#9d4edd] bg-[#9d4edd]/10 px-1 rounded border border-[#9d4edd]/20">{tag}</span>))}
-                                </div>
-                                <div className="col-span-2 text-[10px] font-mono text-gray-400 truncate">{signal.source}</div>
-                                <div className="col-span-2 flex items-center gap-2">
-                                    <div className="w-16 h-1.5 bg-[#222] rounded-full overflow-hidden"><div className={`h-full ${getVeracityColor(signal.veracity)}`} style={{ width: `${signal.veracity}%` }}></div></div>
-                                    <span className="text-[9px] font-mono text-gray-500">{signal.veracity}%</span>
-                                </div>
-                                <div className="col-span-1 text-right">
-                                    <span className={`text-[8px] font-bold font-mono px-1.5 py-0.5 rounded border ${getLeverageColor(signal.leverage)}`}>{signal.leverage}</span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.02)_1px,transparent_1px)] bg-[size:100%_3px] pointer-events-none"></div>
                 </div>
             </div>
         </div>
     );
 };
 
-// 6. Sentinel Radar (Enhanced Active Defense)
 const SentinelRadar: React.FC<{ packetLoss: number }> = ({ packetLoss }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
-
+        // Simple radar loop
         let angle = 0;
-        const blips: {r: number, theta: number, opacity: number}[] = [];
-        
-        const resize = () => {
-            canvas.width = canvas.parentElement?.offsetWidth || 300;
-            canvas.height = canvas.parentElement?.offsetHeight || 300;
-        };
-        resize();
-        window.addEventListener('resize', resize);
-
         const render = () => {
-            if (!canvas || !ctx) return;
-            const w = canvas.width;
-            const h = canvas.height;
-            const cx = w / 2;
-            const cy = h / 2;
-            const radius = Math.min(w, h) / 2 - 10;
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            const width = canvas.width;
+            const height = canvas.height;
 
-            ctx.clearRect(0, 0, w, h);
+            if (width <= 0 || height <= 0) return; 
 
-            // Draw Radar Circles
-            ctx.strokeStyle = '#333';
-            ctx.lineWidth = 1;
-            [0.25, 0.5, 0.75, 1].forEach(r => {
+            const cx = width / 2;
+            const cy = height / 2;
+            const padding = 10;
+            const r = Math.max(0, (Math.min(cx, cy) - padding));
+
+            ctx.clearRect(0,0,width, height);
+            
+            if (r > 0) {
+                // Sweep
+                angle += 0.05;
                 ctx.beginPath();
-                ctx.arc(cx, cy, radius * r, 0, Math.PI * 2);
-                ctx.stroke();
-            });
-
-            // Axis Lines
-            ctx.beginPath();
-            ctx.moveTo(cx - radius, cy);
-            ctx.lineTo(cx + radius, cy);
-            ctx.moveTo(cx, cy - radius);
-            ctx.lineTo(cx, cy + radius);
-            ctx.stroke();
-
-            // Sweep Animation
-            angle = (angle + 0.04) % (Math.PI * 2);
-            
-            const sweepColor = packetLoss > 0.05 ? '239, 68, 68' : '34, 211, 238'; // Red or Cyan
-            const grad = ctx.createConicGradient(angle + Math.PI / 2, cx, cy);
-            
-            grad.addColorStop(0, `rgba(${sweepColor}, 0)`);
-            grad.addColorStop(0.7, `rgba(${sweepColor}, 0)`);
-            grad.addColorStop(1, `rgba(${sweepColor}, 0.3)`);
-            
-            ctx.fillStyle = grad;
-            ctx.beginPath();
-            ctx.arc(cx, cy, radius, 0, Math.PI * 2);
-            ctx.fill();
-
-            // Leading Edge Line
-            ctx.strokeStyle = `rgba(${sweepColor}, 0.8)`;
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(cx, cy);
-            ctx.lineTo(cx + Math.cos(angle) * radius, cy + Math.sin(angle) * radius);
-            ctx.stroke();
-
-            // Generate Blips (Threats)
-            if (Math.random() < (packetLoss + 0.01)) {
-                blips.push({
-                    r: 0.3 + Math.random() * 0.6,
-                    theta: Math.random() * Math.PI * 2,
-                    opacity: 1
-                });
-            }
-
-            // Draw Blips
-            blips.forEach((b, i) => {
-                b.opacity -= 0.02;
-                if (b.opacity <= 0) {
-                    blips.splice(i, 1);
-                    return;
-                }
-                
-                const bx = cx + Math.cos(b.theta) * radius * b.r;
-                const by = cy + Math.sin(b.theta) * radius * b.r;
-                
-                // Threat Blip
-                ctx.fillStyle = `rgba(239, 68, 68, ${b.opacity})`; 
-                ctx.beginPath();
-                ctx.arc(bx, by, 3, 0, Math.PI * 2);
+                ctx.moveTo(cx, cy);
+                ctx.arc(cx, cy, r, angle, angle + 0.5);
+                ctx.fillStyle = `rgba(34, 211, 238, 0.15)`;
                 ctx.fill();
                 
-                // Threat Ripple
-                ctx.strokeStyle = `rgba(239, 68, 68, ${b.opacity * 0.5})`;
+                // Circles
+                ctx.strokeStyle = '#333';
                 ctx.lineWidth = 1;
-                ctx.beginPath();
-                ctx.arc(bx, by, 10 * (1-b.opacity), 0, Math.PI * 2);
-                ctx.stroke();
-            });
+                ctx.beginPath(); ctx.arc(cx, cy, r * 0.3, 0, Math.PI*2); ctx.stroke();
+                ctx.beginPath(); ctx.arc(cx, cy, r * 0.6, 0, Math.PI*2); ctx.stroke();
+                ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
 
+                // Axis
+                ctx.strokeStyle = '#222';
+                ctx.beginPath(); ctx.moveTo(cx - r, cy); ctx.lineTo(cx + r, cy); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(cx, cy - r); ctx.lineTo(cx, cy + r); ctx.stroke();
+
+                // Blips
+                if (Math.random() > 0.95) {
+                    const bx = cx + (Math.random() - 0.5) * r * 1.5;
+                    const by = cy + (Math.random() - 0.5) * r * 1.5;
+                    ctx.fillStyle = '#ef4444';
+                    ctx.beginPath(); ctx.arc(bx, by, 2, 0, Math.PI*2); ctx.fill();
+                }
+            }
+            
             requestAnimationFrame(render);
-        };
+        }
         render();
-
-        return () => window.removeEventListener('resize', resize);
-    }, [packetLoss]);
+    }, []);
 
     return (
         <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-5 flex-1 relative overflow-hidden flex flex-col min-h-[220px]">
@@ -693,16 +576,11 @@ const SentinelRadar: React.FC<{ packetLoss: number }> = ({ packetLoss }) => {
                     <Radar className={`w-4 h-4 ${packetLoss > 0.05 ? 'text-red-500 animate-pulse' : 'text-[#22d3ee]'}`} />
                     <span className="text-xs font-bold font-mono uppercase tracking-widest text-gray-400">Sentinel Scan</span>
                 </div>
-                <span className={`text-[10px] font-mono border px-2 py-0.5 rounded ${packetLoss > 0.05 ? 'text-red-500 border-red-500/30 bg-red-500/10' : 'text-[#22d3ee] border-[#22d3ee]/30 bg-[#22d3ee]/10'}`}>
-                    {packetLoss > 0.05 ? 'THREAT DETECTED' : 'SECURE'}
-                </span>
+                <div className="text-[9px] font-mono text-gray-600">SECTOR_9</div>
             </div>
-            
             <div className="flex-1 relative z-10 w-full min-h-[150px]">
                 <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
             </div>
-            
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>
         </div>
     );
 };
@@ -730,6 +608,21 @@ const Dashboard: React.FC = () => {
   const [cpuHistory, setCpuHistory] = useState<{value: number, time: string}[]>([]);
   const [netHistory, setNetHistory] = useState<{value: number, time: string}[]>([]);
   const [memHistory, setMemHistory] = useState<{value: number, time: string}[]>([]);
+
+  // --- VOICE CORE UPLINK ---
+  // Expose the live telemetry to the AI System Mind
+  useVoiceExpose('dashboard-telemetry-main', {
+      type: 'System Monitor',
+      description: 'Real-time server telemetry',
+      metrics: {
+          cpu: `${telemetry.cpu.toFixed(1)}%`,
+          network: `${telemetry.net.toFixed(1)} GB/s`,
+          memory: `${telemetry.mem.toFixed(1)}%`,
+          temperature: `${telemetry.temp.toFixed(1)} C`,
+          status: telemetry.packetLoss > 0.05 ? 'THREAT DETECTED' : 'OPTIMAL'
+      },
+      activeAgents: telemetry.agents.filter(a => a === 1).length
+  });
 
   const [logs, setLogs] = useState<string[]>([
       "SYSTEM_INIT: Core services online",
@@ -806,8 +699,15 @@ const Dashboard: React.FC = () => {
 
   const handleReferenceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
+        const file = e.target.files[0];
+        // Validate MIME types to prevent GIF errors in generation models
+        const supportedTypes = ['image/png', 'image/jpeg', 'image/webp'];
+        if (!supportedTypes.includes(file.type)) {
+            alert(`File type ${file.type} is not supported. Please use PNG, JPEG, or WEBP.`);
+            return;
+        }
+
         try {
-            const file = e.target.files[0];
             const fileData = await fileToGenerativePart(file);
             setDashboardState({ referenceImage: fileData });
         } catch (err) {
@@ -966,6 +866,7 @@ const Dashboard: React.FC = () => {
                    
                    {/* Identity Asset Gen */}
                    <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-6 relative overflow-hidden group flex flex-col h-[420px]">
+                       {/* ... [Content Omitted for Brevity - Keeping Structure] ... */}
                        <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">
                            <ScanFace className="w-32 h-32 text-[#9d4edd]" />
                        </div>
@@ -976,7 +877,7 @@ const Dashboard: React.FC = () => {
                                    <Shield className="w-4 h-4 text-[#9d4edd]" />
                                    Visual Identity
                                </h2>
-                               <p className="text-[10px] text-gray-500 font-mono mt-1">Sovereign Brand Projection System</p>
+                               <p className="text-[10px] text-gray-500 font-mono mt-1">Black Amethyst Brand Projection System</p>
                            </div>
                            <button 
                                 onClick={generateIdentity}
@@ -989,6 +890,7 @@ const Dashboard: React.FC = () => {
                        </div>
 
                        <div className="flex-1 flex gap-6 min-h-0">
+                            {/* ... Image/Ref area ... */}
                             <div className="flex-1 bg-[#050505] border border-[#333] rounded-lg overflow-hidden relative flex items-center justify-center group/img">
                                 {dashboard.identityUrl ? (
                                     <>
@@ -1028,7 +930,7 @@ const Dashboard: React.FC = () => {
                                             <label className="flex flex-col items-center justify-center w-full h-24 px-4 py-2 bg-[#050505] border border-dashed border-[#333] hover:border-[#9d4edd] rounded cursor-pointer transition-colors group/upload">
                                                 <ImageIcon className="w-6 h-6 text-gray-500 mb-2 group-hover/upload:text-[#9d4edd] transition-colors" />
                                                 <span className="text-[9px] font-mono text-gray-500 group-hover/upload:text-gray-300 text-center">Upload Ref</span>
-                                                <input type="file" className="hidden" onChange={handleReferenceUpload} />
+                                                <input type="file" className="hidden" onChange={handleReferenceUpload} accept="image/png, image/jpeg, image/webp" />
                                             </label>
                                          )}
                                     </div>

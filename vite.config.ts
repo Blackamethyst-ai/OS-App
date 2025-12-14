@@ -5,8 +5,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     const env = loadEnv(mode, '.', '');
-    // In Vite (ESM), __dirname is not available. Use path.resolve() for current directory.
-    const rootPath = path.resolve();
+    // Resolve @ to the current working directory
+    const rootPath = path.resolve('.');
 
     return {
       server: {
