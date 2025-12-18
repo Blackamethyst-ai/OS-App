@@ -1,6 +1,6 @@
 
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { AppMode, ArtifactAnalysis, Message } from '../types';
+import { AppMode, ArtifactAnalysis, Message, UserProfile } from '../types';
 
 // --- SCHEMA DEFINITION ---
 
@@ -54,6 +54,12 @@ interface NeuralVaultSchema extends DBSchema {
       sourceId: string;
     };
   };
+
+  // 5. User Profile: Stores identity settings
+  profile: {
+      key: string; // "current_user"
+      value: UserProfile;
+  };
 }
 
 // --- SERVICE IMPLEMENTATION ---
@@ -67,8 +73,8 @@ class NeuralVaultService {
   }
 
   private async initDB() {
-    return openDB<NeuralVaultSchema>(this.dbName, 1, {
-      upgrade(db) {
+    return openDB<NeuralVaultSchema>(this.dbName, 2, {
+      upgrade(db, oldVersion, newVersion, transaction) {
         // Artifacts Store
         if (!db.objectStoreNames.contains('artifacts')) {
           const store = db.createObjectStore('artifacts', { keyPath: 'id' });
@@ -90,6 +96,11 @@ class NeuralVaultService {
         // Vector Store
         if (!db.objectStoreNames.contains('vectors')) {
             db.createObjectStore('vectors', { keyPath: 'key' });
+        }
+
+        // Profile Store (Added in V2)
+        if (!db.objectStoreNames.contains('profile')) {
+            db.createObjectStore('profile');
         }
       },
     });
@@ -201,6 +212,19 @@ class NeuralVaultService {
       return db.getAllFromIndex('echoes', 'by-mode', mode);
   }
 
+  // --- USER PROFILE METHODS ---
+
+  async saveProfile(profile: UserProfile) {
+      const db = await this.db;
+      await db.put('profile', profile, 'current_user');
+      console.log('[NeuralVault] User Profile Updated');
+  }
+
+  async getProfile(): Promise<UserProfile | undefined> {
+      const db = await this.db;
+      return db.get('profile', 'current_user');
+  }
+
   // --- SYSTEM METHODS ---
 
   async getStorageUsage() {
@@ -219,6 +243,7 @@ class NeuralVaultService {
       await db.clear('artifacts');
       await db.clear('snapshots');
       await db.clear('echoes');
+      await db.clear('profile');
       console.warn('[NeuralVault] SYSTEM WIPE COMPLETE. AMNESIA INDUCED.');
   }
 }

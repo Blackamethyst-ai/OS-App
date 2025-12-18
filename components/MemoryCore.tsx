@@ -1,9 +1,10 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { neuralVault } from '../services/persistenceService';
-import { generateTaxonomy, promptSelectKey, classifyArtifact, fileToGenerativePart } from '../services/geminiService';
+import { generateTaxonomy, promptSelectKey, classifyArtifact, fileToGenerativePart, smartOrganizeArtifact, applyWorkflowToArtifacts } from '../services/geminiService';
 import { useAppStore } from '../store';
-import { HardDrive, Folder, File, RefreshCw, Wand2, Loader2, Grid, List, Search, Cpu, Database, Save, AlertCircle, Trash2, X, Upload, Edit2, Check } from 'lucide-react';
+import { HardDrive, Folder, File, RefreshCw, Wand2, Loader2, Grid, List, Search, Cpu, Database, Save, AlertCircle, Trash2, X, Upload, Edit2, Check, Sparkles, ShieldCheck, BarChart3, Activity, PieChart } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 interface ArtifactItem {
     id: string;
@@ -11,10 +12,68 @@ interface ArtifactItem {
     type: string;
     tags: string[];
     timestamp: number;
+    processingStatus?: 'PENDING' | 'ANALYZING' | 'COMPLETE';
 }
 
+const MemoryTelemetry: React.FC<{ artifacts: ArtifactItem[] }> = ({ artifacts }) => {
+    const data = useMemo(() => {
+        const types: Record<string, number> = {};
+        artifacts.forEach(a => {
+            const type = a.type.split('/')[1]?.toUpperCase() || 'UNKNOWN';
+            types[type] = (types[type] || 0) + 1;
+        });
+        return Object.entries(types).map(([name, value]) => ({ name, value }));
+    }, [artifacts]);
+
+    const health = useMemo(() => {
+        if (artifacts.length === 0) return 0;
+        const taggedCount = artifacts.filter(a => a.tags.length > 0).length;
+        return Math.round((taggedCount / artifacts.length) * 100);
+    }, [artifacts]);
+
+    return (
+        <div className="p-4 bg-[#0a0a0a] border-b border-[#1f1f1f] flex flex-col gap-4">
+            <div className="flex justify-between items-center">
+                <h3 className="text-[10px] font-black font-mono text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <Activity className="w-3 h-3 text-[#9d4edd]" /> Vault Intelligence
+                </h3>
+                <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-mono text-gray-600 uppercase">Organization Health</span>
+                    <span className={`text-[10px] font-black font-mono ${health > 70 ? 'text-[#42be65]' : 'text-[#f59e0b]'}`}>{health}%</span>
+                </div>
+            </div>
+            
+            <div className="h-20 w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={data}>
+                        <XAxis dataKey="name" hide />
+                        <YAxis hide />
+                        <Tooltip 
+                            contentStyle={{ backgroundColor: '#000', border: '1px solid #333', fontSize: '9px', fontFamily: 'monospace' }}
+                            cursor={{ fill: 'rgba(255,255,255,0.05)' }}
+                        />
+                        <Bar dataKey="value" radius={[2, 2, 0, 0]}>
+                            {data.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#9d4edd' : '#22d3ee'} fillOpacity={0.6} />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+
+            <div className="w-full bg-[#111] h-1 rounded-full overflow-hidden">
+                <motion.div 
+                    className="h-full bg-[#9d4edd] shadow-[0_0_10px_#9d4edd]" 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${health}%` }}
+                />
+            </div>
+        </div>
+    );
+};
+
 const MemoryCore: React.FC = () => {
-    const { openHoloProjector } = useAppStore();
+    const { openHoloProjector, addLog, process } = useAppStore();
     const [artifacts, setArtifacts] = useState<ArtifactItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isOrganizing, setIsOrganizing] = useState(false);
@@ -25,21 +84,89 @@ const MemoryCore: React.FC = () => {
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editName, setEditName] = useState('');
 
+    // --- AUTONOMOUS PROCESSING QUEUE ---
+    const processingRef = useRef(false);
+    const [processingQueue, setProcessingQueue] = useState<string[]>([]); // Artifact IDs
+
+    // Check for Active Workflow Protocol
+    const activeWorkflow = process.generatedWorkflow;
+
     useEffect(() => {
         loadArtifacts();
     }, []);
 
+    // Watch Queue and Trigger Analysis
+    useEffect(() => {
+        const processQueue = async () => {
+            if (processingRef.current || processingQueue.length === 0) return;
+            
+            const targetId = processingQueue[0];
+            processingRef.current = true;
+
+            // Update UI state to show analyzing
+            setArtifacts(prev => prev.map(a => a.id === targetId ? { ...a, processingStatus: 'ANALYZING' } : a));
+
+            try {
+                // 1. Fetch data
+                const artifact = await neuralVault.getArtifactById(targetId);
+                if (!artifact) throw new Error("Artifact not found");
+
+                // 2. Prepare file data
+                const buffer = await artifact.data.arrayBuffer();
+                const base64 = btoa(new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
+                const fileData = {
+                    inlineData: { data: base64, mimeType: artifact.type || 'application/octet-stream' },
+                    name: artifact.name
+                };
+
+                // 3. AI Smart Organization (Cost effective Flash model)
+                const hasKey = await window.aistudio?.hasSelectedApiKey();
+                if (!hasKey) {
+                    await promptSelectKey(); 
+                }
+
+                if (await window.aistudio?.hasSelectedApiKey()) {
+                    const result = await smartOrganizeArtifact(fileData);
+                    
+                    // 4. Update Vault
+                    await neuralVault.renameArtifact(targetId, result.name);
+                    await neuralVault.updateArtifactTags(targetId, result.tags);
+                    
+                    // Log to console/store
+                    addLog('SUCCESS', `AUTO_ORG: Renamed "${artifact.name}" -> "${result.name}" [${result.tags.join(', ')}]`);
+                }
+
+            } catch (e) {
+                console.error("Auto-Processing Failed", e);
+                addLog('ERROR', `AUTO_ORG_FAIL: Could not process ${targetId}`);
+            } finally {
+                // 5. Cleanup
+                setProcessingQueue(prev => prev.slice(1));
+                processingRef.current = false;
+                await loadArtifacts(); // Refresh UI
+            }
+        };
+
+        processQueue();
+    }, [processingQueue]);
+
     const loadArtifacts = async () => {
-        setIsLoading(true);
+        if (artifacts.length === 0) setIsLoading(true);
         try {
             const items = await neuralVault.getArtifacts();
-            setArtifacts(items.map(i => ({
-                id: i.id,
-                name: i.name,
-                type: i.type,
-                tags: i.tags || [],
-                timestamp: i.timestamp
-            })));
+            setArtifacts(prev => {
+                return items.map(i => {
+                    const existing = prev.find(p => p.id === i.id);
+                    return {
+                        id: i.id,
+                        name: i.name,
+                        type: i.type || 'unknown',
+                        tags: i.tags || [],
+                        timestamp: i.timestamp,
+                        processingStatus: existing?.processingStatus
+                    };
+                });
+            });
         } catch (e) {
             console.error("Vault Access Failed", e);
         } finally {
@@ -49,49 +176,70 @@ const MemoryCore: React.FC = () => {
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            setIsLoading(true);
             const files = Array.from(e.target.files) as File[];
+            const newIds: string[] = [];
             
             for (const file of files) {
                 try {
-                    // 1. Basic Save
                     const id = await neuralVault.saveArtifact(file, null);
-                    
-                    // 2. Background Analysis (Optional but recommended for vault)
-                    // We don't await this to keep UI snappy, or we can just save raw for now
-                    // fileToGenerativePart(file).then(async (data) => {
-                    //    const analysis = await classifyArtifact(data);
-                    //    // Update DB with analysis (requires an update method or overwrite)
-                    // });
+                    newIds.push(id);
                 } catch (err) {
                     console.error("Upload failed for", file.name, err);
                 }
             }
+            
             await loadArtifacts();
+            setProcessingQueue(prev => [...prev, ...newIds]);
         }
     };
 
-    const handleAutoOrganize = async () => {
+    const handleOrganization = async () => {
         setIsOrganizing(true);
         try {
             const hasKey = await window.aistudio?.hasSelectedApiKey();
             if (!hasKey) { await promptSelectKey(); return; }
 
-            const fileNames = artifacts.map(a => a.name);
-            const taxonomyResult = await generateTaxonomy(fileNames);
-
-            // Apply tags to DB
-            for (const category of taxonomyResult) {
-                for (const itemName of category.items) {
-                    const artifact = artifacts.find(a => a.name === itemName);
-                    if (artifact) {
-                        await neuralVault.updateArtifactTags(artifact.id, [category.category]);
+            // STRATEGY SPLIT: Workflow vs Generic Taxonomy
+            if (activeWorkflow) {
+                addLog('SYSTEM', 'ORG_PROTOCOL: Applying Active Workflow Rules...');
+                
+                // 1. Get simple list for AI
+                const fileList = artifacts.map(a => ({ id: a.id, name: a.name, type: a.type }));
+                
+                // 2. Call new Service
+                const updates = await applyWorkflowToArtifacts(fileList, activeWorkflow);
+                
+                // 3. Apply updates
+                for (const update of updates) {
+                    await neuralVault.renameArtifact(update.id, update.newName);
+                    await neuralVault.updateArtifactTags(update.id, update.tags);
+                    // Note: We don't have a real FS, so 'path' maps to tags for now or a virtual path tag
+                    if (update.path && update.path !== '/') {
+                        await neuralVault.updateArtifactTags(update.id, [`PATH:${update.path}`]);
                     }
                 }
+                addLog('SUCCESS', `ORG_COMPLETE: Processed ${updates.length} files via Protocol.`);
+
+            } else {
+                // Fallback to generic taxonomy
+                const fileNames = artifacts.map(a => a.name);
+                const taxonomyResult = await generateTaxonomy(fileNames);
+
+                for (const category of taxonomyResult) {
+                    for (const itemName of category.items) {
+                        const artifact = artifacts.find(a => a.name === itemName);
+                        if (artifact) {
+                            await neuralVault.updateArtifactTags(artifact.id, [category.category]);
+                        }
+                    }
+                }
+                addLog('SUCCESS', 'ORG_COMPLETE: Generic taxonomy applied.');
             }
-            await loadArtifacts(); // Refresh
-        } catch (e) {
+            
+            await loadArtifacts(); 
+        } catch (e: any) {
             console.error("Organization failed", e);
+            addLog('ERROR', `ORG_FAIL: ${e.message}`);
         } finally {
             setIsOrganizing(false);
         }
@@ -121,14 +269,15 @@ const MemoryCore: React.FC = () => {
     };
 
     const handleArtifactClick = async (art: ArtifactItem) => {
-        if (editingId) return; // Don't open if editing
+        if (editingId) return; 
         
-        // Fetch full content for projection
         const fullArt = await neuralVault.getArtifactById(art.id);
         if (fullArt) {
-            // Need to convert blob to string/url for HoloProjector
             let content: string | null = null;
-            if (fullArt.type.startsWith('image/')) {
+            // CRITICAL FIX: Guard startsWith
+            const fileType = fullArt.type || 'unknown';
+            
+            if (fileType.startsWith('image/')) {
                 content = URL.createObjectURL(fullArt.data);
             } else {
                 content = await fullArt.data.text();
@@ -137,21 +286,23 @@ const MemoryCore: React.FC = () => {
             openHoloProjector({
                 id: art.id,
                 title: art.name,
-                type: fullArt.type.startsWith('image/') ? 'IMAGE' : 'TEXT',
+                type: fileType.startsWith('image/') ? 'IMAGE' : 'TEXT',
                 content: content
             });
         }
     };
 
-    // Filter and Group Logic
     const groupedArtifacts = useMemo(() => {
         const filtered = artifacts.filter(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()));
-        
-        // Group by primary tag (folder)
         const groups: Record<string, ArtifactItem[]> = { 'Uncategorized': [] };
         
         filtered.forEach(a => {
-            const folder = a.tags.length > 0 ? a.tags[0] : 'Uncategorized';
+            // Priority: Path Tag -> Normal Tag -> Uncategorized
+            const pathTag = a.tags.find(t => t?.startsWith('PATH:'));
+            const normalTag = a.tags.find(t => !t?.startsWith('PATH:'));
+            
+            const folder = pathTag ? pathTag.replace('PATH:', '') : (normalTag || 'Uncategorized');
+            
             if (!groups[folder]) groups[folder] = [];
             groups[folder].push(a);
         });
@@ -160,7 +311,7 @@ const MemoryCore: React.FC = () => {
     }, [artifacts, searchQuery]);
 
     const stats = useMemo(() => {
-        const totalSize = artifacts.length; // Placeholder, real size needs blob size
+        const totalSize = artifacts.length; 
         const types = new Set(artifacts.map(a => a.type)).size;
         return { count: totalSize, types };
     }, [artifacts]);
@@ -183,6 +334,14 @@ const MemoryCore: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
+                    {/* Active Workflow Indicator */}
+                    {activeWorkflow && (
+                        <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-[#1f1f1f] border border-[#42be65]/50 rounded text-[9px] font-mono text-[#42be65] animate-pulse">
+                            <ShieldCheck className="w-3 h-3" />
+                            PROTOCOL ACTIVE
+                        </div>
+                    )}
+
                     {/* Stats */}
                     <div className="hidden md:flex gap-4 text-[9px] font-mono text-gray-500 border-r border-[#333] pr-4">
                         <div className="flex items-center gap-2">
@@ -193,6 +352,12 @@ const MemoryCore: React.FC = () => {
                             <Cpu className="w-3 h-3 text-[#f59e0b]" />
                             <span>{stats.types} TYPES</span>
                         </div>
+                        {processingQueue.length > 0 && (
+                            <div className="flex items-center gap-2 text-[#9d4edd] animate-pulse">
+                                <Sparkles className="w-3 h-3" />
+                                <span>PROCESSING QUEUE: {processingQueue.length}</span>
+                            </div>
+                        )}
                     </div>
 
                     <div className="flex items-center gap-2 bg-[#111] p-1 rounded border border-[#333]">
@@ -218,19 +383,26 @@ const MemoryCore: React.FC = () => {
                     </label>
 
                     <button 
-                        onClick={handleAutoOrganize}
+                        onClick={handleOrganization}
                         disabled={isOrganizing || artifacts.length === 0}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[10px] font-mono uppercase tracking-wider transition-all disabled:opacity-50"
+                        className={`flex items-center gap-2 px-3 py-1.5 rounded text-[10px] font-mono uppercase tracking-wider transition-all disabled:opacity-50
+                            ${activeWorkflow 
+                                ? 'bg-[#42be65] text-black hover:bg-[#5add7e] border border-[#42be65]' 
+                                : 'bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333]'}
+                        `}
                     >
                         {isOrganizing ? <Loader2 className="w-3 h-3 animate-spin"/> : <Wand2 className="w-3 h-3"/>}
-                        {isOrganizing ? 'Indexing...' : 'Auto-Organize'}
+                        {isOrganizing ? 'Indexing...' : activeWorkflow ? 'Execute Protocol' : 'Auto-Organize'}
                     </button>
                 </div>
             </div>
 
+            {/* NEW: Telemetry Layer */}
+            <MemoryTelemetry artifacts={artifacts} />
+
             {/* Content */}
             <div className="flex-1 overflow-y-auto custom-scrollbar p-6 relative z-10">
-                {isLoading ? (
+                {isLoading && artifacts.length === 0 ? (
                     <div className="h-full flex flex-col items-center justify-center text-gray-500">
                         <Loader2 className="w-8 h-8 animate-spin mb-4 text-[#9d4edd]" />
                         <p className="font-mono text-xs uppercase tracking-widest">Accessing Neural Lattice...</p>
@@ -267,8 +439,17 @@ const MemoryCore: React.FC = () => {
                                             className={`
                                                 group cursor-pointer bg-[#0a0a0a] border border-[#222] rounded-lg overflow-hidden transition-colors relative
                                                 ${viewMode === 'LIST' ? 'flex items-center p-3 gap-4' : 'p-4 flex flex-col'}
+                                                ${art.processingStatus === 'ANALYZING' ? 'ring-1 ring-[#9d4edd] animate-pulse' : ''}
                                             `}
                                         >
+                                            {/* Status Overlay */}
+                                            {art.processingStatus === 'ANALYZING' && (
+                                                <div className="absolute inset-0 bg-black/50 z-20 flex flex-col items-center justify-center">
+                                                    <Loader2 className="w-6 h-6 text-[#9d4edd] animate-spin mb-2" />
+                                                    <span className="text-[8px] font-mono text-[#9d4edd] uppercase tracking-wider bg-black px-2 rounded">Neural Indexing</span>
+                                                </div>
+                                            )}
+
                                             <div className={`${viewMode === 'LIST' ? 'p-2' : 'mb-3 flex justify-center'} bg-[#111] rounded border border-[#333] text-gray-500 group-hover:text-[#9d4edd] transition-colors`}>
                                                 <File className="w-6 h-6" />
                                             </div>

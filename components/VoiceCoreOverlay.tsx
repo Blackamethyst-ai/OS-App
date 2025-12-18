@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import useSystemMind from '../stores/useSystemMind';
+import { useSystemMind } from '../stores/useSystemMind';
 import { Play, Pause, Download, FileText, Activity, Terminal, GripHorizontal, Maximize2, Minimize2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 

@@ -1,0 +1,307 @@
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { 
+    useNodesState, useEdgesState, useReactFlow, addEdge, Connection, 
+    Node, Edge, OnSelectionChangeParams, getNodesBounds
+} from '@xyflow/react';
+import { useAppStore } from '../store';
+import { neuralVault } from '../services/persistenceService';
+import { 
+    generateMermaidDiagram, generateAudioOverview, 
+    fileToGenerativePart, promptSelectKey, classifyArtifact, 
+    generateAutopoieticFramework, generateStructuredWorkflow,
+    generateSystemArchitecture, calculateEntropy, decomposeNode, generateInfrastructureCode,
+    generateSingleNode
+} from '../services/geminiService';
+import { FileData, AppMode, AppTheme } from '../types';
+
+export const THEME = {
+    accent: { core: '#9d4edd', memory: '#22d3ee', action: '#f59e0b', tools: '#3b82f6', alert: '#ef4444', success: '#10b981' }
+};
+
+export const VISUAL_THEMES: Record<AppTheme, any> = {
+    DARK: { bg: '#000', nodeBg: 'rgba(15,15,15,0.9)', nodeBorder: 'rgba(255,255,255,0.1)', text: '#e5e5e5', subtext: '#a3a3a3', grid: '#222' },
+    LIGHT: { bg: '#f5f5f5', nodeBg: 'rgba(255,255,255,0.9)', nodeBorder: 'rgba(0,0,0,0.1)', text: '#171717', subtext: '#525252', grid: '#e5e5e5' },
+    CONTRAST: { bg: '#000', nodeBg: '#000', nodeBorder: '#fff', text: '#fff', subtext: '#ffff00', grid: '#444' },
+    HIGH_CONTRAST: { bg: '#000', nodeBg: '#000', nodeBorder: '#00ff00', text: '#fff', subtext: '#00ff00', grid: '#00ff00' },
+    AMBER: { bg: '#0a0a0a', nodeBg: 'rgba(26,13,0,0.9)', nodeBorder: 'rgba(245,158,11,0.2)', text: '#f59e0b', subtext: '#78350f', grid: '#1a0d00' },
+    SOLARIZED: { bg: '#fdf6e3', nodeBg: 'rgba(253,246,227,0.9)', nodeBorder: 'rgba(0,0,0,0.1)', text: '#657b83', subtext: '#93a1a1', grid: '#eee8d5' },
+    MIDNIGHT: { bg: '#020617', nodeBg: 'rgba(15,23,42,0.9)', nodeBorder: 'rgba(59,130,246,0.2)', text: '#e2e8f0', subtext: '#94a3b8', grid: '#1e293b' },
+    NEON_CYBER: { bg: '#000', nodeBg: 'rgba(5,5,5,0.9)', nodeBorder: 'rgba(217,70,239,0.3)', text: '#22d3ee', subtext: '#d946ef', grid: '#111' }
+};
+
+export const useProcessVisualizerLogic = () => {
+    const { process: state, setProcessState: setState, setCodeStudioState, setMode, theme: globalTheme, addLog, openHoloProjector } = useAppStore();
+    const activeTab = state.activeTab || 'living_map';
+    const [visualTheme, setVisualTheme] = useState<AppTheme>('DARK');
+    const [showGrid, setShowGrid] = useState(true);
+    const [paneContextMenu, setPaneContextMenu] = useState<{ x: number, y: number, flowPos: { x: number, y: number } } | null>(null);
+    const [architecturePrompt, setArchitecturePrompt] = useState('');
+    const [isGeneratingGraph, setIsGeneratingGraph] = useState(false);
+    const [isDecomposing, setIsDecomposing] = useState(false);
+    const [isOptimizing, setIsOptimizing] = useState(false);
+    const [sequenceStatus, setSequenceStatus] = useState<'IDLE' | 'RUNNING' | 'COMPLETE'>('IDLE');
+    const [sequenceProgress, setSequenceProgress] = useState(0);
+
+    const { fitView, screenToFlowPosition, getViewport } = useReactFlow();
+    const [nodes, setNodes, onNodesChange] = useNodesState([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+    const selectedNode = useMemo(() => nodes.find(n => n.selected), [nodes]);
+
+    // Handle External AI Injection (Nexus Nodes)
+    useEffect(() => {
+        if (state.pendingAIAddition) {
+            const newNode = { ...state.pendingAIAddition, data: { ...state.pendingAIAddition.data, theme: visualTheme } };
+            setNodes(nds => nds.concat(newNode));
+            setState({ pendingAIAddition: null });
+            // Auto-link to core if possible
+            setEdges(eds => eds.concat({
+                id: `e-nexus-${Date.now()}`,
+                source: 'core',
+                target: newNode.id,
+                type: 'cinematic',
+                data: { color: '#9d4edd', variant: 'stream' }
+            }));
+            setTimeout(() => fitView({ duration: 800 }), 100);
+        }
+    }, [state.pendingAIAddition, visualTheme, setNodes, setEdges, setState, fitView]);
+
+    useEffect(() => {
+        if (state.pendingAction === 'RUN_SEQUENCE') { handleRunGlobalSequence(); setState({ pendingAction: null }); }
+        else if (state.pendingAction === 'RESET_VIEW') { fitView({ duration: 800 }); setState({ pendingAction: null }); }
+    }, [state.pendingAction, fitView]);
+
+    useEffect(() => { if (globalTheme) setVisualTheme(globalTheme); }, [globalTheme]);
+    useEffect(() => { setNodes((nds) => nds.map((node) => ({ ...node, data: { ...node.data, theme: visualTheme } }))); }, [visualTheme]);
+
+    useEffect(() => {
+        if (nodes.length === 0) {
+            setNodes([
+                { id: 'core', type: 'holographic', position: { x: 600, y: 400 }, data: { label: 'Sovereign Agent', subtext: 'SYSTEM IDLE', iconName: 'BrainCircuit', color: THEME.accent.core, status: 'ONLINE', theme: visualTheme } },
+                { id: 'memory', type: 'holographic', position: { x: 600, y: 200 }, data: { label: 'Context Memory', subtext: 'Vector Store', iconName: 'Database', color: THEME.accent.memory, status: 'READY', theme: visualTheme } },
+                { id: 'tools', type: 'holographic', position: { x: 350, y: 400 }, data: { label: 'Tooling Layer', subtext: 'Search / Compute', iconName: 'Wrench', color: THEME.accent.tools, status: 'AVAILABLE', theme: visualTheme } },
+                { id: 'action', type: 'holographic', position: { x: 850, y: 400 }, data: { label: 'Execution', subtext: 'Output Generation', iconName: 'Zap', color: THEME.accent.action, status: 'STANDBY', theme: visualTheme } }
+            ]);
+            setEdges([
+                { id: 'e1', source: 'memory', target: 'core', type: 'cinematic', data: { color: THEME.accent.memory, variant: 'stream' } },
+                { id: 'e2', source: 'core', target: 'tools', type: 'cinematic', data: { color: THEME.accent.tools, variant: 'stream' } },
+                { id: 'e3', source: 'core', target: 'action', type: 'cinematic', data: { color: THEME.accent.action, variant: 'pulse' } }
+            ]);
+        }
+    }, [visualTheme]);
+
+    const checkApiKey = async () => {
+        const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
+        if (!hasKey) { await promptSelectKey(); return false; }
+        return true;
+    };
+
+    const handleApiError = (context: string, err: any) => {
+        setState({ error: err.message || "Operation failed", isLoading: false });
+        setIsGeneratingGraph(false); setIsDecomposing(false); setIsOptimizing(false); setSequenceStatus('IDLE');
+    };
+
+    const onConnect = useCallback((params: Connection) => {
+        setEdges((eds) => addEdge({ ...params, type: 'cinematic', data: { active: true, variant: 'pulse' } }, eds));
+    }, [setEdges]);
+
+    const onPaneContextMenu = useCallback((event: React.MouseEvent) => {
+        event.preventDefault();
+        const flowPos = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        setPaneContextMenu({ x: event.clientX, y: event.clientY, flowPos });
+    }, [screenToFlowPosition]);
+
+    const onPaneClick = useCallback(() => setPaneContextMenu(null), []);
+    const onPaneDoubleClick = useCallback((event: React.MouseEvent) => {
+        const flowPos = screenToFlowPosition({ x: event.clientX, y: event.clientY });
+        addNodeAtPosition(flowPos, 'holographic', 'Logical Junction', THEME.accent.core);
+    }, [screenToFlowPosition]);
+
+    const addNodeAtPosition = useCallback((position: { x: number, y: number }, type: string, label: string, color: string) => {
+        const newNode: Node = { id: `node_${Date.now()}`, type, position, data: { label, subtext: 'System Node', iconName: 'Box', color, status: 'DRAFT', theme: visualTheme } };
+        setNodes((nds) => nds.concat(newNode));
+    }, [visualTheme]);
+
+    const handleSourceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            if (!(await checkApiKey())) return;
+            
+            const files = Array.from(e.target.files) as File[];
+            addLog('SYSTEM', `INGEST_INIT: Processing ${files.length} sources...`);
+            
+            for (const file of files) {
+                try {
+                    const fileData = await fileToGenerativePart(file);
+                    const sourceId = `source-${Date.now()}`;
+                    
+                    const newSource = {
+                        id: sourceId,
+                        name: file.name,
+                        type: file.type,
+                        inlineData: fileData.inlineData,
+                        analysis: null
+                    };
+                    
+                    setState((prev: any) => ({
+                        livingMapContext: {
+                            ...prev.livingMapContext,
+                            sources: [...(prev.livingMapContext?.sources || []), newSource]
+                        }
+                    }));
+                    
+                    // Auto-classify in background
+                    classifyArtifact(fileData).then(analysis => {
+                        setState((prev: any) => ({
+                            livingMapContext: {
+                                ...prev.livingMapContext,
+                                sources: prev.livingMapContext.sources.map((s: any) => 
+                                    s.id === sourceId ? { ...s, analysis } : s
+                                )
+                            }
+                        }));
+                        addLog('SUCCESS', `INGEST_COMPLETE: Indexed "${file.name}" as ${analysis.classification}.`);
+                    });
+
+                } catch (err) {
+                    console.error("Source upload failed", err);
+                    addLog('ERROR', `INGEST_FAIL: Could not process ${file.name}`);
+                }
+            }
+        }
+    };
+
+    const removeSource = (index: number) => {
+        setState((prev: any) => {
+            const sources = [...prev.livingMapContext.sources];
+            sources.splice(index, 1);
+            return { livingMapContext: { ...prev.livingMapContext, sources } };
+        });
+    };
+
+    const viewSourceAnalysis = (source: any) => {
+        if (!source.analysis) return;
+        
+        let content = source.analysis.summary;
+        if (source.analysis.entities?.length > 0) {
+            content += `\n\nENTITIES DETECTED:\n- ${source.analysis.entities.join('\n- ')}`;
+        }
+
+        openHoloProjector({
+            id: source.id,
+            title: `Source Analysis: ${source.name}`,
+            type: source.type.startsWith('image/') ? 'IMAGE' : 'TEXT',
+            content: source.type.startsWith('image/') ? `data:${source.type};base64,${source.inlineData.data}` : content
+        });
+    };
+
+    const handleAIAddNode = async (description: string) => {
+        if (!description.trim()) return;
+        setState({ isLoading: true });
+        try {
+            if (!(await checkApiKey())) return;
+            const nodeData = await generateSingleNode(description);
+            const centerPosition = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+            const newNode: Node = { id: `node_${Date.now()}`, type: 'holographic', position: centerPosition, data: { ...nodeData, theme: visualTheme, status: 'INITIALIZED' } };
+            setNodes(nds => nds.concat(newNode));
+            addLog('SUCCESS', `AI_NODE: Added "${nodeData.label}" to process map.`);
+            setState({ isLoading: false });
+        } catch (err: any) { handleApiError('AI Add Node', err); }
+    };
+
+    const handleOptimizeNode = async () => {
+        if (!selectedNode || isOptimizing) return;
+        setIsOptimizing(true);
+        try {
+            if (!(await checkApiKey())) return;
+            const neighbors = edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id)
+                                    .map(e => nodes.find(n => n.id === (e.source === selectedNode.id ? e.target : e.source))?.data.label).join(', ');
+            const result = await decomposeNode(selectedNode.data.label as string, neighbors);
+            if (result.optimizations?.length > 0) {
+                addLog('SUCCESS', `OPTIMIZE: Found ${result.optimizations.length} improvements for "${selectedNode.data.label}".`);
+            } else { addLog('INFO', `OPTIMIZE: Node "${selectedNode.data.label}" is architecturally sound.`); }
+            setIsOptimizing(false);
+        } catch (err: any) { handleApiError('Optimize', err); }
+    };
+
+    const handleRunGlobalSequence = async () => {
+        if (sequenceStatus === 'RUNNING') return;
+        if (!(await checkApiKey())) return;
+        setSequenceStatus('RUNNING'); setSequenceProgress(0); setState({ isLoading: true });
+        try {
+            // Use active sources if present
+            const sources = state.livingMapContext.sources || [];
+            const files = (sources as any[]).map((s) => ({ inlineData: s.inlineData, name: s.name })) as FileData[];
+            
+            const mapContext = { nodes: nodes.map(n => ({ label: n.data.label, subtext: n.data.subtext })), edges: edges.map(e => e.id) };
+            
+            const code = await generateMermaidDiagram(state.governance, files, [mapContext]);
+            setState({ generatedCode: code }); setSequenceProgress(30);
+            
+            const workflow = await generateStructuredWorkflow(files, state.governance, state.workflowType, mapContext);
+            setState({ generatedWorkflow: workflow }); setSequenceProgress(70);
+            
+            const { audioData, transcript } = await generateAudioOverview(files);
+            setState({ audioUrl: audioData, audioTranscript: transcript }); setSequenceProgress(100);
+            
+            setSequenceStatus('COMPLETE'); setState({ activeTab: 'diagram', isLoading: false });
+            setTimeout(() => setSequenceStatus('IDLE'), 3000);
+        } catch (err: any) { handleApiError('Global Sequence', err); }
+    };
+
+    const handleGenerate = async (type: string) => {
+        if (!(await checkApiKey())) return;
+        setState({ isLoading: true, activeTab: type });
+        try {
+            const sources = state.livingMapContext.sources || [];
+            const files = (sources as any[]).map((s) => ({ inlineData: s.inlineData, name: s.name })) as FileData[];
+            
+            const mapContext = { nodes: nodes.map(n => n.data.label), edges: edges.length };
+            if (type === 'diagram') {
+                const code = await generateMermaidDiagram(state.governance, files, [mapContext]);
+                setState({ generatedCode: code, isLoading: false });
+            } else if (type === 'workflow') {
+                const workflow = await generateStructuredWorkflow(files, state.governance, state.workflowType, mapContext);
+                setState({ generatedWorkflow: workflow, isLoading: false });
+            } else if (type === 'audio') {
+                const { audioData, transcript } = await generateAudioOverview(files);
+                setState({ audioUrl: audioData, audioTranscript: transcript, isLoading: false });
+            }
+        } catch (err: any) { handleApiError('Generate', err); }
+    };
+
+    return {
+        state, activeTab, nodes, edges, onNodesChange, onEdgesChange, onConnect, onPaneContextMenu, onPaneClick, onPaneDoubleClick,
+        visualTheme, showGrid, paneContextMenu, toggleGrid: () => setShowGrid(!showGrid), addNodeAtPosition,
+        handleGenerateGraph: async () => {
+            if (!(await checkApiKey())) return; setIsGeneratingGraph(true);
+            try {
+                const result = await generateSystemArchitecture(architecturePrompt);
+                const newNodes = result.nodes.map((n: any, i: number) => ({ id: n.id, type: 'holographic', position: { x: 600 + Math.cos(i) * 300, y: 400 + Math.sin(i) * 300 }, data: { ...n, theme: visualTheme } }));
+                const newEdges = result.edges.map((e: any) => ({ id: e.id, source: e.source, target: e.target, type: 'cinematic', data: { color: '#9d4edd', variant: 'stream' } }));
+                setNodes(newNodes); setEdges(newEdges); setTimeout(() => fitView({ duration: 1000 }), 100);
+            } catch (err: any) { handleApiError('Blueprint', err); } finally { setIsGeneratingGraph(false); }
+        },
+        handleDecomposeNode: async () => {
+            if (!selectedNode) return; setIsDecomposing(true);
+            try {
+                const result = await decomposeNode(selectedNode.data.label as string, "");
+                const expanded = result.nodes.map((n: any, i: number) => ({ id: n.id, type: 'holographic', position: { x: selectedNode.position.x + Math.cos(i) * 150, y: selectedNode.position.y + Math.sin(i) * 150 }, data: { ...n, theme: visualTheme } }));
+                setNodes([...nodes.filter(n => n.id !== selectedNode.id), ...expanded]);
+                setEdges([...edges.filter(e => e.source !== selectedNode.id && e.target !== selectedNode.id), ...result.edges.map((e: any) => ({ ...e, type: 'cinematic', data: { color: '#42be65' } }))]);
+            } catch (err: any) { handleApiError('Decompose', err); } finally { setIsDecomposing(false); }
+        },
+        handleOptimizeNode, handleGenerateIaC: async (provider: string) => {
+            try {
+                const summary = nodes.map(n => n.data.label).join(', ');
+                const code = await generateInfrastructureCode(summary, provider);
+                setMode(AppMode.CODE_STUDIO); setCodeStudioState({ generatedCode: code, language: provider === 'DOCKER' ? 'yaml' : 'hcl' });
+            } catch (err: any) { handleApiError('IaC', err); }
+        },
+        handleAIAddNode, handleGenerate, architecturePrompt, setArchitecturePrompt, sequenceStatus, sequenceProgress,
+        selectedNode, isGeneratingGraph, isDecomposing, isOptimizing, saveGraph: () => { localStorage.setItem('pm_layout', JSON.stringify({ nodes, edges })); addLog('SUCCESS', 'Layout cached.'); },
+        restoreGraph: () => { const saved = localStorage.getItem('pm_layout'); if (saved) { const { nodes: ns, edges: es } = JSON.parse(saved); setNodes(ns); setEdges(es); } },
+        getTabLabel: (t: string) => t.replace('_', ' '), getPriorityBadgeStyle: (p: string) => p === 'HIGH' ? 'bg-red-900/20 text-red-400 border-red-500/30' : 'bg-[#111] text-gray-500',
+        handleSourceUpload, removeSource, viewSourceAnalysis, setState,
+        animatedNodes: nodes, animatedEdges: edges, handleRunGlobalSequence
+    };
+};

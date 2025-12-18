@@ -3,7 +3,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { generateDecompositionMap, consensusEngine } from '../services/bicameralService';
 import { promptSelectKey } from '../services/geminiService';
-import { BrainCircuit, Zap, Layers, Cpu, ArrowRight, CheckCircle2, Loader2, GitBranch, AlertOctagon } from 'lucide-react';
+import { neuralVault } from '../services/persistenceService';
+import { BrainCircuit, Zap, Layers, Cpu, ArrowRight, CheckCircle2, Loader2, GitBranch, AlertOctagon, Save, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TugOfWarChart } from './Visualizations/TugOfWarChart';
 import { AgentGraveyard } from './Visualizations/AgentGraveyard';
@@ -15,9 +16,12 @@ const BicameralEngine: React.FC = () => {
     
     // Find active task
     const activeTask = plan.find(t => t.status === 'IN_PROGRESS');
+    
+    // Check if driven by Research Agent
+    const isExternalProtocol = goal?.includes('[RESEARCH PROTOCOL]');
 
     const runArchitecture = async () => {
-        if (!goal.trim()) return;
+        if (!goal?.trim()) return;
         
         try {
             const hasKey = await window.aistudio?.hasSelectedApiKey();
@@ -61,6 +65,31 @@ const BicameralEngine: React.FC = () => {
                     setBicameralState(prev => ({ swarmStatus: statusUpdate }));
                 });
                 
+                // --- CRYSTALLIZATION: Persist to Memory Core ---
+                const consensusContent = `
+# BICAMERAL CONSENSUS REPORT
+**Task ID:** ${task.id}
+**Objective:** ${task.description}
+**Confidence:** ${result.confidence}%
+**Winner:** ${result.voteLedger.winner} (${result.voteLedger.count} votes)
+**Runner Up:** ${result.voteLedger.runnerUp || 'None'} (${result.voteLedger.runnerUpCount} votes)
+**Agents Terminated:** ${result.voteLedger.killedAgents}
+
+---
+## CONSENSUS OUTPUT
+${result.output}
+                `.trim();
+
+                const blob = new Blob([consensusContent], { type: 'text/markdown' });
+                const file = new File([blob], `CONSENSUS_${task.id}.md`, { type: 'text/markdown' });
+                
+                await neuralVault.saveArtifact(file, {
+                    classification: 'CONSENSUS_LEDGER',
+                    ambiguityScore: 100 - result.confidence,
+                    entities: ['Bicameral Engine', 'Swarm', task.id],
+                    summary: `Swarm consensus for task: ${task.description}`
+                });
+
                 // Update Task Status to COMPLETED and Add to Ledger
                 setBicameralState(prev => ({ 
                     plan: prev.plan.map(t => t.id === task.id ? { ...t, status: 'COMPLETED' } : t),
@@ -68,14 +97,14 @@ const BicameralEngine: React.FC = () => {
                 }));
                 
                 const killedMsg = result.voteLedger.killedAgents > 0 ? ` (${result.voteLedger.killedAgents} KIA)` : '';
-                addLog('SUCCESS', `SWARM: Task ${task.id} Consensus @ +${result.voteLedger.count - result.voteLedger.runnerUpCount}${killedMsg}`);
+                addLog('SUCCESS', `SWARM: Consensus Reached (+${result.voteLedger.count - result.voteLedger.runnerUpCount}). Crystallized to Memory.`);
                 
                 // Artificial delay for visual pacing
                 await new Promise(r => setTimeout(r, 500)); 
             }
             
             setBicameralState({ isSwarming: false });
-            addLog('SUCCESS', 'BICAMERAL: Sequence complete.');
+            addLog('SUCCESS', 'BICAMERAL: Sequence complete. All artifacts secured.');
 
         } catch (err: any) {
             console.error(err);
@@ -105,19 +134,29 @@ const BicameralEngine: React.FC = () => {
                         Stateful Decomposition Engine (Gemini 3.0 Pro)
                     </p>
                     <textarea 
-                        value={goal}
+                        value={goal || ''}
                         onChange={e => setBicameralState({ goal: e.target.value })}
+                        disabled={isExternalProtocol}
                         placeholder="Define high-level directive..."
-                        className="w-full bg-[#111] border border-[#333] p-3 rounded text-xs font-mono text-white outline-none focus:border-[#9d4edd] mb-3 h-24 resize-none placeholder:text-gray-700"
+                        className={`w-full bg-[#111] border p-3 rounded text-xs font-mono text-white outline-none mb-3 h-24 resize-none placeholder:text-gray-700 transition-colors
+                            ${isExternalProtocol ? 'border-[#f59e0b] text-[#f59e0b]' : 'border-[#333] focus:border-[#9d4edd]'}
+                        `}
                     />
-                    <button 
-                        onClick={runArchitecture}
-                        disabled={isPlanning || isSwarming || !goal.trim()}
-                        className="w-full py-3 bg-[#9d4edd] text-black font-bold font-mono text-xs uppercase tracking-widest hover:bg-[#b06bf7] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                        {isPlanning ? <Loader2 className="w-4 h-4 animate-spin"/> : <GitBranch className="w-4 h-4"/>}
-                        {isPlanning ? 'Decomposing...' : 'Initialize Swarm'}
-                    </button>
+                    
+                    {isExternalProtocol ? (
+                        <div className="w-full py-3 bg-[#f59e0b]/10 border border-[#f59e0b]/50 text-[#f59e0b] font-bold font-mono text-xs uppercase tracking-widest rounded flex items-center justify-center gap-2 animate-pulse">
+                            <ExternalLink className="w-4 h-4" /> Research Protocol Override
+                        </div>
+                    ) : (
+                        <button 
+                            onClick={runArchitecture}
+                            disabled={isPlanning || isSwarming || !goal?.trim()}
+                            className="w-full py-3 bg-[#9d4edd] text-black font-bold font-mono text-xs uppercase tracking-widest hover:bg-[#b06bf7] transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {isPlanning ? <Loader2 className="w-4 h-4 animate-spin"/> : <GitBranch className="w-4 h-4"/>}
+                            {isPlanning ? 'Decomposing...' : 'Initialize Swarm'}
+                        </button>
+                    )}
                 </div>
                 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2">
@@ -136,7 +175,12 @@ const BicameralEngine: React.FC = () => {
                                 <span className={`text-[9px] font-mono ${task.status === 'IN_PROGRESS' ? 'text-[#3b82f6] animate-pulse' : 'text-gray-500'}`}>
                                     ATOM_{i.toString().padStart(3, '0')}
                                 </span>
-                                {task.status === 'COMPLETED' && <CheckCircle2 className="w-3 h-3 text-[#42be65]" />}
+                                {task.status === 'COMPLETED' && (
+                                    <div className="flex items-center gap-1 text-[#42be65]">
+                                        <Save className="w-3 h-3" />
+                                        <span className="text-[8px] font-bold">SAVED</span>
+                                    </div>
+                                )}
                                 {task.status === 'IN_PROGRESS' && <Loader2 className="w-3 h-3 text-[#3b82f6] animate-spin" />}
                             </div>
                             <div className="text-xs text-gray-300 font-mono font-bold">{task.description}</div>

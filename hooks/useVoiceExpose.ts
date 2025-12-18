@@ -1,6 +1,6 @@
 
 import { useEffect, useRef } from 'react';
-import useSystemMind from '../stores/useSystemMind';
+import { useSystemMind } from '../stores/useSystemMind';
 
 /**
  * Connects a component to the Voice Core.
