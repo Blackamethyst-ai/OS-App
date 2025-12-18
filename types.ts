@@ -1,375 +1,270 @@
-
-export enum AppMode {
-  DASHBOARD = 'DASHBOARD',
-  PROCESS_MAP = 'PROCESS_MAP',
-  IMAGE_GEN = 'IMAGE_GEN',
-  POWER_XRAY = 'POWER_XRAY',
-  BIBLIOMORPHIC = 'BIBLIOMORPHIC',
-  HARDWARE_ENGINEER = 'HARDWARE_ENGINEER',
-  VOICE_MODE = 'VOICE_MODE',
-  CODE_STUDIO = 'CODE_STUDIO',
-  MEMORY_CORE = 'MEMORY_CORE',
-  BICAMERAL = 'BICAMERAL',
-}
-
-export enum ImageSize {
-  SIZE_1K = '1K',
-  SIZE_2K = '2K',
-  SIZE_4K = '4K',
-}
-
-export enum AspectRatio {
-  RATIO_1_1 = '1:1',
-  RATIO_2_3 = '2:3',
-  RATIO_3_2 = '3:2',
-  RATIO_3_4 = '3:4',
-  RATIO_4_3 = '4:3',
-  RATIO_9_16 = '9:16',
-  RATIO_16_9 = '16:9',
-  RATIO_21_9 = '21:9',
-}
-
-export interface GeneratedImage {
-  url: string;
-  prompt: string;
-  aspectRatio: AspectRatio;
-  size: ImageSize;
-}
-
-export interface FileData {
-  inlineData: {
-    data: string;
-    mimeType: string;
-  };
-  name: string;
-}
-
-export interface Message {
-  role: 'user' | 'model';
-  text: string;
-  timestamp: number;
-}
-
-export type IngestionStatus = 'pending' | 'scanning' | 'verified' | 'rejected';
-
-export interface ArtifactAnalysis {
-  classification: string;
-  ambiguityScore: number;
-  entities: string[];
-  summary: string;
-}
-
-export interface ArtifactNode {
-  id: string;
-  file: File;
-  status: IngestionStatus;
-  data: FileData | null;
-  analysis?: ArtifactAnalysis;
-  error?: string;
-}
-
-export interface GovernanceSchema {
-  targetSystem: string;
-  constraintLevel: 'Permissive' | 'Standard' | 'Strict';
-  outputTopology: 'Hierarchical' | 'Network' | 'Sequential' | 'Hub & Spoke';
-  additionalDirectives: string;
-}
-
-export interface FrameworkStep {
-    step: string;
-    designation: string;
-    execution_vector: string;
-}
-
-export interface AutopoieticFramework {
-    framework_identity: {
-        name: string;
-        acronym: string;
-        philosophical_origin: string;
-    };
-    operational_logic: FrameworkStep[];
-    governance_mandate: string;
-    visual_signature: {
-        color_hex: string;
-        icon_metaphor: string;
-    };
-}
-
-export interface SystemWorkflow {
-    structureTree: string;
-    protocols: { rule: string; reasoning: string }[];
-    automationScript: string;
-    processDiagram?: string;
-}
-
-export type ProcessTab = 'living_map' | 'diagram' | 'workflow' | 'genesis' | 'audio';
-
-export interface WorkerAgent {
-    id: string;
-    role: string;
-    status: 'IDLE' | 'WORKING' | 'COMPLETE' | 'FAILED';
-    task: string;
-    durationMs?: number;
-}
-
-export interface ProcessState {
-  prompt: string;
-  governance: GovernanceSchema;
-  artifacts: ArtifactNode[];
-  isLoading: boolean;
-  generatedCode: string;
-  chatHistory: Message[];
-  audioUrl: string | null;
-  audioTranscript: string | null;
-  error: string | null;
-  autopoieticFramework: AutopoieticFramework | null;
-  generatedWorkflow: SystemWorkflow | null;
-  entropyScore: number;
-  activeTab?: ProcessTab;
-  architectMode?: 'BLUEPRINT' | 'EXECUTION';
-  swarm?: {
-      isActive: boolean;
-      agents: WorkerAgent[];
-  };
-}
-
-export interface ImageGenState {
-  prompt: string;
-  aspectRatio: AspectRatio;
-  size: ImageSize;
-  referenceImage: FileData | null;
-  generatedImage: GeneratedImage | null;
-  isLoading: boolean;
-  error: string | null;
-}
-
-export interface DashboardState {
-  identityUrl: string | null;
-  referenceImage: FileData | null;
-  isGenerating: boolean;
-}
-
-// Hardware
-export interface PowerRail {
-  voltage: string;
-  source: string;
-  category: 'digital' | 'analog' | 'rf' | 'power';
-  status: 'stable' | 'noisy' | 'critical';
-}
-
-export interface ComponentRecommendation {
-  partNumber: string;
-  manufacturer: string;
-  description: string;
-  reasoning: string;
-  specs: Record<string, string>;
-}
-
-export interface SchematicIssue {
-  id: string;
-  severity: 'critical' | 'warning' | 'info';
-  location: string;
-  description: string;
-  recommendation: string;
-}
-
-export interface HardwareState {
-  schematicImage: FileData | null;
-  analysis: {
-    powerRails: PowerRail[];
-    issues: SchematicIssue[];
-    efficiencyRating: number;
-  } | null;
-  componentQuery: string;
-  recommendations: ComponentRecommendation[];
-  isLoading: boolean;
-  error: string | null;
-}
-
-// Bibliomorphic
-export interface Axiom {
-  id: string;
-  concept: string;
-  codeSnippet: string;
-}
-
-export interface ProposedModule {
-  id: string;
-  title: string;
-  description: string;
-  type: 'UI' | 'LOGIC' | 'DATABASE' | 'KERNEL';
-  reasoning: string;
-}
-
-export interface KernelIdentity {
-  designation: string;
-  architecturalPhilosophy: string;
-  primeDirective: string;
-  status: string;
-  contextIngestion: string;
-}
-
-export interface ArchitectureProposal {
-    projectCodename: string;
-    overview: string;
-    systemCore: any;
-    peripheralInterface: any;
-    ethicalRootkit: any;
-}
-
-export interface BookDNA {
-  id?: string;
-  timestamp?: number;
-  title: string;
-  author: string;
-  extractionRate: number;
-  toneAnalysis: string;
-  systemPrompt: string;
-  axioms: Axiom[];
-  modules: ProposedModule[];
-  kernelIdentity: KernelIdentity;
-  architectureProposal: ArchitectureProposal;
-}
-
-export interface BibliomorphicState {
-  dna: BookDNA | null;
-  activeBook: FileData | null;
-  library: BookDNA[];
-  chatHistory: Message[];
-  isLoading: boolean;
-  error: string | null;
-}
-
-// Voice
-export interface VoiceState {
-  isActive: boolean;
-  isConnecting: boolean;
-  voiceName: 'Puck' | 'Charon' | 'Kore' | 'Fenrir' | 'Zephyr';
-  volume: number;
-  transcripts: { role: 'user' | 'model', text: string }[];
-  error: string | null;
-}
-
-// Code Studio
-export interface CodeStudioState {
-  prompt: string;
-  generatedCode: string | null;
-  language: string;
-  model: string;
-  isLoading: boolean;
-  isExecuting: boolean;
-  executionOutput: string | null;
-  error: string | null;
-  history: { prompt: string; code: string; timestamp: number }[];
-}
-
-// Search
-export interface SearchResultItem {
-  id: string;
-  title: string;
-  description: string;
-  type: 'NAV' | 'ACTION' | 'QUERY';
-  meta?: {
-    targetMode?: string;
-    actionType?: string;
-    payload?: any;
-  };
-}
-
-export interface GlobalSearchState {
-  query: string;
-  results: SearchResultItem[];
-  history: string[];
-  isSearching: boolean;
-  isOpen: boolean;
-}
-
-// Analysis Result (Power XRay)
 export interface AnalysisResult {
-  sustainer: string;
-  destroyer: string;
-  extractor: string;
-  insight: string;
-  scores: {
-    centralization: number;
-    entropy: number;
-    vitality: number;
-    opacity: number;
-    adaptability: number;
-  };
-  vectors: {
-    mechanism: string;
-    vulnerability: string;
-  }[];
+    scores: {
+        centralization: number;
+        entropy: number;
+        vitality: number;
+        opacity: number;
+        adaptability: number;
+    };
+    sustainer: string;
+    extractor: string;
+    destroyer: string;
+    vectors: { mechanism: string; vulnerability: string; severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' }[];
+    insight: string;
 }
 
-// Intents
-export type IntentAction = 'NAVIGATE' | 'CONFIGURE_GOVERNANCE' | 'CONFIGURE_IMAGE' | 'ANALYZE_POWER' | 'GENERATE_CODE' | 'HARDWARE_SEARCH' | 'ACTIVATE_VOICE';
-
-export interface UserIntent {
-  action: IntentAction;
-  target?: string;
-  parameters?: Record<string, any>;
-  reasoning?: string;
-  payload?: string;
-}
-
-// Command Palette
-export interface SuggestedAction {
+export interface EconomicProtocol {
     id: string;
-    label: string;
-    command: string;
-    reasoning: string;
-    iconName: string;
-}
-
-// System / Overlay
-export interface LogEntry {
-    id: string;
-    level: 'INFO' | 'WARN' | 'ERROR' | 'SYSTEM' | 'SUCCESS';
-    message: string;
-    timestamp: string;
-}
-
-export interface DockItem {
-    id: string;
-    type: 'IMAGE' | 'CODE' | 'ANALYSIS' | 'TEXT';
-    label: string;
-    content: string; // URL or text
+    title: string;
+    status: 'IDLE' | 'EXECUTING' | 'SETTLED' | 'ERROR';
+    agentId: string;
+    budget: string;
+    action: string;
+    type: 'LIQUIDITY' | 'DEPIN_PAYMENT' | 'COMPUTE_LEASE' | 'TREASURY';
     timestamp: number;
 }
 
-export interface SystemState {
-    logs: LogEntry[];
-    isTerminalOpen: boolean;
-    dockItems: DockItem[];
+export enum AppMode {
+    DASHBOARD = 'DASHBOARD',
+    BIBLIOMORPHIC = 'BIBLIOMORPHIC',
+    PROCESS_MAP = 'PROCESS_MAP',
+    MEMORY_CORE = 'MEMORY_CORE',
+    IMAGE_GEN = 'IMAGE_GEN',
+    POWER_XRAY = 'POWER_XRAY',
+    HARDWARE_ENGINEER = 'HARDWARE_ENGINEER',
+    HARDWARE_SINGULARITY = 'HARDWARE_SINGULARITY',
+    HARDWARE_AUTONOMY = 'HARDWARE_AUTONOMY',
+    CODE_STUDIO = 'CODE_STUDIO',
+    VOICE_MODE = 'VOICE_MODE',
+    BICAMERAL = 'BICAMERAL',
+    DISCOVERY = 'DISCOVERY',
+    SYNTHESIS_BRIDGE = 'SYNTHESIS_BRIDGE',
+    HELP = 'HELP'
 }
 
-// Holo Projector
-export interface HoloArtifact {
+export type AppTheme = 'DARK' | 'LIGHT' | 'CONTRAST' | 'HIGH_CONTRAST' | 'SOLARIZED' | 'AMBER' | 'MIDNIGHT' | 'NEON_CYBER';
+
+export enum OperationalContext {
+    CODE_GENERATION = 'CODE_GENERATION',
+    DATA_ANALYSIS = 'DATA_ANALYSIS',
+    SYSTEM_MONITORING = 'SYSTEM_MONITORING',
+    STRATEGY_SYNTHESIS = 'STRATEGY_SYNTHESIS'
+}
+
+export interface UserProfile {
+    displayName: string;
+    role: string;
+    clearanceLevel: number;
+    avatar: string | null;
+}
+
+export interface FileData {
+    inlineData: {
+        data: string;
+        mimeType: string;
+    };
+    name?: string;
+}
+
+// --- METAVENTIONS STACK TYPES ---
+export interface StrategyLayer {
     id: string;
-    type: 'IMAGE' | 'CODE' | 'TEXT';
+    name: string;
+    role: string;
+    leverage: string;
+    status: 'OFFLINE' | 'SYNCING' | 'OPTIMIZED' | 'THREAT_DETECTED' | 'INITIALIZED' | 'OPTIMIZING';
+    level: number;
+    metrics: { label: string; value: string; trend: 'up' | 'down' | 'stable' }[];
+}
+
+export interface InterventionProtocol {
+    id: string;
     title: string;
-    content: string;
+    context: string; // The "lens" used
+    logic: string;
+    physicalImpact: string;
+    timestamp: number;
 }
 
-export interface HoloState {
-    isOpen: boolean;
-    activeArtifact: HoloArtifact | null;
-    analysisResult: string | null;
+export interface AgentWallet {
+    address: string;
+    balance: string;
+    currency: string;
+    lastActive: number;
+    txCount: number;
+    assets?: { label: string; value: number }[];
+}
+
+export interface MetaventionsState {
+    layers: StrategyLayer[];
+    activeLayerId: string | null;
     isAnalyzing: boolean;
+    strategyLog: { id: string; timestamp: number; message: string; type: 'INTEL' | 'ACTION' | 'SECURITY' }[];
+    strategyLibrary: InterventionProtocol[];
+    recursiveFeedback: {
+        rawInput: string;
+        refractions: Record<string, string>;
+    } | null;
+    wallets: AgentWallet[];
+    economicProtocols: EconomicProtocol[];
+}
+// -----------------------------
+
+export interface ResearchState {
+    tasks: ResearchTask[];
 }
 
-// Context Menu
-export interface ContextMenuState {
-    isOpen: boolean;
-    x: number;
-    y: number;
-    contextType: 'TEXT' | 'IMAGE' | 'CODE' | 'GENERAL';
-    targetContent: any;
+export interface ResearchTask {
+    id: string;
+    query: string;
+    status: 'QUEUED' | 'PLANNING' | 'SEARCHING' | 'SYNTHESIZING' | 'SWARM_VERIFY' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+    progress: number;
+    logs: string[];
+    timestamp: number;
+    subQueries?: string[];
+    findings?: FactChunk[];
+    result?: string;
 }
 
-// --- AGORA SIMULATION TYPES ---
+export interface FactChunk {
+    id: string;
+    fact: string;
+    source: string;
+    confidence: number;
+}
+
+export interface KnowledgeNode {
+    id: string;
+    label: string;
+    type: 'CONCEPT' | 'FACT' | 'HYPOTHESIS' | 'BRIDGE';
+    connections: string[];
+    strength: number;
+    // For visualization
+    x?: number;
+    y?: number;
+    z?: number;
+    color?: string;
+}
+
+export interface ScienceHypothesis {
+    id: string;
+    statement: string;
+    confidence: number;
+    supportingFacts?: string[];
+    status: 'PROPOSED' | 'TESTING' | 'VALIDATED';
+    simulationResult?: string;
+}
+
+// --- CINEMATIC ENGINE TYPES ---
+export interface ResonancePoint {
+    frame: number;
+    tension: number;
+    dynamics: number;
+}
+
+export interface Colorway {
+    id: string;
+    label: string;
+    baseSurfaces: string;
+    shadowsInk: string;
+    uiAccentPrimary: string;
+    uiAccentSecondary: string;
+    warmPractical: string;
+}
+
+export const SOVEREIGN_DEFAULT_COLORWAY: Colorway = {
+    id: 'sovereign_prime',
+    label: 'Sovereign Prime',
+    baseSurfaces: 'fog white, pale cool grey, glossy white desk',
+    shadowsInk: 'soft charcoal, preserved shadow detail',
+    uiAccentPrimary: 'mint-cyan, teal outline',
+    uiAccentSecondary: 'faint violet',
+    warmPractical: 'subtle peach/rose linear strips'
+};
+
+export const MINT_NOIR_COLORWAY: Colorway = {
+    id: 'mint_noir',
+    label: 'Mint Noir',
+    baseSurfaces: 'matte black, brushed titanium',
+    shadowsInk: 'deep void black',
+    uiAccentPrimary: 'electric mint',
+    uiAccentSecondary: 'white',
+    warmPractical: 'cold white edge lights'
+};
+
+export const AMBER_PROTOCOL_COLORWAY: Colorway = {
+    id: 'amber_protocol',
+    label: 'Amber Protocol',
+    baseSurfaces: 'warm grey, industrial concrete',
+    shadowsInk: 'dark bronze',
+    uiAccentPrimary: 'amber orange',
+    uiAccentSecondary: 'deep red',
+    warmPractical: 'tungsten filament glow'
+};
+// -----------------------------
+
+export interface ComponentRecommendation {
+    partNumber: string;
+    manufacturer: string;
+    description: string;
+    specs: Record<string, string | number>;
+    type?: string;
+    severity?: string;
+    location?: string;
+    recommendation?: string;
+    boundingBox?: number[];
+    price?: number;
+    aiSuitability?: number; // 0-100
+}
+
+export interface PowerRail {
+    source: string;
+    voltage: string;
+    status: string;
+}
+
+export interface SchematicIssue {
+    severity: string;
+    location: string;
+    description: string;
+    recommendation: string;
+    boundingBox: number[];
+}
+
+export interface ArtifactAnalysis {
+    classification: string;
+    ambiguityScore: number;
+    entities: string[];
+    summary: string;
+}
+
+export interface BookDNA {
+    title: string;
+    author: string;
+    systemPrompt: string;
+    axioms: { concept: string; description: string }[];
+    kernelIdentity: { designation: string; primeDirective: string };
+    timestamp: number;
+}
+
+export interface UserIntent {
+    action: string;
+    target?: string;
+    reasoning: string;
+    parameters?: any;
+    payload?: any;
+}
+
+export interface SyntheticPersona {
+    id: string;
+    name: string;
+    role: string;
+    bias: string;
+    systemPrompt: string;
+    avatar_color: string;
+    currentMindset: MentalState;
+    voiceName: string;
+}
 
 export interface MentalState {
     skepticism: number;
@@ -377,61 +272,21 @@ export interface MentalState {
     alignment: number;
 }
 
-export interface SyntheticPersona {
-    id: string;
-    name: string;
-    role: 'SKEPTIC' | 'VISIONARY' | 'PRAGMATIST' | 'SECURITY_HAWK';
-    avatar_color: string;
-    bias: string;
-    systemPrompt: string;
-    currentMindset: MentalState;
-    voiceName: 'Puck' | 'Charon' | 'Kore' | 'Fenrir' | 'Zephyr';
-}
-
 export interface DebateTurn {
     id: string;
     personaId: string;
     text: string;
     timestamp: number;
-    sentiment: 'POSITIVE' | 'NEGATIVE' | 'NEUTRAL';
+    sentiment: string;
     newMindset?: MentalState;
 }
 
 export interface SimulationReport {
     viabilityScore: number;
+    projectedUpside: number;
     consensus: string;
     majorFrictionPoints: string[];
     actionableFixes: string[];
-    projectedUpside?: number;
-}
-
-// --- BICAMERAL ENGINE TYPES ---
-
-export interface AtomicTask {
-    id: string;
-    description: string;
-    isolated_input: string;
-    instruction: string;
-    weight: number;
-    status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
-}
-
-export interface VoteLedger {
-    winner: string;
-    count: number;
-    runnerUp: string;
-    runnerUpCount: number;
-    totalRounds: number;
-    killedAgents: number;
-}
-
-export interface SwarmResult {
-    taskId: string;
-    output: string;
-    confidence: number;
-    agentId: string;
-    executionTime: number;
-    voteLedger: VoteLedger;
 }
 
 export interface SwarmStatus {
@@ -443,38 +298,82 @@ export interface SwarmStatus {
     totalAttempts: number;
 }
 
-export interface BicameralState {
-    goal: string;
-    plan: AtomicTask[];
-    ledger: SwarmResult[];
-    isPlanning: boolean;
-    isSwarming: boolean;
-    error: string | null;
-    swarmStatus: SwarmStatus;
-}
-
-// --- RESEARCH TYPES ---
-
-export interface ResearchTask {
+export interface AtomicTask {
     id: string;
-    query: string;
-    status: 'ACTIVE' | 'COMPLETED' | 'FAILED';
-    progress: number; // 0-100
-    logs: string[];
-    result?: string;
-    timestamp: number;
+    description: string;
+    isolated_input: string;
+    instruction: string;
+    weight: number;
+    status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED';
 }
 
-export interface ResearchState {
-    tasks: ResearchTask[];
+export interface SwarmResult {
+    taskId: string;
+    output: string;
+    confidence: number;
+    agentId: string;
+    executionTime: number;
+    voteLedger: VoteLedger;
 }
 
-export interface ProjectTopology {
-    // Placeholder if needed
-    name: string;
+export interface VoteLedger {
+    winner: string;
+    count: number;
+    runnerUp: string;
+    runnerUpCount: number;
+    totalRounds: number;
+    killedAgents: number;
 }
 
-export interface StructuredScaffold {
-    // Placeholder if needed
-    files: string[];
+export interface SearchResultItem {
+    id: string;
+    type: string;
+    title: string;
+    description: string;
+    meta?: any;
+}
+
+export interface Message {
+    role: 'user' | 'model';
+    text: string;
+    timestamp?: number;
+    parts?: any[];
+}
+
+export interface ArtifactNode {
+    id: string;
+    file: File;
+    status: string;
+    data: any;
+    analysis?: ArtifactAnalysis;
+}
+
+export type HardwareTier = 'TIER_1' | 'TIER_2' | 'TIER_3' | 'TIER_4';
+
+export enum TemporalEra {
+    SILICON = 'SILICON',
+    SINGULARITY = 'SINGULARITY',
+    AUTONOMY = 'AUTONOMY'
+}
+
+export interface SuggestedAction {
+    id: string;
+    label: string;
+    command: string;
+    iconName: string;
+    reasoning: string;
+}
+
+export enum AspectRatio {
+    RATIO_16_9 = '16:9',
+    RATIO_1_1 = '1:1',
+    RATIO_9_16 = '9:16',
+    RATIO_3_4 = '3:4',
+    RATIO_4_3 = '4:3'
+}
+
+export enum ImageSize {
+    SIZE_1K = '1K',
+    SIZE_2K = '2K',
+    SIZE_4K = '4K'
 }

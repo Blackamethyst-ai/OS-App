@@ -2,11 +2,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Image as ImageIcon, Code, FileText, X, Maximize2, Trash2, Cpu, Activity, Download, Copy, ExternalLink, Zap } from 'lucide-react';
+import { Terminal, Image as ImageIcon, Code, FileText, X, Maximize2, Trash2, Cpu, Activity, Download, Copy, ExternalLink, Zap, BrainCircuit, Radio, Loader2, GitBranch } from 'lucide-react';
 
 // --- SYSTEM TERMINAL ---
 const SystemTerminal: React.FC = () => {
-    const { system, toggleTerminal, addLog } = useAppStore();
+    const { system, toggleTerminal, addLog, research, voice, bicameral, process, codeStudio, hardware } = useAppStore();
     const bottomRef = useRef<HTMLDivElement>(null);
     const [cmd, setCmd] = useState('');
 
@@ -32,6 +32,13 @@ const SystemTerminal: React.FC = () => {
         }
     };
 
+    // Calculate Active Processes for "HTOP" View
+    const activeResearch = research.tasks.filter(t => t.status !== 'COMPLETED' && t.status !== 'FAILED');
+    const isSwarming = bicameral.isSwarming || bicameral.isPlanning;
+    const isProcessing = process.isLoading;
+    const isCompiling = codeStudio.isLoading || codeStudio.isExecuting;
+    const isScanning = hardware.isLoading;
+
     return (
         <AnimatePresence>
             {system.isTerminalOpen && (
@@ -40,28 +47,81 @@ const SystemTerminal: React.FC = () => {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: '-100%', opacity: 0 }}
                     transition={{ type: 'spring', stiffness: 200, damping: 25 }}
-                    className="fixed top-0 left-0 right-0 h-80 bg-[#050505]/95 backdrop-blur-md border-b border-[#9d4edd] z-[9999] shadow-2xl font-mono text-xs flex flex-col"
+                    className="fixed top-0 left-0 right-0 h-96 bg-[#050505]/95 backdrop-blur-md border-b border-[#9d4edd] z-[9999] shadow-2xl font-mono text-xs flex flex-col"
                 >
                     {/* Header */}
-                    <div className="h-8 bg-[#111] border-b border-[#333] flex items-center justify-between px-4">
+                    <div className="h-8 bg-[#111] border-b border-[#333] flex items-center justify-between px-4 shrink-0">
                         <div className="flex items-center gap-2 text-[#9d4edd]">
                             <Terminal className="w-4 h-4" />
-                            <span className="uppercase tracking-widest font-bold">Quake Console // ROOT ACCESS</span>
+                            <span className="uppercase tracking-widest font-bold">System Mind // ROOT ACCESS</span>
                         </div>
                         <button onClick={() => toggleTerminal(false)} className="text-gray-500 hover:text-white"><X className="w-4 h-4" /></button>
                     </div>
 
+                    {/* Process Monitor (HTOP Style) */}
+                    <div className="bg-[#0a0a0a] border-b border-[#333] p-2 flex gap-4 shrink-0 overflow-x-auto">
+                        {/* Voice Core Status */}
+                        <div className={`flex items-center gap-2 px-3 py-1 rounded border ${voice.isActive ? 'border-[#22d3ee]/50 bg-[#22d3ee]/10 text-[#22d3ee]' : 'border-[#333] text-gray-500'}`}>
+                            <Radio className={`w-3 h-3 ${voice.isActive ? 'animate-pulse' : ''}`} />
+                            <span className="font-bold">VOICE_CORE: {voice.isActive ? 'ONLINE' : 'STANDBY'}</span>
+                        </div>
+
+                        {/* Research Agents */}
+                        {activeResearch.length > 0 ? (
+                            activeResearch.map(task => (
+                                <div key={task.id} className="flex items-center gap-2 px-3 py-1 rounded border border-[#9d4edd]/50 bg-[#9d4edd]/10 text-[#9d4edd]">
+                                    <BrainCircuit className="w-3 h-3 animate-spin" />
+                                    <span className="font-bold truncate max-w-[150px]">RSRCH: {task.query}</span>
+                                    <span className="text-[9px] opacity-70">{task.progress}%</span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="flex items-center gap-2 px-3 py-1 rounded border border-[#333] text-gray-600">
+                                <BrainCircuit className="w-3 h-3" />
+                                <span>RSRCH: IDLE</span>
+                            </div>
+                        )}
+
+                        {/* Swarm Engine */}
+                        {isSwarming && (
+                            <div className="flex items-center gap-2 px-3 py-1 rounded border border-[#f59e0b]/50 bg-[#f59e0b]/10 text-[#f59e0b]">
+                                <GitBranch className="w-3 h-3 animate-pulse" />
+                                <span className="font-bold">SWARM: ACTIVE</span>
+                            </div>
+                        )}
+
+                        {/* Compiler */}
+                        {isCompiling && (
+                            <div className="flex items-center gap-2 px-3 py-1 rounded border border-[#42be65]/50 bg-[#42be65]/10 text-[#42be65]">
+                                <Code className="w-3 h-3 animate-pulse" />
+                                <span className="font-bold">COMPILER: BUSY</span>
+                            </div>
+                        )}
+                        
+                        {/* Hardware */}
+                        {isScanning && (
+                            <div className="flex items-center gap-2 px-3 py-1 rounded border border-blue-500/50 bg-blue-500/10 text-blue-400">
+                                <Cpu className="w-3 h-3 animate-spin" />
+                                <span className="font-bold">HW_SCAN: RUNNING</span>
+                            </div>
+                        )}
+                    </div>
+
                     {/* Logs */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar text-gray-300">
+                    <div className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar text-gray-300 font-mono text-[11px]">
                         {system.logs.map((log) => (
-                            <div key={log.id} className="flex gap-3 font-mono">
+                            <div key={log.id} className="flex gap-3 hover:bg-[#111] transition-colors px-1">
                                 <span className="text-gray-600 shrink-0">[{log.timestamp}]</span>
-                                <span className={`shrink-0 font-bold w-16 ${
+                                <span className={`shrink-0 font-bold w-16 text-right ${
                                     log.level === 'ERROR' ? 'text-red-500' : 
                                     log.level === 'WARN' ? 'text-yellow-500' : 
+                                    log.level === 'SUCCESS' ? 'text-[#42be65]' :
                                     log.level === 'SYSTEM' ? 'text-[#9d4edd]' : 'text-blue-400'
                                 }`}>{log.level}</span>
-                                <span className="break-all">{log.message}</span>
+                                <span className="text-gray-500">::</span>
+                                <span className={`break-all ${log.level === 'ERROR' ? 'text-red-300' : 'text-gray-300'}`}>
+                                    {log.message}
+                                </span>
                             </div>
                         ))}
                         <div ref={bottomRef} />

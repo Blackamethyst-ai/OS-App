@@ -5,7 +5,7 @@ import { Command } from 'lucide-react';
 
 const NeuralHeader: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const { process, imageGen, codeStudio, voice, system } = useAppStore();
+    const { process, imageGen, codeStudio, voice, system, toggleTerminal } = useAppStore();
     const [pulse, setPulse] = useState(false);
 
     // Determine global activity level
@@ -82,7 +82,12 @@ const NeuralHeader: React.FC = () => {
     }, [isThinking, isSpeaking, pulse]);
 
     return (
-        <div className="relative w-12 h-8 cursor-pointer group" role="button">
+        <div 
+            className="relative w-12 h-8 cursor-pointer group" 
+            role="button"
+            onClick={() => toggleTerminal()}
+            title="Open System Terminal"
+        >
             <canvas ref={canvasRef} width={48} height={32} className="absolute inset-0" />
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <Command className="w-4 h-4 text-white drop-shadow-md" />

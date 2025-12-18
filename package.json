@@ -1,3 +1,4 @@
+
 {
   "name": "metaventions-ai-v1",
   "private": true,
@@ -17,7 +18,9 @@
     "react-dom": "^19.2.1",
     "zustand": "^5.0.9",
     "@xyflow/react": "^12.10.0",
-    "idb": "^8.0.0"
+    "idb": "^8.0.0",
+    "jszip": "^3.10.1",
+    "html-to-image": "^1.11.11"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

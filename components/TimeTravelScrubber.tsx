@@ -113,10 +113,10 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
         <motion.div 
             initial={{ y: 100 }}
             animate={{ y: 0 }}
-            className={`fixed bottom-0 left-1/2 -translate-x-1/2 z-40 w-full max-w-3xl ${className}`}
+            className={`fixed bottom-0 left-6 z-40 w-full max-w-3xl ${className}`}
         >
             {/* Handle / Toggle */}
-            <div className="flex justify-center">
+            <div className="flex justify-start">
                 <button 
                     onClick={() => setIsOpen(!isOpen)}
                     className="bg-[#0a0a0a] border-t border-x border-[#333] px-6 py-1 rounded-t-lg flex items-center gap-2 text-[10px] font-mono text-gray-500 hover:text-[#9d4edd] hover:border-[#9d4edd] transition-all uppercase tracking-widest shadow-lg"
@@ -134,7 +134,7 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
                         initial={{ height: 0, opacity: 0 }}
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
-                        className="bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#333] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] overflow-hidden"
+                        className="bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-r border-[#333] rounded-tr-lg shadow-[0_-10px_40px_rgba(0,0,0,0.5)] overflow-hidden"
                     >
                         <div className="p-4 flex flex-col gap-4">
                             
