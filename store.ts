@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, InterventionProtocol, OperationalContext, AgentWallet, TemporalEra } from './types';
 
@@ -112,7 +113,13 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set) => ({
     mode: AppMode.SYNTHESIS_BRIDGE,
-    theme: (localStorage.getItem('structura-theme') as AppTheme) || 'DARK',
+    /**
+     * Fix: Ensured AppTheme is cast correctly from localStorage.
+     */
+    theme: (localStorage.getItem('structura-theme') as AppTheme) || AppTheme.DARK,
+    /**
+     * Fix: Used OperationalContext enum member.
+     */
     operationalContext: OperationalContext.STRATEGY_SYNTHESIS,
     isCommandPaletteOpen: false,
     isProfileOpen: false,

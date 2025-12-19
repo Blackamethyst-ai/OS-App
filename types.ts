@@ -1,3 +1,53 @@
+
+
+export interface AgentDNA {
+    id: string;
+    label: string;
+    role: 'SKEPTIC' | 'VISIONARY' | 'PRAGMATIST' | 'OPERATOR' | 'SPECIALIST';
+    color: string;
+    description: string;
+}
+
+export interface CompressedAxiom {
+    id: string;
+    statement: string;
+    reductionFactor: number;
+    sourceNodes: string[];
+}
+
+export interface DigitizationResult {
+    toc: { title: string; page: number }[];
+    entities: { name: string; type: string; significance: string }[];
+    logicModel: string; // Mermaid code
+    abstract: string;
+}
+
+// ... existing interfaces ...
+
+export interface SwarmStatus {
+    taskId: string;
+    votes: Record<string, number>;
+    killedAgents: number;
+    currentGap: number;
+    targetGap: number;
+    totalAttempts: number;
+    activeDNA?: string; // New: DNA ID
+}
+
+export enum AppMode {
+    DASHBOARD = 'DASHBOARD',
+    BIBLIOMORPHIC = 'BIBLIOMORPHIC',
+    PROCESS_MAP = 'PROCESS_MAP',
+    MEMORY_CORE = 'MEMORY_CORE',
+    IMAGE_GEN = 'IMAGE_GEN',
+    POWER_XRAY = 'POWER_XRAY',
+    HARDWARE_ENGINEER = 'HARDWARE_ENGINEER',
+    CODE_STUDIO = 'CODE_STUDIO',
+    VOICE_MODE = 'VOICE_MODE',
+    BICAMERAL = 'BICAMERAL',
+    SYNTHESIS_BRIDGE = 'SYNTHESIS_BRIDGE'
+}
+
 export interface AnalysisResult {
     scores: {
         centralization: number;
@@ -24,40 +74,28 @@ export interface EconomicProtocol {
     timestamp: number;
 }
 
-export interface EscrowAccount {
-    id: string;
-    provider: string;
-    serviceType: string;
-    amount: string;
-    status: 'LOCKED' | 'RELEASED' | 'DISPUTED';
-    expiry: number;
-}
-
-export enum AppMode {
-    DASHBOARD = 'DASHBOARD',
-    BIBLIOMORPHIC = 'BIBLIOMORPHIC',
-    PROCESS_MAP = 'PROCESS_MAP',
-    MEMORY_CORE = 'MEMORY_CORE',
-    IMAGE_GEN = 'IMAGE_GEN',
-    POWER_XRAY = 'POWER_XRAY',
-    HARDWARE_ENGINEER = 'HARDWARE_ENGINEER',
-    HARDWARE_SINGULARITY = 'HARDWARE_SINGULARITY',
-    HARDWARE_AUTONOMY = 'HARDWARE_AUTONOMY',
-    CODE_STUDIO = 'CODE_STUDIO',
-    VOICE_MODE = 'VOICE_MODE',
-    BICAMERAL = 'BICAMERAL',
-    DISCOVERY = 'DISCOVERY',
-    SYNTHESIS_BRIDGE = 'SYNTHESIS_BRIDGE',
-    HELP = 'HELP'
-}
-
-export type AppTheme = 'DARK' | 'LIGHT' | 'CONTRAST' | 'HIGH_CONTRAST' | 'SOLARIZED' | 'AMBER' | 'MIDNIGHT' | 'NEON_CYBER';
-
+/**
+ * Fix: Changed OperationalContext from interface to enum to allow value usage.
+ */
 export enum OperationalContext {
     CODE_GENERATION = 'CODE_GENERATION',
     DATA_ANALYSIS = 'DATA_ANALYSIS',
     SYSTEM_MONITORING = 'SYSTEM_MONITORING',
     STRATEGY_SYNTHESIS = 'STRATEGY_SYNTHESIS'
+}
+
+/**
+ * Fix: Added AppTheme enum.
+ */
+export enum AppTheme {
+    DARK = 'DARK',
+    LIGHT = 'LIGHT',
+    CONTRAST = 'CONTRAST',
+    HIGH_CONTRAST = 'HIGH_CONTRAST',
+    AMBER = 'AMBER',
+    SOLARIZED = 'SOLARIZED',
+    MIDNIGHT = 'MIDNIGHT',
+    NEON_CYBER = 'NEON_CYBER'
 }
 
 export interface UserProfile {
@@ -75,7 +113,6 @@ export interface FileData {
     name?: string;
 }
 
-// --- METAVENTIONS STACK TYPES ---
 export interface StrategyLayer {
     id: string;
     name: string;
@@ -89,7 +126,7 @@ export interface StrategyLayer {
 export interface InterventionProtocol {
     id: string;
     title: string;
-    context: string; // The "lens" used
+    context: string;
     logic: string;
     physicalImpact: string;
     timestamp: number;
@@ -110,14 +147,9 @@ export interface MetaventionsState {
     isAnalyzing: boolean;
     strategyLog: { id: string; timestamp: number; message: string; type: 'INTEL' | 'ACTION' | 'SECURITY' }[];
     strategyLibrary: InterventionProtocol[];
-    recursiveFeedback: {
-        rawInput: string;
-        refractions: Record<string, string>;
-    } | null;
     wallets: AgentWallet[];
     economicProtocols: EconomicProtocol[];
 }
-// -----------------------------
 
 export interface ResearchState {
     tasks: ResearchTask[];
@@ -145,10 +177,9 @@ export interface FactChunk {
 export interface KnowledgeNode {
     id: string;
     label: string;
-    type: 'CONCEPT' | 'FACT' | 'HYPOTHESIS' | 'BRIDGE';
+    type: 'CONCEPT' | 'FACT' | 'HYPOTHESIS' | 'BRIDGE' | 'AXIOM';
     connections: string[];
     strength: number;
-    // For visualization
     x?: number;
     y?: number;
     z?: number;
@@ -164,7 +195,6 @@ export interface ScienceHypothesis {
     simulationResult?: string;
 }
 
-// --- CINEMATIC ENGINE TYPES ---
 export interface ResonancePoint {
     frame: number;
     tension: number;
@@ -191,26 +221,31 @@ export const SOVEREIGN_DEFAULT_COLORWAY: Colorway = {
     warmPractical: 'subtle peach/rose linear strips'
 };
 
+/**
+ * Fix: Added missing MINT_NOIR_COLORWAY.
+ */
 export const MINT_NOIR_COLORWAY: Colorway = {
     id: 'mint_noir',
     label: 'Mint Noir',
-    baseSurfaces: 'matte black, brushed titanium',
-    shadowsInk: 'deep void black',
-    uiAccentPrimary: 'electric mint',
-    uiAccentSecondary: 'white',
-    warmPractical: 'cold white edge lights'
+    baseSurfaces: 'matte black, deep charcoal',
+    shadowsInk: 'pitch black, hard shadows',
+    uiAccentPrimary: 'mint green, neon glow',
+    uiAccentSecondary: 'subtle emerald',
+    warmPractical: 'muted pine'
 };
 
+/**
+ * Fix: Added missing AMBER_PROTOCOL_COLORWAY.
+ */
 export const AMBER_PROTOCOL_COLORWAY: Colorway = {
     id: 'amber_protocol',
     label: 'Amber Protocol',
-    baseSurfaces: 'warm grey, industrial concrete',
-    shadowsInk: 'dark bronze',
-    uiAccentPrimary: 'amber orange',
-    uiAccentSecondary: 'deep red',
-    warmPractical: 'tungsten filament glow'
+    baseSurfaces: 'dark bronze, weathered iron',
+    shadowsInk: 'warm brown, soft depth',
+    uiAccentPrimary: 'bright amber, orange glow',
+    uiAccentSecondary: 'burnt orange',
+    warmPractical: 'copper linear highlights'
 };
-// -----------------------------
 
 export interface ComponentRecommendation {
     partNumber: string;
@@ -223,21 +258,7 @@ export interface ComponentRecommendation {
     recommendation?: string;
     boundingBox?: number[];
     price?: number;
-    aiSuitability?: number; // 0-100
-}
-
-export interface PowerRail {
-    source: string;
-    voltage: string;
-    status: string;
-}
-
-export interface SchematicIssue {
-    severity: string;
-    location: string;
-    description: string;
-    recommendation: string;
-    boundingBox: number[];
+    aiSuitability?: number; 
 }
 
 export interface ArtifactAnalysis {
@@ -298,15 +319,6 @@ export interface SimulationReport {
     actionableFixes: string[];
 }
 
-export interface SwarmStatus {
-    taskId: string;
-    votes: Record<string, number>;
-    killedAgents: number;
-    currentGap: number;
-    targetGap: number;
-    totalAttempts: number;
-}
-
 export interface AtomicTask {
     id: string;
     description: string;
@@ -349,16 +361,6 @@ export interface Message {
     parts?: any[];
 }
 
-export interface ArtifactNode {
-    id: string;
-    file: File;
-    status: string;
-    data: any;
-    analysis?: ArtifactAnalysis;
-}
-
-export type HardwareTier = 'TIER_1' | 'TIER_2' | 'TIER_3' | 'TIER_4';
-
 export enum TemporalEra {
     SILICON = 'SILICON',
     SINGULARITY = 'SINGULARITY',
@@ -385,4 +387,37 @@ export enum ImageSize {
     SIZE_1K = '1K',
     SIZE_2K = '2K',
     SIZE_4K = '4K'
+}
+
+/**
+ * Fix: Added HardwareTier enum.
+ */
+export enum HardwareTier {
+    TIER_1 = 'TIER_1',
+    TIER_2 = 'TIER_2',
+    TIER_3 = 'TIER_3'
+}
+
+/**
+ * Fix: Added ArtifactNode interface.
+ */
+export interface ArtifactNode {
+    id: string;
+    type: 'IMAGE' | 'CODE' | 'TEXT' | 'ANALYSIS';
+    label: string;
+    content: any;
+    timestamp: number;
+}
+
+/**
+ * Fix: Added StoredArtifact interface for persistence.
+ */
+export interface StoredArtifact {
+    id: string;
+    name: string;
+    type: string;
+    data: Blob;
+    analysis: ArtifactAnalysis | null;
+    timestamp: number;
+    tags: string[];
 }
