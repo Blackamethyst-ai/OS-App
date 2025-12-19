@@ -40,7 +40,6 @@ export async function retryGeminiRequest<T>(
 }
 
 export async function promptSelectKey(): Promise<void> {
-    if (window.aistudio?.openSelectKey) await window.aistudio.clearApiKeySelection(); // Reset if error occurs
     if (window.aistudio?.openSelectKey) await window.aistudio.openSelectKey();
 }
 
@@ -111,6 +110,45 @@ export async function analyzeImageVision(file: FileData): Promise<string> {
         }
     }));
     return response.text || "Analysis failed.";
+}
+
+/**
+ * Generates an expanded narrative and an emotional resonance curve based on a prompt and optional vision analysis.
+ */
+export async function generateNarrativeContext(prompt: string, visionAnalysis: string): Promise<{ narrative: string, resonance: ResonancePoint[] }> {
+    const ai = getAI();
+    const schema: Schema = {
+        type: Type.OBJECT,
+        properties: {
+            narrative: { type: Type.STRING, description: "An expanded narrative storyboard prompt." },
+            resonance: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        frame: { type: Type.NUMBER },
+                        tension: { type: Type.NUMBER, description: "0-100 score for emotional tension." },
+                        dynamics: { type: Type.NUMBER, description: "0-100 score for visual dynamics." }
+                    },
+                    required: ['frame', 'tension', 'dynamics']
+                },
+                minItems: 10,
+                maxItems: 10
+            }
+        },
+        required: ['narrative', 'resonance']
+    };
+
+    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Based on this prompt: "${prompt}" and this vision analysis: "${visionAnalysis}", generate an expanded narrative and a 10-point emotional resonance curve.`,
+        config: {
+            responseMimeType: 'application/json',
+            responseSchema: schema
+        }
+    }));
+
+    return JSON.parse(response.text || "{}");
 }
 
 export async function analyzePowerDynamics(input: string): Promise<AnalysisResult> {
@@ -197,10 +235,7 @@ export async function synthesizeEconomicDirective(context: any): Promise<Partial
     };
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Generate an autonomous economic directive for an AI agent. 
-        Context: ${JSON.stringify(context)}. 
-        Include capability to pay for physical services (maintenance, delivery, data center ops).
-        Role: Agentic Finance Layer. Output JSON.`,
+        contents: `Generate an autonomous economic directive for an AI agent. Context: ${JSON.stringify(context)}. Role: Agentic Finance Layer. Output JSON.`,
         config: { responseMimeType: 'application/json', responseSchema: schema }
     }));
     return JSON.parse(response.text || "{}");
@@ -221,9 +256,7 @@ export async function performGlobalSearch(query: string): Promise<SearchResultIt
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: query,
-        config: {
-            tools: [{ googleSearch: {} }]
-        }
+        config: { tools: [{ googleSearch: {} }] }
     }));
     return [{ id: 'search-1', type: 'WEB', title: 'Search Result', description: response.text || "" }];
 }
@@ -476,46 +509,6 @@ export async function constructCinematicPrompt(basePrompt: string, colorway: Col
     TECHNICAL SPECS:
     8K resolution, cinematic composition.
     `.trim();
-}
-
-/**
- * Generates an expanded narrative and an emotional resonance curve based on a prompt and optional vision analysis.
- * Used for autonomic expansion in the Cinematic Asset Studio.
- */
-export async function generateNarrativeContext(prompt: string, visionAnalysis: string): Promise<{ narrative: string, resonance: ResonancePoint[] }> {
-    const ai = getAI();
-    const schema: Schema = {
-        type: Type.OBJECT,
-        properties: {
-            narrative: { type: Type.STRING, description: "An expanded narrative storyboard prompt." },
-            resonance: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        frame: { type: Type.NUMBER },
-                        tension: { type: Type.NUMBER, description: "0-100 score for emotional tension." },
-                        dynamics: { type: Type.NUMBER, description: "0-100 score for visual dynamics." }
-                    },
-                    required: ['frame', 'tension', 'dynamics']
-                },
-                minItems: 10,
-                maxItems: 10
-            }
-        },
-        required: ['narrative', 'resonance']
-    };
-
-    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Based on this prompt: "${prompt}" and this vision analysis: "${visionAnalysis}", generate an expanded narrative and a 10-point emotional resonance curve.`,
-        config: {
-            responseMimeType: 'application/json',
-            responseSchema: schema
-        }
-    }));
-
-    return JSON.parse(response.text || "{}");
 }
 
 export async function generateAudioOverview(files: FileData[]): Promise<{ audioData: string; transcript: string }> {
@@ -786,7 +779,7 @@ class LiveSessionManager {
             config: {
                 ...config,
                 responseModalities: [Modality.AUDIO],
-                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
+                speechConfig: { voiceConfig: { voiceName: 'Zephyr' } },
                 outputAudioTranscription: {},
                 inputAudioTranscription: {}
             }
