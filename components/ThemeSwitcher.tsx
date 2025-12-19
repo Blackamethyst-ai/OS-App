@@ -4,26 +4,27 @@ import { useAppStore } from '../store';
 import { Sun, Moon, Contrast, Terminal, Book, Box, Zap, Palette, ShieldAlert } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
+import { AppTheme } from '../types';
 
 const ThemeSwitcher: React.FC = () => {
     const { theme, setTheme } = useAppStore();
     const [isOpen, setIsOpen] = React.useState(false);
 
     const themes = [
-        { id: 'DARK', icon: Moon, label: 'Dark Core', color: '#9d4edd', desc: 'Default low-light interface' },
-        { id: 'MIDNIGHT', icon: Box, label: 'Midnight', color: '#3b82f6', desc: 'Deep blue oceanic focus' },
-        { id: 'LIGHT', icon: Sun, label: 'High Light', color: '#a855f7', desc: 'Maximized clarity' },
-        { id: 'AMBER', icon: Terminal, label: 'Amber Protocol', color: '#f59e0b', desc: 'Retro-industrial terminal' },
-        { id: 'SOLARIZED', icon: Book, label: 'Solarized', color: '#2aa198', desc: 'Optimized reading mode' },
-        { id: 'NEON_CYBER', icon: Zap, label: 'Neon Cyber', color: '#d946ef', desc: 'High-entropy visual skin' },
-        { id: 'CONTRAST', icon: Contrast, label: 'High Contrast', color: '#ffffff', desc: 'Pure black/white access' },
-        { id: 'HIGH_CONTRAST', icon: ShieldAlert, label: 'Max Contrast', color: '#00ff00', desc: 'Accessibility focus' }
+        { id: AppTheme.DARK, icon: Moon, label: 'Dark Core', color: '#9d4edd', desc: 'Default low-light interface' },
+        { id: AppTheme.MIDNIGHT, icon: Box, label: 'Midnight', color: '#3b82f6', desc: 'Deep blue oceanic focus' },
+        { id: AppTheme.LIGHT, icon: Sun, label: 'High Light', color: '#a855f7', desc: 'Maximized clarity' },
+        { id: AppTheme.AMBER, icon: Terminal, label: 'Amber Protocol', color: '#f59e0b', desc: 'Retro-industrial terminal' },
+        { id: AppTheme.SOLARIZED, icon: Book, label: 'Solarized', color: '#2aa198', desc: 'Optimized reading mode' },
+        { id: AppTheme.NEON_CYBER, icon: Zap, label: 'Neon Cyber', color: '#d946ef', desc: 'High-entropy visual skin' },
+        { id: AppTheme.CONTRAST, icon: Contrast, label: 'High Contrast', color: '#ffffff', desc: 'Pure black/white access' },
+        { id: AppTheme.HIGH_CONTRAST, icon: ShieldAlert, label: 'Max Contrast', color: '#00ff00', desc: 'Accessibility focus' }
     ];
 
     const currentTheme = themes.find(t => t.id === theme) || themes[0];
 
-    const handleThemeSelect = (id: string) => {
-        setTheme(id as any);
+    const handleThemeSelect = (id: AppTheme) => {
+        setTheme(id);
         setIsOpen(false);
         audio.playClick();
     };

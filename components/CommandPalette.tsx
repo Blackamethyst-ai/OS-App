@@ -126,11 +126,11 @@ const CommandPalette: React.FC = () => {
 
     if (lowInput.includes('theme') || lowInput.includes('switch to')) {
         let msg = '';
-        if (lowInput.includes('midnight')) { setTheme('MIDNIGHT'); msg = 'Midnight Core Enabled'; }
-        else if (lowInput.includes('amber')) { setTheme('AMBER'); msg = 'Amber Protocol Engaged'; }
-        else if (lowInput.includes('dark')) { setTheme('DARK'); msg = 'Dark Mode Restored'; }
-        else if (lowInput.includes('light')) { setTheme('LIGHT'); msg = 'High Clarity Skin Active'; }
-        else if (lowInput.includes('neon')) { setTheme('NEON_CYBER'); msg = 'Neon Entropy Initialized'; }
+        if (lowInput.includes('midnight')) { setTheme(AppTheme.MIDNIGHT); msg = 'Midnight Core Enabled'; }
+        else if (lowInput.includes('amber')) { setTheme(AppTheme.AMBER); msg = 'Amber Protocol Engaged'; }
+        else if (lowInput.includes('dark')) { setTheme(AppTheme.DARK); msg = 'Dark Mode Restored'; }
+        else if (lowInput.includes('light')) { setTheme(AppTheme.LIGHT); msg = 'High Clarity Skin Active'; }
+        else if (lowInput.includes('neon')) { setTheme(AppTheme.NEON_CYBER); msg = 'Neon Entropy Initialized'; }
         
         if (msg) {
             setResult(msg);

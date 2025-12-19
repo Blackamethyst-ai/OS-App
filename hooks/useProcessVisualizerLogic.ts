@@ -32,7 +32,7 @@ export const VISUAL_THEMES: Record<AppTheme, any> = {
 export const useProcessVisualizerLogic = () => {
     const { process: state, setProcessState: setState, setCodeStudioState, setMode, theme: globalTheme, addLog, openHoloProjector } = useAppStore();
     const activeTab = state.activeTab || 'living_map';
-    const [visualTheme, setVisualTheme] = useState<AppTheme>('DARK');
+    const [visualTheme, setVisualTheme] = useState<AppTheme>(AppTheme.DARK);
     const [showGrid, setShowGrid] = useState(true);
     const [paneContextMenu, setPaneContextMenu] = useState<{ x: number, y: number, flowPos: { x: number, y: number } } | null>(null);
     const [architecturePrompt, setArchitecturePrompt] = useState('');

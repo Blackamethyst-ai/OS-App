@@ -263,7 +263,6 @@ const UserProfileOverlay: React.FC = () => {
                             <div>
                                 <label className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-2">Visual Interface Theme</label>
                                 <div className="flex gap-4">
-                                    {/* Fix: Replaced string literals with AppTheme enum members */}
                                     <ThemeButton mode={AppTheme.DARK} icon={Moon} label="Dark Mode" />
                                     <ThemeButton mode={AppTheme.LIGHT} icon={Sun} label="Light Mode" />
                                     <ThemeButton mode={AppTheme.CONTRAST} icon={Contrast} label="High Contrast" />
