@@ -20,8 +20,17 @@ export interface EconomicProtocol {
     agentId: string;
     budget: string;
     action: string;
-    type: 'LIQUIDITY' | 'DEPIN_PAYMENT' | 'COMPUTE_LEASE' | 'TREASURY';
+    type: 'LIQUIDITY' | 'DEPIN_PAYMENT' | 'COMPUTE_LEASE' | 'TREASURY' | 'PHYSICAL_SERVICE';
     timestamp: number;
+}
+
+export interface EscrowAccount {
+    id: string;
+    provider: string;
+    serviceType: string;
+    amount: string;
+    status: 'LOCKED' | 'RELEASED' | 'DISPUTED';
+    expiry: number;
 }
 
 export enum AppMode {

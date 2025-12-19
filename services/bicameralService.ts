@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Schema, Type, GenerateContentResponse } from "@google/genai";
 import { AtomicTask, SwarmResult, SwarmStatus, VoteLedger } from '../types';
 import { retryGeminiRequest } from './geminiService';
@@ -62,8 +61,8 @@ export async function generateDecompositionMap(goal: string): Promise<AtomicTask
     return tasks.map((t: any, i: number) => ({ ...t, id: `ATOM_${Date.now()}_${i}` }));
 }
 
-// --- PHASE 2: THE SWARM (Gemini 2.5 Flash) ---
-// High-velocity consensus engine.
+// --- PHASE 2: THE SWARM (Gemini 3.0 Flash) ---
+// High-velocity consensus engine. Updated to use correct model naming.
 
 export async function consensusEngine(
     task: AtomicTask, 
@@ -74,7 +73,7 @@ export async function consensusEngine(
     // Configuration
     const TARGET_GAP = 3; // Leader must be ahead by 3 votes
     const MAX_ROUNDS = 15;
-    const MODEL = 'gemini-2.5-flash';
+    const MODEL = 'gemini-3-flash-preview';
 
     let votes: Record<string, number> = {}; // Answer Key -> Count
     let answerMap: Record<string, string> = {}; // Answer Key -> Full Output
@@ -158,7 +157,7 @@ export async function consensusEngine(
             const leaderCount = sortedCandidates[0][1];
             
             runnerUpKey = sortedCandidates.length > 1 ? sortedCandidates[1][0] : "";
-            const runnerUpCount = sortedCandidates.length > 1 ? sortedCandidates[1][1] : 0;
+            const runnerUpCount = sortedCandidates.length > 1 ? (sortedCandidates[1][1] as number) : 0;
             
             const currentGap = leaderCount - runnerUpCount;
 
@@ -212,7 +211,7 @@ export async function consensusEngine(
     }
 
     // Force resolve if max rounds reached
-    const totalVotes = Object.values(votes).reduce((a, b) => a + b, 0);
+    const totalVotes = Object.values(votes).reduce((a, b) => (a as number) + (b as number), 0);
     const leaderVotes = votes[leaderKey] || 0;
     const partialConfidence = totalVotes > 0 ? Math.round((leaderVotes / totalVotes) * 100) : 0;
 

@@ -9,15 +9,120 @@ import {
     Construction, Navigation2, LineChart, ShieldAlert, Workflow, Binary,
     Save, RefreshCw, BarChart3, Wind, Satellite, Radar, HardDrive, 
     Dna, Link, BoxSelect, Droplets, FlaskConical, CircleDot, AlertTriangle, ChevronRight, X, Wallet, ArrowUp, ArrowDown, Send, FileCode, CheckCircle, ShieldCheck,
-    BrainCircuit, CreditCard, PieChart, Copy, ExternalLink, BarChart, Clock, ShieldAlert as AlertIcon
+    BrainCircuit, CreditCard, PieChart, Copy, ExternalLink, BarChart, Clock, ShieldAlert as AlertIcon,
+    Key, Tooltip, Workflow as FlowIcon, Receipt, HandCoins, Landmark, Calculator, Truck, Wrench
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, BarChart as RechartsBarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, Cell, ScatterChart, Scatter, ZAxis, CartesianGrid, Legend } from 'recharts';
-import { StrategyLayer, InterventionProtocol, AgentWallet, EconomicProtocol } from '../types';
+import { StrategyLayer, InterventionProtocol, AgentWallet, EconomicProtocol, EscrowAccount } from '../types';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
 import { retryGeminiRequest, refractStrategy, runStrategicStressTest, synthesizeEconomicDirective, promptSelectKey } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 
 const MotionDiv = motion.div as any;
+
+// --- Sub-Components ---
+
+const PhysicalServiceMarket: React.FC<{ onHire: (type: string) => void }> = ({ onHire }) => {
+    const services = [
+        { id: 'COOLING', label: 'Rack Cooling Maintenance', price: 'Ξ 0.2', icon: Wind, eta: '2h' },
+        { id: 'DELIVERY', label: 'Hardware Module Delivery', price: 'Ξ 0.05', icon: Truck, eta: '4h' },
+        { id: 'SMART_HANDS', label: 'Data Center Smart Hands', price: 'Ξ 0.5', icon: Wrench, eta: '1h' },
+    ];
+
+    return (
+        <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl p-6 flex flex-col gap-4 shadow-xl">
+            <h3 className="text-xs font-bold text-white font-mono uppercase tracking-widest flex items-center gap-2">
+                <Truck size={16} className="text-[#f59e0b]" /> Physical Service Requisition
+            </h3>
+            <div className="space-y-2">
+                {services.map(s => (
+                    <button 
+                        key={s.id} 
+                        onClick={() => onHire(s.id)}
+                        className="w-full p-3 bg-black border border-[#222] hover:border-[#f59e0b] rounded-xl flex items-center justify-between group transition-all"
+                    >
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-[#f59e0b]/10 rounded-lg text-[#f59e0b] group-hover:scale-110 transition-transform">
+                                <s.icon size={14} />
+                            </div>
+                            <div className="text-left">
+                                <div className="text-[10px] font-bold text-white font-mono">{s.label}</div>
+                                <div className="text-[8px] text-gray-500 font-mono">ETA: {s.eta}</div>
+                            </div>
+                        </div>
+                        <div className="text-[10px] font-black text-[#f59e0b] font-mono">{s.price}</div>
+                    </button>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+const ValueFlowCortex = () => {
+    const [data, setData] = useState(Array.from({ length: 20 }, (_, i) => ({
+        time: i,
+        outflow: 10 + Math.random() * 20,
+        inflow: 5 + Math.random() * 25,
+        liquidity: 400 + Math.random() * 50
+    })));
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setData(prev => {
+                const last = prev[prev.length - 1];
+                const outflow = Math.max(5, last.outflow + (Math.random() * 10 - 5));
+                const inflow = Math.max(5, last.inflow + (Math.random() * 10 - 5));
+                const liquidity = last.liquidity + (inflow - outflow);
+                return [...prev.slice(1), { time: last.time + 1, outflow, inflow, liquidity }];
+            });
+        }, 2000);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl p-6 flex flex-col h-[350px] shadow-2xl relative overflow-hidden group">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.03)_0%,transparent_70%)] pointer-events-none"></div>
+            <div className="flex justify-between items-center mb-6 relative z-10">
+                <div>
+                    <h3 className="text-[10px] font-black font-mono text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+                        <LineChart size={14} className="text-[#22d3ee]" /> Autonomous Value Cortex
+                    </h3>
+                    <p className="text-[8px] text-gray-600 font-mono mt-1 uppercase tracking-widest">Real-time Cross-Chain Liquidity Delta</p>
+                </div>
+                <div className="flex gap-4">
+                    <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#22d3ee]"></div> <span className="text-[8px] text-gray-500 font-mono uppercase">Inflow</span></div>
+                    <div className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[#ef4444]"></div> <span className="text-[8px] text-gray-500 font-mono uppercase">Spend</span></div>
+                </div>
+            </div>
+            <div className="flex-1 relative z-10">
+                <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={data}>
+                        <defs>
+                            <linearGradient id="flowIn" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.2}/>
+                                <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
+                            </linearGradient>
+                            <linearGradient id="flowOut" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2}/>
+                                <stop offset="95%" stopColor="#ef4444" stopOpacity={0}/>
+                            </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#111" vertical={false} />
+                        <XAxis dataKey="time" hide />
+                        <YAxis hide domain={['auto', 'auto']} />
+                        <RechartsTooltip contentStyle={{ backgroundColor: '#000', border: '1px solid #333', fontSize: '10px', fontFamily: 'monospace' }} />
+                        <Area type="monotone" dataKey="inflow" stroke="#22d3ee" strokeWidth={2} fill="url(#flowIn)" animationDuration={1000} />
+                        <Area type="monotone" dataKey="outflow" stroke="#ef4444" strokeWidth={2} fill="url(#flowOut)" animationDuration={1000} />
+                    </AreaChart>
+                </ResponsiveContainer>
+            </div>
+            <div className="mt-4 flex justify-between items-center text-[9px] font-mono text-gray-600 border-t border-[#1f1f1f] pt-4">
+                <span className="flex items-center gap-1"><RefreshCw size={10} className="animate-spin-slow" /> SYNCING_VECTORS</span>
+                <span className="text-white font-bold">TOTAL_AUM: Ξ {data[data.length-1].liquidity.toFixed(1)}</span>
+            </div>
+        </div>
+    );
+};
 
 const EconomicProtocolLedger: React.FC<{ protocols: EconomicProtocol[] }> = ({ protocols }) => {
     return (
@@ -139,39 +244,40 @@ const WalletStation: React.FC<{ wallets: AgentWallet[] }> = ({ wallets }) => {
     );
 };
 
-const LayerPerformanceMatrix: React.FC<{ layers: StrategyLayer[] }> = ({ layers }) => {
-    const data = useMemo(() => {
-        return layers.map(l => ({
-            name: l.name,
-            Leverage: 40 + Math.random() * 50,
-            Resilience: 30 + Math.random() * 60,
-            Autonomy: 50 + Math.random() * 45
-        }));
-    }, [layers]);
-
+const AccountAbstractionConfig = () => {
     return (
-        <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl p-6 flex flex-col min-h-[350px]">
-            <div className="flex items-center justify-between mb-6">
-                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                    <BarChart size={14} className="text-[#9d4edd]" /> Layer Performance Comparison
-                </h3>
+        <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl p-6 flex flex-col gap-5 shadow-xl relative overflow-hidden">
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(157,78,221,0.02)_25%,transparent_25%)] bg-[size:10px_10px] pointer-events-none"></div>
+            <div className="flex items-center gap-3 relative z-10">
+                <div className="p-2 bg-[#f59e0b]/10 border border-[#f59e0b]/30 rounded-lg text-[#f59e0b]"><Landmark size={18} /></div>
+                <h3 className="text-xs font-bold text-white font-mono uppercase tracking-widest">Paymaster Configuration</h3>
             </div>
-            <div className="flex-1">
-                <ResponsiveContainer width="100%" height="100%">
-                    <RechartsBarChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1f1f1f" vertical={false} />
-                        <XAxis dataKey="name" stroke="#444" fontSize={8} tickLine={false} axisLine={false} />
-                        <YAxis stroke="#444" fontSize={8} tickLine={false} axisLine={false} />
-                        <RechartsTooltip 
-                            contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #333', fontSize: '10px' }}
-                            cursor={{ fill: 'rgba(255,255,255,0.02)' }}
-                        />
-                        <Legend iconType="circle" wrapperStyle={{ fontSize: '9px', paddingTop: '10px' }} />
-                        <Bar dataKey="Leverage" fill="#9d4edd" radius={[2, 2, 0, 0]} />
-                        <Bar dataKey="Resilience" fill="#22d3ee" radius={[2, 2, 0, 0]} />
-                        <Bar dataKey="Autonomy" fill="#f59e0b" radius={[2, 2, 0, 0]} />
-                    </RechartsBarChart>
-                </ResponsiveContainer>
+            <div className="space-y-4 relative z-10">
+                <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center text-[9px] font-mono text-gray-500 uppercase">
+                        <span>Gas Policy</span>
+                        <span className="text-[#42be65]">SUBSIDIZED</span>
+                    </div>
+                    <div className="h-10 bg-black rounded-xl border border-[#222] flex items-center px-4 justify-between">
+                        <span className="text-[10px] font-mono text-gray-400">Autonomous Settlement</span>
+                        <div className="w-8 h-4 bg-[#42be65] rounded-full flex items-center justify-end px-0.5"><div className="w-3 h-3 bg-white rounded-full shadow-sm" /></div>
+                    </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                    <div className="flex justify-between items-center text-[9px] font-mono text-gray-500 uppercase">
+                        <span>Session Key Validity</span>
+                        <span className="text-white">12:00:00</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                        {['1H', '12H', '24H'].map(time => (
+                            <button key={time} className={`py-2 rounded-lg border text-[10px] font-mono font-bold transition-all ${time === '12H' ? 'bg-[#9d4edd] text-black border-[#9d4edd]' : 'bg-[#111] text-gray-500 border-[#222] hover:border-gray-500'}`}>{time}</button>
+                        ))}
+                    </div>
+                </div>
+                <div className="p-4 bg-red-950/10 border border-red-900/30 rounded-xl">
+                    <div className="flex items-center gap-2 mb-1.5 text-[10px] text-red-500 font-black uppercase tracking-widest"><AlertIcon size={12} /> Spending Limits</div>
+                    <p className="text-[9px] text-gray-500 font-mono leading-relaxed">Cap set at Ξ 5.0 per transaction cycle. Automated cooling period enforced for out-of-band signatures.</p>
+                </div>
             </div>
         </div>
     );
@@ -239,9 +345,9 @@ const SynthesisBridge: React.FC = () => {
         } catch (e) { console.error(e); } finally { setIsRefracting(false); }
     };
 
-    const runEconomicProtocol = async () => {
+    const runEconomicProtocol = async (serviceType?: string) => {
         if (!activeLayer) return;
-        addLog('SYSTEM', 'FIN_CORE: Synthesizing autonomous financial directive...');
+        addLog('SYSTEM', `FIN_CORE: Synthesizing autonomous financial directive for ${serviceType || 'General Operation'}...`);
         try {
             const hasKey = await window.aistudio?.hasSelectedApiKey();
             if (!hasKey) { await promptSelectKey(); return; }
@@ -250,16 +356,17 @@ const SynthesisBridge: React.FC = () => {
                 layer: activeLayer.name,
                 leverage: activeLayer.leverage,
                 riskProfile: 'MODERATE',
-                targetCurrency: wallets[0].currency
+                targetCurrency: wallets[0].currency,
+                serviceType: serviceType || 'GENERAL'
             };
             const directive = await synthesizeEconomicDirective(context);
             
             const newProtocol: EconomicProtocol = {
                 id: crypto.randomUUID(),
-                title: directive.title || "Economic Optimization",
+                title: directive.title || (serviceType ? `Service: ${serviceType}` : "Economic Optimization"),
                 budget: directive.budget || "Ξ 0.5",
                 action: directive.action || "Liquidity Provision",
-                type: directive.type || 'LIQUIDITY',
+                type: (directive.type as any) || (serviceType ? 'PHYSICAL_SERVICE' : 'LIQUIDITY'),
                 status: 'EXECUTING',
                 agentId: 'FIN_UNIT_01',
                 timestamp: Date.now()
@@ -273,7 +380,7 @@ const SynthesisBridge: React.FC = () => {
                 setMetaventionsState(prev => ({
                     economicProtocols: prev.economicProtocols.map(p => p.id === newProtocol.id ? { ...p, status: 'SETTLED' } : p)
                 }));
-                addLog('SUCCESS', `FIN_SETTLE: Protocol ${newProtocol.id.substring(0,8)} settled on-chain.`);
+                addLog('SUCCESS', `FIN_SETTLE: Protocol ${newProtocol.id.substring(0,8)} settled via Paymaster Escrow.`);
             }, 5000);
 
         } catch (e: any) {
@@ -307,15 +414,6 @@ const SynthesisBridge: React.FC = () => {
         setCurrentMetavention(null);
     };
 
-    const refractionScatter = useMemo(() => {
-        return activeRefractions.map((r, i) => ({
-            id: r.layerId || `R-${i}`,
-            impact: Math.random() * 100,
-            friction: Math.random() * 100,
-            confidence: Math.random() * 100
-        }));
-    }, [activeRefractions]);
-
     return (
         <div className="h-full w-full bg-[#030303] flex flex-col font-sans overflow-hidden p-0">
             <div className="w-full h-[3px] bg-[#111] mb-10 rounded-full overflow-hidden flex shadow-inner">
@@ -333,10 +431,15 @@ const SynthesisBridge: React.FC = () => {
                     <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-[0.85]">THE METAVENTIONS STACK</h1>
                     <p className="text-[11px] text-gray-500 font-mono mt-4 uppercase tracking-[0.3em] flex items-center gap-3">Bridging Physical Reality and Digital Intent <span className="w-12 h-[1px] bg-[#333]"></span> <span className="text-[#9d4edd]/50 font-bold">RCL_CORE_V4</span></p>
                 </div>
+                <div className="flex gap-4">
+                    <button onClick={() => runEconomicProtocol()} className="flex items-center gap-2 px-5 py-2.5 bg-[#22d3ee] text-black rounded-xl text-[10px] font-black font-mono uppercase tracking-widest transition-all hover:bg-[#67e8f9] shadow-[0_0_20px_rgba(34,211,238,0.3)]">
+                        <Zap size={14} /> Dispatch Agent
+                    </button>
+                </div>
             </div>
 
             <div className="flex-1 grid grid-cols-12 gap-8 min-h-0 px-1">
-                {/* LEFT: Layers & Wallets */}
+                {/* LEFT: Strategy Layers & Economic Hub */}
                 <div className="col-span-12 lg:col-span-4 flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-3 pb-24">
                     <div className="flex flex-col gap-4">
                         {layers.map(layer => (
@@ -344,48 +447,17 @@ const SynthesisBridge: React.FC = () => {
                         ))}
                     </div>
                     <WalletStation wallets={wallets} />
-                    <button onClick={runEconomicProtocol} className="w-full py-4 bg-[#22d3ee]/10 border border-[#22d3ee]/30 hover:bg-[#22d3ee] hover:text-black rounded-2xl text-[10px] font-mono font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 shadow-[0_0_20px_rgba(34,211,238,0.1)] group">
-                        <Zap size={16} className="group-hover:animate-bounce" /> Dispatch Economic Agent
-                    </button>
+                    <AccountAbstractionConfig />
+                    <PhysicalServiceMarket onHire={(type) => runEconomicProtocol(type)} />
                 </div>
 
-                {/* MIDDLE: Metavention Hub & Visualizer */}
+                {/* MIDDLE: Metavention Synthesis & Financial Cortex */}
                 <div className="col-span-12 lg:col-span-4 flex flex-col gap-6 min-h-0">
                     <MetaventionGenerator activeLayer={activeLayer} currentMetavention={currentMetavention} isGenerating={isGenerating} isRefracting={isRefracting} generateHack={generateHack} handleRefract={handleRefract} handleStressTest={handleStressTest} handleArchive={handleArchive} knowledge={knowledge} />
-                    
-                    {/* Data Visualization: Layer Comparison Bar Chart */}
-                    <LayerPerformanceMatrix layers={layers} />
-
-                    {/* Data Visualization: Refraction Scatter */}
-                    {activeRefractions.length > 0 && (
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl p-6 flex flex-col min-h-[300px]">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2">
-                                    <PieChart size={14} className="text-[#22d3ee]" /> Refraction Impact Matrix
-                                </h3>
-                                <span className="text-[8px] font-mono text-gray-600">FRICTION vs IMPACT</span>
-                            </div>
-                            <div className="flex-1">
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: -20 }}>
-                                        <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
-                                        <XAxis type="number" dataKey="friction" name="friction" unit="%" stroke="#444" tick={{ fontSize: 9, fontFamily: 'monospace' }} />
-                                        <YAxis type="number" dataKey="impact" name="impact" unit="%" stroke="#444" tick={{ fontSize: 9, fontFamily: 'monospace' }} />
-                                        <ZAxis type="number" dataKey="confidence" range={[50, 400]} name="confidence" />
-                                        <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #333', fontSize: '10px' }} />
-                                        <Scatter name="Refractions" data={refractionScatter} fill="#9d4edd">
-                                            {refractionScatter.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={entry.impact > 70 ? '#10b981' : entry.friction > 70 ? '#ef4444' : '#9d4edd'} fillOpacity={0.6} />
-                                            ))}
-                                        </Scatter>
-                                    </ScatterChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </motion.div>
-                    )}
+                    <ValueFlowCortex />
                 </div>
 
-                {/* RIGHT: Archive & Logs */}
+                {/* RIGHT: Ledgers & Archives */}
                 <div className="col-span-12 lg:col-span-4 flex flex-col gap-6 min-h-0">
                     <EconomicProtocolLedger protocols={economicProtocols} />
                     <StrategyLibrary />

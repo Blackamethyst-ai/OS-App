@@ -3,8 +3,8 @@ import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import JSZip from 'jszip';
 import { useAppStore } from '../store';
 import { AspectRatio, ImageSize, FileData, SOVEREIGN_DEFAULT_COLORWAY, MINT_NOIR_COLORWAY, AMBER_PROTOCOL_COLORWAY } from '../types';
-import { promptSelectKey, fileToGenerativePart, generateStoryboardPlan, constructCinematicPrompt, retryGeminiRequest, analyzeImageVision } from '../services/geminiService';
-import { Image as ImageIcon, Loader2, RefreshCw, Download, Plus, Trash2, Film, Wand2, Upload, X, Layers, AlertCircle, Eye, Activity, User, Palette, FileText, ChevronRight, MonitorPlay, Zap, Clapperboard, Play, Maximize, ToggleLeft, ToggleRight, Volume2, VolumeX, SkipForward, Globe, Lock, Unlock, Fingerprint, Cpu, Radio, Power, Box, Camera, Sun, Video, Package, Scan } from 'lucide-react';
+import { promptSelectKey, fileToGenerativePart, generateStoryboardPlan, constructCinematicPrompt, retryGeminiRequest, analyzeImageVision, generateNarrativeContext } from '../services/geminiService';
+import { Image as ImageIcon, Loader2, RefreshCw, Download, Plus, Trash2, Film, Wand2, Upload, X, Layers, AlertCircle, Eye, Activity, User, Palette, FileText, ChevronRight, MonitorPlay, Zap, Clapperboard, Play, Maximize, ToggleLeft, ToggleRight, Volume2, VolumeX, SkipForward, Globe, Lock, Unlock, Fingerprint, Cpu, Radio, Power, Box, Camera, Sun, Video, Package, Scan, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmotionalResonanceGraph from './EmotionalResonanceGraph';
 import { useVoiceAction } from '../hooks/useVoiceAction';
@@ -360,6 +360,7 @@ const ImageGen: React.FC = () => {
   const [isBatchRendering, setIsBatchRendering] = useState(false);
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 }); // NEW: Batch Tracking
   const [isPlanning, setIsPlanning] = useState(false);
+  const [isExpanding, setIsExpanding] = useState(false); // NEW: Autonomic Expansion Tracking
   const [draftMode, setDraftMode] = useState(true); // Default to Draft to save quota
 
   // Vision State
@@ -370,7 +371,7 @@ const ImageGen: React.FC = () => {
   // Init frames
   useEffect(() => {
       if (frames.length === 0) {
-          setFrames(Array.from({ length: 5 }, (_, i) => ({ index: i, scenePrompt: '', continuity: '', status: 'pending' })));
+          setFrames(Array.from({ length: 10 }, (_, i) => ({ index: i, scenePrompt: '', continuity: '', status: 'pending' })));
       }
   }, []);
 
@@ -467,24 +468,23 @@ const ImageGen: React.FC = () => {
   // --- Storyboard Logic ---
 
   const generatePlan = async () => {
-      if (!imageGen.prompt) return;
+      // Use the prompt from the Storyboard tab's "Narrative Architecture" text area
+      if (!imageGen.prompt) return; 
       setIsPlanning(true);
       try {
           const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
           if (!hasKey) await promptSelectKey();
 
-          // Use the FIRST style ref as the visual anchor for planning, or generic
           const context = {
               prompt: imageGen.prompt,
               style: imageGen.activeStylePreset,
               file: imageGen.styleRefs?.[0] || null,
-              ertData: imageGen.resonanceCurve
+              ertData: imageGen.resonanceCurve,
+              visionAnalysis: visionAnalysis // CRITICAL: Feed vision matrix for extreme coherence
           };
 
-          // Generate plan based on current frame count
           const plan = await generateStoryboardPlan(context, frames.length);
           
-          // Map plan to frames
           const newFrames = frames.map((f, i) => {
               if (plan[i]) {
                   return { 
@@ -500,7 +500,7 @@ const ImageGen: React.FC = () => {
           });
           
           setFrames(newFrames);
-          addLog('SUCCESS', 'Storyboard Plan Generated with Cinematic Metadata');
+          addLog('SUCCESS', 'Storyboard Sequence generated with STRICT Vision Matrix alignment.');
       } catch (err: any) {
           addLog('ERROR', `Planning Failed: ${err.message}`);
       } finally {
@@ -593,7 +593,7 @@ const ImageGen: React.FC = () => {
       if (activeIndices.length === 0) {
           addLog('WARN', 'No frames with prompts to render.');
           return;
-      }
+        }
 
       setIsBatchRendering(true);
       setBatchProgress({ current: 0, total: activeIndices.length });
@@ -608,7 +608,7 @@ const ImageGen: React.FC = () => {
       addLog('SUCCESS', 'Batch Render Complete');
   };
 
-  // --- Single Image Logic ---
+  // --- Single Image Logic & Autonomic Expansion ---
   const generateSingleImage = async () => {
       if (!imageGen.prompt?.trim() && !baseImage) return;
       setImageGenState({ isLoading: true, error: null });
@@ -633,7 +633,6 @@ const ImageGen: React.FC = () => {
           setActiveFramePrompt(finalPrompt);
 
           const parts: any[] = [];
-          // Image-to-Image / Editing: Base image goes first
           if (baseImage) parts.push(baseImage);
           if (imageGen.characterRefs) parts.push(...imageGen.characterRefs);
           if (imageGen.styleRefs) parts.push(...imageGen.styleRefs);
@@ -669,7 +668,23 @@ const ImageGen: React.FC = () => {
                   },
                   isLoading: false 
               });
-              addLog('SUCCESS', `Cinematic Asset Fabricated (${isDraft ? 'Draft' : '4K Pro'})`);
+              addLog('SUCCESS', `Asset Fabricated. Initializing Narrative Expansion...`);
+
+              // --- NEW: AUTONOMIC EXPANSION LOOP ---
+              setIsExpanding(true);
+              try {
+                  const expansion = await generateNarrativeContext(imageGen.prompt, visionAnalysis || '');
+                  setImageGenState({ 
+                      prompt: expansion.narrative, // Set the Storyboard text area
+                      resonanceCurve: expansion.resonance // Set the PRESET eRP Graph
+                  });
+                  addLog('SUCCESS', `Narrative Architecture rendered. Storyboard and eRP Curve updated.`);
+              } catch (e) {
+                  console.warn("Expansion loop failed:", e);
+              } finally {
+                  setIsExpanding(false);
+              }
+
           } else {
               throw new Error("No image data returned from model.");
           }
@@ -705,8 +720,12 @@ const ImageGen: React.FC = () => {
                 <button onClick={() => setActiveTab('SINGLE')} className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors ${activeTab === 'SINGLE' ? 'bg-[#d946ef] text-black' : 'text-gray-500 hover:text-white'}`}>
                     <Wand2 className="w-3 h-3" /> Single Asset
                 </button>
-                <button onClick={() => setActiveTab('STORYBOARD')} className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors ${activeTab === 'STORYBOARD' ? 'bg-[#d946ef] text-black' : 'text-gray-500 hover:text-white'}`}>
-                    <Clapperboard className="w-3 h-3" /> Storyboard
+                <button onClick={() => setActiveTab('STORYBOARD')} className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${activeTab === 'STORYBOARD' ? 'bg-[#d946ef] text-black' : 'text-gray-500 hover:text-white'}`}>
+                    <div className="relative">
+                        <Clapperboard className="w-3 h-3" />
+                        {isExpanding && <span className="absolute -top-2 -right-2 w-1.5 h-1.5 bg-[#d946ef] rounded-full animate-ping"></span>}
+                    </div> 
+                    Storyboard
                 </button>
                 <button onClick={() => setActiveTab('TEASER')} className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors ${activeTab === 'TEASER' ? 'bg-[#d946ef] text-black' : 'text-gray-500 hover:text-white'}`}>
                     <Video className="w-3 h-3" /> Genesis Teaser
@@ -936,8 +955,13 @@ const ImageGen: React.FC = () => {
                                     value={imageGen.prompt || ''}
                                     onChange={(e) => setImageGenState({ prompt: e.target.value })}
                                     className="w-full bg-[#0f0f0f] border border-[#333] p-4 text-xs text-gray-300 rounded-xl resize-none h-40 outline-none focus:border-[#9d4edd] font-mono shadow-inner leading-relaxed"
-                                    placeholder="NARRATIVE SEED: A rogue android fleeing through a neon-lit alleyway in Neo-Tokyo. It carries a glowing data core. Security drones pursue from above."
+                                    placeholder="NARRATIVE SEED: Start with a Single Asset render to auto-expand your narrative arc here."
                                 />
+                                {isExpanding && (
+                                    <div className="flex items-center gap-2 mt-2 px-2 text-[9px] text-[#9d4edd] font-mono animate-pulse">
+                                        <Sparkles className="w-3 h-3" /> EXPANDING CONCEPT FROM SINGLE RENDER...
+                                    </div>
+                                )}
                             </div>
 
                             <div className="space-y-4">
