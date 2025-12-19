@@ -40,6 +40,7 @@ export async function retryGeminiRequest<T>(
 }
 
 export async function promptSelectKey(): Promise<void> {
+    if (window.aistudio?.openSelectKey) await window.aistudio.clearApiKeySelection(); // Reset if error occurs
     if (window.aistudio?.openSelectKey) await window.aistudio.openSelectKey();
 }
 
@@ -122,8 +123,7 @@ export async function analyzePowerDynamics(input: string): Promise<AnalysisResul
       1. Core Trinity: Sustainer (growth logic), Extractor (yield logic), Destroyer (entropic threat).
       2. High-Fidelity Scores (0-100): centralization, entropy, vitality, opacity, adaptability.
       3. Precise Attack Vectors: At least 3 specific, unique mechanisms of control and their corresponding vulnerabilities. 
-      4. DO NOT mark all vectors as CRITICAL. Use a realistic distribution across CRITICAL, HIGH, MEDIUM, and LOW based on technical probability.
-      5. Sovereign Insight: A master-level strategic synthesis.
+      4. Sovereign Insight: A master-level strategic synthesis.
       
       Return valid JSON matching the specified schema.`,
       config: { 
@@ -191,13 +191,16 @@ export async function synthesizeEconomicDirective(context: any): Promise<Partial
             title: { type: Type.STRING },
             budget: { type: Type.STRING },
             action: { type: Type.STRING },
-            type: { type: Type.STRING, enum: ['LIQUIDITY', 'DEPIN_PAYMENT', 'COMPUTE_LEASE', 'TREASURY'] }
+            type: { type: Type.STRING, enum: ['LIQUIDITY', 'DEPIN_PAYMENT', 'COMPUTE_LEASE', 'TREASURY', 'PHYSICAL_SERVICE'] }
         },
         required: ['title', 'budget', 'action', 'type']
     };
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Generate an autonomous economic directive for an AI agent. Context: ${JSON.stringify(context)}. Role: Agentic Finance Layer. Output JSON.`,
+        contents: `Generate an autonomous economic directive for an AI agent. 
+        Context: ${JSON.stringify(context)}. 
+        Include capability to pay for physical services (maintenance, delivery, data center ops).
+        Role: Agentic Finance Layer. Output JSON.`,
         config: { responseMimeType: 'application/json', responseSchema: schema }
     }));
     return JSON.parse(response.text || "{}");
@@ -217,10 +220,12 @@ export async function performGlobalSearch(query: string): Promise<SearchResultIt
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Search: "${query}". Return JSON array of {id, type, title, description, meta}.`,
-        config: { responseMimeType: 'application/json' }
+        contents: query,
+        config: {
+            tools: [{ googleSearch: {} }]
+        }
     }));
-    return JSON.parse(response.text || "[]");
+    return [{ id: 'search-1', type: 'WEB', title: 'Search Result', description: response.text || "" }];
 }
 
 export async function smartOrganizeArtifact(file: FileData): Promise<any> {
@@ -369,11 +374,11 @@ export async function generateSingleNode(description: string): Promise<any> {
     return JSON.parse(response.text || "{}");
 }
 
-export async function generateInfrastructureCode(summary: string, provider: string): Promise<string> {
+export async function generateInfrastructureCode(summary: string, pointer: string): Promise<string> {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-pro-preview',
-        contents: `Generate ${provider} code for: ${summary}`
+        contents: `Generate ${pointer} code for: ${summary}`
     }));
     return response.text || "";
 }
@@ -439,38 +444,23 @@ export async function generateStoryboardPlan(context: any, frameCount: number): 
 }
 
 export async function constructCinematicPrompt(basePrompt: string, colorway: Colorway, hasStyleRefs: boolean, resonance?: any, stylePreset?: string, camera?: string, lighting?: string): Promise<string> {
-    // Determine style-specific visual keywords based on preset
     let styleKeywords = "";
     switch(stylePreset) {
-        case 'CYBER_NOIR': 
-            styleKeywords = "Cyberpunk aesthetic, moody rain-slicked neon streets, heavy film grain, deep shadows, high-contrast anamorphic lighting."; 
-            break;
-        case 'CINEMATIC_REALISM': 
-            styleKeywords = "Ultra-realistic, 8K resolution, shot on 35mm IMAX, crisp focus, natural lighting, intricate textures, photorealistic skin and materials."; 
-            break;
-        case 'ETHEREAL_SOLARPUNK': 
-            styleKeywords = "Sustainable biomimetic architecture, lush integrated greenery, soft warm golden hour glow, utopian atmosphere, clean glass and white composite surfaces."; 
-            break;
-        case 'ANALOG_HORROR': 
-            styleKeywords = "Lo-fi VHS aesthetic, chromatic aberration, glitched video artifacts, liminal space vibes, unsettling lighting, 4:3 aspect ratio artifacts."; 
-            break;
-        case 'STUDIO_GHIBLI': 
-            styleKeywords = "Ghibli-style hand-painted art, vibrant pastel color palette, cel-shaded characters, whimsical background details, soft painterly textures."; 
-            break;
-        case 'GRITTY_REALISM': 
-            styleKeywords = "Tactical realism, muted earth tones, handheld camera motion blur, harsh overcast lighting, raw and unpolished documentary aesthetic."; 
-            break;
-        default: 
-            styleKeywords = "Cinematic 8K render, professional color grading, high detail.";
+        case 'CYBER_NOIR': styleKeywords = "Cyberpunk aesthetic, moody rain-slicked neon streets, heavy film grain, deep shadows, high-contrast anamorphic lighting."; break;
+        case 'CINEMATIC_REALISM': styleKeywords = "Ultra-realistic, 8K resolution, shot on 35mm IMAX, crisp focus, natural lighting, intricate textures, photorealistic skin and materials."; break;
+        case 'ETHEREAL_SOLARPUNK': styleKeywords = "Sustainable biomimetic architecture, lush integrated greenery, soft warm golden hour glow, utopian atmosphere, clean glass and white composite surfaces."; break;
+        case 'ANALOG_HORROR': styleKeywords = "Lo-fi VHS aesthetic, chromatic aberration, glitched video artifacts, liminal space vibes, unsettling lighting, 4:3 aspect ratio artifacts."; break;
+        case 'STUDIO_GHIBLI': styleKeywords = "Ghibli-style hand-painted art, vibrant pastel color palette, cel-shaded characters, whimsical background details, soft painterly textures."; break;
+        case 'GRITTY_REALISM': styleKeywords = "Tactical realism, muted earth tones, handheld camera motion blur, harsh overcast lighting, raw and unpolished documentary aesthetic."; break;
+        default: styleKeywords = "Cinematic 8K render, professional color grading, high detail.";
     }
 
-    const prompt = `
-    --- MANDATORY GENERATION PROTOCOL ---
+    return `
     CHARACTER CONSISTENCY (LEAD ACTOR LOCK):
-    Depicted in the provided "Lead Actor Lock" reference images is the primary actor. You MUST strictly maintain the facial features, hair structure, eye shape, and physical build of this actor across the generated image. The actor should be unmistakably the same person regardless of the scene environment or lighting. Do not invent a new face. 
+    Provided reference images define the primary actor. Maintain facial features and physical build strictly.
 
     VISUAL STYLE INTEGRITY:
-    ${hasStyleRefs ? "The provided 'Style Reference' images are the primary guide for materials, lighting mood, and overall artistic direction. Synthesize these with the preset." : ""}
+    ${hasStyleRefs ? "Synthesize style reference images with the preset." : ""}
     Preset Mode: ${stylePreset}. 
     Specific Visual Directives: ${styleKeywords}
     Color scheme: ${colorway.label}. Primarily utilizing ${colorway.baseSurfaces} with ${colorway.uiAccentPrimary} and ${colorway.uiAccentSecondary} highlights.
@@ -484,10 +474,48 @@ export async function constructCinematicPrompt(basePrompt: string, colorway: Col
     ${resonance ? `Emotional Tension Intensity: ${resonance.tension / 100}, Visual Dynamics: ${resonance.dynamics / 100}` : ""}
 
     TECHNICAL SPECS:
-    8K resolution, masterwork quality, cinematic composition, professional grade, no anatomical anomalies.
+    8K resolution, cinematic composition.
     `.trim();
+}
 
-    return prompt;
+/**
+ * Generates an expanded narrative and an emotional resonance curve based on a prompt and optional vision analysis.
+ * Used for autonomic expansion in the Cinematic Asset Studio.
+ */
+export async function generateNarrativeContext(prompt: string, visionAnalysis: string): Promise<{ narrative: string, resonance: ResonancePoint[] }> {
+    const ai = getAI();
+    const schema: Schema = {
+        type: Type.OBJECT,
+        properties: {
+            narrative: { type: Type.STRING, description: "An expanded narrative storyboard prompt." },
+            resonance: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        frame: { type: Type.NUMBER },
+                        tension: { type: Type.NUMBER, description: "0-100 score for emotional tension." },
+                        dynamics: { type: Type.NUMBER, description: "0-100 score for visual dynamics." }
+                    },
+                    required: ['frame', 'tension', 'dynamics']
+                },
+                minItems: 10,
+                maxItems: 10
+            }
+        },
+        required: ['narrative', 'resonance']
+    };
+
+    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Based on this prompt: "${prompt}" and this vision analysis: "${visionAnalysis}", generate an expanded narrative and a 10-point emotional resonance curve.`,
+        config: {
+            responseMimeType: 'application/json',
+            responseSchema: schema
+        }
+    }));
+
+    return JSON.parse(response.text || "{}");
 }
 
 export async function generateAudioOverview(files: FileData[]): Promise<{ audioData: string; transcript: string }> {
@@ -495,7 +523,7 @@ export async function generateAudioOverview(files: FileData[]): Promise<{ audioD
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.5-flash-preview-tts',
         contents: [{ parts: [...files, { text: "Summarize briefing." }] }],
-        config: { responseModalities: [Modality.AUDIO], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } } }
+        config: { responseModalities: [Modality.AUDIO], speechConfig: { voiceConfig: { voiceName: 'Zephyr' as any } } }
     }));
     return { audioData: response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || "", transcript: response.text || "" };
 }
@@ -505,7 +533,7 @@ export async function generateSpeech(text: string, voiceName: string): Promise<s
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.5-flash-preview-tts',
         contents: [{ parts: [{ text }] }],
-        config: { responseModalities: [Modality.AUDIO], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voiceName as any } } } }
+        config: { responseModalities: [Modality.AUDIO], speechConfig: { voiceConfig: { voiceName: voiceName as any } } }
     }));
     return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || "";
 }
@@ -614,12 +642,8 @@ export async function generateIsometricSchematic(file: FileData): Promise<string
         model: 'gemini-2.5-flash-image',
         contents: { parts: [file, { text: "Generate an isometric 3D projection of this schematic." }] }
     }));
-    // Fix: Iterative part discovery for robustness
     for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) {
-            const mimeType = part.inlineData.mimeType || 'image/png';
-            return `data:${mimeType};base64,${part.inlineData.data}`;
-        }
+        if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
     }
     throw new Error("Isometric generation failed");
 }
@@ -659,28 +683,14 @@ export async function executeResearchQuery(query: string): Promise<FactChunk[]> 
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: query,
-        config: {
-            tools: [{ googleSearch: {} }]
-        }
+        config: { tools: [{ googleSearch: {} }] }
     }));
-    
-    // groundingChunks might be undefined or typed as unknown[] in some SDK versions
-    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-    // Cast c to any to access web property safely if groundingChunks is not fully typed
-    const sourceUrls = chunks.map(c => (c as any).web?.uri).filter(Boolean).join(', ') || 'AI Internal Knowledge';
-    
     const factsResponse = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Based on this research content: "${response.text}", extract 3 verifiable facts. Return JSON array of {fact, confidence}.`,
+        contents: `Extract 3 verifiable facts from: "${response.text}". Return JSON array of {fact, confidence}.`,
         config: { responseMimeType: 'application/json' }
     }));
-    
-    const facts = JSON.parse(factsResponse.text || "[]");
-    return facts.map((f: any) => ({ 
-        ...f, 
-        id: crypto.randomUUID(), 
-        source: sourceUrls 
-    }));
+    return JSON.parse(factsResponse.text || "[]").map((f: any) => ({ ...f, id: crypto.randomUUID(), source: 'Google Search' }));
 }
 
 export async function compileResearchContext(findings: FactChunk[]): Promise<string> {
@@ -776,13 +786,7 @@ class LiveSessionManager {
             config: {
                 ...config,
                 responseModalities: [Modality.AUDIO],
-                speechConfig: {
-                    voiceConfig: {
-                        prebuiltVoiceConfig: {
-                            voiceName: 'Zephyr'
-                        }
-                    }
-                },
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
                 outputAudioTranscription: {},
                 inputAudioTranscription: {}
             }
@@ -863,165 +867,88 @@ export async function consensusEngine(
     onStatusUpdate: (status: SwarmStatus) => void
 ): Promise<SwarmResult> {
     const ai = getAI();
-    
-    // Configuration
-    const TARGET_GAP = 3; // Leader must be ahead by 3 votes
+    const TARGET_GAP = 3; 
     const MAX_ROUNDS = 15;
-    const MODEL = 'gemini-2.5-flash';
+    const MODEL = 'gemini-3-flash-preview';
 
-    let votes: Record<string, number> = {}; // Answer Key -> Count
-    let answerMap: Record<string, string> = {}; // Answer Key -> Full Output
+    let votes: Record<string, number> = {}; 
+    let answerMap: Record<string, string> = {}; 
     let bestOutput = "";
     let leaderKey = "";
     let runnerUpKey = "";
     let killedAgents = 0;
     let rounds = 0;
 
-    // Schema for Agent Response
     const schema: Schema = {
         type: Type.OBJECT,
         properties: {
-            output: { type: Type.STRING, description: "The result of the task." },
-            confidence: { type: Type.NUMBER, description: "0-100 self-assessment." },
-            reasoning: { type: Type.STRING, description: "Why is this correct?" }
+            output: { type: Type.STRING },
+            confidence: { type: Type.NUMBER },
+            reasoning: { type: Type.STRING }
         },
         required: ['output', 'confidence', 'reasoning']
     };
 
-    // The Loop
     while (rounds < MAX_ROUNDS) {
         rounds++;
         const agentId = `AGENT_${rounds}`;
 
         try {
-            // 1. Spawn Agent with Retry Logic (Crucial for high concurrency swarm)
             const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
                 model: MODEL,
-                contents: `
-                ROLE: Specialized Execution Unit (Swarm Node).
-                OBJECTIVE: Perform the requested task with absolute precision. You are part of a swarm; deviation suggests error.
-                
-                CONTEXT/INPUT DATA:
-                """
-                ${task.isolated_input}
-                """
-                
-                TASK INSTRUCTION:
-                ${task.instruction}
-                
-                REQUIREMENTS:
-                1. **Output Format**: Provide the raw result directly in the 'output' field. Do not wrap in markdown unless requested.
-                2. **Reasoning**: Briefly justify your result.
-                3. **Confidence**: Assess your own certainty (0-100).
-                `,
+                contents: `Perform task: "${task.instruction}". Input: "${task.isolated_input}".`,
                 config: {
-                    temperature: 0.7 + (rounds * 0.05), // Increase entropy slightly if stuck to break deadlocks
+                    temperature: 0.7 + (rounds * 0.05),
                     responseMimeType: 'application/json',
                     responseSchema: schema
                 }
             }));
 
             const result = JSON.parse(response.text || "{}");
-            
-            // 2. Normalize Output
             let rawOutput = result.output?.trim() || "";
-            // Strip markdown code block wrappers for consistency in voting
             rawOutput = rawOutput.replace(/^```[a-z]*\n/i, '').replace(/\n```$/, '').trim();
             
             if (!rawOutput) throw new Error("Empty output");
-
-            // Create a normalized key for voting (lowercase + collapsed whitespace)
-            // This ensures "function foo() {}" and "function foo() { }" count as the same vote.
             const key = rawOutput.toLowerCase().replace(/\s+/g, ' ').substring(0, 200);
-            
-            // Store the full, clean output for retrieval later
             if (!answerMap[key]) answerMap[key] = rawOutput;
 
-            // 3. Cast Vote
             votes[key] = (votes[key] || 0) + 1;
-            
-            // Update Best Output if high confidence
-            if (!bestOutput || (result.confidence > 80)) {
-                bestOutput = rawOutput;
-            }
+            if (!bestOutput || (result.confidence > 80)) bestOutput = rawOutput;
 
-            // 4. Calculate Gap
             const sortedCandidates = Object.entries(votes).sort((a, b) => b[1] - a[1]);
             leaderKey = sortedCandidates[0][0];
             const leaderCount = sortedCandidates[0][1];
-            
             runnerUpKey = sortedCandidates.length > 1 ? sortedCandidates[1][0] : "";
             const runnerUpCount = sortedCandidates.length > 1 ? (sortedCandidates[1][1] as number) : 0;
-            
             const currentGap = leaderCount - runnerUpCount;
 
-            // 5. Broadcast Status
-            onStatusUpdate({
-                taskId: task.id,
-                votes, // This sends keys, UI might need mapping but mostly shows counts/keys
-                killedAgents,
-                currentGap,
-                targetGap: TARGET_GAP,
-                totalAttempts: rounds
-            });
+            onStatusUpdate({ taskId: task.id, votes, killedAgents, currentGap, targetGap: TARGET_GAP, totalAttempts: rounds });
 
-            // 6. Check Convergence
             if (currentGap >= TARGET_GAP) {
-                // VICTORY
-                const derivedConfidence = Math.min(99, 80 + (currentGap * 5));
-
                 return {
                     taskId: task.id,
-                    output: answerMap[leaderKey] || rawOutput, // Return the full preserved output
-                    confidence: derivedConfidence,
+                    output: answerMap[leaderKey] || rawOutput,
+                    confidence: Math.min(99, 80 + (currentGap * 5)),
                     agentId,
                     executionTime: Date.now(),
-                    voteLedger: {
-                        winner: leaderKey.substring(0, 20) + "...", // Shorten for UI ledger
-                        count: leaderCount,
-                        runnerUp: runnerUpKey ? runnerUpKey.substring(0, 20) + "..." : "",
-                        runnerUpCount,
-                        totalRounds: rounds,
-                        killedAgents
-                    }
+                    voteLedger: { winner: leaderKey.substring(0, 20), count: leaderCount, runnerUp: runnerUpKey.substring(0, 20), runnerUpCount, totalRounds: rounds, killedAgents }
                 };
             }
-
         } catch (e) {
             killedAgents++;
-            // Broadcast kill
-            onStatusUpdate({
-                taskId: task.id,
-                votes,
-                killedAgents,
-                currentGap: 0, 
-                targetGap: TARGET_GAP,
-                totalAttempts: rounds
-            });
+            onStatusUpdate({ taskId: task.id, votes, killedAgents, currentGap: 0, targetGap: TARGET_GAP, totalAttempts: rounds });
         }
-        
-        // Rate limit protection / Visual pacing
         await new Promise(r => setTimeout(r, 200));
     }
 
-    // Force resolve if max rounds reached
     const totalVotes = Object.values(votes).reduce((a, b) => (a as number) + (b as number), 0);
     const leaderVotes = votes[leaderKey] || 0;
-    const partialConfidence = totalVotes > 0 ? Math.round((leaderVotes / totalVotes) * 100) : 0;
-
     return {
         taskId: task.id,
         output: answerMap[leaderKey] || bestOutput || "Consensus Failed",
-        confidence: Math.max(10, partialConfidence - 20), // Penalize for timeout
+        confidence: Math.max(10, Math.round((leaderVotes / (totalVotes || 1)) * 100) - 20),
         agentId: "TIMEOUT",
         executionTime: Date.now(),
-        voteLedger: {
-            winner: leaderKey ? leaderKey.substring(0, 20) + "..." : "None",
-            count: leaderVotes,
-            runnerUp: "",
-            runnerUpCount: 0,
-            totalRounds: rounds,
-            killedAgents
-        }
+        voteLedger: { winner: leaderKey.substring(0, 20), count: leaderVotes, runnerUp: "", runnerUpCount: 0, totalRounds: rounds, killedAgents }
     };
 }

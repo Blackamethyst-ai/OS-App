@@ -75,7 +75,7 @@ const GPUClusterAnalytics = () => {
                         </div>
                         <div>
                             <div className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">{stat.label}</div>
-                            <div className="text-xl font-black font-mono text-white tracking-tighter">{stat.value}</div>
+                            <div className="textxl font-black font-mono text-white tracking-tighter">{stat.value}</div>
                         </div>
                     </div>
                 ))}
@@ -128,7 +128,7 @@ const GPUClusterAnalytics = () => {
                                     <CartesianGrid strokeDasharray="3 3" stroke="#111" vertical={false} />
                                     <XAxis dataKey="time" hide />
                                     <YAxis hide domain={[0, 100]} />
-                                    <RechartsTooltip contentStyle={{ backgroundColor: '#000', border: '1px solid #333', fontSize: '10px' }} />
+                                    <RechartsTooltip contentStyle={{ backgroundColor: '#000', border: '1px solid #333', fontSize: '10px', fontFamily: 'monospace' }} />
                                     <Area type="monotone" dataKey="avgLoad" fill="#22d3ee" stroke="#22d3ee" fillOpacity={0.05} strokeWidth={2} name="Load %" />
                                     <Line type="monotone" dataKey="avgTemp" stroke="#f59e0b" strokeWidth={2} dot={false} name="Temp °C" />
                                 </ComposedChart>
