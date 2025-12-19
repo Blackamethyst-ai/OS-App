@@ -1,22 +1,21 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
-import { analyzeSchematic, researchComponents, fileToGenerativePart, promptSelectKey, generateXRayVariant, generateIsometricSchematic } from '../services/geminiService';
+import { analyzeSchematic, researchComponents, fileToGenerativePart, promptSelectKey, generateXRayVariant } from '../services/geminiService';
 import { 
-    Upload, Search, Cpu, Zap, AlertTriangle, Activity, Loader2, 
-    CircuitBoard, Server, Thermometer, Camera, X, ExternalLink, Scan, 
-    FileText, Plus, Trash2, Download, List, Globe, Box, Layers, 
-    Network, Wind, Droplets, Power, ShieldAlert, Sliders, CheckCircle2, 
-    BoxSelect, RefreshCw, Filter, Move3d, ZoomIn, ZoomOut, Move, 
-    HardDrive, MemoryStick, Fan, Eye, TrendingUp, DollarSign, 
-    Maximize2, ShieldCheck, Terminal, Fingerprint, Lock, Key,
-    History, BarChart3, ChevronRight, Package, DollarSign as PriceIcon,
-    Shield, Check, ChevronDown, Monitor, Gauge, Workflow, TrendingDown,
-    AlertCircle, Clock, ArrowRight, GitCommit
+    Upload, Search, Cpu, Zap, Activity, Loader2, 
+    CircuitBoard, Thermometer, X, ExternalLink, Scan, 
+    FileText, Plus, Trash2, Download, Globe, 
+    Wind, Power, ShieldAlert, RefreshCw, Filter, 
+    HardDrive, MemoryStick, Eye, TrendingUp, TrendingDown, 
+    ShieldCheck, Terminal, Fingerprint, Lock, 
+    History, BarChart3, ChevronRight, Package, Shield, 
+    BoxSelect, Sun, AlertCircle, Clock, ArrowRight, GitCommit
 } from 'lucide-react';
-import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, LineChart, Line, CartesianGrid, Tooltip as RechartsTooltip, ScatterChart, Scatter, ZAxis, Cell, BarChart, Bar, ComposedChart } from 'recharts';
-import { ComponentRecommendation, TemporalEra } from '../types';
+import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, LineChart, Line, CartesianGrid, Tooltip as RechartsTooltip, Cell, BarChart, Bar, ComposedChart } from 'recharts';
+import { TemporalEra, AspectRatio, ImageSize } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVoiceExpose } from '../hooks/useVoiceExpose';
+import { audio } from '../services/audioService';
 
 const MotionDiv = motion.div as any;
 
@@ -75,7 +74,7 @@ const GPUClusterAnalytics = () => {
                         </div>
                         <div>
                             <div className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">{stat.label}</div>
-                            <div className="textxl font-black font-mono text-white tracking-tighter">{stat.value}</div>
+                            <div className="text-xl font-black font-mono text-white tracking-tighter">{stat.value}</div>
                         </div>
                     </div>
                 ))}
@@ -86,7 +85,7 @@ const GPUClusterAnalytics = () => {
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.02)_0%,transparent_70%)] pointer-events-none"></div>
                     <div className="flex justify-between items-center mb-6 z-10">
                         <div className="flex items-center gap-3">
-                            <Workflow size={16} className="text-[#22d3ee]" />
+                            <GitCommit size={16} className="text-[#22d3ee]" />
                             <h3 className="text-xs font-bold font-mono text-white uppercase tracking-[0.2em]">64-Node Compute Lattice</h3>
                         </div>
                         <div className="flex gap-4 text-[8px] font-mono text-gray-600">
@@ -165,72 +164,7 @@ const GPUClusterAnalytics = () => {
                             </div>
                         </div>
                     </div>
-
-                    <div className="bg-gradient-to-br from-[#9d4edd]/5 to-transparent border border-[#9d4edd]/20 rounded-2xl p-5">
-                        <div className="flex items-center gap-2 mb-3 text-[#9d4edd]">
-                            <AlertCircle size={14} />
-                            <span className="text-[10px] font-black uppercase tracking-widest font-mono">System Insight</span>
-                        </div>
-                        <p className="text-[10px] text-gray-400 font-mono leading-relaxed">
-                            Cluster is running within optimal thermal envelopes. VRAM pressure is low. 
-                            Autonomous re-balancing protocol ready for high-bandwidth inference tasks.
-                        </p>
-                    </div>
                 </div>
-            </div>
-        </div>
-    );
-};
-
-const GPUClusterMonitor = () => {
-    const [metrics, setMetrics] = useState({ usage: 45, temp: 62, fan: 40, vram: 12 });
-    
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setMetrics(prev => {
-                const usage = Math.max(5, Math.min(99, prev.usage + (Math.random() * 20 - 10)));
-                return { 
-                    usage, 
-                    temp: 45 + (usage * 0.35) + (Math.random() * 2), 
-                    fan: 30 + (usage * 0.5), 
-                    vram: Math.max(8, Math.min(24, prev.vram + (Math.random() * 2 - 1))) 
-                };
-            });
-        }, 1500);
-        return () => clearInterval(interval);
-    }, []);
-
-    const GaugeComp = ({ val, color, label, unit }: any) => (
-        <div className="flex flex-col items-center">
-            <div className="relative w-16 h-16 flex items-center justify-center">
-                <svg className="w-full h-full -rotate-90" viewBox="0 0 80 80">
-                    <circle cx="40" cy="40" r="32" stroke="#111" strokeWidth="6" fill="none" />
-                    <circle cx="40" cy="40" r="32" stroke={color} strokeWidth="6" fill="none" strokeDasharray={201} strokeDashoffset={201 - (val/100)*201} strokeLinecap="round" className="transition-all duration-700" />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-xs font-bold font-mono text-white">{val.toFixed(0)}</span>
-                    <span className="text-[7px] text-gray-500 font-mono">{unit}</span>
-                </div>
-            </div>
-            <span className="text-[8px] font-mono text-gray-500 uppercase mt-1">{label}</span>
-        </div>
-    );
-
-    return (
-        <div className="p-4 bg-[#0a0a0a] border-t border-[#1f1f1f] flex flex-col gap-4">
-            <div className="flex items-center justify-between">
-                <h4 className="text-[9px] font-black font-mono text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <CircuitBoard className="w-3 h-3 text-[#9d4edd]" /> GPU CLUSTER TELEMETRY
-                </h4>
-                <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 bg-[#42be65] rounded-full animate-pulse"></div>
-                    <span className="text-[8px] font-mono text-gray-600">ENCLAVE_READY</span>
-                </div>
-            </div>
-            <div className="flex justify-around items-center">
-                <GaugeComp val={metrics.usage} color="#9d4edd" label="Compute" unit="%" />
-                <GaugeComp val={metrics.temp} color={metrics.temp > 75 ? '#ef4444' : '#42be65'} label="Thermal" unit="°C" />
-                <GaugeComp val={metrics.vram} color="#f59e0b" label="VRAM" unit="GB" />
             </div>
         </div>
     );
@@ -365,22 +299,6 @@ const SupplyChainSidebar: React.FC<{
     const sidebarRef = useRef<HTMLDivElement>(null);
     const vendors = ['ALL', 'NVIDIA', 'SUPERMICRO', 'INTEL', 'AMD'];
 
-    const handleExport = () => {
-        const csv = "Part Number,Manufacturer,Type,Price\n" + provisioningList.map(item => `${item.partNumber},${item.manufacturer},${item.specs?.type || 'Unknown'},${item.price || 0}`).join("\n");
-        const blob = new Blob([csv], { type: 'text/csv' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `BOM_EXPORT_${Date.now()}.csv`;
-        a.click();
-    };
-
-    const selectHistoryItem = (item: string) => {
-        onQueryChange(item);
-        onCommitSearch(item);
-        setIsHistoryOpen(false);
-    };
-
     return (
         <div ref={sidebarRef} className="w-[450px] border-r border-[#1f1f1f] flex flex-col bg-[#050505] font-mono">
             <div className="p-6 border-b border-[#1f1f1f]">
@@ -437,7 +355,11 @@ const SupplyChainSidebar: React.FC<{
                                     {searchHistory.map((item, i) => (
                                         <button 
                                             key={i}
-                                            onMouseDown={() => selectHistoryItem(item)}
+                                            onMouseDown={() => {
+                                                onQueryChange(item);
+                                                onCommitSearch(item);
+                                                setIsHistoryOpen(false);
+                                            }}
                                             className="w-full text-left px-4 py-3 hover:bg-[#1f1f1f] text-[10px] text-gray-300 font-mono flex items-center justify-between group transition-colors"
                                         >
                                             <div className="flex items-center gap-3">
@@ -557,7 +479,15 @@ const SupplyChainSidebar: React.FC<{
                 <div className="flex justify-between items-center mb-3">
                     <span className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Provisioning List ({provisioningList.length})</span>
                     <button 
-                        onClick={handleExport} 
+                        onClick={() => {
+                            const csv = "Part Number,Manufacturer,Price\n" + provisioningList.map(item => `${item.partNumber},${item.manufacturer},${item.price}`).join("\n");
+                            const blob = new Blob([csv], { type: 'text/csv' });
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement('a');
+                            a.href = url;
+                            a.download = `bom_export_${Date.now()}.csv`;
+                            a.click();
+                        }} 
                         disabled={provisioningList.length === 0}
                         className="text-[8px] text-[#9d4edd] font-black uppercase hover:underline flex items-center gap-1.5 disabled:opacity-30 disabled:no-underline"
                     >
@@ -574,13 +504,8 @@ const SupplyChainSidebar: React.FC<{
                     {provisioningList.length > 3 && (
                         <div className="text-[8px] text-gray-600 text-center uppercase tracking-widest py-1">+{provisioningList.length - 3} more items</div>
                     )}
-                    {provisioningList.length === 0 && (
-                        <div className="text-[8px] text-gray-700 italic text-center py-2 uppercase">BOM Buffer Empty</div>
-                    )}
                 </div>
             </div>
-
-            <GPUClusterMonitor />
         </div>
     );
 };
@@ -600,11 +525,9 @@ const HardwareEngine: React.FC = () => {
                 if (Array.isArray(parsed)) {
                     setHardwareState({ searchHistory: parsed });
                 }
-            } catch (e) {
-                console.error("Failed to parse search history", e);
-            }
+            } catch (e) { console.error("Failed to parse search history", e); }
         }
-    }, []);
+    }, [setHardwareState]);
 
     const filteredRecommendations = useMemo(() => {
         return recommendations.filter((item: any) => {
@@ -616,10 +539,6 @@ const HardwareEngine: React.FC = () => {
         });
     }, [recommendations, componentQuery, activeVendor, filters]);
 
-    const handleQueryChange = (v: string) => {
-        setHardwareState({ componentQuery: v });
-    };
-
     const handleCommitSearch = (customQuery?: string) => {
         const q = (customQuery !== undefined ? customQuery : componentQuery)?.trim();
         if (!q) return;
@@ -627,14 +546,8 @@ const HardwareEngine: React.FC = () => {
         const newHistory = [q, ...searchHistory.filter(h => h !== q)].slice(0, 8);
         setHardwareState({ searchHistory: newHistory });
         localStorage.setItem('hw_search_history', JSON.stringify(newHistory));
-        
         addLog('INFO', `HW_SEARCH: Committing search vector for "${q}"...`);
-    };
-
-    const handleClearHistory = () => {
-        setHardwareState({ searchHistory: [] });
-        localStorage.removeItem('hw_search_history');
-        addLog('SYSTEM', 'HW_HISTORY: Cleared persistent search trace.');
+        audio.playClick();
     };
 
     const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -650,10 +563,12 @@ const HardwareEngine: React.FC = () => {
                     generateXRayVariant(data)
                 ]);
                 setHardwareState({ analysis: scan, xrayImage: xray, isLoading: false });
-                addLog('SUCCESS', 'BASIX_DIAG: System signature authenticated. Secure Enclave attestation valid.');
+                addLog('SUCCESS', 'BASIX_DIAG: System signature authenticated.');
+                audio.playSuccess();
             } catch (err: any) {
                 setHardwareState({ isLoading: false, error: err.message });
                 addLog('ERROR', `DIAG_FAIL: ${err.message}`);
+                audio.playError();
             }
         }
     };
@@ -667,8 +582,8 @@ const HardwareEngine: React.FC = () => {
                         <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#9d4edd] rounded-full shadow-[0_0_8px_#9d4edd]"></div>
                     </div>
                     <div className="flex flex-col">
-                        <h1 className="text-sm font-black font-mono text-white uppercase tracking-[0.4em]">Basix Hardware Evolution Protocol</h1>
-                        <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest mt-0.5">Secure Enclave Attestation: <span className="text-[#42be65]">ENCRYPTED_AES256</span></span>
+                        <h1 className="text-sm font-black font-mono text-white uppercase tracking-[0.4em]">Hardware Evolution Protocol</h1>
+                        <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest mt-0.5">Secure Enclave Status: <span className="text-[#42be65]">NOMINAL</span></span>
                     </div>
                 </div>
                 <div className="flex gap-2">
@@ -690,7 +605,7 @@ const HardwareEngine: React.FC = () => {
                 <SupplyChainSidebar 
                     inventory={filteredRecommendations} 
                     query={componentQuery} 
-                    onQueryChange={handleQueryChange} 
+                    onQueryChange={(v) => setHardwareState({ componentQuery: v })} 
                     onCommitSearch={handleCommitSearch}
                     onAdd={(item) => setHardwareState({ bom: [...bom, item] })}
                     onInspect={setInspectedComponent}
@@ -698,7 +613,7 @@ const HardwareEngine: React.FC = () => {
                     activeVendor={activeVendor}
                     onVendorChange={(v) => setHardwareState({ activeVendor: v as any })}
                     searchHistory={searchHistory}
-                    onClearHistory={handleClearHistory}
+                    onClearHistory={() => setHardwareState({ searchHistory: [] })}
                     filters={filters}
                     onFilterChange={(f) => setHardwareState({ filters: f })}
                 />
@@ -716,7 +631,7 @@ const HardwareEngine: React.FC = () => {
                                     </div>
                                     <div className="text-center">
                                         <h2 className="text-sm font-black text-white font-mono uppercase tracking-widest mb-1">Ingest Node Schema</h2>
-                                        <p className="text-[8px] text-gray-600 font-mono uppercase tracking-[0.2em]">Upload schematic to begin diagnostic scan</p>
+                                        <p className="text-[8px] text-gray-600 font-mono uppercase tracking-[0.2em]">Upload schematic for diagnostic scan</p>
                                     </div>
                                     <input type="file" className="hidden" onChange={handleUpload} accept="image/*" />
                                 </label>
@@ -734,7 +649,7 @@ const HardwareEngine: React.FC = () => {
                                     <div className="relative bg-black group overflow-hidden">
                                         <img src={xrayImage || ""} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105" alt="X-Ray" />
                                         <div className="absolute inset-0 bg-[#9d4edd]/5 pointer-events-none"></div>
-                                        <div className="absolute top-4 left-4 bg-black/80 px-3 py-1 rounded border border-[#9d4edd]/30 text-[8px] text-[#9d4edd] font-black uppercase tracking-widest z-10 backdrop-blur-md">X-Ray Mode Active</div>
+                                        <div className="absolute top-4 left-4 bg-black/80 px-3 py-1 rounded border border-[#9d4edd]/30 text-[8px] text-[#9d4edd] font-black uppercase tracking-widest z-10 backdrop-blur-md">X-Ray Projection</div>
                                     </div>
                                     <div className="relative bg-black group overflow-hidden">
                                         <img src={`data:${schematicImage.inlineData.mimeType};base64,${schematicImage.inlineData.data}`} className="absolute inset-0 w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105" alt="Physical" />
@@ -760,7 +675,7 @@ const HardwareEngine: React.FC = () => {
                             className="w-96 border-l border-[#1f1f1f] bg-[#050505] flex flex-col p-6 font-mono z-30 shadow-2xl overflow-y-auto custom-scrollbar"
                         >
                             <div className="flex justify-between items-center mb-8">
-                                <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Asset Inspection Detail</h3>
+                                <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Asset Inspection</h3>
                                 <button onClick={() => setInspectedComponent(null)} className="text-gray-500 hover:text-white transition-colors"><X size={16}/></button>
                             </div>
 
@@ -775,13 +690,11 @@ const HardwareEngine: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
-                                    <PriceHistoryChart basePrice={inspectedComponent.price || 1000} />
-                                </div>
+                                <PriceHistoryChart basePrice={inspectedComponent.price || 1000} />
 
                                 <div className="space-y-4 pt-4 border-t border-[#222]">
-                                    <button onClick={() => { setHardwareState({ bom: [...bom, inspectedComponent] }); setInspectedComponent(null); }} className="w-full py-4 bg-[#9d4edd] text-black font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-[#b06bf7] transition-all flex items-center justify-center gap-2 shadow-lg">
-                                        <Plus size={14}/> Provision into BOM
+                                    <button onClick={() => { setHardwareState({ bom: [...bom, inspectedComponent] }); setInspectedComponent(null); audio.playSuccess(); }} className="w-full py-4 bg-[#9d4edd] text-black font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-[#b06bf7] transition-all flex items-center justify-center gap-2 shadow-lg">
+                                        <Plus size={14}/> Provision to BOM
                                     </button>
                                     <button className="w-full py-4 bg-[#111] border border-[#333] text-gray-500 text-[10px] font-black uppercase tracking-widest rounded-xl hover:border-white hover:text-white transition-all flex items-center justify-center gap-2">
                                         <FileText size={14} /> Query Datasheet
@@ -791,67 +704,14 @@ const HardwareEngine: React.FC = () => {
                         </motion.div>
                     )}
                 </AnimatePresence>
-
-                {!inspectedComponent && (
-                    <div className="w-96 border-l border-[#1f1f1f] bg-[#050505] flex flex-col overflow-y-auto custom-scrollbar">
-                        <div className="p-6">
-                            <div className="flex justify-between items-center mb-8">
-                                <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Diagnostic Matrix</h3>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-[#42be65] animate-pulse"></div>
-                                    <span className="text-[9px] text-[#42be65] font-bold uppercase">% Efficient</span>
-                                </div>
-                            </div>
-
-                            {!analysis ? (
-                                <div className="flex-1 flex flex-col items-center justify-center opacity-30 py-20">
-                                    <Scan className="w-12 h-12 mb-4" />
-                                    <p className="text-[9px] uppercase tracking-widest">Awaiting Analysis</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-8">
-                                    <div>
-                                        <span className="text-[8px] text-gray-600 uppercase font-black block mb-4 tracking-widest">Secure Rails</span>
-                                        <div className="bg-[#0a0a0a] border border-[#222] p-4 rounded-xl relative overflow-hidden group">
-                                            <div className="absolute top-0 left-0 w-1 h-full bg-[#9d4edd]"></div>
-                                            <div className="flex justify-between items-start">
-                                                <div className="text-[10px] text-gray-300 leading-relaxed max-w-[180px]">
-                                                    {analysis.powerRails?.[0]?.source || "SecEnclave Rail A"} ({analysis.powerRails?.[0]?.voltage || "1.8V"})
-                                                </div>
-                                                <div className="bg-[#9d4edd]/10 border border-[#9d4edd]/30 px-1.5 py-0.5 rounded text-[7px] text-[#9d4edd] font-bold uppercase">
-                                                    {analysis.powerRails?.[0]?.status || "PROTECTED"}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex-1">
-                                        <span className="text-[8px] text-gray-600 uppercase font-black block mb-4 tracking-widest">Integrity Issues</span>
-                                        <div className="space-y-4">
-                                            {analysis.issues?.map((issue: any, i: number) => (
-                                                <div key={i} className="p-4 rounded-xl border border-[#1f1f1f] bg-black/40 hover:border-[#9d4edd]/50 transition-all cursor-default relative overflow-hidden">
-                                                    <div className="flex justify-between items-start mb-2">
-                                                        <span className={`text-[9px] font-black uppercase ${issue.severity === 'CRITICAL' ? 'text-red-500' : 'text-blue-400'}`}>{issue.severity}</span>
-                                                        <span className="text-[7px] text-gray-600 tracking-tighter">Loc: {issue.location}</span>
-                                                    </div>
-                                                    <p className="text-[10px] text-gray-300 leading-relaxed">{issue.description}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
             </div>
 
             <div className="h-10 border-t border-[#1f1f1f] bg-[#0a0a0a] flex items-center justify-between px-8 text-[9px] font-mono text-gray-600 z-20 shrink-0">
                 <div className="flex items-center gap-8">
-                    <span className="flex items-center gap-2 uppercase tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] animate-pulse"></div> Secure Enclave Stable</span>
-                    <span className="flex items-center gap-2 uppercase tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-[#22d3ee]"></div> TPM Uplink Active</span>
+                    <span className="flex items-center gap-2 uppercase tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] animate-pulse"></div> Secure Enclave Online</span>
+                    <span className="flex items-center gap-2 uppercase tracking-widest"><div className="w-1.5 h-1.5 rounded-full bg-[#22d3ee]"></div> TPM Uplink Valid</span>
                 </div>
-                <div className="uppercase tracking-[0.4em] font-black text-gray-500">Zero-Trust Architecture // v4.0.0</div>
+                <div className="uppercase tracking-[0.4em] font-black text-gray-500">Zero-Trust // v4.2.0</div>
             </div>
         </div>
     );

@@ -1,28 +1,97 @@
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Copy, Eye, Wand2, Terminal, Code, X, Search, Activity, Layers } from 'lucide-react';
+import { 
+    Copy, Eye, Wand2, Terminal, Code, X, Search, Activity, 
+    Layers, ArrowUpRight, Hash, Database, GitBranch, Loader2 
+} from 'lucide-react';
 import { performGlobalSearch } from '../services/geminiService';
+import { AppMode } from '../types';
+import { audio } from '../services/audioService';
+
+// Lazy Load Views for performance
+const Dashboard = lazy(() => import('./Dashboard'));
+const SynthesisBridge = lazy(() => import('./SynthesisBridge'));
+const BibliomorphicEngine = lazy(() => import('./BibliomorphicEngine'));
+const ProcessVisualizer = lazy(() => import('./ProcessVisualizer'));
+const MemoryCore = lazy(() => import('./MemoryCore'));
+const ImageGen = lazy(() => import('./ImageGen'));
+const PowerXRay = lazy(() => import('./PowerXRay'));
+const HardwareEngine = lazy(() => import('./HardwareEngine'));
+const VoiceMode = lazy(() => import('./VoiceMode'));
+const CodeStudio = lazy(() => import('./CodeStudio'));
 
 const SynapticRouter: React.FC = () => {
-    const { contextMenu, closeContextMenu, openHoloProjector, setCodeStudioState, setHardwareState } = useAppStore();
-    const menuRef = useRef<HTMLDivElement>(null);
+    const { 
+        mode, setMode, contextMenu, closeContextMenu, 
+        openHoloProjector, setCodeStudioState, setBibliomorphicState,
+        addLog, toggleTerminal
+    } = useAppStore();
 
-    // Global listener to capture right-clicks
+    const [currentPath, setCurrentPath] = useState('');
+    const [queryParams, setQueryParams] = useState<Record<string, string>>({});
+
+    // 1. DYNAMIC ROUTING ENGINE (Hash-based)
+    useEffect(() => {
+        const handleRouting = () => {
+            const hash = window.location.hash || '#/dashboard';
+            const [pathPart, queryPart] = hash.replace('#', '').split('?');
+            const parts = pathPart.split('/').filter(Boolean);
+            const mainPath = parts[0] || 'dashboard';
+            const subPath = parts[1];
+
+            // Parse Query Params
+            const params: Record<string, string> = {};
+            if (queryPart) {
+                new URLSearchParams(queryPart).forEach((val, key) => {
+                    params[key] = val;
+                });
+            }
+
+            setCurrentPath(pathPart);
+            setQueryParams(params);
+
+            // Map paths to internal AppModes
+            const routeMap: Record<string, AppMode> = {
+                'dashboard': AppMode.DASHBOARD,
+                'bridge': AppMode.SYNTHESIS_BRIDGE,
+                'bibliomorphic': AppMode.BIBLIOMORPHIC,
+                'process': AppMode.PROCESS_MAP,
+                'memory': AppMode.MEMORY_CORE,
+                'assets': AppMode.IMAGE_GEN,
+                'power': AppMode.POWER_XRAY,
+                'hardware': AppMode.HARDWARE_ENGINEER,
+                'code': AppMode.CODE_STUDIO,
+                'voice': AppMode.VOICE_MODE,
+            };
+
+            const targetMode = routeMap[mainPath];
+            if (targetMode && targetMode !== mode) {
+                setMode(targetMode);
+                audio.playTransition();
+            }
+
+            // Handle nested sub-route state
+            if (targetMode === AppMode.BIBLIOMORPHIC && subPath) {
+                setBibliomorphicState({ activeTab: subPath });
+            }
+        };
+
+        window.addEventListener('hashchange', handleRouting);
+        handleRouting(); // Initial run
+        return () => window.removeEventListener('hashchange', handleRouting);
+    }, [mode, setMode, setBibliomorphicState]);
+
+    // 2. CONTEXTUAL HUB (Right Click Logic)
     useEffect(() => {
         const handleContextMenu = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
-            
-            // Check for interactive elements to ignore
-            if (target.closest('input, textarea, button, a')) return; // Let default behavior happen on inputs
-
+            if (target.closest('input, textarea, button, a')) return;
             e.preventDefault();
             
             let type: 'TEXT' | 'IMAGE' | 'CODE' | 'GENERAL' = 'GENERAL';
             let content: any = null;
 
-            // Detect Type
             const selection = window.getSelection()?.toString();
             const imgTarget = target.closest('img');
             const codeTarget = target.closest('pre, code');
@@ -39,24 +108,21 @@ const SynapticRouter: React.FC = () => {
             }
 
             useAppStore.getState().openContextMenu(e.clientX, e.clientY, type, content);
+            audio.playHover();
         };
 
         const handleClick = () => {
-            if (useAppStore.getState().contextMenu.isOpen) {
-                closeContextMenu();
-            }
+            if (useAppStore.getState().contextMenu.isOpen) closeContextMenu();
         };
 
         document.addEventListener('contextmenu', handleContextMenu);
         document.addEventListener('click', handleClick);
-        
         return () => {
             document.removeEventListener('contextmenu', handleContextMenu);
             document.removeEventListener('click', handleClick);
         };
-    }, []);
+    }, [closeContextMenu]);
 
-    // Actions
     const handleAction = (action: string) => {
         const { targetContent, contextType } = contextMenu;
 
@@ -65,16 +131,13 @@ const SynapticRouter: React.FC = () => {
                 openHoloProjector({
                     id: `holo-${Date.now()}`,
                     type: contextType as any,
-                    title: 'Quick View',
+                    title: 'Synaptic Projection',
                     content: targetContent
                 });
                 break;
             case 'COPY':
                 navigator.clipboard.writeText(targetContent);
-                break;
-            case 'CODE_REFACTOR':
-                useAppStore.getState().setMode('CODE_STUDIO' as any);
-                setCodeStudioState({ prompt: `Refactor this code:\n\n${targetContent.substring(0, 500)}...` });
+                addLog('INFO', 'BUFFER: Fragment cached to clipboard.');
                 break;
             case 'SEARCH':
                 useAppStore.getState().setSearchState({ query: targetContent.substring(0, 100), isOpen: true });
@@ -82,80 +145,114 @@ const SynapticRouter: React.FC = () => {
                     useAppStore.getState().setSearchState({ results });
                 });
                 break;
-            case 'ANALYZE_IMG':
-                openHoloProjector({
-                    id: `holo-${Date.now()}`,
-                    type: 'IMAGE',
-                    title: 'Deep Scan Target',
-                    content: targetContent
-                });
-                setTimeout(() => {
-                    useAppStore.getState().setHoloAnalyzing(true);
-                    // Trigger analyze inside Holo... (Ideally we'd trigger it directly)
-                }, 500);
+            case 'JUMP_CODE':
+                window.location.hash = '/code';
+                if (targetContent) setCodeStudioState({ prompt: `Refactor this logic:\n\n${targetContent.substring(0, 500)}` });
                 break;
         }
         closeContextMenu();
     };
 
-    if (!contextMenu.isOpen) return null;
+    const LoadingSector = () => (
+        <div className="h-full w-full flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm">
+            <Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" />
+            <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em] animate-pulse">
+                Synchronizing Sector Topology...
+            </span>
+        </div>
+    );
 
     return (
-        <AnimatePresence>
-            <motion.div
-                ref={menuRef}
-                initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.15 }}
-                className="fixed z-[9999] min-w-[200px] bg-[#0a0a0a]/95 backdrop-blur-xl border border-[#333] rounded-lg shadow-2xl overflow-hidden p-1.5"
-                style={{ top: contextMenu.y, left: contextMenu.x }}
-            >
-                <div className="px-2 py-1.5 border-b border-[#222] mb-1 flex items-center justify-between">
-                    <span className="text-[9px] font-bold text-[#9d4edd] uppercase tracking-wider font-mono">
-                        Synaptic Router
-                    </span>
-                    <Layers className="w-3 h-3 text-[#9d4edd]" />
-                </div>
+        <div className="flex-1 relative overflow-hidden flex flex-col">
+            {/* VIEW TRANSITION LAYER */}
+            <Suspense fallback={<LoadingSector />}>
+                <AnimatePresence mode="wait">
+                    <motion.main
+                        key={mode}
+                        initial={{ opacity: 0, filter: 'blur(10px)', scale: 1.02 }}
+                        animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
+                        exit={{ opacity: 0, filter: 'blur(10px)', scale: 0.98 }}
+                        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                        className="flex-1 relative z-10 p-6 overflow-hidden flex flex-col"
+                    >
+                        {mode === AppMode.DASHBOARD && <Dashboard />}
+                        {mode === AppMode.SYNTHESIS_BRIDGE && <SynthesisBridge />}
+                        {mode === AppMode.BIBLIOMORPHIC && <BibliomorphicEngine />}
+                        {mode === AppMode.PROCESS_MAP && <ProcessVisualizer />}
+                        {mode === AppMode.MEMORY_CORE && <MemoryCore />}
+                        {mode === AppMode.IMAGE_GEN && <ImageGen />}
+                        {mode === AppMode.POWER_XRAY && <PowerXRay />}
+                        {mode === AppMode.HARDWARE_ENGINEER && <HardwareEngine />}
+                        {mode === AppMode.VOICE_MODE && <VoiceMode />}
+                        {mode === AppMode.CODE_STUDIO && <CodeStudio />}
+                    </motion.main>
+                </AnimatePresence>
+            </Suspense>
 
-                <div className="flex flex-col gap-0.5">
-                    {contextMenu.contextType === 'GENERAL' && (
-                        <>
-                            <MenuItem icon={Activity} label="System Status" onClick={() => handleAction('STATUS')} />
-                            <MenuItem icon={Terminal} label="Open Terminal" onClick={() => useAppStore.getState().toggleTerminal(true)} />
-                        </>
-                    )}
+            {/* CONTEXT MENU LAYER */}
+            <AnimatePresence>
+                {contextMenu.isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.9 }}
+                        transition={{ duration: 0.15 }}
+                        className="fixed z-[9999] min-w-[220px] bg-[#0a0a0a]/95 backdrop-blur-2xl border border-[#333] rounded-lg shadow-2xl overflow-hidden p-1.5"
+                        style={{ top: contextMenu.y, left: contextMenu.x }}
+                    >
+                        <div className="px-3 py-2 border-b border-[#222] mb-2 flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                                <span className="text-[9px] font-bold text-[#9d4edd] uppercase tracking-wider font-mono">
+                                    Synaptic Context Hub
+                                </span>
+                                <GitBranch className="w-3 h-3 text-[#9d4edd]" />
+                            </div>
+                            <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-500 uppercase truncate">
+                                <Hash className="w-2.5 h-2.5" /> {currentPath || 'DASHBOARD'}
+                            </div>
+                        </div>
 
-                    {(contextMenu.contextType === 'TEXT' || contextMenu.contextType === 'CODE') && (
-                        <>
-                            <MenuItem icon={Copy} label="Copy Data" onClick={() => handleAction('COPY')} />
-                            <MenuItem icon={Search} label="Neural Search" onClick={() => handleAction('SEARCH')} />
-                            <MenuItem icon={Eye} label="Holo Project" onClick={() => handleAction('HOLO_VIEW')} />
-                        </>
-                    )}
+                        <div className="flex flex-col gap-0.5">
+                            {contextMenu.contextType === 'GENERAL' && (
+                                <>
+                                    <MenuItem icon={ArrowUpRight} label="Jump to Dashboard" onClick={() => window.location.hash = '/dashboard'} />
+                                    <MenuItem icon={Activity} label="System Diagnostic" onClick={() => window.location.hash = '/power'} />
+                                    <MenuItem icon={Terminal} label="Open Quake Terminal" onClick={() => toggleTerminal(true)} />
+                                </>
+                            )}
 
-                    {contextMenu.contextType === 'CODE' && (
-                        <MenuItem icon={Wand2} label="Refactor in Studio" onClick={() => handleAction('CODE_REFACTOR')} />
-                    )}
+                            {(contextMenu.contextType === 'TEXT' || contextMenu.contextType === 'CODE') && (
+                                <>
+                                    <MenuItem icon={Copy} label="Capture Fragment" onClick={() => handleAction('COPY')} />
+                                    <MenuItem icon={Search} label="Index Vector" onClick={() => handleAction('SEARCH')} />
+                                    <MenuItem icon={Eye} label="Holo Projection" onClick={() => handleAction('HOLO_VIEW')} />
+                                </>
+                            )}
 
-                    {contextMenu.contextType === 'IMAGE' && (
-                        <>
-                            <MenuItem icon={Eye} label="Holo Inspection" onClick={() => handleAction('HOLO_VIEW')} />
-                            <MenuItem icon={Wand2} label="AI Analysis" onClick={() => handleAction('ANALYZE_IMG')} />
-                        </>
-                    )}
-                </div>
-            </motion.div>
-        </AnimatePresence>
+                            {contextMenu.contextType === 'CODE' && (
+                                <MenuItem icon={Wand2} label="Refactor in Studio" onClick={() => handleAction('JUMP_CODE')} />
+                            )}
+
+                            {contextMenu.contextType === 'IMAGE' && (
+                                <>
+                                    <MenuItem icon={Eye} label="Inspect Matrix" onClick={() => handleAction('HOLO_VIEW')} />
+                                    <MenuItem icon={Database} label="Archive to Memory" onClick={() => handleAction('ARCHIVE')} />
+                                </>
+                            )}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
     );
 };
 
 const MenuItem: React.FC<{ icon: any, label: string, onClick: () => void }> = ({ icon: Icon, label, onClick }) => (
     <button 
         onClick={onClick}
-        className="w-full flex items-center gap-3 px-3 py-2 text-xs font-mono text-gray-300 hover:bg-[#1f1f1f] hover:text-white rounded transition-colors group text-left"
+        className="w-full flex items-center gap-3 px-3 py-2 text-xs font-mono text-gray-300 hover:bg-white/5 hover:text-white rounded transition-all group text-left"
     >
-        <Icon className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#9d4edd]" />
+        <Icon className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#9d4edd] transition-colors" />
         {label}
     </button>
 );
