@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect, Suspense } from 'react';
 import { useAppStore } from './store';
 import { useSystemMind } from './stores/useSystemMind'; 
-import { AppMode } from './types';
+import { AppMode, AppTheme } from './types';
 import Starfield from './components/Starfield';
 
 // Standard Layout Components
@@ -109,9 +110,9 @@ const App: React.FC = () => {
 
   const getThemeStyles = () => {
       switch (theme) {
-          case 'LIGHT': return { '--bg-main': '#f5f5f5', '--text-main': '#171717', '--border-main': '#e5e5e5' };
-          case 'AMBER': return { '--bg-main': '#0a0500', '--text-main': '#f59e0b', '--border-main': '#451a03' };
-          case 'MIDNIGHT': return { '--bg-main': '#020617', '--text-main': '#e2e8f0', '--border-main': '#1e293b' };
+          case AppTheme.LIGHT: return { '--bg-main': '#f5f5f5', '--text-main': '#171717', '--border-main': '#e5e5e5' };
+          case AppTheme.AMBER: return { '--bg-main': '#0a0500', '--text-main': '#f59e0b', '--border-main': '#451a03' };
+          case AppTheme.MIDNIGHT: return { '--bg-main': '#020617', '--text-main': '#e2e8f0', '--border-main': '#1e293b' };
           default: return { '--bg-main': '#030303', '--text-main': '#e5e5e5', '--border-main': '#1f1f1f' };
       }
   };

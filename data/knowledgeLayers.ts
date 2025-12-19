@@ -1,4 +1,3 @@
-
 import { AppMode } from '../types';
 
 export interface KnowledgeLayer {
@@ -44,9 +43,6 @@ export const KNOWLEDGE_LAYERS: Record<string, KnowledgeLayer> = {
         3. CONTEXT: Understand 'Proof of Useful Work' (Qubic) vs 'Proof of Work' (Doge).
         `,
         memoryTags: ['crypto', 'finance', 'market_data', 'qubic', 'doge'],
-        /**
-         * Fix: Replaced AppMode.DISCOVERY with AppMode.BIBLIOMORPHIC.
-         */
         activeModes: [AppMode.DASHBOARD, AppMode.BIBLIOMORPHIC]
     },
     'STRATEGIC_FUTURISM': {
@@ -63,9 +59,6 @@ export const KNOWLEDGE_LAYERS: Record<string, KnowledgeLayer> = {
         3. METHOD: First Principles thinking.
         `,
         memoryTags: ['strategy', 'ai_trends', 'energy'],
-        /**
-         * Fix: Replaced AppMode.DISCOVERY with AppMode.BIBLIOMORPHIC.
-         */
         activeModes: [AppMode.BIBLIOMORPHIC, AppMode.BICAMERAL]
     }
 };

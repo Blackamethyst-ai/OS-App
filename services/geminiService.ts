@@ -233,72 +233,40 @@ export async function researchComponents(query: string): Promise<ComponentRecomm
 
 export async function analyzePowerDynamics(input: string): Promise<AnalysisResult> {
     const ai = getAI();
-    try {
-        const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: `Perform a comprehensive Power X-Ray diagnostic for target: "${input}".
-            
-            REQUIRED OUTPUT FORMAT: JSON object strictly adhering to this structure:
-            {
-                "scores": {
-                    "centralization": number (0-100),
-                    "entropy": number (0-100),
-                    "vitality": number (0-100),
-                    "opacity": number (0-100),
-                    "adaptability": number (0-100)
-                },
-                "sustainer": string,
-                "extractor": string,
-                "destroyer": string,
-                "vectors": [{"mechanism": string, "vulnerability": string, "severity": "CRITICAL" | "HIGH" | "MEDIUM" | "LOW"}],
-                "insight": string
-            }`,
-            config: { 
-                systemInstruction: SYSTEM_COMMANDER_INSTRUCTION,
-                responseMimeType: 'application/json'
-            }
-        }));
-        
-        const rawText = response.text || "{}";
-        let parsed: any;
-        try {
-            parsed = JSON.parse(rawText);
-        } catch (parseError) {
-            console.error("JSON Parse Error in analyzePowerDynamics:", parseError, "Raw text:", rawText);
-            throw new Error("Invalid analysis payload format.");
+    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Perform a power X-ray analysis for the system/entity: "${input}". 
+        Requirement: Provide a comprehensive JSON response adhering to the AnalysisResult schema.
+        Ensure 'scores' object is populated with values for centralization, entropy, vitality, opacity, and adaptability (0-100).`,
+        config: { 
+            systemInstruction: SYSTEM_COMMANDER_INSTRUCTION,
+            responseMimeType: 'application/json'
         }
-
-        // Return strictly formatted result with deep defaults to prevent 'undefined' crashes
-        return {
-            scores: {
-                centralization: typeof parsed?.scores?.centralization === 'number' ? parsed.scores.centralization : 50,
-                entropy: typeof parsed?.scores?.entropy === 'number' ? parsed.scores.entropy : 50,
-                vitality: typeof parsed?.scores?.vitality === 'number' ? parsed.scores.vitality : 50,
-                opacity: typeof parsed?.scores?.opacity === 'number' ? parsed.scores.opacity : 50,
-                adaptability: typeof parsed?.scores?.adaptability === 'number' ? parsed.scores.adaptability : 50,
-            },
-            sustainer: parsed?.sustainer || "Signal lost",
-            extractor: parsed?.extractor || "Signal lost",
-            destroyer: parsed?.destroyer || "Signal lost",
-            vectors: Array.isArray(parsed?.vectors) ? parsed.vectors.map((v: any) => ({
-                mechanism: v.mechanism || "Unknown Mechanism",
-                vulnerability: v.vulnerability || "Undetected",
-                severity: v.severity || "LOW"
-            })) : [],
-            insight: parsed?.insight || "Scan depth insufficient for high-fidelity insight."
-        };
-    } catch (err: any) {
-        console.error("Critical Power X-Ray Failure:", err);
-        // Return a baseline safe result if everything fails
-        return {
-            scores: { centralization: 0, entropy: 0, vitality: 0, opacity: 0, adaptability: 0 },
-            sustainer: "FAULT_DETECTED",
-            extractor: "FAULT_DETECTED",
-            destroyer: "FAULT_DETECTED",
-            vectors: [],
-            insight: "DIAGNOSTIC_FAILURE: " + err.message
-        };
+    }));
+    
+    const raw = response.text || "{}";
+    let parsed: any;
+    try {
+        parsed = JSON.parse(raw);
+    } catch (e) {
+        parsed = {};
     }
+
+    // Defensive default structure to prevent runtime errors like "Cannot read properties of undefined (reading 'centralization')"
+    return {
+        scores: {
+            centralization: parsed.scores?.centralization ?? 50,
+            entropy: parsed.scores?.entropy ?? 50,
+            vitality: parsed.scores?.vitality ?? 50,
+            opacity: parsed.scores?.opacity ?? 50,
+            adaptability: parsed.scores?.adaptability ?? 50,
+        },
+        sustainer: parsed.sustainer || "Awaiting Data",
+        extractor: parsed.extractor || "Awaiting Data",
+        destroyer: parsed.destroyer || "Awaiting Data",
+        vectors: Array.isArray(parsed.vectors) ? parsed.vectors : [],
+        insight: parsed.insight || "No strategic insight generated."
+    };
 }
 
 export async function refractStrategy(metavention: any, prisms: string[]): Promise<any[]> {
