@@ -13,24 +13,26 @@ import {
     HardDriveDownload, Network as NetworkIcon,
     Save, VolumeX, Lightbulb, Search, Loader2, Code, Cloud,
     ShieldCheck, Sparkles, FileText, Upload, Eye, FileUp, Info,
-    FolderTree, Terminal, Settings2, User, Copy, ExternalLink, Globe, ArrowRight, PieChart, ShieldAlert, Thermometer, Bell
+    FolderTree, Terminal, Settings2, User, Copy, ExternalLink, Globe, ArrowRight, PieChart, ShieldAlert, Thermometer, Bell, FolderSync
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useAppStore } from '../store';
-import { AppTheme } from '../types';
+import { AppTheme, AppMode } from '../types';
 import MermaidDiagram from './MermaidDiagram';
 import NexusAPIExplorer from './NexusAPIExplorer';
 import { useProcessVisualizerLogic, VISUAL_THEMES } from '../hooks/useProcessVisualizerLogic';
 import { renderSafe } from '../utils/renderSafe';
 import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
 
-const ProtocolLoom: React.FC<{ protocols: any[] }> = ({ protocols }) => {
+const ProtocolLoom: React.FC<{ protocols: any[], type?: string }> = ({ protocols, type }) => {
     if (!protocols || protocols.length === 0) return null;
+
+    const accentColor = type === 'DRIVE_ORGANIZATION' ? '#22d3ee' : type === 'SYSTEM_ARCHITECTURE' ? '#f59e0b' : '#9d4edd';
 
     return (
         <div className="w-full bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-6 mb-8 overflow-x-auto custom-scrollbar">
             <div className="flex items-center gap-2 mb-6 border-b border-[#1f1f1f] pb-3">
-                <Activity className="w-4 h-4 text-[#9d4edd]" />
+                <Activity className="w-4 h-4" style={{ color: accentColor }} />
                 <h3 className="text-[10px] font-black font-mono text-gray-400 uppercase tracking-[0.2em]">Protocol Loom // Sequence Visualization</h3>
             </div>
             
@@ -47,7 +49,7 @@ const ProtocolLoom: React.FC<{ protocols: any[] }> = ({ protocols }) => {
                             `}
                         >
                             <div className="flex justify-between items-start mb-3">
-                                <span className="text-[9px] font-black font-mono text-[#9d4edd] bg-[#9d4edd]/10 px-1.5 rounded">STEP_{String(p.step || i+1).padStart(2, '0')}</span>
+                                <span className="text-[9px] font-black font-mono px-1.5 rounded" style={{ color: accentColor, backgroundColor: `${accentColor}15` }}>STEP_{String(p.step || i+1).padStart(2, '0')}</span>
                                 {p.priority === 'HIGH' && <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_red]" />}
                             </div>
                             <h4 className="text-[11px] font-bold text-white font-mono mb-2 truncate group-hover:text-[#22d3ee] transition-colors">{p.action}</h4>
@@ -55,7 +57,6 @@ const ProtocolLoom: React.FC<{ protocols: any[] }> = ({ protocols }) => {
                                 <User className="w-2.5 h-2.5" /> {p.role}
                             </div>
                             
-                            {/* Decorative line */}
                             <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-2 h-[1px] bg-[#333]" />
                         </motion.div>
                         
@@ -191,7 +192,7 @@ const CinematicEdge = ({ id, sourceX, sourceY, targetX, targetY, style, markerEn
 };
 
 const ProcessVisualizerContent = () => {
-    const { addLog } = useAppStore();
+    const { addLog, setMode } = useAppStore();
     const {
         state, activeTab, onNodesChange, onEdgesChange, onConnect, onPaneContextMenu, onPaneClick, onPaneDoubleClick,
         nodes, edges, animatedNodes, animatedEdges, visualTheme, showGrid, toggleGrid,
@@ -302,7 +303,6 @@ const ProcessVisualizerContent = () => {
                     {activeTab === 'architect' && (
                         <div className="h-full flex flex-col p-8 bg-black gap-8">
                             <div className="flex gap-8 flex-1">
-                                {/* Left: Prompting Form */}
                                 <div className="w-1/3 bg-[#0a0a0a] border border-[#333] rounded-xl p-6 shadow-2xl flex flex-col justify-center gap-6">
                                     <div className="text-center">
                                         <div className="w-16 h-16 bg-[#111] rounded-full flex items-center justify-center border border-[#333] mx-auto mb-4 shadow-[0_0_30px_rgba(157,78,221,0.2)]">
@@ -317,7 +317,6 @@ const ProcessVisualizerContent = () => {
                                         Generate Blueprint
                                     </button>
                                 </div>
-                                {/* Right: Architectural Resonance Plot */}
                                 <div className="flex-1">
                                     <ArchitecturalResonancePlot nodes={nodes} />
                                 </div>
@@ -359,20 +358,56 @@ const ProcessVisualizerContent = () => {
                                 </div>
                                 <div className="flex-1 bg-[#050505] p-6 overflow-y-auto custom-scrollbar">
                                     {!state.generatedWorkflow ? (
-                                        <div className="h-full flex flex-col items-center justify-center opacity-20">
-                                            <Workflow className="w-16 h-16 mb-4" />
-                                            <p className="font-mono text-xs uppercase tracking-widest">Awaiting Synthesis Instruction</p>
+                                        <div className="h-full flex flex-col items-center justify-center p-12">
+                                            <div className="max-w-xl w-full space-y-10">
+                                                <div className="text-center">
+                                                    <Workflow className="w-16 h-16 mb-4 text-[#9d4edd] mx-auto opacity-40" />
+                                                    <h3 className="font-mono text-sm uppercase tracking-widest text-white mb-2">Protocol Blueprint Gallery</h3>
+                                                    <p className="text-[10px] text-gray-600 font-mono">Select a domain-specific logic template to initialize synthesis.</p>
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                    <button 
+                                                        onClick={() => { setSelectedWorkflowDomain('DRIVE_ORGANIZATION'); triggerGenerate('workflow'); }}
+                                                        className="p-6 bg-[#0a0a0a] border border-[#22d3ee]/20 rounded-2xl hover:border-[#22d3ee] transition-all text-left group"
+                                                    >
+                                                        <FolderSync className="w-8 h-8 text-[#22d3ee] mb-4 group-hover:scale-110 transition-transform" />
+                                                        <h4 className="text-xs font-black text-white uppercase tracking-widest mb-2 font-mono">Drive Organization</h4>
+                                                        <p className="text-[9px] text-gray-500 font-mono leading-relaxed">PARA method implementation with ISO naming standards and automated lifecycle archival logic.</p>
+                                                    </button>
+                                                    
+                                                    <button 
+                                                        onClick={() => { setSelectedWorkflowDomain('SYSTEM_ARCHITECTURE'); triggerGenerate('workflow'); }}
+                                                        className="p-6 bg-[#0a0a0a] border border-[#f59e0b]/20 rounded-2xl hover:border-[#f59e0b] transition-all text-left group"
+                                                    >
+                                                        <Server className="w-8 h-8 text-[#f59e0b] mb-4 group-hover:scale-110 transition-transform" />
+                                                        <h4 className="text-xs font-black text-white uppercase tracking-widest mb-2 font-mono">System Architecture</h4>
+                                                        <p className="text-[9px] text-gray-500 font-mono leading-relaxed">High-availability topology with Zero-Trust mesh protocols and autopoietic redundancy triggers.</p>
+                                                    </button>
+                                                </div>
+                                            </div>
                                         </div>
                                     ) : (
                                         <div className="space-y-8 max-w-4xl mx-auto">
-                                            {/* Protocol Loom Sequence Visualization */}
-                                            <ProtocolLoom protocols={state.generatedWorkflow.protocols} />
+                                            <ProtocolLoom protocols={state.generatedWorkflow.protocols} type={selectedWorkflowDomain} />
 
-                                            {/* DRIVE_ORGANIZATION Domain specific view */}
                                             {selectedWorkflowDomain === 'DRIVE_ORGANIZATION' && state.generatedWorkflow.taxonomy && (
-                                                <div className="mb-8 p-6 bg-[#0a0a0a] border border-[#22d3ee]/20 rounded-xl">
-                                                    <h3 className="text-[#22d3ee] font-mono text-xs font-bold uppercase tracking-widest mb-4 flex items-center gap-2"><FolderTree className="w-4 h-4" /> Proposed Directory Topology</h3>
-                                                    <div className="grid grid-cols-1 gap-4">
+                                                <div className="mb-8 p-6 bg-[#0a0a0a] border border-[#22d3ee]/20 rounded-xl relative overflow-hidden group">
+                                                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none group-hover:opacity-20 transition-opacity">
+                                                        <FolderTree className="w-24 h-24 text-[#22d3ee]" />
+                                                    </div>
+                                                    <div className="flex justify-between items-center mb-6 border-b border-[#22d3ee]/20 pb-3">
+                                                        <h3 className="text-[#22d3ee] font-mono text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+                                                            <FolderSync className="w-4 h-4" /> Proposed Directory Topology
+                                                        </h3>
+                                                        <button 
+                                                            onClick={() => setMode(AppMode.MEMORY_CORE)}
+                                                            className="text-[9px] font-mono font-black text-[#22d3ee] bg-[#22d3ee]/10 px-2 py-1 rounded border border-[#22d3ee]/30 hover:bg-[#22d3ee] hover:text-black transition-all"
+                                                        >
+                                                            Apply to Memory Core
+                                                        </button>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 gap-4 relative z-10">
                                                         {state.generatedWorkflow.taxonomy.root?.map((folder: any, i: number) => (
                                                             <div key={i} className="flex flex-col gap-2 border-l-2 border-[#22d3ee]/30 pl-4 py-1">
                                                                 <div className="text-white font-mono text-xs font-bold">/{folder.folder}</div>
@@ -392,10 +427,9 @@ const ProcessVisualizerContent = () => {
                                                 </div>
                                             )}
 
-                                            {/* SYSTEM_ARCHITECTURE Domain specific view: Monitoring Grid */}
                                             {selectedWorkflowDomain === 'SYSTEM_ARCHITECTURE' && state.generatedWorkflow.metrics && (
                                                 <div className="mb-8">
-                                                    <div className="flex items-center gap-2 mb-4">
+                                                    <div className="flex items-center gap-2 mb-4 border-b border-[#f59e0b]/20 pb-3">
                                                         <Activity className="w-4 h-4 text-[#f59e0b]" />
                                                         <h3 className="text-[#f59e0b] font-mono text-xs font-bold uppercase tracking-widest">System Health Monitoring Matrix</h3>
                                                     </div>

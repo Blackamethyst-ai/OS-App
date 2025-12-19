@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-// Fix: Added missing Loader2 and GitCommit imports from lucide-react
 import { Search, Zap, Skull, Crown, Activity, Radar, Crosshair, Terminal, AlertTriangle, ShieldCheck, Waves, TrendingUp, BarChart3, Radio, Loader2, GitCommit } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import { analyzePowerDynamics, promptSelectKey } from "../services/geminiService";
@@ -50,7 +49,7 @@ const VitalityPulse = ({ value }: { value: number }) => {
                         className="absolute inset-4 rounded-full bg-[#42be65]/5 border border-[#42be65]/30 flex items-center justify-center backdrop-blur-sm"
                     >
                         <div className="text-5xl font-black font-mono text-white drop-shadow-[0_0_15px_rgba(66,190,101,0.6)]">
-                            {value}
+                            {value || 0}
                         </div>
                     </motion.div>
                 </div>
@@ -186,13 +185,16 @@ export default function PowerXRay() {
     }
   };
 
-  const chartData = data ? [
-    { subject: 'Centralization', A: data.scores.centralization, fullMark: 100 },
-    { subject: 'Entropy', A: data.scores.entropy, fullMark: 100 },
-    { subject: 'Vitality', A: data.scores.vitality, fullMark: 100 },
-    { subject: 'Opacity', A: data.scores.opacity, fullMark: 100 },
-    { subject: 'Adaptability', A: data.scores.adaptability, fullMark: 100 },
-  ] : [];
+  const chartData = useMemo(() => {
+    if (!data || !data.scores) return [];
+    return [
+        { subject: 'Centralization', A: data.scores.centralization || 0, fullMark: 100 },
+        { subject: 'Entropy', A: data.scores.entropy || 0, fullMark: 100 },
+        { subject: 'Vitality', A: data.scores.vitality || 0, fullMark: 100 },
+        { subject: 'Opacity', A: data.scores.opacity || 0, fullMark: 100 },
+        { subject: 'Adaptability', A: data.scores.adaptability || 0, fullMark: 100 },
+    ];
+  }, [data]);
 
   const getSeverityStyles = (severity: string) => {
       switch(severity?.toUpperCase()) {
@@ -327,7 +329,7 @@ export default function PowerXRay() {
 
                              <div className="flex-1 flex flex-col items-center justify-center relative z-10 py-6">
                                  {/* Procedural Vitality Visualizer */}
-                                 <VitalityPulse value={data.scores.vitality} />
+                                 {data.scores && <VitalityPulse value={data.scores.vitality || 0} />}
 
                                  <div className="w-full h-72 -mt-4">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -354,16 +356,16 @@ export default function PowerXRay() {
                                      <span className="text-gray-600 uppercase tracking-widest font-black flex items-center gap-2 group-hover:text-gray-400 transition-colors">
                                          <Activity size={12}/> ENTROPY
                                      </span>
-                                     <span className={`text-2xl font-black ${data.scores.entropy > 70 ? 'text-red-500' : 'text-gray-200'}`}>
-                                         {data.scores.entropy}%
+                                     <span className={`text-2xl font-black ${(data.scores?.entropy || 0) > 70 ? 'text-red-500' : 'text-gray-200'}`}>
+                                         {data.scores?.entropy || 0}%
                                      </span>
                                  </div>
                                  <div className="flex flex-col gap-1 bg-[#0a0a0a] p-4 group">
                                      <span className="text-gray-600 uppercase tracking-widest font-black flex items-center gap-2 group-hover:text-gray-400 transition-colors">
                                          <GitCommit size={12}/> CENTRALIZATION
                                      </span>
-                                     <span className={`text-2xl font-black ${data.scores.centralization > 80 ? 'text-amber-500' : 'text-gray-200'}`}>
-                                         {data.scores.centralization}%
+                                     <span className={`text-2xl font-black ${(data.scores?.centralization || 0) > 80 ? 'text-amber-500' : 'text-gray-200'}`}>
+                                         {data.scores?.centralization || 0}%
                                      </span>
                                  </div>
                              </div>
@@ -381,7 +383,7 @@ export default function PowerXRay() {
                             </div>
                             
                             <div className="space-y-4">
-                                {data.vectors.map((vec, i) => (
+                                {data.vectors?.map((vec, i) => (
                                     <MotionDiv 
                                         key={i} 
                                         initial={{ opacity: 0, x: 20 }}
