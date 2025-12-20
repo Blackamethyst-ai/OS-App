@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, InterventionProtocol, OperationalContext, AgentWallet, TemporalEra, Task, TaskStatus, AspectRatio, ProtocolStepResult } from './types';
 
@@ -65,7 +64,20 @@ interface AppState {
         isLoading: boolean;
         error: string | null;
     };
-    codeStudio: any;
+    codeStudio: {
+        history: any[];
+        prompt: string;
+        language: string;
+        generatedCode: string;
+        suggestions: string[];
+        autoSaveEnabled: boolean;
+        activeTab: 'IDE' | 'ACTIONS';
+        isLoading: boolean;
+        isExecuting: boolean;
+        executionOutput: string | null;
+        error: string | null;
+        activePatch: { code: string; explanation: string; timestamp: number } | null;
+    };
     bibliomorphic: {
         chatHistory: any[];
         library: any[];
@@ -143,7 +155,7 @@ interface AppState {
     setFocusedSelector: (selector: string | null) => void;
     
     setProcessState: (state: Partial<AppState['process']> | ((prev: AppState['process']) => Partial<AppState['process']>)) => void;
-    setCodeStudioState: (state: any) => void;
+    setCodeStudioState: (state: Partial<AppState['codeStudio']> | ((prev: AppState['codeStudio']) => Partial<AppState['codeStudio']>)) => void;
     setHardwareState: (state: Partial<AppState['hardware']> | ((prev: AppState['hardware']) => Partial<AppState['hardware']>)) => void;
     setImageGenState: (state: Partial<AppState['imageGen']> | ((prev: AppState['imageGen']) => Partial<AppState['imageGen']>)) => void;
     setBibliomorphicState: (state: Partial<AppState['bibliomorphic']> | ((prev: AppState['bibliomorphic']) => Partial<AppState['bibliomorphic']>)) => void;
@@ -256,7 +268,20 @@ export const useAppStore = create<AppState>((set) => ({
         isLoading: false,
         error: null
     },
-    codeStudio: { history: [], prompt: '', language: 'typescript', generatedCode: '', suggestions: [], autoSaveEnabled: false },
+    codeStudio: { 
+        history: [], 
+        prompt: '', 
+        language: 'typescript', 
+        generatedCode: '', 
+        suggestions: [], 
+        autoSaveEnabled: false, 
+        activeTab: 'IDE',
+        isLoading: false,
+        isExecuting: false,
+        executionOutput: null,
+        error: null,
+        activePatch: null
+    },
     bibliomorphic: { chatHistory: [], library: [], dna: null, activeBook: null, activeTab: 'discovery', error: null, isIngesting: false, synapticReadout: [], agentPathways: {} },
     voice: { transcripts: [], partialTranscript: null, agentAvatars: {}, voiceName: 'Puck', isActive: false, isConnecting: false, error: null, mentalState: { skepticism: 50, excitement: 50, alignment: 50 } },
     bicameral: { plan: [], ledger: [], swarmStatus: { votes: {}, killedAgents: 0 }, goal: '' },
