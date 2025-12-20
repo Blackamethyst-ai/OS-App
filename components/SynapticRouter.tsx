@@ -17,7 +17,6 @@ const BibliomorphicEngine = lazy(() => import('./BibliomorphicEngine'));
 const ProcessVisualizer = lazy(() => import('./ProcessVisualizer'));
 const MemoryCore = lazy(() => import('./MemoryCore'));
 const ImageGen = lazy(() => import('./ImageGen'));
-const PowerXRay = lazy(() => import('./PowerXRay'));
 const HardwareEngine = lazy(() => import('./HardwareEngine'));
 const VoiceMode = lazy(() => import('./VoiceMode'));
 const CodeStudio = lazy(() => import('./CodeStudio'));
@@ -49,7 +48,6 @@ const SynapticRouter: React.FC = () => {
                 'process': AppMode.PROCESS_MAP,
                 'memory': AppMode.MEMORY_CORE,
                 'assets': AppMode.IMAGE_GEN,
-                'power': AppMode.POWER_XRAY,
                 'hardware': AppMode.HARDWARE_ENGINEER,
                 'code': AppMode.CODE_STUDIO,
                 'voice': AppMode.VOICE_MODE,
@@ -179,7 +177,6 @@ const SynapticRouter: React.FC = () => {
                         {mode === AppMode.PROCESS_MAP && <ProcessVisualizer />}
                         {mode === AppMode.MEMORY_CORE && <MemoryCore />}
                         {mode === AppMode.IMAGE_GEN && <ImageGen />}
-                        {mode === AppMode.POWER_XRAY && <PowerXRay />}
                         {mode === AppMode.HARDWARE_ENGINEER && <HardwareEngine />}
                         {mode === AppMode.VOICE_MODE && <VoiceMode />}
                         {mode === AppMode.CODE_STUDIO && <CodeStudio />}
@@ -215,7 +212,11 @@ const SynapticRouter: React.FC = () => {
                             {contextMenu.contextType === 'GENERAL' && (
                                 <>
                                     <MenuItem icon={ArrowUpRight} label="Jump to Dashboard" onClick={() => window.location.hash = '/dashboard'} />
-                                    <MenuItem icon={Activity} label="System Diagnostic" onClick={() => window.location.hash = '/power'} />
+                                    <MenuItem icon={Activity} label="System Diagnostic" onClick={() => {
+                                        // Update to target Memory Core with XRAY tab
+                                        window.location.hash = '/memory';
+                                        // This might need a store update but the component handles its internal state
+                                    }} />
                                     <MenuItem icon={Terminal} label="Open Quake Terminal" onClick={() => toggleTerminal(true)} />
                                 </>
                             )}
