@@ -125,7 +125,7 @@ const CalibrationPanel = ({ onDispatch }: { onDispatch: (q: string) => void }) =
         <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto p-6">
             <div className="mb-8 text-center space-y-2">
                 <div className="w-16 h-16 bg-[#111] rounded-full flex items-center justify-center border border-[#333] mx-auto shadow-[0_0_30px_rgba(34,211,238,0.2)]">
-                    <FlaskConical className="w-8 h-8 text-[#22d3ee]" />
+                    <FlaskConical className="w-8 h-8 text-[#22d3ee]"/>
                 </div>
                 <h2 className="text-2xl font-mono font-bold text-white uppercase tracking-widest">Protocol Calibration</h2>
                 <p className="text-xs text-gray-500 font-mono uppercase tracking-widest">Define the research vector for autonomous agents.</p>

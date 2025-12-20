@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -98,9 +99,9 @@ const NexusAPIExplorer: React.FC = () => {
     };
 
     return (
-        <div className="h-full flex gap-6 p-6 overflow-hidden">
+        <div className="h-full w-full flex gap-6 p-6 overflow-hidden bg-[#030303] border-t border-[#1f1f1f]">
             {/* Left: Search & List */}
-            <div className="w-[450px] bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl overflow-hidden flex flex-col shadow-2xl">
+            <div className="w-[400px] bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl overflow-hidden flex flex-col shadow-2xl">
                 <div className="p-4 border-b border-[#1f1f1f] bg-[#111]">
                     <div className="flex items-center gap-3 mb-4">
                         <div className="p-2 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded">
@@ -123,18 +124,24 @@ const NexusAPIExplorer: React.FC = () => {
                     {filtered.map((api, i) => (
                         <button
                             key={i}
-                            onClick={() => setSelectedApi(api)}
+                            onClick={() => { setSelectedApi(api); setGeneratedSchema(null); }}
                             className={`w-full text-left p-3 rounded-lg transition-all flex items-center justify-between group
                                 ${selectedApi?.title === api.title ? 'bg-[#9d4edd]/10 border border-[#9d4edd]/30' : 'hover:bg-[#111] border border-transparent'}
                             `}
                         >
-                            <div className="flex-1 min-w-0">
-                                <div className="text-[11px] font-bold text-gray-200 group-hover:text-white transition-colors">{api.title}</div>
+                            <div className="flex-1 min-w-0 pr-4">
+                                <div className="text-[11px] font-bold text-gray-200 group-hover:text-white transition-colors truncate">{api.title}</div>
                                 <div className="text-[9px] text-gray-600 font-mono truncate">{api.description}</div>
                             </div>
-                            <ChevronRight className={`w-3 h-3 ${selectedApi?.title === api.title ? 'text-[#9d4edd]' : 'text-gray-700'}`} />
+                            <ChevronRight className={`w-3 h-3 shrink-0 ${selectedApi?.title === api.title ? 'text-[#9d4edd]' : 'text-gray-700'}`} />
                         </button>
                     ))}
+                    {filtered.length === 0 && (
+                        <div className="p-8 text-center opacity-20">
+                            <X className="mx-auto mb-2" size={24} />
+                            <span className="text-[10px] font-mono uppercase">No endpoints found</span>
+                        </div>
+                    )}
                 </div>
                 
                 <div className="p-3 bg-[#080808] border-t border-[#1f1f1f] flex justify-between text-[8px] font-mono text-gray-600">
@@ -154,19 +161,19 @@ const NexusAPIExplorer: React.FC = () => {
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: -20 }}
-                            className="flex-1 flex flex-col p-8 z-10"
+                            className="h-full flex flex-col p-8 z-10"
                         >
                             <div className="flex justify-between items-start mb-8">
                                 <div>
                                     <span className="text-[10px] font-black text-[#9d4edd] uppercase tracking-[0.4em] block mb-2">{selectedApi.category} PROTOCOL</span>
                                     <h1 className="text-3xl font-black text-white font-mono tracking-tighter uppercase">{selectedApi.title}</h1>
                                 </div>
-                                <button onClick={() => setSelectedApi(null)} className="p-2 text-gray-600 hover:text-white transition-colors"><X className="w-6 h-6" /></button>
+                                <button onClick={() => setSelectedApi(null)} className="p-2 text-gray-600 hover:text-white transition-colors bg-[#111] rounded-lg border border-[#222]"><X className="w-5 h-5" /></button>
                             </div>
 
-                            <div className="bg-[#0a0a0a] border border-[#222] p-6 rounded-2xl mb-8">
+                            <div className="bg-[#0a0a0a] border border-[#222] p-6 rounded-2xl mb-8 shadow-inner">
                                 <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <Terminal className="w-3 h-3" /> Core description
+                                    <Terminal className="w-3 h-3" /> Endpoint description
                                 </h3>
                                 <p className="text-sm text-gray-300 font-mono leading-relaxed">{selectedApi.description}</p>
                             </div>
@@ -174,10 +181,10 @@ const NexusAPIExplorer: React.FC = () => {
                             <div className="flex-1 flex flex-col min-h-0">
                                 <div className="flex items-center justify-between mb-4">
                                     <h3 className="text-[10px] font-bold text-[#22d3ee] uppercase tracking-widest flex items-center gap-2">
-                                        <Code className="w-4 h-4" /> MCP Manifest Forging
+                                        <Code className="w-4 h-4" /> MCP Manifest Generator
                                     </h3>
                                     {generatedSchema && (
-                                        <button onClick={injectToMap} className="text-[10px] font-bold text-[#42be65] font-mono hover:underline uppercase flex items-center gap-2">
+                                        <button onClick={injectToMap} className="text-[10px] font-bold text-[#42be65] font-mono hover:underline uppercase flex items-center gap-2 transition-all hover:scale-105">
                                             <GitBranch className="w-3 h-3" /> Inject into Process Lattice
                                         </button>
                                     )}
@@ -206,7 +213,7 @@ const NexusAPIExplorer: React.FC = () => {
                                 <button 
                                     onClick={forgeMcpTool}
                                     disabled={isForging}
-                                    className="w-full py-5 mt-8 bg-[#9d4edd] text-black font-black font-mono text-xs uppercase tracking-[0.3em] rounded-xl hover:bg-[#b06bf7] transition-all shadow-[0_0_40px_rgba(157,78,221,0.3)] flex items-center justify-center gap-4"
+                                    className="w-full py-5 mt-8 bg-[#9d4edd] text-black font-black font-mono text-xs uppercase tracking-[0.3em] rounded-xl hover:bg-[#b06bf7] transition-all shadow-[0_0_40px_rgba(157,78,221,0.3)] flex items-center justify-center gap-4 active:scale-95"
                                 >
                                     {isForging ? <Loader2 className="w-4 h-4 animate-spin"/> : <Sparkles className="w-4 h-4"/>}
                                     Forge MCP Tool definition

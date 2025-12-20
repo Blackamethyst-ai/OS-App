@@ -3,12 +3,13 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { interpretIntent, predictNextActions, promptSelectKey } from '../services/geminiService';
 import { AppMode, SuggestedAction, AppTheme } from '../types';
-import { Command, Loader2, X, Sparkles, ChevronRight, Code, Cpu, Mic, Zap, Image, BookOpen, Layers, Terminal, Activity, Search, Shield, BrainCircuit, Split, Palette, History, User, HardDrive, Settings, FlaskConical } from 'lucide-react';
+import { Command, Loader2, X, Sparkles, ChevronRight, Code, Cpu, Mic, Zap, Image, BookOpen, Layers, Terminal, Activity, Search, Shield, BrainCircuit, Split, Palette, History, User, HardDrive, Settings, FlaskConical, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MotionDiv = motion.div as any;
 
 const CommandPalette: React.FC = () => {
+  // Destructured addLog from useAppStore
   const { 
       isCommandPaletteOpen, 
       toggleCommandPalette, 
@@ -21,6 +22,8 @@ const CommandPalette: React.FC = () => {
       setBibliomorphicState,
       setTheme,
       addResearchTask, 
+      setFocusedSelector,
+      addLog,
       mode,
       system,
       user
@@ -124,6 +127,18 @@ const CommandPalette: React.FC = () => {
 
     const lowInput = input.toLowerCase();
 
+    // 0. Focus Mode Trigger
+    if (lowInput.startsWith("focus ") || lowInput.startsWith("target ")) {
+        const selector = input.split(' ').slice(1).join(' ');
+        if (selector) {
+            setFocusedSelector(selector);
+            setResult(`Targeting element: ${selector}`);
+            setTimeout(() => toggleCommandPalette(false), 800);
+            setIsLoading(false);
+            return;
+        }
+    }
+
     if (lowInput.includes('theme') || lowInput.includes('switch to')) {
         let msg = '';
         if (lowInput.includes('midnight')) { setTheme(AppTheme.MIDNIGHT); msg = 'Midnight Core Enabled'; }
@@ -173,8 +188,16 @@ const CommandPalette: React.FC = () => {
              }
           }
           break;
+        case 'FOCUS_ELEMENT':
+            if (intent.parameters?.selector) {
+                setFocusedSelector(intent.parameters.selector);
+                setResult(`Focusing UI context: ${intent.parameters.selector}`);
+                setTimeout(() => toggleCommandPalette(false), 800);
+            }
+            break;
         default:
           setResult(`Protocol Executed: ${intent.action}`);
+          if (intent.reasoning) addLog('INFO', `COMMAND_LOG: ${intent.reasoning}`);
           setTimeout(() => toggleCommandPalette(false), 1500);
       }
 
@@ -197,6 +220,7 @@ const CommandPalette: React.FC = () => {
           case 'Shield': return Shield;
           case 'Terminal': return Terminal;
           case 'Palette': return Palette;
+          case 'Target': return Target;
           default: return Sparkles;
       }
   };
@@ -221,7 +245,7 @@ const CommandPalette: React.FC = () => {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && executeCommand()}
-                placeholder="Ask Structura to navigate, generate, or research..."
+                placeholder="Ask Structura to navigate, focus, or research (e.g. 'focus .header')..."
                 className="flex-1 bg-transparent border-none outline-none text-white font-mono text-sm placeholder:text-gray-700"
                 autoComplete="off"
               />
@@ -233,7 +257,7 @@ const CommandPalette: React.FC = () => {
                 <div className="flex flex-col">
                     <div className="bg-[#0e0e0e]/50">
                         <div className="px-6 py-2.5 text-[8px] text-[#9d4edd] font-mono uppercase tracking-[0.4em] flex items-center justify-between border-b border-[#1f1f1f] bg-[#111]">
-                            <span className="flex items-center gap-2"><BrainCircuit className="w-3.5 h-3.5" /> Predicted Actions</span>
+                            <span className="flex items-center gap-2"><BrainCircuit className="w-3.5 h-3.5" /> Predicted Actions (Grounded)</span>
                             {isPredicting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                         </div>
                         

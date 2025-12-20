@@ -6,7 +6,7 @@ import {
     Plus, Tag, ChevronDown, ChevronRight, CheckCircle, Trash2, Filter, 
     SortAsc, AlertCircle, GripVertical, Check, ListTodo, MoreVertical, 
     X, Archive, Zap, Play, CheckCircle2, ListChecks, Activity, 
-    BarChart3, Hash, Clock, Sparkles, Loader2
+    BarChart3, Hash, Clock, Sparkles, Loader2, SignalHigh, SignalMedium, SignalLow
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { decomposeTaskToSubtasks, promptSelectKey } from '../services/geminiService';
@@ -56,6 +56,7 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
     const [isAddingSubtask, setIsAddingSubtask] = useState(false);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
     const [isBreakingDown, setIsBreakingDown] = useState(false);
+    const [showPriorityPicker, setShowPriorityPicker] = useState(false);
 
     const toggleStatus = (nextStatus?: TaskStatus) => {
         const targetStatus = nextStatus || (task.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE);
@@ -66,6 +67,12 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
             audio.playSuccess();
         }
         updateTask(task.id, { status: targetStatus });
+    };
+
+    const setPriority = (priority: TaskPriority) => {
+        updateTask(task.id, { priority });
+        setShowPriorityPicker(false);
+        audio.playClick();
     };
 
     const handleAddSubtask = (e: React.FormEvent) => {
@@ -124,7 +131,6 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
     const handleDragStart = (e: React.DragEvent) => {
         e.dataTransfer.setData('taskId', task.id);
         e.dataTransfer.effectAllowed = 'move';
-        // Add a class for visual styling during drag if needed
         (e.target as HTMLElement).style.opacity = '0.5';
     };
 
@@ -142,7 +148,7 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
             onDragEnd={handleDragEnd}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className={`bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-4 shadow-xl group relative overflow-hidden mb-3 hover:border-[#333] transition-colors cursor-grab active:cursor-grabbing`}
+            className={`bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-4 shadow-xl group relative overflow-visible mb-3 hover:border-[#333] transition-colors cursor-grab active:cursor-grabbing`}
             style={{ borderLeftColor: PRIORITY_COLORS[task.priority], borderLeftWidth: '3px' }}
         >
             <CheckmarkFlourish isVisible={showFlourish} />
@@ -152,10 +158,38 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
                     <h4 className={`text-[13px] font-bold font-mono tracking-tight text-white uppercase truncate ${task.status === TaskStatus.DONE ? 'line-through opacity-30' : ''}`}>
                         {task.title}
                     </h4>
-                    <div className="flex items-center gap-2 mt-1">
-                        <span className={`text-[8px] font-black font-mono px-1.5 py-0.5 rounded border tracking-widest bg-black/40`} style={{ borderColor: `${PRIORITY_COLORS[task.priority]}33`, color: PRIORITY_COLORS[task.priority] }}>
+                    <div className="flex items-center gap-2 mt-1 relative">
+                        <button 
+                            onClick={() => setShowPriorityPicker(!showPriorityPicker)}
+                            className={`text-[8px] font-black font-mono px-1.5 py-0.5 rounded border tracking-widest bg-black/40 flex items-center gap-1 hover:brightness-125 transition-all`} 
+                            style={{ borderColor: `${PRIORITY_COLORS[task.priority]}33`, color: PRIORITY_COLORS[task.priority] }}
+                        >
+                            {task.priority === TaskPriority.HIGH ? <SignalHigh size={10}/> : task.priority === TaskPriority.MEDIUM ? <SignalMedium size={10}/> : <SignalLow size={10}/>}
                             {task.priority}
-                        </span>
+                        </button>
+                        
+                        <AnimatePresence>
+                            {showPriorityPicker && (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 5 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 5 }}
+                                    className="absolute top-full left-0 mt-1 z-[100] bg-[#111] border border-[#333] rounded shadow-2xl p-1 flex flex-col gap-0.5 min-w-[80px]"
+                                >
+                                    {Object.values(TaskPriority).map(p => (
+                                        <button 
+                                            key={p} 
+                                            onClick={() => setPriority(p)}
+                                            className={`text-[8px] font-black font-mono p-1.5 rounded uppercase text-left hover:bg-white/5 transition-colors`}
+                                            style={{ color: PRIORITY_COLORS[p] }}
+                                        >
+                                            {p}
+                                        </button>
+                                    ))}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                         <span className="text-[8px] font-mono text-gray-600 uppercase flex items-center gap-1">
                             <Clock size={10} /> {new Date(task.timestamp).toLocaleDateString()}
                         </span>
@@ -182,7 +216,6 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
                 </div>
             )}
 
-            {/* Subtasks Section */}
             <div className="bg-black/30 rounded-lg p-2.5 border border-white/5 space-y-2">
                 <div className="flex items-center justify-between">
                     <button 
@@ -242,14 +275,10 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
                                 />
                             </form>
                         )}
-                        {task.subtasks.length === 0 && !isAddingSubtask && (
-                            <div className="text-[8px] text-gray-700 font-mono italic">NO_SUB_PROTOCOLS</div>
-                        )}
                     </div>
                 )}
             </div>
 
-            {/* Quick Action Transitions */}
             <div className="mt-4 pt-3 border-t border-white/5 flex gap-1.5">
                 {task.status !== TaskStatus.TODO && (
                     <button 
@@ -334,7 +363,6 @@ const TaskBoard: React.FC = () => {
     const [isAdding, setIsAdding] = useState(false);
     const [dragOverStatus, setDragOverStatus] = useState<TaskStatus | null>(null);
 
-    // Form state for new task
     const [newTitle, setNewTitle] = useState('');
     const [newDesc, setNewDesc] = useState('');
     const [newPriority, setNewPriority] = useState<TaskPriority>(TaskPriority.MEDIUM);
@@ -384,7 +412,7 @@ const TaskBoard: React.FC = () => {
     };
 
     const clearCompletedInColumn = (status: TaskStatus) => {
-        const toDelete = tasks.filter(t => t.status === status && t.status === TaskStatus.DONE);
+        const toDelete = tasks.filter(t => t.status === status && status === TaskStatus.DONE);
         if (toDelete.length > 0) {
             toDelete.forEach(t => deleteTask(t.id));
             addLog('SYSTEM', `ARCHIVE: Purged ${toDelete.length} finalized items from matrix.`);
@@ -419,7 +447,6 @@ const TaskBoard: React.FC = () => {
         <div className="h-full w-full bg-[#030303] flex flex-col font-sans overflow-hidden border border-[#1f1f1f] rounded-xl shadow-2xl relative">
             <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
 
-            {/* Header / Controls */}
             <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur z-20 flex items-center justify-between px-6 shrink-0">
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-3">
@@ -467,7 +494,6 @@ const TaskBoard: React.FC = () => {
 
             <StatsRibbon tasks={tasks} />
 
-            {/* Kanban Columns */}
             <div className="flex-1 flex gap-6 p-6 overflow-x-auto custom-scrollbar bg-[#050505]/50 relative z-10">
                 {Object.values(TaskStatus).map(status => (
                     <div 
@@ -503,18 +529,11 @@ const TaskBoard: React.FC = () => {
                                 .filter(t => t.status === status)
                                 .map(task => <TaskCard key={task.id} task={task} />)
                             }
-                            {filteredAndSortedTasks.filter(t => t.status === status).length === 0 && (
-                                <div className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-[#1f1f1f] rounded-2xl opacity-10 grayscale">
-                                    <Archive className="w-12 h-12 mb-3" />
-                                    <span className="text-[10px] font-black font-mono uppercase tracking-[0.3em]">Sector Clear</span>
-                                </div>
-                            )}
                         </div>
                     </div>
                 ))}
             </div>
 
-            {/* Add Task Modal */}
             <AnimatePresence>
                 {isAdding && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md p-6">

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { generateArchitectureImage, promptSelectKey, fileToGenerativePart } from '../services/geminiService';
@@ -288,10 +289,10 @@ const OraclePanel: React.FC = () => {
     const { system } = useAppStore();
     
     const signals = system.logs
-        .filter(l => l.level !== 'ERROR')
+        .filter((l: any) => l.level !== 'ERROR')
         .slice(-8)
         .reverse()
-        .map(l => ({
+        .map((l: any) => ({
             id: l.id,
             text: l.message,
             type: l.level === 'WARN' ? 'WARN' : l.message?.includes('VOICE') ? 'AUDIO' : l.message?.includes('RESEARCH') ? 'INTEL' : 'SYS',
@@ -326,7 +327,7 @@ const OraclePanel: React.FC = () => {
                     </div>
                     <div className="flex-1 overflow-hidden space-y-1">
                         <AnimatePresence initial={false}>
-                            {signals.map((sig) => (
+                            {signals.map((sig: any) => (
                                 <motion.div key={sig.id} initial={{ opacity: 0, x: -20, height: 0 }} animate={{ opacity: 1, x: 0, height: 'auto' }} exit={{ opacity: 0 }} className="flex items-center gap-3 p-2 rounded hover:bg-[#111] border border-transparent hover:border-[#333] transition-colors">
                                     <span className={`text-[8px] font-bold font-mono px-1.5 rounded border 
                                         ${sig.type === 'WARN' ? 'text-[#f59e0b] border-[#f59e0b]/30 bg-[#f59e0b]/10' : 
@@ -426,7 +427,7 @@ const SystemVitalityMatrix: React.FC = () => {
 // --- MAIN DASHBOARD COMPONENT ---
 
 const Dashboard: React.FC = () => {
-  const { dashboard, setDashboardState, user, toggleProfile, research, voice, bicameral, system } = useAppStore();
+  const { dashboard, setDashboardState, user, toggleProfile, research, voice, bicameral, kernel, system } = useAppStore();
   const [time, setTime] = useState(new Date());
   const [uptime, setUptime] = useState(0);
   const [selectedMetric, setSelectedMetric] = useState<{title: string, color: string, data: any[]} | null>(null);
@@ -444,7 +445,7 @@ const Dashboard: React.FC = () => {
       const agents = [];
       if (voice.isActive) agents.push({ type: 'VOICE', label: voice.voiceName });
       
-      const activeResearch = research.tasks.filter(t => ['SEARCHING', 'PLANNING', 'SYNTHESIZING'].includes(t.status));
+      const activeResearch = research.tasks.filter(t => ['SEARCHING', 'PLANNING', 'SYNTHESIZING', 'SWARM_VERIFY'].includes(t.status));
       activeResearch.forEach(t => agents.push({ type: 'RESEARCH', label: (String(t.query || '')).substring(0, 10) }));
       
       if (bicameral.isSwarming) {
@@ -548,6 +549,10 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  const formatTime = (date: Date) => {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+  };
+
   useVoiceAction('generate_identity', 'Generate visual brand identity asset for the dashboard.', generateIdentity);
 
   return (
@@ -574,7 +579,7 @@ const Dashboard: React.FC = () => {
           <MotionDiv initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }} className="relative mb-8 p-8 rounded-2xl border border-[#1f1f1f] bg-[radial-gradient(circle_at_top_right,rgba(20,20,20,1),rgba(0,0,0,1))] overflow-hidden shadow-2xl">
             <div className="absolute inset-0 bg-[linear-gradient(45deg,rgba(255,255,255,0.02)_25%,transparent_25%,transparent_50%,rgba(255,255,255,0.02)_50%,rgba(255,255,255,0.02)_75%,transparent_75%,transparent)] bg-[size:20px_20px] pointer-events-none opacity-20"></div>
             <div className="flex flex-col md:flex-row justify-between items-end relative z-10">
-                <div className="flex items-end gap-6">
+                <div className="flex items-end gap-6 w-full">
                     <motion.div initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative group cursor-pointer shrink-0" onClick={() => toggleProfile(true)}>
                         <div className="w-24 h-24 rounded-full border-2 border-[#333] p-1 bg-[#0a0a0a] group-hover:border-[#9d4edd] transition-colors shadow-[0_0_30px_rgba(0,0,0,0.5)]">
                             <div className="w-full h-full rounded-full overflow-hidden relative flex items-center justify-center bg-[#111]">
@@ -583,25 +588,54 @@ const Dashboard: React.FC = () => {
                         </div>
                         <div className="absolute -bottom-1 -right-1 bg-[#0a0a0a] border border-[#333] px-2 py-0.5 rounded-full text-[8px] font-mono text-[#9d4edd] uppercase tracking-wider shadow-lg">{user.role}</div>
                     </motion.div>
-                    <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="w-2 h-2 rounded-full bg-[#42be65] shadow-[0_0_10px_#42be65] animate-pulse"></div>
-                            <span className="text-[10px] font-mono text-[#42be65] uppercase tracking-widest">System Optimal</span>
+                    <div className="flex-1">
+                        <div className="flex flex-col gap-1 mb-2">
+                            <span className="text-[8px] font-mono tracking-[0.4em] uppercase opacity-40">Sovereign Architecture Environment</span>
+                            <div className="flex items-center gap-3">
+                                <div className="w-2 h-2 rounded-full bg-[#42be65] shadow-[0_0_10px_#42be65] animate-pulse"></div>
+                                <span className="text-[10px] font-mono text-[#42be65] uppercase tracking-widest">System Optimal</span>
+                            </div>
                         </div>
                         <h1 className="text-5xl font-black font-mono text-white mb-3 tracking-tighter uppercase leading-none">METAVENTIONS AI</h1>
                         <p className="text-xs text-gray-500 font-mono max-w-lg leading-relaxed">Sovereign Architecture Overview. Real-time telemetry, asset generation, and intelligence feeds active.</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-8 mt-6 md:mt-0 bg-[#080808]/50 p-4 rounded-xl border border-[#222]">
-                     <div className="text-right">
-                         <div className="text-[10px] text-gray-500 font-mono uppercase mb-1">Session Uptime</div>
-                         <div className="text-xl font-mono font-bold text-white tracking-widest">{formatUptime(uptime)}</div>
-                     </div>
-                     <div className="w-px h-8 bg-[#333]"></div>
-                     <div className="text-right">
-                         <div className="text-[10px] text-gray-500 font-mono uppercase mb-1">Local Time</div>
-                         <div className="text-xl font-mono font-bold text-white tracking-widest">{time.toLocaleTimeString()}</div>
-                     </div>
+                
+                <div className="flex flex-col items-end gap-3 mt-6 md:mt-0 w-full md:w-auto">
+                    {/* Kernel HUD integrated into Dashboard Header */}
+                    <div className="flex items-center justify-between md:justify-end gap-6 px-5 py-3 border border-white/5 rounded-xl bg-black/60 backdrop-blur-sm shadow-xl w-full md:w-auto mb-2">
+                        <div className="flex flex-col">
+                            <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest leading-none mb-1.5">Node Load</span>
+                            <div className="flex items-center gap-2">
+                                <div className="w-16 h-1 bg-[#111] rounded-full overflow-hidden border border-white/5">
+                                    <motion.div animate={{ width: `${kernel.coreLoad}%` }} className="h-full bg-[#9d4edd] shadow-[0_0_5px_#9d4edd]" />
+                                </div>
+                                <span className="text-[9px] font-mono text-white font-bold">{kernel.coreLoad}%</span>
+                            </div>
+                        </div>
+                        <div className="w-px h-8 bg-white/5"></div>
+                        <div className="flex flex-col">
+                            <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest leading-none mb-1.5">Entropy</span>
+                            <span className="text-[14px] font-mono font-black text-[#22d3ee] leading-none drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">{kernel.entropy}</span>
+                        </div>
+                        <div className="w-px h-8 bg-white/5"></div>
+                        <div className="flex flex-col">
+                            <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest leading-none mb-1.5">Integrity</span>
+                            <span className="text-[14px] font-mono font-black text-[#10b981] leading-none drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">{kernel.integrity}%</span>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-8 bg-[#080808]/50 p-4 rounded-xl border border-[#222] shadow-inner w-full md:w-auto">
+                         <div className="text-right">
+                             <div className="text-[10px] text-gray-500 font-mono uppercase mb-1">Session Uptime</div>
+                             <div className="text-xl font-mono font-bold text-white tracking-widest">{formatUptime(uptime)}</div>
+                         </div>
+                         <div className="w-px h-8 bg-[#333]"></div>
+                         <div className="text-right">
+                             <div className="text-[10px] text-gray-500 font-mono uppercase mb-1">Local Time</div>
+                             <div className="text-xl font-mono font-bold text-white tracking-widest">{formatTime(time)}</div>
+                         </div>
+                    </div>
                 </div>
             </div>
           </MotionDiv>
@@ -648,7 +682,7 @@ const Dashboard: React.FC = () => {
                   <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-6 flex-1 flex flex-col min-h-[300px] overflow-hidden">
                       <h2 className="text-sm font-bold text-white uppercase tracking-widest flex items-center gap-2 font-mono mb-4"><Terminal className="w-4 h-4 text-[#42be65]" />System Logs</h2>
                       <div className="space-y-3 font-mono text-[10px] flex-1 overflow-y-auto custom-scrollbar pr-2">
-                          {system.logs.slice(-15).reverse().map((log, i) => (
+                          {system.logs.slice(-15).reverse().map((log: any, i: number) => (
                               <div key={i} className="text-gray-500 border-l-2 border-[#1f1f1f] pl-3 py-1 flex gap-2 animate-in slide-in-from-left-2 hover:border-[#42be65] transition-colors hover:bg-white/5">
                                   <span className="text-gray-600 whitespace-nowrap shrink-0">{new Date(log.timestamp).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'})}</span>
                                   <span className={`break-all ${log.level === 'ERROR' ? 'text-red-400' : log.level === 'WARN' ? 'text-yellow-400' : 'text-gray-300'}`}>{log.message}</span>

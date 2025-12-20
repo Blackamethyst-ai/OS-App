@@ -27,7 +27,7 @@ import { useAutoSave } from './hooks/useAutoSave';
 import { useDaemonSwarm } from './hooks/useDaemonSwarm'; 
 import { useVoiceControl } from './hooks/useVoiceControl'; 
 import { useResearchAgent } from './hooks/useResearchAgent'; 
-import { LayoutGrid, Image, Settings, Activity, BookOpen, Mic, Cpu, Code, HardDrive, GitMerge, HelpCircle, User, ListTodo, ShieldAlert, CpuIcon } from 'lucide-react';
+import { LayoutGrid, Image, Settings, Activity, BookOpen, Mic, Cpu, Code, HardDrive, GitMerge, HelpCircle, User, ListTodo, ShieldAlert, CpuIcon, Target, X } from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
 import { audio } from './services/audioService'; 
 import { AnimatePresence, motion } from 'framer-motion';
@@ -57,32 +57,45 @@ const DEEP_NAV_REGISTRY = [
     { id: 'NAV_VOICE_CORE', label: 'Voice Core Interface', description: 'The visual voice interface.' },
 ];
 
-const KernelHud = () => {
-    const kernel = useAppStore(s => s.kernel);
-    
+const FocusOverlay = () => {
+    const selector = useAppStore(s => s.focusedSelector);
+    const setFocusedSelector = useAppStore(s => s.setFocusedSelector);
+    const [bounds, setBounds] = useState<DOMRect | null>(null);
+
+    useEffect(() => {
+        if (!selector) { setBounds(null); return; }
+        const el = document.querySelector(selector);
+        if (el) {
+            setBounds(el.getBoundingClientRect());
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else {
+            setBounds(null);
+        }
+    }, [selector]);
+
+    if (!bounds) return null;
+
     return (
-        <div className="hidden lg:flex items-center gap-6 px-4 py-1.5 border border-white/5 rounded-sm bg-black/40 backdrop-blur-sm ml-6">
-            <div className="flex flex-col">
-                <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest leading-none mb-1">Load</span>
-                <div className="flex items-center gap-1.5">
-                    <div className="w-12 h-1 bg-[#111] rounded-full overflow-hidden">
-                        <motion.div 
-                            animate={{ width: `${kernel.coreLoad}%` }}
-                            className="h-full bg-[#9d4edd]"
-                        />
-                    </div>
-                    <span className="text-[8px] font-mono text-white/80">{kernel.coreLoad}%</span>
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[500] pointer-events-none"
+        >
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" style={{ 
+                clipPath: `polygon(0% 0%, 0% 100%, ${bounds.left}px 100%, ${bounds.left}px ${bounds.top}px, ${bounds.right}px ${bounds.top}px, ${bounds.right}px ${bounds.bottom}px, ${bounds.left}px ${bounds.bottom}px, ${bounds.left}px 100%, 100% 100%, 100% 0%)`
+            }}></div>
+            <motion.div 
+                animate={{ boxShadow: ['0 0 20px #9d4edd', '0 0 40px #9d4edd', '0 0 20px #9d4edd'] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="absolute border-2 border-[#9d4edd] rounded"
+                style={{ left: bounds.left - 4, top: bounds.top - 4, width: bounds.width + 8, height: bounds.height + 8 }}
+            >
+                <div className="absolute -top-8 left-0 bg-[#9d4edd] text-black text-[10px] font-black font-mono px-2 py-0.5 rounded flex items-center gap-2 pointer-events-auto cursor-pointer" onClick={() => setFocusedSelector(null)}>
+                    <Target size={12}/> CONTEXT_FOCUS_L0 <X size={10} />
                 </div>
-            </div>
-            <div className="flex flex-col">
-                <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest leading-none mb-1">Entropy</span>
-                <span className="text-[10px] font-mono font-black text-[#22d3ee] leading-none">{kernel.entropy}</span>
-            </div>
-            <div className="flex flex-col">
-                <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest leading-none mb-1">Integrity</span>
-                <span className="text-[10px] font-mono font-black text-[#10b981] leading-none">{kernel.integrity}%</span>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 
@@ -156,6 +169,7 @@ const App: React.FC = () => {
       <LayerToggle />
 
       {/* Overlays */}
+      <FocusOverlay />
       <VoiceCoreOverlay /> 
       <UserProfileOverlay /> 
       <CommandPalette /> 
@@ -175,9 +189,7 @@ const App: React.FC = () => {
           <NeuralHeader />
           <div className="flex flex-col">
             <span className="text-lg font-bold leading-none tracking-tight font-mono text-white group-hover:text-[#9d4edd] transition-colors uppercase">Metaventions OS</span>
-            <span className="text-[8px] font-mono tracking-[0.4em] uppercase opacity-40">Sovereign Architecture Environment</span>
           </div>
-          <KernelHud />
         </div>
         
         <nav className="flex items-center space-x-1 p-1 rounded-sm border border-white/5 mx-auto overflow-x-auto custom-scrollbar no-scrollbar" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
