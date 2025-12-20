@@ -19,24 +19,25 @@ const ResearchTray: React.FC = () => {
     if (research.tasks.length === 0) return null;
 
     const handleViewReport = (task: any) => {
+        const queryStr = String(task.query || '');
         openHoloProjector({
             id: `report-${task.id}`,
             type: 'TEXT',
-            title: `Research Report: ${(task.query || '').substring(0, 20)}...`,
+            title: `Research Report: ${queryStr.substring(0, 20)}...`,
             content: task.result || "No content generated."
         });
     };
 
     const handleBranch = (fact: string, parentId: string) => {
-        const safeFact = String(fact || '');
-        const newQuery = `Deep dive: ${safeFact.substring(0, 60)}...`;
+        const factStr = String(fact || '');
+        const newQuery = `Deep dive: ${factStr.substring(0, 60)}...`;
         addLog('SYSTEM', `RESEARCH_BRANCH: Pivoting agent to new vector.`);
         addResearchTask({
             id: crypto.randomUUID(),
             query: newQuery,
             status: 'QUEUED',
             progress: 0,
-            logs: [`Spawned from Task ID: ${String(parentId || '').substring(0,8)}`, `Vector: ${safeFact}`],
+            logs: [`Spawned from Task ID: ${String(parentId || '').substring(0, 8)}`, `Vector: ${factStr.substring(0, 30)}...`],
             timestamp: Date.now()
         });
     };

@@ -4,7 +4,7 @@ import { useAppStore } from '../store';
 import { generateDecompositionMap, consensusEngine } from '../services/bicameralService';
 import { promptSelectKey, AGENT_DNA_BUILDER } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
-import { BrainCircuit, Zap, Layers, Cpu, ArrowRight, CheckCircle2, Loader2, GitBranch, AlertOctagon, Save, ExternalLink, Dna, Info, Settings2, Sliders } from 'lucide-react';
+import { BrainCircuit, Zap, Layers, Cpu, ArrowRight, CheckCircle2, Loader2, GitBranch, AlertOctagon, Save, ExternalLink, Dna, Info, Settings2, Sliders, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TugOfWarChart } from './Visualizations/TugOfWarChart';
 import { AgentGraveyard } from './Visualizations/AgentGraveyard';
@@ -212,11 +212,11 @@ ${result.output}
                                 <span className="text-[8px] text-gray-600">ENCLAVE_LIVE</span>
                             </div>
                             <div className="overflow-y-auto h-full custom-scrollbar space-y-1">
-                                <div>> UPLINK_STABLE :: ENCLAVE_0xAF3</div>
-                                <div>> DNA_VARIANT=${selectedDNA.id}</div>
-                                <div>> CURRENT_LEADER_MARGIN=${swarmStatus.currentGap}</div>
-                                <div>> TOTAL_AGENTS_SPAWNED=${swarmStatus.totalAttempts}</div>
-                                {swarmStatus.killedAgents > 0 && <div className="text-red-500 font-bold">> TERMINATION_PROTOCOL_ACTIVE :: ${swarmStatus.killedAgents} VOIDED</div>}
+                                <div>{'>'} UPLINK_STABLE :: ENCLAVE_0xAF3</div>
+                                <div>{'>'} DNA_VARIANT={selectedDNA.id}</div>
+                                <div>{'>'} CURRENT_LEADER_MARGIN={swarmStatus.currentGap}</div>
+                                <div>{'>'} TOTAL_AGENTS_SPAWNED={swarmStatus.totalAttempts}</div>
+                                {swarmStatus.killedAgents > 0 && <div className="text-red-500 font-bold">{'>'} TERMINATION_PROTOCOL_ACTIVE :: {swarmStatus.killedAgents} VOIDED</div>}
                             </div>
                         </div>
                     </div>

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -109,7 +108,7 @@ const SystemTerminal: React.FC = () => {
 
                     {/* Logs */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar text-gray-300 font-mono text-[11px]">
-                        {system.logs.map((log) => (
+                        {system.logs.map((log: any) => (
                             <div key={log.id} className="flex gap-3 hover:bg-[#111] transition-colors px-1">
                                 <span className="text-gray-600 shrink-0">[{log.timestamp}]</span>
                                 <span className={`shrink-0 font-bold w-16 text-right ${
@@ -152,11 +151,6 @@ const QuantumDock: React.FC = () => {
     const [hoveredId, setHoveredId] = useState<string | null>(null);
     const [previewItem, setPreviewItem] = useState<any | null>(null);
 
-    // Auto-capture Hooks (Simulation of capturing assets)
-    // Real implementation requires useEffects in the individual components pushing to store,
-    // or this component subscribing to specific parts of the store.
-    // For now, we rely on the `addDockItem` being called from the specific components (see below).
-
     const getIcon = (type: string) => {
         switch(type) {
             case 'IMAGE': return <ImageIcon className="w-5 h-5 text-pink-400" />;
@@ -171,7 +165,7 @@ const QuantumDock: React.FC = () => {
     return (
         <>
             <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[50] flex items-end gap-3 px-4 py-3 bg-[#0a0a0a]/80 backdrop-blur-xl border border-[#333] rounded-2xl shadow-[0_10px_40px_rgba(0,0,0,0.5)]">
-                {system.dockItems.map((item) => (
+                {system.dockItems.map((item: any) => (
                     <motion.div
                         key={item.id}
                         layout
@@ -284,30 +278,28 @@ const OverlayOS: React.FC = () => {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === '`' || e.key === '~') {
-                // Prevent default only if we are not in an input to avoid annoying typists
-                // But for Quake style, usually it overrides everything.
-                // Let's enable it everywhere.
                 e.preventDefault();
                 toggleTerminal();
             }
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
+    }, [toggleTerminal]);
 
     // Watchers for Auto-Docking Artifacts
     // 1. Image Gen
     useEffect(() => {
         if (imageGen.generatedImage) {
+            const promptStr = String(imageGen.generatedImage.prompt || 'UNNAMED_ASSET');
             addDockItem({
                 id: `img-${Date.now()}`,
                 type: 'IMAGE',
-                label: `IMG: ${imageGen.generatedImage.prompt.substring(0, 10)}...`,
+                label: `IMG: ${promptStr.substring(0, 10)}...`,
                 content: imageGen.generatedImage.url,
                 timestamp: Date.now()
             });
         }
-    }, [imageGen.generatedImage]);
+    }, [imageGen.generatedImage, addDockItem]);
 
     // 2. Code Gen
     useEffect(() => {
@@ -315,12 +307,12 @@ const OverlayOS: React.FC = () => {
             addDockItem({
                 id: `code-${Date.now()}`,
                 type: 'CODE',
-                label: `CODE: ${codeStudio.language}`,
+                label: `CODE: ${codeStudio.language || 'script'}`,
                 content: codeStudio.generatedCode,
                 timestamp: Date.now()
             });
         }
-    }, [codeStudio.generatedCode]);
+    }, [codeStudio.generatedCode, codeStudio.language, addDockItem]);
 
     return (
         <>
