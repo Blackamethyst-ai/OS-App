@@ -15,7 +15,15 @@ import {
 import { FileData, AppMode, AppTheme } from '../types';
 
 export const THEME = {
-    accent: { core: '#9d4edd', memory: '#22d3ee', action: '#f59e0b', tools: '#3b82f6', alert: '#ef4444', success: '#10b981' }
+    accent: { 
+        core: '#9d4edd', 
+        memory: '#22d3ee', 
+        action: '#f59e0b', 
+        tools: '#3b82f6', 
+        alert: '#ef4444', 
+        success: '#10b981',
+        execution: '#f59e0b'
+    }
 };
 
 export const VISUAL_THEMES: Record<AppTheme, any> = {
@@ -42,7 +50,7 @@ export const useProcessVisualizerLogic = () => {
     const [sequenceStatus, setSequenceStatus] = useState<'IDLE' | 'RUNNING' | 'COMPLETE'>('IDLE');
     const [sequenceProgress, setSequenceProgress] = useState(0);
 
-    const { fitView, screenToFlowPosition, getViewport } = useReactFlow();
+    const { fitView, screenToFlowPosition, getViewport, zoomTo } = useReactFlow();
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 
@@ -77,15 +85,17 @@ export const useProcessVisualizerLogic = () => {
     useEffect(() => {
         if (nodes.length === 0) {
             setNodes([
-                { id: 'core', type: 'holographic', position: { x: 600, y: 400 }, data: { label: 'Sovereign Agent', subtext: 'SYSTEM IDLE', iconName: 'BrainCircuit', color: THEME.accent.core, status: 'ONLINE', theme: visualTheme } },
-                { id: 'memory', type: 'holographic', position: { x: 600, y: 200 }, data: { label: 'Context Memory', subtext: 'Vector Store', iconName: 'Database', color: THEME.accent.memory, status: 'READY', theme: visualTheme } },
-                { id: 'tools', type: 'holographic', position: { x: 350, y: 400 }, data: { label: 'Tooling Layer', subtext: 'Search / Compute', iconName: 'Wrench', color: THEME.accent.tools, status: 'AVAILABLE', theme: visualTheme } },
-                { id: 'action', type: 'holographic', position: { x: 850, y: 400 }, data: { label: 'Execution', subtext: 'Output Generation', iconName: 'Zap', color: THEME.accent.action, status: 'STANDBY', theme: visualTheme } }
+                { id: 'memory', type: 'holographic', position: { x: 500, y: 50 }, data: { label: 'CONTEXT MEMORY', subtext: 'RAG / Vector Store', iconName: 'Database', color: THEME.accent.memory, status: 'READY', footerLeft: '0/0 ARTIFACTS', footerRight: 'STABLE_STORAGE', theme: visualTheme, progress: 2 } },
+                { id: 'tools', type: 'holographic', position: { x: 150, y: 400 }, data: { label: 'TOOLING LAYER', subtext: 'Compute / Search / Code', iconName: 'Wrench', color: THEME.accent.tools, status: 'AVAILABLE', footerLeft: '5 MODULES', footerRight: 'GEN_AI', theme: visualTheme, progress: 3 } },
+                { id: 'core', type: 'holographic', position: { x: 500, y: 400 }, data: { label: 'SOVEREIGN AGENT', subtext: 'SYSTEM IDLE', iconName: 'BrainCircuit', color: THEME.accent.core, status: 'ONLINE', footerLeft: 'V3.2 KERNEL', footerRight: 'ROOT_ACCESS', theme: visualTheme, progress: 2 } },
+                { id: 'action', type: 'holographic', position: { x: 850, y: 400 }, data: { label: 'EXECUTION LAYER', subtext: 'Output Generation', iconName: 'Zap', color: THEME.accent.execution, status: 'STANDBY', footerLeft: 'GEN_AI', footerRight: 'QUEUE_EMPTY', theme: visualTheme, progress: 2 } },
+                { id: 'reflect', type: 'holographic', position: { x: 500, y: 750 }, data: { label: 'REFLECT LOOP', subtext: 'Self-Correction', iconName: 'Activity', color: THEME.accent.alert, status: 'PASSIVE', footerLeft: 'REASONING_L0', footerRight: 'IDLE', theme: visualTheme, progress: 1 } }
             ]);
             setEdges([
                 { id: 'e1', source: 'memory', target: 'core', type: 'cinematic', data: { color: THEME.accent.memory, variant: 'stream' } },
-                { id: 'e2', source: 'core', target: 'tools', type: 'cinematic', data: { color: THEME.accent.tools, variant: 'stream' } },
-                { id: 'e3', source: 'core', target: 'action', type: 'cinematic', data: { color: THEME.accent.action, variant: 'pulse' } }
+                { id: 'e2', source: 'tools', target: 'core', type: 'cinematic', data: { color: THEME.accent.tools, variant: 'stream' } },
+                { id: 'e3', source: 'core', target: 'action', type: 'cinematic', data: { color: THEME.accent.execution, variant: 'stream' } },
+                { id: 'e4', source: 'core', target: 'reflect', type: 'cinematic', data: { color: THEME.accent.alert, variant: 'stream' } }
             ]);
         }
     }, [visualTheme]);
@@ -118,7 +128,7 @@ export const useProcessVisualizerLogic = () => {
     }, [screenToFlowPosition]);
 
     const addNodeAtPosition = useCallback((position: { x: number, y: number }, type: string, label: string, color: string) => {
-        const newNode: Node = { id: `node_${Date.now()}`, type, position, data: { label, subtext: 'System Node', iconName: 'Box', color, status: 'DRAFT', theme: visualTheme } };
+        const newNode: Node = { id: `node_${Date.now()}`, type, position, data: { label, subtext: 'System Node', iconName: 'Box', color, status: 'DRAFT', theme: visualTheme, progress: 1 } };
         setNodes((nds) => nds.concat(newNode));
     }, [visualTheme]);
 
@@ -200,10 +210,21 @@ export const useProcessVisualizerLogic = () => {
         try {
             if (!(await checkApiKey())) return;
             const nodeData = await generateSingleNode(description);
-            const centerPosition = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
-            const newNode: Node = { id: `node_${Date.now()}`, type: 'holographic', position: centerPosition, data: { ...nodeData, theme: visualTheme, status: 'INITIALIZED' } };
+            const vp = getViewport();
+            // Calculate center of screen in flow coordinates
+            const centerPosition = screenToFlowPosition({ 
+                x: window.innerWidth / 2, 
+                y: window.innerHeight / 2 
+            });
+            
+            const newNode: Node = { 
+                id: `node_${Date.now()}`, 
+                type: 'holographic', 
+                position: centerPosition, 
+                data: { ...nodeData, theme: visualTheme, status: 'INITIALIZED', progress: 1 } 
+            };
             setNodes(nds => nds.concat(newNode));
-            addLog('SUCCESS', `AI_NODE: Added "${nodeData.label}" to process map.`);
+            addLog('SUCCESS', `AI_NODE: Crystallized "${nodeData.label}" at viewport center.`);
             setState({ isLoading: false });
         } catch (err: any) { handleApiError('AI Add Node', err); }
     };
@@ -232,7 +253,10 @@ export const useProcessVisualizerLogic = () => {
             const sources = state.livingMapContext.sources || [];
             const files = (sources as any[]).map((s) => ({ inlineData: s.inlineData, name: s.name })) as FileData[];
             
-            const mapContext = { nodes: nodes.map(n => ({ label: n.data.label, subtext: n.data.subtext })), edges: edges.map(e => e.id) };
+            const mapContext = { 
+                nodes: nodes.map(n => ({ label: n.data.label, subtext: n.data.subtext })), 
+                edges: edges.map(e => e.id) 
+            };
             
             const code = await generateMermaidDiagram(state.governance, files, [mapContext]);
             setState({ generatedCode: code }); setSequenceProgress(30);
@@ -271,30 +295,52 @@ export const useProcessVisualizerLogic = () => {
 
     return {
         state, activeTab, nodes, edges, onNodesChange, onEdgesChange, onConnect, onPaneContextMenu, onPaneClick, onPaneDoubleClick,
-        visualTheme, showGrid, paneContextMenu, toggleGrid: () => setShowGrid(!showGrid), addNodeAtPosition,
+        visualTheme, showGrid, paneContextMenu, setPaneContextMenu, toggleGrid: () => setShowGrid(!showGrid), addNodeAtPosition,
         handleGenerateGraph: async () => {
             if (!(await checkApiKey())) return; setIsGeneratingGraph(true);
             try {
                 const result = await generateSystemArchitecture(architecturePrompt);
-                const newNodes = result.nodes.map((n: any, i: number) => ({ id: n.id, type: 'holographic', position: { x: 600 + Math.cos(i) * 300, y: 400 + Math.sin(i) * 300 }, data: { ...n, theme: visualTheme } }));
+                const newNodes = result.nodes.map((n: any, i: number) => ({ id: n.id, type: 'holographic', position: { x: 600 + Math.cos(i) * 300, y: 400 + Math.sin(i) * 300 }, data: { ...n, theme: visualTheme, progress: 2 } }));
                 const newEdges = result.edges.map((e: any) => ({ id: e.id, source: e.source, target: e.target, type: 'cinematic', data: { color: '#9d4edd', variant: 'stream' } }));
                 setNodes(newNodes); setEdges(newEdges); setTimeout(() => fitView({ duration: 1000 }), 100);
             } catch (err: any) { handleApiError('Blueprint', err); } finally { setIsGeneratingGraph(false); }
         },
         handleDecomposeNode: async () => {
             if (!selectedNode) return; setIsDecomposing(true);
+            addLog('SYSTEM', `DECOMPOSE: Analyzing entropy for "${selectedNode.data.label}"...`);
             try {
+                if (!(await checkApiKey())) return;
                 const result = await decomposeNode(selectedNode.data.label as string, "");
-                const expanded = result.nodes.map((n: any, i: number) => ({ id: n.id, type: 'holographic', position: { x: selectedNode.position.x + Math.cos(i) * 150, y: selectedNode.position.y + Math.sin(i) * 150 }, data: { ...n, theme: visualTheme } }));
+                const expanded = result.nodes.map((n: any, i: number) => ({ 
+                    id: n.id, 
+                    type: 'holographic', 
+                    position: { 
+                        x: selectedNode.position.x + Math.cos(i) * 200, 
+                        y: selectedNode.position.y + Math.sin(i) * 200 
+                    }, 
+                    data: { ...n, theme: visualTheme, progress: 1 } 
+                }));
+                
                 setNodes([...nodes.filter(n => n.id !== selectedNode.id), ...expanded]);
-                setEdges([...edges.filter(e => e.source !== selectedNode.id && e.target !== selectedNode.id), ...result.edges.map((e: any) => ({ ...e, type: 'cinematic', data: { color: '#42be65' } }))]);
+                
+                const newEdges = result.edges.map((e: any) => ({ 
+                    ...e, 
+                    type: 'cinematic', 
+                    data: { color: '#42be65', variant: 'stream' } 
+                }));
+                
+                setEdges([...edges.filter(e => e.source !== selectedNode.id && e.target !== selectedNode.id), ...newEdges]);
+                addLog('SUCCESS', `DECOMPOSE: Node "${selectedNode.data.label}" expanded into ${expanded.length} sub-units.`);
             } catch (err: any) { handleApiError('Decompose', err); } finally { setIsDecomposing(false); }
         },
         handleOptimizeNode, handleGenerateIaC: async (provider: string) => {
             try {
+                if (!(await checkApiKey())) return;
                 const summary = nodes.map(n => n.data.label).join(', ');
                 const code = await generateInfrastructureCode(summary, provider);
-                setMode(AppMode.CODE_STUDIO); setCodeStudioState({ generatedCode: code, language: provider === 'DOCKER' ? 'yaml' : 'hcl' });
+                setMode(AppMode.CODE_STUDIO); 
+                setCodeStudioState({ generatedCode: code, language: provider === 'DOCKER' ? 'yaml' : 'hcl' });
+                addLog('SUCCESS', `IAC_GEN: Provisioning code for ${provider} stabilized in Studio.`);
             } catch (err: any) { handleApiError('IaC', err); }
         },
         handleAIAddNode, handleGenerate, architecturePrompt, setArchitecturePrompt, sequenceStatus, sequenceProgress,

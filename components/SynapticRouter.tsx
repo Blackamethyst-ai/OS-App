@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +21,7 @@ const PowerXRay = lazy(() => import('./PowerXRay'));
 const HardwareEngine = lazy(() => import('./HardwareEngine'));
 const VoiceMode = lazy(() => import('./VoiceMode'));
 const CodeStudio = lazy(() => import('./CodeStudio'));
+const TaskBoard = lazy(() => import('./TaskBoard'));
 
 const SynapticRouter: React.FC = () => {
     const { 
@@ -63,6 +65,7 @@ const SynapticRouter: React.FC = () => {
                 'hardware': AppMode.HARDWARE_ENGINEER,
                 'code': AppMode.CODE_STUDIO,
                 'voice': AppMode.VOICE_MODE,
+                'tasks': AppMode.TASK_MANAGER,
             };
 
             const targetMode = routeMap[mainPath];
@@ -185,6 +188,7 @@ const SynapticRouter: React.FC = () => {
                         {mode === AppMode.HARDWARE_ENGINEER && <HardwareEngine />}
                         {mode === AppMode.VOICE_MODE && <VoiceMode />}
                         {mode === AppMode.CODE_STUDIO && <CodeStudio />}
+                        {mode === AppMode.TASK_MANAGER && <TaskBoard />}
                     </motion.main>
                 </AnimatePresence>
             </Suspense>

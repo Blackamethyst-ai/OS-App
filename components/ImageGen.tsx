@@ -2,7 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import JSZip from 'jszip';
 import { useAppStore } from '../store';
-import { AspectRatio, ImageSize, FileData, SOVEREIGN_DEFAULT_COLORWAY, MINT_NOIR_COLORWAY, AMBER_PROTOCOL_COLORWAY } from '../types';
+/* Fix: Remove non-existent colorway constants MINT_NOIR_COLORWAY and AMBER_PROTOCOL_COLORWAY */
+import { AspectRatio, ImageSize, FileData, SOVEREIGN_DEFAULT_COLORWAY } from '../types';
 import { promptSelectKey, fileToGenerativePart, generateStoryboardPlan, constructCinematicPrompt, retryGeminiRequest, analyzeImageVision, generateNarrativeContext } from '../services/geminiService';
 import { Image as ImageIcon, Loader2, RefreshCw, Download, Plus, Trash2, Film, Wand2, Upload, X, Layers, AlertCircle, Eye, Activity, User, Palette, FileText, ChevronRight, MonitorPlay, Zap, Clapperboard, Play, Maximize, ToggleLeft, ToggleRight, Volume2, VolumeX, SkipForward, Globe, Lock, Unlock, Fingerprint, Cpu, Radio, Power, Box, Camera, Sun, Video, Package, Scan, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -639,7 +640,7 @@ const ImageGen: React.FC = () => {
           parts.push({ text: finalPrompt });
 
           const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-              model,
+              model: model as any,
               contents: { parts },
               config: {
                   imageConfig: {
@@ -1134,7 +1135,7 @@ const ImageGen: React.FC = () => {
                                                     <button 
                                                         onClick={() => generateFrame(idx)}
                                                         disabled={frame.status === 'generating' || !frame.scenePrompt}
-                                                        className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase transition-all disabled:opacity-50 flex items-center gap-1.5 font-bold"
+                                                        className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase transition-all disabled:opacity-50 flex items-gap-1.5 font-bold"
                                                     >
                                                         <Wand2 className="w-3 h-3" /> {frame.status === 'done' ? 'Re-Roll' : 'Render Frame'}
                                                     </button>

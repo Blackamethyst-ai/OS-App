@@ -10,11 +10,9 @@ const ResearchTray: React.FC = () => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
     
-    // Group active tasks (Queued/Running) vs Inactive (Completed/Failed/Cancelled)
     const activeTasks = research.tasks.filter(t => ['QUEUED', 'PLANNING', 'SEARCHING', 'SYNTHESIZING', 'SWARM_VERIFY'].includes(t.status));
     const completedTasks = research.tasks.filter(t => ['COMPLETED', 'FAILED', 'CANCELLED'].includes(t.status));
     
-    // Auto-expand if new task starts
     React.useEffect(() => {
         if (activeTasks.length > 0) setIsExpanded(true);
     }, [activeTasks.length]);
@@ -54,7 +52,6 @@ const ResearchTray: React.FC = () => {
 
     const viewSwarm = (e: React.MouseEvent) => {
         e.stopPropagation();
-        // Redirect to new Bicameral location inside Bibliomorphic
         setMode(AppMode.BIBLIOMORPHIC);
         setBibliomorphicState({ activeTab: 'bicameral' });
     };
@@ -65,7 +62,6 @@ const ResearchTray: React.FC = () => {
             animate={{ y: 0 }}
             className="fixed bottom-6 right-6 z-50 w-96 flex flex-col gap-2 pointer-events-none"
         >
-            {/* Main Header / Toggle */}
             <div className="pointer-events-auto bg-[#0a0a0a] border border-[#333] rounded-lg shadow-2xl overflow-hidden">
                 <div 
                     onClick={() => setIsExpanded(!isExpanded)}
@@ -84,181 +80,36 @@ const ResearchTray: React.FC = () => {
 
                 <AnimatePresence>
                     {isExpanded && (
-                        <motion.div 
-                            initial={{ height: 0 }}
-                            animate={{ height: 'auto' }}
-                            exit={{ height: 0 }}
-                            className="bg-[#050505] border-t border-[#1f1f1f]"
-                        >
+                        <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="bg-[#050505] border-t border-[#1f1f1f]">
                             <div className="max-h-[500px] overflow-y-auto custom-scrollbar p-2 space-y-2">
-                                {/* Active Tasks */}
                                 {activeTasks.map(task => (
-                                    <div 
-                                        key={task.id} 
-                                        className="bg-[#111] border border-[#222] rounded p-3 relative group transition-colors hover:border-[#9d4edd]/50 cursor-pointer"
-                                        onClick={() => toggleSelection(task.id)}
-                                    >
+                                    <div key={task.id} className="bg-[#111] border border-[#222] rounded p-3 relative group transition-colors hover:border-[#9d4edd]/50 cursor-pointer" onClick={() => toggleSelection(task.id)}>
                                         <div className="flex justify-between items-start mb-2">
                                             <span className="text-[10px] font-bold text-white truncate max-w-[200px] flex items-center gap-2">
                                                 {task.status === 'SWARM_VERIFY' ? <GitBranch className="w-3 h-3 text-[#f59e0b] animate-pulse" /> : <Loader2 className="w-3 h-3 text-[#9d4edd] animate-spin" />}
                                                 {task.query}
                                             </span>
-                                            <button 
-                                                onClick={(e) => handleCancel(e, task.id)}
-                                                className="text-gray-500 hover:text-red-500 hover:bg-red-900/20 p-1 rounded transition-colors"
-                                                title="Cancel Task"
-                                            >
-                                                <Square className="w-3 h-3 fill-current" />
-                                            </button>
+                                            <button onClick={(e) => handleCancel(e, task.id)} className="text-gray-500 hover:text-red-500 hover:bg-red-900/20 p-1 rounded transition-colors" title="Cancel Task"><Square className="w-3 h-3 fill-current" /></button>
                                         </div>
-                                        
                                         <div className="w-full bg-[#333] h-1 rounded-full overflow-hidden mb-2">
-                                            <motion.div 
-                                                className="h-full bg-[#9d4edd]"
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${task.progress}%` }}
-                                            />
+                                            <motion.div className="h-full bg-[#9d4edd]" initial={{ width: 0 }} animate={{ width: `${task.progress}%` }} />
                                         </div>
-                                        
                                         <div className="flex justify-between items-center text-[9px] font-mono text-gray-500">
                                             <span className="truncate max-w-[200px]">{task.logs[task.logs.length - 1]}</span>
                                             <span>{Math.round(task.progress)}%</span>
                                         </div>
-
-                                        {/* Verification Jump Button */}
                                         {task.status === 'SWARM_VERIFY' && (
-                                            <button 
-                                                onClick={viewSwarm}
-                                                className="w-full mt-2 py-1.5 bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-[#f59e0b] text-[9px] font-bold uppercase rounded hover:bg-[#f59e0b]/20 transition-colors flex items-center justify-center gap-2 animate-in slide-in-from-top-2"
-                                            >
-                                                <Eye className="w-3 h-3" /> View Verification Battle
-                                            </button>
+                                            <button onClick={viewSwarm} className="w-full mt-2 py-1.5 bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-[#f59e0b] text-[9px] font-bold uppercase rounded hover:bg-[#f59e0b]/20 transition-colors flex items-center justify-center gap-2 animate-in slide-in-from-top-2"><Eye className="w-3 h-3" /> View Verification Battle</button>
                                         )}
-
-                                        {/* Detailed Progress (Sub-queries) */}
                                         <AnimatePresence>
                                             {selectedTaskId === task.id && task.subQueries && (
-                                                <motion.div
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: 'auto', opacity: 1 }}
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    className="mt-3 pt-3 border-t border-[#222] overflow-hidden"
-                                                >
-                                                    {/* Plan View */}
-                                                    <div className="mb-3">
-                                                        <div className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                                            <ListTodo className="w-3 h-3" /> Execution Plan
-                                                        </div>
-                                                        <div className="space-y-1">
-                                                            {task.subQueries.map((q, idx) => {
-                                                                const isCompleted = task.findings && task.findings.length > idx;
-                                                                const isActive = !isCompleted && (task.findings?.length || 0) === idx;
-                                                                return (
-                                                                    <div key={idx} className="flex items-center gap-2 text-[9px] font-mono">
-                                                                        {isCompleted ? (
-                                                                            <CheckCircle className="w-3 h-3 text-[#42be65]" />
-                                                                        ) : isActive ? (
-                                                                            <Loader2 className="w-3 h-3 text-[#9d4edd] animate-spin" />
-                                                                        ) : (
-                                                                            <CircleDashed className="w-3 h-3 text-gray-600" />
-                                                                        )}
-                                                                        <span className={isCompleted ? 'text-gray-400 line-through' : isActive ? 'text-white' : 'text-gray-600'}>
-                                                                            {q}
-                                                                        </span>
-                                                                    </div>
-                                                                );
-                                                            })}
-                                                        </div>
-                                                    </div>
-
-                                                    {/* Live Findings View */}
-                                                    {task.findings && task.findings.length > 0 && (
-                                                        <div>
-                                                            <div className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                                                <Target className="w-3 h-3" /> Live Findings ({task.findings.length})
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                {task.findings.slice(-3).reverse().map((fact, i) => (
-                                                                    <div key={i} className="bg-[#050505] p-2 rounded border border-[#222] text-[9px] text-gray-400 font-mono leading-relaxed border-l-2 border-l-[#9d4edd]">
-                                                                        {fact.fact.substring(0, 120)}...
-                                                                    </div>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
-                                ))}
-
-                                {/* Completed / Failed Tasks */}
-                                {completedTasks.map(task => (
-                                    <div key={task.id} className={`bg-[#111] border rounded p-3 relative group transition-colors ${selectedTaskId === task.id ? 'border-[#9d4edd]' : 'border-[#222] hover:border-[#333]'}`}>
-                                        <div 
-                                            className="flex justify-between items-center mb-1 cursor-pointer"
-                                            onClick={() => toggleSelection(task.id)}
-                                        >
-                                            <span className={`text-[10px] font-bold truncate max-w-[200px] ${
-                                                task.status === 'FAILED' ? 'text-red-400' : 
-                                                task.status === 'CANCELLED' ? 'text-gray-500 line-through' : 
-                                                'text-gray-300'
-                                            }`}>
-                                                {task.query}
-                                            </span>
-                                            {task.status === 'FAILED' ? (
-                                                <AlertCircle className="w-3 h-3 text-red-500" />
-                                            ) : task.status === 'CANCELLED' ? (
-                                                <Square className="w-3 h-3 text-gray-600 fill-current" />
-                                            ) : (
-                                                <CheckCircle2 className="w-3 h-3 text-[#42be65]" />
-                                            )}
-                                        </div>
-                                        
-                                        <div className="flex justify-between items-center mt-2">
-                                            <span className="text-[9px] font-mono text-gray-600">{new Date(task.timestamp).toLocaleTimeString()}</span>
-                                            <div className="flex gap-2">
-                                                {task.status === 'COMPLETED' && (
-                                                    <button 
-                                                        onClick={(e) => { e.stopPropagation(); handleViewReport(task); }}
-                                                        className="flex items-center gap-1 text-[9px] text-[#9d4edd] hover:underline"
-                                                    >
-                                                        <FileText className="w-3 h-3" /> REPORT
-                                                    </button>
-                                                )}
-                                                <button 
-                                                    onClick={(e) => { e.stopPropagation(); removeResearchTask(task.id); }}
-                                                    className="text-gray-600 hover:text-red-500"
-                                                >
-                                                    <X className="w-3 h-3" />
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Findings Expansion */}
-                                        <AnimatePresence>
-                                            {selectedTaskId === task.id && task.findings && task.findings.length > 0 && (
-                                                <motion.div
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: 'auto', opacity: 1 }}
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    className="mt-3 pt-3 border-t border-[#222] overflow-hidden"
-                                                >
-                                                    <div className="flex items-center gap-2 mb-2 text-[9px] text-gray-500 font-mono uppercase tracking-widest">
-                                                        <Target className="w-3 h-3" />
-                                                        Discoveries (Click to Branch)
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        {task.findings.slice(0, 5).map((fact, i) => (
-                                                            <div 
-                                                                key={i} 
-                                                                className="flex gap-2 items-start p-2 rounded bg-[#0a0a0a] border border-[#222] hover:border-[#9d4edd] group/fact cursor-pointer transition-colors"
-                                                                onClick={() => handleBranch(fact.fact, task.id)}
-                                                            >
-                                                                <GitBranch className="w-3 h-3 text-gray-600 group-hover/fact:text-[#9d4edd] mt-0.5 shrink-0" />
-                                                                <p className="text-[9px] text-gray-400 font-mono line-clamp-2 group-hover/fact:text-gray-200">
-                                                                    {fact.fact}
-                                                                </p>
+                                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mt-3 pt-3 border-t border-[#222] overflow-hidden">
+                                                    <div className="mb-3 text-[9px] font-mono text-gray-500 uppercase flex items-center gap-2"><ListTodo className="w-3 h-3" /> Execution Plan</div>
+                                                    <div className="space-y-1">
+                                                        {task.subQueries.map((q, idx) => (
+                                                            <div key={idx} className="flex items-center gap-2 text-[9px] font-mono">
+                                                                {(task.findings?.length || 0) > idx ? <CheckCircle className="w-3 h-3 text-[#42be65]" /> : <CircleDashed className="w-3 h-3 text-gray-600" />}
+                                                                <span className={(task.findings?.length || 0) > idx ? 'text-gray-400 line-through' : 'text-white'}>{q}</span>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -267,12 +118,36 @@ const ResearchTray: React.FC = () => {
                                         </AnimatePresence>
                                     </div>
                                 ))}
-                                
-                                {research.tasks.length === 0 && (
-                                    <div className="text-center py-4 text-[10px] text-gray-600 font-mono">
-                                        No active research tasks.
+                                {completedTasks.map(task => (
+                                    <div key={task.id} className={`bg-[#111] border rounded p-3 relative group transition-colors ${selectedTaskId === task.id ? 'border-[#9d4edd]' : 'border-[#222] hover:border-[#333]'}`}>
+                                        <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => toggleSelection(task.id)}>
+                                            <span className={`text-[10px] font-bold truncate max-w-[200px] ${task.status === 'FAILED' ? 'text-red-400' : task.status === 'CANCELLED' ? 'text-gray-500 line-through' : 'text-gray-300'}`}>{task.query}</span>
+                                            {task.status === 'FAILED' ? <AlertCircle className="w-3 h-3 text-red-500" /> : <CheckCircle2 className="w-3 h-3 text-[#42be65]" />}
+                                        </div>
+                                        <div className="flex justify-between items-center mt-2 pt-2 border-t border-white/5">
+                                            <span className="text-[9px] font-mono text-gray-600">{new Date(task.timestamp).toLocaleTimeString()}</span>
+                                            <div className="flex gap-2">
+                                                {task.status === 'COMPLETED' && <button onClick={(e) => { e.stopPropagation(); handleViewReport(task); }} className="flex items-center gap-1 text-[9px] text-[#9d4edd] hover:underline font-bold uppercase"><FileText className="w-3 h-3" /> Report</button>}
+                                                <button onClick={(e) => { e.stopPropagation(); removeResearchTask(task.id); }} className="text-gray-600 hover:text-red-500"><X className="w-3 h-3" /></button>
+                                            </div>
+                                        </div>
+                                        <AnimatePresence>
+                                            {selectedTaskId === task.id && task.findings && (
+                                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mt-3 pt-3 border-t border-[#222] overflow-hidden">
+                                                    <div className="flex items-center gap-2 mb-2 text-[9px] text-gray-500 font-mono uppercase font-bold tracking-widest"><Target className="w-3 h-3" /> Branch Knowledge Trace</div>
+                                                    <div className="space-y-2">
+                                                        {task.findings.slice(0, 5).map((fact, i) => (
+                                                            <div key={i} className="flex gap-2 items-start p-2 rounded bg-[#0a0a0a] border border-[#222] hover:border-[#9d4edd] group/fact cursor-pointer transition-all" onClick={() => handleBranch(fact.fact, task.id)}>
+                                                                <GitBranch className="w-3 h-3 text-gray-600 group-hover/fact:text-[#9d4edd] mt-0.5 shrink-0" />
+                                                                <p className="text-[9px] text-gray-400 font-mono line-clamp-2 group-hover/fact:text-gray-200">{fact.fact}</p>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </div>
-                                )}
+                                ))}
                             </div>
                         </motion.div>
                     )}
