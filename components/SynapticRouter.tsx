@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,9 +31,7 @@ const SynapticRouter: React.FC = () => {
     } = useAppStore();
 
     const [currentPath, setCurrentPath] = useState('');
-    const [queryParams, setQueryParams] = useState<Record<string, string>>({});
 
-    // 1. DYNAMIC ROUTING ENGINE (Hash-based)
     useEffect(() => {
         const handleRouting = () => {
             const hash = window.location.hash || '#/dashboard';
@@ -41,18 +40,8 @@ const SynapticRouter: React.FC = () => {
             const mainPath = parts[0] || 'dashboard';
             const subPath = parts[1];
 
-            // Parse Query Params
-            const params: Record<string, string> = {};
-            if (queryPart) {
-                new URLSearchParams(queryPart).forEach((val, key) => {
-                    params[key] = val;
-                });
-            }
-
             setCurrentPath(pathPart || '');
-            setQueryParams(params);
 
-            // Map paths to internal AppModes
             const routeMap: Record<string, AppMode> = {
                 'dashboard': AppMode.DASHBOARD,
                 'bridge': AppMode.SYNTHESIS_BRIDGE,
@@ -73,18 +62,16 @@ const SynapticRouter: React.FC = () => {
                 audio.playTransition();
             }
 
-            // Handle nested sub-route state
             if (targetMode === AppMode.BIBLIOMORPHIC && subPath) {
                 setBibliomorphicState({ activeTab: subPath });
             }
         };
 
         window.addEventListener('hashchange', handleRouting);
-        handleRouting(); // Initial run
+        handleRouting(); 
         return () => window.removeEventListener('hashchange', handleRouting);
     }, [mode, setMode, setBibliomorphicState]);
 
-    // 2. CONTEXTUAL HUB (Right Click Logic)
     useEffect(() => {
         const handleContextMenu = (e: MouseEvent) => {
             const target = e.target as HTMLElement;
@@ -176,15 +163,14 @@ const SynapticRouter: React.FC = () => {
 
     return (
         <div className="flex-1 relative overflow-hidden flex flex-col">
-            {/* VIEW TRANSITION LAYER */}
             <Suspense fallback={<LoadingSector />}>
                 <AnimatePresence mode="wait">
                     <motion.main
                         key={mode}
-                        initial={{ opacity: 0, filter: 'blur(10px)', scale: 1.02 }}
-                        animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
-                        exit={{ opacity: 0, filter: 'blur(10px)', scale: 0.98 }}
-                        transition={{ duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+                        initial={{ opacity: 0, x: -20, filter: 'blur(10px)' }}
+                        animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
+                        exit={{ opacity: 0, x: 20, filter: 'blur(10px)' }}
+                        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                         className="flex-1 relative z-10 p-6 overflow-hidden flex flex-col"
                     >
                         {mode === AppMode.DASHBOARD && <Dashboard />}

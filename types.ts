@@ -1,3 +1,4 @@
+
 export interface AgentDNA {
     id: string;
     label: string;
@@ -208,6 +209,7 @@ export interface ResearchTask {
     subQueries?: string[];
     findings?: FactChunk[];
     result?: string;
+    agentAssigned?: string;
 }
 
 export interface FactChunk {
@@ -266,6 +268,7 @@ export const SOVEREIGN_DEFAULT_COLORWAY: Colorway = {
 };
 
 export interface ComponentRecommendation {
+    id?: string;
     partNumber: string;
     manufacturer: string;
     description: string;
@@ -276,7 +279,8 @@ export interface ComponentRecommendation {
     recommendation?: string;
     boundingBox?: number[];
     price?: number;
-    aiSuitability?: number; 
+    aiSuitability?: number;
+    isInStock?: boolean;
 }
 
 export interface ArtifactAnalysis {
@@ -284,6 +288,7 @@ export interface ArtifactAnalysis {
     ambiguityScore: number;
     entities: string[];
     summary: string;
+    entropyRating?: number; // 0-100
 }
 
 export interface UserIntent {
@@ -371,32 +376,61 @@ export interface Message {
     parts?: any[];
 }
 
-export enum TemporalEra {
-    SILICON = 'SILICON',
-    SINGULARITY = 'SINGULARITY',
-    AUTONOMY = 'AUTONOMY'
+export interface StoredArtifact {
+    id: string;
+    name: string;
+    type: string;
+    data: Blob;
+    analysis: ArtifactAnalysis | null;
+    timestamp: number;
+    tags: string[];
+    metadata?: any;
 }
 
-export interface SuggestedAction {
-    id: string;
-    label: string;
-    command: string;
-    iconName: string;
-    reasoning: string;
+// FIX: Added missing exported members
+export enum TemporalEra {
+    SILICON = 'SILICON',
+    QUANTUM = 'QUANTUM',
+    BIOLOGICAL = 'BIOLOGICAL'
 }
 
 export enum AspectRatio {
-    RATIO_16_9 = '16:9',
     RATIO_1_1 = '1:1',
-    RATIO_9_16 = '9:16',
     RATIO_3_4 = '3:4',
-    RATIO_4_3 = '4:3'
+    RATIO_4_3 = '4:3',
+    RATIO_9_16 = '9:16',
+    RATIO_16_9 = '16:9'
 }
 
 export enum ImageSize {
     SIZE_1K = '1K',
     SIZE_2K = '2K',
     SIZE_4K = '4K'
+}
+
+export interface SuggestedAction {
+    id: string;
+    label: string;
+    command: string;
+    reasoning: string;
+    iconName: string;
+}
+
+export interface ProtocolStepResult {
+    output: string;
+    agentThought: string;
+    timestamp: number;
+}
+
+export interface AgenticNodeData {
+    label: string;
+    role: string;
+    modelType: 'LRM' | 'FRL';
+    tools: string[];
+    activeState?: string;
+    thinkingBudget?: number;
+    iconName?: string;
+    color?: string;
 }
 
 export enum HardwareTier {
@@ -407,19 +441,7 @@ export enum HardwareTier {
 
 export interface ArtifactNode {
     id: string;
-    type: 'IMAGE' | 'CODE' | 'TEXT' | 'ANALYSIS' | 'RESEARCH_REPORT';
+    type: string;
     label: string;
     content: any;
-    timestamp: number;
-}
-
-export interface StoredArtifact {
-    id: string;
-    name: string;
-    type: string;
-    data: Blob;
-    analysis: ArtifactAnalysis | null;
-    timestamp: number;
-    tags: string[];
-    metadata?: any;
 }

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
     useNodesState, useEdgesState, useReactFlow, addEdge, Connection, 
@@ -10,9 +11,11 @@ import {
     fileToGenerativePart, promptSelectKey, classifyArtifact, 
     generateAutopoieticFramework, generateStructuredWorkflow,
     generateSystemArchitecture, calculateEntropy, decomposeNode, generateInfrastructureCode,
-    generateSingleNode, calculateOptimalLayout
+    generateSingleNode, calculateOptimalLayout, generateSwarmArchitecture,
+    simulateAgentStep
 } from '../services/geminiService';
-import { FileData, AppMode, AppTheme } from '../types';
+import { FileData, AppMode, AppTheme, ProtocolStepResult } from '../types';
+import { audio } from '../services/audioService';
 
 export const THEME = {
     accent: { 
@@ -325,16 +328,73 @@ export const useProcessVisualizerLogic = () => {
         } catch (err: any) { handleApiError('Generate', err); }
     };
 
+    const handleExecuteStep = async (index: number) => {
+        if (!state.generatedWorkflow || state.isSimulating) return;
+        setState({ isSimulating: true, activeStepIndex: index });
+        audio.playClick();
+        
+        try {
+            if (!(await checkApiKey())) return;
+            const history = Object.values(state.runtimeResults) as ProtocolStepResult[];
+            const result = await simulateAgentStep(state.generatedWorkflow, index, history);
+            
+            setState(prev => ({
+                runtimeResults: { ...prev.runtimeResults, [index]: result },
+                isSimulating: false
+            }));
+            addLog('SUCCESS', `NEURAL_RUNTIME: Step ${index + 1} finalized by ${state.generatedWorkflow.protocols[index].role}.`);
+            audio.playSuccess();
+        } catch (err: any) {
+            handleApiError('Simulation', err);
+            setState({ isSimulating: false });
+            audio.playError();
+        }
+    };
+
+    const handleResetSimulation = () => {
+        setState({ activeStepIndex: null, runtimeResults: {}, isSimulating: false });
+        addLog('SYSTEM', 'NEURAL_RUNTIME: Execution context flushed.');
+        audio.playClick();
+    };
+
     return {
         state, activeTab, nodes, edges, onNodesChange, onEdgesChange, onConnect, onPaneContextMenu, onPaneClick, onPaneDoubleClick,
         visualTheme, showGrid, paneContextMenu, setPaneContextMenu, toggleGrid: () => setShowGrid(!showGrid), addNodeAtPosition,
         handleGenerateGraph: async () => {
-            if (!(await checkApiKey())) return; setIsGeneratingGraph(true);
+            if (!(await checkApiKey())) return; 
+            setIsGeneratingGraph(true);
             try {
-                const result = await generateSystemArchitecture(architecturePrompt);
-                const newNodes = result.nodes.map((n: any, i: number) => ({ id: n.id, type: 'holographic', position: { x: 600 + Math.cos(i) * 300, y: 400 + Math.sin(i) * 300 }, data: { ...n, theme: visualTheme, progress: 2 } }));
-                const newEdges = result.edges.map((e: any) => ({ id: e.id, source: e.source, target: e.target, type: 'cinematic', data: { color: '#9d4edd', variant: 'stream' } }));
-                setNodes(newNodes); setEdges(newEdges); setTimeout(() => fitView({ duration: 1000 }), 100);
+                let result;
+                if (state.workflowType === 'AGENTIC_ORCHESTRATION') {
+                    addLog('SYSTEM', 'SWARM_SYNTHESIS: Forging cognitive architecture...');
+                    result = await generateSwarmArchitecture(architecturePrompt);
+                } else {
+                    addLog('SYSTEM', 'ARCHITECT: Constructing system topology...');
+                    result = await generateSystemArchitecture(architecturePrompt);
+                }
+
+                const newNodes = result.nodes.map((n: any, i: number) => ({ 
+                    id: n.id, 
+                    type: state.workflowType === 'AGENTIC_ORCHESTRATION' ? 'agentic' : 'holographic', 
+                    position: { x: 600 + Math.cos(i) * 300, y: 400 + Math.sin(i) * 300 }, 
+                    data: { ...n, theme: visualTheme, progress: 2 } 
+                }));
+                
+                const newEdges = result.edges.map((e: any) => ({ 
+                    id: e.id, 
+                    source: e.source, 
+                    target: e.target, 
+                    type: 'cinematic', 
+                    data: { 
+                        color: e.color || '#9d4edd', 
+                        variant: e.variant || 'stream',
+                        handoffCondition: e.handoffCondition
+                    } 
+                }));
+
+                setNodes(newNodes); 
+                setEdges(newEdges); 
+                setTimeout(() => fitView({ duration: 1000 }), 100);
             } catch (err: any) { handleApiError('Blueprint', err); } finally { setIsGeneratingGraph(false); }
         },
         handleDecomposeNode: async () => {
@@ -382,6 +442,7 @@ export const useProcessVisualizerLogic = () => {
         restoreGraph: () => { const saved = localStorage.getItem('pm_layout'); if (saved) { const { nodes: ns, edges: es } = JSON.parse(saved); setNodes(ns); setEdges(es); } },
         getTabLabel: (t: string) => t.replace('_', ' '), getPriorityBadgeStyle: (p: string) => p === 'HIGH' ? 'bg-red-900/20 text-red-400 border-red-500/30' : 'bg-[#111] text-gray-500',
         handleSourceUpload, removeSource, viewSourceAnalysis, setState,
-        animatedNodes: nodes, animatedEdges: edges, handleRunGlobalSequence
+        animatedNodes: nodes, animatedEdges: edges, handleRunGlobalSequence,
+        handleExecuteStep, handleResetSimulation
     };
 };

@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
 import { 
-    fileToGenerativePart, analyzeBookDNA, promptSelectKey,
-    generateHypotheses, simulateExperiment, crystallizeKnowledge, synthesizeNodes,
-    compileResearchContext, classifyArtifact, smartOrganizeArtifact,
-    predictNextActions
+    fileToGenerativePart, analyzeBookDNA,
+    generateHypotheses, simulateExperiment, generateTheory, promptSelectKey, compressKnowledge,
+    synthesizeNodes, classifyArtifact, crystallizeKnowledge
 } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
 import { 
@@ -12,10 +12,10 @@ import {
     Database, Archive, BoxSelect, X, Users, FlaskConical,
     Search, ArrowRight, XCircle, Sparkles, FileText, RotateCcw,
     Microscope, BrainCircuit, Link as LinkIcon, Radio, Settings, Play, CheckCircle2,
-    Layers, GitBranch, Split, FileUp, Eye, ShieldCheck, Info, Sparkle, Plus
+    Layers, GitBranch, Split, FileUp, Eye, ShieldCheck, Info, Sparkle, Plus, Scan, Zap, Brain, Sliders
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BookDNA, KnowledgeNode, ScienceHypothesis, StoredArtifact, FileData, AppMode } from '../types';
+import { BookDNA, KnowledgeNode, ScienceHypothesis, StoredArtifact, FileData } from '../types';
 import AgoraPanel from './AgoraPanel';
 import BicameralEngine from './BicameralEngine'; 
 import SuperLattice from './visualizations/SuperLattice';
@@ -26,20 +26,42 @@ const MotionDiv = motion.div as any;
 
 // --- SUB-COMPONENTS ---
 
+const SynapticHandshake = ({ readouts }: { readouts: any[] }) => (
+    <div className="bg-black/80 border border-[#222] rounded-xl p-4 font-mono text-[9px] space-y-1 max-h-40 overflow-y-auto custom-scrollbar shadow-2xl">
+        <div className="flex items-center gap-2 text-[#9d4edd] mb-2 border-b border-[#222] pb-1 uppercase font-black">
+            <Scan size={10} className="animate-pulse" /> Synaptic Handshake Active
+        </div>
+        {readouts.map((r, i) => (
+            <motion.div 
+                initial={{ opacity: 0, x: -10 }} 
+                animate={{ opacity: 1, x: 0 }} 
+                key={r.id + i} 
+                className={`flex gap-2 ${r.type === 'PERCEPTION' ? 'text-[#22d3ee]' : r.type === 'HANDSHAKE' ? 'text-[#9d4edd]' : 'text-[#42be65]'}`}
+            >
+                <span className="opacity-50">[{new Date().toLocaleTimeString().split(' ')[0]}]</span>
+                <span>{r.msg}</span>
+            </motion.div>
+        ))}
+        <div className="animate-pulse text-gray-700">_</div>
+    </div>
+);
+
 const SourceManager = ({ 
     activeSources, 
     onUpload, 
     onRemove, 
     onSelectFromVault, 
     isUploading,
-    onPreview
+    onPreview,
+    synapticReadout
 }: { 
     activeSources: any[], 
     onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void, 
     onRemove: (id: string) => void,
     onSelectFromVault: () => void,
     isUploading: boolean,
-    onPreview: (source: any) => void
+    onPreview: (source: any) => void,
+    synapticReadout: any[]
 }) => {
     return (
         <div className="h-full flex flex-col bg-[#050505] border-r border-[#1f1f1f]">
@@ -62,6 +84,10 @@ const SourceManager = ({
                     <input type="file" multiple className="hidden" onChange={onUpload} disabled={isUploading} />
                 </label>
 
+                {isUploading && synapticReadout.length > 0 && (
+                    <SynapticHandshake readouts={synapticReadout} />
+                )}
+
                 <div className="space-y-2">
                     {activeSources.map(source => (
                         <div key={source.id} className="bg-[#111] border border-[#222] p-3 rounded-lg group hover:border-[#22d3ee]/50 transition-all relative">
@@ -75,10 +101,13 @@ const SourceManager = ({
                             <div className="flex items-center gap-2 mt-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-[#22d3ee]/40" />
                                 <span className="text-[8px] text-gray-600 font-mono uppercase">{source.type || 'Artifact'}</span>
+                                {source.analysis?.entropyRating && (
+                                    <span className="text-[7px] font-mono text-[#f59e0b] ml-auto">ENT: {source.analysis.entropyRating}%</span>
+                                )}
                             </div>
                         </div>
                     ))}
-                    {activeSources.length === 0 && (
+                    {activeSources.length === 0 && !isUploading && (
                         <div className="text-center py-8 opacity-20 flex flex-col items-center">
                             <BoxSelect className="w-8 h-8 mb-2" />
                             <p className="text-[9px] font-mono uppercase tracking-[0.2em]">Lattice Unseeded</p>
@@ -90,7 +119,7 @@ const SourceManager = ({
     );
 };
 
-const CalibrationPanel = ({ onDispatch, recommendations, isRecommending, onPreviewRec }: { onDispatch: (q: string) => void, recommendations: any[], isRecommending: boolean, onPreviewRec: (rec: any) => void }) => {
+const CalibrationPanel = ({ onDispatch }: { onDispatch: (q: string) => void }) => {
     const [input, setInput] = useState('');
     return (
         <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto p-6">
@@ -126,46 +155,32 @@ const CalibrationPanel = ({ onDispatch, recommendations, isRecommending, onPrevi
                         </button>
                     </div>
                 </div>
-            </div>
 
-            {/* Recommended Sources Section */}
-            <div className="w-full mt-10 space-y-4">
-                <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black font-mono text-gray-500 uppercase tracking-widest flex items-center gap-2">
-                        <Sparkles className="w-3 h-3 text-[#f59e0b]" /> Suggested Knowledge Vectors
-                    </span>
-                    {isRecommending && <Loader2 className="w-3 h-3 text-[#22d3ee] animate-spin" />}
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                    {recommendations.map((rec, idx) => (
-                        <div key={idx} className="bg-[#0a0a0a] border border-[#222] p-4 rounded-xl hover:border-[#22d3ee] transition-all group flex flex-col justify-between h-24">
-                            <div>
-                                <div className="text-[10px] font-bold text-gray-300 truncate uppercase font-mono">{rec.label}</div>
-                                <div className="text-[8px] text-gray-600 font-mono mt-1 line-clamp-1 italic">"{rec.reasoning}"</div>
-                            </div>
-                            <div className="flex gap-2 justify-end">
-                                <button onClick={() => onPreviewRec(rec)} className="p-1.5 bg-[#111] hover:bg-white/5 rounded text-gray-500 hover:text-white transition-all"><Eye size={12} /></button>
-                                <button onClick={() => onDispatch(rec.command)} className="p-1.5 bg-[#22d3ee]/10 hover:bg-[#22d3ee] hover:text-black rounded text-[#22d3ee] transition-all"><ArrowRight size={12} /></button>
-                            </div>
-                        </div>
-                    ))}
-                    {!isRecommending && recommendations.length === 0 && (
-                        <div className="col-span-2 text-center py-6 text-[9px] font-mono text-gray-700 uppercase tracking-widest">Awaiting system signals...</div>
-                    )}
+                <div className="grid grid-cols-2 gap-4 relative z-10">
+                    <div className="bg-black/40 border border-[#222] p-4 rounded-xl space-y-2 group-hover:border-[#22d3ee]/30 transition-colors">
+                        <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">Suggested Probe</span>
+                        <p className="text-[10px] text-gray-400 font-mono">"Energy infrastructure arbitrage in decentralized lattices."</p>
+                    </div>
+                    <div className="bg-black/40 border border-[#222] p-4 rounded-xl space-y-2 group-hover:border-[#22d3ee]/30 transition-colors">
+                        <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">Suggested Probe</span>
+                        <p className="text-[10px] text-gray-400 font-mono">"Cognitive dissonance in large-scale swarm orchestration."</p>
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
 
-const CrucibleFeed = ({ tasks }: { tasks: any[] }) => {
+const CrucibleFeed = ({ tasks, onAdjustTemperament }: { tasks: any[], onAdjustTemperament: () => void }) => {
     return (
         <div className="h-full flex flex-col bg-[#050505]/80 backdrop-blur border-r border-[#333]">
             <div className="p-4 border-b border-[#333] flex justify-between items-center bg-[#0a0a0a]">
                 <span className="text-[10px] font-mono text-[#f59e0b] uppercase tracking-widest flex items-center gap-2">
-                    <Activity className="w-3 h-3" /> Agent Uplink
+                    <Activity className="w-3 h-3" /> Agent Crucible
                 </span>
-                <span className="text-[9px] text-gray-600 font-mono animate-pulse uppercase tracking-tighter">Net_Op: Stable</span>
+                <button onClick={onAdjustTemperament} className="text-gray-500 hover:text-white transition-colors">
+                    <Sliders size={14} />
+                </button>
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
                 <AnimatePresence>
@@ -174,8 +189,11 @@ const CrucibleFeed = ({ tasks }: { tasks: any[] }) => {
                             key={task.id}
                             initial={{ opacity: 0, x: -10 }} 
                             animate={{ opacity: 1, x: 0 }}
-                            className="bg-[#111] border border-[#222] p-3 rounded-xl group hover:border-[#f59e0b]/30 transition-colors"
+                            className="bg-[#111] border border-[#222] p-3 rounded-xl group hover:border-[#f59e0b]/30 transition-colors relative"
                         >
+                            <div className="absolute -top-1 -right-1">
+                                {task.agentAssigned === 'Charon' ? <ShieldCheck size={12} className="text-red-500" /> : <Sparkles size={12} className="text-[#9d4edd]" />}
+                            </div>
                             <div className="flex justify-between items-start mb-2">
                                 <span className="text-[10px] font-bold text-white truncate max-w-[180px] block font-mono uppercase">{task.query}</span>
                                 {task.status === 'COMPLETED' ? <CheckCircle2 className="w-3 h-3 text-[#42be65]" /> : <Loader2 className="w-3 h-3 text-[#f59e0b] animate-spin" />}
@@ -183,8 +201,9 @@ const CrucibleFeed = ({ tasks }: { tasks: any[] }) => {
                             <div className="w-full bg-[#222] h-1 rounded-full overflow-hidden mb-2">
                                 <div className="h-full bg-[#f59e0b]" style={{ width: `${task.progress}%` }}></div>
                             </div>
-                            <div className="text-[8px] font-mono text-gray-500 truncate uppercase tracking-widest">
-                                {task.logs[task.logs.length - 1] || 'Synchronizing...'}
+                            <div className="flex items-center justify-between text-[8px] font-mono text-gray-500 uppercase tracking-widest">
+                                <span className="truncate max-w-[150px]">{task.logs[task.logs.length - 1] || 'Synchronizing...'}</span>
+                                <span className="text-[#9d4edd] font-black">{task.agentAssigned || 'UNASSIGNED'}</span>
                             </div>
                         </motion.div>
                     ))}
@@ -195,6 +214,15 @@ const CrucibleFeed = ({ tasks }: { tasks: any[] }) => {
                         <p className="text-[10px] font-mono uppercase tracking-[0.2em]">Uplink Idle</p>
                     </div>
                 )}
+            </div>
+            <div className="p-4 border-t border-[#333] bg-black/40">
+                <div className="flex justify-between items-center text-[9px] font-mono text-gray-600 uppercase tracking-widest mb-1">
+                    <span>Swarm Divergence</span>
+                    <span className="text-amber-500">MID_COHERENCE</span>
+                </div>
+                <div className="h-1 bg-[#111] rounded-full overflow-hidden">
+                    <motion.div animate={{ x: [-10, 10, -10] }} transition={{ duration: 3, repeat: Infinity }} className="h-full w-1/2 bg-amber-500/30" />
+                </div>
             </div>
         </div>
     );
@@ -263,6 +291,8 @@ const BibliomorphicEngine: React.FC = () => {
 
   // Living Lab State
   const [labPhase, setLabPhase] = useState<'CALIBRATION' | 'CRUCIBLE' | 'CRYSTALLIZATION'>('CALIBRATION');
+  const [showTemperament, setShowTemperament] = useState(false);
+  const [agentTemperament, setAgentTemperament] = useState({ skepticism: 50, visionary: 80 });
   
   // Graph State
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
@@ -275,10 +305,6 @@ const BibliomorphicEngine: React.FC = () => {
   const [isUploadingSource, setIsUploadingSource] = useState(false);
   const [isVaultModalOpen, setIsVaultModalOpen] = useState(false);
   const [vaultArtifacts, setVaultArtifacts] = useState<StoredArtifact[]>([]);
-  
-  // Recommendations
-  const [recs, setRecs] = useState<any[]>([]);
-  const [isRecommending, setIsRecommending] = useState(false);
 
   // --- DATA COMPUTATION ---
   const activeKnowledge = useMemo(() => {
@@ -315,21 +341,6 @@ const BibliomorphicEngine: React.FC = () => {
       return [...nodes, ...bridgeNodes];
   }, [research.tasks, discovery.hypotheses, bridgeNodes, activeSources]);
 
-  // Initial Recommendations for the Lab
-  useEffect(() => {
-    const fetchRecs = async () => {
-        setIsRecommending(true);
-        try {
-            const hasKey = await window.aistudio?.hasSelectedApiKey();
-            if (hasKey) {
-                const suggestions = await predictNextActions(AppMode.BIBLIOMORPHIC, {}, "LAB_INIT");
-                setRecs(suggestions.slice(0, 4));
-            }
-        } catch(e) {} finally { setIsRecommending(false); }
-    };
-    fetchRecs();
-  }, []);
-
   // Sync Sector
   useEffect(() => {
       let locationId = 'NAV_BIBLIO_DISCOVERY';
@@ -351,10 +362,14 @@ const BibliomorphicEngine: React.FC = () => {
           const files = Array.from(e.target.files) as File[];
           addLog('SYSTEM', `DISCOVERY_INGEST: Buffering ${files.length} primary sources...`);
           
+          setBibliomorphicState({ synapticReadout: [{ id: 'init', msg: `Uplink Handshake initialized for ${files.length} units.`, type: 'HANDSHAKE' }] });
+
           for (const file of files) {
               try {
                   const hasKey = await window.aistudio?.hasSelectedApiKey();
                   if (!hasKey) { await promptSelectKey(); break; }
+
+                  setBibliomorphicState(prev => ({ synapticReadout: [...prev.synapticReadout, { id: file.name, msg: `Perceiving technical structure of ${file.name}...`, type: 'PERCEPTION' }] }));
 
                   const fileData = await fileToGenerativePart(file);
                   const analysis = await classifyArtifact(fileData);
@@ -362,6 +377,8 @@ const BibliomorphicEngine: React.FC = () => {
                   // Auto-archive to Memory Core (Persistent Store)
                   const vaultId = await neuralVault.saveArtifact(file, analysis);
                   
+                  setBibliomorphicState(prev => ({ synapticReadout: [...prev.synapticReadout, { id: file.name + 'idx', msg: `Indexing ${analysis.classification} metadata to vault...`, type: 'INDEX' }] }));
+
                   const newSource = {
                       id: vaultId,
                       name: file.name,
@@ -416,15 +433,19 @@ const BibliomorphicEngine: React.FC = () => {
       const hasKey = await window.aistudio?.hasSelectedApiKey();
       if (!hasKey) { await promptSelectKey(); return; }
 
+      const agents = ['Charon', 'Puck', 'Fenrir'];
+      const agent = agents[Math.floor(Math.random() * agents.length)];
+
       addResearchTask({
           id: crypto.randomUUID(),
           query: sanitizedInput,
           status: 'QUEUED',
           progress: 0,
           logs: ['Initiating Science Protocol...'],
-          timestamp: Date.now()
+          timestamp: Date.now(),
+          agentAssigned: agent
       });
-      addLog('INFO', `SCIENCE_LAB: Research Agent dispatched for vector "${sanitizedInput}"`);
+      addLog('INFO', `SCIENCE_LAB: Research Agent ${agent} dispatched for vector "${sanitizedInput}"`);
       setLabPhase('CRUCIBLE'); 
   };
 
@@ -478,7 +499,7 @@ const BibliomorphicEngine: React.FC = () => {
   // --- RENDER ---
 
   return (
-    <div className="h-full w-full bg-[#030303] flex font-sans overflow-hidden border border-[#1f1f1f] rounded shadow-2xl relative" onClick={() => setContextMenu(null)}>
+    <div className="h-full w-full bg-[#030303] text-white flex font-sans overflow-hidden border border-[#1f1f1f] rounded shadow-2xl relative" onClick={() => setContextMenu(null)}>
       
       {/* 1. CONTROL PLANE (Left) */}
       <div className="w-[320px] flex flex-col border-r border-[#1f1f1f] bg-[#0a0a0a] relative z-20 min-w-[320px]">
@@ -561,7 +582,16 @@ const BibliomorphicEngine: React.FC = () => {
                           <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Buffer Primary Data</span>
                           <input type="file" onChange={handleSourceUpload} className="hidden" />
                       </label>
-                      <div className="bg-[#111] p-4 rounded-xl border border-white/5 space-y-2">
+                      
+                      <AnimatePresence>
+                          {bibliomorphic.synapticReadout.length > 0 && (
+                              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4">
+                                  <SynapticHandshake readouts={bibliomorphic.synapticReadout} />
+                              </motion.div>
+                          )}
+                      </AnimatePresence>
+
+                      <div className="bg-[#111] p-4 rounded-xl border border-white/5 space-y-2 mt-auto">
                           <p className="text-[9px] text-gray-500 font-mono leading-relaxed italic">"Direct binary injection bypasses semantic translation layers. High fidelity recommended."</p>
                       </div>
                   </div>
@@ -636,12 +666,7 @@ const BibliomorphicEngine: React.FC = () => {
                                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                   className="h-full pointer-events-auto"
                               >
-                                  <CalibrationPanel 
-                                    onDispatch={handleResearchDispatch} 
-                                    recommendations={recs} 
-                                    isRecommending={isRecommending} 
-                                    onPreviewRec={(rec) => openHoloProjector({ id: 'rec', title: rec.label, type: 'TEXT', content: rec.reasoning })}
-                                  />
+                                  <CalibrationPanel onDispatch={handleResearchDispatch} />
                               </motion.div>
                           )}
 
@@ -660,12 +685,40 @@ const BibliomorphicEngine: React.FC = () => {
                                           onSelectFromVault={openVaultSelector}
                                           isUploading={isUploadingSource}
                                           onPreview={handleSourcePreview}
+                                          synapticReadout={bibliomorphic.synapticReadout}
                                       />
                                   </div>
                                   
                                   <div className="w-80 h-full">
-                                      <CrucibleFeed tasks={research.tasks} />
+                                      <CrucibleFeed 
+                                        tasks={research.tasks} 
+                                        onAdjustTemperament={() => setShowTemperament(!showTemperament)}
+                                      />
                                   </div>
+
+                                  {showTemperament && (
+                                      <motion.div 
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        className="absolute top-20 right-8 w-64 bg-[#0a0a0a]/90 backdrop-blur border border-[#333] p-6 rounded-2xl shadow-2xl z-40 space-y-6"
+                                      >
+                                          <div className="flex justify-between items-center mb-2">
+                                              <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Environment Tuning</h3>
+                                              <button onClick={() => setShowTemperament(false)}><X size={14} /></button>
+                                          </div>
+                                          <div className="space-y-4">
+                                              <div className="space-y-2">
+                                                  <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase"><span>Skepticism Bias</span><span>{agentTemperament.skepticism}%</span></div>
+                                                  <input type="range" value={agentTemperament.skepticism} onChange={e => setAgentTemperament({...agentTemperament, skepticism: parseInt(e.target.value)})} className="w-full h-1 bg-[#111] rounded appearance-none accent-red-500" />
+                                              </div>
+                                              <div className="space-y-2">
+                                                  <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase"><span>Visionary Reach</span><span>{agentTemperament.visionary}%</span></div>
+                                                  <input type="range" value={agentTemperament.visionary} onChange={e => setAgentTemperament({...agentTemperament, visionary: parseInt(e.target.value)})} className="w-full h-1 bg-[#111] rounded appearance-none accent-[#9d4edd]" />
+                                              </div>
+                                          </div>
+                                          <p className="text-[8px] text-gray-600 font-mono italic leading-relaxed">Adjusting temperament alters the ReAct loop branching logic for assigned agents.</p>
+                                      </motion.div>
+                                  )}
                               </motion.div>
                           )}
 
@@ -720,20 +773,30 @@ const BibliomorphicEngine: React.FC = () => {
                               <h2 className="text-2xl font-black text-white uppercase tracking-tighter font-mono">Neural Vault Archive</h2>
                               <p className="text-[10px] text-gray-500 font-mono mt-2 uppercase tracking-widest">Persistent Knowledge Repositories</p>
                           </div>
-                          <Database className="w-10 h-10 text-[#22d3ee] opacity-20" />
+                          <div className="flex items-center gap-4">
+                              <div className="text-right">
+                                  <div className="text-[8px] text-gray-600 font-mono uppercase tracking-widest">Vault Entropy</div>
+                                  <div className="text-sm font-bold text-[#f59e0b] font-mono">12.4%</div>
+                              </div>
+                              <Database className="w-10 h-10 text-[#22d3ee] opacity-20" />
+                          </div>
                       </div>
                       
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                           {activeSources.map(s => (
-                              <div key={s.id} className="bg-[#111] border border-[#222] p-5 rounded-2xl group hover:border-[#22d3ee] transition-all relative overflow-hidden">
+                              <div key={s.id} className="bg-[#111] border border-[#222] p-5 rounded-2xl group hover:border-[#22d3ee] transition-all relative overflow-hidden flex flex-col h-full">
                                   <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                       <FileText size={48} />
                                   </div>
                                   <div className="text-[10px] font-black text-white uppercase truncate mb-2 font-mono">{s.name}</div>
                                   <div className="flex flex-wrap gap-2 mb-4">
                                       <span className="text-[8px] bg-black/40 border border-white/5 px-2 py-0.5 rounded text-gray-500 uppercase font-mono">{s.type}</span>
+                                      {s.analysis?.entropyRating && <span className={`text-[8px] px-2 py-0.5 rounded uppercase font-bold ${s.analysis.entropyRating > 50 ? 'text-red-500 bg-red-500/10' : 'text-emerald-500 bg-emerald-500/10'}`}>ENT: {s.analysis.entropyRating}</span>}
                                   </div>
-                                  <button onClick={() => handleSourcePreview(s)} className="w-full py-2 bg-black hover:bg-[#22d3ee] hover:text-black text-white border border-[#333] text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all">Inspect Fragment</button>
+                                  <div className="text-[9px] text-gray-500 font-mono line-clamp-3 leading-relaxed mb-6 italic">
+                                      {s.analysis?.summary || 'Artifact secured. Perceptive indexing pending full digitization protocol.'}
+                                  </div>
+                                  <button onClick={() => handleSourcePreview(s)} className="mt-auto w-full py-2 bg-black hover:bg-[#22d3ee] hover:text-black text-white border border-[#333] text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all">Inspect Fragment</button>
                               </div>
                           ))}
                           {activeSources.length === 0 && (
@@ -743,6 +806,26 @@ const BibliomorphicEngine: React.FC = () => {
                               </div>
                           )}
                       </div>
+
+                      {activeSources.length > 2 && (
+                          <div className="bg-[#0a0a0a] border border-[#222] rounded-3xl p-8 mt-12 relative overflow-hidden">
+                              <div className="absolute top-0 right-0 p-8 opacity-5"><Zap size={120} className="text-[#9d4edd]"/></div>
+                              <div className="flex items-center gap-3 mb-6">
+                                  <Brain size={20} className="text-[#9d4edd] animate-pulse" />
+                                  <h3 className="text-sm font-black text-white uppercase tracking-widest">Cross-Artifact Resonance</h3>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                  <div className="p-4 bg-black/40 border border-[#222] rounded-xl">
+                                      <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-2">Detected Synchronicity</span>
+                                      <p className="text-[10px] text-gray-300 font-mono">Resonance detected between <span className="text-[#22d3ee]">Architecture_Manifesto.pdf</span> and <span className="text-[#9d4edd]">Neural_Uplink_Specs.txt</span></p>
+                                  </div>
+                                  <div className="p-4 bg-black/40 border border-[#222] rounded-xl">
+                                      <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-2">Stability Protocol</span>
+                                      <p className="text-[10px] text-gray-300 font-mono">Consolidated 12 logical bridges to reduce overall vault entropy by 4.2%.</p>
+                                  </div>
+                              </div>
+                          </div>
+                      )}
                   </div>
               </div>
           )}

@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useCallback } from 'react';
+
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     ReactFlow, Background, Controls, MiniMap, 
@@ -13,126 +14,137 @@ import {
     HardDriveDownload, Network as NetworkIcon,
     Save, VolumeX, Lightbulb, Search, Loader2, Code, Cloud,
     ShieldCheck, Sparkles, FileText, Upload, Eye, FileUp, Info,
-    FolderTree, Terminal, Settings2, User, Copy, ExternalLink, Globe, ArrowRight, PieChart, ShieldAlert, Thermometer, Bell, FolderSync, Plus, Maximize, Stethoscope, FileJson, Trash2, GitBranch, BookOpen, LayoutGrid
+    FolderTree, Terminal, Settings2, User, Copy, ExternalLink, Globe, ArrowRight, PieChart, ShieldAlert, Thermometer, Bell, FolderSync, Plus, Maximize, Stethoscope, FileJson, Trash2, GitBranch, BookOpen, LayoutGrid, Bot, Filter, GitMerge, Cpu, Brain, PlayCircle, RotateCcw
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useAppStore } from '../store';
-import { AppTheme, AppMode } from '../types';
+import { AppTheme, AppMode, AgenticNodeData } from '../types';
 import MermaidDiagram from './MermaidDiagram';
 import NexusAPIExplorer from './NexusAPIExplorer';
 import { useProcessVisualizerLogic, THEME } from '../hooks/useProcessVisualizerLogic';
 import { renderSafe } from '../utils/renderSafe';
 import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from 'recharts';
 
-const ProtocolLoom: React.FC<{ protocols: any[], type?: string }> = ({ protocols, type }) => {
+const ProtocolLoom: React.FC<{ protocols: any[], type?: string, activeIndex: number | null, onStep: (idx: number) => void, results: Record<number, any>, onReset: () => void, isSimulating: boolean }> = ({ protocols, type, activeIndex, onStep, results, onReset, isSimulating }) => {
     if (!protocols || protocols.length === 0) return null;
 
-    const accentColor = type === 'DRIVE_ORGANIZATION' ? '#22d3ee' : type === 'SYSTEM_ARCHITECTURE' ? '#f59e0b' : '#9d4edd';
+    const accentColor = type === 'DRIVE_ORGANIZATION' ? '#22d3ee' : type === 'SYSTEM_ARCHITECTURE' ? '#f59e0b' : type === 'AGENTIC_ORCHESTRATION' ? '#10b981' : '#9d4edd';
 
     return (
-        <div className="w-full bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-6 mb-8 overflow-x-auto custom-scrollbar">
-            <div className="flex items-center gap-2 mb-6 border-b border-[#1f1f1f] pb-3">
-                <Activity className="w-4 h-4" style={{ color: accentColor }} />
-                <h3 className="text-[10px] font-black font-mono text-gray-400 uppercase tracking-[0.2em]">Protocol Loom // Sequence Visualization</h3>
+        <div className="w-full bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-6 mb-8 overflow-x-auto custom-scrollbar relative">
+            <div className="flex items-center justify-between mb-6 border-b border-[#1f1f1f] pb-3">
+                <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4" style={{ color: accentColor }} />
+                    <h3 className="text-[10px] font-black font-mono text-gray-400 uppercase tracking-[0.2em]">Protocol Loom // {type === 'AGENTIC_ORCHESTRATION' ? 'Cognitive Thread' : 'Sequence Visualization'}</h3>
+                </div>
+                <div className="flex gap-2">
+                    <button onClick={onReset} className="flex items-center gap-2 px-3 py-1 bg-[#111] border border-[#333] hover:border-white text-[9px] font-mono text-gray-500 hover:text-white uppercase transition-all rounded">
+                        <RotateCcw size={10} /> Reset
+                    </button>
+                    {activeIndex === null ? (
+                        <button onClick={() => onStep(0)} className="flex items-center gap-2 px-3 py-1 bg-[#10b981]/20 border border-[#10b981]/40 text-[#10b981] text-[9px] font-mono uppercase transition-all rounded hover:bg-[#10b981] hover:text-black">
+                            <Play size={10} /> Initialize Runtime
+                        </button>
+                    ) : (
+                        <div className="text-[9px] font-mono text-gray-500 uppercase flex items-center gap-2">
+                             Runtime Active <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                        </div>
+                    )}
+                </div>
             </div>
             
             <div className="flex items-center gap-0 pb-4 min-w-max">
-                {protocols.map((p, i) => (
-                    <React.Fragment key={i}>
-                        <motion.div 
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            className={`
-                                relative w-64 bg-black border p-4 rounded-xl shrink-0 group transition-all
-                                ${p.priority === 'HIGH' ? 'border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.1)]' : 'border-[#222] hover:border-[#9d4edd]'}
-                            `}
-                        >
-                            <div className="flex justify-between items-start mb-3">
-                                <span className="text-[9px] font-black font-mono px-1.5 rounded" style={{ color: accentColor, backgroundColor: `${accentColor}15` }}>STEP_{String(p.step || i+1).padStart(2, '0')}</span>
-                                {p.priority === 'HIGH' && <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_10px_red]" />}
-                            </div>
-                            <h4 className="text-[11px] font-bold text-white font-mono mb-2 truncate group-hover:text-[#22d3ee] transition-colors">{p.action}</h4>
-                            <div className="flex items-center gap-2 text-[8px] font-mono text-gray-600 uppercase">
-                                <User className="w-2.5 h-2.5" /> {p.role}
-                            </div>
+                {protocols.map((p, i) => {
+                    const isActive = activeIndex === i;
+                    const isDone = !!results[i];
+
+                    return (
+                        <React.Fragment key={i}>
+                            <motion.div 
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                className={`
+                                    relative w-72 bg-black border p-4 rounded-xl shrink-0 group transition-all cursor-pointer
+                                    ${isActive ? 'border-[#10b981] shadow-[0_0_25px_rgba(16,185,129,0.1)] scale-105 z-10' : isDone ? 'border-[#42be65]/40 opacity-60' : 'border-[#222] hover:border-[#9d4edd]'}
+                                `}
+                                onClick={() => !isSimulating && onStep(i)}
+                            >
+                                {isActive && isSimulating && (
+                                    <div className="absolute inset-0 bg-black/40 backdrop-blur-sm z-20 flex flex-col items-center justify-center rounded-xl">
+                                        <Loader2 size={24} className="text-[#10b981] animate-spin mb-2" />
+                                        <span className="text-[8px] font-mono text-[#10b981] animate-pulse">REASONING...</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-start mb-3">
+                                    <span className="text-[9px] font-black font-mono px-1.5 rounded" style={{ color: isActive ? '#10b981' : accentColor, backgroundColor: isActive ? '#10b98115' : `${accentColor}15` }}>STEP_{String(p.step || i+1).padStart(2, '0')}</span>
+                                    {isDone && <CheckCircle size={10} className="text-[#42be65]" />}
+                                    {!isDone && isActive && <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-ping" />}
+                                </div>
+                                <h4 className="text-[11px] font-bold text-white font-mono mb-2 truncate group-hover:text-[#22d3ee] transition-colors">{p.action}</h4>
+                                
+                                <div className="space-y-1.5 mt-3 pt-3 border-t border-white/5">
+                                    {p.perception_gate && (
+                                        <div className="flex items-center gap-2 text-[8px] font-mono text-cyan-500/70 uppercase">
+                                            <Filter size={10} /> {p.perception_gate}
+                                        </div>
+                                    )}
+                                    <div className="flex items-center gap-2 text-[8px] font-mono text-gray-600 uppercase">
+                                        <User className="w-2.5 h-2.5" /> {p.role}
+                                    </div>
+                                    {results[i] && (
+                                        <div className="mt-2 p-2 bg-[#111] rounded text-[8px] font-mono text-gray-400 line-clamp-2 border border-white/5">
+                                            ↳ {results[i].output}
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-2 h-[1px] bg-[#333]" />
+                            </motion.div>
                             
-                            <div className="absolute -left-2 top-1/2 -translate-y-1/2 w-2 h-[1px] bg-[#333]" />
-                        </motion.div>
-                        
-                        {i < protocols.length - 1 && (
-                            <div className="w-12 h-px bg-gradient-to-r from-[#9d4edd] to-[#3b82f6] opacity-40 shrink-0 self-center mx-1 flex items-center justify-center">
-                                <ArrowRight className="w-3 h-3 text-[#3b82f6]" />
-                            </div>
-                        )}
-                    </React.Fragment>
+                            {i < protocols.length - 1 && (
+                                <div className={`w-12 h-px shrink-0 self-center mx-1 flex items-center justify-center transition-all ${isDone ? 'bg-[#42be65]' : 'bg-[#333]'}`}>
+                                    <ArrowRight className={`w-3 h-3 ${isDone ? 'text-[#42be65]' : 'text-gray-700'}`} />
+                                </div>
+                            )}
+                        </React.Fragment>
+                    );
+                })}
+            </div>
+        </div>
+    );
+};
+
+const DirectoryTaxonomy: React.FC<{ taxonomy: any, type?: string }> = ({ taxonomy, type }) => {
+    if (!taxonomy || !taxonomy.root) return null;
+    const accentColor = type === 'AGENTIC_ORCHESTRATION' ? '#10b981' : '#22d3ee';
+    const Icon = type === 'AGENTIC_ORCHESTRATION' ? BrainCircuit : FolderTree;
+    const title = type === 'AGENTIC_ORCHESTRATION' ? 'Cognitive Hierarchy // State Map' : 'Logical Directory Topology';
+    
+    return (
+        <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl p-6 shadow-2xl relative overflow-hidden group">
+            <div className="flex items-center gap-3 mb-6 border-b border-[#1f1f1f] pb-4">
+                <Icon className="w-5 h-5" style={{ color: accentColor }} />
+                <h3 className="text-xs font-black font-mono text-white uppercase tracking-[0.2em]">{title}</h3>
+            </div>
+            <div className="space-y-4">
+                {taxonomy.root.map((folder: any, i: number) => (
+                    <div key={i} className="pl-4 border-l-2 border-[#222] hover:border-[#10b981] transition-colors" style={{ borderLeftColor: i % 2 === 0 ? accentColor : undefined }}>
+                        <div className="flex items-center gap-2 mb-2">
+                            <Icons.Folder className="w-3.5 h-3.5" style={{ color: accentColor }} />
+                            <span className="text-[11px] font-bold font-mono text-white uppercase tracking-widest">{folder.folder}</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2 pl-6">
+                            {folder.subfolders?.map((sub: string, j: number) => (
+                                <div key={j} className="flex items-center gap-2 py-1 group/sub">
+                                    <div className="w-1 h-1 rounded-full bg-gray-700 group-hover/sub:bg-[#10b981]" />
+                                    <span className="text-[9px] font-mono text-gray-500 group-hover/sub:text-gray-300 transition-colors truncate">/{sub}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 ))}
             </div>
-        </div>
-    );
-};
-
-const ArchitecturalResonancePlot: React.FC<{ nodes: any[] }> = ({ nodes }) => {
-    const data = useMemo(() => {
-        return nodes.map(n => ({
-            name: n.data.label,
-            complexity: Math.random() * 100,
-            resilience: Math.random() * 100,
-            impact: 100 + Math.random() * 400
-        }));
-    }, [nodes]);
-
-    return (
-        <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-6 h-full flex flex-col">
-            <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-2 font-mono">
-                        <Activity className="w-3 h-3 text-[#22d3ee]" /> System Resonance Matrix
-                    </h3>
-                    <p className="text-[8px] text-gray-600 font-mono mt-1 uppercase">Complexity vs Resilience Mapping</p>
-                </div>
-            </div>
-            <div className="flex-1">
-                <ResponsiveContainer width="100%" height="100%">
-                    <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: -20 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#1a1a1a" />
-                        <XAxis type="number" dataKey="complexity" name="complexity" unit="%" stroke="#444" tick={{ fontSize: 8, fontFamily: 'monospace' }} />
-                        <YAxis type="number" dataKey="resilience" name="resilience" unit="%" stroke="#444" tick={{ fontSize: 8, fontFamily: 'monospace' }} />
-                        <ZAxis type="number" dataKey="impact" range={[50, 400]} />
-                        <RechartsTooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #333', fontSize: '10px' }} />
-                        <Scatter name="Logic Nodes" data={data}>
-                            {data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={entry.resilience < 40 && entry.complexity > 60 ? '#ef4444' : entry.resilience > 70 ? '#10b981' : '#9d4edd'} fillOpacity={0.6} />
-                            ))}
-                        </Scatter>
-                    </ScatterChart>
-                </ResponsiveContainer>
-            </div>
-        </div>
-    );
-};
-
-const JsonTreeViewer: React.FC<{ data: any; label?: string; level?: number }> = ({ data, label, level = 0 }) => {
-    const [isExpanded, setIsExpanded] = useState(level < 2);
-    if (data === null || data === undefined) return <div className="pl-2 text-gray-600 font-mono text-[10px]">{label ? `${label}: ` : ''}null</div>;
-    const isObject = typeof data === 'object';
-    const isArray = Array.isArray(data);
-    if (!isObject) return <div className="pl-2 flex gap-2 font-mono text-[10px]">{label && <span className="text-gray-500">{label}:</span>}<span className="text-[#9d4edd] break-all">{String(data)}</span></div>;
-    const keys = Object.keys(data);
-    if (keys.length === 0) return <div className="pl-2 text-gray-600 font-mono text-[10px]">{label ? `${label}: ` : ''}{isArray ? '[]' : '{}'}</div>;
-    return (
-        <div className="pl-2 font-mono text-[10px]">
-            <div className="flex items-center gap-2 cursor-pointer hover:text-white text-gray-400 select-none py-0.5" onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}>
-                {isExpanded ? <ChevronDown size={10} /> : <ChevronRight size={10} />}
-                <span className={`font-bold ${level === 0 ? 'text-[#42be65]' : 'text-[#22d3ee]'}`}>{label || (isArray ? `List [${keys.length}]` : 'Object')}</span>
-            </div>
-            <AnimatePresence>
-                {isExpanded && (
-                    <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="pl-2 border-l border-[#333] ml-1 overflow-hidden">
-                        {keys.map(key => <JsonTreeViewer key={key} label={isArray ? undefined : key} data={data[key]} level={level + 1} />)}
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 };
@@ -141,6 +153,17 @@ const HolographicNode = ({ data: nodeData, selected }: NodeProps) => {
     const data = nodeData as any;
     const Icon = (Icons as any)[data.iconName as string] || Icons.Box;
     const accentColor = data.color || '#9d4edd';
+    const [proceduralState, setProceduralState] = useState('IDLE');
+
+    useEffect(() => {
+        if (data.status === 'ACTIVE' || data.status === 'INITIALIZED') {
+            const states = ['PERCEIVING', 'REASONING', 'REFINING', 'HANDING_OFF', 'IDLE'];
+            const interval = setInterval(() => {
+                setProceduralState(states[Math.floor(Math.random() * states.length)]);
+            }, 3000 + Math.random() * 2000);
+            return () => clearInterval(interval);
+        }
+    }, [data.status]);
 
     return (
         <div 
@@ -162,11 +185,18 @@ const HolographicNode = ({ data: nodeData, selected }: NodeProps) => {
                 >
                     <Icon size={20} className="drop-shadow-[0_0_8px_currentColor]" />
                 </div>
-                {data.status && (
-                    <div className="px-2 py-0.5 rounded-sm text-[8px] font-black bg-white/5 border border-white/10 text-gray-500 uppercase tracking-widest">
-                        {data.status}
-                    </div>
-                )}
+                <div className="flex flex-col items-end gap-1">
+                    {data.status && (
+                        <div className="px-2 py-0.5 rounded-sm text-[8px] font-black bg-white/5 border border-white/10 text-gray-500 uppercase tracking-widest">
+                            {data.status}
+                        </div>
+                    )}
+                    {(data.status === 'ACTIVE' || data.status === 'INITIALIZED') && (
+                        <div className="text-[7px] font-mono text-emerald-500 flex items-center gap-1 animate-pulse uppercase">
+                            <Activity size={8} /> {proceduralState}
+                        </div>
+                    )}
+                </div>
             </div>
 
             <div className="mb-4">
@@ -186,12 +216,84 @@ const HolographicNode = ({ data: nodeData, selected }: NodeProps) => {
                         ))}
                     </div>
                     <div className="text-[8px] font-black font-mono text-gray-600 uppercase tracking-widest shrink-0 ml-2">
-                        {data.footerRight || 'SYSTEM_CORE'}
+                        {data.footerRight || 'COGNITIVE_CORE'}
                     </div>
                 </div>
-                <div className="text-[8px] font-black font-mono text-gray-400 uppercase tracking-widest">
-                    {data.footerLeft || 'ACTIVE_LAYER'}
+                <div className="text-[8px] font-black font-mono text-gray-400 uppercase tracking-widest flex justify-between">
+                    <span>{data.footerLeft || 'STATE_L0'}</span>
+                    <span className="text-gray-700">MEM: 2.4KB</span>
                 </div>
+            </div>
+        </div>
+    );
+};
+
+const AgenticNode = ({ data: nodeData, selected }: NodeProps) => {
+    const data = nodeData as AgenticNodeData;
+    const Icon = (Icons as any)[data.iconName as string] || Icons.Bot;
+    const accentColor = data.color || '#10b981';
+
+    return (
+        <div 
+            className={`
+                relative px-6 py-5 rounded-2xl border transition-all duration-500 min-w-[320px] backdrop-blur-3xl group
+                ${selected ? 'border-[#10b981] shadow-[0_0_50px_rgba(16,185,129,0.25)]' : 'border-white/10 hover:border-white/30'}
+            `} 
+            style={{ backgroundColor: 'rgba(5, 10, 5, 0.95)' }}
+        >
+            <Handle type="target" position={Position.Top} className="!bg-[#222] !w-3 !h-3" />
+            <Handle type="source" position={Position.Bottom} className="!bg-[#222] !w-3 !h-3" />
+            
+            <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center gap-4">
+                    <div 
+                        className={`p-3 rounded-xl flex items-center justify-center transition-all duration-700 shadow-xl group-hover:rotate-12`} 
+                        style={{ backgroundColor: `${accentColor}20`, border: `1px solid ${accentColor}50`, color: accentColor }}
+                    >
+                        {data.modelType === 'LRM' ? <Brain size={24} className="animate-pulse" /> : <Cpu size={24} />}
+                    </div>
+                    <div>
+                        <div className="text-[14px] font-black font-mono uppercase tracking-[0.2em] text-white">{data.label}</div>
+                        <div className="text-[9px] font-bold font-mono text-emerald-500 uppercase tracking-widest mt-0.5">{data.role}</div>
+                    </div>
+                </div>
+                <div className="px-3 py-1 rounded-full text-[8px] font-black bg-[#10b981]/10 border border-[#10b981]/30 text-[#10b981] uppercase tracking-widest">
+                    {data.modelType} ENGINE
+                </div>
+            </div>
+
+            <div className="space-y-4">
+                <div className="flex flex-wrap gap-2">
+                    {data.tools?.map((tool, i) => (
+                        <span key={i} className="text-[7px] font-black font-mono px-2 py-0.5 bg-[#111] border border-white/5 rounded text-gray-500 uppercase">
+                            TOOL::{tool}
+                        </span>
+                    ))}
+                </div>
+                
+                <div className="p-3 bg-black/40 rounded-xl border border-white/5">
+                    <div className="flex justify-between items-center mb-2">
+                        <span className="text-[8px] font-mono text-gray-600 uppercase">Memory Latency</span>
+                        <span className="text-[8px] font-mono text-emerald-500">SYNC_OK</span>
+                    </div>
+                    <div className="h-1 w-full bg-[#111] rounded-full overflow-hidden">
+                        <motion.div 
+                            className="h-full bg-emerald-500"
+                            animate={{ width: ['20%', '80%', '40%'] }}
+                            transition={{ duration: 4, repeat: Infinity }}
+                        />
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+                    <span className="text-[9px] font-mono font-bold text-gray-400">STATE::{data.activeState || 'THINKING'}</span>
+                </div>
+                {data.thinkingBudget && (
+                    <span className="text-[8px] font-mono text-gray-600 uppercase">Budget: {data.thinkingBudget}t</span>
+                )}
             </div>
         </div>
     );
@@ -199,21 +301,45 @@ const HolographicNode = ({ data: nodeData, selected }: NodeProps) => {
 
 const CinematicEdge = ({ id, sourceX, sourceY, targetX, targetY, style, markerEnd, data: edgeData }: EdgeProps) => {
     const [edgePath] = getSmoothStepPath({ sourceX, sourceY, targetX, targetY });
+    const isHandingOff = edgeData?.variant === 'handoff' || edgeData?.handoffCondition;
+
     return (
         <>
             <path 
                 id={id} 
                 className="react-flow__edge-path" 
                 d={edgePath} 
-                strokeWidth={1.5} 
-                stroke={edgeData?.color as string || style?.stroke || '#333'} 
+                strokeWidth={isHandingOff ? 2 : 1.5} 
+                stroke={(edgeData?.color as string) || style?.stroke || '#333'} 
                 markerEnd={markerEnd} 
-                style={{ ...style, strokeOpacity: 0.2 }} 
+                style={{ ...style, strokeOpacity: isHandingOff ? 0.6 : 0.2 }} 
             />
+            {edgeData?.handoffCondition && (
+                <text className="pointer-events-none fill-emerald-500 font-mono text-[8px] uppercase font-black tracking-widest shadow-xl">
+                    <textPath href={`#${id}`} startOffset="50%" textAnchor="middle" dy="-6">
+                        ↳ IF: {edgeData.handoffCondition}
+                    </textPath>
+                </text>
+            )}
+            {edgeData?.perception_gate && (
+                <text className="pointer-events-none fill-cyan-500 font-mono text-[7px] uppercase font-bold tracking-tighter">
+                    <textPath href={`#${id}`} startOffset="50%" textAnchor="middle" dy="-4">
+                        ◬ PERCEPTION_GATE: {edgeData.perception_gate}
+                    </textPath>
+                </text>
+            )}
             {edgeData?.variant === 'stream' && (
-                <circle r="2" fill={edgeData?.color as string || style?.stroke || '#9d4edd'}>
-                    <animateMotion dur="4s" repeatCount="indefinite" path={edgePath} />
+                <circle r="2.5" fill={(edgeData?.color as string) || style?.stroke || '#9d4edd'}>
+                    <animateMotion dur="3s" repeatCount="indefinite" path={edgePath} />
                 </circle>
+            )}
+            {isHandingOff && (
+                <g>
+                    <rect width="6" height="6" fill={(edgeData?.color as string) || '#10b981'} rx="1">
+                        <animateMotion dur="1.2s" repeatCount="indefinite" path={edgePath} />
+                        <animate attributeName="opacity" values="1;0.2;1" dur="1.2s" repeatCount="indefinite" />
+                    </rect>
+                </g>
             )}
         </>
     );
@@ -224,21 +350,21 @@ const ProcessVisualizerContent = () => {
     const { fitView } = useReactFlow();
     const {
         state, activeTab, onNodesChange, onEdgesChange, onConnect, onPaneContextMenu, onPaneClick, onPaneDoubleClick,
-        nodes, edges, animatedNodes, animatedEdges, visualTheme, showGrid, toggleGrid,
-        addNodeAtPosition, handleGenerateGraph, handleDecomposeNode, handleOptimizeNode, handleAutoOrganize, handleGenerateIaC,
-        handleRunGlobalSequence, handleGenerate, isGeneratingGraph, isOptimizing, isOrganizing, paneContextMenu,
+        nodes, edges, animatedNodes, animatedEdges, visualTheme, showGrid, paneContextMenu,
         setPaneContextMenu,
         sequenceStatus, sequenceProgress, selectedNode, architecturePrompt,
         setArchitecturePrompt, getTabLabel, saveGraph, restoreGraph, setState,
-        getPriorityBadgeStyle, handleAIAddNode, handleSourceUpload, removeSource, viewSourceAnalysis
+        getPriorityBadgeStyle, handleAIAddNode, handleSourceUpload, removeSource, viewSourceAnalysis,
+        handleGenerate, handleGenerateGraph, isGeneratingGraph,
+        handleExecuteStep, handleResetSimulation
     } = useProcessVisualizerLogic();
 
-    const nodeTypes = useMemo(() => ({ holographic: HolographicNode }), []);
+    const nodeTypes = useMemo(() => ({ holographic: HolographicNode, agentic: AgenticNode }), []);
     const edgeTypes = useMemo(() => ({ cinematic: CinematicEdge }), []);
     const [showSources, setShowSources] = useState(false);
     const [showLibrary, setShowLibrary] = useState(false);
     const [aiInput, setAiInput] = useState('');
-    const [selectedWorkflowDomain, setSelectedWorkflowDomain] = useState<'GENERAL' | 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE'>('GENERAL');
+    const [selectedWorkflowDomain, setSelectedWorkflowDomain] = useState<'GENERAL' | 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE' | 'AGENTIC_ORCHESTRATION'>('GENERAL');
 
     const triggerGenerate = (type: string) => {
         useAppStore.getState().setProcessState({ workflowType: selectedWorkflowDomain });
@@ -258,7 +384,8 @@ const ProcessVisualizerContent = () => {
         const presets: Record<string, string> = {
             'para': 'Construct a Google Drive PARA organization layout with folders for Projects, Areas, Resources, and Archives.',
             'rag': 'Blueprint a RAG system with a Vector Database, Embedding Service, LLM API, and Query Orchestrator.',
-            'secure': 'Design a Zero-Trust security mesh with Identity Proxy, WAF, Enclave Monitor, and mTLS edges.'
+            'secure': 'Design a Zero-Trust security mesh with Identity Proxy, WAF, Enclave Monitor, and mTLS edges.',
+            'orch': 'Orchestrate a multi-agent swarm for complex code generation, including perception filters, planning cycles, and handoff protocols.'
         };
         setArchitecturePrompt(presets[id] || '');
         handleGenerateGraph();
@@ -271,7 +398,7 @@ const ProcessVisualizerContent = () => {
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-3">
                         <div className="p-1.5 bg-[#9d4edd]/10 border border-[#9d4edd] rounded shadow-[0_0_15px_rgba(157,78,221,0.3)]"><BrainCircuit className="w-4 h-4 text-[#9d4edd]" /></div>
-                        <div><h1 className="text-sm font-bold font-mono uppercase tracking-widest text-white">Process Logic Core</h1><p className="text-[9px] text-gray-500 font-mono">Autonomous System Architect</p></div>
+                        <div><h1 className="text-sm font-bold font-mono uppercase tracking-widest text-white">Metaventions Process Core</h1><p className="text-[9px] text-gray-500 font-mono">Autonomous System Architect</p></div>
                     </div>
                     <div className="flex bg-[#111] p-1 rounded border border-white/5 ml-4">
                         {[
@@ -302,7 +429,7 @@ const ProcessVisualizerContent = () => {
                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full right-0 mt-2 w-56 bg-[#0a0a0a] border border-[#333] rounded-xl shadow-2xl z-[100] overflow-hidden p-1.5">
                                     <button onClick={() => loadTemplate('para')} className="w-full text-left px-4 py-2.5 rounded-lg text-[10px] font-mono text-gray-400 hover:bg-white/5 hover:text-white flex items-center gap-3 transition-colors uppercase tracking-wider"><FolderSync size={14} className="text-[#22d3ee]"/> PARA Drive Protocol</button>
                                     <button onClick={() => loadTemplate('rag')} className="w-full text-left px-4 py-2.5 rounded-lg text-[10px] font-mono text-gray-400 hover:bg-white/5 hover:text-white flex items-center gap-3 transition-colors uppercase tracking-wider"><BrainCircuit size={14} className="text-[#9d4edd]"/> RAG Engine Stack</button>
-                                    <button onClick={() => loadTemplate('secure')} className="w-full text-left px-4 py-2.5 rounded-lg text-[10px] font-mono text-gray-400 hover:bg-white/5 hover:text-white flex items-center gap-3 transition-colors uppercase tracking-wider"><ShieldCheck size={14} className="text-[#42be65]"/> Secure Logic Mesh</button>
+                                    <button onClick={() => loadTemplate('orch')} className="w-full text-left px-4 py-2.5 rounded-lg text-[10px] font-mono text-gray-400 hover:bg-white/5 hover:text-white flex items-center gap-3 transition-colors uppercase tracking-wider"><Bot size={14} className="text-[#10b981]"/> Agentic Swarm</button>
                                 </motion.div>
                             )}
                         </AnimatePresence>
@@ -314,157 +441,16 @@ const ProcessVisualizerContent = () => {
                         <FileText className="w-3.5 h-3.5" />
                         Sources {state.livingMapContext.sources?.length > 0 && `(${state.livingMapContext.sources.length})`}
                     </button>
-                    <button onClick={handleRunGlobalSequence} disabled={sequenceStatus === 'RUNNING'} className={`flex items-center gap-2 px-4 py-2 rounded text-[10px] font-black uppercase tracking-widest transition-all border ${sequenceStatus === 'RUNNING' ? 'bg-[#9d4edd]/10 border-[#9d4edd] text-[#9d4edd]' : 'bg-[#1f1f1f] border-white/5 text-white hover:bg-[#222]'}`}>
-                        {sequenceStatus === 'RUNNING' ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}{sequenceStatus === 'RUNNING' ? `Sequencing ${sequenceProgress}%` : 'Run Global Sequence'}
-                    </button>
                 </div>
             </div>
 
             <div className="flex-1 relative overflow-hidden bg-[#050505] flex">
-                
-                {/* Floating System Topology Panel (Top-Left HUD) */}
-                <div className="absolute top-6 left-6 z-50 pointer-events-none flex flex-col gap-4">
-                    <motion.div 
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/5 p-6 rounded-2xl shadow-2xl min-w-[320px] pointer-events-auto"
-                    >
-                        <div className="text-[14px] font-black font-mono text-[#d946ef] uppercase tracking-[0.3em] mb-4 flex items-center gap-3">
-                             <div className="w-1.5 h-6 bg-[#d946ef] rounded-full" />
-                             System Topology
-                        </div>
-                        <div className="flex items-center gap-4 text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                            <span className="flex items-center gap-1.5"><div className="w-1 h-1 bg-gray-600 rounded-full"/> Nodes: <span className="text-white font-black">{nodes.length}</span></span>
-                            <span className="flex items-center gap-1.5"><div className="w-1 h-1 bg-gray-600 rounded-full"/> Edges: <span className="text-white font-black">{edges.length}</span></span>
-                            <span className="flex items-center gap-1.5 ml-auto"><div className="w-1 h-1 bg-[#42be65] rounded-full animate-pulse"/> Status: <span className="text-[#42be65] font-black">STABLE</span></span>
-                        </div>
-                    </motion.div>
-
-                    {/* AI Node Command Bar */}
-                    <motion.form 
-                        onSubmit={handleAiSubmit}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.1 }}
-                        className="bg-[#0a0a0a]/90 backdrop-blur-xl border border-white/10 p-2 rounded-2xl shadow-2xl flex items-center gap-2 pointer-events-auto w-[400px] group focus-within:border-[#9d4edd]/50 transition-colors"
-                    >
-                        <div className="p-2 text-[#9d4edd]"><Sparkles size={16} /></div>
-                        <input 
-                            value={aiInput}
-                            onChange={e => setAiInput(e.target.value)}
-                            placeholder="Forge logic node from description..."
-                            className="bg-transparent border-none outline-none text-xs font-mono text-white flex-1 placeholder:text-gray-700"
-                        />
-                        <button type="submit" disabled={!aiInput || !(typeof aiInput === 'string' ? aiInput.trim() : '')} className="p-2 bg-[#9d4edd] text-black rounded-xl hover:bg-[#b06bf7] transition-all disabled:opacity-50">
-                            <Plus size={16} />
-                        </button>
-                    </motion.form>
-                </div>
-
-                {/* Floating Node Inspector (Bottom-Right) */}
-                <AnimatePresence>
-                    {selectedNode && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                            className="absolute bottom-6 right-6 z-50 bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 p-6 rounded-3xl shadow-[0_0_50px_rgba(0,0,0,0.8)] w-[380px] pointer-events-auto overflow-hidden"
-                        >
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#22d3ee] to-transparent opacity-50" />
-                            <div className="flex justify-between items-start mb-6">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2 bg-[#22d3ee]/10 border border-[#22d3ee]/30 rounded-xl text-[#22d3ee]">
-                                        <Info size={16} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xs font-black font-mono text-white uppercase tracking-widest">{renderSafe(selectedNode.data.label as any)}</h3>
-                                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest">{renderSafe(selectedNode.data.subtext as any)}</p>
-                                    </div>
-                                </div>
-                                <button onClick={() => setState({ nodes: nodes.map(n => n.id === selectedNode.id ? { ...n, selected: false } : n) })} className="text-gray-500 hover:text-white"><X size={16} /></button>
-                            </div>
-
-                            <div className="space-y-4 mb-8">
-                                <div className="p-4 bg-black/40 border border-white/5 rounded-2xl">
-                                    <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest block mb-2">Diagnostic Scan</span>
-                                    <p className="text-[11px] text-gray-400 font-mono leading-relaxed italic">"Logic node operating within nominal structural parameters. Ready for decomposition or optimization."</p>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 gap-2">
-                                <button 
-                                    onClick={handleAutoOrganize}
-                                    disabled={isOrganizing}
-                                    className="w-full py-3 bg-[#111] hover:bg-[#22d3ee] hover:text-black border border-white/5 hover:border-[#22d3ee] rounded-xl text-[9px] font-black font-mono uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 group"
-                                >
-                                    {isOrganizing ? <Loader2 size={14} className="animate-spin"/> : <LayoutGrid size={14} />} Auto-Organize Topology
-                                </button>
-                                <button 
-                                    onClick={handleDecomposeNode} 
-                                    className="w-full py-3 bg-[#111] hover:bg-[#9d4edd] hover:text-black border border-white/5 hover:border-[#9d4edd] rounded-xl text-[9px] font-black font-mono uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 group"
-                                >
-                                    <GitBranch size={14} className="group-hover:rotate-90 transition-transform" /> Decompose Structure
-                                </button>
-                                <button 
-                                    onClick={handleOptimizeNode}
-                                    className="w-full py-3 bg-[#111] hover:bg-[#f59e0b] hover:text-black border border-white/5 hover:border-[#f59e0b] rounded-xl text-[9px] font-black font-mono uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
-                                >
-                                    {isOptimizing ? <Loader2 size={14} className="animate-spin" /> : <Stethoscope size={14} />} Optimize Logic
-                                </button>
-                                <div className="grid grid-cols-2 gap-2 mt-2 pt-2 border-t border-white/5">
-                                    <button onClick={() => handleGenerateIaC('TERRAFORM')} className="py-2.5 bg-black hover:bg-white/5 border border-white/10 rounded-lg text-[8px] font-black font-mono uppercase text-gray-400 flex items-center justify-center gap-2"><Cloud size={12} /> HCL_IAX</button>
-                                    <button onClick={() => handleGenerateIaC('DOCKER')} className="py-2.5 bg-black hover:bg-white/5 border border-white/10 rounded-lg text-[8px] font-black font-mono uppercase text-gray-400 flex items-center justify-center gap-2"><Box size={12} /> DOCKER_COMPOSE</button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-                <AnimatePresence>
-                    {showSources && (
-                        <motion.div 
-                            initial={{ x: -300, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: -300, opacity: 0 }}
-                            className="w-72 bg-[#0a0a0a] border-r border-white/5 z-30 flex flex-col"
-                        >
-                            <div className="p-4 border-b border-white/5 flex justify-between items-center bg-[#111]">
-                                <h3 className="text-[10px] font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                                    <Database className="w-3.5 h-3.5 text-[#22d3ee]" /> Source Context
-                                </h3>
-                                <button onClick={() => setShowSources(false)}><X className="w-4 h-4 text-gray-500 hover:text-white" /></button>
-                            </div>
-                            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4">
-                                <label className="flex flex-col items-center justify-center p-8 border border-dashed border-white/10 rounded-2xl hover:border-[#9d4edd] hover:bg-[#9d4edd]/5 transition-all cursor-pointer group">
-                                    <FileUp className="w-8 h-8 text-gray-700 group-hover:text-[#9d4edd] mb-3" />
-                                    <span className="text-[10px] font-black font-mono text-gray-600 uppercase tracking-widest">Ingest Materials</span>
-                                    <input type="file" multiple className="hidden" onChange={handleSourceUpload} />
-                                </label>
-                                <div className="space-y-2">
-                                    {state.livingMapContext.sources?.length === 0 ? (
-                                        <p className="text-[10px] text-gray-700 font-mono italic text-center pt-6 uppercase tracking-widest">Zero Data Points</p>
-                                    ) : (
-                                        state.livingMapContext.sources.map((source: any, i: number) => (
-                                            <div key={i} className="bg-[#111] border border-white/5 p-3.5 rounded-xl group hover:border-[#9d4edd]/50 transition-all relative">
-                                                <div className="flex justify-between items-start mb-1">
-                                                    <span className="text-[10px] font-black text-gray-300 truncate max-w-[150px] uppercase font-mono">{source.name}</span>
-                                                    <button onClick={() => removeSource(i)} className="text-gray-700 hover:text-red-500 transition-colors"><X size={12} /></button>
-                                                </div>
-                                            </div>
-                                        ))
-                                    )}
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
                 <div className="flex-1 relative">
                     {activeTab === 'living_map' && (
                         <div className="h-full w-full relative">
                             <ReactFlow 
-                                nodes={animatedNodes} 
-                                edges={animatedEdges} 
+                                nodes={nodes} 
+                                edges={edges} 
                                 onNodesChange={onNodesChange} 
                                 onEdgesChange={onEdgesChange} 
                                 onConnect={onConnect} 
@@ -482,25 +468,139 @@ const ProcessVisualizerContent = () => {
                                 <Controls className="bg-[#111] border border-white/5 text-gray-600" />
                                 <MiniMap nodeStrokeColor="#333" nodeColor="#111" maskColor="rgba(0,0,0,0.85)" className="border border-white/5 bg-[#050505] rounded-xl" />
                             </ReactFlow>
+                        </div>
+                    )}
+                    {activeTab === 'workflow' && (
+                        <div className="h-full flex flex-col">
+                            <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-[#0a0a0a]">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-2 text-[#9d4edd]"><Workflow className="w-5 h-5" /><span className="font-black font-mono text-sm uppercase tracking-widest">Protocol Synthesis</span></div>
+                                    <div className="flex bg-black/40 border border-white/5 rounded p-0.5 ml-6">
+                                        <button onClick={() => setSelectedWorkflowDomain('GENERAL')} className={`px-4 py-1.5 rounded text-[9px] font-black uppercase tracking-widest transition-all ${selectedWorkflowDomain === 'GENERAL' ? 'bg-[#9d4edd] text-black shadow-lg' : 'text-gray-600 hover:text-gray-300'}`}>General</button>
+                                        <button onClick={() => setSelectedWorkflowDomain('DRIVE_ORGANIZATION')} className={`px-4 py-1.5 rounded text-[9px] font-black uppercase tracking-widest transition-all ${selectedWorkflowDomain === 'DRIVE_ORGANIZATION' ? 'bg-[#22d3ee] text-black shadow-lg' : 'text-gray-600 hover:text-gray-300'}`}>Drive Layout</button>
+                                        <button onClick={() => setSelectedWorkflowDomain('SYSTEM_ARCHITECTURE')} className={`px-4 py-1.5 rounded text-[9px] font-black uppercase tracking-widest transition-all ${selectedWorkflowDomain === 'SYSTEM_ARCHITECTURE' ? 'bg-[#f59e0b] text-black shadow-lg' : 'text-gray-600 hover:text-gray-300'}`}>System Arch</button>
+                                        <button onClick={() => setSelectedWorkflowDomain('AGENTIC_ORCHESTRATION')} className={`px-4 py-1.5 rounded text-[9px] font-black uppercase tracking-widest transition-all ${selectedWorkflowDomain === 'AGENTIC_ORCHESTRATION' ? 'bg-[#10b981] text-black shadow-lg' : 'text-gray-600 hover:text-gray-300'}`}>Agent Orchestration</button>
+                                    </div>
+                                </div>
+                                <div className="flex gap-2">
+                                    <button onClick={() => triggerGenerate('workflow')} disabled={state.isLoading} className="flex items-center gap-2 px-5 py-2.5 bg-[#9d4edd] text-black rounded-xl text-[10px] font-black font-mono uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(157,78,221,0.3)] transition-all hover:scale-105 active:scale-95">
+                                        {state.isLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Sparkles className="w-4 h-4"/>}
+                                        Forge Protocol
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="flex-1 flex overflow-hidden">
+                                <div className="flex-1 bg-[#050505] p-10 overflow-y-auto custom-scrollbar">
+                                    {!state.generatedWorkflow ? (
+                                        <div className="h-full flex flex-col items-center justify-center p-12">
+                                            <div className="max-w-2xl w-full space-y-12">
+                                                <div className="text-center">
+                                                    <Workflow className="w-20 h-20 mb-6 text-[#9d4edd] mx-auto opacity-30 animate-pulse" />
+                                                    <h3 className="font-black font-mono text-base uppercase tracking-[0.4em] text-white mb-3">Metaventions Blueprint Matrix</h3>
+                                                    <p className="text-[10px] text-gray-700 font-mono uppercase tracking-widest leading-relaxed">Select a domain-specific logic template to initialize autonomic synthesis.</p>
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                    <button 
+                                                        onClick={() => { setSelectedWorkflowDomain('DRIVE_ORGANIZATION'); triggerGenerate('workflow'); }}
+                                                        className="p-8 bg-[#0a0a0a] border border-white/5 rounded-3xl hover:border-[#22d3ee]/50 transition-all text-left group shadow-2xl relative overflow-hidden"
+                                                    >
+                                                        <FolderSync className="w-10 h-10 text-[#22d3ee] mb-6 group-hover:scale-110 transition-transform" />
+                                                        <h4 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-3 font-mono">Drive Organization</h4>
+                                                        <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest leading-relaxed">PARA method implementation with ISO naming standards.</p>
+                                                    </button>
+                                                    
+                                                    <button 
+                                                        onClick={() => { setSelectedWorkflowDomain('SYSTEM_ARCHITECTURE'); triggerGenerate('workflow'); }}
+                                                        className="p-8 bg-[#0a0a0a] border border-white/5 rounded-3xl hover:border-[#f59e0b]/50 transition-all text-left group shadow-2xl relative overflow-hidden"
+                                                    >
+                                                        <Server className="w-10 h-10 text-[#f59e0b] mb-6 group-hover:scale-110 transition-transform" />
+                                                        <h4 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-3 font-mono">System Architecture</h4>
+                                                        <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest leading-relaxed">High-availability topology with Zero-Trust mesh protocols.</p>
+                                                    </button>
 
-                            {/* Custom Context Menu UI */}
-                            <AnimatePresence>
-                                {paneContextMenu && (
-                                    <motion.div 
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        style={{ top: paneContextMenu.y, left: paneContextMenu.x }}
-                                        className="fixed z-[100] bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl overflow-hidden min-w-[200px] p-1.5"
-                                    >
-                                        <div className="px-3 py-1.5 text-[8px] font-mono text-gray-600 uppercase tracking-widest border-b border-white/5 mb-1">Topology Commands</div>
-                                        <button onClick={() => { handleAutoOrganize(); setPaneContextMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-xs font-mono text-gray-300 transition-colors text-left"><LayoutGrid size={14} className="text-[#d946ef]" /> Auto-Organize Matrix</button>
-                                        <button onClick={() => { addNodeAtPosition(paneContextMenu.flowPos, 'holographic', 'Core Logic', '#9d4edd'); setPaneContextMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-xs font-mono text-gray-300 transition-colors text-left"><Plus size={14} className="text-[#9d4edd]" /> Add Manual Node</button>
-                                        <button onClick={() => { handleRunGlobalSequence(); setPaneContextMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-xs font-mono text-gray-300 transition-colors text-left"><Play size={14} className="text-[#42be65]" /> Sequence Logic</button>
-                                        <button onClick={() => { fitView(); setPaneContextMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-xs font-mono text-gray-300 transition-colors text-left"><Maximize size={14} className="text-[#22d3ee]" /> Focus Topology</button>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
+                                                    <button 
+                                                        onClick={() => { setSelectedWorkflowDomain('AGENTIC_ORCHESTRATION'); triggerGenerate('workflow'); }}
+                                                        className="p-8 bg-[#0a0a0a] border border-white/5 rounded-3xl hover:border-[#10b981]/50 transition-all text-left group shadow-2xl relative overflow-hidden"
+                                                    >
+                                                        <Bot className="w-10 h-10 text-[#10b981] mb-6 group-hover:scale-110 transition-transform" />
+                                                        <h4 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-3 font-mono">Agent Orchestration</h4>
+                                                        <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest leading-relaxed">Multi-agent coordination using ReAct, Swarm, and Handoff logic.</p>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-10 max-w-5xl mx-auto pb-20">
+                                            <ProtocolLoom 
+                                                protocols={state.generatedWorkflow.protocols} 
+                                                type={selectedWorkflowDomain} 
+                                                activeIndex={state.activeStepIndex}
+                                                onStep={handleExecuteStep}
+                                                results={state.runtimeResults}
+                                                onReset={handleResetSimulation}
+                                                isSimulating={state.isSimulating}
+                                            />
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                {(selectedWorkflowDomain === 'DRIVE_ORGANIZATION' || selectedWorkflowDomain === 'AGENTIC_ORCHESTRATION') && (
+                                                    <DirectoryTaxonomy taxonomy={state.generatedWorkflow.taxonomy} type={selectedWorkflowDomain} />
+                                                )}
+                                                <div className="space-y-4">
+                                                    <div className="text-[10px] font-black font-mono text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                        <Zap className="w-3 h-3 text-[#9d4edd]" /> Executable steps
+                                                    </div>
+                                                    {state.generatedWorkflow.protocols?.map((p: any, i: number) => (
+                                                        <div key={i} className={`bg-[#0a0a0a] border ${state.activeStepIndex === i ? 'border-[#10b981]' : 'border-white/5'} rounded-2xl p-6 group hover:border-[#9d4edd]/40 transition-all flex gap-6 shadow-lg relative overflow-hidden`}>
+                                                            {state.activeStepIndex === i && <div className="absolute top-0 left-0 w-1 h-full bg-[#10b981] animate-pulse" />}
+                                                            <div className={`w-10 h-10 rounded-xl bg-[#111] border border-white/5 flex items-center justify-center text-[11px] font-black ${state.activeStepIndex === i ? 'text-[#10b981]' : 'text-gray-600'} shrink-0 group-hover:text-white transition-colors`}>{p.step || i+1}</div>
+                                                            <div className="flex-1">
+                                                                <div className="flex justify-between items-start mb-3">
+                                                                    <h3 className={`text-[13px] font-black ${state.activeStepIndex === i ? 'text-[#10b981]' : 'text-white'} font-mono uppercase tracking-widest`}>{p.action}</h3>
+                                                                    <div className="flex gap-2">
+                                                                        {state.runtimeResults[i] && <span className="text-[7px] font-mono bg-[#42be65]/10 border border-[#42be65]/30 text-[#42be65] px-1.5 py-0.5 rounded">VERIFIED</span>}
+                                                                        <span className={`text-[8px] font-black font-mono px-2 py-1 rounded border tracking-widest ${getPriorityBadgeStyle(p.priority)}`}>{p.priority || 'MEDIUM'}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <p className="text-[11px] text-gray-400 leading-relaxed font-mono mb-4 italic">"{p.description}"</p>
+                                                                
+                                                                <AnimatePresence>
+                                                                    {state.runtimeResults[i] && (
+                                                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="mb-4 bg-black/40 border border-white/5 p-4 rounded-xl">
+                                                                            <div className="text-[8px] font-mono text-[#42be65] uppercase mb-2 flex items-center gap-2"><Cpu size={10}/> Runtime Output</div>
+                                                                            <p className="text-[10px] text-gray-400 font-mono leading-relaxed">{state.runtimeResults[i].output}</p>
+                                                                            <div className="mt-3 pt-3 border-t border-white/5 text-[8px] font-mono text-gray-600 uppercase italic">
+                                                                                Agent Thought: {state.runtimeResults[i].agentThought}
+                                                                            </div>
+                                                                        </motion.div>
+                                                                    )}
+                                                                </AnimatePresence>
+
+                                                                <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-white/5">
+                                                                    <div className="flex gap-6 text-[9px] font-black font-mono text-gray-600 uppercase tracking-widest">
+                                                                        <span className="flex items-center gap-2 border-r border-white/10 pr-6"><User className="w-3.5 h-3.5 text-[#22d3ee]" /> {p.role}</span>
+                                                                        <span className="flex items-center gap-2"><Wrench className="w-3.5 h-3.5 text-[#f59e0b]" /> {p.tool}</span>
+                                                                    </div>
+                                                                    {p.perception_gate && (
+                                                                        <div className="text-[8px] font-mono text-cyan-500 uppercase flex items-center gap-2">
+                                                                            <Filter size={12} /> Perception Gate: {p.perception_gate}
+                                                                        </div>
+                                                                    )}
+                                                                    {p.handoff_protocol && (
+                                                                        <div className="text-[8px] font-mono text-emerald-500 uppercase flex items-center gap-2">
+                                                                            <GitMerge size={12} /> Handoff Strategy: {p.handoff_protocol}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
                     )}
                     {activeTab === 'architect' && (
@@ -514,139 +614,24 @@ const ProcessVisualizerContent = () => {
                                         <h2 className="text-xl font-black font-mono text-white uppercase tracking-[0.2em]">Neural Architect</h2>
                                         <p className="text-[10px] text-gray-600 font-mono uppercase tracking-widest mt-2">Describe your system topology.</p>
                                     </div>
-                                    <textarea value={architecturePrompt} onChange={(e) => setArchitecturePrompt(e.target.value)} placeholder="ENTER ARCHITECTURAL DIRECTIVE..." className="w-full h-56 bg-[#050505] border border-white/10 rounded-2xl p-5 text-xs font-mono text-gray-300 outline-none focus:border-[#9d4edd] resize-none transition-all placeholder:text-gray-800" />
+                                    <div className="space-y-4">
+                                        <div className="flex bg-[#111] p-1 rounded border border-white/5">
+                                            <button onClick={() => setSelectedWorkflowDomain('SYSTEM_ARCHITECTURE')} className={`flex-1 py-2 rounded text-[9px] font-black uppercase tracking-widest transition-all ${selectedWorkflowDomain === 'SYSTEM_ARCHITECTURE' ? 'bg-[#f59e0b] text-black' : 'text-gray-500 hover:text-white'}`}>Infrastructure</button>
+                                            <button onClick={() => setSelectedWorkflowDomain('AGENTIC_ORCHESTRATION')} className={`flex-1 py-2 rounded text-[9px] font-black uppercase tracking-widest transition-all ${selectedWorkflowDomain === 'AGENTIC_ORCHESTRATION' ? 'bg-[#10b981] text-black' : 'text-gray-500 hover:text-white'}`}>Agent Swarm</button>
+                                        </div>
+                                        <textarea value={architecturePrompt} onChange={(e) => setArchitecturePrompt(e.target.value)} placeholder={selectedWorkflowDomain === 'AGENTIC_ORCHESTRATION' ? "Describe the agent swarm objectives..." : "Enter architectural directive..."} className="w-full h-48 bg-[#050505] border border-white/10 rounded-2xl p-5 text-xs font-mono text-gray-300 outline-none focus:border-[#9d4edd] resize-none transition-all placeholder:text-gray-800 shadow-inner" />
+                                    </div>
                                     <button onClick={() => { handleGenerateGraph(); }} disabled={isGeneratingGraph || !architecturePrompt || !architecturePrompt.trim()} className="w-full bg-[#9d4edd] text-black py-5 rounded-2xl font-black font-mono text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-4 shadow-[0_0_30px_rgba(157,78,221,0.35)] transition-all hover:scale-[1.02] active:scale-[0.98]">
                                         {isGeneratingGraph ? <Loader2 className="w-4 h-4 animate-spin"/> : <Sparkles className="w-4 h-4"/>}
                                         Construct Blueprint
                                     </button>
                                 </div>
-                                <div className="flex-1">
-                                    <ArchitecturalResonancePlot nodes={nodes} />
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    {activeTab === 'google_nexus' && <NexusAPIExplorer />}
-                    {activeTab === 'diagram' && (
-                        <div className="h-full flex flex-col p-6 bg-[#0a0a0a]">
-                            <div className="flex justify-between items-center mb-4"><div className="flex items-center gap-2"><Grid3X3 className="w-5 h-5 text-[#9d4edd]" /><span className="text-sm font-bold font-mono text-white uppercase tracking-widest">Schematic Visualization</span></div><div className="flex gap-2"><button onClick={() => handleGenerate('diagram')} disabled={state.isLoading} className="text-[10px] flex items-center gap-2 text-gray-400 hover:text-white border border-white/5 px-3 py-1.5 rounded transition-colors uppercase font-black"><RefreshCw className="w-3 h-3" /> Regenerate</button></div></div>
-                            <div className="flex-1 bg-black border border-white/5 rounded-2xl overflow-hidden relative shadow-inner">{state.isLoading ? <div className="absolute inset-0 flex flex-col items-center justify-center"><Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" /><p className="text-[10px] font-black font-mono text-gray-600 uppercase tracking-[0.3em] animate-pulse">Rendering Physical Topology...</p></div> : state.generatedCode ? <MermaidDiagram code={state.generatedCode} /> : <div className="h-full flex items-center justify-center text-gray-800 opacity-20"><Grid3X3 className="w-24 h-24" /></div>}</div>
-                        </div>
-                    )}
-                    {activeTab === 'workflow' && (
-                        <div className="h-full flex flex-col">
-                            <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-[#0a0a0a]">
-                                <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-2 text-[#9d4edd]"><Workflow className="w-5 h-5" /><span className="font-black font-mono text-sm uppercase tracking-widest">Protocol Synthesis</span></div>
-                                    <div className="flex bg-black/40 border border-white/5 rounded p-0.5 ml-6">
-                                        <button onClick={() => setSelectedWorkflowDomain('GENERAL')} className={`px-4 py-1.5 rounded text-[9px] font-black uppercase tracking-widest transition-all ${selectedWorkflowDomain === 'GENERAL' ? 'bg-[#9d4edd] text-black shadow-lg' : 'text-gray-600 hover:text-gray-300'}`}>General</button>
-                                        <button onClick={() => setSelectedWorkflowDomain('DRIVE_ORGANIZATION')} className={`px-4 py-1.5 rounded text-[9px] font-black uppercase tracking-widest transition-all ${selectedWorkflowDomain === 'DRIVE_ORGANIZATION' ? 'bg-[#22d3ee] text-black shadow-lg' : 'text-gray-600 hover:text-gray-300'}`}>Drive Layout</button>
-                                        <button onClick={() => setSelectedWorkflowDomain('SYSTEM_ARCHITECTURE')} className={`px-4 py-1.5 rounded text-[9px] font-black uppercase tracking-widest transition-all ${selectedWorkflowDomain === 'SYSTEM_ARCHITECTURE' ? 'bg-[#f59e0b] text-black shadow-lg' : 'text-gray-600 hover:text-gray-300'}`}>System Arch</button>
+                                <div className="flex-1 overflow-hidden">
+                                    <div className="h-full bg-black/40 border border-white/5 rounded-3xl flex flex-col items-center justify-center text-gray-600 relative overflow-hidden group">
+                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.05)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+                                        <Activity size={48} className="mb-4 opacity-20 animate-pulse" />
+                                        <p className="text-[10px] font-mono uppercase tracking-[0.5em] text-center">Real-time Logic Mapping<br/><span className="text-[8px] opacity-40">Ready for Synaptic Injection</span></p>
                                     </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <button onClick={() => triggerGenerate('workflow')} disabled={state.isLoading} className="flex items-center gap-2 px-5 py-2.5 bg-[#9d4edd] text-black rounded-xl text-[10px] font-black font-mono uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(157,78,221,0.3)] transition-all hover:scale-105 active:scale-95">
-                                        {state.isLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Sparkles className="w-4 h-4"/>}
-                                        Forge Protocol
-                                    </button>
-                                </div>
-                            </div>
-                            <div className="flex-1 flex overflow-hidden">
-                                <div className="w-[350px] border-r border-white/5 bg-[#080808] p-6 overflow-y-auto custom-scrollbar">
-                                    <div className="flex items-center gap-2 text-gray-600 text-[9px] font-black font-mono uppercase tracking-widest mb-6 border-b border-white/5 pb-3">
-                                        {selectedWorkflowDomain === 'DRIVE_ORGANIZATION' ? <FolderTree className="w-3.5 h-3.5" /> : selectedWorkflowDomain === 'SYSTEM_ARCHITECTURE' ? <Terminal className="w-3.5 h-3.5" /> : <Settings2 className="w-3.5 h-3.5" />}
-                                        Logical Structure
-                                    </div>
-                                    <JsonTreeViewer data={state.generatedWorkflow || {}} />
-                                </div>
-                                <div className="flex-1 bg-[#050505] p-10 overflow-y-auto custom-scrollbar">
-                                    {!state.generatedWorkflow ? (
-                                        <div className="h-full flex flex-col items-center justify-center p-12">
-                                            <div className="max-w-2xl w-full space-y-12">
-                                                <div className="text-center">
-                                                    <Workflow className="w-20 h-20 mb-6 text-[#9d4edd] mx-auto opacity-30 animate-pulse" />
-                                                    <h3 className="font-black font-mono text-base uppercase tracking-[0.4em] text-white mb-3">Protocol Blueprint Matrix</h3>
-                                                    <p className="text-[10px] text-gray-700 font-mono uppercase tracking-widest leading-relaxed">Select a domain-specific logic template to initialize autonomic synthesis.</p>
-                                                </div>
-                                                
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    <button 
-                                                        onClick={() => { setSelectedWorkflowDomain('DRIVE_ORGANIZATION'); triggerGenerate('workflow'); }}
-                                                        className="p-8 bg-[#0a0a0a] border border-white/5 rounded-3xl hover:border-[#22d3ee]/50 transition-all text-left group shadow-2xl relative overflow-hidden"
-                                                    >
-                                                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#22d3ee]/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-[#22d3ee]/10 transition-all"></div>
-                                                        <FolderSync className="w-10 h-10 text-[#22d3ee] mb-6 group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(34,211,238,0.3)]" />
-                                                        <h4 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-3 font-mono">Drive Organization</h4>
-                                                        <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest leading-relaxed">PARA method implementation with ISO naming standards and automated lifecycle logic.</p>
-                                                    </button>
-                                                    
-                                                    <button 
-                                                        onClick={() => { setSelectedWorkflowDomain('SYSTEM_ARCHITECTURE'); triggerGenerate('workflow'); }}
-                                                        className="p-8 bg-[#0a0a0a] border border-white/5 rounded-3xl hover:border-[#f59e0b]/50 transition-all text-left group shadow-2xl relative overflow-hidden"
-                                                    >
-                                                        <div className="absolute top-0 right-0 w-32 h-32 bg-[#f59e0b]/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-[#f59e0b]/10 transition-all"></div>
-                                                        <Server className="w-10 h-10 text-[#f59e0b] mb-6 group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(245,158,11,0.3)]" />
-                                                        <h4 className="text-xs font-black text-white uppercase tracking-[0.2em] mb-3 font-mono">System Architecture</h4>
-                                                        <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest leading-relaxed">High-availability topology with Zero-Trust mesh protocols and autopoietic redundancy.</p>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="space-y-10 max-w-5xl mx-auto pb-20">
-                                            <ProtocolLoom protocols={state.generatedWorkflow.protocols} type={selectedWorkflowDomain} />
-
-                                            {selectedWorkflowDomain === 'DRIVE_ORGANIZATION' && state.generatedWorkflow.taxonomy && (
-                                                <div className="p-8 bg-[#0a0a0a] border border-[#222] rounded-3xl relative overflow-hidden group shadow-2xl">
-                                                    <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
-                                                        <FolderTree className="w-32 h-32 text-[#22d3ee]" />
-                                                    </div>
-                                                    <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-4">
-                                                        <h3 className="text-[#22d3ee] font-black font-mono text-xs uppercase tracking-[0.3em] flex items-center gap-3">
-                                                            <FolderSync className="w-5 h-5" /> Proposed Directory Topology
-                                                        </h3>
-                                                        <button 
-                                                            onClick={() => setMode(AppMode.MEMORY_CORE)}
-                                                            className="text-[9px] font-black font-mono text-[#22d3ee] bg-[#22d3ee]/5 px-4 py-2 rounded-xl border border-[#22d3ee]/20 hover:bg-[#22d3ee] hover:text-black transition-all shadow-lg"
-                                                        >
-                                                            Apply to Memory Core
-                                                        </button>
-                                                    </div>
-                                                    <div className="grid grid-cols-1 gap-6 relative z-10">
-                                                        {state.generatedWorkflow.taxonomy.root?.map((folder: any, i: number) => (
-                                                            <div key={i} className="flex col-flex gap-3 border-l-2 border-white/10 pl-6 py-2 hover:border-[#22d3ee]/50 transition-colors">
-                                                                <div className="text-white font-black font-mono text-[13px] uppercase tracking-widest">/{folder.folder}</div>
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    {folder.subfolders?.map((sub: string, j: number) => (
-                                                                        <span key={j} className="text-[9px] font-bold font-mono text-gray-500 bg-[#111] px-2 py-1 rounded-md border border-white/5 uppercase">/{sub}</span>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            <div className="grid grid-cols-1 gap-4">
-                                                {state.generatedWorkflow.protocols?.map((p: any, i: number) => (
-                                                    <div key={i} className="bg-[#0a0a0a] border border-white/5 rounded-2xl p-6 group hover:border-[#9d4edd]/40 transition-all flex gap-6 shadow-lg">
-                                                        <div className="w-10 h-10 rounded-xl bg-[#111] border border-white/5 flex items-center justify-center text-[11px] font-black text-gray-600 shrink-0 group-hover:text-white transition-colors">{p.step || i+1}</div>
-                                                        <div className="flex-1">
-                                                            <div className="flex justify-between items-start mb-3">
-                                                                <h3 className="text-[13px] font-black text-white font-mono uppercase tracking-widest">{p.action}</h3>
-                                                                <span className={`text-[8px] font-black font-mono px-2 py-1 rounded border tracking-widest ${getPriorityBadgeStyle(p.priority)}`}>{p.priority || 'MEDIUM'}</span>
-                                                            </div>
-                                                            <p className="text-[11px] text-gray-400 leading-relaxed font-mono mb-4 italic">"{p.description}"</p>
-                                                            <div className="flex gap-6 text-[9px] font-black font-mono text-gray-600 uppercase tracking-widest">
-                                                                <span className="flex items-center gap-2 border-r border-white/10 pr-6"><User className="w-3.5 h-3.5 text-[#22d3ee]" /> {p.role}</span>
-                                                                <span className="flex items-center gap-2"><Wrench className="w-3.5 h-3.5 text-[#f59e0b]" /> {p.tool}</span>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
                         </div>

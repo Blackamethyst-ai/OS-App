@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef } from 'react';
 import { KnowledgeNode } from '../../types';
 
@@ -15,6 +16,12 @@ const SuperLattice: React.FC<SuperLatticeProps> = ({ nodes, mode, onNodeSelect, 
     const projectedNodesRef = useRef<{id: string, x: number, y: number, r: number}[]>([]);
     const requestRef = useRef<number>(0);
     
+    // Procedural Agent Paths for Crucible Phase
+    const agentPathsRef = useRef<{ id: string; targetNodeId: string; progress: number; x: number; y: number }[]>([
+        { id: 'agent-1', targetNodeId: '', progress: 0, x: 0, y: 0 },
+        { id: 'agent-2', targetNodeId: '', progress: 0, x: 0, y: 0 }
+    ]);
+
     useEffect(() => {
         const canvas = canvasRef.current;
         const container = containerRef.current;
@@ -131,7 +138,39 @@ const SuperLattice: React.FC<SuperLatticeProps> = ({ nodes, mode, onNodeSelect, 
                 }
             }
 
-            // 3. Nodes
+            // 3. Agent Path Rendering (Crucible Phase)
+            if (mode === 'ACTIVE' && nodes.length > 2) {
+                agentPathsRef.current.forEach(agent => {
+                    if (!agent.targetNodeId || agent.progress >= 1) {
+                        agent.targetNodeId = nodes[Math.floor(Math.random() * nodes.length)].id;
+                        agent.progress = 0;
+                    }
+                    agent.progress += 0.005;
+                    const target = renderedNodes.find(n => n.id === agent.targetNodeId);
+                    if (target) {
+                        agent.x = agent.x + (target.x - agent.x) * 0.02;
+                        agent.y = agent.y + (target.y - agent.y) * 0.02;
+                        
+                        ctx.beginPath();
+                        ctx.arc(agent.x, agent.y, 4, 0, Math.PI * 2);
+                        ctx.fillStyle = '#f59e0b';
+                        ctx.shadowBlur = 15;
+                        ctx.shadowColor = '#f59e0b';
+                        ctx.fill();
+                        ctx.shadowBlur = 0;
+
+                        // Trail
+                        ctx.beginPath();
+                        ctx.moveTo(agent.x, agent.y);
+                        ctx.lineTo(agent.x - (target.x - agent.x) * 0.1, agent.y - (target.y - agent.y) * 0.1);
+                        ctx.strokeStyle = 'rgba(245, 158, 11, 0.4)';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                });
+            }
+
+            // 4. Nodes
             renderedNodes.forEach(n => {
                 const isSelected = selectedNodes.includes(n.id);
                 const s = (n as any).scale;

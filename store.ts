@@ -1,6 +1,14 @@
 
 import { create } from 'zustand';
-import { AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, InterventionProtocol, OperationalContext, AgentWallet, TemporalEra, Task, TaskStatus, AspectRatio } from './types';
+import { AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, InterventionProtocol, OperationalContext, AgentWallet, TemporalEra, Task, TaskStatus, AspectRatio, ProtocolStepResult } from './types';
+
+interface KernelStatus {
+    uptime: number;
+    entropy: number;
+    coreLoad: number;
+    activeThreads: number;
+    integrity: number;
+}
 
 interface AppState {
     mode: AppMode;
@@ -11,17 +19,21 @@ interface AppState {
     isAuthenticated: boolean;
     user: UserProfile;
     system: any;
+    kernel: KernelStatus;
     process: {
         artifacts: any[];
         chatHistory: any[];
         livingMapContext: { sources: any[] };
         activeLayers: string[];
         isLoading: boolean;
+        isSimulating: boolean;
+        activeStepIndex: number | null;
+        runtimeResults: Record<number, ProtocolStepResult>;
         generatedCode: string | null;
         generatedWorkflow: any | null;
         activeTab: string;
         governance: string;
-        workflowType: 'GENERAL' | 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE';
+        workflowType: 'GENERAL' | 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE' | 'AGENTIC_ORCHESTRATION';
         diagramStatus: 'OK' | 'ERROR';
         diagramError: string | null;
         nodes: any[];
@@ -32,9 +44,8 @@ interface AppState {
         audioTranscript: string | null;
         entropyScore: number;
         error: string | null;
-        // NEW: Memory Core Extensions
         vaultInsights: { id: string; type: 'DEDUPE' | 'TAG' | 'BRIDGE' | 'ARCHIVE'; message: string; action: string; targetIds: string[] }[];
-        activeStacks: Record<string, string[]>; // stackId -> artifactIds
+        activeStacks: Record<string, string[]>;
     };
     hardware: {
         recommendations: any[];
@@ -54,7 +65,17 @@ interface AppState {
         error: string | null;
     };
     codeStudio: any;
-    bibliomorphic: any;
+    bibliomorphic: {
+        chatHistory: any[];
+        library: any[];
+        dna: any;
+        activeBook: any;
+        activeTab: string;
+        error: string | null;
+        isIngesting: boolean;
+        synapticReadout: { id: string; msg: string; type: 'PERCEPTION' | 'HANDSHAKE' | 'INDEX' }[];
+        agentPathways: Record<string, string>; // Agent ID -> Node ID
+    };
     voice: any;
     bicameral: any;
     research: ResearchState;
@@ -110,7 +131,7 @@ interface AppState {
     setCodeStudioState: (state: any) => void;
     setHardwareState: (state: Partial<AppState['hardware']> | ((prev: AppState['hardware']) => Partial<AppState['hardware']>)) => void;
     setImageGenState: (state: Partial<AppState['imageGen']> | ((prev: AppState['imageGen']) => Partial<AppState['imageGen']>)) => void;
-    setBibliomorphicState: (state: any) => void;
+    setBibliomorphicState: (state: Partial<AppState['bibliomorphic']> | ((prev: AppState['bibliomorphic']) => Partial<AppState['bibliomorphic']>)) => void;
     setDashboardState: (state: any) => void;
     setBicameralState: (state: any) => void;
     setVoiceState: (state: any) => void;
@@ -154,12 +175,16 @@ export const useAppStore = create<AppState>((set) => ({
     isAuthenticated: true, 
     user: { displayName: 'Architect', role: 'ARCHITECT', clearanceLevel: 5, avatar: null },
     system: { logs: [], isTerminalOpen: false, dockItems: [] },
+    kernel: { uptime: 0, entropy: 12, coreLoad: 24, activeThreads: 8, integrity: 99 },
     process: { 
         artifacts: [], 
         chatHistory: [], 
         livingMapContext: { sources: [] }, 
         activeLayers: [],
         isLoading: false,
+        isSimulating: false,
+        activeStepIndex: null,
+        runtimeResults: {},
         generatedCode: null,
         generatedWorkflow: null,
         activeTab: 'living_map',
@@ -216,7 +241,7 @@ export const useAppStore = create<AppState>((set) => ({
         error: null
     },
     codeStudio: { history: [], prompt: '', language: 'typescript', generatedCode: '', suggestions: [], autoSaveEnabled: false },
-    bibliomorphic: { chatHistory: [], library: [], dna: null, activeBook: null, activeTab: 'discovery' },
+    bibliomorphic: { chatHistory: [], library: [], dna: null, activeBook: null, activeTab: 'discovery', error: null, isIngesting: false, synapticReadout: [], agentPathways: {} },
     voice: { transcripts: [], agentAvatars: {}, voiceName: 'Puck', isActive: false, isConnecting: false },
     bicameral: { plan: [], ledger: [], swarmStatus: { votes: {}, killedAgents: 0 }, goal: '' },
     research: { tasks: [] },

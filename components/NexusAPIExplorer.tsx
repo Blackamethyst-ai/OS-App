@@ -56,7 +56,7 @@ const NexusAPIExplorer: React.FC = () => {
                 config: { responseMimeType: 'application/json' }
             }));
 
-            setGeneratedSchema(response.text);
+            setGeneratedSchema(response.text || '{}');
             addLog('SUCCESS', `NEXUS_FORGE: MCP definition finalized for ${selectedApi.title}.`);
         } catch (e: any) {
             addLog('ERROR', `NEXUS_FORGE_FAIL: ${e.message}`);
@@ -70,6 +70,7 @@ const NexusAPIExplorer: React.FC = () => {
         
         try {
             const schema = JSON.parse(generatedSchema);
+            const schemaStr = String(JSON.stringify(schema) || '{}');
             const newNode = {
                 id: `nexus-${Date.now()}`,
                 type: 'holographic',
@@ -80,11 +81,10 @@ const NexusAPIExplorer: React.FC = () => {
                     iconName: selectedApi.category === 'AI' ? 'BrainCircuit' : 'Cpu',
                     color: '#9d4edd',
                     status: 'ACTIVE',
-                    description: `Autonomous integration for ${selectedApi.title}. Schema: ${JSON.stringify(schema).substring(0, 50)}...`
+                    description: `Autonomous integration for ${selectedApi.title}. Schema: ${schemaStr.substring(0, 50)}...`
                 }
             };
 
-            // This triggers an additive update to the ReactFlow state handled in the parent logic
             setProcessState((prev: any) => ({
                 pendingAIAddition: newNode 
             }));
