@@ -1,4 +1,3 @@
-
 import React, { useRef, useState, useEffect } from 'react';
 import { ResonancePoint } from '../types';
 import { useAppStore } from '../store';
@@ -23,6 +22,7 @@ const EmotionalResonanceGraph: React.FC = () => {
 
     // --- ALGORITHMS ---
     const applyAlgorithm = (algo: 'HERO' | 'CHAOS' | 'RISING' | 'STEADY') => {
+        if (!Array.isArray(resonanceCurve)) return;
         const newCurve = resonanceCurve.map((_, i) => {
             const progress = i / (pointsCount - 1);
             let t = 50;
@@ -51,34 +51,8 @@ const EmotionalResonanceGraph: React.FC = () => {
     };
 
     // --- MIXER LOGIC ---
-    // Applies bias/range changes non-destructively to a temp view or directly
-    // Ideally, we'd store baseCurve and apply modifiers. 
-    // For simplicity, we apply changes to the curve directly on drag end of slider to avoid state drift.
-    // Or we just update `resonanceCurve` live.
-    const applyMixer = (newBias: number, newRange: number) => {
-        setTensionBias(newBias);
-        setDynamicsRange(newRange);
-        
-        // This is a destructive operation in this simple implementation, 
-        // effectively re-normalizing the current curve.
-        // To be truly non-destructive, we'd need 'baseCurve' in store. 
-        // For now, we assume user drags slider = modifies current state.
-        
-        const center = 50;
-        const newCurve = resonanceCurve.map(p => ({
-            ...p,
-            tension: Math.max(0, Math.min(100, p.tension + newBias * 0.1)), // Incremental nudges
-            dynamics: Math.max(0, Math.min(100, center + (p.dynamics - center) * newRange))
-        }));
-        
-        // Only apply if user interaction stopped, otherwise it compounds?
-        // Actually, let's just make the slider apply a one-time transform logic or 
-        // simply don't support "live" sliders modifying state continuously in a loop without base state.
-        // Alternative: The sliders just trigger a small nudge.
-    };
-    
-    // Better Mixer: Sliders that just act as "Pushers"
     const nudgeTension = (amount: number) => {
+        if (!Array.isArray(resonanceCurve)) return;
         const newCurve = resonanceCurve.map(p => ({
             ...p,
             tension: Math.max(0, Math.min(100, p.tension + amount))
@@ -87,6 +61,7 @@ const EmotionalResonanceGraph: React.FC = () => {
     };
 
     const scaleDynamics = (factor: number) => {
+        if (!Array.isArray(resonanceCurve)) return;
         const newCurve = resonanceCurve.map(p => ({
             ...p,
             dynamics: Math.max(0, Math.min(100, 50 + (p.dynamics - 50) * factor))
@@ -99,7 +74,7 @@ const EmotionalResonanceGraph: React.FC = () => {
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
-        if (!dragging || !svgRef.current) return;
+        if (!dragging || !svgRef.current || !Array.isArray(resonanceCurve)) return;
         
         const rect = svgRef.current.getBoundingClientRect();
         const y = e.clientY - rect.top;
@@ -121,7 +96,7 @@ const EmotionalResonanceGraph: React.FC = () => {
     };
 
     const getPath = (type: 'tension' | 'dynamics') => {
-        if (resonanceCurve.length === 0) return '';
+        if (!Array.isArray(resonanceCurve) || resonanceCurve.length === 0) return '';
         
         const points = resonanceCurve.map((p, i) => {
             const x = padding + i * xStep;
@@ -142,6 +117,8 @@ const EmotionalResonanceGraph: React.FC = () => {
         }
         return d;
     };
+
+    if (!Array.isArray(resonanceCurve)) return null;
 
     return (
         <div className="w-full bg-[#050505] border border-[#222] rounded-lg overflow-hidden relative group">

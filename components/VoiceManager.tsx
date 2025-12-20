@@ -10,7 +10,10 @@ import {
     HIVE_AGENTS,
     constructHiveContext,
     HiveAgent,
-    SYSTEM_COMMANDER_INSTRUCTION
+    SYSTEM_COMMANDER_INSTRUCTION,
+    chatWithGemini,
+    fastAIResponse,
+    transcribeAudio
 } from '../services/geminiService';
 import { AppMode, ArtifactNode, AspectRatio, ImageSize, HardwareTier, AppTheme } from '../types';
 import { Radio, X, Loader2 } from 'lucide-react';
@@ -27,6 +30,42 @@ const logActivityTool: FunctionDeclaration = {
             message: { type: Type.STRING, description: "A technical description of the event." }
         },
         required: ['category', 'message']
+    }
+};
+
+const deepReasoningTool: FunctionDeclaration = {
+    name: 'deep_reasoning',
+    description: 'Activates the gemini-3-pro-preview model for complex system reasoning or long-form strategy.',
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            query: { type: Type.STRING, description: "The complex question or directive requiring deep reasoning." }
+        },
+        required: ['query']
+    }
+};
+
+const quickCheckTool: FunctionDeclaration = {
+    name: 'quick_check',
+    description: 'Activates gemini-2.5-flash-lite for ultra-fast, low-latency parsing of simple commands.',
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            command: { type: Type.STRING, description: "The simple command to parse quickly." }
+        },
+        required: ['command']
+    }
+};
+
+const highFidelityTranscriptionTool: FunctionDeclaration = {
+    name: 'high_fidelity_transcription',
+    description: 'Uses gemini-3-flash-preview to perform dedicated high-accuracy transcription of a spectral capture.',
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            signal_id: { type: Type.STRING, description: "The ID of the signal in the buffer." }
+        },
+        required: ['signal_id']
     }
 };
 
@@ -61,16 +100,30 @@ const VoiceManager: React.FC = () => {
                     - Context Level: ${operationalContext}
                     - Navigation Topology: ${navigationMap.map(n => n.id).join(', ')}
                     
+                    NEURAL CAPABILITIES:
+                    - You have access to Pro Logic (gemini-3-pro-preview), Flash Transcription (gemini-3-flash-preview), and Lite Speed-Mode (gemini-2.5-flash-lite).
+                    - Use 'deep_reasoning' for complex strategy.
+                    - Use 'quick_check' for immediate low-latency responses.
+                    - Use 'high_fidelity_transcription' for dedicated STT tasks.
+
                     DIRECTIVE:
-                    You are a standard Gemini Voice Core agent. Address the user as "Architect".
-                    Keep logic precise and aligned with OS capabilities.
+                    You are the Metaventions Voice Core. You are welcoming, precise, and highly integrated.
+                    Always address the user as "Architect".
+                    
+                    INITIALIZATION GREETING:
+                    As soon as you are initialized, say: "Voice Core Online. All neural sectors synchronized. How shall we proceed, Architect?"
                     `;
 
                     const fullSystemInstruction = constructHiveContext(agentId, sharedContext);
 
                     await liveSession.connect(agentName, {
                         systemInstruction: fullSystemInstruction,
-                        tools: [{ functionDeclarations: [logActivityTool] }],
+                        tools: [{ functionDeclarations: [
+                            logActivityTool, 
+                            deepReasoningTool, 
+                            quickCheckTool, 
+                            highFidelityTranscriptionTool
+                        ] }],
                         outputAudioTranscription: {},
                         inputAudioTranscription: {},
                         callbacks: {
@@ -87,31 +140,60 @@ const VoiceManager: React.FC = () => {
                                 }
 
                                 if (message.serverContent?.turnComplete) {
-                                    const finalRole = voice.partialTranscript?.role || 'user';
                                     const finalText = partialTranscriptRef.current;
-                                    
                                     if (finalText) {
                                         setVoiceState(prev => ({
-                                            transcripts: [...prev.transcripts, { role: finalRole, text: finalText, timestamp: Date.now() }],
+                                            transcripts: [...prev.transcripts, { 
+                                                role: prev.partialTranscript?.role || 'user', 
+                                                text: finalText, 
+                                                timestamp: Date.now() 
+                                            }],
                                             partialTranscript: null
                                         }));
                                     }
                                     partialTranscriptRef.current = "";
                                 }
+                            },
+                            onerror: (e: any) => {
+                                connectionAttemptRef.current = false;
+                                setVoiceState({ isActive: false, isConnecting: false });
                             }
                         }
                     });
+
+                    // Trigger tool handling for the new features
+                    liveSession.onToolCall = async (name, args) => {
+                        if (name === 'deep_reasoning') {
+                            addLog('SYSTEM', `PRO_CORE: Deep Reasoning engaged for "${args.query}"`);
+                            const response = await chatWithGemini(args.query);
+                            return { status: "REASONING_COMPLETE", output: response };
+                        }
+                        if (name === 'quick_check') {
+                            addLog('SYSTEM', `LITE_CORE: Quick check executed.`);
+                            const response = await fastAIResponse(args.command);
+                            return { status: "CHECK_COMPLETE", output: response };
+                        }
+                        if (name === 'high_fidelity_transcription') {
+                            addLog('SYSTEM', `FLASH_CORE: Dedicated transcription activated.`);
+                            return { status: "TRANSCRIPTION_READY" };
+                        }
+                        if (name === 'log_activity') {
+                            addLog(args.category === 'CORE_LOGIC' ? 'SUCCESS' : 'INFO', `VOICE_CORE: ${args.message}`);
+                            return { status: "LOGGED" };
+                        }
+                        return { error: "Unknown protocol" };
+                    };
                     
                     if (mounted) {
                         setVoiceState({ isConnecting: false });
-                        addLog('SUCCESS', `VOICE_CORE: Uplink Established [${agentName}]`);
+                        addLog('SUCCESS', `VOICE_CORE: Neural sectors initialized [${agentName}]. Welcome, Architect.`);
                     }
 
                 } catch (err: any) {
-                    console.error("[VoiceManager] Handshake Failed:", err);
+                    const message = err?.message || "Protocol handoff rejected";
                     if (mounted) {
-                        setVoiceState({ isActive: false, isConnecting: false, error: err.message });
-                        addLog('ERROR', `VOICE_REJECTED: ${err.message}`);
+                        setVoiceState({ isActive: false, isConnecting: false, error: message });
+                        addLog('ERROR', `VOICE_FAILURE: ${message}`);
                     }
                     connectionAttemptRef.current = false;
                 }
