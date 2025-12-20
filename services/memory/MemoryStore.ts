@@ -1,4 +1,3 @@
-
 import { LongTermMemory } from './interfaces';
 import { neuralVault } from '../persistenceService';
 
@@ -18,7 +17,7 @@ export class SovereignMemory implements LongTermMemory {
         classification: 'MEMORY_FRAGMENT',
         ambiguityScore: 0,
         entities: ['System Memory'],
-        summary: data.substring(0, 50) + '...'
+        summary: (data || '').substring(0, 50) + '...'
     });
     
     console.log(`[SovereignMemory] Encoded new memory trace: ${key}`);

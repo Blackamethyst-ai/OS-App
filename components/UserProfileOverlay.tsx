@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { neuralVault } from '../services/persistenceService';
@@ -14,7 +13,7 @@ const UserProfileOverlay: React.FC = () => {
     const { isProfileOpen, toggleProfile, user, setUserProfile, addLog, theme, setTheme } = useAppStore();
     
     // Local state for editing
-    const [editName, setEditName] = useState(user.displayName);
+    const [editName, setEditName] = useState(user.displayName || '');
     const [editRole, setEditRole] = useState(user.role);
     const [editClearance, setEditClearance] = useState(user.clearanceLevel);
     const [editAvatar, setEditAvatar] = useState<string | null>(user.avatar);
@@ -26,7 +25,7 @@ const UserProfileOverlay: React.FC = () => {
 
     // Sync local state when store updates (e.g. initial load)
     useEffect(() => {
-        setEditName(user.displayName);
+        setEditName(user.displayName || '');
         setEditAvatar(user.avatar);
         setEditRole(user.role);
         setEditClearance(user.clearanceLevel);
@@ -53,7 +52,7 @@ const UserProfileOverlay: React.FC = () => {
     };
 
     const handleGenerateAvatar = async () => {
-        if (!editName.trim()) return;
+        if (!(editName || '').trim()) return;
         setIsGenerating(true);
         audio.playClick();
         try {
@@ -76,7 +75,7 @@ const UserProfileOverlay: React.FC = () => {
     };
 
     const handleSave = async () => {
-        if (!editName.trim()) return;
+        if (!(editName || '').trim()) return;
         setIsSaving(true);
         audio.playClick();
 
@@ -195,7 +194,7 @@ const UserProfileOverlay: React.FC = () => {
 
                                     <button 
                                         onClick={handleGenerateAvatar}
-                                        disabled={isGenerating || !editName.trim()}
+                                        disabled={isGenerating || !(editName || '').trim()}
                                         className="px-4 py-2 bg-[#9d4edd]/10 hover:bg-[#9d4edd]/20 border border-[#9d4edd]/50 rounded text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider transition-all flex items-center gap-2 disabled:opacity-50 w-full justify-center"
                                     >
                                         <Sparkles className="w-3 h-3" />
@@ -271,7 +270,7 @@ const UserProfileOverlay: React.FC = () => {
 
                             <button 
                                 onClick={handleSave}
-                                disabled={isSaving || !editName.trim()}
+                                disabled={isSaving || !(editName || '').trim()}
                                 className="w-full py-4 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-bold font-mono text-xs uppercase tracking-[0.2em] rounded-lg transition-all shadow-[0_0_20px_rgba(157,78,221,0.4)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                             >
                                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin"/> : <Save className="w-4 h-4" />}

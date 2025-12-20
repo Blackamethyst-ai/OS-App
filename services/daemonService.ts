@@ -1,4 +1,3 @@
-
 import { useAppStore } from '../store';
 import { executeNeuralPolicy, repairMermaidSyntax } from './geminiService';
 import { AppMode } from '../types';
@@ -44,8 +43,9 @@ export const neuralAutomata = async () => {
 
         // Standard Policy Engine Context Gathering
         if (state.mode === AppMode.CODE_STUDIO) {
-            contextSnapshot.code = state.codeStudio.generatedCode ? 
-                state.codeStudio.generatedCode.substring(0, 1000) + "..." : "No Code";
+            const code = state.codeStudio.generatedCode;
+            contextSnapshot.code = code ? 
+                String(code).substring(0, 1000) + "..." : "No Code";
             contextSnapshot.language = state.codeStudio.language;
         } 
         else if (state.mode === AppMode.HARDWARE_ENGINEER) {

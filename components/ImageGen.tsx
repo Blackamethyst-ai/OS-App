@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import JSZip from 'jszip';
 import { useAppStore } from '../store';
-/* Fix: Remove non-existent colorway constants MINT_NOIR_COLORWAY and AMBER_PROTOCOL_COLORWAY */
-import { AspectRatio, ImageSize, FileData, SOVEREIGN_DEFAULT_COLORWAY } from '../types';
+import { AspectRatio, ImageSize, FileData, SOVEREIGN_DEFAULT_COLORWAY, ResonancePoint } from '../types';
 import { promptSelectKey, fileToGenerativePart, generateStoryboardPlan, constructCinematicPrompt, retryGeminiRequest, analyzeImageVision, generateNarrativeContext } from '../services/geminiService';
 import { Image as ImageIcon, Loader2, RefreshCw, Download, Plus, Trash2, Film, Wand2, Upload, X, Layers, AlertCircle, Eye, Activity, User, Palette, FileText, ChevronRight, MonitorPlay, Zap, Clapperboard, Play, Maximize, ToggleLeft, ToggleRight, Volume2, VolumeX, SkipForward, Globe, Lock, Unlock, Fingerprint, Cpu, Radio, Power, Box, Camera, Sun, Video, Package, Scan, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,9 +14,9 @@ interface Frame {
   index: number;
   scenePrompt: string;
   continuity: string;
-  camera?: string; // New: Cinematic Metadata
-  lighting?: string; // New: Cinematic Metadata
-  audio_cue?: string; // New: Sound Design
+  camera?: string; 
+  lighting?: string; 
+  audio_cue?: string; 
   status: 'pending' | 'generating' | 'done' | 'error';
   imageUrl?: string;
   error?: string;
@@ -67,116 +66,6 @@ const MultiReferenceSlot: React.FC<{ label: string, icon: any, files: FileData[]
     </div>
 );
 
-// --- GENESIS TEASER / DYNAMIC TRAILER ENGINE ---
-
-// 1. Procedural Glitch Text
-const GlitchText: React.FC<{ text: string, isActive: boolean, className?: string, onComplete?: () => void }> = ({ text, isActive, className, onComplete }) => {
-    const [display, setDisplay] = useState('');
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$#@%&¥§±Æ';
-    
-    useEffect(() => {
-        if (!isActive) return;
-        
-        let iteration = 0;
-        const interval = setInterval(() => {
-            setDisplay(
-                text.split('').map((letter, index) => {
-                    if (index < iteration) {
-                        return text[index];
-                    }
-                    return chars[Math.floor(Math.random() * chars.length)];
-                }).join('')
-            );
-            
-            if (iteration >= text.length) {
-                clearInterval(interval);
-                if (onComplete) onComplete();
-            }
-            
-            iteration += 1 / 2; 
-        }, 30);
-        
-        return () => clearInterval(interval);
-    }, [isActive, text]);
-
-    return <span className={`font-mono ${className}`}>{display || (isActive ? '' : text)}</span>;
-};
-
-// 2. Data Tunnel (Background)
-const DataTunnel: React.FC<{ speed: number, color: string }> = ({ speed, color }) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const mousePos = useRef({ x: 0, y: 0 });
-
-    useEffect(() => {
-        const handleMove = (e: MouseEvent) => {
-            mousePos.current = { 
-                x: (e.clientX / window.innerWidth) * 2 - 1, 
-                y: (e.clientY / window.innerHeight) * 2 - 1 
-            };
-        };
-        window.addEventListener('mousemove', handleMove);
-        return () => window.removeEventListener('mousemove', handleMove);
-    }, []);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const chars = '01';
-        const particleCount = 400;
-        const particles: { x: number, y: number, z: number, char: string }[] = [];
-
-        // Init
-        for (let i = 0; i < particleCount; i++) {
-            particles.push({
-                x: (Math.random() - 0.5) * window.innerWidth,
-                y: (Math.random() - 0.5) * window.innerHeight,
-                z: Math.random() * 2000,
-                char: chars[Math.floor(Math.random() * chars.length)]
-            });
-        }
-
-        let animId: number;
-
-        const render = () => {
-            canvas.width = canvas.parentElement?.offsetWidth || window.innerWidth;
-            canvas.height = canvas.parentElement?.offsetHeight || window.innerHeight;
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            // Sort by depth
-            particles.sort((a, b) => b.z - a.z);
-
-            particles.forEach(p => {
-                p.z -= speed;
-                if (p.z <= 0) p.z = 2000;
-
-                const scale = 500 / p.z;
-                const x2d = (p.x - mousePos.current.x * 200) * scale + cx;
-                const y2d = (p.y - mousePos.current.y * 200) * scale + cy;
-
-                const alpha = Math.min(1, (2000 - p.z) / 1000);
-                ctx.globalAlpha = alpha;
-                ctx.font = `${12 * scale}px Fira Code`;
-                ctx.fillStyle = color;
-                ctx.fillText(p.char, x2d, y2d);
-            });
-
-            animId = requestAnimationFrame(render);
-        };
-
-        render();
-        return () => cancelAnimationFrame(animId);
-    }, [speed, color]);
-
-    return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full mix-blend-screen" />;
-};
-
-// 3. Dynamic Trailer Engine (The Core Upgrade)
 const GenesisTeaser: React.FC<{ frames: Frame[] }> = ({ frames }) => {
     const { user, setMode } = useAppStore();
     const [bootPhase, setBootPhase] = useState<'IDLE' | 'PLAYBACK' | 'READY'>('IDLE');
@@ -185,24 +74,23 @@ const GenesisTeaser: React.FC<{ frames: Frame[] }> = ({ frames }) => {
     const [activeText, setActiveText] = useState<string>('');
     const [tunnelSpeed, setTunnelSpeed] = useState(2); 
 
-    // Extract valid frames (either image or text)
     const validFrames = frames.filter(f => f.imageUrl || f.scenePrompt);
     const hasContent = validFrames.length > 0;
 
     useEffect(() => {
         if (bootPhase === 'PLAYBACK') {
-            setTunnelSpeed(15); // Warp Speed during playback
+            setTunnelSpeed(15); 
             const interval = setInterval(() => {
                 setCurrentIndex(prev => {
                     if (prev >= validFrames.length - 1) {
                         clearInterval(interval);
                         setBootPhase('READY');
-                        setTunnelSpeed(2); // Slow down
+                        setTunnelSpeed(2);
                         return prev;
                     }
                     return prev + 1;
                 });
-            }, 3000); // 3 seconds per frame
+            }, 3000); 
             
             return () => clearInterval(interval);
         }
@@ -220,15 +108,12 @@ const GenesisTeaser: React.FC<{ frames: Frame[] }> = ({ frames }) => {
             setBootPhase('PLAYBACK');
             setCurrentIndex(0);
         } else {
-            // Fallback generic boot
             setBootPhase('READY');
         }
     };
 
     return (
         <div className="relative w-full h-full bg-black overflow-hidden font-mono select-none">
-            
-            {/* Layer 0: Background Image (If active) */}
             <AnimatePresence mode="wait">
                 {activeImage && bootPhase === 'PLAYBACK' && (
                     <motion.img 
@@ -242,25 +127,16 @@ const GenesisTeaser: React.FC<{ frames: Frame[] }> = ({ frames }) => {
                     />
                 )}
             </AnimatePresence>
-
-            {/* Layer 1: Data Tunnel Overlay */}
-            <DataTunnel speed={tunnelSpeed} color={bootPhase === 'READY' ? '#9d4edd' : '#22d3ee'} />
-            
-            {/* Layer 2: Vignette & Grid */}
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.9)_80%)] pointer-events-none z-10"></div>
             <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.05)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-50 z-10"></div>
 
-            {/* Layer 3: Main Interface */}
             <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-12">
-                
-                {/* Visualizer / Center Icon */}
                 <div className="mb-8 relative scale-150">
                     {bootPhase === 'IDLE' && <Fingerprint className="w-16 h-16 text-[#333]" />}
                     {bootPhase === 'PLAYBACK' && <Activity className="w-16 h-16 text-[#22d3ee] animate-pulse" />}
                     {bootPhase === 'READY' && <Unlock className="w-16 h-16 text-[#9d4edd]" />}
                 </div>
 
-                {/* Text Content */}
                 <div className="h-40 flex flex-col items-center justify-center space-y-4 z-20 w-full max-w-2xl text-center">
                     {bootPhase === 'IDLE' && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
@@ -273,11 +149,7 @@ const GenesisTeaser: React.FC<{ frames: Frame[] }> = ({ frames }) => {
 
                     {bootPhase === 'PLAYBACK' && (
                         <div className="text-center space-y-4 w-full">
-                            <GlitchText 
-                                text={`SEQUENCE ${currentIndex + 1} / ${validFrames.length}`} 
-                                isActive={true} 
-                                className="text-sm text-[#22d3ee] tracking-[0.2em] font-bold block mb-2" 
-                            />
+                            <div className="text-sm text-[#22d3ee] tracking-[0.2em] font-bold block mb-2">SEQUENCE {currentIndex + 1} / {validFrames.length}</div>
                             <motion.div
                                 key={activeText}
                                 initial={{ opacity: 0, y: 10 }}
@@ -306,7 +178,6 @@ const GenesisTeaser: React.FC<{ frames: Frame[] }> = ({ frames }) => {
                     )}
                 </div>
 
-                {/* Interaction Buttons */}
                 <div className="mt-12 z-20">
                     {bootPhase === 'IDLE' && (
                         <button 
@@ -331,10 +202,8 @@ const GenesisTeaser: React.FC<{ frames: Frame[] }> = ({ frames }) => {
                         </button>
                     )}
                 </div>
-
             </div>
 
-            {/* Footer Status */}
             <div className="absolute bottom-8 left-8 right-8 flex justify-between text-[9px] text-gray-600 font-mono tracking-widest uppercase z-20">
                 <span>Metaventions AI v3.0.1</span>
                 <span className={bootPhase === 'READY' ? 'text-[#9d4edd] animate-pulse' : ''}>
@@ -345,31 +214,25 @@ const GenesisTeaser: React.FC<{ frames: Frame[] }> = ({ frames }) => {
     );
 };
 
-// --- END BOOT COMPONENTS ---
-
 const ImageGen: React.FC = () => {
   const { imageGen, setImageGenState, addLog } = useAppStore();
   const [activeTab, setActiveTab] = useState<'SINGLE' | 'STORYBOARD' | 'TEASER'>('SINGLE');
   
-  // Storyboard State
   const [frames, setFrames] = useState<Frame[]>([]);
   const [showERT, setShowERT] = useState(true);
   const [showPromptInspector, setShowPromptInspector] = useState(false);
   const [activeFramePrompt, setActiveFramePrompt] = useState<string>("");
   
-  // Batch & AI Controls
   const [isBatchRendering, setIsBatchRendering] = useState(false);
-  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 }); // NEW: Batch Tracking
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
   const [isPlanning, setIsPlanning] = useState(false);
-  const [isExpanding, setIsExpanding] = useState(false); // NEW: Autonomic Expansion Tracking
-  const [draftMode, setDraftMode] = useState(true); // Default to Draft to save quota
+  const [isExpanding, setIsExpanding] = useState(false);
+  const [draftMode, setDraftMode] = useState(true);
 
-  // Vision State
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [visionAnalysis, setVisionAnalysis] = useState<string | null>(null);
   const [baseImage, setBaseImage] = useState<FileData | null>(null);
   
-  // Init frames
   useEffect(() => {
       if (frames.length === 0) {
           setFrames(Array.from({ length: 10 }, (_, i) => ({ index: i, scenePrompt: '', continuity: '', status: 'pending' })));
@@ -437,7 +300,6 @@ const ImageGen: React.FC = () => {
         let count = 0;
         frames.forEach((f, i) => {
             if (f.imageUrl) {
-                // Remove data:image/png;base64, header
                 const data = f.imageUrl.split(',')[1];
                 const ext = f.imageUrl.substring("data:image/".length, f.imageUrl.indexOf(";base64"));
                 zip.file(`frame_${(i + 1).toString().padStart(2, '0')}.${ext}`, data, {base64: true});
@@ -466,10 +328,7 @@ const ImageGen: React.FC = () => {
         }
     };
 
-  // --- Storyboard Logic ---
-
   const generatePlan = async () => {
-      // Use the prompt from the Storyboard tab's "Narrative Architecture" text area
       if (!imageGen.prompt) return; 
       setIsPlanning(true);
       try {
@@ -481,7 +340,7 @@ const ImageGen: React.FC = () => {
               style: imageGen.activeStylePreset,
               file: imageGen.styleRefs?.[0] || null,
               ertData: imageGen.resonanceCurve,
-              visionAnalysis: visionAnalysis // CRITICAL: Feed vision matrix for extreme coherence
+              visionAnalysis: visionAnalysis 
           };
 
           const plan = await generateStoryboardPlan(context, frames.length);
@@ -537,12 +396,19 @@ const ImageGen: React.FC = () => {
           const isDraft = draftMode && !forceHighQuality;
           const model = isDraft ? 'gemini-2.5-flash-image' : 'gemini-3-pro-image-preview';
           
-          const ertFrame = imageGen.resonanceCurve[index] || { tension: 50, dynamics: 50 };
+          // Safe fallback for ResonancePoint
+          const curve = imageGen.resonanceCurve || [];
+          const ertFrame: ResonancePoint = (index < curve.length) 
+            ? curve[index] 
+            : { frame: index, tension: 50, dynamics: 50 };
 
+          // Composite Logic: Always check all references
           const finalPrompt = await constructCinematicPrompt(
               currentPrompt,
               imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY,
-              (imageGen.styleRefs && imageGen.styleRefs.length > 0),
+              !!baseImage,
+              imageGen.characterRefs.length > 0,
+              imageGen.styleRefs.length > 0,
               ertFrame,
               imageGen.activeStylePreset,
               currentCamera,
@@ -551,7 +417,9 @@ const ImageGen: React.FC = () => {
 
           setActiveFramePrompt(finalPrompt);
 
+          // Build Parts Stack: [Base, Characters, Styles, Prompt]
           const parts: any[] = [];
+          if (baseImage) parts.push(baseImage);
           if (imageGen.characterRefs) parts.push(...imageGen.characterRefs);
           if (imageGen.styleRefs) parts.push(...imageGen.styleRefs);
           parts.push({ text: finalPrompt });
@@ -609,7 +477,6 @@ const ImageGen: React.FC = () => {
       addLog('SUCCESS', 'Batch Render Complete');
   };
 
-  // --- Single Image Logic & Autonomic Expansion ---
   const generateSingleImage = async () => {
       if (!imageGen.prompt?.trim() && !baseImage) return;
       setImageGenState({ isLoading: true, error: null });
@@ -623,16 +490,20 @@ const ImageGen: React.FC = () => {
           const isDraft = draftMode;
           const model = isDraft ? 'gemini-2.5-flash-image' : 'gemini-3-pro-image-preview';
 
+          // Composite Logic: Pass availability of ALL references
           const finalPrompt = await constructCinematicPrompt(
-              imageGen.prompt || "Improve and re-imagine the provided image source.", 
+              imageGen.prompt || "Complete the architectural vision based on all provided anchors.", 
               imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY, 
-              (imageGen.styleRefs && imageGen.styleRefs.length > 0),
+              !!baseImage, 
+              imageGen.characterRefs.length > 0,
+              imageGen.styleRefs.length > 0,
               undefined,
               imageGen.activeStylePreset
           );
           
           setActiveFramePrompt(finalPrompt);
 
+          // Build Composite Parts Array
           const parts: any[] = [];
           if (baseImage) parts.push(baseImage);
           if (imageGen.characterRefs) parts.push(...imageGen.characterRefs);
@@ -669,17 +540,15 @@ const ImageGen: React.FC = () => {
                   },
                   isLoading: false 
               });
-              addLog('SUCCESS', `Asset Fabricated. Initializing Narrative Expansion...`);
+              addLog('SUCCESS', `Unified Asset Fabricated. Interweaving Narrative...`);
 
-              // --- NEW: AUTONOMIC EXPANSION LOOP ---
               setIsExpanding(true);
               try {
-                  const expansion = await generateNarrativeContext(imageGen.prompt, visionAnalysis || '');
+                  const expansion = await generateNarrativeContext(imageGen.prompt || '', visionAnalysis || '');
                   setImageGenState({ 
-                      prompt: expansion.narrative, // Set the Storyboard text area
-                      resonanceCurve: expansion.resonance // Set the PRESET eRP Graph
+                      prompt: expansion.narrative, 
+                      resonanceCurve: expansion.resonance 
                   });
-                  addLog('SUCCESS', `Narrative Architecture rendered. Storyboard and eRP Curve updated.`);
               } catch (e) {
                   console.warn("Expansion loop failed:", e);
               } finally {
@@ -700,12 +569,12 @@ const ImageGen: React.FC = () => {
   useVoiceAction('generate_render', 'Generate single asset based on current prompt', generateSingleImage);
   useVoiceAction('toggle_quality', 'Toggle between Draft and 4K Pro mode', () => setDraftMode(prev => !prev));
 
+  const hasAnyRef = !!baseImage || imageGen.characterRefs.length > 0 || imageGen.styleRefs.length > 0;
+
   return (
     <div className="h-full w-full bg-[#030303] flex flex-col border border-[#1f1f1f] rounded-xl overflow-hidden shadow-2xl relative font-sans">
-        {/* Background Overlay */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
 
-        {/* Header */}
         <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur z-20 flex items-center justify-between px-6">
             <div className="flex items-center gap-3">
                 <div className="p-1.5 bg-[#d946ef]/10 border border-[#d946ef] rounded">
@@ -713,9 +582,16 @@ const ImageGen: React.FC = () => {
                 </div>
                 <div>
                     <h1 className="text-sm font-bold font-mono uppercase tracking-widest text-white">Cinematic Asset Studio</h1>
-                    <p className="text-[9px] text-gray-500 font-mono">Neural Fabrication Engine v2.2</p>
+                    <p className="text-[9px] text-gray-500 font-mono">Unified Composite Engine v3.0</p>
                 </div>
             </div>
+
+            {hasAnyRef && (
+                <div className="flex items-center gap-2 px-3 py-1 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-full animate-in fade-in slide-in-from-top-2">
+                    <Zap className="w-3 h-3 text-[#9d4edd] animate-pulse" />
+                    <span className="text-[9px] font-black font-mono text-[#9d4edd] uppercase tracking-widest">Composite Mode Active</span>
+                </div>
+            )}
             
             <div className="flex items-center gap-2 bg-[#111] p-1 rounded border border-[#333]">
                 <button onClick={() => setActiveTab('SINGLE')} className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors ${activeTab === 'SINGLE' ? 'bg-[#d946ef] text-black' : 'text-gray-500 hover:text-white'}`}>
@@ -734,16 +610,11 @@ const ImageGen: React.FC = () => {
             </div>
         </div>
 
-        {/* Main Content */}
         <div className="flex-1 overflow-hidden relative z-10 p-6">
-            
             {activeTab === 'SINGLE' && (
                 <div className="h-full flex gap-6">
-                    {/* Controls Sidebar (Fixed Layout) */}
                     <div className="w-[400px] flex flex-col bg-[#050505] border border-[#222] rounded-lg h-full overflow-hidden shadow-2xl relative">
-                        
                         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-                            
                             <div className="space-y-4">
                                 <div className="flex items-center gap-2 border-b border-[#333] pb-2 mb-2">
                                     <Film className="w-3 h-3 text-[#9d4edd]" />
@@ -751,8 +622,8 @@ const ImageGen: React.FC = () => {
                                 </div>
 
                                 <MultiReferenceSlot 
-                                    label="Base Plate (Source)" 
-                                    icon={ImageIcon} 
+                                    label="Base Plate (Spatial Source)" 
+                                    icon={MonitorPlay} 
                                     files={baseImage ? [baseImage] : []} 
                                     onRemove={() => setBaseImage(null)}
                                     onUpload={(e) => handleUpload(e, 'base')}
@@ -760,7 +631,7 @@ const ImageGen: React.FC = () => {
                                 />
 
                                 <MultiReferenceSlot 
-                                    label="Lead Actor Lock" 
+                                    label="Character Lock (Identity)" 
                                     icon={User} 
                                     files={imageGen.characterRefs || []} 
                                     onRemove={(idx) => removeFile(idx, 'character')}
@@ -769,7 +640,7 @@ const ImageGen: React.FC = () => {
                                 />
 
                                 <MultiReferenceSlot 
-                                    label="Style Reference" 
+                                    label="Style Reference (Texture)" 
                                     icon={Palette} 
                                     files={imageGen.styleRefs || []} 
                                     onRemove={(idx) => removeFile(idx, 'style')}
@@ -797,7 +668,7 @@ const ImageGen: React.FC = () => {
                             <div className="space-y-4 pt-4 border-t border-[#333]">
                                 <div className="flex-1 flex flex-col">
                                     <label className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block mb-2 font-bold flex items-center gap-2">
-                                        <FileText className="w-3 h-3 text-[#22d3ee]" /> {baseImage ? 'Re-imagining Directive' : 'Scene Directive'}
+                                        <FileText className="w-3 h-3 text-[#22d3ee]" /> {baseImage ? 'Reification Directive' : 'Scene Directive'}
                                     </label>
                                     <textarea 
                                         value={imageGen.prompt || ''}
@@ -840,7 +711,7 @@ const ImageGen: React.FC = () => {
                                     className="w-full py-3 bg-[#111] border border-[#333] hover:border-[#22d3ee] text-gray-300 hover:text-[#22d3ee] font-bold text-[10px] font-mono uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2"
                                 >
                                     {isAnalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin"/> : <Scan className="w-3.5 h-3.5"/>}
-                                    Vision Scan Source
+                                    Vision Scan Base Plate
                                 </button>
                             )}
                             <button 
@@ -848,8 +719,8 @@ const ImageGen: React.FC = () => {
                                 disabled={imageGen.isLoading || (!imageGen.prompt?.trim() && !baseImage)}
                                 className="w-full py-4 bg-[#d946ef] text-black font-bold text-xs uppercase tracking-[0.2em] font-mono rounded-lg hover:bg-[#f0abfc] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-[0_0_30px_rgba(217,70,239,0.3)] hover:scale-[1.02] active:scale-[0.98]"
                             >
-                                {imageGen.isLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Wand2 className="w-4 h-4"/>}
-                                {imageGen.isLoading ? 'FABRICATING...' : 'GENERATE ASSET'}
+                                {imageGen.isLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Layers className="w-4 h-4"/>}
+                                {imageGen.isLoading ? 'SYNTHESIZING...' : 'GENERATE COMPOSITE'}
                             </button>
                         </div>
                     </div>
@@ -870,7 +741,7 @@ const ImageGen: React.FC = () => {
                                         <div className="absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md p-4 opacity-0 group-hover:opacity-100 transition-opacity border-t border-[#333]">
                                             <div className="flex justify-between items-center text-[10px] font-mono text-gray-400">
                                                 <span>{imageGen.generatedImage.size} • {imageGen.generatedImage.aspectRatio}</span>
-                                                <span className="text-[#9d4edd]">GENERATED_ASSET</span>
+                                                <span className="text-[#9d4edd]">UNIFIED_ASSET_L0</span>
                                             </div>
                                         </div>
                                     </div>
@@ -897,20 +768,6 @@ const ImageGen: React.FC = () => {
                             </div>
                         )}
                         
-                        {visionAnalysis && (
-                            <div className="absolute top-4 right-4 w-80 bg-black/80 backdrop-blur-md border border-[#9d4edd]/30 p-4 rounded-xl z-30 shadow-2xl animate-in slide-in-from-right-4 duration-500 max-h-[80%] overflow-y-auto custom-scrollbar">
-                                <div className="flex justify-between items-center mb-3 pb-2 border-b border-white/10">
-                                    <div className="flex items-center gap-2 text-[#9d4edd] font-mono text-[10px] font-bold uppercase tracking-widest">
-                                        <Zap className="w-3.5 h-3.5"/> Vision Matrix Data
-                                    </div>
-                                    <button onClick={() => setVisionAnalysis(null)} className="text-gray-500 hover:text-white"><X size={12}/></button>
-                                </div>
-                                <div className="text-[10px] font-mono text-gray-300 leading-relaxed whitespace-pre-wrap">
-                                    {visionAnalysis}
-                                </div>
-                            </div>
-                        )}
-
                         <AnimatePresence>
                             {showPromptInspector && (
                                 <motion.div 
@@ -933,17 +790,10 @@ const ImageGen: React.FC = () => {
                                 </motion.div>
                             )}
                         </AnimatePresence>
-                        
-                        {imageGen.error && (
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-red-900/90 text-red-200 px-6 py-3 rounded-full text-xs font-mono border border-red-500 flex items-center gap-3 z-30 shadow-[0_0_20px_rgba(239,68,68,0.4)]">
-                                <AlertCircle className="w-4 h-4" /> {imageGen.error}
-                            </div>
-                        )}
                     </div>
                 </div>
             )}
 
-            {/* Storyboard Tab */}
             {activeTab === 'STORYBOARD' && (
                 <div className="h-full flex gap-6">
                     <div className="w-[400px] flex flex-col bg-[#050505] border border-[#222] rounded-lg h-full overflow-hidden shadow-2xl relative">
@@ -958,11 +808,6 @@ const ImageGen: React.FC = () => {
                                     className="w-full bg-[#0f0f0f] border border-[#333] p-4 text-xs text-gray-300 rounded-xl resize-none h-40 outline-none focus:border-[#9d4edd] font-mono shadow-inner leading-relaxed"
                                     placeholder="NARRATIVE SEED: Start with a Single Asset render to auto-expand your narrative arc here."
                                 />
-                                {isExpanding && (
-                                    <div className="flex items-center gap-2 mt-2 px-2 text-[9px] text-[#9d4edd] font-mono animate-pulse">
-                                        <Sparkles className="w-3 h-3" /> EXPANDING CONCEPT FROM SINGLE RENDER...
-                                    </div>
-                                )}
                             </div>
 
                             <div className="space-y-4">
@@ -982,32 +827,6 @@ const ImageGen: React.FC = () => {
                                     onUpload={(e) => handleUpload(e, 'style')}
                                     accept="image/*,application/pdf"
                                 />
-                                <div className="bg-[#0f0f0f] p-4 rounded-xl border border-[#222]">
-                                    <label className="text-[9px] font-mono text-[#9d4edd] uppercase tracking-wider mb-2 block font-bold">Style Preset</label>
-                                    <select 
-                                        value={imageGen.activeStylePreset}
-                                        onChange={(e) => setImageGenState({ activeStylePreset: e.target.value })}
-                                        className="w-full bg-[#0a0a0a] border border-[#333] p-2.5 text-xs font-mono text-gray-300 outline-none focus:border-[#d946ef] rounded-lg mb-2 cursor-pointer transition-colors"
-                                    >
-                                        {STYLE_PRESETS.map(p => (
-                                            <option key={p.id} value={p.id}>{p.label}</option>
-                                        ))}
-                                    </select>
-                                </div>
-                                <div className="bg-[#0f0f0f] p-4 rounded-xl border border-[#222]">
-                                    <div className="flex justify-between items-center mb-2">
-                                        <label className="text-[9px] font-mono text-gray-500 uppercase tracking-wider block font-bold">Render Quality</label>
-                                        <span className={`text-[9px] font-mono ${draftMode ? 'text-gray-400' : 'text-[#9d4edd]'}`}>
-                                            {draftMode ? 'DRAFT (FAST)' : '4K PRO'}
-                                        </span>
-                                    </div>
-                                    <button 
-                                        onClick={() => setDraftMode(!draftMode)}
-                                        className={`w-full py-2 rounded-lg border text-xs font-mono uppercase transition-all ${draftMode ? 'bg-[#111] border-[#333] text-gray-400' : 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd] font-bold shadow-lg'}`}
-                                    >
-                                        {draftMode ? 'Draft Mode Enabled' : 'Pro Mode Active'}
-                                    </button>
-                                </div>
                             </div>
 
                             <div className="mb-6">
@@ -1027,7 +846,7 @@ const ImageGen: React.FC = () => {
 
                         <div className="p-4 border-t border-[#222] bg-[#0a0a0a] space-y-3 relative z-20">
                             <div className="flex gap-2 items-center text-[9px] font-mono text-gray-500 justify-between">
-                                <span className="uppercase tracking-widest font-bold">Frame Count</span>
+                                <span className="uppercase tracking-widest font-bold">Sequence Length</span>
                                 <input 
                                     type="number" 
                                     min="3" max="20" 
@@ -1052,27 +871,6 @@ const ImageGen: React.FC = () => {
                                 >
                                     {isBatchRendering ? <Loader2 className="w-3 h-3 animate-spin"/> : <Play className="w-3 h-3"/>}
                                     Render
-                                </button>
-                                
-                                {isBatchRendering && (
-                                    <div className="w-full bg-[#1f1f1f] rounded-full h-1.5 mt-1 overflow-hidden relative">
-                                        <div 
-                                            className="bg-[#9d4edd] h-full transition-all duration-300 relative" 
-                                            style={{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }}
-                                        >
-                                            <div className="absolute right-0 top-0 bottom-0 w-2 bg-white/50 blur-[2px]"></div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                <button 
-                                    onClick={handleDownloadAll}
-                                    disabled={frames.every(f => !f.imageUrl)}
-                                    className="w-full py-2 bg-[#1f1f1f] border border-[#333] hover:border-[#9d4edd] hover:text-[#9d4edd] text-gray-400 rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-                                    title="Download All Frames as ZIP"
-                                >
-                                    <Package className="w-3 h-3" />
-                                    <span className="text-[9px] font-mono font-bold uppercase">Download All</span>
                                 </button>
                             </div>
                         </div>
@@ -1099,14 +897,6 @@ const ImageGen: React.FC = () => {
                                                         alt={`Frame ${idx + 1}`}
                                                         className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105" 
                                                     />
-                                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                                                        <button onClick={() => { setActiveFramePrompt(frame.scenePrompt); setShowPromptInspector(true); }} className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white backdrop-blur">
-                                                            <Eye className="w-4 h-4"/>
-                                                        </button>
-                                                        <a href={frame.imageUrl} download={`frame-${idx + 1}.png`} className="p-2 bg-white/10 rounded-full hover:bg-white/20 text-white backdrop-blur">
-                                                            <Download className="w-4 h-4"/>
-                                                        </a>
-                                                    </div>
                                                 </>
                                             ) : (
                                                 <div className="text-center">
@@ -1117,55 +907,22 @@ const ImageGen: React.FC = () => {
                                                     )}
                                                 </div>
                                             )}
-                                            {frame.status === 'generating' && <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center" />}
                                         </div>
 
                                         <div className="flex-1 flex flex-col gap-3 min-w-0">
                                             <div className="flex justify-between items-center pb-2 border-b border-[#222]">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider font-bold">SEQ_{idx.toString().padStart(3, '0')}</span>
-                                                    {frame.status === 'done' && frame.isDraft && (
-                                                        <span className="text-[8px] font-mono text-gray-500 border border-gray-700 px-1.5 rounded uppercase bg-[#111]">Draft</span>
-                                                    )}
-                                                    {frame.status === 'done' && !frame.isDraft && (
-                                                        <span className="text-[8px] font-mono text-[#42be65] border border-[#42be65]/30 px-1.5 rounded uppercase bg-[#42be65]/10">4K Pro</span>
-                                                    )}
-                                                </div>
+                                                <span className="text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider font-bold">SEQ_{idx.toString().padStart(3, '0')}</span>
                                                 <div className="flex gap-2">
                                                     <button 
                                                         onClick={() => generateFrame(idx)}
                                                         disabled={frame.status === 'generating' || !frame.scenePrompt}
                                                         className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase transition-all disabled:opacity-50 flex items-gap-1.5 font-bold"
                                                     >
-                                                        <Wand2 className="w-3 h-3" /> {frame.status === 'done' ? 'Re-Roll' : 'Render Frame'}
+                                                        <Wand2 className="w-3 h-3" /> Render
                                                     </button>
-                                                    {frame.status === 'done' && frame.isDraft && (
-                                                        <button 
-                                                            onClick={() => generateFrame(idx, true)}
-                                                            disabled={isBatchRendering}
-                                                            className="px-3 py-1.5 bg-[#9d4edd]/10 hover:bg-[#9d4edd] hover:text-black border border-[#9d4edd]/50 rounded text-[9px] font-mono uppercase transition-all disabled:opacity-50 flex items-center gap-1.5 text-[#9d4edd] font-bold"
-                                                        >
-                                                            <Maximize className="w-3 h-3" /> Upscale 4K
-                                                        </button>
-                                                    )}
                                                 </div>
                                             </div>
                                             
-                                            {(frame.camera || frame.lighting) && (
-                                                <div className="flex flex-wrap gap-2 mb-2">
-                                                    {frame.camera && (
-                                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-[#1f1f1f] rounded border border-[#333] text-[9px] font-mono text-gray-400">
-                                                            <Camera className="w-3 h-3 text-[#22d3ee]" /> {frame.camera}
-                                                        </div>
-                                                    )}
-                                                    {frame.lighting && (
-                                                        <div className="flex items-center gap-1.5 px-2 py-1 bg-[#1f1f1f] rounded border border-[#333] text-[9px] font-mono text-gray-400">
-                                                            <Sun className="w-3 h-3 text-[#f59e0b]" /> {frame.lighting}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-
                                             <div className="flex-1">
                                                 <label className="text-[9px] text-gray-500 uppercase block mb-1 font-bold">Visual Directive</label>
                                                 <textarea 
@@ -1179,21 +936,6 @@ const ImageGen: React.FC = () => {
                                                     placeholder="Frame description..."
                                                 />
                                             </div>
-                                            <div className="relative">
-                                                <label className="text-[9px] text-gray-500 uppercase block mb-1 font-bold">Continuity Notes</label>
-                                                <input 
-                                                    type="text" 
-                                                    value={frame.continuity}
-                                                    onChange={(e) => {
-                                                        const newFrames = [...frames];
-                                                        newFrames[idx].continuity = e.target.value;
-                                                        setFrames(newFrames);
-                                                    }}
-                                                    className="w-full bg-[#050505] border border-[#333] rounded-lg p-2.5 text-[10px] font-mono text-gray-400 outline-none focus:border-[#9d4edd] transition-colors"
-                                                    placeholder="Lighting/Angle notes..."
-                                                />
-                                            </div>
-                                            {frame.error && <p className="text-[9px] text-red-500 font-mono mt-1 flex items-center gap-1"><AlertCircle className="w-3 h-3"/> {frame.error}</p>}
                                         </div>
                                     </div>
                                 </div>
@@ -1203,7 +945,6 @@ const ImageGen: React.FC = () => {
                 </div>
             )}
 
-            {/* TEASER TAB CONTENT */}
             {activeTab === 'TEASER' && (
                 <div className="h-full w-full relative bg-black overflow-hidden rounded-lg shadow-2xl border border-[#333]">
                     <GenesisTeaser frames={frames} />

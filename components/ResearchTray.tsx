@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,20 +22,21 @@ const ResearchTray: React.FC = () => {
         openHoloProjector({
             id: `report-${task.id}`,
             type: 'TEXT',
-            title: `Research Report: ${task.query.substring(0, 20)}...`,
+            title: `Research Report: ${(task.query || '').substring(0, 20)}...`,
             content: task.result || "No content generated."
         });
     };
 
     const handleBranch = (fact: string, parentId: string) => {
-        const newQuery = `Deep dive: ${fact.substring(0, 60)}...`;
+        const safeFact = String(fact || '');
+        const newQuery = `Deep dive: ${safeFact.substring(0, 60)}...`;
         addLog('SYSTEM', `RESEARCH_BRANCH: Pivoting agent to new vector.`);
         addResearchTask({
             id: crypto.randomUUID(),
             query: newQuery,
             status: 'QUEUED',
             progress: 0,
-            logs: [`Spawned from Task ID: ${parentId.substring(0,8)}`, `Vector: ${fact}`],
+            logs: [`Spawned from Task ID: ${String(parentId || '').substring(0,8)}`, `Vector: ${safeFact}`],
             timestamp: Date.now()
         });
     };

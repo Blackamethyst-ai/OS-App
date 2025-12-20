@@ -127,7 +127,7 @@ const HistoricalPriceChart: React.FC<{ basePrice: number }> = ({ basePrice }) =>
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={data}>
                         <defs>
-                            <linearGradient id="priceFill" x1="0" y1="0" x2="0" y2="1">
+                            <linearGradient id="priceFill" x1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor={isUp ? "#42be65" : "#ef4444"} stopOpacity={0.2}/>
                                 <stop offset="95%" stopColor={isUp ? "#42be65" : "#ef4444"} stopOpacity={0}/>
                             </linearGradient>
@@ -177,7 +177,7 @@ const HardwareEngine: React.FC = () => {
     }, []);
 
     const commitSearch = (query?: string) => {
-        const q = (query || componentQuery).trim();
+        const q = (query || componentQuery || '').trim();
         if (!q) return;
         const newHistory = [q, ...searchHistory.filter(h => h !== q)].slice(0, 10);
         setHardwareState({ searchHistory: newHistory, componentQuery: q });
@@ -226,7 +226,7 @@ const HardwareEngine: React.FC = () => {
     // --- FILTER LOGIC ---
     const filteredRecommendations = useMemo(() => {
         return recommendations.filter(item => {
-            const matchesSearch = item.partNumber.toLowerCase().includes(componentQuery.toLowerCase());
+            const matchesSearch = item.partNumber.toLowerCase().includes((componentQuery || '').toLowerCase());
             const matchesVendor = activeVendor === 'ALL' || item.manufacturer === activeVendor;
             const matchesPrice = (item.price || 0) >= filters.minPrice && (item.price || 0) <= filters.maxPrice;
             const matchesStock = filters.showOutOfStock || item.isInStock;
@@ -307,7 +307,7 @@ const HardwareEngine: React.FC = () => {
                             <div className="relative group">
                                 <input 
                                     type="text" 
-                                    value={componentQuery}
+                                    value={componentQuery || ''}
                                     onChange={(e) => setHardwareState({ componentQuery: e.target.value })}
                                     onFocus={() => setIsHistoryOpen(true)}
                                     onKeyDown={(e) => e.key === 'Enter' && commitSearch()}
@@ -321,7 +321,7 @@ const HardwareEngine: React.FC = () => {
                             </div>
 
                             <AnimatePresence>
-                                {isHistoryOpen && searchHistory.length > 0 && (
+                                {isHistoryOpen && (searchHistory || []).length > 0 && (
                                     <motion.div 
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
@@ -375,12 +375,12 @@ const HardwareEngine: React.FC = () => {
                                         <div className="space-y-2">
                                             <div className="flex justify-between items-center text-[9px] text-gray-600 uppercase font-black">
                                                 <span>Price Ceiling</span>
-                                                <span className="text-white">${(filters.maxPrice / 1000).toFixed(0)}k</span>
+                                                <span className="text-white">${((filters?.maxPrice || 0) / 1000).toFixed(0)}k</span>
                                             </div>
                                             <input 
                                                 type="range" 
                                                 min="0" max="5000000" step="50000"
-                                                value={filters.maxPrice}
+                                                value={filters?.maxPrice || 0}
                                                 onChange={(e) => setHardwareState({ filters: { ...filters, maxPrice: parseInt(e.target.value) } })}
                                                 className="w-full h-1 bg-[#111] rounded-lg appearance-none cursor-pointer accent-[#9d4edd]"
                                             />
@@ -454,7 +454,7 @@ const HardwareEngine: React.FC = () => {
                         <div className="h-full flex flex-col gap-8">
                             <GPUClusterMonitor />
                             
-                            <div className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-[#1f1f1f] rounded-3xl group hover:border-[#9d4edd]/40 transition-all">
+                            <div className="flex-1 flex-col flex items-center justify-center border-2 border-dashed border-[#1f1f1f] rounded-3xl group hover:border-[#9d4edd]/40 transition-all">
                                 <label className="flex flex-col items-center gap-6 cursor-pointer text-center p-20 group/upload">
                                     <div className="w-24 h-24 rounded-full bg-[#0a0a0a] border border-[#222] flex items-center justify-center group-hover/upload:scale-110 group-hover/upload:border-[#9d4edd]/50 transition-all shadow-2xl relative">
                                         <div className="absolute inset-0 bg-[#9d4edd]/5 rounded-full animate-ping opacity-20"></div>

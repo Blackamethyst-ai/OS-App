@@ -30,6 +30,127 @@ DIRECTIVE: Provide high-fidelity technical support. Orchestrate OS operations vi
 `.trim();
 
 /**
+ * NEW: Calculate optimal 2D layout for system nodes based on logic and flow.
+ */
+export async function calculateOptimalLayout(nodes: any[], edges: any[]): Promise<Record<string, { x: number, y: number }>> {
+    const ai = getAI();
+    const context = {
+        nodes: nodes.map(n => ({ id: n.id, label: n.data.label })),
+        edges: edges.map(e => ({ source: e.source, target: e.target }))
+    };
+
+    const schema: Schema = {
+        type: Type.OBJECT,
+        properties: {
+            positions: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        id: { type: Type.STRING },
+                        x: { type: Type.NUMBER },
+                        y: { type: Type.NUMBER }
+                    },
+                    required: ['id', 'x', 'y']
+                }
+            }
+        },
+        required: ['positions']
+    };
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `TASK: Optimize System Topology Layout. 
+        Current messy graph: ${JSON.stringify(context)}.
+        Goal: Rearrange these nodes into a clear, hierarchical, or semantically grouped logical structure. 
+        - Flow should generally go left-to-right or top-to-bottom.
+        - Space nodes at least 300px apart.
+        - Group related services together.
+        RETURN JSON of coordinates.`,
+        config: { 
+            responseMimeType: 'application/json',
+            responseSchema: schema
+        }
+    });
+
+    const result = JSON.parse(response.text || '{"positions":[]}');
+    const posMap: Record<string, { x: number, y: number }> = {};
+    result.positions.forEach((p: any) => { posMap[p.id] = { x: p.x, y: p.y }; });
+    return posMap;
+}
+
+/**
+ * NEW: Analyze vault artifacts to suggest optimizations.
+ */
+export async function generateVaultInsights(artifacts: StoredArtifact[]): Promise<any[]> {
+    const ai = getAI();
+    const context = artifacts.map(a => ({
+        id: a.id,
+        name: a.name,
+        type: a.type,
+        tags: a.tags,
+        summary: a.analysis?.summary || ""
+    }));
+
+    const schema: Schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                id: { type: Type.STRING },
+                type: { type: Type.STRING, enum: ['DEDUPE', 'TAG', 'BRIDGE', 'ARCHIVE'] },
+                message: { type: Type.STRING },
+                action: { type: Type.STRING },
+                targetIds: { type: Type.ARRAY, items: { type: Type.STRING } }
+            },
+            required: ['id', 'type', 'message', 'action', 'targetIds']
+        }
+    };
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Analyze these artifacts and provide 3-5 high-value maintenance insights. 
+        Example: Group related images, suggest tags for code files, or identify redundant docs.
+        ARTIFACTS: ${JSON.stringify(context)}`,
+        config: { 
+            responseMimeType: 'application/json',
+            responseSchema: schema
+        }
+    });
+
+    return JSON.parse(response.text || "[]");
+}
+
+/**
+ * NEW: Parse natural language directive into vault state changes.
+ */
+export async function executeVaultDirective(directive: string, artifacts: StoredArtifact[]): Promise<any> {
+    const ai = getAI();
+    const context = artifacts.map(a => ({ id: a.id, name: a.name, tags: a.tags }));
+
+    const schema: Schema = {
+        type: Type.OBJECT,
+        properties: {
+            operation: { type: Type.STRING, enum: ['BATCH_TAG', 'BATCH_RENAME', 'ARCHIVE', 'SEARCH'] },
+            targetIds: { type: Type.ARRAY, items: { type: Type.STRING } },
+            parameters: { type: Type.OBJECT, properties: { value: { type: Type.STRING } } }
+        },
+        required: ['operation', 'targetIds']
+    };
+
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `COMMAND: "${directive}"\nCONTEXT: ${JSON.stringify(context)}\nInterpret this command for the file vault.`,
+        config: { 
+            responseMimeType: 'application/json',
+            responseSchema: schema
+        }
+    });
+
+    return JSON.parse(response.text || "{}");
+}
+
+/**
  * Extraordinary Feature: Maps semantic relationships across a pool of artifacts.
  */
 export async function discoverDeepLattice(artifacts: StoredArtifact[]): Promise<NeuralLattice> {
@@ -75,7 +196,7 @@ export async function discoverDeepLattice(artifacts: StoredArtifact[]): Promise<
 
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
-        contents: `TASK: Semantic Lattice Mapping.\nARTIFACTS:\n${JSON.stringify(artifactContext)}\n\nGoal: Group these into 3-5 logical clusters. Discover non-obvious "bridges" between artifacts from different clusters based on thematic overlap. Output JSON.`,
+        contents: `TASK: Semantic Lattice Mapping.\nARTIFACTS:\n${JSON.stringify(artifactContext)}\n\nGoal: Group these into 3-5 logical clusters. Discover non-obvious "bridges" between artifacts from different clusters based thematic overlap. Output JSON.`,
         config: { 
             responseMimeType: 'application/json',
             responseSchema: schema
@@ -257,15 +378,63 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
 
 export async function generateStructuredWorkflow(files: FileData[], governance: string, type: string, mapContext?: any): Promise<any> {
     const ai = getAI();
+    
+    const schema: Schema = {
+        type: Type.OBJECT,
+        properties: {
+            title: { type: Type.STRING },
+            summary: { type: Type.STRING },
+            protocols: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        step: { type: Type.NUMBER },
+                        action: { type: Type.STRING },
+                        description: { type: Type.STRING },
+                        priority: { type: Type.STRING, enum: ['LOW', 'MEDIUM', 'HIGH'] },
+                        role: { type: Type.STRING },
+                        tool: { type: Type.STRING }
+                    },
+                    required: ['step', 'action', 'description', 'priority', 'role', 'tool']
+                }
+            },
+            taxonomy: {
+                type: Type.OBJECT,
+                properties: {
+                    root: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                folder: { type: Type.STRING },
+                                subfolders: { type: Type.ARRAY, items: { type: Type.STRING } }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        required: ['title', 'summary', 'protocols']
+    };
+
+    const domainInstruction = type === 'DRIVE_ORGANIZATION' 
+        ? "Apply PARA (Projects, Areas, Resources, Archives) method. Suggest folder naming conventions using ISO-8601 prefixes."
+        : type === 'SYSTEM_ARCHITECTURE'
+        ? "Design for high-availability, scalability, and zero-trust. Include infrastructure-as-code requirements."
+        : "Generate a generalized technical workflow.";
+
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: { parts: [...files, { text: `Generate structured workflow for ${type} under ${governance}. Map context: ${JSON.stringify(mapContext)}.` }] },
+        contents: { parts: [...files, { text: `Generate structured workflow for ${type} under ${governance}. Domain Spec: ${domainInstruction}. Map context: ${JSON.stringify(mapContext)}.` }] },
         config: { 
             systemInstruction: SYSTEM_COMMANDER_INSTRUCTION,
-            responseMimeType: 'application/json' 
+            responseMimeType: 'application/json',
+            responseSchema: schema
         }
-      });
-      return JSON.parse(response.text || "{}");
+    });
+
+    return JSON.parse(response.text || "{}");
 }
 
 export async function generateCode(prompt: string, language: string, model: string, context?: FileData[]): Promise<string> {
@@ -276,7 +445,7 @@ export async function generateCode(prompt: string, language: string, model: stri
         contents: { parts },
         config: { systemInstruction: SYSTEM_COMMANDER_INSTRUCTION }
     });
-    return response.text?.replace(/```[a-z]*\n|```/gi, '').trim() || "";
+    return (response.text || "").replace(/```[a-z]*\n|```/gi, '').trim();
 }
 
 export async function researchComponents(query: string): Promise<ComponentRecommendation[]> {
@@ -425,7 +594,7 @@ export async function generateMermaidDiagram(governance: string, files: FileData
         contents: { parts: [...files, { text: `Generate Mermaid diagram code for system topology under ${governance}. Map context: ${JSON.stringify(context)}. Return ONLY Mermaid code block.` }] },
         config: { systemInstruction: SYSTEM_COMMANDER_INSTRUCTION }
     });
-    return response.text?.replace(/```mermaid\n|```/gi, '').trim() || "";
+    return (response.text || "").replace(/```mermaid\n|```/gi, '').trim();
 }
 
 export async function repairMermaidSyntax(code: string, error: string): Promise<string> {
@@ -435,7 +604,7 @@ export async function repairMermaidSyntax(code: string, error: string): Promise<
         contents: `Fix Mermaid syntax error: "${error}". Original Code:\n${code}. Return ONLY the fixed code block.`,
         config: { systemInstruction: SYSTEM_COMMANDER_INSTRUCTION }
     });
-    return response.text?.replace(/```mermaid\n|```/gi, '').trim() || code;
+    return (response.text || "").replace(/```mermaid\n|```/gi, '').trim();
 }
 
 export async function generateSystemArchitecture(prompt: string): Promise<any> {
@@ -471,7 +640,7 @@ export async function generateInfrastructureCode(summary: string, provider: stri
         contents: `Generate ${provider} IaC for: "${summary}". Return ONLY code block.`,
         config: { systemInstruction: SYSTEM_COMMANDER_INSTRUCTION }
     });
-    return response.text?.replace(/```[a-z]*\n|```/gi, '').trim() || "";
+    return (response.text || "").replace(/```[a-z]*\n|```/gi, '').trim();
 }
 
 export async function generateHypotheses(facts: string[]): Promise<ScienceHypothesis[]> {
@@ -523,11 +692,44 @@ export async function generateStoryboardPlan(context: any, count: number): Promi
     return JSON.parse(response.text || "[]");
 }
 
-export async function constructCinematicPrompt(base: string, color: Colorway, styles: boolean, ert?: ResonancePoint, preset?: string, cam?: string, light?: string): Promise<string> {
+/**
+ * NEW: STRENGTHENED COMPOSITE GENERATION LOGIC
+ * Forces the AI to treat references as absolute structural and identity anchors.
+ */
+export async function constructCinematicPrompt(
+    base: string, 
+    color: Colorway, 
+    hasBasePlate: boolean, 
+    hasCharacterLock: boolean, 
+    hasStyleRef: boolean,
+    ert?: ResonancePoint, 
+    preset?: string, 
+    cam?: string, 
+    light?: string
+): Promise<string> {
     const ai = getAI();
+    
+    // Construct layered directives based on which references are present
+    const directives = [];
+    if (hasBasePlate) directives.push("SPATIAL BLUEPRINT: Follow the geometric layout and object placement of the BASE PLATE reference exactly. Do not shift perspectives.");
+    if (hasCharacterLock) directives.push("IMMUTABLE IDENTITY: The subject must be an identical match to the CHARACTER LOCK reference. Maintain face structure, clothing details, and unique identifiers without variation.");
+    if (hasStyleRef) directives.push("AESTHETIC SYNC: Apply the exact lighting, texture density, and color grading found in the STYLE REFERENCE.");
+    
+    const compositeDirective = directives.length > 0 
+        ? `STRICT COMPOSITE PROTOCOL ACTIVE:\n${directives.join('\n')}\nYOUR TASK: Merge these disparate anchors into a single hyper-realistic high-fidelity cinematic frame. DO NOT invent new elements that conflict with the references.`
+        : "Generate a best-in-class cinematic asset.";
+
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Optimize cinematic prompt. BASE: "${base}". COLOR: ${JSON.stringify(color)}. ERT: ${JSON.stringify(ert)}. PRESET: ${preset}. CAM: ${cam}. LIGHT: ${light}. Return ONLY final string.`,
+        contents: `Optimize cinematic prompt. 
+        DIRECTIVE: ${compositeDirective}
+        BASE_VISION_COMMAND: "${base}". 
+        COLOR_SYSTEM: ${JSON.stringify(color)}. 
+        RESONANCE: ${JSON.stringify(ert)}. 
+        PRESET: ${preset}. 
+        CAMERA: ${cam}. 
+        LIGHTING: ${light}. 
+        Return ONLY final optimized string that emphasizes structural adherence to refs.`,
         config: { systemInstruction: SYSTEM_COMMANDER_INSTRUCTION }
     });
     return response.text || base;
@@ -643,6 +845,19 @@ export async function generateNarrativeContext(prompt: string, analysis: string)
     return JSON.parse(response.text || "{ \"narrative\": \"\", \"resonance\": [] }");
 }
 
+export async function decomposeTaskToSubtasks(title: string, description: string): Promise<string[]> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Analyze objective: "${title}". Context: "${description}". Break this down into 3-6 atomic, actionable sub-tasks. Return ONLY a JSON array of strings.`,
+        config: { 
+            systemInstruction: SYSTEM_COMMANDER_INSTRUCTION,
+            responseMimeType: 'application/json' 
+        }
+    });
+    return JSON.parse(response.text || "[]");
+}
+
 // Fix: Export generateXRayVariant
 export async function generateXRayVariant(image: FileData): Promise<string> {
     const ai = getAI();
@@ -703,7 +918,7 @@ export async function formatCode(code: string, language: string): Promise<string
         contents: `Reformat this ${language} code for maximum readability and idiomatic style. Return ONLY the formatted code.\n\nCode:\n${code}`,
         config: { systemInstruction: SYSTEM_COMMANDER_INSTRUCTION }
     });
-    return response.text?.replace(/```[a-z]*\n|```/gi, '').trim() || code;
+    return (response.text || "").replace(/```[a-z]*\n|```/gi, '').trim();
 }
 
 // Fix: Export fixCode
@@ -714,7 +929,7 @@ export async function fixCode(code: string, error: string, language: string): Pr
         contents: `Fix the following ${language} code which failed with error: "${error}".\n\nCode:\n${code}\n\nReturn ONLY the fixed code block.`,
         config: { systemInstruction: SYSTEM_COMMANDER_INSTRUCTION }
     });
-    return response.text?.replace(/```[a-z]*\n|```/gi, '').trim() || code;
+    return (response.text || "").replace(/```[a-z]*\n|```/gi, '').trim();
 }
 
 // Fix: Export applyCodeSuggestion
@@ -725,7 +940,7 @@ export async function applyCodeSuggestion(code: string, suggestion: string, lang
         contents: `Apply this improvement suggestion to the ${language} code:\nSuggestion: "${suggestion}"\n\nOriginal Code:\n${code}\n\nReturn ONLY the modified code block.`,
         config: { systemInstruction: SYSTEM_COMMANDER_INSTRUCTION }
     });
-    return response.text?.replace(/```[a-z]*\n|```/gi, '').trim() || code;
+    return (response.text || "").replace(/```[a-z]*\n|```/gi, '').trim();
 }
 
 // Fix: Export generateTaxonomy
@@ -842,7 +1057,7 @@ export async function calculateEntropy(mapContext: any): Promise<number> {
         contents: `Calculate the system entropy score (0-100) for this topology context: ${JSON.stringify(mapContext)}. Return ONLY the number.`,
         config: { systemInstruction: SYSTEM_COMMANDER_INSTRUCTION }
     });
-    return parseFloat(response.text?.trim() || "50");
+    return parseFloat((response.text || "").trim() || "50");
 }
 
 // Fix: Export decomposeNode
@@ -1021,7 +1236,7 @@ class LiveSessionService {
     public getOutputFrequencies(): Uint8Array {
         if (!this.outputAnalyzer) return new Uint8Array(0);
         const data = new Uint8Array(this.outputAnalyzer.frequencyBinCount);
-        this.outputAnalyzer.getByteFrequencyData(data);
+        this.analyzer.getByteFrequencyData(data);
         return data;
     }
 }

@@ -1,4 +1,3 @@
-
 import { Event, LongTermMemory, ExternalArtifactStore, WorkingContext, CurrentScope } from './interfaces';
 import { FactChunk } from '../../types';
 
@@ -108,9 +107,11 @@ export class ArtifactProcessor implements ContextProcessor {
         
         if (artifacts.length === 0) return [];
 
-        const artifactContext = artifacts.map(art => 
-            `--- START FILE: ${art.name} ---\n${atob(art.inlineData.data).substring(0, 5000)}...\n--- END FILE ---`
-        ).join('\n\n');
+        const artifactContext = artifacts.map(art => {
+            const data = art.inlineData?.data || '';
+            const content = data ? atob(data).substring(0, 5000) : '(No Data)';
+            return `--- START FILE: ${art.name} ---\n${content}...\n--- END FILE ---`;
+        }).join('\n\n');
 
         return [{
             role: 'user',

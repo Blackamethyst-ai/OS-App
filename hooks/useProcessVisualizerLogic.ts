@@ -10,7 +10,7 @@ import {
     fileToGenerativePart, promptSelectKey, classifyArtifact, 
     generateAutopoieticFramework, generateStructuredWorkflow,
     generateSystemArchitecture, calculateEntropy, decomposeNode, generateInfrastructureCode,
-    generateSingleNode
+    generateSingleNode, calculateOptimalLayout
 } from '../services/geminiService';
 import { FileData, AppMode, AppTheme } from '../types';
 
@@ -47,14 +47,24 @@ export const useProcessVisualizerLogic = () => {
     const [isGeneratingGraph, setIsGeneratingGraph] = useState(false);
     const [isDecomposing, setIsDecomposing] = useState(false);
     const [isOptimizing, setIsOptimizing] = useState(false);
+    const [isOrganizing, setIsOrganizing] = useState(false);
     const [sequenceStatus, setSequenceStatus] = useState<'IDLE' | 'RUNNING' | 'COMPLETE'>('IDLE');
     const [sequenceProgress, setSequenceProgress] = useState(0);
 
     const { fitView, screenToFlowPosition, getViewport, zoomTo } = useReactFlow();
-    const [nodes, setNodes, onNodesChange] = useNodesState([]);
-    const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+    // Fix (Root Cause): Initialize React Flow state from global store to persist across unmounts
+    const [nodes, setNodes, onNodesChange] = useNodesState(state.nodes || []);
+    const [edges, setEdges, onEdgesChange] = useEdgesState(state.edges || []);
 
     const selectedNode = useMemo(() => nodes.find(n => n.selected), [nodes]);
+
+    // Fix (Root Cause): Sync local flow changes back to the global store
+    useEffect(() => {
+        if (nodes.length > 0 || edges.length > 0) {
+            setState({ nodes, edges });
+        }
+    }, [nodes, edges, setState]);
 
     // Handle External AI Injection (Nexus Nodes)
     useEffect(() => {
@@ -108,7 +118,7 @@ export const useProcessVisualizerLogic = () => {
 
     const handleApiError = (context: string, err: any) => {
         setState({ error: err.message || "Operation failed", isLoading: false });
-        setIsGeneratingGraph(false); setIsDecomposing(false); setIsOptimizing(false); setSequenceStatus('IDLE');
+        setIsGeneratingGraph(false); setIsDecomposing(false); setIsOptimizing(false); setIsOrganizing(false); setSequenceStatus('IDLE');
     };
 
     const onConnect = useCallback((params: Connection) => {
@@ -244,6 +254,28 @@ export const useProcessVisualizerLogic = () => {
         } catch (err: any) { handleApiError('Optimize', err); }
     };
 
+    const handleAutoOrganize = async () => {
+        if (isOrganizing || nodes.length === 0) return;
+        setIsOrganizing(true);
+        setState({ isLoading: true });
+        addLog('SYSTEM', 'LATTICE_SYNC: Calculating optimal semantic topology...');
+        try {
+            if (!(await checkApiKey())) return;
+            const newPositions = await calculateOptimalLayout(nodes, edges);
+            
+            setNodes(nds => nds.map(node => ({
+                ...node,
+                position: newPositions[node.id] || node.position
+            })));
+            
+            addLog('SUCCESS', 'LATTICE_SYNC: Autopoietic organization complete.');
+            setTimeout(() => fitView({ duration: 1000 }), 100);
+        } catch (err: any) { handleApiError('Auto-Organize', err); } finally {
+            setIsOrganizing(false);
+            setState({ isLoading: false });
+        }
+    };
+
     const handleRunGlobalSequence = async () => {
         if (sequenceStatus === 'RUNNING') return;
         if (!(await checkApiKey())) return;
@@ -333,7 +365,9 @@ export const useProcessVisualizerLogic = () => {
                 addLog('SUCCESS', `DECOMPOSE: Node "${selectedNode.data.label}" expanded into ${expanded.length} sub-units.`);
             } catch (err: any) { handleApiError('Decompose', err); } finally { setIsDecomposing(false); }
         },
-        handleOptimizeNode, handleGenerateIaC: async (provider: string) => {
+        handleOptimizeNode, 
+        handleAutoOrganize,
+        handleGenerateIaC: async (provider: string) => {
             try {
                 if (!(await checkApiKey())) return;
                 const summary = nodes.map(n => n.data.label).join(', ');
@@ -344,7 +378,7 @@ export const useProcessVisualizerLogic = () => {
             } catch (err: any) { handleApiError('IaC', err); }
         },
         handleAIAddNode, handleGenerate, architecturePrompt, setArchitecturePrompt, sequenceStatus, sequenceProgress,
-        selectedNode, isGeneratingGraph, isDecomposing, isOptimizing, saveGraph: () => { localStorage.setItem('pm_layout', JSON.stringify({ nodes, edges })); addLog('SUCCESS', 'Layout cached.'); },
+        selectedNode, isGeneratingGraph, isDecomposing, isOptimizing, isOrganizing, saveGraph: () => { localStorage.setItem('pm_layout', JSON.stringify({ nodes, edges })); addLog('SUCCESS', 'Layout cached.'); },
         restoreGraph: () => { const saved = localStorage.getItem('pm_layout'); if (saved) { const { nodes: ns, edges: es } = JSON.parse(saved); setNodes(ns); setEdges(es); } },
         getTabLabel: (t: string) => t.replace('_', ' '), getPriorityBadgeStyle: (p: string) => p === 'HIGH' ? 'bg-red-900/20 text-red-400 border-red-500/30' : 'bg-[#111] text-gray-500',
         handleSourceUpload, removeSource, viewSourceAnalysis, setState,
