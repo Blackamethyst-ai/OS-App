@@ -99,7 +99,8 @@ const GenesisTeaser: React.FC<{ frames: Frame[] }> = ({ frames }) => {
     useEffect(() => {
         if (bootPhase === 'PLAYBACK' && validFrames[currentIndex]) {
             setActiveImage(validFrames[currentIndex].imageUrl || null);
-            setActiveText(validFrames[currentIndex].scenePrompt.substring(0, 100) + "...");
+            const prompt = validFrames[currentIndex].scenePrompt || '';
+            setActiveText(prompt.substring(0, 100) + (prompt.length > 100 ? "..." : ""));
         }
     }, [currentIndex, bootPhase, validFrames]);
 
@@ -572,7 +573,7 @@ const ImageGen: React.FC = () => {
   const hasAnyRef = !!baseImage || imageGen.characterRefs.length > 0 || imageGen.styleRefs.length > 0;
 
   return (
-    <div className="h-full w-full bg-[#030303] flex flex-col border border-[#1f1f1f] rounded-xl overflow-hidden shadow-2xl relative font-sans">
+    <div className="h-full w-full bg-[#030303] flex flex-col border border-[#1f1f1f] rounded-xl overflow-hidden shadow-2xl relative z-10 font-sans">
         <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
 
         <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur z-20 flex items-center justify-between px-6">
@@ -805,7 +806,7 @@ const ImageGen: React.FC = () => {
                                 <textarea 
                                     value={imageGen.prompt || ''}
                                     onChange={(e) => setImageGenState({ prompt: e.target.value })}
-                                    className="w-full bg-[#0f0f0f] border border-[#333] p-4 text-xs text-gray-300 rounded-xl resize-none h-40 outline-none focus:border-[#9d4edd] font-mono shadow-inner leading-relaxed"
+                                    className="w-full h-40 bg-[#0f0f0f] border border-[#333] p-4 text-xs text-gray-300 rounded-xl resize-none outline-none focus:border-[#9d4edd] font-mono shadow-inner leading-relaxed"
                                     placeholder="NARRATIVE SEED: Start with a Single Asset render to auto-expand your narrative arc here."
                                 />
                             </div>
