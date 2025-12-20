@@ -49,8 +49,6 @@ export async function chatWithGemini(message: string, history: Message[] = []): 
         model: 'gemini-3-pro-preview',
         config: { systemInstruction: SYSTEM_COMMANDER_INSTRUCTION }
     });
-    // Convert store history to Chat message format if needed
-    // For simplicity, we send the single message or use a simplified history
     const response = await chat.sendMessage({ message });
     return response.text || "";
 }
@@ -551,7 +549,7 @@ export async function generateNarrativeContext(prompt: string, visionAnalysis: s
         contents: `Generate narrative for: "${prompt}". Return JSON {narrative, resonance}.`,
         config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{"narrative": "", "resonance": []}');
 }
 
 export async function analyzePowerDynamics(input: string, internalContext?: string): Promise<AnalysisResult> {
@@ -944,9 +942,9 @@ export const liveSession = {
         nextStartTime = 0;
     },
     connect: async (voiceName: string, config: any) => {
-        // Create a new instance right before call for key robustness
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
+        // Safety: ensure any previous session is cleaned up
         liveSession.disconnect();
 
         inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -1003,8 +1001,15 @@ export const liveSession = {
                         config.callbacks.onmessage(msg);
                     }
                 },
-                onerror: (e) => {
-                    console.error("Live Error:", e);
+                onerror: (e: any) => {
+                    let message = "Handshake failure";
+                    if (e instanceof ErrorEvent) message = e.message;
+                    else if (e instanceof CloseEvent) message = `Closed: ${e.reason} (${e.code})`;
+                    else if (e?.message) message = e.message;
+                    else if (e?.error?.message) message = e.error.message;
+                    else if (typeof e === 'string') message = e;
+                    
+                    console.error("Live Core Diagnostic Fail:", message);
                     if (config.callbacks?.onerror) config.callbacks.onerror(e);
                 },
                 onclose: () => {
