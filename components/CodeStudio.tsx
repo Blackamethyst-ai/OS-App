@@ -4,7 +4,7 @@ import { useAppStore } from '../store';
 import { generateCode, promptSelectKey, simulateCodeExecution, formatCode, fixCode, validateSyntax, generateCodeSuggestions, applyCodeSuggestion } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
 import { audio } from '../services/audioService'; 
-import { Code, Terminal, Play, Loader2, Copy, Check, Save, RotateCcw, AlertCircle, Maximize2, Minimize2, PanelBottomClose, PanelBottomOpen, ChevronRight, Wand2, Cpu, Map as MapIcon, HardDrive, ShieldCheck, Stethoscope, Sparkles, X, GitMerge, AlertTriangle, Repeat, Database, Lightbulb, FileText, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Code, Terminal, Play, Loader2, Copy, Check, Save, RotateCcw, AlertCircle, Maximize2, Minimize2, PanelBottomClose, PanelBottomOpen, ChevronRight, Wand2, Cpu, Map as MapIcon, HardDrive, ShieldCheck, Stethoscope, Sparkles, X, GitMerge, AlertTriangle, Repeat, Database, Lightbulb, FileText, ToggleLeft, ToggleRight, Layout } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileData } from '../types';
 import { useVoiceAction } from '../hooks/useVoiceAction';
@@ -139,6 +139,7 @@ const CodeStudio: React.FC = () => {
   // Layout State
   const [showTerminal, setShowTerminal] = useState(true);
   const [isFormatting, setIsFormatting] = useState(false);
+  const [showFormatFlash, setShowFormatFlash] = useState(false);
   const [isHealing, setIsHealing] = useState(false);
   const [showMinimap, setShowMinimap] = useState(true);
   const [isApplyingSuggestion, setIsApplyingSuggestion] = useState(false);
@@ -193,6 +194,18 @@ const CodeStudio: React.FC = () => {
           } catch(e) { console.error("Failed to restore session"); }
       }
   }, []);
+
+  // Keyboard Shortcut: CMD+SHIFT+F for format
+  useEffect(() => {
+      const handleShortcut = (e: KeyboardEvent) => {
+          if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'f') {
+              e.preventDefault();
+              handleFormat();
+          }
+      };
+      window.addEventListener('keydown', handleShortcut);
+      return () => window.removeEventListener('keydown', handleShortcut);
+  }, [codeStudio.generatedCode]);
 
   // Syntax Validation Effect
   useEffect(() => {
@@ -399,18 +412,27 @@ const CodeStudio: React.FC = () => {
   };
 
   const handleFormat = async () => {
-      if (!codeStudio.generatedCode || codeStudio.language === 'markdown') return;
+      if (!codeStudio.generatedCode || codeStudio.language === 'markdown' || isFormatting) return;
       setIsFormatting(true);
       audio.playClick();
+      addLog('SYSTEM', 'CODE_STUDIO: Applying structural formatting rules...');
       try {
           const hasKey = await window.aistudio?.hasSelectedApiKey();
           if (!hasKey) await promptSelectKey();
 
           const formatted = await formatCode(codeStudio.generatedCode, codeStudio.language);
           setCodeStudioState({ generatedCode: formatted });
+          addLog('SUCCESS', 'CODE_STUDIO: Formatting protocol finalized.');
+          
+          // UI Improvement: Visual Flash Feedback
+          setShowFormatFlash(true);
+          setTimeout(() => setShowFormatFlash(false), 500);
+          audio.playSuccess();
+          
       } catch (err: any) {
           console.error("Format Failed:", err);
           audio.playError();
+          addLog('ERROR', 'CODE_STUDIO: Formatting failed.');
       } finally {
           setIsFormatting(false);
       }
@@ -626,7 +648,7 @@ const CodeStudio: React.FC = () => {
                                {codeStudio.isExecuting ? <Loader2 className="w-3 h-3 animate-spin"/> : <Play className="w-3 h-3"/>}
                                {codeStudio.isExecuting ? 'RUNNING...' : 'RUN'}
                            </button>
-                           <div onClick={() => setAutoHealEnabled(!autoHealEnabled)} className={`flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer border text-[9px] font-mono transition-all ${autoHealEnabled ? 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd]' : 'bg-[#111] border-[#333] text-gray-500'}`} title="Automatically attempt to fix runtime errors">
+                           <div onClick={() => setAutoHealEnabled(!autoHealEnabled)} className={`flex items-center gap-1 px-2 py-0.5 rounded cursor-pointer border text-[9px] font-mono transition-all ${autoHealEnabled ? 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd]' : 'bg-[#111] border border-[#333] text-gray-500'}`} title="Automatically attempt to fix runtime errors">
                                <Repeat className="w-3 h-3" /> AUTO-HEAL: {autoHealEnabled ? 'ON' : 'OFF'}
                            </div>
                        </div>
@@ -635,8 +657,13 @@ const CodeStudio: React.FC = () => {
               <div className="flex items-center gap-3">
                   <button onClick={() => setShowMinimap(!showMinimap)} className={`text-gray-500 hover:text-white transition-colors ${showMinimap ? 'text-[#9d4edd]' : ''}`} title="Toggle Minimap"><MapIcon className="w-4 h-4" /></button>
                   <div className="w-px h-3 bg-[#333]"></div>
-                  <button onClick={handleFormat} disabled={!codeStudio.generatedCode || isFormatting || codeStudio.language === 'markdown'} className="flex items-center px-2 py-1 text-[9px] font-mono text-gray-400 hover:text-white transition-colors disabled:opacity-50" title="Auto Format Code">
-                      {isFormatting ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Wand2 className="w-3 h-3 mr-1" />} FORMAT
+                  <button 
+                    onClick={handleFormat} 
+                    disabled={!codeStudio.generatedCode || isFormatting || codeStudio.language === 'markdown'} 
+                    className={`flex items-center px-3 py-1 text-[9px] font-mono border rounded transition-all shadow-lg ${isFormatting ? 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd] animate-pulse' : 'bg-white/5 border-white/10 text-gray-300 hover:border-[#9d4edd] hover:text-white'}`}
+                    title="Auto Format Code (CMD+SHIFT+F)"
+                  >
+                      {isFormatting ? <Loader2 className="w-3 h-3 animate-spin mr-1.5" /> : <Layout className="w-3 h-3 mr-1.5" />} {isFormatting ? 'FORMATTING...' : 'BEAUTIFY'}
                   </button>
                   <div className="w-px h-3 bg-[#333]"></div>
                   <button onClick={() => setShowTerminal(!showTerminal)} className={`text-gray-500 hover:text-white transition-colors ${showTerminal ? 'text-[#9d4edd]' : ''}`}>
@@ -663,6 +690,18 @@ const CodeStudio: React.FC = () => {
                              );
                          })}
                      </div>
+
+                     <AnimatePresence>
+                         {showFormatFlash && (
+                             <motion.div 
+                                 initial={{ opacity: 0 }}
+                                 animate={{ opacity: 0.15 }}
+                                 exit={{ opacity: 0 }}
+                                 className="absolute inset-0 bg-[#9d4edd] pointer-events-none z-20"
+                             />
+                         )}
+                     </AnimatePresence>
+
                      <div className="pl-12 pt-4 pr-4 pb-20 min-h-full">
                          {codeStudio.generatedCode ? (
                              <pre className="font-mono text-xs text-gray-300 leading-6 whitespace-pre-wrap selection:bg-[#9d4edd]/20">

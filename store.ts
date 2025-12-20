@@ -77,7 +77,20 @@ interface AppState {
         synapticReadout: { id: string; msg: string; type: 'PERCEPTION' | 'HANDSHAKE' | 'INDEX' }[];
         agentPathways: Record<string, string>; // Agent ID -> Node ID
     };
-    voice: any;
+    voice: {
+        transcripts: any[];
+        partialTranscript: { role: string; text: string } | null;
+        agentAvatars: Record<string, string>;
+        voiceName: string;
+        isActive: boolean;
+        isConnecting: boolean;
+        error: string | null;
+        mentalState: {
+            skepticism: number;
+            excitement: number;
+            alignment: number;
+        };
+    };
     bicameral: any;
     research: ResearchState;
     metaventions: MetaventionsState & {
@@ -136,7 +149,7 @@ interface AppState {
     setBibliomorphicState: (state: Partial<AppState['bibliomorphic']> | ((prev: AppState['bibliomorphic']) => Partial<AppState['bibliomorphic']>)) => void;
     setDashboardState: (state: any) => void;
     setBicameralState: (state: any) => void;
-    setVoiceState: (state: any) => void;
+    setVoiceState: (state: Partial<AppState['voice']> | ((prev: AppState['voice']) => Partial<AppState['voice']>)) => void;
     setSearchState: (state: any) => void;
     setDiscoveryState: (state: any) => void;
     setMetaventionsState: (state: Partial<AppState['metaventions']> | ((prev: AppState['metaventions']) => Partial<AppState['metaventions']>)) => void;
@@ -245,7 +258,7 @@ export const useAppStore = create<AppState>((set) => ({
     },
     codeStudio: { history: [], prompt: '', language: 'typescript', generatedCode: '', suggestions: [], autoSaveEnabled: false },
     bibliomorphic: { chatHistory: [], library: [], dna: null, activeBook: null, activeTab: 'discovery', error: null, isIngesting: false, synapticReadout: [], agentPathways: {} },
-    voice: { transcripts: [], agentAvatars: {}, voiceName: 'Puck', isActive: false, isConnecting: false },
+    voice: { transcripts: [], partialTranscript: null, agentAvatars: {}, voiceName: 'Puck', isActive: false, isConnecting: false, error: null, mentalState: { skepticism: 50, excitement: 50, alignment: 50 } },
     bicameral: { plan: [], ledger: [], swarmStatus: { votes: {}, killedAgents: 0 }, goal: '' },
     research: { tasks: [] },
     metaventions: {
@@ -318,6 +331,7 @@ export const useAppStore = create<AppState>((set) => ({
         system: { ...state.system, logs: [...state.system.logs, { id: Date.now(), timestamp: Date.now(), level, message }].slice(-100) } 
     })),
     toggleTerminal: (isOpen) => set((state) => ({ system: { ...state.system, isTerminalOpen: isOpen ?? !state.system.isTerminalOpen } })),
+    addLogAtLevel: (level, message) => set((state) => ({ system: { ...state.system, logs: [...state.system.logs, { id: Date.now(), timestamp: Date.now(), level, message }].slice(-100) } })),
     addDockItem: (item) => set((state) => ({ system: { ...state.system, dockItems: [...state.system.dockItems, item] } })),
     removeDockItem: (id) => set((state) => ({ system: { ...state.system, dockItems: state.system.dockItems.filter((i: any) => i.id !== id) } })),
     openHoloProjector: (artifact) => set({ holo: { isOpen: true, activeArtifact: artifact, isAnalyzing: false, analysisResult: null } }),

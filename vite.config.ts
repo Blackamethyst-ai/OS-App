@@ -23,6 +23,33 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': rootPath,
         }
-      }
+      },
+      build: {
+        chunkSizeWarningLimit: 1000,
+        rollupOptions: {
+          output: {
+            manualChunks(id) {
+              if (id.includes('node_modules')) {
+                if (id.includes('recharts')) {
+                  return 'vendor-recharts';
+                }
+                if (id.includes('framer-motion')) {
+                  return 'vendor-framer';
+                }
+                if (id.includes('lucide-react')) {
+                  return 'vendor-lucide';
+                }
+                if (id.includes('@xyflow')) {
+                  return 'vendor-xyflow';
+                }
+                if (id.includes('@google/genai')) {
+                  return 'vendor-genai';
+                }
+                return 'vendor';
+              }
+            },
+          },
+        },
+      },
     };
 });

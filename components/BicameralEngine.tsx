@@ -1,10 +1,9 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { generateDecompositionMap, consensusEngine } from '../services/bicameralService';
 import { promptSelectKey, AGENT_DNA_BUILDER } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
-import { BrainCircuit, Zap, Layers, Cpu, ArrowRight, CheckCircle2, Loader2, GitBranch, AlertOctagon, Save, ExternalLink, Dna, Info, Settings2, Sliders, X } from 'lucide-react';
+import { BrainCircuit, Zap, Layers, Cpu, ArrowRight, CheckCircle2, Loader2, GitBranch, AlertOctagon, Save, ExternalLink, Dna, Info, Settings2, Sliders, X, MessageSquareCode } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TugOfWarChart } from './Visualizations/TugOfWarChart';
 import { AgentGraveyard } from './Visualizations/AgentGraveyard';
@@ -17,6 +16,7 @@ const BicameralEngine: React.FC = () => {
     const [selectedDNA, setSelectedDNA] = useState<AgentDNA>(AGENT_DNA_BUILDER[1]); 
     const [agentWeights, setAgentWeights] = useState({ logic: 80, creativity: 50, empathy: 30 });
     const [showControls, setShowControls] = useState(false);
+    const [customDirective, setCustomDirective] = useState('');
     
     const activeTask = plan.find(t => t.status === 'IN_PROGRESS');
 
@@ -29,7 +29,9 @@ const BicameralEngine: React.FC = () => {
 
             setBicameralState({ isPlanning: true, plan: [], ledger: [], error: null });
             
-            const tasks = await generateDecompositionMap(goal);
+            // Combine goal with custom directive for decomposition
+            const fullGoal = `${goal}${customDirective ? `\n\nDIRECTIVE: ${customDirective}` : ''}`;
+            const tasks = await generateDecompositionMap(fullGoal);
             const initialTasks = tasks.map(t => ({ ...t, status: 'PENDING' as const }));
             setBicameralState({ 
                 plan: initialTasks, 
@@ -59,6 +61,7 @@ const BicameralEngine: React.FC = () => {
 **DNA Logic:** ${selectedDNA.description}
 **Confidence:** ${result.confidence}%
 **Consensus State:** Weightings Logic: ${agentWeights.logic}, Creativity: ${agentWeights.creativity}
+${customDirective ? `**Custom Directive:** ${customDirective}` : ''}
 ---
 ${result.output}
                 `.trim();
@@ -116,6 +119,16 @@ ${result.output}
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase"><span>Creativity Variance</span><span>{agentWeights.creativity}%</span></div>
                                     <input type="range" className="w-full h-1 bg-[#222] rounded appearance-none accent-[#22d3ee]" value={agentWeights.creativity} onChange={e => setAgentWeights({...agentWeights, creativity: parseInt(e.target.value)})} />
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase"><span>Neural Directive</span> <MessageSquareCode size={10} className="text-[#9d4edd]" /></div>
+                                    <input 
+                                        type="text" 
+                                        value={customDirective}
+                                        onChange={e => setCustomDirective(e.target.value)}
+                                        placeholder="Inject logic anchor..."
+                                        className="w-full bg-black border border-[#333] px-3 py-1.5 rounded text-[10px] font-mono text-white outline-none focus:border-[#9d4edd]"
+                                    />
                                 </div>
                             </motion.div>
                         )}

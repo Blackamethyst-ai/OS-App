@@ -1,7 +1,8 @@
+
 import React, { useState } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BrainCircuit, X, ChevronUp, ChevronDown, CheckCircle2, AlertCircle, Loader2, FileText, GitBranch, Target, Square, ListTodo, CircleDashed, CheckCircle, Eye } from 'lucide-react';
+import { BrainCircuit, X, ChevronUp, ChevronDown, CheckCircle2, AlertCircle, Loader2, FileText, GitBranch, Target, Square, ListTodo, CircleDashed, CheckCircle, Eye, Share2, Sparkles } from 'lucide-react';
 import { AppMode } from '../types';
 
 const ResearchTray: React.FC = () => {
@@ -31,13 +32,16 @@ const ResearchTray: React.FC = () => {
     const handleBranch = (fact: string, parentId: string) => {
         const factStr = String(fact || '');
         const newQuery = `Deep dive: ${factStr.substring(0, 60)}...`;
-        addLog('SYSTEM', `RESEARCH_BRANCH: Pivoting agent to new vector.`);
+        
+        // Technical Improvement: Explicit event signaling
+        addLog('SUCCESS', `LATTICE_PIVOT: Spawning new research vector from validated fact.`);
+        
         addResearchTask({
             id: crypto.randomUUID(),
             query: newQuery,
             status: 'QUEUED',
             progress: 0,
-            logs: [`Spawned from Task ID: ${String(parentId || '').substring(0, 8)}`, `Vector: ${factStr.substring(0, 30)}...`],
+            logs: [`Spawned from Task ID: ${String(parentId || '').substring(0, 8)}`, `Vector Origin: ${factStr.substring(0, 30)}...`],
             timestamp: Date.now()
         });
     };
@@ -99,24 +103,6 @@ const ResearchTray: React.FC = () => {
                                             <span className="truncate max-w-[200px]">{task.logs[task.logs.length - 1]}</span>
                                             <span>{Math.round(task.progress)}%</span>
                                         </div>
-                                        {task.status === 'SWARM_VERIFY' && (
-                                            <button onClick={viewSwarm} className="w-full mt-2 py-1.5 bg-[#f59e0b]/10 border border-[#f59e0b]/30 text-[#f59e0b] text-[9px] font-bold uppercase rounded hover:bg-[#f59e0b]/20 transition-colors flex items-center justify-center gap-2 animate-in slide-in-from-top-2"><Eye className="w-3 h-3" /> View Verification Battle</button>
-                                        )}
-                                        <AnimatePresence>
-                                            {selectedTaskId === task.id && task.subQueries && (
-                                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mt-3 pt-3 border-t border-[#222] overflow-hidden">
-                                                    <div className="mb-3 text-[9px] font-mono text-gray-500 uppercase flex items-center gap-2"><ListTodo className="w-3 h-3" /> Execution Plan</div>
-                                                    <div className="space-y-1">
-                                                        {task.subQueries.map((q, idx) => (
-                                                            <div key={idx} className="flex items-center gap-2 text-[9px] font-mono">
-                                                                {(task.findings?.length || 0) > idx ? <CheckCircle className="w-3 h-3 text-[#42be65]" /> : <CircleDashed className="w-3 h-3 text-gray-600" />}
-                                                                <span className={(task.findings?.length || 0) > idx ? 'text-gray-400 line-through' : 'text-white'}>{q}</span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
                                     </div>
                                 ))}
                                 {completedTasks.map(task => (
@@ -135,12 +121,20 @@ const ResearchTray: React.FC = () => {
                                         <AnimatePresence>
                                             {selectedTaskId === task.id && task.findings && (
                                                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mt-3 pt-3 border-t border-[#222] overflow-hidden">
-                                                    <div className="flex items-center gap-2 mb-2 text-[9px] text-gray-500 font-mono uppercase font-bold tracking-widest"><Target className="w-3 h-3" /> Branch Knowledge Trace</div>
+                                                    <div className="flex items-center gap-2 mb-2 text-[9px] text-gray-500 font-mono uppercase font-bold tracking-widest"><Target className="w-3 h-3" /> Knowledge Trace</div>
                                                     <div className="space-y-2">
-                                                        {task.findings.slice(0, 5).map((fact, i) => (
-                                                            <div key={i} className="flex gap-2 items-start p-2 rounded bg-[#0a0a0a] border border-[#222] hover:border-[#9d4edd] group/fact cursor-pointer transition-all" onClick={() => handleBranch(fact.fact, task.id)}>
-                                                                <GitBranch className="w-3 h-3 text-gray-600 group-hover/fact:text-[#9d4edd] mt-0.5 shrink-0" />
-                                                                <p className="text-[9px] text-gray-400 font-mono line-clamp-2 group-hover/fact:text-gray-200">{fact.fact}</p>
+                                                        {task.findings.slice(0, 3).map((fact, i) => (
+                                                            <div key={i} className="flex flex-col gap-2 p-2 rounded bg-[#0a0a0a] border border-[#222] hover:border-[#9d4edd] group/fact transition-all">
+                                                                <div className="flex items-start gap-2">
+                                                                    <GitBranch className="w-3 h-3 text-gray-600 group-hover/fact:text-[#9d4edd] mt-0.5 shrink-0" />
+                                                                    <p className="text-[9px] text-gray-400 font-mono line-clamp-2 group-hover/fact:text-gray-200">{fact.fact}</p>
+                                                                </div>
+                                                                <button 
+                                                                    onClick={(e) => { e.stopPropagation(); handleBranch(fact.fact, task.id); }}
+                                                                    className="w-full py-1.5 bg-[#9d4edd]/10 hover:bg-[#9d4edd] text-[#9d4edd] hover:text-black rounded text-[8px] font-black uppercase transition-all flex items-center justify-center gap-1.5 border border-[#9d4edd]/30"
+                                                                >
+                                                                    <Sparkles size={10} /> Forge New Vector
+                                                                </button>
                                                             </div>
                                                         ))}
                                                     </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SyntheticPersona, DebateTurn, SimulationReport, FileData, AppMode, MentalState } from '../types';
