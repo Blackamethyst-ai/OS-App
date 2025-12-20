@@ -20,6 +20,7 @@ interface AppState {
     user: UserProfile;
     system: any;
     kernel: KernelStatus;
+    focusedSelector: string | null;
     process: {
         artifacts: any[];
         chatHistory: any[];
@@ -126,6 +127,7 @@ interface AppState {
     toggleProfile: (isOpen?: boolean) => void;
     setAuthenticated: (val: boolean) => void;
     setUserProfile: (profile: UserProfile) => void;
+    setFocusedSelector: (selector: string | null) => void;
     
     setProcessState: (state: Partial<AppState['process']> | ((prev: AppState['process']) => Partial<AppState['process']>)) => void;
     setCodeStudioState: (state: any) => void;
@@ -176,6 +178,7 @@ export const useAppStore = create<AppState>((set) => ({
     user: { displayName: 'Architect', role: 'ARCHITECT', clearanceLevel: 5, avatar: null },
     system: { logs: [], isTerminalOpen: false, dockItems: [] },
     kernel: { uptime: 0, entropy: 12, coreLoad: 24, activeThreads: 8, integrity: 99 },
+    focusedSelector: null,
     process: { 
         artifacts: [], 
         chatHistory: [], 
@@ -249,7 +252,7 @@ export const useAppStore = create<AppState>((set) => ({
         layers: [
             { id: 'depin', name: 'DePIN', role: 'Infrastructure', leverage: 'Ownership of the pipes', status: 'SYNCING', level: 1, metrics: [{ label: 'Global Nodes', value: '12.4k', trend: 'up' }, { label: 'CapEx Bypass', value: '$4.2M', trend: 'up' }] },
             { id: 'physical_ai', name: 'Physical AI', role: 'Navigation', leverage: 'Mastery of the real', status: 'INITIALIZED', level: 1, metrics: [{ label: 'Spatial Lock', value: '99.98%', trend: 'stable' }, { label: 'Inference Latency', value: '4ms', trend: 'down' }] },
-            { id: 'digital_twins', name: 'Digital Twins', role: 'Simulation', leverage: 'Real-time environment mirror', status: 'INITIALIZED', level: 1, metrics: [{ label: 'Drift Coherence', value: '0.004%', trend: 'down' }, { label: 'Sync Rate', value: '1:1', trend: 'stable' }] },
+            { id: 'digital_twins', name: 'Digital Twins', role: 'Simulation', leverage: 'Mastery of the environment', status: 'INITIALIZED', level: 1, metrics: [{ label: 'Drift Coherence', value: '0.004%', trend: 'down' }, { label: 'Sync Rate', value: '1:1', trend: 'stable' }] },
             { id: 'agentic_finance', name: 'Agentic Finance', role: 'Autonomy', leverage: 'Bypassing legacy banks', status: 'INITIALIZED', level: 1, metrics: [{ label: 'Autonomous AUM', value: 'Ξ 420.5', trend: 'up' }, { label: 'Wallet Count', value: '18', trend: 'up' }] },
             { id: 'zero_trust', name: 'Zero-Trust', role: 'Security', leverage: 'Silicon-level cryptography', status: 'OPTIMIZED', level: 1, metrics: [{ label: 'Enclave Integrity', value: '100%', trend: 'stable' }, { label: 'Entropy Suppression', value: '98%', trend: 'up' }] },
             { id: 'deai', name: 'Decentralized AI', role: 'Intelligence', leverage: 'Distributed training & verification', status: 'OPTIMIZING', level: 1, metrics: [{ label: 'Training Nodes', value: '4.8k', trend: 'up' }, { label: 'Verification rate', value: '99.2%', trend: 'stable' }] },
@@ -293,6 +296,7 @@ export const useAppStore = create<AppState>((set) => ({
     toggleProfile: (isOpen) => set((state) => ({ isProfileOpen: isOpen ?? !state.isProfileOpen })),
     setAuthenticated: (val) => { localStorage.setItem('auth-status', String(val)); set({ isAuthenticated: val }); },
     setUserProfile: (profile: UserProfile) => set({ user: profile }),
+    setFocusedSelector: (selector) => set({ focusedSelector: selector }),
 
     setProcessState: (update) => set((state) => ({ process: { ...state.process, ...(typeof update === 'function' ? update(state.process) : update) } })),
     setCodeStudioState: (update) => set((state) => ({ codeStudio: { ...state.codeStudio, ...(typeof update === 'function' ? update(state.codeStudio) : update) } })),

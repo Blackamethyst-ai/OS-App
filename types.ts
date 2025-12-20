@@ -2,7 +2,8 @@
 export interface AgentDNA {
     id: string;
     label: string;
-    role: 'SKEPTIC' | 'VISIONARY' | 'PRAGMATIST' | 'OPERATOR' | 'SPECIALIST';
+    // Fix: Changed from specific union to string to allow descriptive role names like "Structural Logic" or "Risk Mitigation"
+    role: string;
     color: string;
     description: string;
 }
