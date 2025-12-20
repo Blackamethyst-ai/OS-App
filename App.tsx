@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { useAppStore } from './store';
 import { useSystemMind } from './stores/useSystemMind'; 
@@ -34,7 +33,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 const NAV_CONFIG = [
     { id: AppMode.DASHBOARD, label: 'Dashboard', icon: LayoutGrid, path: '/dashboard' },
-    { id: AppMode.TASK_MANAGER, label: 'Actions', icon: ListTodo, path: '/tasks' },
     { id: AppMode.SYNTHESIS_BRIDGE, label: 'Strategy Bridge', icon: GitMerge, path: '/bridge' },
     { id: AppMode.BIBLIOMORPHIC, label: 'Bibliomorphic', icon: BookOpen, path: '/bibliomorphic' },
     { id: AppMode.PROCESS_MAP, label: 'Process Logic', icon: Settings, path: '/process' },
@@ -47,12 +45,11 @@ const NAV_CONFIG = [
 
 const DEEP_NAV_REGISTRY = [
     { id: 'NAV_DASHBOARD', label: 'Dashboard', description: 'Main system overview.' },
-    { id: 'NAV_TASKS', label: 'Action Matrix', description: 'Task and process tracking.' },
     { id: 'NAV_BRIDGE', label: 'Synthesis Bridge', description: 'Metaventions high-level strategic stack.' },
     { id: 'NAV_BIBLIO_DISCOVERY', label: 'Discovery Lab', description: 'Science lab for hypothesis generation.' },
     { id: 'NAV_PROCESS_MAP', label: 'Process Logic (Map)', description: 'The living system map.' },
     { id: 'NAV_HARDWARE', label: 'Hardware', description: 'Component search and BOM management.' },
-    { id: 'NAV_CODE_STUDIO', label: 'Code Studio', description: 'Coding environment.' },
+    { id: 'NAV_CODE_STUDIO', label: 'Code Studio', description: 'Coding environment and action matrix.' },
     { id: 'NAV_VOICE_CORE', label: 'Voice Core Interface', description: 'The visual voice interface.' },
 ];
 

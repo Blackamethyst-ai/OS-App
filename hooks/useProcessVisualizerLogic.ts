@@ -56,26 +56,22 @@ export const useProcessVisualizerLogic = () => {
 
     const { fitView, screenToFlowPosition, getViewport, zoomTo } = useReactFlow();
 
-    // Fix (Root Cause): Initialize React Flow state from global store to persist across unmounts
     const [nodes, setNodes, onNodesChange] = useNodesState(state.nodes || []);
     const [edges, setEdges, onEdgesChange] = useEdgesState(state.edges || []);
 
     const selectedNode = useMemo(() => nodes.find(n => n.selected), [nodes]);
 
-    // Fix (Root Cause): Sync local flow changes back to the global store
     useEffect(() => {
         if (nodes.length > 0 || edges.length > 0) {
             setState({ nodes, edges });
         }
     }, [nodes, edges, setState]);
 
-    // Handle External AI Injection (Nexus Nodes)
     useEffect(() => {
         if (state.pendingAIAddition) {
             const newNode = { ...state.pendingAIAddition, data: { ...state.pendingAIAddition.data, theme: visualTheme } };
             setNodes(nds => nds.concat(newNode));
             setState({ pendingAIAddition: null });
-            // Auto-link to core if possible
             setEdges(eds => eds.concat({
                 id: `e-nexus-${Date.now()}`,
                 source: 'core',
@@ -93,7 +89,6 @@ export const useProcessVisualizerLogic = () => {
     }, [state.pendingAction, fitView]);
 
     useEffect(() => { if (globalTheme) setVisualTheme(globalTheme); }, [globalTheme]);
-    useEffect(() => { setNodes((nds) => nds.map((node) => ({ ...node, data: { ...node.data, theme: visualTheme } }))); }, [visualTheme]);
 
     useEffect(() => {
         if (nodes.length === 0) {
@@ -148,47 +143,19 @@ export const useProcessVisualizerLogic = () => {
     const handleSourceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             if (!(await checkApiKey())) return;
-            
             const files = Array.from(e.target.files) as File[];
             addLog('SYSTEM', `INGEST_INIT: Processing ${files.length} sources...`);
-            
             for (const file of files) {
                 try {
                     const fileData = await fileToGenerativePart(file);
                     const sourceId = `source-${Date.now()}`;
-                    
-                    const newSource = {
-                        id: sourceId,
-                        name: file.name,
-                        type: file.type,
-                        inlineData: fileData.inlineData,
-                        analysis: null
-                    };
-                    
-                    setState((prev: any) => ({
-                        livingMapContext: {
-                            ...prev.livingMapContext,
-                            sources: [...(prev.livingMapContext?.sources || []), newSource]
-                        }
-                    }));
-                    
-                    // Auto-classify in background
+                    const newSource = { id: sourceId, name: file.name, type: file.type, inlineData: fileData.inlineData, analysis: null };
+                    setState((prev: any) => ({ livingMapContext: { ...prev.livingMapContext, sources: [...(prev.livingMapContext?.sources || []), newSource] } }));
                     classifyArtifact(fileData).then(analysis => {
-                        setState((prev: any) => ({
-                            livingMapContext: {
-                                ...prev.livingMapContext,
-                                sources: prev.livingMapContext.sources.map((s: any) => 
-                                    s.id === sourceId ? { ...s, analysis } : s
-                                )
-                            }
-                        }));
+                        setState((prev: any) => ({ livingMapContext: { ...prev.livingMapContext, sources: prev.livingMapContext.sources.map((s: any) => s.id === sourceId ? { ...s, analysis } : s) } }));
                         addLog('SUCCESS', `INGEST_COMPLETE: Indexed "${file.name}" as ${analysis.classification}.`);
                     });
-
-                } catch (err) {
-                    console.error("Source upload failed", err);
-                    addLog('ERROR', `INGEST_FAIL: Could not process ${file.name}`);
-                }
+                } catch (err) { addLog('ERROR', `INGEST_FAIL: Could not process ${file.name}`); }
             }
         }
     };
@@ -203,18 +170,9 @@ export const useProcessVisualizerLogic = () => {
 
     const viewSourceAnalysis = (source: any) => {
         if (!source.analysis) return;
-        
         let content = source.analysis.summary;
-        if (source.analysis.entities?.length > 0) {
-            content += `\n\nENTITIES DETECTED:\n- ${source.analysis.entities.join('\n- ')}`;
-        }
-
-        openHoloProjector({
-            id: source.id,
-            title: `Source Analysis: ${source.name}`,
-            type: source.type.startsWith('image/') ? 'IMAGE' : 'TEXT',
-            content: source.type.startsWith('image/') ? `data:${source.type};base64,${source.inlineData.data}` : content
-        });
+        if (source.analysis.entities?.length > 0) content += `\n\nENTITIES DETECTED:\n- ${source.analysis.entities.join('\n- ')}`;
+        openHoloProjector({ id: source.id, title: `Source Analysis: ${source.name}`, type: source.type.startsWith('image/') ? 'IMAGE' : 'TEXT', content: source.type.startsWith('image/') ? `data:${source.type};base64,${source.inlineData.data}` : content });
     };
 
     const handleAIAddNode = async (description: string) => {
@@ -223,19 +181,8 @@ export const useProcessVisualizerLogic = () => {
         try {
             if (!(await checkApiKey())) return;
             const nodeData = await generateSingleNode(description);
-            const vp = getViewport();
-            // Calculate center of screen in flow coordinates
-            const centerPosition = screenToFlowPosition({ 
-                x: window.innerWidth / 2, 
-                y: window.innerHeight / 2 
-            });
-            
-            const newNode: Node = { 
-                id: `node_${Date.now()}`, 
-                type: 'holographic', 
-                position: centerPosition, 
-                data: { ...nodeData, theme: visualTheme, status: 'INITIALIZED', progress: 1 } 
-            };
+            const centerPosition = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+            const newNode: Node = { id: `node_${Date.now()}`, type: 'holographic', position: centerPosition, data: { ...nodeData, theme: visualTheme, status: 'INITIALIZED', progress: 1 } };
             setNodes(nds => nds.concat(newNode));
             addLog('SUCCESS', `AI_NODE: Crystallized "${nodeData.label}" at viewport center.`);
             setState({ isLoading: false });
@@ -265,12 +212,7 @@ export const useProcessVisualizerLogic = () => {
         try {
             if (!(await checkApiKey())) return;
             const newPositions = await calculateOptimalLayout(nodes, edges);
-            
-            setNodes(nds => nds.map(node => ({
-                ...node,
-                position: newPositions[node.id] || node.position
-            })));
-            
+            setNodes(nds => nds.map(node => ({ ...node, position: newPositions[node.id] || node.position })));
             addLog('SUCCESS', 'LATTICE_SYNC: Autopoietic organization complete.');
             setTimeout(() => fitView({ duration: 1000 }), 100);
         } catch (err: any) { handleApiError('Auto-Organize', err); } finally {
@@ -284,24 +226,15 @@ export const useProcessVisualizerLogic = () => {
         if (!(await checkApiKey())) return;
         setSequenceStatus('RUNNING'); setSequenceProgress(0); setState({ isLoading: true });
         try {
-            // Use active sources if present
             const sources = state.livingMapContext.sources || [];
             const files = (sources as any[]).map((s) => ({ inlineData: s.inlineData, name: s.name })) as FileData[];
-            
-            const mapContext = { 
-                nodes: nodes.map(n => ({ label: n.data.label, subtext: n.data.subtext })), 
-                edges: edges.map(e => e.id) 
-            };
-            
+            const mapContext = { nodes: nodes.map(n => ({ label: n.data.label, subtext: n.data.subtext })), edges: edges.map(e => e.id) };
             const code = await generateMermaidDiagram(state.governance, files, [mapContext]);
             setState({ generatedCode: code }); setSequenceProgress(30);
-            
             const workflow = await generateStructuredWorkflow(files, state.governance, state.workflowType, mapContext);
             setState({ generatedWorkflow: workflow }); setSequenceProgress(70);
-            
             const { audioData, transcript } = await generateAudioOverview(files);
             setState({ audioUrl: audioData, audioTranscript: transcript }); setSequenceProgress(100);
-            
             setSequenceStatus('COMPLETE'); setState({ activeTab: 'diagram', isLoading: false });
             setTimeout(() => setSequenceStatus('IDLE'), 3000);
         } catch (err: any) { handleApiError('Global Sequence', err); }
@@ -313,7 +246,6 @@ export const useProcessVisualizerLogic = () => {
         try {
             const sources = state.livingMapContext.sources || [];
             const files = (sources as any[]).map((s) => ({ inlineData: s.inlineData, name: s.name })) as FileData[];
-            
             const mapContext = { nodes: nodes.map(n => n.data.label), edges: edges.length };
             if (type === 'diagram') {
                 const code = await generateMermaidDiagram(state.governance, files, [mapContext]);
@@ -321,9 +253,6 @@ export const useProcessVisualizerLogic = () => {
             } else if (type === 'workflow') {
                 const workflow = await generateStructuredWorkflow(files, state.governance, state.workflowType, mapContext);
                 setState({ generatedWorkflow: workflow, isLoading: false });
-            } else if (type === 'audio') {
-                const { audioData, transcript } = await generateAudioOverview(files);
-                setState({ audioUrl: audioData, audioTranscript: transcript, isLoading: false });
             }
         } catch (err: any) { handleApiError('Generate', err); }
     };
@@ -332,23 +261,14 @@ export const useProcessVisualizerLogic = () => {
         if (!state.generatedWorkflow || state.isSimulating) return;
         setState({ isSimulating: true, activeStepIndex: index });
         audio.playClick();
-        
         try {
             if (!(await checkApiKey())) return;
             const history = Object.values(state.runtimeResults) as ProtocolStepResult[];
             const result = await simulateAgentStep(state.generatedWorkflow, index, history);
-            
-            setState(prev => ({
-                runtimeResults: { ...prev.runtimeResults, [index]: result },
-                isSimulating: false
-            }));
+            setState(prev => ({ runtimeResults: { ...prev.runtimeResults, [index]: result }, isSimulating: false }));
             addLog('SUCCESS', `NEURAL_RUNTIME: Step ${index + 1} finalized by ${state.generatedWorkflow.protocols[index].role}.`);
             audio.playSuccess();
-        } catch (err: any) {
-            handleApiError('Simulation', err);
-            setState({ isSimulating: false });
-            audio.playError();
-        }
+        } catch (err: any) { handleApiError('Simulation', err); setState({ isSimulating: false }); audio.playError(); }
     };
 
     const handleResetSimulation = () => {
@@ -372,29 +292,9 @@ export const useProcessVisualizerLogic = () => {
                     addLog('SYSTEM', 'ARCHITECT: Constructing system topology...');
                     result = await generateSystemArchitecture(architecturePrompt);
                 }
-
-                const newNodes = result.nodes.map((n: any, i: number) => ({ 
-                    id: n.id, 
-                    type: state.workflowType === 'AGENTIC_ORCHESTRATION' ? 'agentic' : 'holographic', 
-                    position: { x: 600 + Math.cos(i) * 300, y: 400 + Math.sin(i) * 300 }, 
-                    data: { ...n, theme: visualTheme, progress: 2 } 
-                }));
-                
-                const newEdges = result.edges.map((e: any) => ({ 
-                    id: e.id, 
-                    source: e.source, 
-                    target: e.target, 
-                    type: 'cinematic', 
-                    data: { 
-                        color: e.color || '#9d4edd', 
-                        variant: e.variant || 'stream',
-                        handoffCondition: e.handoffCondition
-                    } 
-                }));
-
-                setNodes(newNodes); 
-                setEdges(newEdges); 
-                setTimeout(() => fitView({ duration: 1000 }), 100);
+                const newNodes = result.nodes.map((n: any, i: number) => ({ id: n.id, type: state.workflowType === 'AGENTIC_ORCHESTRATION' ? 'agentic' : 'holographic', position: { x: 600 + Math.cos(i) * 300, y: 400 + Math.sin(i) * 300 }, data: { ...n, theme: visualTheme, progress: 2 } }));
+                const newEdges = result.edges.map((e: any) => ({ id: e.id, source: e.source, target: e.target, type: 'cinematic', data: { color: e.color || '#9d4edd', variant: e.variant || 'stream', handoffCondition: e.handoffCondition } }));
+                setNodes(newNodes); setEdges(newEdges); setTimeout(() => fitView({ duration: 1000 }), 100);
             } catch (err: any) { handleApiError('Blueprint', err); } finally { setIsGeneratingGraph(false); }
         },
         handleDecomposeNode: async () => {
@@ -403,24 +303,9 @@ export const useProcessVisualizerLogic = () => {
             try {
                 if (!(await checkApiKey())) return;
                 const result = await decomposeNode(selectedNode.data.label as string, "");
-                const expanded = result.nodes.map((n: any, i: number) => ({ 
-                    id: n.id, 
-                    type: 'holographic', 
-                    position: { 
-                        x: selectedNode.position.x + Math.cos(i) * 200, 
-                        y: selectedNode.position.y + Math.sin(i) * 200 
-                    }, 
-                    data: { ...n, theme: visualTheme, progress: 1 } 
-                }));
-                
+                const expanded = result.nodes.map((n: any, i: number) => ({ id: n.id, type: 'holographic', position: { x: selectedNode.position.x + Math.cos(i) * 200, y: selectedNode.position.y + Math.sin(i) * 200 }, data: { ...n, theme: visualTheme, progress: 1 } }));
                 setNodes([...nodes.filter(n => n.id !== selectedNode.id), ...expanded]);
-                
-                const newEdges = result.edges.map((e: any) => ({ 
-                    ...e, 
-                    type: 'cinematic', 
-                    data: { color: '#42be65', variant: 'stream' } 
-                }));
-                
+                const newEdges = result.edges.map((e: any) => ({ ...e, type: 'cinematic', data: { color: '#42be65', variant: 'stream' } }));
                 setEdges([...edges.filter(e => e.source !== selectedNode.id && e.target !== selectedNode.id), ...newEdges]);
                 addLog('SUCCESS', `DECOMPOSE: Node "${selectedNode.data.label}" expanded into ${expanded.length} sub-units.`);
             } catch (err: any) { handleApiError('Decompose', err); } finally { setIsDecomposing(false); }
