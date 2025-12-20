@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { KnowledgeNode } from '../types';
@@ -13,6 +12,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
     
     // Internal node state for simulation
     const simulationNodes = useMemo(() => nodes.map(n => ({
@@ -102,19 +102,20 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
             simulationNodes.forEach(n => {
                 const isSelected = selectedNodeId === n.id;
                 const isHovered = hoveredNodeId === n.id;
-                const radius = isSelected ? 8 : isHovered ? 6 : 4;
+                const isMatch = searchTerm && n.label.toLowerCase().includes(searchTerm.toLowerCase());
+                const radius = isSelected ? 8 : (isHovered || isMatch) ? 6 : 4;
                 
-                ctx.globalAlpha = 1;
+                ctx.globalAlpha = (searchTerm && !isMatch && !isSelected) ? 0.2 : 1;
                 ctx.beginPath();
                 ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
-                ctx.fillStyle = n.color || '#9d4edd';
-                ctx.shadowBlur = isSelected ? 20 : 0;
-                ctx.shadowColor = n.color || '#9d4edd';
+                ctx.fillStyle = isSelected ? '#ffffff' : (isMatch ? '#22d3ee' : (n.color || '#9d4edd'));
+                ctx.shadowBlur = (isSelected || isMatch) ? 20 : 0;
+                ctx.shadowColor = isMatch ? '#22d3ee' : (n.color || '#9d4edd');
                 ctx.fill();
                 
-                if (isSelected || isHovered) {
+                if (isSelected || isHovered || isMatch) {
                     ctx.font = '10px Fira Code';
-                    ctx.fillStyle = '#fff';
+                    ctx.fillStyle = isMatch ? '#22d3ee' : '#fff';
                     ctx.textAlign = 'center';
                     ctx.fillText(n.label, n.x, n.y - 12);
                 }
@@ -125,7 +126,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
 
         loop();
         return () => cancelAnimationFrame(frameId);
-    }, [simulationNodes, selectedNodeId, hoveredNodeId]);
+    }, [simulationNodes, selectedNodeId, hoveredNodeId, searchTerm]);
 
     const handleCanvasClick = (e: React.MouseEvent) => {
         const rect = canvasRef.current?.getBoundingClientRect();
@@ -153,13 +154,31 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
 
     return (
         <div className="relative w-full h-full bg-[#050505] rounded-xl overflow-hidden border border-white/5">
-            <div className="absolute top-4 left-4 z-10 flex flex-col gap-1">
+            <div className="absolute top-4 left-4 z-10 flex flex-col gap-1 pointer-events-none">
                 <div className="flex items-center gap-2">
                     <BrainCircuit className="w-4 h-4 text-[#9d4edd]" />
                     <span className="text-xs font-bold font-mono text-white uppercase tracking-widest">Neural Graph Topology</span>
                 </div>
                 <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest">Force-Directed Node Distribution</span>
             </div>
+
+            {/* Graph Search UI */}
+            <div className="absolute bottom-4 left-4 z-20 flex items-center gap-2 bg-[#0a0a0a] border border-[#222] rounded-lg p-1.5 shadow-xl">
+                <Search size={14} className="text-gray-600 ml-1.5" />
+                <input 
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="LOCATE_NODE..."
+                    className="bg-transparent border-none outline-none text-[10px] font-mono text-white w-32 uppercase placeholder:text-gray-800"
+                />
+                {searchTerm && (
+                    <button onClick={() => setSearchTerm('')} className="text-gray-600 hover:text-white mr-1">
+                        <X size={12} />
+                    </button>
+                )}
+            </div>
+
             <canvas 
                 ref={canvasRef} 
                 className="w-full h-full cursor-crosshair"

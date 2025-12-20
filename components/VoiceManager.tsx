@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
 import { useSystemMind } from '../stores/useSystemMind';
@@ -14,7 +15,7 @@ import {
 import { AppMode, ArtifactNode, AspectRatio, ImageSize, HardwareTier, AppTheme } from '../types';
 import { Radio, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { FunctionDeclaration, Type } from '@google/genai';
+import { FunctionDeclaration, Type, LiveServerMessage } from '@google/genai';
 
 const logActivityTool: FunctionDeclaration = {
     name: 'log_activity',
@@ -37,10 +38,9 @@ const VoiceManager: React.FC = () => {
         operationalContext, setTheme
     } = useAppStore();
     const { getSnapshot, navigationMap, executeAction, actionRegistry, currentLocation } = useSystemMind();
-    const [isHudVisible, setIsHudVisible] = useState(false);
-    const [isThinking, setIsThinking] = useState(false);
     
     const connectionAttemptRef = useRef(false);
+    const partialTranscriptRef = useRef<string>("");
 
     useEffect(() => {
         let mounted = true;
@@ -70,7 +70,36 @@ const VoiceManager: React.FC = () => {
 
                     await liveSession.connect(agentName, {
                         systemInstruction: fullSystemInstruction,
-                        tools: [{ functionDeclarations: [logActivityTool] }]
+                        tools: [{ functionDeclarations: [logActivityTool] }],
+                        outputAudioTranscription: {},
+                        inputAudioTranscription: {},
+                        callbacks: {
+                            onmessage: async (message: LiveServerMessage) => {
+                                // Handle Transcription
+                                if (message.serverContent?.outputAudioTranscription) {
+                                    const text = message.serverContent.outputAudioTranscription.text;
+                                    partialTranscriptRef.current += text;
+                                    setVoiceState({ partialTranscript: { role: 'model', text: partialTranscriptRef.current } });
+                                } else if (message.serverContent?.inputAudioTranscription) {
+                                    const text = message.serverContent.inputAudioTranscription.text;
+                                    partialTranscriptRef.current += text;
+                                    setVoiceState({ partialTranscript: { role: 'user', text: partialTranscriptRef.current } });
+                                }
+
+                                if (message.serverContent?.turnComplete) {
+                                    const finalRole = voice.partialTranscript?.role || 'user';
+                                    const finalText = partialTranscriptRef.current;
+                                    
+                                    if (finalText) {
+                                        setVoiceState(prev => ({
+                                            transcripts: [...prev.transcripts, { role: finalRole, text: finalText, timestamp: Date.now() }],
+                                            partialTranscript: null
+                                        }));
+                                    }
+                                    partialTranscriptRef.current = "";
+                                }
+                            }
+                        }
                     });
                     
                     if (mounted) {
@@ -90,6 +119,8 @@ const VoiceManager: React.FC = () => {
             else if (!voice.isActive && liveSession.isConnected()) {
                 liveSession.disconnect();
                 connectionAttemptRef.current = false;
+                setVoiceState({ partialTranscript: null });
+                partialTranscriptRef.current = "";
             }
         };
 

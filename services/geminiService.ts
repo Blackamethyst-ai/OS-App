@@ -40,6 +40,49 @@ export const AGENT_DNA_BUILDER: AgentDNA[] = [
     { id: 'BUILDER_3', label: 'Flux Operator', role: 'Dynamic Execution', color: '#22d3ee', description: 'Optimized for high-velocity iteration and deployment.' }
 ];
 
+/**
+ * FEATURE: AI powered chatbot using gemini-3-pro-preview
+ */
+export async function chatWithGemini(message: string, history: Message[] = []): Promise<string> {
+    const ai = getAI();
+    const chat = ai.chats.create({
+        model: 'gemini-3-pro-preview',
+        config: { systemInstruction: SYSTEM_COMMANDER_INSTRUCTION }
+    });
+    // Convert store history to Chat message format if needed
+    // For simplicity, we send the single message or use a simplified history
+    const response = await chat.sendMessage({ message });
+    return response.text || "";
+}
+
+/**
+ * FEATURE: Fast AI responses using gemini-2.5-flash-lite
+ */
+export async function fastAIResponse(prompt: string): Promise<string> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-lite-latest',
+        contents: prompt,
+        config: { systemInstruction: "You are a low-latency command parser. Be terse." }
+    });
+    return response.text || "";
+}
+
+/**
+ * FEATURE: Transcribe audio using gemini-3-flash-preview
+ */
+export async function transcribeAudio(audioBase64: string, mimeType: string): Promise<string> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: [
+            { inlineData: { data: audioBase64, mimeType } },
+            { text: "Transcribe this audio precisely. Return only the text." }
+        ]
+    });
+    return response.text || "";
+}
+
 export async function generateStructuredWorkflow(files: FileData[], governance: string, type: string, context: any): Promise<any> {
     const ai = getAI();
     let prompt = `Generate a high-fidelity structured workflow protocol of type ${type}. Return JSON { protocols: [{action, description, role, tool, step, priority}], taxonomy: { root: [{folder, subfolders}] } }.`;
@@ -383,12 +426,22 @@ export async function constructCinematicPrompt(base: string, color: Colorway, ha
     return response.text || base;
 }
 
+/**
+ * FEATURE: Generate speech using gemini-2.5-flash-preview-tts
+ */
 export async function generateSpeech(text: string, voiceName: string): Promise<string> {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text }] }],
-        config: { responseModalities: [Modality.AUDIO], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } } },
+        config: { 
+            responseModalities: [Modality.AUDIO], 
+            speechConfig: { 
+                voiceConfig: { 
+                    prebuiltVoiceConfig: { voiceName } 
+                } 
+            } 
+        },
     });
     const base64 = response.candidates?.[0]?.content?.parts[0]?.inlineData?.data;
     if (!base64) throw new Error("TTS failed");
@@ -681,10 +734,26 @@ export async function smartOrganizeArtifact(file: { name: string }): Promise<{ f
 
 export async function performSemanticSearch(query: string, artifacts: StoredArtifact[]): Promise<string[]> {
     const ai = getAI();
+    
+    // Provide artifact context to enable high-fidelity semantic retrieval
+    const metadata = artifacts.map(a => ({ id: a.id, name: a.name, summary: a.analysis?.summary })).slice(0, 50);
+    
+    const prompt = `
+    TASK: Perform a high-fidelity semantic search across the following knowledge artifacts.
+    QUERY: "${query}"
+    
+    ARTIFACT_INDEX:
+    ${JSON.stringify(metadata)}
+    
+    Return a JSON array of the IDs (strings) of the top 5 most relevant artifacts. If no artifacts match semantically, return an empty array [].
+    `;
+
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Semantic search for "${query}". Return JSON array.`,
-        config: { responseMimeType: 'application/json' }
+        contents: prompt,
+        config: { 
+            responseMimeType: 'application/json' 
+        }
     });
     return JSON.parse(response.text || "[]");
 }
@@ -856,22 +925,40 @@ export const liveSession = {
     onToolCall: async (name: string, args: any) => ({}),
     isConnected: () => !!sessionPromise,
     disconnect: () => {
-        if (sessionPromise) sessionPromise.then(s => s.close());
+        if (sessionPromise) {
+            sessionPromise.then(s => {
+                try { s.close(); } catch(e) {}
+            });
+        }
         sessionPromise = null;
-        if (inputAudioContext) inputAudioContext.close();
-        if (outputAudioContext) outputAudioContext.close();
-        audioSources.forEach(s => s.stop());
+        if (inputAudioContext && inputAudioContext.state !== 'closed') {
+            try { inputAudioContext.close(); } catch(e) {}
+        }
+        if (outputAudioContext && outputAudioContext.state !== 'closed') {
+            try { outputAudioContext.close(); } catch(e) {}
+        }
+        audioSources.forEach(s => {
+            try { s.stop(); } catch(e) {}
+        });
         audioSources.clear();
+        nextStartTime = 0;
     },
     connect: async (voiceName: string, config: any) => {
-        const ai = getAI();
+        // Create a new instance right before call for key robustness
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        
+        liveSession.disconnect();
+
         inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
         inputAnalyser = inputAudioContext.createAnalyser();
         outputAnalyser = outputAudioContext.createAnalyser();
         outputAnalyser.connect(outputAudioContext.destination);
+        
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
         sessionPromise = ai.live.connect({
+            // FEATURE: Create conversational voice apps using gemini-2.5-flash-native-audio-preview-09-2025
             model: 'gemini-2.5-flash-native-audio-preview-09-2025',
             callbacks: {
                 onopen: () => {
@@ -892,9 +979,10 @@ export const liveSession = {
                             sessionPromise?.then(s => s.sendToolResponse({ functionResponses: [{ id: fc.id, name: fc.name, response: result }] }));
                         }
                     }
+                    
                     const audioData = msg.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
-                    if (audioData) {
-                        nextStartTime = Math.max(nextStartTime, outputAudioContext!.currentTime);
+                    if (audioData && outputAudioContext && outputAudioContext.state !== 'closed') {
+                        nextStartTime = Math.max(nextStartTime, outputAudioContext.currentTime);
                         const buffer = await decodeAudioData(decode(audioData), outputAudioContext!, 24000, 1);
                         const source = outputAudioContext!.createBufferSource();
                         source.buffer = buffer;
@@ -904,16 +992,33 @@ export const liveSession = {
                         nextStartTime += buffer.duration;
                         audioSources.add(source);
                     }
-                    if (msg.serverContent?.interrupted) { audioSources.forEach(s => s.stop()); audioSources.clear(); nextStartTime = 0; }
+
+                    if (msg.serverContent?.interrupted) { 
+                        audioSources.forEach(s => { try { s.stop(); } catch(e) {} }); 
+                        audioSources.clear(); 
+                        nextStartTime = 0; 
+                    }
+                    
+                    if (config.callbacks?.onmessage) {
+                        config.callbacks.onmessage(msg);
+                    }
                 },
-                onerror: (e) => console.error("Live Error:", e),
-                onclose: () => liveSession.disconnect()
+                onerror: (e) => {
+                    console.error("Live Error:", e);
+                    if (config.callbacks?.onerror) config.callbacks.onerror(e);
+                },
+                onclose: () => {
+                    liveSession.disconnect();
+                    if (config.callbacks?.onclose) config.callbacks.onclose();
+                }
             },
             config: {
                 responseModalities: [Modality.AUDIO],
                 speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
                 systemInstruction: config.systemInstruction,
-                tools: config.tools
+                tools: config.tools,
+                outputAudioTranscription: {},
+                inputAudioTranscription: {}
             }
         });
         return sessionPromise;
