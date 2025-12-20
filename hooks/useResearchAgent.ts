@@ -10,6 +10,33 @@ export const useResearchAgent = () => {
     const { research, updateResearchTask, addLog, setBicameralState } = useAppStore();
     const processingRef = useRef<Set<string>>(new Set());
 
+    // Restore state from localStorage on boot
+    useEffect(() => {
+        const savedState = localStorage.getItem('structura_research_state');
+        if (savedState) {
+            try {
+                const parsed = JSON.parse(savedState);
+                // Merge or restore tasks - for simplicity we just load them if store is empty
+                if (useAppStore.getState().research.tasks.length === 0) {
+                    parsed.tasks.forEach((t: any) => {
+                        // Reset statuses that were in-progress to queued or failed
+                        if (['PLANNING', 'SEARCHING', 'SYNTHESIZING', 'SWARM_VERIFY'].includes(t.status)) {
+                            t.status = 'QUEUED';
+                        }
+                    });
+                    useAppStore.setState({ research: parsed });
+                }
+            } catch (e) {
+                console.error("Failed to restore research state", e);
+            }
+        }
+    }, []);
+
+    // Save state whenever tasks change
+    useEffect(() => {
+        localStorage.setItem('structura_research_state', JSON.stringify(research));
+    }, [research]);
+
     useEffect(() => {
         const checkQueue = async () => {
             const queuedTasks = research.tasks.filter(t => t.status === 'QUEUED');
@@ -17,7 +44,6 @@ export const useResearchAgent = () => {
             for (const task of queuedTasks) {
                 if (processingRef.current.has(task.id)) continue;
                 
-                // Helper to check cancellation status live from store
                 const isCancelled = () => {
                     const currentTask = useAppStore.getState().research.tasks.find(t => t.id === task.id);
                     return currentTask?.status === 'CANCELLED';
@@ -25,20 +51,17 @@ export const useResearchAgent = () => {
 
                 processingRef.current.add(task.id);
 
-                // --- START SEQUENCE ---
                 updateResearchTask(task.id, { status: 'PLANNING', progress: 5, logs: [...task.logs, "Generating Strategic Plan..."] });
                 addLog('INFO', `RESEARCH_AGENT: Planning analysis for "${task.query}"`);
 
                 try {
                     if (isCancelled()) throw new Error("Cancelled");
 
-                    // 1. PLAN
                     const subQueries = await generateResearchPlan(task.query);
                     
                     if (isCancelled()) throw new Error("Cancelled");
 
                     if (!Array.isArray(subQueries) || subQueries.length === 0) {
-                        // Fallback plan if generation failed
                         const fallbackPlan = [task.query];
                         updateResearchTask(task.id, { 
                             subQueries: fallbackPlan, 
@@ -46,7 +69,6 @@ export const useResearchAgent = () => {
                             progress: 15, 
                             logs: [...task.logs, `Plan Generation Degraded. Using fallback vector.`] 
                         });
-                        // Execute fallback immediately in next loop block
                     } else {
                         updateResearchTask(task.id, { 
                             subQueries, 
@@ -56,11 +78,9 @@ export const useResearchAgent = () => {
                         });
                     }
 
-                    // Re-fetch strict check for iteration
                     const currentTaskState = useAppStore.getState().research.tasks.find(t => t.id === task.id);
                     const safeQueries = currentTaskState?.subQueries || [task.query];
 
-                    // 2. EXECUTE (Sequential with intermediate updates)
                     const findings: FactChunk[] = [];
                     let completed = 0;
                     
@@ -71,23 +91,18 @@ export const useResearchAgent = () => {
                             logs: [...task.logs, `Investigating Vector: "${q}"...`] 
                         });
                         
-                        // Execute Query
                         const resultFacts = await executeResearchQuery(q);
                         findings.push(...resultFacts);
                         completed++;
                         
-                        // Update progress and findings live
-                        // We fetch the latest task state to merge findings correctly if needed, 
-                        // but here we maintain local 'findings' array and overwrite.
                         updateResearchTask(task.id, { 
-                            findings: [...findings], // Live update of findings
-                            progress: 15 + (completed / safeQueries.length) * 50 // 15 -> 65% range
+                            findings: [...findings],
+                            progress: 15 + (completed / safeQueries.length) * 50 
                         });
                     }
 
                     if (isCancelled()) throw new Error("Cancelled");
 
-                    // --- NEW STEP 3: CONTEXT COMPILATION (ADK) ---
                     updateResearchTask(task.id, { 
                         status: 'SYNTHESIZING', 
                         progress: 70, 
@@ -104,8 +119,6 @@ export const useResearchAgent = () => {
                         logs: [...task.logs, "Routing to Bicameral Synthesis Gate..."] 
                     });
 
-                    // --- NEW STEP 4: BICAMERAL SYNTHESIS GATE (VERIFICATION) ---
-                    // REQUISITION THE SWARM: Inject task into global Bicameral State to visualize battle
                     const synthesisTask: AtomicTask = {
                         id: `SYNTHESIS_${task.id}`,
                         description: `Synthesize verified research report for: ${task.query}`,
@@ -132,11 +145,9 @@ export const useResearchAgent = () => {
                     addLog('WARN', 'BICAMERAL: External protocol override active. Research Agent has assumed control of the Swarm.');
 
                     const bicameralResult = await consensusEngine(synthesisTask, (status) => {
-                         // Pass live swarm status to global state for UI visualization
                          setBicameralState(prev => ({ swarmStatus: status }));
                     });
 
-                    // RELEASE THE SWARM
                     setBicameralState(prev => ({
                         isSwarming: false,
                         plan: prev.plan.map(t => ({ ...t, status: 'COMPLETED' }))
@@ -147,12 +158,11 @@ export const useResearchAgent = () => {
                     const finalReport = bicameralResult.output;
                     const confidence = bicameralResult.confidence;
                     
-                    // 5. ARCHIVE
                     const blob = new Blob([finalReport], { type: 'text/markdown' });
                     const file = new File([blob], `Verified Report - ${task.query}.md`, { type: 'text/markdown' });
                     
                     await neuralVault.saveArtifact(file, {
-                        classification: 'VERIFIED_RESEARCH_REPORT',
+                        classification: 'RESEARCH_REPORT',
                         ambiguityScore: 100 - confidence, 
                         entities: [task.query, 'Verified', 'Bicameral'],
                         summary: `Bicameral-verified research report on ${task.query} (Conf: ${confidence}%)`
@@ -170,7 +180,6 @@ export const useResearchAgent = () => {
                 } catch (e: any) {
                     if (e.message === "Cancelled") {
                         addLog('WARN', `RESEARCH_AGENT: Task "${task.query}" cancelled by operator.`);
-                        // Reset Bicameral just in case
                         setBicameralState({ isSwarming: false });
                     } else {
                         console.error(e);
@@ -186,7 +195,7 @@ export const useResearchAgent = () => {
             }
         };
 
-        const interval = setInterval(checkQueue, 1000); // Check queue every second
+        const interval = setInterval(checkQueue, 1000);
         return () => clearInterval(interval);
-    }, [research.tasks]); // Re-run effect when tasks change
+    }, [research.tasks]);
 };

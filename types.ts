@@ -1,5 +1,3 @@
-
-
 export interface AgentDNA {
     id: string;
     label: string;
@@ -22,7 +20,18 @@ export interface DigitizationResult {
     abstract: string;
 }
 
-// ... existing interfaces ...
+export interface SemanticCluster {
+    id: string;
+    label: string;
+    description: string;
+    memberIds: string[];
+    color: string;
+}
+
+export interface NeuralLattice {
+    clusters: SemanticCluster[];
+    bridges: { sourceId: string; targetId: string; reasoning: string }[];
+}
 
 export interface SwarmStatus {
     taskId: string;
@@ -31,7 +40,8 @@ export interface SwarmStatus {
     currentGap: number;
     targetGap: number;
     totalAttempts: number;
-    activeDNA?: string; // New: DNA ID
+    activeDNA?: string;
+    consensusProgress?: number; // 0-100
 }
 
 export enum AppMode {
@@ -45,7 +55,38 @@ export enum AppMode {
     CODE_STUDIO = 'CODE_STUDIO',
     VOICE_MODE = 'VOICE_MODE',
     BICAMERAL = 'BICAMERAL',
-    SYNTHESIS_BRIDGE = 'SYNTHESIS_BRIDGE'
+    SYNTHESIS_BRIDGE = 'SYNTHESIS_BRIDGE',
+    TASK_MANAGER = 'TASK_MANAGER'
+}
+
+export enum TaskStatus {
+    TODO = 'TODO',
+    IN_PROGRESS = 'IN_PROGRESS',
+    DONE = 'DONE'
+}
+
+export enum TaskPriority {
+    LOW = 'LOW',
+    MEDIUM = 'MEDIUM',
+    HIGH = 'HIGH'
+}
+
+export interface SubTask {
+    id: string;
+    title: string;
+    completed: boolean;
+}
+
+export interface Task {
+    id: string;
+    title: string;
+    description: string;
+    status: TaskStatus;
+    priority: TaskPriority;
+    tags: string[];
+    subtasks: SubTask[];
+    timestamp: number;
+    isSubtasksCollapsed?: boolean;
 }
 
 export interface AnalysisResult {
@@ -74,9 +115,6 @@ export interface EconomicProtocol {
     timestamp: number;
 }
 
-/**
- * Fix: Changed OperationalContext from interface to enum to allow value usage.
- */
 export enum OperationalContext {
     CODE_GENERATION = 'CODE_GENERATION',
     DATA_ANALYSIS = 'DATA_ANALYSIS',
@@ -84,9 +122,6 @@ export enum OperationalContext {
     STRATEGY_SYNTHESIS = 'STRATEGY_SYNTHESIS'
 }
 
-/**
- * Fix: Added AppTheme enum.
- */
 export enum AppTheme {
     DARK = 'DARK',
     LIGHT = 'LIGHT',
@@ -103,6 +138,14 @@ export interface UserProfile {
     role: string;
     clearanceLevel: number;
     avatar: string | null;
+}
+
+export interface BookDNA {
+    title: string;
+    author: string;
+    systemPrompt: string;
+    axioms: string[];
+    kernelIdentity: string;
 }
 
 export interface FileData {
@@ -177,13 +220,14 @@ export interface FactChunk {
 export interface KnowledgeNode {
     id: string;
     label: string;
-    type: 'CONCEPT' | 'FACT' | 'HYPOTHESIS' | 'BRIDGE' | 'AXIOM';
+    type: 'CONCEPT' | 'FACT' | 'HYPOTHESIS' | 'BRIDGE' | 'AXIOM' | 'CLUSTER';
     connections: string[];
     strength: number;
     x?: number;
     y?: number;
     z?: number;
     color?: string;
+    data?: any;
 }
 
 export interface ScienceHypothesis {
@@ -221,32 +265,6 @@ export const SOVEREIGN_DEFAULT_COLORWAY: Colorway = {
     warmPractical: 'subtle peach/rose linear strips'
 };
 
-/**
- * Fix: Added missing MINT_NOIR_COLORWAY.
- */
-export const MINT_NOIR_COLORWAY: Colorway = {
-    id: 'mint_noir',
-    label: 'Mint Noir',
-    baseSurfaces: 'matte black, deep charcoal',
-    shadowsInk: 'pitch black, hard shadows',
-    uiAccentPrimary: 'mint green, neon glow',
-    uiAccentSecondary: 'subtle emerald',
-    warmPractical: 'muted pine'
-};
-
-/**
- * Fix: Added missing AMBER_PROTOCOL_COLORWAY.
- */
-export const AMBER_PROTOCOL_COLORWAY: Colorway = {
-    id: 'amber_protocol',
-    label: 'Amber Protocol',
-    baseSurfaces: 'dark bronze, weathered iron',
-    shadowsInk: 'warm brown, soft depth',
-    uiAccentPrimary: 'bright amber, orange glow',
-    uiAccentSecondary: 'burnt orange',
-    warmPractical: 'copper linear highlights'
-};
-
 export interface ComponentRecommendation {
     partNumber: string;
     manufacturer: string;
@@ -266,15 +284,6 @@ export interface ArtifactAnalysis {
     ambiguityScore: number;
     entities: string[];
     summary: string;
-}
-
-export interface BookDNA {
-    title: string;
-    author: string;
-    systemPrompt: string;
-    axioms: { concept: string; description: string }[];
-    kernelIdentity: { designation: string; primeDirective: string };
-    timestamp: number;
 }
 
 export interface UserIntent {
@@ -334,6 +343,7 @@ export interface SwarmResult {
     confidence: number;
     agentId: string;
     executionTime: number;
+    websearch?: any;
     voteLedger: VoteLedger;
 }
 
@@ -389,29 +399,20 @@ export enum ImageSize {
     SIZE_4K = '4K'
 }
 
-/**
- * Fix: Added HardwareTier enum.
- */
 export enum HardwareTier {
     TIER_1 = 'TIER_1',
     TIER_2 = 'TIER_2',
     TIER_3 = 'TIER_3'
 }
 
-/**
- * Fix: Added ArtifactNode interface.
- */
 export interface ArtifactNode {
     id: string;
-    type: 'IMAGE' | 'CODE' | 'TEXT' | 'ANALYSIS';
+    type: 'IMAGE' | 'CODE' | 'TEXT' | 'ANALYSIS' | 'RESEARCH_REPORT';
     label: string;
     content: any;
     timestamp: number;
 }
 
-/**
- * Fix: Added StoredArtifact interface for persistence.
- */
 export interface StoredArtifact {
     id: string;
     name: string;
@@ -420,4 +421,5 @@ export interface StoredArtifact {
     analysis: ArtifactAnalysis | null;
     timestamp: number;
     tags: string[];
+    metadata?: any;
 }

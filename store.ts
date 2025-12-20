@@ -1,6 +1,5 @@
-
 import { create } from 'zustand';
-import { AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, InterventionProtocol, OperationalContext, AgentWallet, TemporalEra } from './types';
+import { AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, InterventionProtocol, OperationalContext, AgentWallet, TemporalEra, Task, TaskStatus, AspectRatio } from './types';
 
 interface AppState {
     mode: AppMode;
@@ -24,6 +23,15 @@ interface AppState {
         workflowType: 'GENERAL' | 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE';
         diagramStatus: 'OK' | 'ERROR';
         diagramError: string | null;
+        // FIX: Added missing properties for process slice used in components and hooks
+        nodes: any[];
+        edges: any[];
+        pendingAIAddition: any | null;
+        pendingAction: string | null;
+        audioUrl: string | null;
+        audioTranscript: string | null;
+        entropyScore: number;
+        error: string | null;
     };
     hardware: {
         recommendations: any[];
@@ -67,6 +75,26 @@ interface AppState {
     knowledge: {
         activeLayers: string[];
     };
+    tasks: Task[];
+    // FIX: Added missing imageGen slice to AppState interface
+    imageGen: {
+        history: any[];
+        prompt: string;
+        aspectRatio: AspectRatio;
+        characterRefs: FileData[];
+        styleRefs: FileData[];
+        resonanceCurve: ResonancePoint[];
+        isLoading: boolean;
+        activeStylePreset: string;
+        generatedImage: {
+            url: string;
+            prompt: string;
+            aspectRatio: AspectRatio;
+            size: string;
+        } | null;
+        error: string | null;
+        activeColorway: Colorway | null;
+    };
     
     setMode: (mode: AppMode) => void;
     setTheme: (theme: AppTheme) => void;
@@ -79,7 +107,8 @@ interface AppState {
     setProcessState: (state: Partial<AppState['process']> | ((prev: AppState['process']) => Partial<AppState['process']>)) => void;
     setCodeStudioState: (state: any) => void;
     setHardwareState: (state: Partial<AppState['hardware']> | ((prev: AppState['hardware']) => Partial<AppState['hardware']>)) => void;
-    setImageGenState: (state: any) => void;
+    // FIX: Typed setImageGenState correctly to fix 'imageGen' property not existing on AppState errors
+    setImageGenState: (state: Partial<AppState['imageGen']> | ((prev: AppState['imageGen']) => Partial<AppState['imageGen']>)) => void;
     setBibliomorphicState: (state: any) => void;
     setDashboardState: (state: any) => void;
     setBicameralState: (state: any) => void;
@@ -109,17 +138,16 @@ interface AppState {
     cancelResearchTask: (id: string) => void;
 
     toggleKnowledgeLayer: (layerId: string) => void;
+
+    // Task Management Actions
+    addTask: (task: Omit<Task, 'id' | 'timestamp'>) => void;
+    updateTask: (id: string, updates: Partial<Task>) => void;
+    deleteTask: (id: string) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
-    mode: AppMode.SYNTHESIS_BRIDGE,
-    /**
-     * Fix: Ensured AppTheme is cast correctly from localStorage.
-     */
+    mode: AppMode.DASHBOARD,
     theme: (localStorage.getItem('structura-theme') as AppTheme) || AppTheme.DARK,
-    /**
-     * Fix: Used OperationalContext enum member.
-     */
     operationalContext: OperationalContext.STRATEGY_SYNTHESIS,
     isCommandPaletteOpen: false,
     isProfileOpen: false,
@@ -138,9 +166,31 @@ export const useAppStore = create<AppState>((set) => ({
         governance: 'SOVEREIGN_CORE',
         workflowType: 'GENERAL',
         diagramStatus: 'OK',
-        diagramError: null
+        diagramError: null,
+        // FIX: Initialized missing properties for process slice to resolve property-not-found errors in components/hooks
+        nodes: [],
+        edges: [],
+        pendingAIAddition: null,
+        pendingAction: null,
+        audioUrl: null,
+        audioTranscript: null,
+        entropyScore: 0,
+        error: null
     },
-    imageGen: { history: [], prompt: '', aspectRatio: '16:9', characterRefs: [], styleRefs: [], resonanceCurve: [], isLoading: false },
+    // FIX: Initialized imageGen with default values used throughout the application
+    imageGen: { 
+        history: [], 
+        prompt: '', 
+        aspectRatio: AspectRatio.RATIO_16_9, 
+        characterRefs: [], 
+        styleRefs: [], 
+        resonanceCurve: [], 
+        isLoading: false, 
+        activeStylePreset: 'CINEMATIC_REALISM',
+        generatedImage: null,
+        error: null,
+        activeColorway: null
+    },
     hardware: { 
         recommendations: [
             { id: '1', partNumber: 'NVIDIA GB300 NVL72', manufacturer: 'NVIDIA', specs: { type: 'Rack Solution', compute: 'Blackwell' }, isInStock: true, price: 3500000 },
@@ -209,6 +259,7 @@ export const useAppStore = create<AppState>((set) => ({
     holo: { isOpen: false, activeArtifact: null, isAnalyzing: false, analysisResult: null },
     dashboard: { isGenerating: false, identityUrl: null, referenceImage: null },
     knowledge: { activeLayers: ['BUILDER_PROTOCOL', 'CRYPTO_CONTEXT'] },
+    tasks: [],
 
     setMode: (mode) => set({ mode }),
     setTheme: (theme) => { localStorage.setItem('structura-theme', theme); set({ theme }); },
@@ -221,6 +272,7 @@ export const useAppStore = create<AppState>((set) => ({
     setProcessState: (update) => set((state) => ({ process: { ...state.process, ...(typeof update === 'function' ? update(state.process) : update) } })),
     setCodeStudioState: (update) => set((state) => ({ codeStudio: { ...state.codeStudio, ...(typeof update === 'function' ? update(state.codeStudio) : update) } })),
     setHardwareState: (update) => set((state) => ({ hardware: { ...state.hardware, ...(typeof update === 'function' ? update(state.hardware) : update) } })),
+    // FIX: Correctly implemented setImageGenState to handle partial updates or functional updates
     setImageGenState: (update) => set((state) => ({ imageGen: { ...state.imageGen, ...(typeof update === 'function' ? update(state.imageGen) : update) } })),
     setBibliomorphicState: (update) => set((state) => ({ bibliomorphic: { ...state.bibliomorphic, ...(typeof update === 'function' ? update(state.bibliomorphic) : update) } })),
     setDashboardState: (update) => set((state) => ({ dashboard: { ...state.dashboard || {}, ...update } })),
@@ -256,4 +308,14 @@ export const useAppStore = create<AppState>((set) => ({
         const isActive = current.includes(layerId);
         return { knowledge: { ...state.knowledge, activeLayers: isActive ? current.filter((id: string) => id !== layerId) : [...current, layerId] } };
     }),
+
+    addTask: (task) => set((state) => ({
+        tasks: [{ ...task, id: crypto.randomUUID(), timestamp: Date.now() }, ...state.tasks]
+    })),
+    updateTask: (id, updates) => set((state) => ({
+        tasks: state.tasks.map(t => t.id === id ? { ...t, ...updates } : t)
+    })),
+    deleteTask: (id) => set((state) => ({
+        tasks: state.tasks.filter(t => t.id !== id)
+    })),
 }));

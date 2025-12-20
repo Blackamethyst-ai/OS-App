@@ -2,15 +2,12 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
-/**
- * Fix: Added missing Layers and RefreshCw imports.
- */
 import { 
     GitMerge, Activity, Zap, ArrowRight, Loader2, Target, GitBranch, 
     Microscope, Sparkles, Eye, History, Construction, Navigation2, 
     LineChart, ShieldAlert, Binary, Save, Radar, HardDrive, Dna, 
     BoxSelect, FlaskConical, CircleDot, AlertTriangle, ChevronRight, X,
-    Layers, RefreshCw
+    Layers, RefreshCw, Hammer, Coins, Telescope
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
@@ -29,7 +26,6 @@ const PhysicalDeltaGraph = ({ active }: { active: boolean }) => {
         const interval = setInterval(() => {
             setData(prev => {
                 const last = prev[prev.length - 1];
-                const drift = Math.random() * 5 - 2;
                 return [...prev.slice(1), { 
                     time: last.time + 1, 
                     displacement: Math.max(0, last.displacement + Math.random() * 10 - 2),
@@ -62,9 +58,10 @@ const PhysicalDeltaGraph = ({ active }: { active: boolean }) => {
 };
 
 const SynthesisBridge: React.FC = () => {
-    const { metaventions, setMetaventionsState, addLog, archiveIntervention, knowledge } = useAppStore();
+    const { metaventions, setMetaventionsState, addLog, archiveIntervention, knowledge, toggleKnowledgeLayer } = useAppStore();
     const { layers, activeLayerId, strategyLibrary } = metaventions;
     const activeLayer = layers.find(l => l.id === activeLayerId);
+    const activeKnowledgeLayerIds = knowledge.activeLayers || [];
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [currentMetavention, setCurrentMetavention] = useState<any | null>(null);
@@ -75,7 +72,7 @@ const SynthesisBridge: React.FC = () => {
         addLog('SYSTEM', `METAVENTION_INIT: Infiltrating layer "${activeLayer.name}" topology...`);
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const activeKnowledge = knowledge.activeLayers.map(id => KNOWLEDGE_LAYERS[id]?.label).join(', ');
+            const activeKnowledge = activeKnowledgeLayerIds.map(id => KNOWLEDGE_LAYERS[id]?.label).join(', ');
             
             const schema: Schema = {
                 type: Type.OBJECT,
@@ -133,27 +130,79 @@ const SynthesisBridge: React.FC = () => {
             </div>
 
             <div className="flex-1 grid grid-cols-12 gap-8 min-h-0 px-2">
-                <div className="col-span-12 lg:col-span-4 flex flex-col gap-4 overflow-y-auto custom-scrollbar pr-2 pb-20">
-                    <div className="text-[10px] font-mono text-gray-600 uppercase tracking-widest mb-2 flex items-center gap-2"><Layers size={14}/> Strategy Layers</div>
-                    {layers.map(layer => (
-                        <div key={layer.id} onClick={() => setMetaventionsState({ activeLayerId: layer.id })} className={`p-5 rounded-2xl border cursor-pointer transition-all duration-500 group relative overflow-hidden ${activeLayerId === layer.id ? 'bg-[#111] border-[#9d4edd] shadow-2xl' : 'bg-[#0a0a0a] border-[#222] opacity-40 hover:opacity-100'}`}>
-                            <div className="flex justify-between items-start mb-4">
-                                <span className="text-[11px] font-black text-white uppercase font-mono">{layer.name}</span>
-                                <div className="text-[8px] font-mono px-2 py-0.5 rounded border border-white/10 uppercase">{layer.status}</div>
-                            </div>
-                            <p className="text-[10px] text-gray-500 font-mono leading-relaxed line-clamp-1">{layer.leverage}</p>
-                            {activeLayerId === layer.id && (
-                                <div className="grid grid-cols-2 gap-2 mt-4">
-                                    {layer.metrics.map((m, i) => (
-                                        <div key={i} className="bg-black/40 p-2 rounded-lg border border-white/5">
-                                            <div className="text-[7px] text-gray-600 uppercase font-mono">{m.label}</div>
-                                            <div className="text-[10px] text-white font-bold">{m.value}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                <div className="col-span-12 lg:col-span-4 flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2 pb-20">
+                    
+                    {/* SECTION 1: CONTEXT PROTOCOLS (Knowledge Layers) */}
+                    <div>
+                        <div className="text-[9px] font-mono font-bold text-[#9d4edd] uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                            <Binary size={12}/> Context Protocols
                         </div>
-                    ))}
+                        <div className="grid grid-cols-1 gap-2">
+                            {Object.values(KNOWLEDGE_LAYERS).map((layer) => {
+                                const isActive = activeKnowledgeLayerIds.includes(layer.id);
+                                return (
+                                    <button 
+                                        key={layer.id}
+                                        onClick={() => toggleKnowledgeLayer(layer.id)}
+                                        className={`p-4 rounded-xl border transition-all duration-300 text-left relative overflow-hidden group
+                                            ${isActive 
+                                                ? 'bg-[#111] border-[var(--color)] shadow-[0_0_20px_rgba(0,0,0,0.4)]' 
+                                                : 'bg-[#0a0a0a] border-[#222] opacity-40 hover:opacity-100'}
+                                        `}
+                                        style={{ '--color': layer.color } as any}
+                                    >
+                                        <div className="flex justify-between items-center relative z-10">
+                                            <div className="flex items-center gap-3">
+                                                <div className="p-1.5 rounded bg-white/5" style={{ color: layer.color }}>
+                                                    {layer.id === 'BUILDER_PROTOCOL' && <Hammer size={14} />}
+                                                    {layer.id === 'CRYPTO_CONTEXT' && <Coins size={14} />}
+                                                    {layer.id === 'STRATEGIC_FUTURISM' && <Telescope size={14} />}
+                                                </div>
+                                                <div>
+                                                    <div className="text-[10px] font-black text-white uppercase font-mono">{layer.label}</div>
+                                                    <div className="text-[8px] text-gray-500 font-mono tracking-tighter">{layer.description}</div>
+                                                </div>
+                                            </div>
+                                            <div className={`text-[8px] font-bold px-2 py-0.5 rounded border ${isActive ? 'bg-[var(--color)] text-black border-[var(--color)]' : 'border-[#333] text-gray-600'}`}>
+                                                {isActive ? 'ACTIVE' : 'IDLE'}
+                                            </div>
+                                        </div>
+                                        {isActive && (
+                                            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--color)] to-transparent opacity-50" />
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+
+                    {/* SECTION 2: STRATEGY LAYERS (Deployment Targets) */}
+                    <div>
+                        <div className="text-[9px] font-mono font-bold text-gray-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                            <Layers size={12}/> Strategy Layers
+                        </div>
+                        <div className="flex flex-col gap-2">
+                            {layers.map(layer => (
+                                <div key={layer.id} onClick={() => setMetaventionsState({ activeLayerId: layer.id })} className={`p-4 rounded-xl border cursor-pointer transition-all duration-500 group relative overflow-hidden ${activeLayerId === layer.id ? 'bg-[#111] border-[#9d4edd] shadow-2xl' : 'bg-[#0a0a0a] border-[#222] opacity-40 hover:opacity-100'}`}>
+                                    <div className="flex justify-between items-start mb-2">
+                                        <span className="text-[10px] font-black text-white uppercase font-mono">{layer.name}</span>
+                                        <div className="text-[8px] font-mono px-2 py-0.5 rounded border border-white/10 uppercase">{layer.status}</div>
+                                    </div>
+                                    <p className="text-[10px] text-gray-500 font-mono leading-relaxed line-clamp-1">{layer.leverage}</p>
+                                    {activeLayerId === layer.id && (
+                                        <div className="grid grid-cols-2 gap-2 mt-4 animate-in fade-in slide-in-from-top-2">
+                                            {layer.metrics.map((m, i) => (
+                                                <div key={i} className="bg-black/40 p-2 rounded-lg border border-white/5">
+                                                    <div className="text-[7px] text-gray-600 uppercase font-mono">{m.label}</div>
+                                                    <div className="text-[10px] text-white font-bold">{m.value}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
                 </div>
 
                 <div className="col-span-12 lg:col-span-5 flex flex-col gap-6 min-h-0">
@@ -164,17 +213,27 @@ const SynthesisBridge: React.FC = () => {
                                 <FlaskConical className="text-[#9d4edd] w-5 h-5 animate-pulse" />
                                 <h2 className="text-sm font-bold text-white font-mono uppercase tracking-widest">Protocol Synthesis</h2>
                             </div>
+                            {activeKnowledgeLayerIds.length > 0 && (
+                                <div className="flex gap-1">
+                                    {activeKnowledgeLayerIds.map(id => (
+                                        <div key={id} className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: KNOWLEDGE_LAYERS[id]?.color }} />
+                                    ))}
+                                </div>
+                            )}
                         </div>
                         
                         {!activeLayer ? (
-                            <div className="flex-1 flex flex-col items-center justify-center opacity-20"><Dna size={64} className="mb-4" /><p className="font-mono text-xs uppercase">Select Logic Layer</p></div>
+                            <div className="flex-1 flex flex-col items-center justify-center opacity-20"><Dna size={64} className="mb-4" /><p className="font-mono text-xs uppercase tracking-widest">Select Logic Layer</p></div>
                         ) : (
                             <div className="flex-1 flex flex-col">
                                 <AnimatePresence mode="wait">
                                     {currentMetavention ? (
                                         <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col">
                                             <div className="flex-1 space-y-6">
-                                                <div className="bg-black/60 border border-[#222] p-5 rounded-2xl">
+                                                <div className="bg-black/60 border border-[#222] p-5 rounded-2xl relative overflow-hidden">
+                                                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
+                                                        <Sparkles size={48} className="text-[#9d4edd]" />
+                                                    </div>
                                                     <h3 className="text-lg font-black text-[#9d4edd] uppercase font-mono mb-3">{currentMetavention.title}</h3>
                                                     <p className="text-xs text-gray-400 font-mono leading-relaxed italic mb-4">"{currentMetavention.logic}"</p>
                                                     <div className="flex gap-4">
@@ -201,6 +260,9 @@ const SynthesisBridge: React.FC = () => {
                                                 {isGenerating ? <Loader2 className="animate-spin" /> : <Radar size={18} />}
                                                 {isGenerating ? 'SIMULATING...' : 'RUN METAVENTION'}
                                             </button>
+                                            <p className="mt-6 text-[8px] font-mono text-gray-600 uppercase tracking-widest">
+                                                Active Contexts: {activeKnowledgeLayerIds.length > 0 ? activeKnowledgeLayerIds.join(', ') : 'NONE'}
+                                            </p>
                                         </div>
                                     )}
                                 </AnimatePresence>

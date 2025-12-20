@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SyntheticPersona, DebateTurn, SimulationReport, FileData, AppMode, MentalState } from '../types';
@@ -42,18 +41,22 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
     // Handle Voice Disconnect cleanup
     useEffect(() => {
         return () => {
-            if (isVoiceActive) liveSession.disconnect();
-            if (audioCtxRef.current) {
-                if (audioCtxRef.current.state !== 'closed') {
-                    audioCtxRef.current.close().catch(console.error);
-                }
+            // Always check liveSession directly to avoid stale closures
+            if (liveSession.isConnected()) {
+                liveSession.disconnect();
+            }
+            
+            const ctx = audioCtxRef.current;
+            audioCtxRef.current = null; // Nullify ref immediately
+            if (ctx && ctx.state !== 'closed') {
+                ctx.close().catch(() => {});
             }
         };
     }, []);
 
     // Initialize Audio Context on user interaction (start simulation)
     const initAudio = async () => {
-        if (!audioCtxRef.current) {
+        if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
             audioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
         } 
         if (audioCtxRef.current.state === 'suspended') {
@@ -62,7 +65,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
     };
 
     const playAudioBlob = async (base64Audio: string): Promise<void> => {
-        if (!audioCtxRef.current || isNarrationMuted) return;
+        if (!audioCtxRef.current || isNarrationMuted || audioCtxRef.current.state === 'closed') return;
         
         try {
             await initAudio(); // Ensure active
@@ -80,7 +83,9 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
             const pcm16 = new Int16Array(bytes.buffer, 0, alignLen / 2);
 
             // 3. Create AudioBuffer (Gemini TTS is 24kHz)
-            const audioBuffer = audioCtxRef.current.createBuffer(1, pcm16.length, 24000);
+            const ctx = audioCtxRef.current;
+            if (!ctx || ctx.state === 'closed') return;
+            const audioBuffer = ctx.createBuffer(1, pcm16.length, 24000);
             const channelData = audioBuffer.getChannelData(0);
             
             // Normalize 16-bit integer to float range [-1.0, 1.0]
@@ -88,9 +93,9 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                 channelData[i] = pcm16[i] / 32768.0;
             }
             
-            const source = audioCtxRef.current.createBufferSource();
+            const source = ctx.createBufferSource();
             source.buffer = audioBuffer;
-            source.connect(audioCtxRef.current.destination);
+            source.connect(ctx.destination);
             
             return new Promise((resolve) => {
                 source.onended = () => resolve();
@@ -349,7 +354,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                     <div className="flex gap-2 pointer-events-auto">
                         <button 
                             onClick={() => setIsNarrationMuted(!isNarrationMuted)}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded border transition-all text-[10px] font-mono uppercase tracking-wider ${!isNarrationMuted ? 'bg-[#9d4edd]/10 border-[#9d4edd]/30 text-[#9d4edd]' : 'bg-[#111] border-[#333] text-gray-500 hover:text-white'}`}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded border transition-all text-[10px] font-mono uppercase tracking-wider ${!isNarrationMuted ? 'bg-[#9d4edd]/10 border-[#9d4edd]/30 text-[#9d4edd]' : 'bg-[#111] border border-[#333] text-gray-500 hover:text-white'}`}
                             title={isNarrationMuted ? "Enable Narration" : "Mute Narration"}
                         >
                             {isNarrationMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
@@ -357,7 +362,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                         
                         <button 
                             onClick={toggleVoice}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded border transition-all text-[10px] font-mono uppercase tracking-wider ${isVoiceActive ? 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.2)]' : 'bg-[#111] border-[#333] text-gray-500 hover:text-white'}`}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded border transition-all text-[10px] font-mono uppercase tracking-wider ${isVoiceActive ? 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.2)]' : 'bg-[#111] border border-[#333] text-gray-500 hover:text-white'}`}
                         >
                             {isVoiceActive ? <Radio className="w-3 h-3 animate-pulse" /> : <Mic className="w-3 h-3" />}
                             {isVoiceActive ? 'MODERATOR LINK ACTIVE' : 'MODERATOR MUTED'}

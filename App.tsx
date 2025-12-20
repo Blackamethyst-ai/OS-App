@@ -20,20 +20,20 @@ import ResearchTray from './components/ResearchTray';
 import VoiceManager from './components/VoiceManager'; 
 import VoiceCoreOverlay from './components/VoiceCoreOverlay'; 
 import UserProfileOverlay from './components/UserProfileOverlay'; 
-import { LayerToggle } from './components/LayerToggle';
 
 // Hooks & Utilities
 import { useAutoSave } from './hooks/useAutoSave'; 
 import { useDaemonSwarm } from './hooks/useDaemonSwarm'; 
 import { useVoiceControl } from './hooks/useVoiceControl'; 
 import { useResearchAgent } from './hooks/useResearchAgent'; 
-import { LayoutGrid, Image, Settings, Activity, BookOpen, Mic, Cpu, Code, HardDrive, GitMerge, HelpCircle, User } from 'lucide-react';
+import { LayoutGrid, Image, Settings, Activity, BookOpen, Mic, Cpu, Code, HardDrive, GitMerge, HelpCircle, User, ListTodo } from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
 import { audio } from './services/audioService'; 
 import { AnimatePresence } from 'framer-motion';
 
 const NAV_CONFIG = [
     { id: AppMode.DASHBOARD, label: 'Dashboard', icon: LayoutGrid, path: '/dashboard' },
+    { id: AppMode.TASK_MANAGER, label: 'Actions', icon: ListTodo, path: '/tasks' },
     { id: AppMode.SYNTHESIS_BRIDGE, label: 'Strategy Bridge', icon: GitMerge, path: '/bridge' },
     { id: AppMode.BIBLIOMORPHIC, label: 'Bibliomorphic', icon: BookOpen, path: '/bibliomorphic' },
     { id: AppMode.PROCESS_MAP, label: 'Process Logic', icon: Settings, path: '/process' },
@@ -47,6 +47,7 @@ const NAV_CONFIG = [
 
 const DEEP_NAV_REGISTRY = [
     { id: 'NAV_DASHBOARD', label: 'Dashboard', description: 'Main system overview.' },
+    { id: 'NAV_TASKS', label: 'Action Matrix', description: 'Task and process tracking.' },
     { id: 'NAV_BRIDGE', label: 'Synthesis Bridge', description: 'Metaventions high-level strategic stack.' },
     { id: 'NAV_BIBLIO_DISCOVERY', label: 'Discovery Lab', description: 'Science lab for hypothesis generation.' },
     { id: 'NAV_PROCESS_MAP', label: 'Process Logic (Map)', description: 'The living system map.' },
@@ -126,7 +127,6 @@ const App: React.FC = () => {
       <UserProfileOverlay /> 
       <CommandPalette /> 
       <SystemNotification /> 
-      <LayerToggle />
       <TimeTravelScrubber mode={mode} onRestore={(state) => addLog('INFO', 'Timeline resync successful.')} />
       <OverlayOS /> 
       <HoloProjector /> 
