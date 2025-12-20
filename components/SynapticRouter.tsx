@@ -49,7 +49,7 @@ const SynapticRouter: React.FC = () => {
                 });
             }
 
-            setCurrentPath(pathPart);
+            setCurrentPath(pathPart || '');
             setQueryParams(params);
 
             // Map paths to internal AppModes
@@ -130,12 +130,14 @@ const SynapticRouter: React.FC = () => {
 
         switch (action) {
             case 'HOLO_VIEW':
-                openHoloProjector({
-                    id: `holo-${Date.now()}`,
-                    type: contextType as any,
-                    title: 'Synaptic Projection',
-                    content: targetContent
-                });
+                if (targetContent) {
+                  openHoloProjector({
+                      id: `holo-${Date.now()}`,
+                      type: contextType as any,
+                      title: 'Synaptic Projection',
+                      content: targetContent
+                  });
+                }
                 break;
             case 'COPY':
                 if (targetContent) {
@@ -145,7 +147,7 @@ const SynapticRouter: React.FC = () => {
                 break;
             case 'SEARCH':
                 if (targetContent) {
-                    const safeQuery = String(targetContent).substring(0, 100);
+                    const safeQuery = String(targetContent || '').substring(0, 100);
                     useAppStore.getState().setSearchState({ query: safeQuery, isOpen: true });
                     performGlobalSearch(safeQuery).then(results => {
                         useAppStore.getState().setSearchState({ results });
@@ -155,7 +157,7 @@ const SynapticRouter: React.FC = () => {
             case 'JUMP_CODE':
                 window.location.hash = '/code';
                 if (targetContent) {
-                    const safePrompt = `Refactor this logic:\n\n${String(targetContent).substring(0, 500)}`;
+                    const safePrompt = `Refactor this logic:\n\n${String(targetContent || '').substring(0, 500)}`;
                     setCodeStudioState({ prompt: safePrompt });
                 }
                 break;

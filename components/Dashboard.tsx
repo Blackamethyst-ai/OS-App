@@ -445,7 +445,7 @@ const Dashboard: React.FC = () => {
       if (voice.isActive) agents.push({ type: 'VOICE', label: voice.voiceName });
       
       const activeResearch = research.tasks.filter(t => ['SEARCHING', 'PLANNING', 'SYNTHESIZING'].includes(t.status));
-      activeResearch.forEach(t => agents.push({ type: 'RESEARCH', label: (t.query || '').substring(0, 10) }));
+      activeResearch.forEach(t => agents.push({ type: 'RESEARCH', label: (String(t.query || '')).substring(0, 10) }));
       
       if (bicameral.isSwarming) {
           agents.push({ type: 'BICAMERAL', label: 'Swarm' });
