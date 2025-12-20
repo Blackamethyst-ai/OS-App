@@ -144,8 +144,8 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
         <motion.div
             layout
             draggable
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
+            onDragStart={handleDragStart as any}
+            onDragEnd={handleDragEnd as any}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             className={`bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-4 shadow-xl group relative overflow-visible mb-3 hover:border-[#333] transition-colors cursor-grab active:cursor-grabbing`}

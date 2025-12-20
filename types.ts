@@ -1,4 +1,3 @@
-
 export interface AgentDNA {
     id: string;
     label: string;
@@ -104,6 +103,7 @@ export interface AnalysisResult {
     destroyer: string;
     vectors: { mechanism: string; vulnerability: string; severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' }[];
     insight: string;
+    groundingSources?: { title: string; uri: string }[];
 }
 
 export interface EconomicProtocol {

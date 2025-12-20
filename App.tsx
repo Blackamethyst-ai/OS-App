@@ -40,7 +40,6 @@ const NAV_CONFIG = [
     { id: AppMode.PROCESS_MAP, label: 'Process Logic', icon: Settings, path: '/process' },
     { id: AppMode.MEMORY_CORE, label: 'Memory Core', icon: HardDrive, path: '/memory' },
     { id: AppMode.IMAGE_GEN, label: 'Asset Studio', icon: Image, path: '/assets' },
-    { id: AppMode.POWER_XRAY, label: 'Power X-Ray', icon: Activity, path: '/power' },
     { id: AppMode.HARDWARE_ENGINEER, label: 'Hardware', icon: Cpu, path: '/hardware' },
     { id: AppMode.CODE_STUDIO, label: 'Code Studio', icon: Code, path: '/code' },
     { id: AppMode.VOICE_MODE, label: 'Voice Core', icon: Mic, path: '/voice' },

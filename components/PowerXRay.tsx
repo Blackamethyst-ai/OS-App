@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Zap, Skull, Crown, Activity, Radar, Crosshair, Terminal, AlertTriangle, ShieldCheck, Waves, TrendingUp, BarChart3, Radio, Loader2, GitCommit } from "lucide-react";
+import { Search, Zap, Skull, Crown, Activity, Radar, Crosshair, Terminal, AlertTriangle, ShieldCheck, Waves, TrendingUp, BarChart3, Radio, Loader2, GitCommit, ExternalLink, Globe, Check, Layers } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import { analyzePowerDynamics, promptSelectKey } from "../services/geminiService";
-import { AnalysisResult } from "../types";
+import { AnalysisResult, StoredArtifact } from "../types";
 
 const MotionDiv = motion.div as any;
 
 // --- Sub-Components ---
 
 const VitalityPulse = ({ value }: { value: number }) => {
-    // Generate some procedural history data for the trace
     const historyData = useMemo(() => {
         return Array.from({ length: 40 }, (_, i) => ({
             time: i,
@@ -20,7 +19,6 @@ const VitalityPulse = ({ value }: { value: number }) => {
 
     return (
         <div className="relative w-full h-[320px] flex flex-col items-center justify-center p-4">
-            {/* Background Trace Visualization */}
             <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
                 <ResponsiveContainer width="100%" height="100%">
                     <AreaChart data={historyData}>
@@ -36,7 +34,6 @@ const VitalityPulse = ({ value }: { value: number }) => {
             </div>
 
             <div className="relative z-10 flex flex-col items-center">
-                {/* Central Pulse Core */}
                 <div className="relative w-32 h-32 flex items-center justify-center mb-4">
                     <motion.div 
                         animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.1, 0.5] }}
@@ -63,7 +60,6 @@ const VitalityPulse = ({ value }: { value: number }) => {
                 </div>
             </div>
             
-            {/* Procedural Waveform Overlay */}
             <div className="absolute bottom-4 left-4 right-4 h-8 opacity-40">
                 <svg viewBox="0 0 400 40" className="w-full h-full">
                     <motion.path
@@ -91,7 +87,7 @@ const PowerCard = ({ title, icon: Icon, content, color, delay }: any) => (
     initial={{ opacity: 0, x: -20 }}
     animate={{ opacity: 1, x: 0 }}
     transition={{ delay, duration: 0.5 }}
-    className={`relative overflow-hidden border border-white/5 bg-black/40 p-5 group transition-all duration-300 hover:border-${color === 'emerald' ? 'green' : color === 'amber' ? 'yellow' : 'red'}-500/30 shadow-lg`}
+    className={`relative overflow-hidden border border-white/5 bg-black/40 p-5 group transition-all duration-300 shadow-lg`}
   >
     <div className={`absolute top-0 left-0 w-0.5 h-full bg-gradient-to-b from-${color === 'emerald' ? 'green' : color === 'amber' ? 'yellow' : 'red'}-500/50 to-transparent`} />
     
@@ -115,6 +111,7 @@ const TerminalLoader = ({ system }: { system: string }) => {
     const logs = [
         `INIT_SEQUENCE: Analyzing "${system}"...`,
         "SCANNING: Topological Power Structure...",
+        "LIVE_QUERY: Executing Google Search Grounding...",
         "DETECTING: Centralized Nodes...",
         "MEASURING: Entropy Gradient...",
         "VECTORING: Influence Protocols...",
@@ -132,7 +129,7 @@ const TerminalLoader = ({ system }: { system: string }) => {
             } else {
                 clearInterval(interval);
             }
-        }, 300);
+        }, 400);
         return () => clearInterval(interval);
     }, []);
 
@@ -155,10 +152,28 @@ const TerminalLoader = ({ system }: { system: string }) => {
     );
 };
 
-export default function PowerXRay() {
+export default function PowerXRay({ availableSources = [] }: { availableSources?: StoredArtifact[] }) {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<AnalysisResult | null>(null);
+  const [selectedSourceIds, setSelectedSourceIds] = useState<Set<string>>(new Set());
+
+  const toggleSource = (id: string) => {
+    setSelectedSourceIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAllSources = () => {
+    if (selectedSourceIds.size === availableSources.length) {
+      setSelectedSourceIds(new Set());
+    } else {
+      setSelectedSourceIds(new Set(availableSources.map(s => s.id)));
+    }
+  };
 
   const handleAnalyze = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -175,11 +190,25 @@ export default function PowerXRay() {
         return;
       }
 
-      const result = await analyzePowerDynamics(input);
+      // Hybrid Synthesis: Extract text from selected internal sources
+      let internalContext = "";
+      if (selectedSourceIds.size > 0) {
+        const selectedArtifacts = availableSources.filter(s => selectedSourceIds.has(s.id));
+        const contents = await Promise.all(selectedArtifacts.map(async (art) => {
+          try {
+            const text = await art.data.text();
+            return `FILE: ${art.name}\nCONTENT: ${text.substring(0, 5000)}`;
+          } catch (e) {
+            return `FILE: ${art.name}\nERROR: Could not read content.`;
+          }
+        }));
+        internalContext = contents.join('\n\n---\n\n');
+      }
+
+      const result = await analyzePowerDynamics(input, internalContext);
       setData(result);
     } catch (err) {
       console.error(err);
-      alert("Analysis Failed. Check console.");
     } finally {
       setLoading(false);
     }
@@ -207,17 +236,15 @@ export default function PowerXRay() {
 
   return (
     <div className="h-full w-full bg-[#030303] text-white flex flex-col p-6 relative overflow-hidden border border-[#1f1f1f] rounded shadow-2xl">
-      {/* Background Grid Mesh */}
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
       
-      {/* Header */}
-      <div className="flex items-center justify-between mb-8 relative z-10">
+      <div className="flex items-center justify-between mb-2 relative z-10">
            <div>
                <h1 className="text-2xl font-black font-mono tracking-tighter text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-500 uppercase">
                    Power X-Ray
                </h1>
                <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-1">
-                   Sovereign Systems Diagnostic // <span className="text-[#9d4edd]">Gemini-Flash L0</span>
+                   Live Intelligence Diagnostic // <span className="text-[#22d3ee]">Hybrid Grounding</span>
                </p>
            </div>
            
@@ -227,7 +254,7 @@ export default function PowerXRay() {
                     type="text"
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="ENTER TARGET ENTITY OR SYSTEM..."
+                    placeholder="ENTER TARGET FOR LIVE SCAN..."
                     className="w-full bg-transparent px-4 py-2 text-white outline-none placeholder:text-gray-800 font-mono text-xs uppercase"
                   />
                   <button
@@ -240,9 +267,44 @@ export default function PowerXRay() {
             </form>
       </div>
 
-      {/* Main Stage */}
+      {/* Context Toolbar */}
+      <AnimatePresence>
+        {availableSources.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-3 mb-6 relative z-10 bg-white/5 p-2 rounded border border-white/5"
+          >
+            <div className="flex items-center gap-2 px-2 border-r border-white/10 text-[9px] font-mono font-bold text-gray-500 uppercase tracking-widest">
+              <Layers size={12} className="text-[#9d4edd]" /> Internal Context
+            </div>
+            <div className="flex-1 flex gap-2 overflow-x-auto no-scrollbar py-1">
+              <button 
+                onClick={toggleAllSources}
+                className={`px-3 py-1 rounded text-[9px] font-mono uppercase transition-all border ${selectedSourceIds.size === availableSources.length ? 'bg-[#9d4edd] text-black border-[#9d4edd]' : 'bg-black/50 border-white/10 text-gray-500 hover:text-white'}`}
+              >
+                {selectedSourceIds.size === availableSources.length ? 'DESELECT ALL' : 'SELECT ALL'}
+              </button>
+              {availableSources.map(source => (
+                <button
+                  key={source.id}
+                  onClick={() => toggleSource(source.id)}
+                  className={`flex items-center gap-2 px-3 py-1 rounded text-[9px] font-mono uppercase transition-all border whitespace-nowrap group
+                    ${selectedSourceIds.has(source.id) 
+                      ? 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd] shadow-[0_0_10px_rgba(157,78,221,0.2)]' 
+                      : 'bg-black/50 border-white/5 text-gray-600 hover:border-white/20 hover:text-gray-400'}
+                  `}
+                >
+                  {selectedSourceIds.has(source.id) && <Check size={10} />}
+                  {source.name}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10 pr-2">
-        
         <AnimatePresence mode="wait">
             {loading ? (
                 <MotionDiv 
@@ -265,7 +327,7 @@ export default function PowerXRay() {
                     <p className="font-mono text-sm uppercase tracking-[0.5em] text-gray-700 font-black">Awaiting Target Selection</p>
                     <div className="mt-4 flex gap-4 text-[9px] font-mono text-gray-800">
                         <span>SCAN_READY</span>
-                        <span>UPLINK_STABLE</span>
+                        <span>GROUNDING_STABLE</span>
                         <span>ENCLAVE_READY</span>
                     </div>
                 </MotionDiv>
@@ -277,11 +339,10 @@ export default function PowerXRay() {
                     transition={{ staggerChildren: 0.1 }}
                     className="grid grid-cols-12 gap-8 pb-12"
                 >
-                    {/* Column 1: Core Dynamics (Trinity) */}
                     <div className="col-span-12 lg:col-span-3 space-y-6">
                         <div className="flex items-center gap-3 mb-2 pb-2 border-b border-[#333] border-dashed">
-                            <Activity className="w-3 h-3 text-[#9d4edd]" />
-                            <h2 className="text-[10px] font-black font-mono uppercase tracking-[0.3em] text-gray-500">Core Dynamics</h2>
+                            <Activity className="w-3 h-3 text-[#22d3ee]" />
+                            <h2 className="text-[10px] font-black font-mono uppercase tracking-[0.3em] text-gray-500">Live Core Dynamics</h2>
                         </div>
                         <PowerCard
                             title="Sustainer"
@@ -304,9 +365,31 @@ export default function PowerXRay() {
                             color="rose"
                             delay={0.2}
                         />
+                        
+                        {data.groundingSources && data.groundingSources.length > 0 && (
+                            <div className="pt-4 mt-4 border-t border-[#1f1f1f]">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Globe className="w-3 h-3 text-[#22d3ee]" />
+                                    <span className="text-[9px] font-black font-mono uppercase tracking-widest text-gray-500">Grounded Sources</span>
+                                </div>
+                                <div className="space-y-2">
+                                    {data.groundingSources.slice(0, 5).map((source, idx) => (
+                                        <a 
+                                            key={idx} 
+                                            href={source.uri} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="flex items-center justify-between p-2 rounded bg-black border border-[#222] hover:border-[#22d3ee]/50 transition-all group"
+                                        >
+                                            <span className="text-[9px] font-mono text-gray-400 truncate max-w-[180px] group-hover:text-white">{source.title}</span>
+                                            <ExternalLink size={10} className="text-gray-600 group-hover:text-[#22d3ee]" />
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
 
-                    {/* Column 2: Power Signature (Centerpiece) */}
                     <div className="col-span-12 lg:col-span-5 flex flex-col gap-6">
                         <div className="flex items-center gap-3 mb-0 pb-2 border-b border-[#333] border-dashed">
                             <Radar className="w-3 h-3 text-[#9d4edd]" />
@@ -314,7 +397,6 @@ export default function PowerXRay() {
                         </div>
                         
                         <div className="flex-1 bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg relative flex flex-col overflow-hidden shadow-2xl">
-                             {/* Spectral background for X-Ray atmosphere */}
                              <div className="absolute inset-0 opacity-[0.05] pointer-events-none">
                                 <motion.div 
                                     animate={{ 
@@ -328,7 +410,6 @@ export default function PowerXRay() {
                              </div>
 
                              <div className="flex-1 flex flex-col items-center justify-center relative z-10 py-6">
-                                 {/* Procedural Vitality Visualizer */}
                                  {data.scores && <VitalityPulse value={data.scores.vitality || 0} />}
 
                                  <div className="w-full h-72 -mt-4">
@@ -372,10 +453,7 @@ export default function PowerXRay() {
                         </div>
                     </div>
 
-                    {/* Column 3: Vectors & Insight */}
                     <div className="col-span-12 lg:col-span-4 flex flex-col gap-8">
-                        
-                        {/* Attack Vectors */}
                         <div className="flex flex-col">
                             <div className="flex items-center gap-3 mb-4 pb-2 border-b border-[#333] border-dashed">
                                 <ShieldCheck className="w-3 h-3 text-[#9d4edd]" />
@@ -417,7 +495,6 @@ export default function PowerXRay() {
                             </div>
                         </div>
 
-                        {/* Insight Panel */}
                         <div className="flex-1 bg-gradient-to-br from-[#9d4edd]/10 to-transparent border border-[#9d4edd]/20 p-8 flex flex-col justify-center text-center relative overflow-hidden group shadow-2xl">
                              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                                  <Activity className="w-16 h-16 text-[#9d4edd] animate-pulse" />
@@ -452,10 +529,9 @@ export default function PowerXRay() {
 
       </div>
 
-      {/* Footer Diagnostic Bar */}
       <div className="mt-4 border-t border-[#1f1f1f] pt-4 flex justify-between items-center text-[8px] font-mono text-gray-700 uppercase tracking-widest relative z-10 shrink-0">
           <div className="flex gap-6">
-              <span className="flex items-center gap-2"><Activity size={10} className="text-[#42be65]" /> Real-time context feed: 2.4kbps</span>
+              <span className="flex items-center gap-2"><Activity size={10} className="text-[#42be65]" /> Grounded context feed active</span>
               <span className="flex items-center gap-2"><ShieldCheck size={10} className="text-[#22d3ee]" /> Enclave Attestation: Valid</span>
           </div>
           <div className="flex gap-4">

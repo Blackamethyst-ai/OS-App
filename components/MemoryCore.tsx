@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { neuralVault } from '../services/persistenceService';
 import { 
@@ -17,13 +18,14 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoredArtifact, KnowledgeNode, NeuralLattice } from '../types';
 import KnowledgeGraph from './KnowledgeGraph';
+import PowerXRay from './PowerXRay';
 
 const MemoryCore: React.FC = () => {
     // Avoid destructuring 'process' to prevent conflict with global Node/Vite process object
     const { openHoloProjector, addLog, setProcessState } = useAppStore();
     const processData = useAppStore(state => state.process);
     
-    // Fix: Explicitly type and extract vaultInsights early at the top of the component to resolve unknown type inference errors
+    // Explicitly type and extract vaultInsights early at the top of the component to resolve unknown type inference errors
     const vaultInsights: any[] = (processData as any)?.vaultInsights || [];
 
     const [artifacts, setArtifacts] = useState<StoredArtifact[]>([]);
@@ -31,7 +33,7 @@ const MemoryCore: React.FC = () => {
     const [isSearching, setIsSearching] = useState(false);
     const [isIndexing, setIsIndexing] = useState<Set<string>>(new Set());
     const [searchQuery, setSearchQuery] = useState('');
-    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'LATTICE' | 'STACKS'>('GRID');
+    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'LATTICE' | 'STACKS' | 'XRAY'>('GRID');
     const [semanticResults, setSemanticResults] = useState<string[] | null>(null);
     const [lattice, setLattice] = useState<NeuralLattice | null>(null);
     const [isGeneratingLattice, setIsGeneratingLattice] = useState(false);
@@ -63,7 +65,6 @@ const MemoryCore: React.FC = () => {
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
-            // Fix: Explicitly cast to File[] for type safety
             const files = Array.from(e.target.files) as File[];
             addLog('SYSTEM', `VAULT_INGEST: Buffering ${files.length} primary units...`);
             
@@ -220,7 +221,7 @@ const MemoryCore: React.FC = () => {
             groups[category].push(art);
         });
         return groups;
-    }, [filteredArtifacts]);
+  }, [filteredArtifacts]);
 
     const graphNodes = useMemo<KnowledgeNode[]>(() => {
         return artifacts.map(art => ({
@@ -301,7 +302,8 @@ const MemoryCore: React.FC = () => {
                             {[
                                 { id: 'GRID', icon: LayoutGrid, label: 'Matrix' },
                                 { id: 'STACKS', icon: Boxes, label: 'Stacks' },
-                                { id: 'GRAPH', icon: BrainCircuit, label: 'Graph' }
+                                { id: 'GRAPH', icon: BrainCircuit, label: 'Graph' },
+                                { id: 'XRAY', icon: Activity, label: 'X-Ray' }
                             ].map(btn => (
                                 <button key={btn.id} onClick={() => setViewMode(btn.id as any)} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${viewMode === btn.id ? 'bg-[#1f1f1f] text-white shadow-lg' : 'text-gray-600 hover:text-gray-300'}`}>
                                     <btn.icon size={12} /> {btn.label}
@@ -309,33 +311,40 @@ const MemoryCore: React.FC = () => {
                             ))}
                         </div>
                         
-                        <form onSubmit={handleVaultDirective} className="flex-1 max-w-xl flex items-center gap-2 bg-[#111] p-1 rounded-xl border border-[#333] group focus-within:border-[#9d4edd] transition-colors">
-                            <Terminal className="w-3.5 h-3.5 text-gray-500 ml-2 group-focus-within:text-[#9d4edd]" />
-                            <input 
-                                type="text" 
-                                placeholder="Execute vault directive or search..." 
-                                value={searchQuery} 
-                                onChange={(e) => setSearchQuery(e.target.value)} 
-                                className="bg-transparent border-none outline-none text-[11px] font-mono flex-1 text-white placeholder:text-gray-700 uppercase"
-                            />
-                            <button type="submit" disabled={isSearching} className="px-3 py-1 bg-[#1f1f1f] border border-[#333] rounded-lg text-[9px] font-bold text-[#9d4edd] hover:text-white transition-colors">
-                                {isSearching ? <Loader2 size={12} className="animate-spin" /> : 'EXEC'}
-                            </button>
-                        </form>
+                        {viewMode !== 'XRAY' && (
+                            <form onSubmit={handleVaultDirective} className="flex-1 max-w-xl flex items-center gap-2 bg-[#111] p-1 rounded-xl border border-[#333] group focus-within:border-[#9d4edd] transition-colors">
+                                <Terminal className="w-3.5 h-3.5 text-gray-500 ml-2 group-focus-within:text-[#9d4edd]" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Execute vault directive or search..." 
+                                    value={searchQuery} 
+                                    onChange={(e) => setSearchQuery(e.target.value)} 
+                                    className="bg-transparent border-none outline-none text-[11px] font-mono flex-1 text-white placeholder:text-gray-700 uppercase"
+                                />
+                                <button type="submit" disabled={isSearching} className="px-3 py-1 bg-[#1f1f1f] border border-[#333] rounded-lg text-[9px] font-bold text-[#9d4edd] hover:text-white transition-colors">
+                                    {isSearching ? <Loader2 size={12} className="animate-spin" /> : 'EXEC'}
+                                </button>
+                            </form>
+                        )}
                     </div>
 
-                    <div className="flex items-center gap-4 ml-6">
-                        <label className="flex items-center gap-2 px-5 py-2 bg-[#9d4edd] hover:bg-[#b06bf7] text-black border border-transparent rounded-xl text-[10px] font-black font-mono uppercase tracking-widest transition-all cursor-pointer shadow-[0_0_20px_rgba(157,78,221,0.4)]">
-                            <Upload size={14} /> Ingest
-                            <input type="file" multiple className="hidden" onChange={handleFileUpload} />
-                        </label>
-                    </div>
+                    {viewMode !== 'XRAY' && (
+                        <div className="flex items-center gap-4 ml-6">
+                            <label className="flex items-center gap-2 px-5 py-2 bg-[#9d4edd] hover:bg-[#b06bf7] text-black border border-transparent rounded-xl text-[10px] font-black font-mono uppercase tracking-widest transition-all cursor-pointer shadow-[0_0_20px_rgba(157,78,221,0.4)]">
+                                <Upload size={14} /> Ingest
+                                <input type="file" multiple className="hidden" onChange={handleFileUpload} />
+                            </label>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    {viewMode === 'STACKS' ? (
+                    {viewMode === 'XRAY' ? (
+                        <div className="h-full w-full">
+                            <PowerXRay availableSources={artifacts} />
+                        </div>
+                    ) : viewMode === 'STACKS' ? (
                         <div className="p-8 space-y-12">
-                            {/* Fix: Explicitly cast Object.entries to ensure items is correctly typed as StoredArtifact[] to prevent 'unknown' property access errors */}
                             {(Object.entries(stacks) as [string, StoredArtifact[]][]).map(([name, items]) => (
                                 <div key={name}>
                                     <div className="flex items-center gap-3 mb-6">
@@ -343,7 +352,6 @@ const MemoryCore: React.FC = () => {
                                         <h2 className="text-sm font-black font-mono uppercase tracking-[0.2em] text-white">{name} <span className="text-gray-600 ml-2">({items.length})</span></h2>
                                     </div>
                                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-                                        {/* Fix: Explicitly handle items.map by ensuring it is recognized as an array type */}
                                         {items.map(art => (
                                             <ArtifactCard key={art.id} art={art} onDigitize={handleDigitize} openHoloProjector={openHoloProjector} isIndexing={isIndexing.has(art.id)} />
                                         ))}
@@ -364,16 +372,18 @@ const MemoryCore: React.FC = () => {
                     )}
                 </div>
 
-                <div className="h-10 border-t border-[#1f1f1f] bg-[#0a0a0a] flex items-center px-6 justify-between text-[9px] font-mono text-gray-600 uppercase tracking-widest">
-                    <div className="flex gap-8">
-                        <span className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_5px_#10b981]" /> VAULT_INTEGRITY: 100%</span>
-                        <span className="flex items-center gap-2"><Database size={12} /> {artifacts.length} SECTORS INDEXED</span>
+                {viewMode !== 'XRAY' && (
+                    <div className="h-10 border-t border-[#1f1f1f] bg-[#0a0a0a] flex items-center px-6 justify-between text-[9px] font-mono text-gray-600 uppercase tracking-widest">
+                        <div className="flex gap-8">
+                            <span className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_5px_#10b981]" /> VAULT_INTEGRITY: 100%</span>
+                            <span className="flex items-center gap-2"><Database size={12} /> {artifacts.length} SECTORS INDEXED</span>
+                        </div>
+                        <div className="flex items-center gap-6">
+                            <span className="flex items-center gap-2 text-[#22d3ee] font-black"><Activity size={12} /> SYNC: STABLE</span>
+                            <span className="text-gray-800 font-black tracking-[0.3em]">KERN_V4.2.1-VAULT</span>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-6">
-                        <span className="flex items-center gap-2 text-[#22d3ee] font-black"><Activity size={12} /> SYNC: STABLE</span>
-                        <span className="text-gray-800 font-black tracking-[0.3em]">KERN_V4.2.1-VAULT</span>
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );

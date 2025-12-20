@@ -12,7 +12,6 @@ import {
     TrendingDown, ShieldCheck, History, Package, Shield, 
     Box, Tag, BarChart3, Clock, ArrowRight, Layers,
     Maximize2, Info, ChevronRight, CheckCircle2, AlertTriangle, GitCommit,
-    // Fix: Added missing RotateCcw icon import
     RotateCcw
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Cell, BarChart, Bar, LineChart, Line } from 'recharts';
