@@ -13,7 +13,7 @@ import {
     HardDriveDownload, Network as NetworkIcon,
     Save, VolumeX, Lightbulb, Search, Loader2, Code, Cloud,
     ShieldCheck, Sparkles, FileText, Upload, Eye, FileUp, Info,
-    FolderTree, Terminal, Settings2, User, Copy, ExternalLink, Globe, ArrowRight, PieChart, ShieldAlert, Thermometer, Bell, FolderSync, Plus, Maximize, Stethoscope, FileJson, Trash2, GitBranch
+    FolderTree, Terminal, Settings2, User, Copy, ExternalLink, Globe, ArrowRight, PieChart, ShieldAlert, Thermometer, Bell, FolderSync, Plus, Maximize, Stethoscope, FileJson, Trash2, GitBranch, BookOpen, LayoutGrid
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useAppStore } from '../store';
@@ -170,8 +170,8 @@ const HolographicNode = ({ data: nodeData, selected }: NodeProps) => {
             </div>
 
             <div className="mb-4">
-                <div className="text-[13px] font-black font-mono uppercase tracking-[0.15em] text-white truncate group-hover:text-[#22d3ee] transition-colors">{renderSafe(data.label)}</div>
-                <div className="text-[9px] font-mono uppercase tracking-tighter text-gray-500 mt-1">{renderSafe(data.subtext)}</div>
+                <div className="text-[13px] font-black font-mono uppercase tracking-[0.15em] text-white truncate group-hover:text-[#22d3ee] transition-colors">{renderSafe(data.label as any)}</div>
+                <div className="text-[9px] font-mono uppercase tracking-tighter text-gray-500 mt-1">{renderSafe(data.subtext as any)}</div>
             </div>
 
             <div className="mt-4 pt-4 border-t border-white/5 space-y-3">
@@ -198,7 +198,6 @@ const HolographicNode = ({ data: nodeData, selected }: NodeProps) => {
 };
 
 const CinematicEdge = ({ id, sourceX, sourceY, targetX, targetY, style, markerEnd, data: edgeData }: EdgeProps) => {
-    const data = edgeData as any;
     const [edgePath] = getSmoothStepPath({ sourceX, sourceY, targetX, targetY });
     return (
         <>
@@ -207,12 +206,12 @@ const CinematicEdge = ({ id, sourceX, sourceY, targetX, targetY, style, markerEn
                 className="react-flow__edge-path" 
                 d={edgePath} 
                 strokeWidth={1.5} 
-                stroke={data?.color || style?.stroke || '#333'} 
+                stroke={edgeData?.color as string || style?.stroke || '#333'} 
                 markerEnd={markerEnd} 
                 style={{ ...style, strokeOpacity: 0.2 }} 
             />
-            {data?.variant === 'stream' && (
-                <circle r="2" fill={data?.color || style?.stroke || '#9d4edd'}>
+            {edgeData?.variant === 'stream' && (
+                <circle r="2" fill={edgeData?.color as string || style?.stroke || '#9d4edd'}>
                     <animateMotion dur="4s" repeatCount="indefinite" path={edgePath} />
                 </circle>
             )}
@@ -226,8 +225,8 @@ const ProcessVisualizerContent = () => {
     const {
         state, activeTab, onNodesChange, onEdgesChange, onConnect, onPaneContextMenu, onPaneClick, onPaneDoubleClick,
         nodes, edges, animatedNodes, animatedEdges, visualTheme, showGrid, toggleGrid,
-        addNodeAtPosition, handleGenerateGraph, handleDecomposeNode, handleOptimizeNode, handleGenerateIaC,
-        handleRunGlobalSequence, handleGenerate, isGeneratingGraph, isOptimizing, paneContextMenu,
+        addNodeAtPosition, handleGenerateGraph, handleDecomposeNode, handleOptimizeNode, handleAutoOrganize, handleGenerateIaC,
+        handleRunGlobalSequence, handleGenerate, isGeneratingGraph, isOptimizing, isOrganizing, paneContextMenu,
         setPaneContextMenu,
         sequenceStatus, sequenceProgress, selectedNode, architecturePrompt,
         setArchitecturePrompt, getTabLabel, saveGraph, restoreGraph, setState,
@@ -237,6 +236,7 @@ const ProcessVisualizerContent = () => {
     const nodeTypes = useMemo(() => ({ holographic: HolographicNode }), []);
     const edgeTypes = useMemo(() => ({ cinematic: CinematicEdge }), []);
     const [showSources, setShowSources] = useState(false);
+    const [showLibrary, setShowLibrary] = useState(false);
     const [aiInput, setAiInput] = useState('');
     const [selectedWorkflowDomain, setSelectedWorkflowDomain] = useState<'GENERAL' | 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE'>('GENERAL');
 
@@ -247,10 +247,22 @@ const ProcessVisualizerContent = () => {
 
     const handleAiSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (aiInput.trim()) {
-            handleAIAddNode(aiInput);
+        const sanitizedInput = typeof aiInput === 'string' ? aiInput.trim() : '';
+        if (sanitizedInput) {
+            handleAIAddNode(sanitizedInput);
             setAiInput('');
         }
+    };
+
+    const loadTemplate = (id: string) => {
+        const presets: Record<string, string> = {
+            'para': 'Construct a Google Drive PARA organization layout with folders for Projects, Areas, Resources, and Archives.',
+            'rag': 'Blueprint a RAG system with a Vector Database, Embedding Service, LLM API, and Query Orchestrator.',
+            'secure': 'Design a Zero-Trust security mesh with Identity Proxy, WAF, Enclave Monitor, and mTLS edges.'
+        };
+        setArchitecturePrompt(presets[id] || '');
+        handleGenerateGraph();
+        setShowLibrary(false);
     };
 
     return (
@@ -258,7 +270,7 @@ const ProcessVisualizerContent = () => {
             <div className="h-16 border-b border-white/5 bg-[#0a0a0a]/90 backdrop-blur z-20 flex items-center justify-between px-6 shrink-0">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-3">
-                        <div className="p-1.5 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded shadow-[0_0_15px_rgba(157,78,221,0.3)]"><BrainCircuit className="w-4 h-4 text-[#9d4edd]" /></div>
+                        <div className="p-1.5 bg-[#9d4edd]/10 border border-[#9d4edd] rounded shadow-[0_0_15px_rgba(157,78,221,0.3)]"><BrainCircuit className="w-4 h-4 text-[#9d4edd]" /></div>
                         <div><h1 className="text-sm font-bold font-mono uppercase tracking-widest text-white">Process Logic Core</h1><p className="text-[9px] text-gray-500 font-mono">Autonomous System Architect</p></div>
                     </div>
                     <div className="flex bg-[#111] p-1 rounded border border-white/5 ml-4">
@@ -277,6 +289,24 @@ const ProcessVisualizerContent = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
+                    <div className="relative">
+                        <button 
+                            onClick={() => setShowLibrary(!showLibrary)} 
+                            className={`flex items-center gap-2 px-3 py-2 rounded text-[10px] font-black uppercase tracking-widest transition-all border ${showLibrary ? 'bg-[#9d4edd]/10 border-[#9d4edd] text-[#9d4edd]' : 'bg-[#111] border-white/5 text-gray-500 hover:text-white'}`}
+                        >
+                            <BookOpen className="w-3.5 h-3.5" />
+                            Library
+                        </button>
+                        <AnimatePresence>
+                            {showLibrary && (
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full right-0 mt-2 w-56 bg-[#0a0a0a] border border-[#333] rounded-xl shadow-2xl z-[100] overflow-hidden p-1.5">
+                                    <button onClick={() => loadTemplate('para')} className="w-full text-left px-4 py-2.5 rounded-lg text-[10px] font-mono text-gray-400 hover:bg-white/5 hover:text-white flex items-center gap-3 transition-colors uppercase tracking-wider"><FolderSync size={14} className="text-[#22d3ee]"/> PARA Drive Protocol</button>
+                                    <button onClick={() => loadTemplate('rag')} className="w-full text-left px-4 py-2.5 rounded-lg text-[10px] font-mono text-gray-400 hover:bg-white/5 hover:text-white flex items-center gap-3 transition-colors uppercase tracking-wider"><BrainCircuit size={14} className="text-[#9d4edd]"/> RAG Engine Stack</button>
+                                    <button onClick={() => loadTemplate('secure')} className="w-full text-left px-4 py-2.5 rounded-lg text-[10px] font-mono text-gray-400 hover:bg-white/5 hover:text-white flex items-center gap-3 transition-colors uppercase tracking-wider"><ShieldCheck size={14} className="text-[#42be65]"/> Secure Logic Mesh</button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+                    </div>
                     <button 
                         onClick={() => setShowSources(!showSources)} 
                         className={`flex items-center gap-2 px-3 py-2 rounded text-[10px] font-black uppercase tracking-widest transition-all border ${showSources ? 'bg-[#22d3ee]/10 border-[#22d3ee] text-[#22d3ee]' : 'bg-[#111] border-white/5 text-gray-500 hover:text-white'}`}
@@ -325,7 +355,7 @@ const ProcessVisualizerContent = () => {
                             placeholder="Forge logic node from description..."
                             className="bg-transparent border-none outline-none text-xs font-mono text-white flex-1 placeholder:text-gray-700"
                         />
-                        <button type="submit" disabled={!aiInput.trim()} className="p-2 bg-[#9d4edd] text-black rounded-xl hover:bg-[#b06bf7] transition-all disabled:opacity-50">
+                        <button type="submit" disabled={!aiInput || !(typeof aiInput === 'string' ? aiInput.trim() : '')} className="p-2 bg-[#9d4edd] text-black rounded-xl hover:bg-[#b06bf7] transition-all disabled:opacity-50">
                             <Plus size={16} />
                         </button>
                     </motion.form>
@@ -347,8 +377,8 @@ const ProcessVisualizerContent = () => {
                                         <Info size={16} />
                                     </div>
                                     <div>
-                                        <h3 className="text-xs font-black font-mono text-white uppercase tracking-widest">{selectedNode.data.label}</h3>
-                                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest">{selectedNode.data.subtext}</p>
+                                        <h3 className="text-xs font-black font-mono text-white uppercase tracking-widest">{renderSafe(selectedNode.data.label as any)}</h3>
+                                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest">{renderSafe(selectedNode.data.subtext as any)}</p>
                                     </div>
                                 </div>
                                 <button onClick={() => setState({ nodes: nodes.map(n => n.id === selectedNode.id ? { ...n, selected: false } : n) })} className="text-gray-500 hover:text-white"><X size={16} /></button>
@@ -363,14 +393,21 @@ const ProcessVisualizerContent = () => {
 
                             <div className="grid grid-cols-1 gap-2">
                                 <button 
-                                    onClick={handleDecomposeNode} 
+                                    onClick={handleAutoOrganize}
+                                    disabled={isOrganizing}
                                     className="w-full py-3 bg-[#111] hover:bg-[#22d3ee] hover:text-black border border-white/5 hover:border-[#22d3ee] rounded-xl text-[9px] font-black font-mono uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 group"
+                                >
+                                    {isOrganizing ? <Loader2 size={14} className="animate-spin"/> : <LayoutGrid size={14} />} Auto-Organize Topology
+                                </button>
+                                <button 
+                                    onClick={handleDecomposeNode} 
+                                    className="w-full py-3 bg-[#111] hover:bg-[#9d4edd] hover:text-black border border-white/5 hover:border-[#9d4edd] rounded-xl text-[9px] font-black font-mono uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 group"
                                 >
                                     <GitBranch size={14} className="group-hover:rotate-90 transition-transform" /> Decompose Structure
                                 </button>
                                 <button 
                                     onClick={handleOptimizeNode}
-                                    className="w-full py-3 bg-[#111] hover:bg-[#9d4edd] hover:text-black border border-white/5 hover:border-[#9d4edd] rounded-xl text-[9px] font-black font-mono uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
+                                    className="w-full py-3 bg-[#111] hover:bg-[#f59e0b] hover:text-black border border-white/5 hover:border-[#f59e0b] rounded-xl text-[9px] font-black font-mono uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2"
                                 >
                                     {isOptimizing ? <Loader2 size={14} className="animate-spin" /> : <Stethoscope size={14} />} Optimize Logic
                                 </button>
@@ -457,6 +494,7 @@ const ProcessVisualizerContent = () => {
                                         className="fixed z-[100] bg-[#0a0a0a]/95 backdrop-blur-2xl border border-white/10 rounded-xl shadow-2xl overflow-hidden min-w-[200px] p-1.5"
                                     >
                                         <div className="px-3 py-1.5 text-[8px] font-mono text-gray-600 uppercase tracking-widest border-b border-white/5 mb-1">Topology Commands</div>
+                                        <button onClick={() => { handleAutoOrganize(); setPaneContextMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-xs font-mono text-gray-300 transition-colors text-left"><LayoutGrid size={14} className="text-[#d946ef]" /> Auto-Organize Matrix</button>
                                         <button onClick={() => { addNodeAtPosition(paneContextMenu.flowPos, 'holographic', 'Core Logic', '#9d4edd'); setPaneContextMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-xs font-mono text-gray-300 transition-colors text-left"><Plus size={14} className="text-[#9d4edd]" /> Add Manual Node</button>
                                         <button onClick={() => { handleRunGlobalSequence(); setPaneContextMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-xs font-mono text-gray-300 transition-colors text-left"><Play size={14} className="text-[#42be65]" /> Sequence Logic</button>
                                         <button onClick={() => { fitView(); setPaneContextMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 text-xs font-mono text-gray-300 transition-colors text-left"><Maximize size={14} className="text-[#22d3ee]" /> Focus Topology</button>
@@ -477,7 +515,7 @@ const ProcessVisualizerContent = () => {
                                         <p className="text-[10px] text-gray-600 font-mono uppercase tracking-widest mt-2">Describe your system topology.</p>
                                     </div>
                                     <textarea value={architecturePrompt} onChange={(e) => setArchitecturePrompt(e.target.value)} placeholder="ENTER ARCHITECTURAL DIRECTIVE..." className="w-full h-56 bg-[#050505] border border-white/10 rounded-2xl p-5 text-xs font-mono text-gray-300 outline-none focus:border-[#9d4edd] resize-none transition-all placeholder:text-gray-800" />
-                                    <button onClick={() => { handleGenerateGraph(); }} disabled={isGeneratingGraph || !architecturePrompt.trim()} className="w-full bg-[#9d4edd] text-black py-5 rounded-2xl font-black font-mono text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-4 shadow-[0_0_30px_rgba(157,78,221,0.35)] transition-all hover:scale-[1.02] active:scale-[0.98]">
+                                    <button onClick={() => { handleGenerateGraph(); }} disabled={isGeneratingGraph || !architecturePrompt || !architecturePrompt.trim()} className="w-full bg-[#9d4edd] text-black py-5 rounded-2xl font-black font-mono text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-4 shadow-[0_0_30px_rgba(157,78,221,0.35)] transition-all hover:scale-[1.02] active:scale-[0.98]">
                                         {isGeneratingGraph ? <Loader2 className="w-4 h-4 animate-spin"/> : <Sparkles className="w-4 h-4"/>}
                                         Construct Blueprint
                                     </button>
@@ -559,7 +597,7 @@ const ProcessVisualizerContent = () => {
                                             <ProtocolLoom protocols={state.generatedWorkflow.protocols} type={selectedWorkflowDomain} />
 
                                             {selectedWorkflowDomain === 'DRIVE_ORGANIZATION' && state.generatedWorkflow.taxonomy && (
-                                                <div className="p-8 bg-[#0a0a0a] border border-[#22d3ee]/20 rounded-3xl relative overflow-hidden group shadow-2xl">
+                                                <div className="p-8 bg-[#0a0a0a] border border-[#222] rounded-3xl relative overflow-hidden group shadow-2xl">
                                                     <div className="absolute top-0 right-0 p-8 opacity-5 pointer-events-none group-hover:opacity-10 transition-opacity">
                                                         <FolderTree className="w-32 h-32 text-[#22d3ee]" />
                                                     </div>
@@ -576,7 +614,7 @@ const ProcessVisualizerContent = () => {
                                                     </div>
                                                     <div className="grid grid-cols-1 gap-6 relative z-10">
                                                         {state.generatedWorkflow.taxonomy.root?.map((folder: any, i: number) => (
-                                                            <div key={i} className="flex flex-col gap-3 border-l-2 border-white/10 pl-6 py-2 hover:border-[#22d3ee]/50 transition-colors">
+                                                            <div key={i} className="flex col-flex gap-3 border-l-2 border-white/10 pl-6 py-2 hover:border-[#22d3ee]/50 transition-colors">
                                                                 <div className="text-white font-black font-mono text-[13px] uppercase tracking-widest">/{folder.folder}</div>
                                                                 <div className="flex flex-wrap gap-2">
                                                                     {folder.subfolders?.map((sub: string, j: number) => (

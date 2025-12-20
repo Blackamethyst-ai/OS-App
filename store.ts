@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, InterventionProtocol, OperationalContext, AgentWallet, TemporalEra, Task, TaskStatus, AspectRatio } from './types';
 
@@ -23,7 +24,6 @@ interface AppState {
         workflowType: 'GENERAL' | 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE';
         diagramStatus: 'OK' | 'ERROR';
         diagramError: string | null;
-        // FIX: Added missing properties for process slice used in components and hooks
         nodes: any[];
         edges: any[];
         pendingAIAddition: any | null;
@@ -32,6 +32,9 @@ interface AppState {
         audioTranscript: string | null;
         entropyScore: number;
         error: string | null;
+        // NEW: Memory Core Extensions
+        vaultInsights: { id: string; type: 'DEDUPE' | 'TAG' | 'BRIDGE' | 'ARCHIVE'; message: string; action: string; targetIds: string[] }[];
+        activeStacks: Record<string, string[]>; // stackId -> artifactIds
     };
     hardware: {
         recommendations: any[];
@@ -76,7 +79,6 @@ interface AppState {
         activeLayers: string[];
     };
     tasks: Task[];
-    // FIX: Added missing imageGen slice to AppState interface
     imageGen: {
         history: any[];
         prompt: string;
@@ -107,7 +109,6 @@ interface AppState {
     setProcessState: (state: Partial<AppState['process']> | ((prev: AppState['process']) => Partial<AppState['process']>)) => void;
     setCodeStudioState: (state: any) => void;
     setHardwareState: (state: Partial<AppState['hardware']> | ((prev: AppState['hardware']) => Partial<AppState['hardware']>)) => void;
-    // FIX: Typed setImageGenState correctly to fix 'imageGen' property not existing on AppState errors
     setImageGenState: (state: Partial<AppState['imageGen']> | ((prev: AppState['imageGen']) => Partial<AppState['imageGen']>)) => void;
     setBibliomorphicState: (state: any) => void;
     setDashboardState: (state: any) => void;
@@ -139,7 +140,6 @@ interface AppState {
 
     toggleKnowledgeLayer: (layerId: string) => void;
 
-    // Task Management Actions
     addTask: (task: Omit<Task, 'id' | 'timestamp'>) => void;
     updateTask: (id: string, updates: Partial<Task>) => void;
     deleteTask: (id: string) => void;
@@ -167,7 +167,6 @@ export const useAppStore = create<AppState>((set) => ({
         workflowType: 'GENERAL',
         diagramStatus: 'OK',
         diagramError: null,
-        // FIX: Initialized missing properties for process slice to resolve property-not-found errors in components/hooks
         nodes: [],
         edges: [],
         pendingAIAddition: null,
@@ -175,9 +174,10 @@ export const useAppStore = create<AppState>((set) => ({
         audioUrl: null,
         audioTranscript: null,
         entropyScore: 0,
-        error: null
+        error: null,
+        vaultInsights: [],
+        activeStacks: {}
     },
-    // FIX: Initialized imageGen with default values used throughout the application
     imageGen: { 
         history: [], 
         prompt: '', 
@@ -272,7 +272,6 @@ export const useAppStore = create<AppState>((set) => ({
     setProcessState: (update) => set((state) => ({ process: { ...state.process, ...(typeof update === 'function' ? update(state.process) : update) } })),
     setCodeStudioState: (update) => set((state) => ({ codeStudio: { ...state.codeStudio, ...(typeof update === 'function' ? update(state.codeStudio) : update) } })),
     setHardwareState: (update) => set((state) => ({ hardware: { ...state.hardware, ...(typeof update === 'function' ? update(state.hardware) : update) } })),
-    // FIX: Correctly implemented setImageGenState to handle partial updates or functional updates
     setImageGenState: (update) => set((state) => ({ imageGen: { ...state.imageGen, ...(typeof update === 'function' ? update(state.imageGen) : update) } })),
     setBibliomorphicState: (update) => set((state) => ({ bibliomorphic: { ...state.bibliomorphic, ...(typeof update === 'function' ? update(state.bibliomorphic) : update) } })),
     setDashboardState: (update) => set((state) => ({ dashboard: { ...state.dashboard || {}, ...update } })),

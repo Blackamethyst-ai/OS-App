@@ -42,7 +42,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
       setProcessState({ diagramStatus: 'OK', diagramError: null });
       try {
         const id = `mermaid-${Date.now()}`;
-        const cleanCode = activeCode.replace(/```mermaid/g, '').replace(/```/g, '').trim();
+        const cleanCode = (activeCode || '').replace(/```mermaid/g, '').replace(/```/g, '').trim();
         const { svg } = await mermaid.render(id, cleanCode);
         if (isMounted) { setSvgData(svg); setTransform({ x: 0, y: 0, scale: 0.8 }); }
       } catch (err: any) {

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -139,18 +138,26 @@ const SynapticRouter: React.FC = () => {
                 });
                 break;
             case 'COPY':
-                navigator.clipboard.writeText(targetContent);
-                addLog('INFO', 'BUFFER: Fragment cached to clipboard.');
+                if (targetContent) {
+                    navigator.clipboard.writeText(targetContent);
+                    addLog('INFO', 'BUFFER: Fragment cached to clipboard.');
+                }
                 break;
             case 'SEARCH':
-                useAppStore.getState().setSearchState({ query: targetContent.substring(0, 100), isOpen: true });
-                performGlobalSearch(targetContent.substring(0, 100)).then(results => {
-                    useAppStore.getState().setSearchState({ results });
-                });
+                if (targetContent) {
+                    const safeQuery = String(targetContent).substring(0, 100);
+                    useAppStore.getState().setSearchState({ query: safeQuery, isOpen: true });
+                    performGlobalSearch(safeQuery).then(results => {
+                        useAppStore.getState().setSearchState({ results });
+                    });
+                }
                 break;
             case 'JUMP_CODE':
                 window.location.hash = '/code';
-                if (targetContent) setCodeStudioState({ prompt: `Refactor this logic:\n\n${targetContent.substring(0, 500)}` });
+                if (targetContent) {
+                    const safePrompt = `Refactor this logic:\n\n${String(targetContent).substring(0, 500)}`;
+                    setCodeStudioState({ prompt: safePrompt });
+                }
                 break;
         }
         closeContextMenu();

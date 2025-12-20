@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from 'react';
 import { KnowledgeNode } from '../../types';
 
@@ -159,7 +158,8 @@ const SuperLattice: React.FC<SuperLatticeProps> = ({ nodes, mode, onNodeSelect, 
                     ctx.fillStyle = isSelected ? '#fff' : '#aaa';
                     ctx.font = `${isSelected ? 'bold ' : ''}${9 * s}px Fira Code`;
                     ctx.textAlign = 'center';
-                    ctx.fillText(n.label.substring(0, 15), n.x, n.y - (10 * s));
+                    const label = n.label || 'Unknown';
+                    ctx.fillText(label.substring(0, 15), n.x, n.y - (10 * s));
                 }
                 ctx.globalAlpha = 1;
             });

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { Task, TaskStatus, TaskPriority, SubTask } from '../types';
@@ -5,9 +6,11 @@ import {
     Plus, Tag, ChevronDown, ChevronRight, CheckCircle, Trash2, Filter, 
     SortAsc, AlertCircle, GripVertical, Check, ListTodo, MoreVertical, 
     X, Archive, Zap, Play, CheckCircle2, ListChecks, Activity, 
-    BarChart3, Hash, Clock
+    BarChart3, Hash, Clock, Sparkles, Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { decomposeTaskToSubtasks, promptSelectKey } from '../services/geminiService';
+import { audio } from '../services/audioService';
 
 const PRIORITY_COLORS: Record<TaskPriority, string> = {
     [TaskPriority.LOW]: '#10b981',
@@ -52,6 +55,7 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
     const [showFlourish, setShowFlourish] = useState(false);
     const [isAddingSubtask, setIsAddingSubtask] = useState(false);
     const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
+    const [isBreakingDown, setIsBreakingDown] = useState(false);
 
     const toggleStatus = (nextStatus?: TaskStatus) => {
         const targetStatus = nextStatus || (task.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE);
@@ -59,6 +63,7 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
             setShowFlourish(true);
             setTimeout(() => setShowFlourish(false), 800);
             addLog('SUCCESS', `TASK_COMPLETE: ${task.title}`);
+            audio.playSuccess();
         }
         updateTask(task.id, { status: targetStatus });
     };
@@ -70,6 +75,35 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
         updateTask(task.id, { subtasks: [...task.subtasks, sub], isSubtasksCollapsed: false });
         setNewSubtaskTitle('');
         setIsAddingSubtask(false);
+    };
+
+    const handleAIBreakdown = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsBreakingDown(true);
+        audio.playClick();
+        try {
+            const hasKey = await window.aistudio?.hasSelectedApiKey();
+            if (!hasKey) { await promptSelectKey(); setIsBreakingDown(false); return; }
+
+            const newSubs = await decomposeTaskToSubtasks(task.title, task.description);
+            const subtasks: SubTask[] = newSubs.map(title => ({
+                id: crypto.randomUUID(),
+                title,
+                completed: false
+            }));
+
+            updateTask(task.id, { 
+                subtasks: [...task.subtasks, ...subtasks],
+                isSubtasksCollapsed: false
+            });
+            addLog('SUCCESS', `AI_BREAKDOWN: Synchronized ${subtasks.length} sub-units for "${task.title}".`);
+            audio.playSuccess();
+        } catch (err: any) {
+            addLog('ERROR', `AI_BREAKDOWN_FAIL: ${err.message}`);
+            audio.playError();
+        } finally {
+            setIsBreakingDown(false);
+        }
     };
 
     const removeSubtask = (subId: string) => {
@@ -87,14 +121,28 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
         updateTask(task.id, { isSubtasksCollapsed: !task.isSubtasksCollapsed });
     };
 
+    const handleDragStart = (e: React.DragEvent) => {
+        e.dataTransfer.setData('taskId', task.id);
+        e.dataTransfer.effectAllowed = 'move';
+        // Add a class for visual styling during drag if needed
+        (e.target as HTMLElement).style.opacity = '0.5';
+    };
+
+    const handleDragEnd = (e: React.DragEvent) => {
+        (e.target as HTMLElement).style.opacity = '1';
+    };
+
     const completedCount = task.subtasks.filter(s => s.completed).length;
 
     return (
         <motion.div
             layout
+            draggable
+            onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-4 shadow-xl group relative overflow-hidden mb-3 hover:border-[#333] transition-colors"
+            className={`bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-4 shadow-xl group relative overflow-hidden mb-3 hover:border-[#333] transition-colors cursor-grab active:cursor-grabbing`}
             style={{ borderLeftColor: PRIORITY_COLORS[task.priority], borderLeftWidth: '3px' }}
         >
             <CheckmarkFlourish isVisible={showFlourish} />
@@ -144,12 +192,22 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
                         {task.isSubtasksCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
                         LOG_TASKS ({completedCount}/{task.subtasks.length})
                     </button>
-                    <button 
-                        onClick={() => setIsAddingSubtask(!isAddingSubtask)}
-                        className="text-[9px] font-mono text-gray-600 hover:text-[#9d4edd]"
-                    >
-                        <Plus size={12} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                        <button 
+                            onClick={handleAIBreakdown} 
+                            disabled={isBreakingDown}
+                            title="AI Decomposition"
+                            className={`p-1 rounded transition-all ${isBreakingDown ? 'text-[#9d4edd] animate-pulse' : 'text-gray-600 hover:text-[#9d4edd]'}`}
+                        >
+                            {isBreakingDown ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                        </button>
+                        <button 
+                            onClick={() => setIsAddingSubtask(!isAddingSubtask)}
+                            className="text-gray-600 hover:text-[#9d4edd] p-1"
+                        >
+                            <Plus size={12} />
+                        </button>
+                    </div>
                 </div>
                 
                 {!task.isSubtasksCollapsed && (
@@ -270,10 +328,11 @@ const StatsRibbon = ({ tasks }: { tasks: Task[] }) => {
 };
 
 const TaskBoard: React.FC = () => {
-    const { tasks, addTask } = useAppStore();
+    const { tasks, addTask, deleteTask, updateTask, addLog } = useAppStore();
     const [filterTag, setFilterTag] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<'PRIORITY' | 'DATE'>('PRIORITY');
     const [isAdding, setIsAdding] = useState(false);
+    const [dragOverStatus, setDragOverStatus] = useState<TaskStatus | null>(null);
 
     // Form state for new task
     const [newTitle, setNewTitle] = useState('');
@@ -321,6 +380,39 @@ const TaskBoard: React.FC = () => {
         setNewDesc('');
         setNewTags('');
         setIsAdding(false);
+        audio.playSuccess();
+    };
+
+    const clearCompletedInColumn = (status: TaskStatus) => {
+        const toDelete = tasks.filter(t => t.status === status && t.status === TaskStatus.DONE);
+        if (toDelete.length > 0) {
+            toDelete.forEach(t => deleteTask(t.id));
+            addLog('SYSTEM', `ARCHIVE: Purged ${toDelete.length} finalized items from matrix.`);
+            audio.playClick();
+        }
+    };
+
+    const handleDragOver = (e: React.DragEvent, status: TaskStatus) => {
+        e.preventDefault();
+        setDragOverStatus(status);
+    };
+
+    const handleDragLeave = () => {
+        setDragOverStatus(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, status: TaskStatus) => {
+        e.preventDefault();
+        setDragOverStatus(null);
+        const taskId = e.dataTransfer.getData('taskId');
+        if (taskId) {
+            const task = tasks.find(t => t.id === taskId);
+            if (task && task.status !== status) {
+                updateTask(taskId, { status });
+                addLog('INFO', `TASK_MIGRATION: Moved "${task.title}" to ${status}`);
+                audio.playClick();
+            }
+        }
     };
 
     return (
@@ -378,15 +470,32 @@ const TaskBoard: React.FC = () => {
             {/* Kanban Columns */}
             <div className="flex-1 flex gap-6 p-6 overflow-x-auto custom-scrollbar bg-[#050505]/50 relative z-10">
                 {Object.values(TaskStatus).map(status => (
-                    <div key={status} className="w-[350px] flex flex-col shrink-0">
-                        <div className="flex items-center justify-between mb-6 px-2">
+                    <div 
+                        key={status} 
+                        className={`w-[350px] flex flex-col shrink-0 rounded-2xl transition-colors duration-300 ${dragOverStatus === status ? 'bg-[#9d4edd]/5 border-2 border-dashed border-[#9d4edd]/20' : ''}`}
+                        onDragOver={(e) => handleDragOver(e, status)}
+                        onDragLeave={handleDragLeave}
+                        onDrop={(e) => handleDrop(e, status)}
+                    >
+                        <div className="flex items-center justify-between mb-6 px-2 group/header">
                             <div className="flex items-center gap-3">
                                 <div className={`w-1.5 h-1.5 rounded-full ${status === 'TODO' ? 'bg-[#3b82f6]' : status === 'IN_PROGRESS' ? 'bg-[#f59e0b]' : 'bg-[#42be65]'} shadow-[0_0_8px_currentColor]`}></div>
                                 <h3 className="text-[11px] font-black font-mono text-gray-300 tracking-[0.2em]">{STATUS_LABELS[status]}</h3>
                             </div>
-                            <span className="text-[9px] font-black font-mono text-gray-600 bg-[#111] px-2 py-0.5 rounded border border-white/5">
-                                {filteredAndSortedTasks.filter(t => t.status === status).length}
-                            </span>
+                            <div className="flex items-center gap-3">
+                                {status === TaskStatus.DONE && (
+                                    <button 
+                                        onClick={() => clearCompletedInColumn(status)}
+                                        className="opacity-0 group-hover/header:opacity-100 transition-opacity text-gray-600 hover:text-red-500"
+                                        title="Clear Finished"
+                                    >
+                                        <Archive size={14} />
+                                    </button>
+                                )}
+                                <span className="text-[9px] font-black font-mono text-gray-600 bg-[#111] px-2 py-0.5 rounded border border-white/5">
+                                    {filteredAndSortedTasks.filter(t => t.status === status).length}
+                                </span>
+                            </div>
                         </div>
                         
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-1">
