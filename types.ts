@@ -1,10 +1,34 @@
+
 export interface AgentDNA {
     id: string;
     label: string;
-    // Fix: Changed from specific union to string to allow descriptive role names like "Structural Logic" or "Risk Mitigation"
     role: string;
     color: string;
     description: string;
+}
+
+export interface ToolDefinition {
+    name: string;
+    description: string;
+    parameters: {
+        type: 'OBJECT';
+        properties: Record<string, { type: string; description: string; enum?: string[] }>;
+        required?: string[];
+    };
+}
+
+export interface ToolResult {
+    toolName: string;
+    status: 'SUCCESS' | 'ERROR';
+    data: any;
+    uiHint?: 'TABLE' | 'CHART' | 'STAT' | 'MESSAGE' | 'NAV';
+}
+
+export interface AgenticState {
+    isThinking: boolean;
+    activeTool: string | null;
+    lastResult: ToolResult | null;
+    history: { role: 'user' | 'model' | 'tool'; content: string; toolName?: string }[];
 }
 
 export interface CompressedAxiom {
@@ -388,7 +412,6 @@ export interface StoredArtifact {
     metadata?: any;
 }
 
-// FIX: Added missing exported members
 export enum TemporalEra {
     SILICON = 'SILICON',
     QUANTUM = 'QUANTUM',

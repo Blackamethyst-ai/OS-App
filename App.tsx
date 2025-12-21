@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { useAppStore } from './store';
 import { useSystemMind } from './stores/useSystemMind'; 
@@ -19,6 +20,8 @@ import ResearchTray from './components/ResearchTray';
 import VoiceManager from './components/VoiceManager'; 
 import VoiceCoreOverlay from './components/VoiceCoreOverlay'; 
 import UserProfileOverlay from './components/UserProfileOverlay'; 
+import FlywheelOrbit from './components/FlywheelOrbit';
+import AgenticHUD from './components/AgenticHUD';
 import { LayerToggle } from './components/LayerToggle';
 
 // Hooks & Utilities
@@ -175,6 +178,8 @@ const App: React.FC = () => {
       <HoloProjector /> 
       <ResearchTray /> 
       <VoiceManager /> 
+      <FlywheelOrbit />
+      <AgenticHUD />
       
       <AnimatePresence>
         {isHelpOpen && <HelpCenter onClose={() => setIsHelpOpen(false)} />}
