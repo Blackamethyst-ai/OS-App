@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, Suspense, lazy } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -156,6 +157,10 @@ const SynapticRouter: React.FC = () => {
         </div>
     );
 
+    // Some views like Process Visualizer (React Flow) or Code Studio need fixed height.
+    // Most content views should flow naturally and scroll globally.
+    const isFixedLayout = mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN;
+
     return (
         <div className="flex-1 relative overflow-hidden flex flex-col">
             <Suspense fallback={<LoadingSector />}>
@@ -166,7 +171,9 @@ const SynapticRouter: React.FC = () => {
                         animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
                         exit={{ opacity: 0, x: 20, filter: 'blur(10px)' }}
                         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                        className="flex-1 relative z-10 p-6 overflow-hidden flex flex-col"
+                        className={`flex-1 relative z-10 p-6 flex flex-col ${
+                            isFixedLayout ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar'
+                        } pb-44`} // Universal bottom padding of ~176px (roughly 20% of viewport)
                     >
                         {mode === AppMode.DASHBOARD && <Dashboard />}
                         {mode === AppMode.SYNTHESIS_BRIDGE && <SynthesisBridge />}
@@ -177,6 +184,9 @@ const SynapticRouter: React.FC = () => {
                         {mode === AppMode.HARDWARE_ENGINEER && <HardwareEngine />}
                         {mode === AppMode.VOICE_MODE && <VoiceMode />}
                         {mode === AppMode.CODE_STUDIO && <CodeStudio />}
+                        
+                        {/* Universal Spacer to guarantee visibility of the very bottom of the content */}
+                        <div className="h-20 w-full shrink-0" />
                     </motion.main>
                 </AnimatePresence>
             </Suspense>
@@ -199,7 +209,7 @@ const SynapticRouter: React.FC = () => {
                                 </span>
                                 <GitBranch className="w-3 h-3 text-[#9d4edd]" />
                             </div>
-                            <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-500 uppercase truncate">
+                            <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-600 uppercase truncate">
                                 <Hash className="w-2.5 h-2.5" /> {currentPath || 'DASHBOARD'}
                             </div>
                         </div>
@@ -209,9 +219,7 @@ const SynapticRouter: React.FC = () => {
                                 <>
                                     <MenuItem icon={ArrowUpRight} label="Jump to Dashboard" onClick={() => window.location.hash = '/dashboard'} />
                                     <MenuItem icon={Activity} label="System Diagnostic" onClick={() => {
-                                        // Update to target Memory Core with XRAY tab
                                         window.location.hash = '/memory';
-                                        // This might need a store update but the component handles its internal state
                                     }} />
                                     <MenuItem icon={Terminal} label="Open Quake Terminal" onClick={() => toggleTerminal(true)} />
                                 </>

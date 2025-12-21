@@ -1,9 +1,10 @@
 
 import React, { useState } from 'react';
 import { useAppStore } from '../store';
-import { Sun, Moon, Contrast, Terminal, Book, Box, Zap, Palette, ShieldAlert, LayoutGrid } from 'lucide-react';
+import { Sun, Moon, Contrast, Terminal, Book, Box, Zap, Palette, ShieldAlert, Sparkles, Loader2, Send } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
+import { generateCustomTheme } from '../services/geminiService';
 import { AppTheme } from '../types';
 
 const UI_PREVIEW_MAP: Record<AppTheme, { bg: string; accent: string; text: string }> = {
@@ -14,13 +15,16 @@ const UI_PREVIEW_MAP: Record<AppTheme, { bg: string; accent: string; text: strin
     [AppTheme.AMBER]: { bg: '#0a0500', accent: '#f59e0b', text: '#f59e0b' },
     [AppTheme.SOLARIZED]: { bg: '#fdf6e3', accent: '#2aa198', text: '#657b83' },
     [AppTheme.MIDNIGHT]: { bg: '#020617', accent: '#3b82f6', text: '#e2e8f0' },
-    [AppTheme.NEON_CYBER]: { bg: '#000000', accent: '#d946ef', text: '#22d3ee' }
+    [AppTheme.NEON_CYBER]: { bg: '#000000', accent: '#d946ef', text: '#22d3ee' },
+    [AppTheme.CUSTOM]: { bg: '#0a0a0a', accent: '#9d4edd', text: '#eee' }
 };
 
 const ThemeSwitcher: React.FC = () => {
-    const { theme, setTheme } = useAppStore();
+    const { theme, setTheme, customThemeConfig, setCustomThemeConfig, addLog } = useAppStore();
     const [isOpen, setIsOpen] = useState(false);
     const [hoveredTheme, setHoveredTheme] = useState<AppTheme | null>(null);
+    const [customPrompt, setCustomPrompt] = useState('');
+    const [isGenerating, setIsGenerating] = useState(false);
 
     const themes = [
         { id: AppTheme.DARK, icon: Moon, label: 'Dark Core', color: '#9d4edd', desc: 'Default low-light interface' },
@@ -29,18 +33,38 @@ const ThemeSwitcher: React.FC = () => {
         { id: AppTheme.AMBER, icon: Terminal, label: 'Amber Protocol', color: '#f59e0b', desc: 'Retro-industrial terminal' },
         { id: AppTheme.SOLARIZED, icon: Book, label: 'Solarized', color: '#2aa198', desc: 'Optimized reading mode' },
         { id: AppTheme.NEON_CYBER, icon: Zap, label: 'Neon Cyber', color: '#d946ef', desc: 'High-entropy visual skin' },
-        { id: AppTheme.CONTRAST, icon: Contrast, label: 'High Contrast', color: '#ffffff', desc: 'Pure black/white access' },
-        { id: AppTheme.HIGH_CONTRAST, icon: ShieldAlert, label: 'Max Contrast', color: '#00ff00', desc: 'Accessibility focus' }
+        { id: AppTheme.CUSTOM, icon: Sparkles, label: 'Neural Skin', color: '#22d3ee', desc: 'Customized global vector' }
     ];
 
     const currentTheme = themes.find(t => t.id === theme) || themes[0];
     const previewThemeId = hoveredTheme || theme;
-    const previewStyles = UI_PREVIEW_MAP[previewThemeId];
+    const previewStyles = previewThemeId === AppTheme.CUSTOM && customThemeConfig 
+        ? { bg: customThemeConfig.bgMain, accent: customThemeConfig.accentPrimary, text: customThemeConfig.textMain }
+        : UI_PREVIEW_MAP[previewThemeId];
 
     const handleThemeSelect = (id: AppTheme) => {
         setTheme(id);
-        setIsOpen(false);
+        if (id !== AppTheme.CUSTOM) setIsOpen(false);
         audio.playClick();
+    };
+
+    const handleCrystallizeSkin = async () => {
+        if (!customPrompt.trim() || isGenerating) return;
+        setIsGenerating(true);
+        addLog('SYSTEM', 'SKIN_ENGINE: Synthesizing UI tokens...');
+        audio.playClick();
+        
+        try {
+            const config = await generateCustomTheme(customPrompt);
+            setCustomThemeConfig(config);
+            addLog('SUCCESS', 'SKIN_ENGINE: Custom interface vector crystallized.');
+            audio.playSuccess();
+        } catch (e) {
+            addLog('ERROR', 'SKIN_ENGINE_FAIL: Synthesis collision.');
+            audio.playError();
+        } finally {
+            setIsGenerating(false);
+        }
     };
 
     return (
@@ -74,9 +98,11 @@ const ThemeSwitcher: React.FC = () => {
                                 <div className="text-[7px] font-mono text-gray-600 uppercase tracking-widest mb-1.5">Matrix Projection Preview</div>
                                 <div 
                                     className="w-full h-28 rounded-lg border border-white/10 overflow-hidden relative shadow-inner transition-colors duration-500"
-                                    style={{ backgroundColor: previewStyles.bg }}
+                                    style={{ 
+                                        backgroundColor: previewStyles.bg,
+                                        fontFamily: previewThemeId === AppTheme.CUSTOM ? customThemeConfig?.fontFamily : 'inherit'
+                                    }}
                                 >
-                                    {/* Mock Header */}
                                     <div className="h-6 border-b border-white/5 flex items-center justify-between px-2 gap-1.5 bg-black/20">
                                         <div className="flex items-center gap-1">
                                             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: previewStyles.accent }} />
@@ -87,16 +113,12 @@ const ThemeSwitcher: React.FC = () => {
                                             <div className="w-3 h-3 rounded bg-white/5" />
                                         </div>
                                     </div>
-                                    
                                     <div className="p-3 flex gap-3 h-full">
-                                        {/* Mock Sidebar */}
                                         <div className="w-10 border-r border-white/5 h-full flex flex-col gap-1.5 pt-1">
                                             {[1,2,3,4].map(i => (
                                                 <div key={i} className="w-full h-1.5 opacity-10 rounded-sm" style={{ backgroundColor: previewStyles.text }} />
                                             ))}
                                         </div>
-                                        
-                                        {/* Mock Dashboard Area */}
                                         <div className="flex-1 space-y-3 pt-1">
                                             <div className="w-2/3 h-2.5 opacity-80 rounded-sm" style={{ backgroundColor: previewStyles.text }} />
                                             <div className="grid grid-cols-2 gap-2">
@@ -111,13 +133,31 @@ const ThemeSwitcher: React.FC = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    {/* Scanline Effect */}
                                     <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:8px_8px]"></div>
                                 </div>
                             </div>
 
-                            <div className="max-h-[350px] overflow-y-auto custom-scrollbar pr-0.5">
+                            {/* Generator Engine */}
+                            <div className="px-3 mb-3">
+                                <div className="text-[7px] font-mono text-gray-600 uppercase tracking-widest mb-1.5">Skin Generator Engine</div>
+                                <div className="relative group">
+                                    <textarea 
+                                        value={customPrompt}
+                                        onChange={e => setCustomPrompt(e.target.value)}
+                                        placeholder="Describe your aesthetic (e.g. 'Frosted emerald glass with gold accents')..."
+                                        className="w-full bg-black border border-[#222] p-2.5 pr-10 text-[10px] text-white font-mono rounded-lg outline-none focus:border-[#22d3ee] resize-none h-16 transition-all"
+                                    />
+                                    <button 
+                                        onClick={handleCrystallizeSkin}
+                                        disabled={isGenerating || !customPrompt.trim()}
+                                        className={`absolute right-2 bottom-2 p-1.5 rounded-md transition-all ${isGenerating ? 'bg-[#9d4edd] text-black animate-spin' : 'bg-[#111] text-gray-500 hover:text-[#22d3ee]'}`}
+                                    >
+                                        {isGenerating ? <Loader2 size={12} /> : <Send size={12} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="max-h-[250px] overflow-y-auto custom-scrollbar pr-0.5">
                                 {themes.map((t) => (
                                     <button
                                         key={t.id}
@@ -142,11 +182,6 @@ const ThemeSwitcher: React.FC = () => {
                                         )}
                                     </button>
                                 ))}
-                            </div>
-                            <div className="mt-1 p-2 bg-black/50 border-t border-[#1f1f1f] rounded-b-lg">
-                                <p className="text-[7px] text-gray-600 font-mono leading-tight uppercase tracking-widest">
-                                    Adaptive interface scaling protocols synchronized.
-                                </p>
                             </div>
                         </motion.div>
                     </>

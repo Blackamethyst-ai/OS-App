@@ -21,8 +21,8 @@ interface FlywheelState {
 }
 
 export const useFlywheelStore = create<FlywheelState>((set, get) => ({
-  velocity: 10,
-  confidenceScore: 0.5,
+  velocity: 15,
+  confidenceScore: 0.6,
   metrics: [],
 
   recordAction: (context, action, outcome) => {
@@ -36,16 +36,22 @@ export const useFlywheelStore = create<FlywheelState>((set, get) => ({
 
     set((state) => {
       const updatedMetrics = [...state.metrics, newMetric];
-      const recent = updatedMetrics.slice(-10);
-      const successful = recent.filter(m => 
-        m.outcome === 'ACCEPTED' || m.outcome === 'MODIFIED'
-      ).length;
+      const recent = updatedMetrics.slice(-15);
       
-      const newConfidence = Math.min((successful / Math.max(1, recent.length)) + 0.1, 1.0);
+      // Calculate weighted success (Modified is 0.7 success, Reject is -0.5)
+      const successPoints = recent.reduce((acc, m) => {
+          if (m.outcome === 'ACCEPTED') return acc + 1;
+          if (m.outcome === 'MODIFIED') return acc + 0.7;
+          if (m.outcome === 'REJECTED') return acc - 0.5;
+          return acc;
+      }, 0);
+      
+      const newConfidence = Math.max(0.1, Math.min(1.0, (successPoints / Math.max(1, recent.length)) + 0.4));
 
       let newVelocity = state.velocity;
-      if (outcome === 'ACCEPTED') newVelocity = Math.min(state.velocity + 15, 100);
-      if (outcome === 'REJECTED') newVelocity = Math.max(state.velocity - 20, 5);
+      if (outcome === 'ACCEPTED') newVelocity = Math.min(state.velocity + 30, 100);
+      if (outcome === 'REJECTED') newVelocity = Math.max(state.velocity - 40, 2);
+      if (outcome === 'MODIFIED') newVelocity = Math.min(state.velocity + 15, 85);
 
       return {
         metrics: updatedMetrics,
@@ -54,12 +60,19 @@ export const useFlywheelStore = create<FlywheelState>((set, get) => ({
       };
     });
 
-    // Decay velocity back to cruise speed
-    setTimeout(() => {
-        const { confidenceScore } = get();
-        set({ velocity: Math.max(confidenceScore * 40, 5) });
-    }, 2000);
+    // Smooth Exponential Decay to Cruise Speed
+    const decayInterval = setInterval(() => {
+        const { velocity, confidenceScore } = get();
+        const cruiseSpeed = confidenceScore * 35;
+        
+        if (Math.abs(velocity - cruiseSpeed) < 0.5) {
+            clearInterval(decayInterval);
+            return;
+        }
+
+        set({ velocity: velocity + (cruiseSpeed - velocity) * 0.08 });
+    }, 50);
   },
 
-  resetFlywheel: () => set({ metrics: [], confidenceScore: 0.5, velocity: 10 }),
+  resetFlywheel: () => set({ metrics: [], confidenceScore: 0.6, velocity: 15 }),
 }));
