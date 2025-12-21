@@ -2,10 +2,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
 import { useSystemMind } from '../stores/useSystemMind';
-import { X, Terminal, ShieldAlert, CheckCircle2, Info, AlertTriangle, Activity, Trash2, AlertOctagon, Bell, Cpu, Scan, Globe } from 'lucide-react';
+// Fix: Added ShieldCheck to the imports from lucide-react
+import { X, Terminal, ShieldAlert, CheckCircle2, Info, AlertTriangle, Activity, Trash2, AlertOctagon, Bell, Cpu, Scan, Globe, ShieldCheck } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
-
-// --- VISUAL COMPONENT: NOTIFICATION CARD ---
 
 const NotificationCard: React.FC<{ 
     id: string; 
@@ -16,7 +15,6 @@ const NotificationCard: React.FC<{
     onDismiss: (id: string) => void; 
 }> = ({ id, type, title, message, timestamp, onDismiss }) => {
     
-    // Auto-dismiss timer
     useEffect(() => {
         const duration = type === 'ERROR' ? 10000 : 5000;
         const timer = setTimeout(() => onDismiss(id), duration);
@@ -95,7 +93,6 @@ const NotificationCard: React.FC<{
                 </div>
             </div>
 
-            {/* Progress Bar */}
             <motion.div 
                 initial={{ width: '100%' }}
                 animate={{ width: '0%' }}
@@ -105,8 +102,6 @@ const NotificationCard: React.FC<{
         </motion.div>
     );
 };
-
-// --- VISUAL COMPONENT: LOG ROW ---
 
 const LogRow: React.FC<{ log: any }> = ({ log }) => {
     const getColor = (t: string) => {
@@ -118,15 +113,15 @@ const LogRow: React.FC<{ log: any }> = ({ log }) => {
 
     return (
         <div className="flex items-start gap-3 p-3 border-b border-[#222] hover:bg-white/5 transition-colors font-mono text-[10px] group">
-            <div className={`mt-0.5 ${getColor(log.type)}`}>
-                {log.type === 'ERROR' ? <ShieldAlert className="w-3 h-3" /> : 
-                 log.type === 'SUCCESS' ? <CheckCircle2 className="w-3 h-3" /> :
-                 log.type === 'WARNING' ? <AlertTriangle className="w-3 h-3" /> :
+            <div className={`mt-0.5 ${getColor(log.level || log.type)}`}>
+                {(log.level || log.type) === 'ERROR' ? <ShieldAlert className="w-3 h-3" /> : 
+                 (log.level || log.type) === 'SUCCESS' ? <CheckCircle2 className="w-3 h-3" /> :
+                 (log.level || log.type) === 'WARNING' ? <AlertTriangle className="w-3 h-3" /> :
                  <Info className="w-3 h-3" />}
             </div>
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
-                    <span className={`font-bold ${getColor(log.type)}`}>{log.title}</span>
+                    <span className={`font-bold ${getColor(log.level || log.type)} uppercase`}>{log.level || log.type}</span>
                     <span className="text-gray-600">|</span>
                     <span className="text-gray-500">{new Date(log.timestamp).toLocaleTimeString()}</span>
                 </div>
@@ -136,18 +131,12 @@ const LogRow: React.FC<{ log: any }> = ({ log }) => {
     );
 };
 
-// --- MAIN COMPONENT: GLOBAL ALERT MESH ---
-
-const GlobalAlertMesh: React.FC = () => {
+const GlobalAlertMesh: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
     const store = useAppStore();
     const { notifications, pushNotification, dismissNotification } = useSystemMind();
-    const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [filter, setFilter] = useState<'ALL' | 'ERROR' | 'WARNING' | 'SYSTEM'>('ALL');
-    
-    // Tracks errors to prevent duplicate toasts
     const lastErrors = useRef<Record<string, string | null>>({});
 
-    // 1. WATCHER: Sync Store Errors (Centralized Trap)
     useEffect(() => {
         const errorSources = {
             'PROCESS_LOGIC': store.process.error,
@@ -169,176 +158,89 @@ const GlobalAlertMesh: React.FC = () => {
             }
         });
     }, [
-        store.process.error, 
-        store.process.diagramError,
-        store.imageGen.error, 
-        store.bibliomorphic.error, 
-        store.hardware.error, 
-        store.voice.error, 
-        store.codeStudio.error,
-        store.bicameral.error,
-        pushNotification
+        store.process.error, store.process.diagramError, store.imageGen.error, 
+        store.bibliomorphic.error, store.hardware.error, store.voice.error, 
+        store.codeStudio.error, store.bicameral.error, pushNotification
     ]);
 
-    // 2. WATCHER: Sync System Logs (Success/Error/Warn)
     useEffect(() => {
         const lastLog = store.system.logs[store.system.logs.length - 1];
         if (!lastLog) return;
-
         const logIdKey = `log-${lastLog.id}`;
         if (lastErrors.current['log_tracker'] === logIdKey) return;
-
-        if (lastLog.level === 'SUCCESS') {
-            pushNotification('SUCCESS', 'OPERATION_COMPLETE', lastLog.message);
-        } else if (lastLog.level === 'WARN') {
-            pushNotification('WARNING', 'SYSTEM_ALERT', lastLog.message);
-        } else if (lastLog.level === 'ERROR') {
-            // Logs marked as ERROR get boosted to toasts automatically
-            pushNotification('ERROR', 'CRITICAL_FAILURE', lastLog.message);
-        }
-        
+        if (lastLog.level === 'SUCCESS') pushNotification('SUCCESS', 'OP_OK', lastLog.message);
+        else if (lastLog.level === 'WARN') pushNotification('WARNING', 'SYS_ALERT', lastLog.message);
+        else if (lastLog.level === 'ERROR') pushNotification('ERROR', 'SYS_CRITICAL', lastLog.message);
         lastErrors.current['log_tracker'] = logIdKey;
     }, [store.system.logs, pushNotification]);
 
-    // Filter Logic
-    const filteredNotifications = notifications.filter(n => {
+    const filteredLogs = store.system.logs.filter(l => {
         if (filter === 'ALL') return true;
-        if (filter === 'ERROR') return n.type === 'ERROR';
-        if (filter === 'WARNING') return n.type === 'WARNING';
-        return n.type !== 'ERROR' && n.type !== 'WARNING';
+        if (filter === 'ERROR') return l.level === 'ERROR';
+        if (filter === 'WARNING') return l.level === 'WARN';
+        return l.level !== 'ERROR' && l.level !== 'WARN';
     });
 
-    const errorCount = notifications.filter(n => n.type === 'ERROR').length;
+    const errorCount = store.system.logs.filter(n => n.level === 'ERROR').length;
 
     return (
         <>
-            {/* 0. SYSTEM HEALTH VIGNETTE (Visual Feedback for Critical State) */}
             <AnimatePresence>
                 {errorCount > 0 && (
-                    <motion.div 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.5 }}
-                        className="fixed inset-0 pointer-events-none z-[8000] border-[4px] border-red-500/20 shadow-[inset_0_0_150px_rgba(220,38,38,0.15)]"
-                    />
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} className="fixed inset-0 pointer-events-none z-[8000] border-[2px] border-red-500/10 shadow-[inset_0_0_100px_rgba(220,38,38,0.1)]" />
                 )}
             </AnimatePresence>
 
-            {/* 1. TOAST LAYER (Fixed Top Right) */}
-            <div className="fixed top-20 right-0 z-[9999] flex flex-col items-end pointer-events-none gap-2 perspective-1000 overflow-visible p-6">
+            <div className="fixed top-20 right-0 z-[9999] flex flex-col items-end pointer-events-none gap-2 p-6">
                 <AnimatePresence mode="popLayout">
                     {notifications.slice(-4).reverse().map((note) => (
-                        <NotificationCard 
-                            key={note.id}
-                            id={note.id}
-                            type={note.type}
-                            title={note.title}
-                            message={note.message}
-                            timestamp={note.timestamp}
-                            onDismiss={dismissNotification}
-                        />
+                        <NotificationCard key={note.id} id={note.id} type={note.type} title={note.title} message={note.message} timestamp={note.timestamp} onDismiss={dismissNotification} />
                     ))}
                 </AnimatePresence>
             </div>
 
-            {/* 2. DIAGNOSTICS TRIGGER (Fixed Bottom Right) */}
-            <div className="fixed bottom-6 right-6 z-[9000]">
-                <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => setIsPanelOpen(!isPanelOpen)}
-                    className={`
-                        h-10 px-4 rounded-full flex items-center gap-3 shadow-[0_0_20px_rgba(0,0,0,0.5)] border backdrop-blur-xl transition-all
-                        ${errorCount > 0 
-                            ? 'bg-red-950/80 border-red-500 text-red-400 animate-pulse shadow-[0_0_20px_rgba(220,38,38,0.4)]' 
-                            : 'bg-[#0a0a0a]/90 border-[#333] text-gray-400 hover:text-white hover:border-[#9d4edd]'}
-                    `}
-                >
-                    {errorCount > 0 ? <AlertOctagon className="w-4 h-4" /> : <Activity className="w-4 h-4" />}
-                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider">
-                        Diagnostics {errorCount > 0 ? `(${errorCount})` : ''}
-                    </span>
-                </motion.button>
-            </div>
-
-            {/* 3. DIAGNOSTICS PANEL (Slide Up) */}
             <AnimatePresence>
-                {isPanelOpen && (
+                {isOpen && (
                     <>
-                        <motion.div 
-                            initial={{ opacity: 0 }} 
-                            animate={{ opacity: 1 }} 
-                            exit={{ opacity: 0 }}
-                            onClick={() => setIsPanelOpen(false)}
-                            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[9998]"
-                        />
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]" />
                         <motion.div
-                            initial={{ y: '100%' }}
-                            animate={{ y: 0 }}
-                            exit={{ y: '100%' }}
-                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                            className="fixed bottom-0 right-0 top-0 w-[500px] bg-[#0a0a0a] border-l border-[#333] z-[9999] shadow-2xl flex flex-col"
+                            initial={{ x: '100%', opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '100%', opacity: 0 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 180 }}
+                            className="fixed bottom-[88px] right-6 top-20 w-[450px] bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 z-[9999] shadow-2xl flex flex-col rounded-2xl overflow-hidden"
                         >
-                            {/* Header */}
-                            <div className="h-14 border-b border-[#333] flex items-center justify-between px-6 bg-[#111]">
-                                <div className="flex items-center gap-2">
-                                    <Terminal className="w-5 h-5 text-[#9d4edd]" />
-                                    <span className="text-xs font-bold font-mono text-white uppercase tracking-widest">
-                                        System Diagnostics
-                                    </span>
+                            <div className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-white/[0.02]">
+                                <div className="flex items-center gap-3 text-[#22d3ee]">
+                                    <div className="p-1.5 bg-[#22d3ee]/20 rounded-lg"><Activity size={18} /></div>
+                                    <span className="text-xs font-black font-mono uppercase tracking-[0.2em]">Neural Diagnostics</span>
                                 </div>
-                                <button onClick={() => setIsPanelOpen(false)} className="text-gray-500 hover:text-white">
-                                    <X className="w-5 h-5" />
-                                </button>
+                                <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-2 bg-[#111] rounded-lg border border-[#222]"><X size={18} /></button>
                             </div>
 
-                            {/* Filters */}
-                            <div className="p-3 border-b border-[#222] flex gap-2 overflow-x-auto bg-[#050505]">
+                            <div className="p-3 border-b border-white/5 flex gap-2 overflow-x-auto bg-black/40">
                                 {['ALL', 'ERROR', 'WARNING', 'SYSTEM'].map(f => (
-                                    <button
-                                        key={f}
-                                        onClick={() => setFilter(f as any)}
-                                        className={`
-                                            px-3 py-1.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider border transition-all
-                                            ${filter === f 
-                                                ? 'bg-[#9d4edd] text-black border-[#9d4edd]' 
-                                                : 'bg-[#111] text-gray-500 border-[#333] hover:border-gray-500 hover:text-gray-300'}
-                                        `}
-                                    >
-                                        {f}
-                                    </button>
+                                    <button key={f} onClick={() => setFilter(f as any)} className={`px-4 py-1.5 rounded-lg text-[9px] font-black font-mono uppercase tracking-widest border transition-all ${filter === f ? 'bg-[#22d3ee] text-black border-[#22d3ee]' : 'bg-[#111] text-gray-500 border-[#222] hover:border-gray-400'}`}>{f}</button>
                                 ))}
                             </div>
 
-                            {/* List */}
-                            <div className="flex-1 overflow-y-auto custom-scrollbar bg-[#080808]">
-                                {filteredNotifications.length === 0 ? (
-                                    <div className="h-full flex flex-col items-center justify-center text-gray-600 opacity-50">
-                                        <CheckCircle2 className="w-12 h-12 mb-4" />
-                                        <p className="text-xs font-mono uppercase tracking-widest">System Nominal</p>
+                            <div className="flex-1 overflow-y-auto custom-scrollbar p-2 bg-[#050505]">
+                                {filteredLogs.length === 0 ? (
+                                    <div className="h-full flex flex-col items-center justify-center text-gray-700 opacity-50 py-20">
+                                        {/* Fix: Added ShieldCheck to imports above on line 6 */}
+                                        <ShieldCheck size={32} className="mb-4" />
+                                        <p className="text-[10px] font-mono uppercase tracking-widest">Lattice Synchronized</p>
                                     </div>
                                 ) : (
-                                    filteredNotifications.slice().reverse().map(n => (
-                                        <LogRow key={n.id} log={n} />
-                                    ))
+                                    filteredLogs.slice().reverse().map((n, i) => <LogRow key={i} log={n} />)
                                 )}
                             </div>
 
-                            {/* Footer */}
-                            <div className="p-4 border-t border-[#333] bg-[#0a0a0a] flex justify-between items-center text-[10px] font-mono text-gray-500">
-                                <div className="flex items-center gap-2">
-                                    <div className={`w-2 h-2 rounded-full ${errorCount > 0 ? 'bg-red-500 animate-pulse' : 'bg-green-500'}`}></div>
-                                    <span>{errorCount} Active Issues</span>
+                            <div className="p-4 border-t border-white/5 bg-black/60 flex justify-between items-center text-[9px] font-mono text-gray-500">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-1.5 h-1.5 rounded-full ${errorCount > 0 ? 'bg-red-500 animate-pulse' : 'bg-[#10b981]'}`}></div>
+                                    <span className="font-black uppercase tracking-tighter">{errorCount} Active Faults</span>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <span className="flex items-center gap-1">
-                                        <Globe className="w-3 h-3" />
-                                        NET: ONLINE
-                                    </span>
-                                    <button className="flex items-center gap-2 hover:text-white transition-colors">
-                                        <Trash2 className="w-3 h-3" /> Clear History
-                                    </button>
+                                    <span className="flex items-center gap-2 uppercase tracking-tighter"><Globe size={12} className="text-[#22d3ee]" /> Uplink Stabilized</span>
                                 </div>
                             </div>
                         </motion.div>

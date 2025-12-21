@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { History, Play, RotateCcw, Save, ChevronUp, ChevronDown } from 'lucide-react';
+import { History, Play, RotateCcw, Save, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { neuralVault } from '../services/persistenceService';
 import { AppMode } from '../types';
 import { useAppStore } from '../store';
@@ -16,13 +16,13 @@ interface Snapshot {
 interface TimeTravelScrubberProps {
     mode: AppMode;
     onRestore: (state: any) => void;
-    className?: string;
+    isOpen: boolean;
+    onClose: () => void;
 }
 
-const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore, className }) => {
+const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore, isOpen, onClose }) => {
     const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
     const [activeIndex, setActiveIndex] = useState<number | null>(null); // null = Live
-    const [isOpen, setIsOpen] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
     const { addLog } = useAppStore();
 
@@ -31,7 +31,6 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
         const loadHistory = async () => {
             const history = await neuralVault.getHistory(mode);
             if (history) {
-                // Sort by time ascending
                 const sorted = [...history].sort((a, b) => a.timestamp - b.timestamp);
                 setSnapshots(sorted);
             }
@@ -39,7 +38,6 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
 
         if (isOpen) {
             loadHistory();
-            // Poll for new snapshots while open (e.g. auto-saves)
             const interval = setInterval(loadHistory, 5000);
             return () => clearInterval(interval);
         }
@@ -48,7 +46,6 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
     // Auto-scroll to end on open
     useEffect(() => {
         if (isOpen && scrollRef.current) {
-            // Tiny delay to allow rendering
             setTimeout(() => {
                 if (scrollRef.current) {
                     scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
@@ -66,7 +63,6 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
 
     const handleReturnToLive = async () => {
         setActiveIndex(null);
-        // "Return to Live" effectively means restoring the latest snapshot if we were scrubbing
         if (snapshots.length > 0) {
              const latest = snapshots[snapshots.length - 1];
              onRestore(latest.state);
@@ -75,7 +71,6 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
     };
 
     const handleManualSave = async () => {
-        // Trigger manual save of current state
         const store = useAppStore.getState();
         let stateToSave = null;
         
@@ -91,12 +86,8 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
         if (stateToSave) {
             await neuralVault.createCheckpoint(mode, stateToSave, "Manual Checkpoint");
             addLog('SYSTEM', 'SNAPSHOT: Manual Checkpoint Created');
-            
-            // Re-fetch immediately
             const history = await neuralVault.getHistory(mode);
-            if (history) {
-                setSnapshots([...history].sort((a, b) => a.timestamp - b.timestamp));
-            }
+            if (history) setSnapshots([...history].sort((a, b) => a.timestamp - b.timestamp));
         } else {
             addLog('WARN', 'SNAPSHOT: Mode does not support persistence');
         }
@@ -110,76 +101,61 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
     };
 
     return (
-        <motion.div 
-            initial={{ y: 100 }}
-            animate={{ y: 0 }}
-            className={`fixed bottom-0 left-6 z-40 w-full max-w-3xl ${className}`}
-        >
-            {/* Handle / Toggle */}
-            <div className="flex justify-start">
-                <button 
-                    onClick={() => setIsOpen(!isOpen)}
-                    className="bg-[#0a0a0a] border-t border-x border-[#333] px-6 py-1 rounded-t-lg flex items-center gap-2 text-[10px] font-mono text-gray-500 hover:text-[#9d4edd] hover:border-[#9d4edd] transition-all uppercase tracking-widest shadow-lg"
+        <AnimatePresence>
+            {isOpen && (
+                <motion.div 
+                    initial={{ y: 200, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 200, opacity: 0 }}
+                    transition={{ type: 'spring', damping: 20, stiffness: 120 }}
+                    className="fixed bottom-[88px] left-6 right-6 z-[140] w-auto max-w-4xl"
                 >
-                    <History className="w-3 h-3" />
-                    {isOpen ? 'Close Timeline' : 'Temporal Navigation'}
-                    {isOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
-                </button>
-            </div>
-
-            {/* Main Scrubber Panel */}
-            <AnimatePresence>
-                {isOpen && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-r border-[#333] rounded-tr-lg shadow-[0_-10px_40px_rgba(0,0,0,0.5)] overflow-hidden"
-                    >
-                        <div className="p-4 flex flex-col gap-4">
+                    <div className="bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-[0_-20px_50px_rgba(0,0,0,0.6)] overflow-hidden">
+                        <div className="p-5 flex flex-col gap-5">
                             
-                            {/* Controls Header */}
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-4">
-                                    <div className="text-[#9d4edd] text-xs font-mono font-bold uppercase tracking-widest flex items-center gap-2">
-                                        <RotateCcw className="w-4 h-4" />
-                                        Context History
+                                    <div className="p-2 bg-[#9d4edd]/20 rounded-lg text-[#9d4edd]">
+                                        <History size={16} />
                                     </div>
-                                    <div className="h-4 w-px bg-[#333]"></div>
-                                    <div className="text-[9px] font-mono text-gray-500">
-                                        {snapshots.length} CHECKPOINTS FOUND
+                                    <div>
+                                        <div className="text-[#9d4edd] text-[10px] font-black font-mono uppercase tracking-[0.2em]">Temporal Navigation Hub</div>
+                                        <div className="text-[8px] font-mono text-gray-500 uppercase tracking-widest mt-0.5">
+                                            {snapshots.length} SECURE CHECKPOINTS IDENTIFIED
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex gap-2">
                                     <button 
                                         onClick={handleManualSave}
-                                        className="px-3 py-1.5 bg-[#1f1f1f] border border-[#333] hover:border-white text-gray-400 hover:text-white rounded text-[9px] font-mono uppercase transition-colors flex items-center gap-2"
+                                        className="px-4 py-2 bg-white/5 border border-white/10 hover:border-white/30 text-gray-300 hover:text-white rounded-xl text-[9px] font-mono uppercase transition-all flex items-center gap-2"
                                     >
-                                        <Save className="w-3 h-3" /> Checkpoint
+                                        <Save size={12} /> Checkpoint
                                     </button>
                                     <button 
                                         onClick={handleReturnToLive}
                                         disabled={activeIndex === null}
-                                        className={`px-3 py-1.5 border rounded text-[9px] font-mono uppercase transition-colors flex items-center gap-2
+                                        className={`px-4 py-2 rounded-xl border text-[9px] font-mono uppercase transition-all flex items-center gap-2
                                             ${activeIndex === null 
-                                                ? 'bg-[#42be65]/20 border-[#42be65]/50 text-[#42be65] cursor-default' 
-                                                : 'bg-[#1f1f1f] border-[#333] text-gray-400 hover:text-[#42be65] hover:border-[#42be65]'
+                                                ? 'bg-[#42be65]/20 border-[#42be65]/40 text-[#42be65] cursor-default' 
+                                                : 'bg-white/5 border-white/10 text-gray-400 hover:text-[#42be65] hover:border-[#42be65]'
                                             }`}
                                     >
-                                        <Play className="w-3 h-3" /> Live State
+                                        <Play size={12} /> Live State
+                                    </button>
+                                    <button onClick={onClose} className="p-2 text-gray-600 hover:text-white transition-colors">
+                                        <X size={18} />
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Timeline Track */}
                             <div 
                                 ref={scrollRef}
-                                className="relative h-24 bg-[#050505] border border-[#222] rounded-lg overflow-x-auto overflow-y-hidden custom-scrollbar flex items-center px-4 select-none"
+                                className="relative h-28 bg-black/50 border border-white/5 rounded-xl overflow-x-auto overflow-y-hidden custom-scrollbar flex items-center px-6 select-none"
                             >
-                                {/* Center Line */}
-                                <div className="absolute top-1/2 left-0 right-0 h-px bg-[#333] -z-0"></div>
+                                <div className="absolute top-1/2 left-0 right-0 h-px bg-white/5 -z-0"></div>
 
-                                <div className="flex gap-8 relative z-10 items-center min-w-full">
+                                <div className="flex gap-10 relative z-10 items-center min-w-full">
                                     {snapshots.map((snap, i) => {
                                         const isActive = activeIndex === i;
                                         const isLast = i === snapshots.length - 1;
@@ -188,36 +164,27 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
                                         return (
                                             <motion.div
                                                 key={snap.timestamp}
-                                                initial={{ scale: 0 }}
-                                                animate={{ scale: 1 }}
-                                                className="relative group flex flex-col items-center gap-2 cursor-pointer pt-4"
+                                                whileHover={{ y: -2 }}
+                                                className="relative group flex flex-col items-center gap-3 cursor-pointer pt-6"
                                                 onClick={() => handleRestore(i)}
                                             >
-                                                {/* Tooltip */}
-                                                <div className="absolute bottom-full mb-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap bg-[#222] border border-[#444] px-2 py-1 rounded text-[9px] font-mono text-white pointer-events-none z-20">
-                                                    {new Date(snap.timestamp).toLocaleTimeString()}
-                                                </div>
-
-                                                {/* Node */}
                                                 <div 
-                                                    className={`w-3 h-3 rounded-full border-2 transition-all duration-300 relative
+                                                    className={`w-3.5 h-3.5 rounded-full border-2 transition-all duration-500 relative
                                                         ${isActive 
                                                             ? 'bg-[#9d4edd] border-[#9d4edd] shadow-[0_0_15px_#9d4edd] scale-125' 
                                                             : isLast && activeIndex === null 
                                                                 ? 'bg-[#42be65] border-[#42be65] animate-pulse' 
-                                                                : 'bg-[#111] border-gray-600 hover:border-white hover:bg-gray-500'
+                                                                : 'bg-[#111] border-gray-700 hover:border-white'
                                                         }`}
                                                 >
-                                                    {/* Vertical stem connecting to line */}
-                                                    <div className={`absolute -top-4 left-1/2 -translate-x-1/2 w-px h-4 ${isActive ? 'bg-[#9d4edd]' : 'bg-[#333]'}`}></div>
+                                                    <div className={`absolute -top-6 left-1/2 -translate-x-1/2 w-px h-6 ${isActive ? 'bg-[#9d4edd]' : 'bg-white/10'}`}></div>
                                                 </div>
 
-                                                {/* Label */}
                                                 <div className="flex flex-col items-center">
-                                                    <span className={`text-[9px] font-mono font-bold uppercase tracking-wider ${isActive ? 'text-[#9d4edd]' : 'text-gray-500'}`}>
+                                                    <span className={`text-[9px] font-black font-mono uppercase tracking-widest ${isActive ? 'text-[#9d4edd]' : 'text-gray-500'}`}>
                                                         {isAuto ? 'AUTO' : 'SAVE'}
                                                     </span>
-                                                    <span className="text-[8px] font-mono text-gray-600">
+                                                    <span className="text-[8px] font-mono text-gray-600 mt-0.5">
                                                         {formatTimeDelta(snap.timestamp)}
                                                     </span>
                                                 </div>
@@ -225,25 +192,17 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
                                         );
                                     })}
                                     
-                                    {/* Future/Live Ghost Node */}
-                                    <div className="opacity-30 flex flex-col items-center gap-2 pl-8 border-l border-dashed border-[#333]">
-                                        <div className="w-2 h-2 rounded-full bg-transparent border border-dashed border-gray-500"></div>
-                                        <span className="text-[8px] font-mono text-gray-600">FUTURE</span>
+                                    <div className="opacity-20 flex flex-col items-center gap-3 pl-10 border-l border-dashed border-white/10">
+                                        <div className="w-2.5 h-2.5 rounded-full bg-transparent border border-dashed border-gray-600"></div>
+                                        <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">Projection</span>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
-                        
-                        {/* Status Footer */}
-                        <div className="h-6 bg-[#050505] border-t border-[#222] flex items-center justify-between px-4 text-[9px] font-mono text-gray-600">
-                            <span>NEURAL_VAULT v1.0 connected</span>
-                            <span>{activeIndex !== null ? '⚠ TIME DIVERGENCE ACTIVE' : 'SYNCED TO PRESENT'}</span>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </motion.div>
+                    </div>
+                </motion.div>
+            )}
+        </AnimatePresence>
     );
 };
 

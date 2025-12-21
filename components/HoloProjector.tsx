@@ -25,11 +25,13 @@ const HoloProjector: React.FC = () => {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
             let prompt = "Analyze this artifact in detail. Identify key features, potential optimizations, and hidden patterns. Keep it technical and concise.";
-            let model = 'gemini-2.5-flash';
+            // Use gemini-3-flash-preview for standard text analysis tasks.
+            let model = 'gemini-3-flash-preview';
             let content: any = null;
 
             if (holo.activeArtifact.type === 'IMAGE') {
-                model = 'gemini-2.5-flash';
+                // Use gemini-3-flash-preview for multi-modal analysis.
+                model = 'gemini-3-flash-preview';
                 // Assuming content is base64 data url
                 const base64Data = (holo.activeArtifact.content as string).split(',')[1];
                 content = {

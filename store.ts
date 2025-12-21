@@ -1,5 +1,6 @@
+
 import { create } from 'zustand';
-import { AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, InterventionProtocol, OperationalContext, AgentWallet, TemporalEra, Task, TaskStatus, AspectRatio, ProtocolStepResult } from './types';
+import { AppMode, ResearchState, UserProfile, AppTheme, CustomThemeConfig, ScienceHypothesis, KnowledgeNode, FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, InterventionProtocol, OperationalContext, AgentWallet, TemporalEra, Task, TaskStatus, AspectRatio, ProtocolStepResult } from './types';
 
 interface KernelStatus {
     uptime: number;
@@ -12,6 +13,7 @@ interface KernelStatus {
 interface AppState {
     mode: AppMode;
     theme: AppTheme;
+    customThemeConfig: CustomThemeConfig | null;
     operationalContext: OperationalContext;
     isCommandPaletteOpen: boolean;
     isProfileOpen: boolean;
@@ -147,6 +149,7 @@ interface AppState {
     
     setMode: (mode: AppMode) => void;
     setTheme: (theme: AppTheme) => void;
+    setCustomThemeConfig: (config: CustomThemeConfig) => void;
     setOperationalContext: (ctx: OperationalContext) => void;
     toggleCommandPalette: (isOpen?: boolean) => void;
     toggleProfile: (isOpen?: boolean) => void;
@@ -196,6 +199,7 @@ interface AppState {
 export const useAppStore = create<AppState>((set) => ({
     mode: AppMode.DASHBOARD,
     theme: (localStorage.getItem('structura-theme') as AppTheme) || AppTheme.DARK,
+    customThemeConfig: JSON.parse(localStorage.getItem('structura-custom-theme') || 'null'),
     operationalContext: OperationalContext.STRATEGY_SYNTHESIS,
     isCommandPaletteOpen: false,
     isProfileOpen: false,
@@ -329,6 +333,10 @@ export const useAppStore = create<AppState>((set) => ({
 
     setMode: (mode) => set({ mode }),
     setTheme: (theme) => { localStorage.setItem('structura-theme', theme); set({ theme }); },
+    setCustomThemeConfig: (config) => { 
+        localStorage.setItem('structura-custom-theme', JSON.stringify(config)); 
+        set({ customThemeConfig: config, theme: AppTheme.CUSTOM }); 
+    },
     setOperationalContext: (operationalContext) => set({ operationalContext }),
     toggleCommandPalette: (isOpen) => set((state) => ({ isCommandPaletteOpen: isOpen ?? !state.isCommandPaletteOpen })),
     toggleProfile: (isOpen) => set((state) => ({ isProfileOpen: isOpen ?? !state.isProfileOpen })),

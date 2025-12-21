@@ -22,7 +22,7 @@ import VoiceCoreOverlay from './components/VoiceCoreOverlay';
 import UserProfileOverlay from './components/UserProfileOverlay'; 
 import FlywheelOrbit from './components/FlywheelOrbit';
 import AgenticHUD from './components/AgenticHUD';
-import { LayerToggle } from './components/LayerToggle';
+import GlobalStatusBar from './components/GlobalStatusBar';
 
 // Hooks & Utilities
 import { useAutoSave } from './hooks/useAutoSave'; 
@@ -99,15 +99,43 @@ const FocusOverlay = () => {
 };
 
 const App: React.FC = () => {
-  const { mode, user, theme, voice, toggleProfile, toggleCommandPalette, setSearchState, setVoiceState, addLog } = useAppStore();
+  const { mode, user, theme, customThemeConfig, voice, kernel, toggleProfile, toggleCommandPalette, setSearchState, setVoiceState, addLog } = useAppStore();
   const { setSector, registerNavigation } = useSystemMind(); 
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isScrubberOpen, setIsScrubberOpen] = useState(false);
+  const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
+  const [isHUDClosed, setIsHUDClosed] = useState(false);
 
   // Initialize Core Automations
   useAutoSave(); 
   useDaemonSwarm(); 
   useVoiceControl(); 
   useResearchAgent(); 
+
+  // Global Session Timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+        useAppStore.setState(state => ({
+            kernel: { ...state.kernel, uptime: state.kernel.uptime + 1 }
+        }));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Global Telemetry Jitter
+  useEffect(() => {
+      const interval = setInterval(() => {
+          useAppStore.setState(state => ({
+              kernel: {
+                  ...state.kernel,
+                  coreLoad: Math.max(5, Math.min(95, state.kernel.coreLoad + (Math.random() * 10 - 5))),
+                  entropy: Math.max(1, Math.min(99, state.kernel.entropy + (Math.random() * 2 - 1))),
+                  integrity: Math.max(80, Math.min(100, state.kernel.integrity + (Math.random() * 1 - 0.5)))
+              }
+          }));
+      }, 3000);
+      return () => clearInterval(interval);
+  }, []);
 
   // API Key Guard
   useEffect(() => {
@@ -152,44 +180,66 @@ const App: React.FC = () => {
   };
 
   const themeVars = useMemo(() => {
-      switch (theme) {
-          case AppTheme.LIGHT: return { '--bg-main': '#f5f5f5', '--text-main': '#171717', '--border-main': '#e5e5e5' };
-          case AppTheme.AMBER: return { '--bg-main': '#0a0500', '--text-main': '#f59e0b', '--border-main': '#451a03' };
-          case AppTheme.MIDNIGHT: return { '--bg-main': '#020617', '--text-main': '#e2e8f0', '--border-main': '#1e293b' };
-          default: return { '--bg-main': '#030303', '--text-main': '#e5e5e5', '--border-main': '#1f1f1f' };
+      if (theme === AppTheme.CUSTOM && customThemeConfig) {
+          return {
+              '--bg-main': customThemeConfig.bgMain,
+              '--text-main': customThemeConfig.textMain,
+              '--border-main': customThemeConfig.borderMain,
+              '--accent-primary': customThemeConfig.accentPrimary,
+              '--accent-secondary': customThemeConfig.accentSecondary,
+              '--glass-opacity': customThemeConfig.glassOpacity,
+              '--glass-blur': customThemeConfig.glassBlur,
+              'fontFamily': customThemeConfig.fontFamily
+          };
       }
-  }, [theme]);
+      switch (theme) {
+          case AppTheme.LIGHT: return { '--bg-main': '#f5f5f5', '--text-main': '#171717', '--border-main': '#e5e5e5', '--accent-primary': '#9d4edd' };
+          case AppTheme.AMBER: return { '--bg-main': '#0a0500', '--text-main': '#f59e0b', '--border-main': '#451a03', '--accent-primary': '#f59e0b' };
+          case AppTheme.MIDNIGHT: return { '--bg-main': '#020617', '--text-main': '#e2e8f0', '--border-main': '#1e293b', '--accent-primary': '#3b82f6' };
+          default: return { '--bg-main': '#030303', '--text-main': '#e5e5e5', '--border-main': '#1f1f1f', '--accent-primary': '#9d4edd' };
+      }
+  }, [theme, customThemeConfig]);
 
   return (
     <div className="h-screen w-screen font-sans overflow-hidden flex flex-col transition-all duration-500 ease-in-out relative" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', ...themeVars as any }}>
       <Starfield mode={mode} />
       
-      {/* Immersive Layers */}
-      <LayerToggle />
+      {/* Persistent Global Status Hub */}
+      <GlobalStatusBar 
+        onToggleScrubber={() => { setIsScrubberOpen(!isScrubberOpen); audio.playClick(); }}
+        onToggleDiagnostics={() => { setIsDiagnosticsOpen(!isDiagnosticsOpen); audio.playClick(); }}
+        isScrubberOpen={isScrubberOpen}
+        isDiagnosticsOpen={isDiagnosticsOpen}
+      />
 
       {/* Overlays */}
       <FocusOverlay />
       <VoiceCoreOverlay /> 
       <UserProfileOverlay /> 
       <CommandPalette /> 
-      <SystemNotification /> 
-      <TimeTravelScrubber mode={mode} onRestore={(state) => addLog('INFO', 'Timeline resync successful.')} />
+      <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => setIsDiagnosticsOpen(false)} /> 
+      <TimeTravelScrubber 
+        mode={mode} 
+        onRestore={(state) => addLog('INFO', 'Timeline resync successful.')} 
+        isOpen={isScrubberOpen}
+        onClose={() => setIsScrubberOpen(false)}
+      />
       <OverlayOS /> 
       <HoloProjector /> 
       <ResearchTray /> 
       <VoiceManager /> 
-      <FlywheelOrbit />
-      <AgenticHUD />
+      <AgenticHUD isClosed={isHUDClosed} onClose={() => setIsHUDClosed(true)} />
       
       <AnimatePresence>
         {isHelpOpen && <HelpCenter onClose={() => setIsHelpOpen(false)} />}
       </AnimatePresence>
 
-      <header className="flex-shrink-0 h-16 border-b z-[100] px-6 flex items-center justify-between backdrop-blur-xl" style={{ backgroundColor: 'rgba(10,10,10,0.85)', borderColor: 'var(--border-main)' }}>
-        <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => switchPath('/dashboard')}>
+      <header className="flex-shrink-0 h-16 border-b z-[100] px-6 flex items-center justify-between backdrop-blur-xl" style={{ backgroundColor: theme === AppTheme.CUSTOM ? `rgba(0,0,0,${customThemeConfig?.glassOpacity || 0.85})` : 'rgba(10,10,10,0.85)', borderColor: 'var(--border-main)' }}>
+        <div className="flex items-center space-x-2 cursor-pointer group" onClick={() => switchPath('/dashboard')}>
           <NeuralHeader />
-          <div className="flex flex-col">
+          <div className="flex items-center gap-1">
             <span className="text-lg font-bold leading-none tracking-tight font-mono text-white group-hover:text-[#9d4edd] transition-colors uppercase">Metaventions OS</span>
+            <FlywheelOrbit />
           </div>
         </div>
         

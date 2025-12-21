@@ -1,103 +1,96 @@
 
-import React, { useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { motion, AnimatePresence } from 'framer-motion';
-import { BrainCircuit, Loader2, Command, X, ArrowRight, Zap, Terminal } from 'lucide-react';
+import { Loader2, Terminal, Network, Cpu } from 'lucide-react';
 import DynamicWidget from './DynamicWidget';
 
-/**
- * SOVEREIGN AGENT HUD
- * Global overlay for intent processing and GenUI display.
- */
-const AgenticHUD: React.FC = () => {
-    const { execute, state } = useAgentRuntime();
-    const [input, setInput] = useState('');
-    const [isWidgetClosed, setIsWidgetClosed] = useState(false);
+const AgenticHUD: React.FC<{ isClosed: boolean; onClose: () => void }> = ({ isClosed, onClose }) => {
+    const { state } = useAgentRuntime();
+    const logContainerRef = useRef<HTMLDivElement>(null);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!input.trim() || state.isThinking) return;
-        
-        const prompt = input;
-        setInput('');
-        setIsWidgetClosed(false);
-        await execute(prompt);
-    };
+    // Auto-scroll logic for the thought stream
+    useEffect(() => {
+        if (logContainerRef.current) {
+            logContainerRef.current.scrollTo({
+                top: logContainerRef.current.scrollHeight,
+                behavior: 'smooth'
+            });
+        }
+    }, [state.history]);
 
     return (
-        <div className="fixed bottom-24 right-8 z-[150] flex flex-col items-end gap-4 w-96 pointer-events-none">
+        <div className="fixed bottom-24 right-6 left-6 z-[140] flex flex-col items-end gap-4 pointer-events-none">
             
-            {/* 1. Results Area (GEN_UI) */}
-            <AnimatePresence>
-                {state.lastResult && !isWidgetClosed && (
-                    <motion.div className="w-full pointer-events-auto shadow-2xl">
-                        <DynamicWidget 
-                            result={state.lastResult} 
-                            onClose={() => setIsWidgetClosed(true)} 
-                        />
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* 2. Chat / Intent Processor */}
-            <div className="w-full pointer-events-auto">
-                <form 
-                    onSubmit={handleSubmit}
-                    className="relative group"
-                >
-                    <div className={`
-                        bg-[#0a0a0a]/90 backdrop-blur-xl border border-[#333] rounded-2xl p-4 transition-all duration-500 shadow-2xl
-                        ${state.isThinking ? 'border-[#9d4edd] ring-1 ring-[#9d4edd]/30' : 'group-hover:border-gray-500'}
-                    `}>
-                        <div className="flex items-center gap-3">
-                            <div className={`p-2 rounded-xl transition-all duration-500 ${state.isThinking ? 'bg-[#9d4edd] text-black animate-pulse' : 'bg-[#111] text-gray-500'}`}>
-                                {state.isThinking ? <Loader2 size={18} className="animate-spin" /> : <BrainCircuit size={18} />}
-                            </div>
-                            <input 
-                                value={input}
-                                onChange={e => setInput(e.target.value)}
-                                disabled={state.isThinking}
-                                placeholder={state.isThinking ? `ENGAGING ${state.activeTool || 'SYSTEM'}...` : "Issue Intent Directive..."}
-                                className="flex-1 bg-transparent border-none outline-none text-sm font-mono text-white placeholder:text-gray-800 uppercase"
+            {/* 1. Generative UI Layer (Widgets) */}
+            <div className="w-[420px] pointer-events-none">
+                <AnimatePresence>
+                    {state.lastResult && !isClosed && (
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9, y: 30, filter: 'blur(10px)' }}
+                            animate={{ opacity: 1, scale: 1, y: 0, filter: 'blur(0px)' }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="w-full pointer-events-auto"
+                        >
+                            <DynamicWidget 
+                                result={state.lastResult} 
+                                onClose={onClose} 
                             />
-                            {!state.isThinking && input && (
-                                <button type="submit" className="text-[#9d4edd] hover:text-white transition-colors">
-                                    <ArrowRight size={20} />
-                                </button>
-                            )}
-                        </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
 
-                        {/* Thinking Indicators */}
-                        <AnimatePresence>
-                            {state.isThinking && (
-                                <motion.div 
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    className="overflow-hidden pt-3 mt-3 border-t border-white/5"
-                                >
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[8px] font-black text-[#9d4edd] font-mono tracking-[0.2em] uppercase">Recursive Loop Active</span>
-                                            <div className="flex gap-0.5">
-                                                {[1,2,3].map(i => <div key={i} className="w-1 h-1 bg-[#9d4edd] rounded-full animate-bounce" style={{ animationDelay: `${i*0.2}s` }} />)}
-                                            </div>
-                                        </div>
-                                        <span className="text-[7px] text-gray-600 font-mono">STEP_0{state.history.length}</span>
+            {/* 2. Motor Cortex Output (Thought History) - Floating above the bar */}
+            <div className="w-[420px] pointer-events-none flex flex-col items-end">
+                <AnimatePresence>
+                    {state.isThinking && (
+                        <motion.div 
+                            initial={{ height: 0, opacity: 0, scale: 0.95 }}
+                            animate={{ height: 280, opacity: 1, scale: 1 }}
+                            exit={{ height: 0, opacity: 0, scale: 0.95 }}
+                            transition={{ type: 'spring', damping: 20, stiffness: 150 }}
+                            className="w-full pointer-events-auto bg-[#080808]/95 backdrop-blur-3xl border border-white/10 rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col"
+                        >
+                            <div className="flex items-center justify-between mb-4 shrink-0">
+                                <div className="flex items-center gap-3">
+                                    <div className="p-1.5 bg-[#9d4edd]/20 rounded-lg text-[#9d4edd]">
+                                        <Terminal size={14} />
                                     </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        {state.history.slice(-2).map((h, i) => (
-                                            <div key={i} className="flex gap-2 items-start">
-                                                <span className={`text-[7px] font-mono px-1 rounded border ${h.role === 'user' ? 'text-blue-400 border-blue-400/20' : 'text-[#9d4edd] border-[#9d4edd]/20'}`}>{h.role.toUpperCase()}</span>
-                                                <span className="text-[9px] font-mono text-gray-500 truncate">{h.content}</span>
-                                            </div>
-                                        ))}
+                                    <span className="text-[10px] font-black text-white font-mono uppercase tracking-[0.3em]">Motor Cortex Output</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-1 h-1 bg-[#22d3ee] rounded-full animate-ping" />
+                                    <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">LATTICE_STREAM_0x{state.history.length.toString(16)}</span>
+                                </div>
+                            </div>
+                            
+                            <div 
+                                ref={logContainerRef}
+                                className="flex-1 overflow-y-auto custom-scrollbar font-mono text-[10px] space-y-4 pr-2"
+                            >
+                                {state.history.map((h, i) => (
+                                    <div key={i} className={`flex gap-3 items-start animate-in fade-in slide-in-from-left-2 duration-300`}>
+                                        <span className={`px-2 py-0.5 rounded text-[8px] font-black shrink-0 border ${
+                                            h.role === 'user' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 
+                                            h.role === 'tool' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
+                                            'bg-[#9d4edd]/10 text-[#9d4edd] border-[#9d4edd]/20'
+                                        }`}>
+                                            {h.toolName || h.role.toUpperCase()}
+                                        </span>
+                                        <span className="text-gray-400 leading-relaxed break-words whitespace-pre-wrap">
+                                            {h.content}
+                                        </span>
                                     </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </form>
+                                ))}
+                                <div className="flex items-center gap-3 text-[#9d4edd] opacity-40 animate-pulse mt-4 pt-4 border-t border-white/5">
+                                    <Loader2 size={12} className="animate-spin" />
+                                    <span className="text-[9px] uppercase tracking-[0.2em] font-black">Negotiating Recursive Synthesis...</span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
         </div>
     );

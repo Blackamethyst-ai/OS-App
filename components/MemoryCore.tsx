@@ -236,9 +236,7 @@ const MemoryCore: React.FC = () => {
     }, [artifacts]);
 
     return (
-        <div className="h-full w-full bg-[#030303] text-white flex overflow-hidden relative font-sans">
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
-
+        <div className="flex h-full w-full font-sans">
             {/* Left: Intelligence Nexus */}
             <div className="w-80 border-r border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur flex flex-col z-20 shrink-0">
                 <div className="p-6 border-b border-[#1f1f1f] flex items-center justify-between">
@@ -294,7 +292,7 @@ const MemoryCore: React.FC = () => {
             </div>
 
             {/* Main Area */}
-            <div className="flex-1 flex flex-col relative z-10 overflow-hidden">
+            <div className="flex-1 flex flex-col relative z-10">
                 {/* Header */}
                 <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur-md flex items-center justify-between px-6 shrink-0">
                     <div className="flex items-center gap-6 flex-1">
@@ -338,7 +336,7 @@ const MemoryCore: React.FC = () => {
                     )}
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="flex-1 overflow-hidden">
                     {viewMode === 'XRAY' ? (
                         <div className="h-full w-full">
                             <PowerXRay availableSources={artifacts} />
@@ -373,7 +371,7 @@ const MemoryCore: React.FC = () => {
                 </div>
 
                 {viewMode !== 'XRAY' && (
-                    <div className="h-10 border-t border-[#1f1f1f] bg-[#0a0a0a] flex items-center px-6 justify-between text-[9px] font-mono text-gray-600 uppercase tracking-widest">
+                    <div className="h-10 border-t border-[#1f1f1f] bg-[#0a0a0a] flex items-center px-6 justify-between text-[9px] font-mono text-gray-600 uppercase tracking-widest shrink-0">
                         <div className="flex gap-8">
                             <span className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_5px_#10b981]" /> VAULT_INTEGRITY: 100%</span>
                             <span className="flex items-center gap-2"><Database size={12} /> {artifacts.length} SECTORS INDEXED</span>

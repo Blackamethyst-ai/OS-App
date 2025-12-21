@@ -114,7 +114,8 @@ export async function runDebateTurn(
         }
 
         const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            // Use gemini-3-flash-preview for specialized conversational agents.
+            model: 'gemini-3-flash-preview',
             contents: {
                 parts: [contextFile, { text: prompt }]
             },
@@ -158,7 +159,8 @@ export async function synthesizeReport(history: DebateTurn[]): Promise<Simulatio
         };
 
         const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            // Use gemini-3-flash-preview for reporting and logic analysis.
+            model: 'gemini-3-flash-preview',
             contents: `
             Analyze this debate transcript.
             

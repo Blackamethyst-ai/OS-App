@@ -428,8 +428,6 @@ const SystemVitalityMatrix: React.FC = () => {
 
 const Dashboard: React.FC = () => {
   const { dashboard, setDashboardState, user, toggleProfile, research, voice, bicameral, kernel, system } = useAppStore();
-  const [time, setTime] = useState(new Date());
-  const [uptime, setUptime] = useState(0);
   const [selectedMetric, setSelectedMetric] = useState<{title: string, color: string, data: any[]} | null>(null);
 
   const [telemetry, setTelemetry] = useState({
@@ -472,21 +470,6 @@ const Dashboard: React.FC = () => {
       },
       activeAgents: activeAgents.length
   });
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-        setTime(new Date());
-        setUptime(prev => prev + 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  const formatUptime = (seconds: number) => {
-      const h = Math.floor(seconds / 3600);
-      const m = Math.floor((seconds % 3600) / 60);
-      const s = seconds % 60;
-      return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-  };
 
   useEffect(() => {
       const interval = setInterval(() => {
@@ -532,7 +515,7 @@ const Dashboard: React.FC = () => {
   const generateIdentity = async () => {
     setDashboardState({ isGenerating: true });
     try {
-      const hasKey = await window.aistudio?.hasSelectedApiKey();
+      const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
       if (!hasKey) {
           await promptSelectKey();
           setDashboardState({ isGenerating: false });
@@ -549,14 +532,10 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const formatTime = (date: Date) => {
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-  };
-
   useVoiceAction('generate_identity', 'Generate visual brand identity asset for the dashboard.', generateIdentity);
 
   return (
-    <div className="h-full w-full overflow-y-auto custom-scrollbar p-6 pb-32 bg-[#030303] text-gray-200 font-sans selection:bg-[#9d4edd]/30 relative">
+    <div className="w-full text-gray-200 font-sans selection:bg-[#9d4edd]/30 relative">
       
       <div className="fixed inset-0 pointer-events-none z-0">
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#9d4edd]/5 rounded-full blur-[120px]"></div>
@@ -598,43 +577,6 @@ const Dashboard: React.FC = () => {
                         </div>
                         <h1 className="text-5xl font-black font-mono text-white mb-3 tracking-tighter uppercase leading-none">METAVENTIONS AI</h1>
                         <p className="text-xs text-gray-500 font-mono max-w-lg leading-relaxed">Sovereign Architecture Overview. Real-time telemetry, asset generation, and intelligence feeds active.</p>
-                    </div>
-                </div>
-                
-                <div className="flex flex-col items-end gap-3 mt-6 md:mt-0 w-full md:w-auto">
-                    {/* Kernel HUD integrated into Dashboard Header */}
-                    <div className="flex items-center justify-between md:justify-end gap-6 px-5 py-3 border border-white/5 rounded-xl bg-black/60 backdrop-blur-sm shadow-xl w-full md:w-auto mb-2">
-                        <div className="flex flex-col">
-                            <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest leading-none mb-1.5">Node Load</span>
-                            <div className="flex items-center gap-2">
-                                <div className="w-16 h-1 bg-[#111] rounded-full overflow-hidden border border-white/5">
-                                    <motion.div animate={{ width: `${kernel.coreLoad}%` }} className="h-full bg-[#9d4edd] shadow-[0_0_5px_#9d4edd]" />
-                                </div>
-                                <span className="text-[9px] font-mono text-white font-bold">{kernel.coreLoad}%</span>
-                            </div>
-                        </div>
-                        <div className="w-px h-8 bg-white/5"></div>
-                        <div className="flex flex-col">
-                            <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest leading-none mb-1.5">Entropy</span>
-                            <span className="text-[14px] font-mono font-black text-[#22d3ee] leading-none drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]">{kernel.entropy}</span>
-                        </div>
-                        <div className="w-px h-8 bg-white/5"></div>
-                        <div className="flex flex-col">
-                            <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest leading-none mb-1.5">Integrity</span>
-                            <span className="text-[14px] font-mono font-black text-[#10b981] leading-none drop-shadow-[0_0_5px_rgba(16,185,129,0.5)]">{kernel.integrity}%</span>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center gap-8 bg-[#080808]/50 p-4 rounded-xl border border-[#222] shadow-inner w-full md:w-auto">
-                         <div className="text-right">
-                             <div className="text-[10px] text-gray-500 font-mono uppercase mb-1">Session Uptime</div>
-                             <div className="text-xl font-mono font-bold text-white tracking-widest">{formatUptime(uptime)}</div>
-                         </div>
-                         <div className="w-px h-8 bg-[#333]"></div>
-                         <div className="text-right">
-                             <div className="text-[10px] text-gray-500 font-mono uppercase mb-1">Local Time</div>
-                             <div className="text-xl font-mono font-bold text-white tracking-widest">{formatTime(time)}</div>
-                         </div>
                     </div>
                 </div>
             </div>
