@@ -87,8 +87,7 @@ const VoiceManager: React.FC = () => {
         const manageConnection = async () => {
             if (voice.isActive && !liveSession.isConnected() && !connectionAttemptRef.current) {
                 connectionAttemptRef.current = true;
-                if (!voice.isConnecting) setVoiceState({ isConnecting: true });
-
+                
                 try {
                     const agentName = voice.voiceName || 'Puck';
                     const agentEntry = Object.entries(HIVE_AGENTS).find(([id, a]) => (a as HiveAgent).name === agentName);
@@ -101,10 +100,10 @@ const VoiceManager: React.FC = () => {
                     - Navigation Topology: ${navigationMap.map(n => n.id).join(', ')}
                     
                     NEURAL CAPABILITIES:
-                    - You have access to Pro Logic (gemini-3-pro-preview), Flash Transcription (gemini-3-flash-preview), and Lite Speed-Mode (gemini-2.5-flash-lite).
-                    - Use 'deep_reasoning' for complex strategy.
-                    - Use 'quick_check' for immediate low-latency responses.
-                    - Use 'high_fidelity_transcription' for dedicated STT tasks.
+                    - You are using Gemini 2.5 Flash Native Audio for ultra-low latency response.
+                    - Access Pro Logic (gemini-3-pro-preview) via 'deep_reasoning'.
+                    - Access Speed-Mode (gemini-2.5-flash-lite) via 'quick_check'.
+                    - Access High-Fidelity Transcription (gemini-3-flash-preview) via 'high_fidelity_transcription'.
 
                     DIRECTIVE:
                     You are the Metaventions Voice Core. You are welcoming, precise, and highly integrated.
@@ -154,6 +153,12 @@ const VoiceManager: React.FC = () => {
                                     partialTranscriptRef.current = "";
                                 }
                             },
+                            onopen: () => {
+                                if (mounted) {
+                                    setVoiceState({ isConnecting: false });
+                                    addLog('SUCCESS', `VOICE_CORE: Neural sectors initialized [${agentName}]. Welcome, Architect.`);
+                                }
+                            },
                             onerror: (e: any) => {
                                 connectionAttemptRef.current = false;
                                 setVoiceState({ isActive: false, isConnecting: false });
@@ -183,11 +188,6 @@ const VoiceManager: React.FC = () => {
                         }
                         return { error: "Unknown protocol" };
                     };
-                    
-                    if (mounted) {
-                        setVoiceState({ isConnecting: false });
-                        addLog('SUCCESS', `VOICE_CORE: Neural sectors initialized [${agentName}]. Welcome, Architect.`);
-                    }
 
                 } catch (err: any) {
                     const message = err?.message || "Protocol handoff rejected";
@@ -201,7 +201,7 @@ const VoiceManager: React.FC = () => {
             else if (!voice.isActive && liveSession.isConnected()) {
                 liveSession.disconnect();
                 connectionAttemptRef.current = false;
-                setVoiceState({ partialTranscript: null });
+                setVoiceState({ partialTranscript: null, isConnecting: false });
                 partialTranscriptRef.current = "";
             }
         };

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
 import { useSystemMind } from '../stores/useSystemMind';
@@ -218,6 +217,9 @@ const VoiceMode: React.FC = () => {
         liveSession.disconnect();
         addLog('SYSTEM', 'VOICE_CORE: Uplink terminated by operator.');
     } else {
+        // PRIME AUDIO IN RESPONSE TO USER GESTURE
+        await liveSession.primeAudio();
+        
         setVoiceState({ isConnecting: true, error: null });
         try {
             const hasKey = await window.aistudio?.hasSelectedApiKey();
