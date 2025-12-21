@@ -27,7 +27,11 @@ export default defineConfig(({ mode }) => {
       build: {
         chunkSizeWarningLimit: 1000,
         rollupOptions: {
+          external: ['mermaid'],
           output: {
+            globals: {
+              mermaid: 'mermaid'
+            },
             manualChunks(id) {
               if (id.includes('node_modules')) {
                 if (id.includes('recharts')) {

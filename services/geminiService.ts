@@ -922,6 +922,16 @@ export const liveSession = {
     onCommand: (intent: UserIntent) => {},
     onToolCall: async (name: string, args: any) => ({}),
     isConnected: () => !!sessionPromise,
+    primeAudio: async () => {
+        // Only prime if context is missing or genuinely closed
+        if (inputAudioContext && inputAudioContext.state !== 'closed') return;
+        
+        inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+        outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        
+        await inputAudioContext.resume();
+        await outputAudioContext.resume();
+    },
     disconnect: () => {
         if (sessionPromise) {
             sessionPromise.then(s => {
@@ -929,26 +939,42 @@ export const liveSession = {
             });
         }
         sessionPromise = null;
-        if (inputAudioContext && inputAudioContext.state !== 'closed') {
-            try { inputAudioContext.close(); } catch(e) {}
+        
+        if (inputAudioContext) {
+            if (inputAudioContext.state !== 'closed') {
+                try { inputAudioContext.close(); } catch(e) {}
+            }
+            inputAudioContext = null;
         }
-        if (outputAudioContext && outputAudioContext.state !== 'closed') {
-            try { outputAudioContext.close(); } catch(e) {}
+        
+        if (outputAudioContext) {
+            if (outputAudioContext.state !== 'closed') {
+                try { outputAudioContext.close(); } catch(e) {}
+            }
+            outputAudioContext = null;
         }
+        
         audioSources.forEach(s => {
             try { s.stop(); } catch(e) {}
         });
         audioSources.clear();
         nextStartTime = 0;
+        inputAnalyser = null;
+        outputAnalyser = null;
     },
     connect: async (voiceName: string, config: any) => {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
-        // Safety: ensure any previous session is cleaned up
+        // Safety: Clear stale zombie contexts
         liveSession.disconnect();
-
+        
+        // Strictly re-initialize hardware contexts
         inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
         outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        
+        await inputAudioContext.resume();
+        await outputAudioContext.resume();
+
         inputAnalyser = inputAudioContext.createAnalyser();
         outputAnalyser = outputAudioContext.createAnalyser();
         outputAnalyser.connect(outputAudioContext.destination);
@@ -956,19 +982,19 @@ export const liveSession = {
         const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
         
         sessionPromise = ai.live.connect({
-            // FEATURE: Create conversational voice apps using gemini-2.5-flash-native-audio-preview-09-2025
             model: 'gemini-2.5-flash-native-audio-preview-09-2025',
             callbacks: {
                 onopen: () => {
-                    const source = inputAudioContext!.createMediaStreamSource(stream);
-                    const scriptProcessor = inputAudioContext!.createScriptProcessor(4096, 1, 1);
+                    if (!inputAudioContext || !inputAnalyser) return;
+                    const source = inputAudioContext.createMediaStreamSource(stream);
+                    const scriptProcessor = inputAudioContext.createScriptProcessor(4096, 1, 1);
                     scriptProcessor.onaudioprocess = (e) => {
                         const pcmBlob = createBlob(e.inputBuffer.getChannelData(0));
                         sessionPromise?.then(s => s.sendRealtimeInput({ media: pcmBlob }));
                     };
-                    source.connect(inputAnalyser!);
-                    inputAnalyser!.connect(scriptProcessor);
-                    scriptProcessor.connect(inputAudioContext!.destination);
+                    source.connect(inputAnalyser);
+                    inputAnalyser.connect(scriptProcessor);
+                    scriptProcessor.connect(inputAudioContext.destination);
                 },
                 onmessage: async (msg: LiveServerMessage) => {
                     if (msg.toolCall) {
@@ -1002,14 +1028,7 @@ export const liveSession = {
                     }
                 },
                 onerror: (e: any) => {
-                    let message = "Handshake failure";
-                    if (e instanceof ErrorEvent) message = e.message;
-                    else if (e instanceof CloseEvent) message = `Closed: ${e.reason} (${e.code})`;
-                    else if (e?.message) message = e.message;
-                    else if (e?.error?.message) message = e.error.message;
-                    else if (typeof e === 'string') message = e;
-                    
-                    console.error("Live Core Diagnostic Fail:", message);
+                    console.error("Live Core Handshake Error:", e);
                     if (config.callbacks?.onerror) config.callbacks.onerror(e);
                 },
                 onclose: () => {
