@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, Type, Schema, FunctionDeclaration, Blob as GenAIBlob, LiveServerMessage, Modality, GenerateContentResponse, GenerateContentParameters } from "@google/genai";
 import { 
     AppMode, FileData, SuggestedAction, AspectRatio, ImageSize, AnalysisResult, 
@@ -923,14 +924,19 @@ export const liveSession = {
     onToolCall: async (name: string, args: any) => ({}),
     isConnected: () => !!sessionPromise,
     primeAudio: async () => {
-        // Only prime if context is missing or genuinely closed
-        if (inputAudioContext && inputAudioContext.state !== 'closed') return;
+        // Safety: ensure context is nulled and fresh if previously closed
+        if (inputAudioContext && inputAudioContext.state === 'closed') inputAudioContext = null;
+        if (outputAudioContext && outputAudioContext.state === 'closed') outputAudioContext = null;
+
+        if (!inputAudioContext) {
+            inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
+        }
+        if (!outputAudioContext) {
+            outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+        }
         
-        inputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-        outputAudioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-        
-        await inputAudioContext.resume();
-        await outputAudioContext.resume();
+        if (inputAudioContext.state === 'suspended') await inputAudioContext.resume();
+        if (outputAudioContext.state === 'suspended') await outputAudioContext.resume();
     },
     disconnect: () => {
         if (sessionPromise) {
@@ -1028,12 +1034,18 @@ export const liveSession = {
                     }
                 },
                 onerror: (e: any) => {
-                    console.error("Live Core Handshake Error:", e);
-                    if (config.callbacks?.onerror) config.callbacks.onerror(e);
+                    let message = "Handshake failure";
+                    if (e instanceof Error) message = e.message;
+                    else if (e instanceof ErrorEvent) message = e.message;
+                    else if (e?.message) message = e.message;
+                    else if (typeof e === 'string') message = e;
+                    
+                    console.error("Live Core Diagnostic Fail:", message);
+                    if (config.callbacks?.onerror) config.callbacks.onerror(new Error(message));
                 },
-                onclose: () => {
+                onclose: (e: CloseEvent) => {
                     liveSession.disconnect();
-                    if (config.callbacks?.onclose) config.callbacks.onclose();
+                    if (config.callbacks?.onclose) config.callbacks.onclose(e);
                 }
             },
             config: {

@@ -1,8 +1,10 @@
+
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { generateCode, promptSelectKey, simulateCodeExecution, formatCode, fixCode, validateSyntax, generateCodeSuggestions, applyCodeSuggestion } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
 import { audio } from '../services/audioService'; 
+import { useFlywheel } from '../hooks/useFlywheel';
 import { Code, Terminal, Play, Loader2, Copy, Check, Save, RotateCcw, AlertCircle, Maximize2, Minimize2, PanelBottomClose, PanelBottomOpen, ChevronRight, Wand2, Cpu, Map as MapIcon, HardDrive, ShieldCheck, Stethoscope, Sparkles, X, GitMerge, AlertTriangle, Repeat, Database, Lightbulb, FileText, ToggleLeft, ToggleRight, Layout, ListTodo } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FileData } from '../types';
@@ -132,6 +134,7 @@ const CodeMinimap: React.FC<{ code: string; scrollRef: React.RefObject<HTMLDivEl
 
 const CodeStudio: React.FC = () => {
   const { codeStudio, setCodeStudioState, addLog } = useAppStore();
+  const { track } = useFlywheel('BUILDER PROTOCOL');
   const [isCopied, setIsCopied] = React.useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<HTMLDivElement>(null);
@@ -318,9 +321,11 @@ const CodeStudio: React.FC = () => {
           audio.playSuccess();
           setCodeStudioState({ generatedCode: newCode, suggestions: [] }); 
           addLog('SUCCESS', `Applied: ${suggestion}`);
+          track('Apply Suggestion').success();
       } catch (e: any) {
           audio.playError();
           addLog('ERROR', `Failed to apply suggestion: ${e.message}`);
+          track('Apply Suggestion').fail();
       } finally {
           setIsApplyingSuggestion(false);
       }
@@ -364,6 +369,7 @@ const CodeStudio: React.FC = () => {
                   setActiveOutput(output);
                   setCodeStudioState({ executionOutput: output, isExecuting: false });
                   solved = true;
+                  track('Simulation Run').success();
               } else {
                   audio.playError();
                   setActiveOutput(output); 
@@ -378,11 +384,13 @@ const CodeStudio: React.FC = () => {
                   } else {
                       setBootLog(prev => [...prev, "[FATAL] Max retries exceeded. Manual intervention required."]);
                       setCodeStudioState({ executionOutput: output, isExecuting: false });
+                      track('Simulation Run').fail();
                   }
               }
           } catch (err: any) {
               setBootLog(prev => [...prev, `[CRITICAL] System Exception: ${err.message}`]);
               setCodeStudioState({ isExecuting: false });
+              track('Simulation Run').fail();
               break;
           }
           attempt++;
@@ -403,9 +411,11 @@ const CodeStudio: React.FC = () => {
           setCodeStudioState({ generatedCode: fixedCode });
           setBootLog(prev => [...prev, "[AUTO-HEAL] Code patched successfully. Re-run simulation."]);
           setActiveOutput(null);
+          track('Manual Auto-Heal').success();
       } catch (err: any) {
           audio.playError();
           setCodeStudioState({ error: "Healing failed: " + err.message });
+          track('Manual Auto-Heal').fail();
       } finally {
           setIsHealing(false);
       }
@@ -443,6 +453,7 @@ const CodeStudio: React.FC = () => {
       navigator.clipboard.writeText(codeStudio.generatedCode);
       setIsCopied(true);
       audio.playClick();
+      track('Copy Code').success();
       setTimeout(() => setIsCopied(false), 2000);
     }
   };
@@ -450,6 +461,7 @@ const CodeStudio: React.FC = () => {
   const applyNeuralPatch = () => {
       if (codeStudio.activePatch) {
           audio.playSuccess();
+          track('Neural Patch').success();
           setCodeStudioState(prev => ({
               generatedCode: codeStudio.activePatch!.code,
               activePatch: null, 
@@ -458,7 +470,10 @@ const CodeStudio: React.FC = () => {
       }
   };
 
-  const discardPatch = () => { setCodeStudioState({ activePatch: null }); };
+  const discardPatch = () => { 
+      setCodeStudioState({ activePatch: null }); 
+      track('Neural Patch').fail();
+  };
 
   useEffect(() => {
     if (codeStudio.generatedCode && outputRef.current) { outputRef.current.scrollTop = 0; }

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
 import { useSystemMind } from '../stores/useSystemMind';
@@ -161,7 +160,15 @@ const VoiceManager: React.FC = () => {
                             },
                             onerror: (e: any) => {
                                 connectionAttemptRef.current = false;
-                                setVoiceState({ isActive: false, isConnecting: false });
+                                const errMsg = e?.message || "Handshake failure";
+                                addLog('ERROR', `VOICE_CORE_FAILURE: ${errMsg}`);
+                                setVoiceState({ isActive: false, isConnecting: false, error: errMsg });
+                            },
+                            onclose: (e: any) => {
+                                if (mounted) {
+                                    connectionAttemptRef.current = false;
+                                    setVoiceState({ isActive: false, isConnecting: false });
+                                }
                             }
                         }
                     });
@@ -193,7 +200,7 @@ const VoiceManager: React.FC = () => {
                     const message = err?.message || "Protocol handoff rejected";
                     if (mounted) {
                         setVoiceState({ isActive: false, isConnecting: false, error: message });
-                        addLog('ERROR', `VOICE_FAILURE: ${message}`);
+                        addLog('ERROR', `CRITICAL_FAILURE: ${message}`);
                     }
                     connectionAttemptRef.current = false;
                 }
