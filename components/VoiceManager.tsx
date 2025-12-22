@@ -1,25 +1,48 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
 import { useSystemMind } from '../stores/useSystemMind';
 import { 
     liveSession, 
-    generateCode, 
-    generateArchitectureImage, 
-    analyzeSchematic,
     HIVE_AGENTS,
     constructHiveContext,
     HiveAgent,
-    SYSTEM_COMMANDER_INSTRUCTION,
     chatWithGemini,
     fastAIResponse,
-    transcribeAudio,
     simulateExperiment
 } from '../services/geminiService';
-import { AppMode, ArtifactNode, AspectRatio, ImageSize, HardwareTier, AppTheme, ScienceHypothesis } from '../types';
-import { Radio, X, Loader2 } from 'lucide-react';
+import { AppMode, ScienceHypothesis, TaskStatus, TaskPriority } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FunctionDeclaration, Type, LiveServerMessage } from '@google/genai';
+
+const navigateTool: FunctionDeclaration = {
+    name: 'navigate_to_sector',
+    description: 'Physically moves the Architect to a different UI sector of the Metaventions OS.',
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            target_sector: { 
+                type: Type.STRING, 
+                enum: Object.values(AppMode), 
+                description: "The destination sector code (e.g., DASHBOARD, CODE_STUDIO, etc)." 
+            }
+        },
+        required: ['target_sector']
+    }
+};
+
+const createTaskTool: FunctionDeclaration = {
+    name: 'create_system_task',
+    description: 'Adds a new tactical task to the OS Task Board.',
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            title: { type: Type.STRING },
+            description: { type: Type.STRING },
+            priority: { type: Type.STRING, enum: Object.values(TaskPriority) }
+        },
+        required: ['title', 'description']
+    }
+};
 
 const logActivityTool: FunctionDeclaration = {
     name: 'log_activity',
@@ -59,45 +82,36 @@ const deepReasoningTool: FunctionDeclaration = {
     }
 };
 
-const quickCheckTool: FunctionDeclaration = {
-    name: 'quick_check',
-    description: 'Activates gemini-2.5-flash-lite for ultra-fast, low-latency parsing of simple commands.',
-    parameters: {
-        type: Type.OBJECT,
-        properties: {
-            command: { type: Type.STRING, description: "The simple command to parse quickly." }
-        },
-        required: ['command']
-    }
-};
-
-const highFidelityTranscriptionTool: FunctionDeclaration = {
-    name: 'high_fidelity_transcription',
-    description: 'Uses gemini-3-flash-preview to perform dedicated high-accuracy transcription of a spectral capture.',
-    parameters: {
-        type: Type.OBJECT,
-        properties: {
-            signal_id: { type: Type.STRING, description: "The ID of the signal in the buffer." }
-        },
-        required: ['signal_id']
-    }
-};
-
 const VoiceManager: React.FC = () => {
     const { 
-        voice, setVoiceState, mode, setMode, addLog, 
-        setProcessState, setCodeStudioState, setImageGenState, 
-        setHardwareState, setBicameralState, setBibliomorphicState,
-        operationalContext, setTheme
+        voice, setVoiceState, setMode, addLog, addTask,
+        operationalContext
     } = useAppStore();
-    const { getSnapshot, navigationMap, executeAction, actionRegistry, currentLocation } = useSystemMind();
+    const { navigationMap, currentLocation } = useSystemMind();
     
     const connectionAttemptRef = useRef(false);
     const partialTranscriptRef = useRef<string>("");
 
-    // Setup global tool handlers immediately to avoid race conditions
     useEffect(() => {
         liveSession.onToolCall = async (name, args) => {
+            if (name === 'navigate_to_sector') {
+                const target = args.target_sector as AppMode;
+                setMode(target);
+                addLog('SYSTEM', `VOICE_NAV: Redirecting to ${target} sector.`);
+                return { status: "NAVIGATION_SUCCESSFUL", sector: target };
+            }
+            if (name === 'create_system_task') {
+                addTask({
+                    title: args.title,
+                    description: args.description,
+                    priority: (args.priority as TaskPriority) || TaskPriority.MEDIUM,
+                    status: TaskStatus.TODO,
+                    tags: ['VOICE_INJECT'],
+                    subtasks: []
+                });
+                addLog('SUCCESS', `VOICE_TASK: Tactical unit "${args.title}" created.`);
+                return { status: "TASK_CREATED" };
+            }
             if (name === 'simulate_experiment') {
                 addLog('SYSTEM', `ARIS_LAB: Scientific simulation initialized for hypothesis.`);
                 const hyp: ScienceHypothesis = {
@@ -114,22 +128,13 @@ const VoiceManager: React.FC = () => {
                 const response = await chatWithGemini(args.query);
                 return { status: "REASONING_COMPLETE", output: response };
             }
-            if (name === 'quick_check') {
-                addLog('SYSTEM', `LITE_CORE: Quick check executed.`);
-                const response = await fastAIResponse(args.command);
-                return { status: "CHECK_COMPLETE", output: response };
-            }
-            if (name === 'high_fidelity_transcription') {
-                addLog('SYSTEM', `FLASH_CORE: Dedicated transcription activated.`);
-                return { status: "TRANSCRIPTION_READY" };
-            }
             if (name === 'log_activity') {
                 addLog(args.category === 'CORE_LOGIC' ? 'SUCCESS' : 'INFO', `VOICE_CORE: ${args.message}`);
                 return { status: "LOGGED" };
             }
             return { error: "Unknown protocol" };
         };
-    }, [addLog]);
+    }, [addLog, setMode, addTask]);
 
     useEffect(() => {
         let mounted = true;
@@ -144,24 +149,16 @@ const VoiceManager: React.FC = () => {
                     const agentId = agentEntry ? agentEntry[0] : 'Puck';
                     
                     const sharedContext = `
-                    OS STATUS:
+                    OS_STATUS:
                     - Sector: ${currentLocation}
                     - Context Level: ${operationalContext}
-                    - Navigation Topology: ${navigationMap.map(n => n.id).join(', ')}
                     
-                    NEURAL CAPABILITIES:
-                    - You are using Gemini 2.5 Flash Native Audio for ultra-low latency response.
-                    - Access Pro Logic (gemini-3-pro-preview) via 'deep_reasoning'.
-                    - Access Speed-Mode (gemini-2.5-flash-lite) via 'quick_check'.
-                    - Access High-Fidelity Transcription (gemini-3-flash-preview) via 'high_fidelity_transcription'.
-                    - Access Scientific Simulation via 'simulate_experiment'.
-
-                    DIRECTIVE:
-                    You are the Metaventions Voice Core. You are welcoming, precise, and highly integrated.
-                    Always address the user as "Architect".
+                    CAPABILITIES:
+                    - You can navigate sectors, create tasks, log events, and run deep reasoning simulations.
+                    - Address the user as "Architect".
                     
-                    INITIALIZATION GREETING:
-                    As soon as you are initialized, say: "Voice Core Online. All neural sectors synchronized. How shall we proceed, Architect?"
+                    GREETING:
+                    Say: "Voice Core Online. Ready for command, Architect."
                     `;
 
                     const fullSystemInstruction = constructHiveContext(agentId, sharedContext);
@@ -169,24 +166,21 @@ const VoiceManager: React.FC = () => {
                     await liveSession.connect(agentName, {
                         systemInstruction: fullSystemInstruction,
                         tools: [{ functionDeclarations: [
+                            navigateTool,
+                            createTaskTool,
                             logActivityTool, 
                             deepReasoningTool, 
-                            quickCheckTool, 
-                            highFidelityTranscriptionTool,
                             simulateExperimentTool
                         ] }],
                         outputAudioTranscription: {},
                         inputAudioTranscription: {},
                         callbacks: {
                             onmessage: async (message: LiveServerMessage) => {
-                                // Handle Transcription
                                 if (message.serverContent?.outputAudioTranscription) {
-                                    const text = message.serverContent.outputAudioTranscription.text;
-                                    partialTranscriptRef.current += text;
+                                    partialTranscriptRef.current += message.serverContent.outputAudioTranscription.text;
                                     setVoiceState({ partialTranscript: { role: 'model', text: partialTranscriptRef.current } });
                                 } else if (message.serverContent?.inputAudioTranscription) {
-                                    const text = message.serverContent.inputAudioTranscription.text;
-                                    partialTranscriptRef.current += text;
+                                    partialTranscriptRef.current += message.serverContent.inputAudioTranscription.text;
                                     setVoiceState({ partialTranscript: { role: 'user', text: partialTranscriptRef.current } });
                                 }
 
@@ -208,16 +202,14 @@ const VoiceManager: React.FC = () => {
                             onopen: () => {
                                 if (mounted) {
                                     setVoiceState({ isConnecting: false });
-                                    addLog('SUCCESS', `VOICE_CORE: Neural sectors initialized [${agentName}]. Welcome, Architect.`);
+                                    addLog('SUCCESS', `VOICE_CORE: Synchronized [${agentName}].`);
                                 }
                             },
                             onerror: (e: any) => {
                                 connectionAttemptRef.current = false;
-                                const errMsg = e?.message || "Handshake failure";
-                                addLog('ERROR', `VOICE_CORE_FAILURE: ${errMsg}`);
-                                setVoiceState({ isActive: false, isConnecting: false, error: errMsg });
+                                setVoiceState({ isActive: false, isConnecting: false });
                             },
-                            onclose: (e: any) => {
+                            onclose: () => {
                                 if (mounted) {
                                     connectionAttemptRef.current = false;
                                     setVoiceState({ isActive: false, isConnecting: false });
@@ -227,11 +219,6 @@ const VoiceManager: React.FC = () => {
                     });
 
                 } catch (err: any) {
-                    const message = err?.message || "Protocol handoff rejected";
-                    if (mounted) {
-                        setVoiceState({ isActive: false, isConnecting: false, error: message });
-                        addLog('ERROR', `CRITICAL_FAILURE: ${message}`);
-                    }
                     connectionAttemptRef.current = false;
                 }
             } 
@@ -239,13 +226,12 @@ const VoiceManager: React.FC = () => {
                 liveSession.disconnect();
                 connectionAttemptRef.current = false;
                 setVoiceState({ partialTranscript: null, isConnecting: false });
-                partialTranscriptRef.current = "";
             }
         };
 
         manageConnection();
         return () => { mounted = false; };
-    }, [voice.isActive, voice.voiceName, setVoiceState, addLog, currentLocation, navigationMap, operationalContext]); 
+    }, [voice.isActive, voice.voiceName, setVoiceState, addLog, currentLocation, operationalContext]); 
 
     return null;
 };

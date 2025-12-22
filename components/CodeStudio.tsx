@@ -14,12 +14,15 @@ import MermaidDiagram from './MermaidDiagram';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 
 const highlightCode = (code: string, lang: string) => {
-    // Simplified syntax highlighting for performance
-    return code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-        .replace(/\b(const|let|var|function|class|import|from|return|if|else|for|while|async|await|export|default|interface|type|public|private|protected|new|try|catch|finally|switch|case|break|throw)\b/g, '<span class="text-[#f1c21b]">$1</span>')
-        .replace(/\b(string|number|boolean|any|Promise|Array|Object|null|undefined|true|false)\b/g, '<span class="text-[#22d3ee]">$1</span>')
-        .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span class="text-gray-500 italic">$1</span>')
-        .replace(/(".*?"|'.*?'|`[\s\S]*?`)/g, '<span class="text-[#42be65]">$1</span>');
+    // Escape standard HTML characters first to prevent XSS and tag mangling
+    let escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    
+    // We use style="color: ..." instead of class="..." to avoid matching the 'class' keyword inside our own highlighter tags
+    return escaped
+        .replace(/\b(const|let|var|function|class|import|from|return|if|else|for|while|async|await|export|default|interface|type|public|private|protected|new|try|catch|finally|switch|case|break|throw)\b/g, '<span style="color: #f1c21b">$1</span>')
+        .replace(/\b(string|number|boolean|any|Promise|Array|Object|null|undefined|true|false)\b/g, '<span style="color: #22d3ee">$1</span>')
+        .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span style="color: #6b7280; font-style: italic">$1</span>')
+        .replace(/(".*?"|'.*?'|`[\s\S]*?`)/g, '<span style="color: #42be65">$1</span>');
 };
 
 const CodeStudio: React.FC = () => {
@@ -281,21 +284,36 @@ const CodeStudio: React.FC = () => {
                           </div>
                       ) : (
                           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto space-y-8 pb-20">
-                              <div className="flex items-center justify-between border-b border-[#333] pb-6">
-                                  <div className="flex items-center gap-4">
-                                      <div className="p-3 bg-cyan-400/10 border border-cyan-400/30 rounded-2xl text-cyan-400"><GitMerge size={24} /></div>
+                              <div className="flex items-center justify-between border-b border-[#333] pb-10">
+                                  <div className="flex items-center gap-6">
+                                      <div className="p-4 bg-cyan-400/10 border-2 border-cyan-400/40 rounded-3xl text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.2)]"><GitMerge size={32} /></div>
                                       <div>
-                                          <h2 className="text-xl font-black text-white font-mono uppercase tracking-widest">Proposed Evolution</h2>
-                                          <div className="text-[10px] text-gray-500 font-mono mt-1">Integrity Score: <span className="text-cyan-400">{codeStudio.activeEvolution?.integrityScore}%</span></div>
+                                          <h2 className="text-3xl font-black text-white font-mono uppercase tracking-widest">PROPOSED EVOLUTION</h2>
+                                          <div className="text-[10px] text-gray-500 font-mono mt-1 uppercase tracking-widest font-black">Integrity Score: <span className="text-cyan-400">{codeStudio.activeEvolution?.integrityScore}%</span></div>
                                       </div>
                                   </div>
-                                  <button onClick={applyEvolution} className="px-8 py-2.5 bg-cyan-400 text-black text-[10px] font-black uppercase rounded-xl shadow-lg hover:bg-cyan-300 transition-all">Merge Evolution</button>
+                                  <button onClick={applyEvolution} className="px-10 py-3.5 bg-cyan-400 text-black text-xs font-black uppercase rounded-2xl shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:bg-cyan-300 transition-all hover:scale-105 active:scale-95 tracking-[0.2em]">MERGE EVOLUTION</button>
                               </div>
-                              <div className="p-6 bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl text-xs font-mono text-gray-300 leading-relaxed italic border-l-4 border-l-cyan-400">"{codeStudio.activeEvolution?.reasoning}"</div>
-                              <div className="rounded-2xl border border-[#1f1f1f] overflow-hidden bg-black shadow-2xl max-h-[500px] overflow-y-auto custom-scrollbar">
-                                  <pre className="p-8 text-[11px] font-mono text-gray-400 selection:bg-cyan-400/20">
-                                      <code dangerouslySetInnerHTML={{ __html: highlightCode(codeStudio.activeEvolution?.code || '', codeStudio.language) }} />
-                                  </pre>
+                              
+                              <div className="p-8 bg-[#0a0a0a] border-2 border-cyan-900/30 rounded-3xl text-xs font-mono text-gray-300 leading-relaxed italic border-l-[10px] border-l-cyan-400 shadow-xl">
+                                  "{codeStudio.activeEvolution?.reasoning}"
+                              </div>
+
+                              <div className="rounded-3xl border border-[#1f1f1f] overflow-hidden bg-black shadow-2xl max-h-[600px] flex flex-col relative">
+                                  <div className="h-10 bg-[#0a0a0a] border-b border-[#1f1f1f] flex items-center px-6 justify-between">
+                                      <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Evolved Source Matrix</span>
+                                      <div className="flex gap-1.5">
+                                          <div className="w-2 h-2 rounded-full bg-red-500/20" />
+                                          <div className="w-2 h-2 rounded-full bg-yellow-500/20" />
+                                          <div className="w-2 h-2 rounded-full bg-green-500/20" />
+                                      </div>
+                                  </div>
+                                  <div className="overflow-y-auto custom-scrollbar flex-1">
+                                      <pre className="p-8 text-[11px] font-mono text-gray-400 selection:bg-cyan-400/20 leading-relaxed">
+                                          <code dangerouslySetInnerHTML={{ __html: highlightCode(codeStudio.activeEvolution?.code || '', codeStudio.language) }} />
+                                      </pre>
+                                  </div>
+                                  <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[linear-gradient(rgba(34,211,238,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.1)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
                               </div>
                           </motion.div>
                       )}
