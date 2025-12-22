@@ -1,10 +1,9 @@
-
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Search, Globe, Loader2, Sparkles, Code, GitBranch, 
     ChevronRight, Zap, ExternalLink, Box, Database, 
-    Layers, Cpu, BookOpen, ShieldCheck, Terminal, Trash2, X
+    Layers, Cpu, BookOpen, ShieldCheck, Terminal, Trash2, X, Activity
 } from 'lucide-react';
 import { GOOGLE_APIS, GoogleApiDefinition } from '../data/googleApis';
 import { useAppStore } from '../store';
@@ -16,7 +15,9 @@ const NexusAPIExplorer: React.FC = () => {
     const [query, setQuery] = useState('');
     const [selectedApi, setSelectedApi] = useState<GoogleApiDefinition | null>(null);
     const [isForging, setIsForging] = useState(false);
+    const [isSearchingLive, setIsSearchingLive] = useState(false);
     const [generatedSchema, setGeneratedSchema] = useState<string | null>(null);
+    const [liveSearchResults, setLiveSearchResults] = useState<any[]>([]);
 
     const filtered = useMemo(() => {
         return GOOGLE_APIS.filter(api => 
@@ -24,6 +25,35 @@ const NexusAPIExplorer: React.FC = () => {
             api.description.toLowerCase().includes(query.toLowerCase())
         );
     }, [query]);
+
+    const handleLiveSearch = async () => {
+        if (!query.trim()) return;
+        setIsSearchingLive(true);
+        addLog('SYSTEM', `NEXUS_QUERY: Grounding intelligence for "${query}" across Google Ecosystem...`);
+        
+        try {
+            const hasKey = await window.aistudio?.hasSelectedApiKey();
+            if (!hasKey) { await promptSelectKey(); setIsSearchingLive(false); return; }
+
+            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
+                model: 'gemini-3-flash-preview',
+                contents: `Search for technical API or service details related to: "${query}". Identify endpoints, core functions, and technical value. Return JSON array [{title, description, category}].`,
+                config: { 
+                    responseMimeType: 'application/json',
+                    tools: [{ googleSearch: {} }]
+                }
+            }));
+
+            const results = JSON.parse(response.text || "[]");
+            setLiveSearchResults(results);
+            addLog('SUCCESS', `NEXUS_QUERY: Captured ${results.length} live intelligence vectors.`);
+        } catch (e: any) {
+            addLog('ERROR', `NEXUS_QUERY_FAIL: ${e.message}`);
+        } finally {
+            setIsSearchingLive(false);
+        }
+    };
 
     const forgeMcpTool = async () => {
         if (!selectedApi) return;
@@ -103,11 +133,21 @@ const NexusAPIExplorer: React.FC = () => {
             {/* Left: Search & List */}
             <div className="w-[400px] bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl overflow-hidden flex flex-col shadow-2xl">
                 <div className="p-4 border-b border-[#1f1f1f] bg-[#111]">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="p-2 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded">
-                            <Globe className="w-4 h-4 text-[#9d4edd]" />
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                            <div className="p-2 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded">
+                                <Globe className="w-4 h-4 text-[#9d4edd]" />
+                            </div>
+                            <h2 className="text-xs font-bold font-mono text-white uppercase tracking-widest">Nexus API Registry</h2>
                         </div>
-                        <h2 className="text-xs font-bold font-mono text-white uppercase tracking-widest">Nexus API Registry</h2>
+                        <button 
+                            onClick={handleLiveSearch} 
+                            disabled={isSearchingLive || !query.trim()}
+                            className="p-1.5 bg-[#22d3ee]/10 border border-[#22d3ee]/30 rounded text-[#22d3ee] hover:bg-[#22d3ee] hover:text-black transition-all disabled:opacity-30"
+                            title="Live Intelligence Search"
+                        >
+                            {isSearchingLive ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+                        </button>
                     </div>
                     <div className="relative group">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#22d3ee] transition-colors" />
@@ -121,6 +161,29 @@ const NexusAPIExplorer: React.FC = () => {
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
+                    {liveSearchResults.length > 0 && (
+                        <div className="mb-4 space-y-1">
+                            <div className="px-3 py-1 text-[8px] font-black text-[#22d3ee] uppercase tracking-widest bg-[#22d3ee]/5 border border-[#22d3ee]/20 rounded mb-2 flex items-center gap-2">
+                                <Activity size={10} className="animate-pulse" /> Live Search Signals
+                                <button onClick={() => setLiveSearchResults([])} className="ml-auto hover:text-white"><X size={10}/></button>
+                            </div>
+                            {liveSearchResults.map((api, i) => (
+                                <button
+                                    key={`live-${i}`}
+                                    onClick={() => { setSelectedApi(api); setGeneratedSchema(null); }}
+                                    className={`w-full text-left p-3 rounded-lg transition-all flex items-center justify-between group border border-dashed border-[#22d3ee]/30
+                                        ${selectedApi?.title === api.title ? 'bg-[#22d3ee]/10 border-[#22d3ee]' : 'hover:bg-[#22d3ee]/5'}
+                                    `}
+                                >
+                                    <div className="flex-1 min-w-0 pr-4">
+                                        <div className="text-[11px] font-bold text-cyan-200 group-hover:text-white transition-colors truncate">{api.title}</div>
+                                        <div className="text-[9px] text-gray-500 font-mono truncate">{api.description}</div>
+                                    </div>
+                                    <Sparkles className="w-3 h-3 text-[#22d3ee]" />
+                                </button>
+                            ))}
+                        </div>
+                    )}
                     {filtered.map((api, i) => (
                         <button
                             key={i}
@@ -136,7 +199,7 @@ const NexusAPIExplorer: React.FC = () => {
                             <ChevronRight className={`w-3 h-3 shrink-0 ${selectedApi?.title === api.title ? 'text-[#9d4edd]' : 'text-gray-700'}`} />
                         </button>
                     ))}
-                    {filtered.length === 0 && (
+                    {filtered.length === 0 && liveSearchResults.length === 0 && (
                         <div className="p-8 text-center opacity-20">
                             <X className="mx-auto mb-2" size={24} />
                             <span className="text-[10px] font-mono uppercase">No endpoints found</span>
@@ -145,7 +208,7 @@ const NexusAPIExplorer: React.FC = () => {
                 </div>
                 
                 <div className="p-3 bg-[#080808] border-t border-[#1f1f1f] flex justify-between text-[8px] font-mono text-gray-600">
-                    <span>REGISTRY_COUNT: {GOOGLE_APIS.length}</span>
+                    <span>REGISTRY_COUNT: {GOOGLE_APIS.length + liveSearchResults.length}</span>
                     <span>PROTOCOL: MCP_v1</span>
                 </div>
             </div>
@@ -211,7 +274,7 @@ const NexusAPIExplorer: React.FC = () => {
 
                             {!generatedSchema && (
                                 <button 
-                                    onClick={forgeMcpTool}
+                                    onClick={forgeMcpTool} 
                                     disabled={isForging}
                                     className="w-full py-5 mt-8 bg-[#9d4edd] text-black font-black font-mono text-xs uppercase tracking-[0.3em] rounded-xl hover:bg-[#b06bf7] transition-all shadow-[0_0_40px_rgba(157,78,221,0.3)] flex items-center justify-center gap-4 active:scale-95"
                                 >
@@ -227,7 +290,7 @@ const NexusAPIExplorer: React.FC = () => {
                                 <div className="absolute inset-0 rounded-full border border-[#9d4edd]/20 animate-ping"></div>
                             </div>
                             <h2 className="text-xl font-bold font-mono text-white mb-2 uppercase tracking-widest">Select Nexus Target</h2>
-                            <p className="text-xs text-gray-500 font-mono max-w-sm">Choose a Google API from the registry to forge a spectral tool manifest for autonomic integration.</p>
+                            <p className="text-xs text-gray-500 font-mono max-w-sm">Choose a Google API from the registry or use Live Search to forge a spectral tool manifest for autonomic integration.</p>
                         </div>
                     )}
                 </AnimatePresence>

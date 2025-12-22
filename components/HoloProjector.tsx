@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Scan, Download, Terminal, BrainCircuit, Loader2, Copy, FileText, Code, Image as ImageIcon, Wand2, Edit, Check } from 'lucide-react';
+import { X, Scan, Download, Terminal, BrainCircuit, Loader2, Copy, FileText, Code, Image as ImageIcon, Wand2, Edit, Check, Zap } from 'lucide-react';
 import { promptSelectKey, transformArtifact, retryGeminiRequest } from '../services/geminiService';
 import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
 
