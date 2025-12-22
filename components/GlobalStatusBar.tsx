@@ -7,7 +7,7 @@ import * as Icons from 'lucide-react';
 import { 
     Activity, Clock, Cpu, Shield, Zap, Hammer, Coins, 
     Telescope, History, AlertOctagon, BrainCircuit, 
-    ArrowRight, Loader2, Terminal, HardDrive
+    ArrowRight, Loader2, Terminal, HardDrive, Globe, Users
 } from 'lucide-react';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 
@@ -15,7 +15,8 @@ const GlobalStatusBar: React.FC = () => {
     const { 
         kernel, knowledge, toggleKnowledgeLayer, system,
         isScrubberOpen, setScrubberOpen,
-        isDiagnosticsOpen, setDiagnosticsOpen
+        isDiagnosticsOpen, setDiagnosticsOpen,
+        collaboration, setCollabState
     } = useAppStore();
     const { execute, state: agentState } = useAgentRuntime();
     const [input, setInput] = useState('');
@@ -23,6 +24,7 @@ const GlobalStatusBar: React.FC = () => {
     
     const activeLayers = knowledge.activeLayers || [];
     const errorCount = system.logs.filter((l: any) => l.level === 'ERROR').length;
+    const peerCount = collaboration.peers.length;
 
     useEffect(() => {
         const interval = setInterval(() => {
@@ -122,6 +124,20 @@ const GlobalStatusBar: React.FC = () => {
 
                 {/* RIGHT: NAVIGATION & TEMPORAL */}
                 <div className="flex items-center gap-4 pl-6 border-l border-white/5 shrink-0 relative z-10">
+                    {/* Peer Swarm Indicator */}
+                    <button 
+                        onClick={() => setCollabState({ isOverlayOpen: !collaboration.isOverlayOpen })}
+                        className={`group flex items-center gap-3 px-3 py-1.5 rounded-xl border transition-all ${collaboration.isOverlayOpen ? 'bg-[#22d3ee] text-black border-[#22d3ee]' : 'bg-white/5 border-white/10 hover:border-[#22d3ee]/40'}`}
+                    >
+                        <div className="relative">
+                            <Users size={14} className={collaboration.isOverlayOpen ? 'text-black' : 'text-gray-400 group-hover:text-[#22d3ee]'} />
+                            {peerCount > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#10b981] border-2 border-black" />}
+                        </div>
+                        <span className={`text-[10px] font-black font-mono uppercase tracking-widest ${collaboration.isOverlayOpen ? 'text-black' : 'text-gray-500'}`}>
+                            {peerCount} Swarm
+                        </span>
+                    </button>
+
                     <div className="flex items-center gap-1.5">
                         {Object.values(KNOWLEDGE_LAYERS).map((layer) => {
                             const isActive = activeLayers.includes(layer.id);

@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { KnowledgeNode } from '../types';
 import { BrainCircuit, Link as LinkIcon, Info, X, Maximize2, Search, Target, GitBranch, Sparkles } from 'lucide-react';
 import { useAppStore } from '../store';
+import { renderSafe } from '../utils/renderSafe';
 
 interface KnowledgeGraphProps {
     nodes: KnowledgeNode[];
@@ -233,7 +234,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
                                 <span className="text-[10px] text-[#42be65] font-mono font-bold">STRENGTH: {activeNode.strength}%</span>
                             </div>
                             <p className="text-[11px] text-gray-300 leading-relaxed font-mono italic border-l-2 border-[#9d4edd]/50 pl-4 py-1">
-                                "{activeNode.data?.summary || 'Discrete logic node identified in the sovereign lattice.'}"
+                                "{renderSafe(activeNode.data?.summary || 'Discrete logic node identified in the sovereign lattice.')}"
                             </p>
                             
                             <div className="pt-4 border-t border-white/5 flex flex-col gap-2">
