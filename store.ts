@@ -58,7 +58,7 @@ interface AppState {
         conductivity: number;
         componentQuery: string;
         searchHistory: string[];
-        filters: { minPrice: number; maxPrice: number; showOutOfStock: boolean };
+        filters: { minPrice: number; maxPrice: number; shape: boolean; showOutOfStock: boolean };
         schematicImage: any;
         xrayImage: string | null;
         analysis: any;
@@ -78,6 +78,10 @@ interface AppState {
         executionOutput: string | null;
         error: string | null;
         activePatch: { code: string; explanation: string; timestamp: number } | null;
+        activeEvolution: { code: string; reasoning: string; type: 'REFACTOR' | 'MODULARIZE' | 'SECURITY'; integrityScore: number } | null;
+        isEvolving: boolean;
+        lastEditTimestamp: number;
+        model: string;
     };
     bibliomorphic: {
         chatHistory: any[];
@@ -247,14 +251,7 @@ export const useAppStore = create<AppState>((set) => ({
         activeColorway: null
     },
     hardware: { 
-        recommendations: [
-            { id: '1', partNumber: 'NVIDIA GB300 NVL72', manufacturer: 'NVIDIA', specs: { type: 'Rack Solution', compute: 'Blackwell' }, isInStock: true, price: 3500000 },
-            { id: '2', partNumber: 'NVIDIA B300 GPU', manufacturer: 'NVIDIA', specs: { type: 'GPU', memory: '192GB HBM3e' }, isInStock: true, price: 42000 },
-            { id: '3', partNumber: 'SYS-821GV-TNR', manufacturer: 'SUPERMICRO', specs: { type: 'Server', socket: 'LGA-4677' }, isInStock: true, price: 18500 },
-            { id: '4', partNumber: 'NVIDIA Grace CPU', manufacturer: 'NVIDIA', specs: { type: 'CPU', cores: '144' }, isInStock: true, price: 12000 },
-            { id: '5', partNumber: 'Xeon Platinum 8480+', manufacturer: 'INTEL', specs: { type: 'CPU', cache: '105MB' }, isInStock: true, price: 9500 },
-            { id: '6', partNumber: 'EPYC 9654', manufacturer: 'AMD', specs: { type: 'CPU', cores: '96' }, isInStock: false, price: 11800 },
-        ], 
+        recommendations: [], 
         bom: [], 
         activeTier: 'TIER_1', 
         currentEra: TemporalEra.SILICON,
@@ -262,8 +259,8 @@ export const useAppStore = create<AppState>((set) => ({
         cooling: 1.0, 
         conductivity: 0.05, 
         componentQuery: '', 
-        searchHistory: ['nvidia gb200', 'supermicro h13', 'quantum interconnect'],
-        filters: { minPrice: 0, maxPrice: 5000000, showOutOfStock: true },
+        searchHistory: [],
+        filters: { minPrice: 0, maxPrice: 5000000, shape: true, showOutOfStock: true },
         schematicImage: null,
         xrayImage: null,
         analysis: null,
@@ -282,7 +279,11 @@ export const useAppStore = create<AppState>((set) => ({
         isExecuting: false,
         executionOutput: null,
         error: null,
-        activePatch: null
+        activePatch: null,
+        activeEvolution: null,
+        isEvolving: false,
+        lastEditTimestamp: 0,
+        model: 'gemini-3-pro-preview'
     },
     bibliomorphic: { chatHistory: [], library: [], dna: null, activeBook: null, activeTab: 'discovery', error: null, isIngesting: false, synapticReadout: [], agentPathways: {} },
     voice: { transcripts: [], partialTranscript: null, agentAvatars: {}, voiceName: 'Puck', isActive: false, isConnecting: false, error: null, mentalState: { skepticism: 50, excitement: 50, alignment: 50 } },
@@ -299,27 +300,15 @@ export const useAppStore = create<AppState>((set) => ({
         ],
         activeLayerId: 'depin',
         isAnalyzing: false,
-        strategyLog: [{ id: '1', timestamp: Date.now(), message: 'Metaventions Stack L1 initialized. Recursive Context Layer linked.', type: 'SYSTEM' as any }],
+        strategyLog: [],
         strategyLibrary: [],
-        recursiveFeedback: null,
+        wallets: [],
+        economicProtocols: [],
         sensingMatrix: {
             resourceStream: { leverage: 84, cap: '$1.2M', trend: [30, 45, 42, 50, 65, 84] },
             executionStream: { momentum: 92, progress: 'WEAVER v1', trend: [10, 25, 40, 60, 85, 92] },
             environmentStream: { opportunity: 76, status: 'WINDSOR_HUB', trend: [50, 55, 52, 60, 70, 76] }
-        },
-        activeRefractions: [],
-        stressTest: { isTesting: false, report: null },
-        wallets: [
-            { 
-                address: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e', balance: 'Ξ 342.1', currency: 'ETH', lastActive: Date.now(), txCount: 1542,
-                assets: [ { label: 'ETH', value: 342.1 }, { label: 'USDC', value: 12450 }, { label: 'DOGE', value: 890200 }, { label: 'QUBIC', value: 45000000 } ]
-            },
-            { 
-                address: '0x8b5cf6d8b5cf6d8b5cf6d8b5cf6d8b5cf6d8b5cf', balance: 'Ξ 78.4', currency: 'ETH', lastActive: Date.now(), txCount: 423,
-                assets: [ { label: 'ETH', value: 78.4 }, { label: 'USDT', value: 3200 }, { label: 'SOL', value: 125 } ]
-            }
-        ],
-        economicProtocols: []
+        }
     },
     discovery: { hypotheses: [], theory: null, isLoading: false, status: 'IDLE' },
     search: { history: [], results: [], query: '', isOpen: false, isSearching: false },
@@ -361,7 +350,6 @@ export const useAppStore = create<AppState>((set) => ({
         system: { ...state.system, logs: [...state.system.logs, { id: Date.now(), timestamp: Date.now(), level, message }].slice(-100) } 
     })),
     toggleTerminal: (isOpen) => set((state) => ({ system: { ...state.system, isTerminalOpen: isOpen ?? !state.system.isTerminalOpen } })),
-    addLogAtLevel: (level, message) => set((state) => ({ system: { ...state.system, logs: [...state.system.logs, { id: Date.now(), timestamp: Date.now(), level, message }].slice(-100) } })),
     addDockItem: (item) => set((state) => ({ system: { ...state.system, dockItems: [...state.system.dockItems, item] } })),
     removeDockItem: (id) => set((state) => ({ system: { ...state.system, dockItems: state.system.dockItems.filter((i: any) => i.id !== id) } })),
     openHoloProjector: (artifact) => set({ holo: { isOpen: true, activeArtifact: artifact, isAnalyzing: false, analysisResult: null } }),
@@ -374,20 +362,12 @@ export const useAppStore = create<AppState>((set) => ({
     updateResearchTask: (id, updates) => set((state) => ({ research: { ...state.research, tasks: state.research.tasks.map(t => t.id === id ? { ...t, ...updates } : t) } })),
     removeResearchTask: (id) => set((state) => ({ research: { ...state.research, tasks: state.research.tasks.filter(t => t.id !== id) } })),
     cancelResearchTask: (id) => set((state) => ({ research: { ...state.research, tasks: state.research.tasks.map(t => t.id === id ? { ...t, status: 'CANCELLED', progress: 0, logs: [...t.logs, '⛔ Cancelled'] } : t) } })),
-
     toggleKnowledgeLayer: (layerId) => set((state) => {
         const current = state.knowledge.activeLayers || [];
         const isActive = current.includes(layerId);
         return { knowledge: { ...state.knowledge, activeLayers: isActive ? current.filter((id: string) => id !== layerId) : [...current, layerId] } };
     }),
-
-    addTask: (task) => set((state) => ({
-        tasks: [{ ...task, id: crypto.randomUUID(), timestamp: Date.now() }, ...state.tasks]
-    })),
-    updateTask: (id, updates) => set((state) => ({
-        tasks: state.tasks.map(t => t.id === id ? { ...t, ...updates } : t)
-    })),
-    deleteTask: (id) => set((state) => ({
-        tasks: state.tasks.filter(t => t.id !== id)
-    })),
+    addTask: (task) => set((state) => ({ tasks: [{ ...task, id: crypto.randomUUID(), timestamp: Date.now() }, ...state.tasks] })),
+    updateTask: (id, updates) => set((state) => ({ tasks: state.tasks.map(t => t.id === id ? { ...t, ...updates } : t) })),
+    deleteTask: (id) => set((state) => ({ tasks: state.tasks.filter(t => t.id !== id) })),
 }));

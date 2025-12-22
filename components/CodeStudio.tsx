@@ -1,51 +1,34 @@
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useAppStore } from '../store';
-import { generateCode, promptSelectKey, validateSyntax } from '../services/geminiService';
+import { generateCode, promptSelectKey, validateSyntax, evolveSystemArchitecture } from '../services/geminiService';
 import { audio } from '../services/audioService'; 
 import { useFlywheel } from '../hooks/useFlywheel';
-import { Code, Copy, Check, Loader2, Sparkles, FileText, AlertTriangle, Activity, CheckCircle, Target, Layers, Cpu, Terminal, GitMerge, BrainCircuit } from 'lucide-react';
+import { 
+    Code, Copy, Check, Loader2, Sparkles, FileText, AlertTriangle, 
+    Activity, CheckCircle, Target, Layers, Cpu, Terminal, GitMerge, 
+    BrainCircuit, X, HelpCircle, ArrowUpRight, Zap, Info, Binary, 
+    TrendingUp, History, ShieldCheck, Database, RefreshCw, Eye, Search
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MermaidDiagram from './MermaidDiagram';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 
-const SYNTAX_CONFIG: Record<string, { keywords: string; types: string; comment: RegExp; string: RegExp }> = {
-    python: {
-        keywords: "\\b(def|class|import|from|return|if|else|elif|for|while|try|except|finally|with|as|pass|lambda|global|nonlocal|True|False|None|and|or|not|is|in|print)\\b",
-        types: "\\b(int|str|bool|float|list|dict|set|tuple|self)\\b",
-        comment: /(#.*$)/gm,
-        string: /(".*?"|'.*?'|""".*?"""|'''.*?''')/g
-    },
-    typescript: { 
-        keywords: "\\b(const|let|var|function|class|import|from|return|if|else|for|while|async|await|export|default|interface|type|implements|extends|public|private|protected|new|try|catch|finally|switch|case|break|throw|typeof|instanceof|void|this)\\b",
-        types: "\\b(string|number|boolean|any|Promise|Array|Object|null|undefined|true|false)\\b",
-        comment: /(\/\/.*$|\/\*[\s\S]*?\*\/)/gm,
-        string: /(".*?"|'.*?'|`[\s\S]*?`)/g
-    }
-};
-
 const highlightCode = (code: string, lang: string) => {
-    let html = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const config = SYNTAX_CONFIG[lang.toLowerCase()] || SYNTAX_CONFIG.typescript;
-    const tokens: { placeholder: string, value: string }[] = [];
-    const storeToken = (val: string) => {
-        const placeholder = `__TOKEN_${tokens.length}__`;
-        tokens.push({ placeholder, value: val });
-        return placeholder;
-    };
-    html = html.replace(config.comment, (match) => storeToken(`<span class="text-gray-500 italic">${match}</span>`));
-    html = html.replace(config.string, (match) => storeToken(`<span class="text-[#42be65]">${match}</span>`));
-    if (config.keywords) html = html.replace(new RegExp(config.keywords, 'g'), '<span class="text-[#f1c21b]">$1</span>');
-    if (config.types) html = html.replace(new RegExp(config.types, 'g'), '<span class="text-[#22d3ee]">$1</span>');
-    tokens.forEach(t => { html = html.replace(t.placeholder, t.value); });
-    return html;
+    // Simplified syntax highlighting for performance
+    return code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/\b(const|let|var|function|class|import|from|return|if|else|for|while|async|await|export|default|interface|type|public|private|protected|new|try|catch|finally|switch|case|break|throw)\b/g, '<span class="text-[#f1c21b]">$1</span>')
+        .replace(/\b(string|number|boolean|any|Promise|Array|Object|null|undefined|true|false)\b/g, '<span class="text-[#22d3ee]">$1</span>')
+        .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span class="text-gray-500 italic">$1</span>')
+        .replace(/(".*?"|'.*?'|`[\s\S]*?`)/g, '<span class="text-[#42be65]">$1</span>');
 };
 
 const CodeStudio: React.FC = () => {
-  const { codeStudio, setCodeStudioState, process } = useAppStore();
+  const { codeStudio, setCodeStudioState, process: processData, addLog } = useAppStore();
   const { track } = useFlywheel('BUILDER PROTOCOL');
   const { state: agentState } = useAgentRuntime();
-  const [activeTab, setActiveTab] = useState<'IDE' | 'LATTICE' | 'ORCHESTRATION'>('IDE');
+  const [activeTab, setActiveTab] = useState<'IDE' | 'EVOLUTION' | 'LATTICE' | 'ORCHESTRATION' | 'DETECTIVE'>('IDE');
   const [isCopied, setIsCopied] = React.useState(false);
+  const [showHelp, setShowHelp] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
 
   const [syntaxErrors, setSyntaxErrors] = useState<{ line: number; message: string }[]>([]);
@@ -75,7 +58,7 @@ const CodeStudio: React.FC = () => {
       const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
       if (!hasKey) { await promptSelectKey(); setCodeStudioState({ isLoading: false }); return; }
       const generated = await generateCode(codeStudio.prompt, codeStudio.language, codeStudio.model);
-      setCodeStudioState({ generatedCode: generated, isLoading: false });
+      setCodeStudioState({ generatedCode: generated, isLoading: false, lastEditTimestamp: Date.now() });
       audio.playSuccess();
       track('Code Gen').success();
     } catch (err: any) {
@@ -83,6 +66,29 @@ const CodeStudio: React.FC = () => {
       audio.playError();
       track('Code Gen').fail();
     }
+  };
+
+  const applyPatch = () => {
+      if (!codeStudio.activePatch) return;
+      setCodeStudioState({ 
+          generatedCode: codeStudio.activePatch.code,
+          activePatch: null,
+          lastEditTimestamp: Date.now()
+      });
+      addLog('SUCCESS', 'NEURAL_HEALER: Logic patch integrated successfully.');
+      audio.playSuccess();
+  };
+
+  const applyEvolution = () => {
+      if (!codeStudio.activeEvolution) return;
+      setCodeStudioState({
+          generatedCode: codeStudio.activeEvolution.code,
+          activeEvolution: null,
+          lastEditTimestamp: Date.now()
+      });
+      addLog('SUCCESS', 'AUTOPOIETIC: Architectural evolution integrated into core logic.');
+      audio.playSuccess();
+      setActiveTab('IDE');
   };
 
   const handleCopy = () => {
@@ -96,6 +102,51 @@ const CodeStudio: React.FC = () => {
 
   return (
     <div className={`flex flex-col h-full rounded-3xl border bg-[#030303] shadow-2xl overflow-hidden font-sans relative transition-all duration-700 ${syntaxErrors.length > 0 ? 'border-red-500 ring-2 ring-red-500/20' : 'border-[#1f1f1f]'}`}>
+      
+      {/* Evolution HUD Overlay */}
+      <div className="absolute top-20 left-6 z-40 flex flex-col gap-4 pointer-events-none">
+          <AnimatePresence>
+              {codeStudio.isEvolving && (
+                  <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="p-3 bg-[#0a0a0a]/90 backdrop-blur border border-cyan-500/30 rounded-xl shadow-2xl flex flex-col gap-2 w-48">
+                      <div className="flex justify-between items-center">
+                          <span className="text-[8px] font-black font-mono text-cyan-400 uppercase tracking-widest flex items-center gap-1.5"><RefreshCw size={10} className="animate-spin" /> Evolving Architecture</span>
+                      </div>
+                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                          <motion.div animate={{ width: ['0%', '100%'] }} transition={{ duration: 3, repeat: Infinity }} className="h-full bg-cyan-400 shadow-[0_0_10px_#22d3ee]" />
+                      </div>
+                  </motion.div>
+              )}
+          </AnimatePresence>
+      </div>
+
+      {/* Patch Notification Overlay - Neon Purple Box */}
+      <AnimatePresence>
+        {codeStudio.activePatch && (
+            <motion.div 
+                initial={{ y: -50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -50, opacity: 0 }}
+                className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] w-full max-w-2xl"
+            >
+                <div className="mx-6 bg-[#0a0a0a]/95 backdrop-blur-xl border-2 border-[#9d4edd] p-6 rounded-3xl shadow-[0_0_100px_rgba(157,78,221,0.3)] flex items-center justify-between gap-8">
+                    <div className="flex items-start gap-5">
+                        <div className="p-3 bg-[#9d4edd]/20 rounded-2xl text-[#9d4edd] animate-pulse shrink-0">
+                            <Zap size={24} />
+                        </div>
+                        <div className="flex-1">
+                            <div className="text-[10px] font-black text-[#9d4edd] uppercase tracking-[0.4em] mb-2">Optimization Available</div>
+                            <div className="text-[12px] text-white font-mono leading-relaxed">{codeStudio.activePatch.explanation}</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                        <button onClick={() => setCodeStudioState({ activePatch: null })} className="px-5 py-2.5 text-[10px] font-bold text-gray-500 hover:text-white uppercase transition-colors tracking-widest">Dismiss</button>
+                        <button onClick={applyPatch} className="px-8 py-2.5 bg-[#9d4edd] text-black rounded-xl text-[10px] font-black uppercase tracking-[0.2em] shadow-lg hover:bg-[#b06bf7] transition-all hover:scale-105 active:scale-95">Apply Patch</button>
+                    </div>
+                </div>
+            </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="h-14 border-b border-[#1f1f1f] bg-[#0a0a0a] flex items-center px-6 justify-between shrink-0 relative z-20">
           <div className="flex items-center gap-6">
               <div className="flex items-center gap-3">
@@ -105,17 +156,34 @@ const CodeStudio: React.FC = () => {
               <div className="flex bg-[#111] p-1 rounded-xl border border-white/5">
                 {[
                     { id: 'IDE', icon: Terminal, label: 'Editor' },
+                    { id: 'DETECTIVE', icon: Search, label: 'Detective' },
+                    { id: 'EVOLUTION', icon: TrendingUp, label: 'Evolution' },
                     { id: 'LATTICE', icon: GitMerge, label: 'Lattice' },
-                    { id: 'ORCHESTRATION', icon: BrainCircuit, label: 'Orchestration' }
+                    { id: 'ORCHESTRATION', icon: BrainCircuit, label: 'Orch' }
                 ].map(tab => (
-                    <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${activeTab === tab.id ? 'bg-[#1f1f1f] text-white' : 'text-gray-600 hover:text-gray-300'}`}>
+                    <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all relative ${activeTab === tab.id ? 'bg-[#1f1f1f] text-white shadow-inner' : 'text-gray-600 hover:text-gray-300'}`}>
                         <tab.icon size={12} /> {tab.label}
+                        {tab.id === 'EVOLUTION' && codeStudio.activeEvolution && <div className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full animate-ping" />}
                     </button>
                 ))}
               </div>
           </div>
 
           <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-[#111] border border-white/5 rounded-lg">
+                  {codeStudio.isEvolving ? (
+                      <Loader2 size={12} className="text-cyan-400 animate-spin" />
+                  ) : (
+                      <Binary size={12} className="text-gray-600" />
+                  )}
+                  <span className={`text-[8px] font-mono uppercase tracking-widest ${codeStudio.isEvolving ? 'text-cyan-400 animate-pulse' : 'text-gray-500'}`}>
+                      {codeStudio.isEvolving ? 'Evolving architecture...' : 'System Stable'}
+                  </span>
+              </div>
+              <button onClick={() => setShowHelp(!showHelp)} className={`p-2 rounded-lg transition-colors ${showHelp ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-white'}`}>
+                  <HelpCircle size={18} />
+              </button>
+              <div className="h-4 w-px bg-white/10 mx-1" />
               <button onClick={handleCopy} disabled={!codeStudio.generatedCode} className="flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-white/5 border border-[#222] rounded-xl text-[10px] font-mono text-gray-400 hover:text-white transition-all">
                   {isCopied ? <Check size={14} className="text-green-500" /> : <Copy size={14} />}
                   {isCopied ? 'COPIED' : 'COPY'}
@@ -150,19 +218,92 @@ const CodeStudio: React.FC = () => {
                               <div className="h-full flex flex-col items-center justify-center text-center opacity-20 py-40 grayscale">
                                   <FileText size={64} className="mx-auto mb-6" />
                                   <p className="text-sm font-mono uppercase tracking-[0.3em]">Codebase Standby</p>
-                                  <p className="text-[10px] font-mono mt-2">Initialize Fabrication Directive</p>
+                                  <p className="text-[10px] font-mono mt-2">Initialize Fabrication Directive (Right Panel)</p>
                               </div>
                           )}
                       </div>
                   </div>
               )}
 
-              {activeTab === 'LATTICE' && (
-                  <div className="flex-1 p-6">
-                      <div className="h-full rounded-2xl border border-white/5 overflow-hidden shadow-inner bg-black">
-                          <MermaidDiagram code={process.generatedCode || 'graph TD\n    A[IDE] --> B[Lattice]\n    B --> C[Orchestration]'} />
+              {activeTab === 'DETECTIVE' && (
+                  <div className="flex-1 flex flex-col p-10 bg-black overflow-y-auto custom-scrollbar">
+                      <div className="max-w-3xl mx-auto w-full space-y-10">
+                          <div className="flex items-center gap-5">
+                              <div className="p-4 bg-[#22d3ee]/20 rounded-3xl border border-[#22d3ee]/40 text-[#22d3ee]">
+                                  <Search size={32} />
+                              </div>
+                              <div>
+                                  <h2 className="text-3xl font-black font-mono text-white uppercase tracking-tighter">Detective Mode</h2>
+                                  <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.3em]">Advanced Semantic Framework Construction</p>
+                              </div>
+                          </div>
+                          
+                          <div className="bg-[#0a0a0a] border border-[#222] p-8 rounded-3xl space-y-6 shadow-2xl relative overflow-hidden">
+                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.05)_0%,transparent_70%)] pointer-events-none"></div>
+                              <div className="space-y-3 relative z-10">
+                                  <label className="text-[10px] font-black text-[#22d3ee] uppercase tracking-widest flex items-center gap-2">
+                                      <Zap size={12} /> Framework Intent
+                                  </label>
+                                  <textarea 
+                                      value={codeStudio.prompt}
+                                      onChange={e => setCodeStudioState({ prompt: e.target.value })}
+                                      className="w-full bg-black border border-[#333] p-5 rounded-2xl text-sm font-mono text-white outline-none focus:border-[#22d3ee] h-40 resize-none transition-all placeholder:text-gray-800"
+                                      placeholder="Describe the overall system goal. E.g., 'A PARA organized drive for robotics research' or 'A microservice-based error handling library'..."
+                                  />
+                              </div>
+                              <div className="flex gap-4">
+                                  <button onClick={() => setCodeStudioState({ prompt: 'Build a PARA organized drive for AI ethics research' })} className="flex-1 py-3 px-4 bg-[#111] border border-[#222] hover:border-[#22d3ee] rounded-xl text-[9px] font-mono text-gray-400 transition-all uppercase tracking-widest text-left">Generate PARA Structure</button>
+                                  <button onClick={() => setCodeStudioState({ prompt: 'Create a microservice-based error response architecture for nodejs' })} className="flex-1 py-3 px-4 bg-[#111] border border-[#222] hover:border-[#22d3ee] rounded-xl text-[9px] font-mono text-gray-400 transition-all uppercase tracking-widest text-left">Forge Tiered Architecture</button>
+                              </div>
+                              <button onClick={handleGenerate} className="w-full py-5 bg-[#22d3ee] text-black rounded-2xl font-black font-mono text-xs uppercase tracking-[0.4em] shadow-[0_0_40px_rgba(34,211,238,0.3)] hover:bg-[#67e8f9] transition-all">Execute Synthesis</button>
+                          </div>
                       </div>
                   </div>
+              )}
+
+              {activeTab === 'EVOLUTION' && (
+                  <div className="flex-1 p-10 overflow-y-auto custom-scrollbar bg-black">
+                      {!codeStudio.activeEvolution && !codeStudio.isEvolving ? (
+                          <div className="h-full flex flex-col items-center justify-center text-center opacity-30 gap-6">
+                              <TrendingUp size={64} className="text-gray-600" />
+                              <div className="space-y-2">
+                                  <h3 className="text-sm font-black font-mono uppercase tracking-[0.4em]">Autopoietic Matrix Standby</h3>
+                                  <p className="text-[10px] font-mono max-w-sm mx-auto">Architecture daemon is monitoring the buffer. Significant logic changes will trigger an evolutionary branch proposal.</p>
+                              </div>
+                          </div>
+                      ) : codeStudio.isEvolving ? (
+                          <div className="h-full flex flex-col items-center justify-center text-center gap-8">
+                              <div className="relative">
+                                  <motion.div animate={{ rotate: 360, scale: [1, 1.1, 1] }} transition={{ duration: 3, repeat: Infinity }} className="w-32 h-32 rounded-full border border-dashed border-cyan-400/50" />
+                                  <Loader2 size={48} className="text-cyan-400 absolute inset-0 m-auto animate-spin" />
+                              </div>
+                              <h3 className="text-sm font-black font-mono uppercase tracking-[0.3em] text-cyan-400 animate-pulse">Architecting Evolution...</h3>
+                          </div>
+                      ) : (
+                          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto space-y-8 pb-20">
+                              <div className="flex items-center justify-between border-b border-[#333] pb-6">
+                                  <div className="flex items-center gap-4">
+                                      <div className="p-3 bg-cyan-400/10 border border-cyan-400/30 rounded-2xl text-cyan-400"><GitMerge size={24} /></div>
+                                      <div>
+                                          <h2 className="text-xl font-black text-white font-mono uppercase tracking-widest">Proposed Evolution</h2>
+                                          <div className="text-[10px] text-gray-500 font-mono mt-1">Integrity Score: <span className="text-cyan-400">{codeStudio.activeEvolution?.integrityScore}%</span></div>
+                                      </div>
+                                  </div>
+                                  <button onClick={applyEvolution} className="px-8 py-2.5 bg-cyan-400 text-black text-[10px] font-black uppercase rounded-xl shadow-lg hover:bg-cyan-300 transition-all">Merge Evolution</button>
+                              </div>
+                              <div className="p-6 bg-[#0a0a0a] border border-[#1f1f1f] rounded-2xl text-xs font-mono text-gray-300 leading-relaxed italic border-l-4 border-l-cyan-400">"{codeStudio.activeEvolution?.reasoning}"</div>
+                              <div className="rounded-2xl border border-[#1f1f1f] overflow-hidden bg-black shadow-2xl max-h-[500px] overflow-y-auto custom-scrollbar">
+                                  <pre className="p-8 text-[11px] font-mono text-gray-400 selection:bg-cyan-400/20">
+                                      <code dangerouslySetInnerHTML={{ __html: highlightCode(codeStudio.activeEvolution?.code || '', codeStudio.language) }} />
+                                  </pre>
+                              </div>
+                          </motion.div>
+                      )}
+                  </div>
+              )}
+
+              {activeTab === 'LATTICE' && (
+                  <div className="flex-1 p-6"><div className="h-full rounded-2xl border border-white/5 overflow-hidden shadow-inner bg-black"><MermaidDiagram code={processData.generatedCode || 'graph TD\n    A[IDE] --> B[Lattice]\n    B --> C[Orchestration]'} /></div></div>
               )}
 
               {activeTab === 'ORCHESTRATION' && (
@@ -172,21 +313,12 @@ const CodeStudio: React.FC = () => {
                               <BrainCircuit size={16} className="text-[#22d3ee] animate-pulse" />
                               <span className="text-white uppercase font-black tracking-widest">Agentic Stream History</span>
                           </div>
-                          {agentState.history.length === 0 ? (
-                              <div className="h-full flex flex-col items-center justify-center opacity-20 grayscale">
-                                  <Cpu size={48} className="mb-4" />
-                                  <p className="uppercase tracking-widest">Awaiting Runtime Signals...</p>
+                          {agentState.history.map((h, i) => (
+                              <div key={i} className="flex gap-4 border-l border-white/5 pl-4 py-1">
+                                  <span className={`px-2 py-0.5 rounded text-[8px] font-black shrink-0 ${h.role === 'user' ? 'bg-blue-500/10 text-blue-400' : h.role === 'tool' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#9d4edd]/10 text-[#9d4edd]'}`}>{h.toolName || h.role.toUpperCase()}</span>
+                                  <span className="text-gray-400 break-words">{h.content}</span>
                               </div>
-                          ) : (
-                              agentState.history.map((h, i) => (
-                                  <div key={i} className="flex gap-4 border-l border-white/5 pl-4 py-1">
-                                      <span className={`px-2 py-0.5 rounded text-[8px] font-black shrink-0 ${h.role === 'user' ? 'bg-blue-500/10 text-blue-400' : h.role === 'tool' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-[#9d4edd]/10 text-[#9d4edd]'}`}>
-                                          {h.toolName || h.role.toUpperCase()}
-                                      </span>
-                                      <span className="text-gray-400 leading-relaxed break-words">{h.content}</span>
-                                  </div>
-                              ))
-                          )}
+                          ))}
                       </div>
                   </div>
               )}
@@ -227,9 +359,9 @@ const CodeStudio: React.FC = () => {
                     </div>
                     <textarea 
                         value={codeStudio.prompt}
-                        onChange={e => setCodeStudioState({ prompt: e.target.value })}
+                        onChange={e => setCodeStudioState({ prompt: e.target.value, lastEditTimestamp: Date.now() })}
                         className="w-full bg-[#111] border border-[#222] p-4 rounded-2xl text-[11px] font-mono text-gray-300 outline-none h-40 resize-none focus:border-[#9d4edd] transition-all shadow-inner"
-                        placeholder="Define the next logic iteration..."
+                        placeholder="E.g. 'Build a React component for a task list' or 'Generate a PARA drive organization'..."
                     />
                 </div>
           </div>

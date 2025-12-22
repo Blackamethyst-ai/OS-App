@@ -3,7 +3,7 @@ import { useAppStore } from '../store';
 import { useSystemMind } from '../stores/useSystemMind';
 import { liveSession, promptSelectKey, HIVE_AGENTS, generateAvatar, chatWithGemini, transcribeAudio } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService'; 
-import { Mic, Activity, Power, Settings, Zap, User, Bot, Sparkles, Loader2, Download, Save, FileText, Terminal, Layers, Radio, Volume2, Globe, Signal, Command, HelpCircle, Sliders, X, RotateCcw, ChevronRight, Send, MessageSquareText, ShieldAlert, Cpu } from 'lucide-react';
+import { Mic, Activity, Power, Settings, Zap, User, Bot, Sparkles, Loader2, Download, Save, FileText, Terminal, Layers, Radio, Volume2, VolumeX, Globe, Signal, Command, HelpCircle, Sliders, X, RotateCcw, ChevronRight, Send, MessageSquareText, ShieldAlert, Cpu } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
 
