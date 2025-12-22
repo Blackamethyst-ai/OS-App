@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { generateHypotheses, simulateExperiment, generateTheory, promptSelectKey, compressKnowledge, fileToGenerativePart, classifyArtifact, smartOrganizeArtifact } from '../services/geminiService';
@@ -66,11 +67,14 @@ const DiscoveryLab: React.FC = () => {
                     if (!hasKey) { await promptSelectKey(); break; }
 
                     const fileData = await fileToGenerativePart(file);
-                    const analysis = await classifyArtifact(fileData);
-                    const org = await smartOrganizeArtifact({ name: file.name });
                     
-                    await neuralVault.saveArtifact(file, analysis);
-                    addLog('SUCCESS', `LATTICE_SEED: "${file.name}" indexed to vault.`);
+                    // FIX: Properly handle Result return from classifyArtifact
+                    const analysisResult = await classifyArtifact(fileData);
+                    if (analysisResult.ok) {
+                        const analysis = analysisResult.value;
+                        await neuralVault.saveArtifact(file, analysis);
+                        addLog('SUCCESS', `LATTICE_SEED: "${file.name}" indexed to vault.`);
+                    }
                 } catch (err: any) {
                     addLog('ERROR', `INGEST_FAIL: ${err.message}`);
                 }

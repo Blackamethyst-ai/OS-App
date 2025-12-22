@@ -1,10 +1,10 @@
-import React, { useState, useEffect, Suspense, useMemo } from 'react';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAppStore } from './store';
 import { useSystemMind } from './stores/useSystemMind'; 
 import { AppMode, AppTheme } from './types';
 import Starfield from './components/Starfield';
 
-// Standard Layout Components
 import CommandPalette from './components/CommandPalette';
 import GlobalSearchBar from './components/GlobalSearchBar';
 import SystemNotification from './components/SystemNotification';
@@ -23,15 +23,13 @@ import FlywheelOrbit from './components/FlywheelOrbit';
 import AgenticHUD from './components/AgenticHUD';
 import GlobalStatusBar from './components/GlobalStatusBar';
 
-// Hooks & Utilities
 import { useAutoSave } from './hooks/useAutoSave'; 
 import { useDaemonSwarm } from './hooks/useDaemonSwarm'; 
 import { useVoiceControl } from './hooks/useVoiceControl'; 
 import { useResearchAgent } from './hooks/useResearchAgent'; 
 import { 
     LayoutGrid, Image, Settings, Activity, BookOpen, Mic, Cpu, 
-    Code, HardDrive, GitMerge, HelpCircle, User, ListTodo, 
-    ShieldAlert, Target, X 
+    Code, HardDrive, GitMerge, Target, X, User, Bot 
 } from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
 import { audio } from './services/audioService'; 
@@ -40,6 +38,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 const NAV_CONFIG = [
     { id: AppMode.DASHBOARD, label: 'Dashboard', icon: LayoutGrid, path: '/dashboard' },
     { id: AppMode.SYNTHESIS_BRIDGE, label: 'Strategy Bridge', icon: GitMerge, path: '/bridge' },
+    { id: AppMode.AGENT_CONTROL, label: 'Agent Center', icon: Bot, path: '/agents' },
     { id: AppMode.BIBLIOMORPHIC, label: 'Bibliomorphic', icon: BookOpen, path: '/bibliomorphic' },
     { id: AppMode.PROCESS_MAP, label: 'Process Logic', icon: Settings, path: '/process' },
     { id: AppMode.MEMORY_CORE, label: 'Memory Core', icon: HardDrive, path: '/memory' },
@@ -47,16 +46,6 @@ const NAV_CONFIG = [
     { id: AppMode.HARDWARE_ENGINEER, label: 'Hardware', icon: Cpu, path: '/hardware' },
     { id: AppMode.CODE_STUDIO, label: 'Code Studio', icon: Code, path: '/code' },
     { id: AppMode.VOICE_MODE, label: 'Voice Core', icon: Mic, path: '/voice' },
-];
-
-const DEEP_NAV_REGISTRY = [
-    { id: 'NAV_DASHBOARD', label: 'Dashboard', description: 'Main system overview.' },
-    { id: 'NAV_BRIDGE', label: 'Synthesis Bridge', description: 'Metaventions high-level strategic stack.' },
-    { id: 'NAV_BIBLIO_DISCOVERY', label: 'Discovery Lab', description: 'Science lab for hypothesis generation.' },
-    { id: 'NAV_PROCESS_MAP', label: 'Process Logic (Map)', description: 'The living system map.' },
-    { id: 'NAV_HARDWARE', label: 'Hardware', description: 'Component search and BOM management.' },
-    { id: 'NAV_CODE_STUDIO', label: 'Code Studio', description: 'Coding environment and action matrix.' },
-    { id: 'NAV_VOICE_CORE', label: 'Voice Core Interface', description: 'The visual voice interface.' },
 ];
 
 const FocusOverlay = () => {
@@ -102,20 +91,18 @@ const FocusOverlay = () => {
 };
 
 const App: React.FC = () => {
-  const { mode, user, theme, voice, kernel, toggleProfile, toggleCommandPalette, setSearchState, setVoiceState, addLog } = useAppStore();
-  const { setSector, registerNavigation } = useSystemMind(); 
+  const { mode, user, theme, voice, toggleProfile, toggleCommandPalette, setSearchState, setVoiceState, addLog } = useAppStore();
+  const { setSector } = useSystemMind(); 
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isScrubberOpen, setIsScrubberOpen] = useState(false);
   const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
   const [isHUDClosed, setIsHUDClosed] = useState(false);
 
-  // Initialize Core Automations
   useAutoSave(); 
   useDaemonSwarm(); 
   useVoiceControl(); 
   useResearchAgent(); 
 
-  // Global Session Timer
   useEffect(() => {
     const timer = setInterval(() => {
         useAppStore.setState(state => ({
@@ -125,28 +112,12 @@ const App: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Global Telemetry Jitter
-  useEffect(() => {
-      const interval = setInterval(() => {
-          useAppStore.setState(state => ({
-              kernel: {
-                  ...state.kernel,
-                  coreLoad: Math.max(5, Math.min(95, state.kernel.coreLoad + (Math.random() * 10 - 5))),
-                  entropy: Math.max(1, Math.min(99, state.kernel.entropy + (Math.random() * 2 - 1))),
-                  integrity: Math.max(80, Math.min(100, state.kernel.integrity + (Math.random() * 1 - 0.5)))
-              }
-          }));
-      }, 3000);
-      return () => clearInterval(interval);
-  }, []);
-
-  // API Key Guard
   useEffect(() => {
     const checkKey = async () => {
         if (window.aistudio?.hasSelectedApiKey) {
             const hasKey = await window.aistudio.hasSelectedApiKey();
             if (!hasKey) { 
-                addLog('WARN', 'SECURITY: API Key missing. Requesting authorization...'); 
+                addLog('WARN', 'SECURITY: API Key missing.'); 
                 await promptSelectKey(); 
             }
         }
@@ -154,10 +125,8 @@ const App: React.FC = () => {
     checkKey();
   }, [addLog]);
 
-  useEffect(() => { registerNavigation(DEEP_NAV_REGISTRY); }, [registerNavigation]);
   useEffect(() => { setSector(mode); }, [mode, setSector]);
 
-  // Global Keyboard Shortcuts
   useEffect(() => {
       const handleGlobalKeyDown = (e: KeyboardEvent) => {
           if ((e.metaKey || e.ctrlKey) && e.key === 'k') { 
@@ -195,15 +164,13 @@ const App: React.FC = () => {
     <div className="h-screen w-screen font-sans overflow-hidden flex flex-col transition-all duration-500 ease-in-out relative" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', ...themeVars as any }}>
       <Starfield mode={mode} />
       
-      {/* Persistent Global Status Hub */}
       <GlobalStatusBar 
-        onToggleScrubber={() => { setIsScrubberOpen(!isScrubberOpen); audio.playClick(); }}
-        onToggleDiagnostics={() => { setIsDiagnosticsOpen(!isDiagnosticsOpen); audio.playClick(); }}
+        onToggleScrubber={() => setIsScrubberOpen(!isScrubberOpen)}
+        onToggleDiagnostics={() => setIsDiagnosticsOpen(!isDiagnosticsOpen)}
         isScrubberOpen={isScrubberOpen}
         isDiagnosticsOpen={isDiagnosticsOpen}
       />
 
-      {/* Overlays */}
       <FocusOverlay />
       <VoiceCoreOverlay /> 
       <UserProfileOverlay /> 
@@ -211,7 +178,7 @@ const App: React.FC = () => {
       <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => setIsDiagnosticsOpen(false)} /> 
       <TimeTravelScrubber 
         mode={mode} 
-        onRestore={(state) => addLog('INFO', 'Timeline resync successful.')} 
+        onRestore={() => addLog('INFO', 'Timeline resync successful.')} 
         isOpen={isScrubberOpen}
         onClose={() => setIsScrubberOpen(false)}
       />
@@ -219,8 +186,20 @@ const App: React.FC = () => {
       <HoloProjector /> 
       <ResearchTray /> 
       <VoiceManager /> 
-      <AgenticHUD isClosed={isHUDClosed} onClose={() => setIsHUDClosed(true)} />
       
+      <AnimatePresence>
+        {!isHUDClosed && <AgenticHUD isClosed={isHUDClosed} onClose={() => setIsHUDClosed(true)} />}
+      </AnimatePresence>
+      
+      {isHUDClosed && (
+          <button 
+            onClick={() => setIsHUDClosed(false)}
+            className="fixed bottom-24 right-6 p-2 bg-[#9d4edd]/20 border border-[#9d4edd]/40 rounded-full text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black transition-all z-50"
+          >
+              <Activity size={16} />
+          </button>
+      )}
+
       <AnimatePresence>
         {isHelpOpen && <HelpCenter onClose={() => setIsHelpOpen(false)} />}
       </AnimatePresence>
@@ -234,7 +213,7 @@ const App: React.FC = () => {
           </div>
         </div>
         
-        <nav className="flex items-center space-x-1 p-1 rounded-sm border border-white/5 mx-auto overflow-x-auto custom-scrollbar no-scrollbar" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
+        <nav className="flex items-center space-x-1 p-1 rounded-sm border border-white/5 mx-auto overflow-x-auto no-scrollbar" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
           {NAV_CONFIG.map(item => (
               <button 
                 key={item.id} 
@@ -255,16 +234,12 @@ const App: React.FC = () => {
                 onClick={() => toggleProfile(true)} 
                 className="flex items-center gap-3 px-3 py-1.5 rounded-sm border border-[#333] hover:border-[#9d4edd] transition-all bg-black/40 group"
             >
-                <div className="relative">
-                    <User className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#9d4edd]" />
-                    <div className="absolute -top-1 -right-1 w-1.5 h-1.5 bg-[#10b981] rounded-full border border-black" />
-                </div>
+                <User className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#9d4edd]" />
                 <span className="text-[10px] font-mono uppercase text-gray-300 group-hover:text-white tracking-widest">{user.displayName}</span>
             </button>
         </div>
       </header>
 
-      {/* DYNAMIC CONTENT ROUTER */}
       <SynapticRouter />
     </div>
   );

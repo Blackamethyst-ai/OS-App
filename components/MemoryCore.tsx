@@ -225,7 +225,10 @@ const MemoryCore: React.FC = () => {
             const base64 = await fileDataPromise;
             const generativeFile = { inlineData: { data: base64, mimeType: file.type }, name: file.name };
 
-            const analysis = await classifyArtifact(generativeFile);
+            const analysisResult = await classifyArtifact(generativeFile);
+            if (!analysisResult.ok) throw new Error("Classification failed");
+            const analysis = analysisResult.value;
+
             const org = await smartOrganizeArtifact({ name: file.name });
             
             const artifact = await neuralVault.getArtifactById(id);
@@ -372,7 +375,7 @@ const MemoryCore: React.FC = () => {
             connections: [],
             strength: 100 - (art.analysis?.ambiguityScore || 0),
             color: art.type === 'application/pdf' ? '#f59e0b' : '#9d4edd',
-            data: art.analysis,
+            data: art.analysis || undefined, // FIX: Ensure data is properly typed or undefined
             artifactRef: art // Pass full ref for graph interaction
         }));
     }, [artifacts]);
