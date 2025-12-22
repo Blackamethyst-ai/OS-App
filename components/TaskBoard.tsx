@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { Task, TaskStatus, TaskPriority, SubTask } from '../types';
@@ -24,287 +23,173 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
     [TaskStatus.DONE]: 'DONE'
 };
 
-const CheckmarkFlourish: React.FC<{ isVisible: boolean }> = ({ isVisible }) => (
-    <AnimatePresence>
-        {isVisible && (
-            <motion.div
-                initial={{ scale: 0, opacity: 0 }}
-                animate={{ scale: 1.5, opacity: 1 }}
-                exit={{ scale: 2, opacity: 0 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="absolute inset-0 flex items-center justify-center pointer-events-none z-50"
-            >
-                <div className="bg-[#42be65]/20 p-4 rounded-full border border-[#42be65]/50 backdrop-blur-sm">
-                    <motion.div
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ duration: 0.3 }}
-                    >
-                        <svg className="w-12 h-12 text-[#42be65]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </motion.div>
+const TaskBoard: React.FC = () => {
+    const { tasks, addTask, updateTask, addLog } = useAppStore();
+    const [filter, setFilter] = useState<{ priority: string; status: string }>({ priority: 'ALL', status: 'ALL' });
+    const [sortBy, setSortBy] = useState<'DATE' | 'PRIORITY'>('PRIORITY');
+    const [newTaskTitle, setNewTaskTitle] = useState('');
+    const [isCreating, setIsCreating] = useState(false);
+
+    const sortedTasks = useMemo(() => {
+        let filtered = tasks.filter(t => {
+            const matchPriority = filter.priority === 'ALL' || t.priority === filter.priority;
+            const matchStatus = filter.status === 'ALL' || t.status === filter.status;
+            return matchPriority && matchStatus;
+        });
+
+        return filtered.sort((a, b) => {
+            if (sortBy === 'PRIORITY') {
+                const map = { [TaskPriority.HIGH]: 3, [TaskPriority.MEDIUM]: 2, [TaskPriority.LOW]: 1 };
+                return map[b.priority] - map[a.priority];
+            }
+            return b.timestamp - a.timestamp;
+        });
+    }, [tasks, filter, sortBy]);
+
+    const handleCreate = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!newTaskTitle.trim()) return;
+        addTask({
+            title: newTaskTitle,
+            description: 'New protocol initialized.',
+            priority: TaskPriority.MEDIUM,
+            status: TaskStatus.TODO,
+            tags: ['MANUAL'],
+            subtasks: []
+        });
+        setNewTaskTitle('');
+        setIsCreating(false);
+        addLog('INFO', `TASK_CREATE: "${newTaskTitle}" added to lattice.`);
+    };
+
+    return (
+        <div className="flex flex-col h-full bg-[#050505] p-6 gap-6 overflow-hidden">
+            <div className="flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-4">
+                    <h2 className="text-sm font-black font-mono text-white uppercase tracking-[0.3em] flex items-center gap-2">
+                        <ListTodo className="w-5 h-5 text-[#9d4edd]" /> Operational Backlog
+                    </h2>
+                    <div className="h-4 w-px bg-white/10" />
+                    <div className="flex items-center gap-2">
+                        <Filter size={12} className="text-gray-600" />
+                        <select value={filter.priority} onChange={e => setFilter({...filter, priority: e.target.value})} className="bg-transparent text-[10px] font-mono text-gray-400 outline-none uppercase cursor-pointer">
+                            <option value="ALL">All Priorities</option>
+                            <option value="HIGH">High Priority</option>
+                            <option value="MEDIUM">Medium Priority</option>
+                            <option value="LOW">Low Priority</option>
+                        </select>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <SortAsc size={12} className="text-gray-600" />
+                        <select value={sortBy} onChange={e => setSortBy(e.target.value as any)} className="bg-transparent text-[10px] font-mono text-gray-400 outline-none uppercase cursor-pointer">
+                            <option value="PRIORITY">By Priority</option>
+                            <option value="DATE">By Date</option>
+                        </select>
+                    </div>
                 </div>
-            </motion.div>
-        )}
-    </AnimatePresence>
-);
+                <button onClick={() => setIsCreating(true)} className="px-4 py-2 bg-[#9d4edd] text-black text-[10px] font-black uppercase rounded-lg hover:bg-[#b06bf7] transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(157,78,221,0.3)]">
+                    <Plus size={14} /> New Protocol
+                </button>
+            </div>
+
+            {isCreating && (
+                <motion.form initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} onSubmit={handleCreate} className="bg-[#0a0a0a] border border-[#9d4edd]/30 p-4 rounded-xl flex gap-4">
+                    <input autoFocus value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} className="flex-1 bg-black border border-[#333] px-4 py-2 rounded-lg text-xs font-mono text-white outline-none focus:border-[#9d4edd]" placeholder="Enter task title..." />
+                    <div className="flex gap-2">
+                        <button type="button" onClick={() => setIsCreating(false)} className="px-4 py-2 text-gray-500 hover:text-white uppercase text-[9px] font-black">Cancel</button>
+                        <button type="submit" className="px-6 py-2 bg-[#9d4edd] text-black rounded-lg uppercase text-[9px] font-black">Add</button>
+                    </div>
+                </motion.form>
+            )}
+
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 pb-10">
+                {sortedTasks.length === 0 ? (
+                    <div className="h-64 flex flex-col items-center justify-center opacity-20 text-center gap-4">
+                        <Activity size={48} />
+                        <p className="text-xs font-mono uppercase tracking-widest">No active tasks match the current filter.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {sortedTasks.map(task => <TaskCard key={task.id} task={task} />)}
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
 
 const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
     const { updateTask, deleteTask, addLog } = useAppStore();
-    const [showFlourish, setShowFlourish] = useState(false);
-    const [isAddingSubtask, setIsAddingSubtask] = useState(false);
-    const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
     const [isBreakingDown, setIsBreakingDown] = useState(false);
-    const [showPriorityPicker, setShowPriorityPicker] = useState(false);
 
-    const toggleStatus = (nextStatus?: TaskStatus) => {
-        const targetStatus = nextStatus || (task.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE);
-        if (targetStatus === TaskStatus.DONE && task.status !== TaskStatus.DONE) {
-            setShowFlourish(true);
-            setTimeout(() => setShowFlourish(false), 800);
-            addLog('SUCCESS', `TASK_COMPLETE: ${task.title}`);
+    const toggleStatus = () => {
+        const next = task.status === TaskStatus.DONE ? TaskStatus.TODO : TaskStatus.DONE;
+        updateTask(task.id, { status: next });
+        if (next === TaskStatus.DONE) {
             audio.playSuccess();
+            addLog('SUCCESS', `RESOLVED: ${task.title}`);
         }
-        updateTask(task.id, { status: targetStatus });
-    };
-
-    const setPriority = (priority: TaskPriority) => {
-        updateTask(task.id, { priority });
-        setShowPriorityPicker(false);
-        audio.playClick();
-    };
-
-    const handleAddSubtask = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!newSubtaskTitle.trim()) return;
-        const sub: SubTask = { id: crypto.randomUUID(), title: newSubtaskTitle, completed: false };
-        updateTask(task.id, { subtasks: [...task.subtasks, sub], isSubtasksCollapsed: false });
-        setNewSubtaskTitle('');
-        setIsAddingSubtask(false);
     };
 
     const handleAIBreakdown = async (e: React.MouseEvent) => {
         e.stopPropagation();
         setIsBreakingDown(true);
-        audio.playClick();
         try {
-            const hasKey = await window.aistudio?.hasSelectedApiKey();
-            if (!hasKey) { await promptSelectKey(); setIsBreakingDown(false); return; }
-
-            const newSubs = await decomposeTaskToSubtasks(task.title, task.description);
-            const subtasks: SubTask[] = newSubs.map(title => ({
-                id: crypto.randomUUID(),
-                title,
-                completed: false
-            }));
-
-            updateTask(task.id, { 
-                subtasks: [...task.subtasks, ...subtasks],
-                isSubtasksCollapsed: false
-            });
-            addLog('SUCCESS', `AI_BREAKDOWN: Synchronized ${subtasks.length} sub-units for "${task.title}".`);
-            audio.playSuccess();
-        } catch (err: any) {
-            addLog('ERROR', `AI_BREAKDOWN_FAIL: ${err.message}`);
-            audio.playError();
+            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsBreakingDown(false); return; }
+            const subs = await decomposeTaskToSubtasks(task.title, task.description);
+            const newSubs: SubTask[] = subs.map(t => ({ id: crypto.randomUUID(), title: t, completed: false }));
+            updateTask(task.id, { subtasks: [...task.subtasks, ...newSubs] });
+            addLog('SUCCESS', `DECOMPOSE: Distributed logic for "${task.title}".`);
+        } catch (e: any) {
+            addLog('ERROR', `DECOMPOSE_FAIL: ${e.message}`);
         } finally {
             setIsBreakingDown(false);
         }
     };
 
-    const removeSubtask = (subId: string) => {
-        updateTask(task.id, { subtasks: task.subtasks.filter(s => s.id !== subId) });
-    };
-
-    const toggleSubtask = (subId: string) => {
-        const newSubtasks = task.subtasks.map(s => 
-            s.id === subId ? { ...s, completed: !s.completed } : s
-        );
-        updateTask(task.id, { subtasks: newSubtasks });
-    };
-
-    const toggleCollapse = () => {
-        updateTask(task.id, { isSubtasksCollapsed: !task.isSubtasksCollapsed });
-    };
-
-    const handleDragStart = (e: React.DragEvent) => {
-        e.dataTransfer.setData('taskId', task.id);
-        e.dataTransfer.effectAllowed = 'move';
-        (e.target as HTMLElement).style.opacity = '0.5';
-    };
-
-    const handleDragEnd = (e: React.DragEvent) => {
-        (e.target as HTMLElement).style.opacity = '1';
-    };
-
-    const completedCount = task.subtasks.filter(s => s.completed).length;
-
     return (
-        <motion.div
-            layout
-            draggable
-            onDragStart={handleDragStart as any}
-            onDragEnd={handleDragEnd as any}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-4 shadow-xl group relative overflow-visible mb-3 hover:border-[#333] transition-colors cursor-grab active:cursor-grabbing`}
-            style={{ borderLeftColor: PRIORITY_COLORS[task.priority], borderLeftWidth: '3px' }}
-        >
-            <CheckmarkFlourish isVisible={showFlourish} />
-            
-            <div className="flex justify-between items-start mb-3">
-                <div className="flex-1 min-w-0 mr-2">
-                    <h4 className={`text-[13px] font-bold font-mono tracking-tight text-white uppercase truncate ${task.status === TaskStatus.DONE ? 'line-through opacity-30' : ''}`}>
-                        {task.title}
-                    </h4>
-                    <div className="flex items-center gap-2 mt-1 relative">
-                        <button 
-                            onClick={() => setShowPriorityPicker(!showPriorityPicker)}
-                            className={`text-[8px] font-black font-mono px-1.5 py-0.5 rounded border tracking-widest bg-black/40 flex items-center gap-1 hover:brightness-125 transition-all`} 
-                            style={{ borderColor: `${PRIORITY_COLORS[task.priority]}33`, color: PRIORITY_COLORS[task.priority] }}
-                        >
-                            {task.priority === TaskPriority.HIGH ? <SignalHigh size={10}/> : task.priority === TaskPriority.MEDIUM ? <SignalMedium size={10}/> : <SignalLow size={10}/>}
-                            {task.priority}
-                        </button>
-                        
-                        <AnimatePresence>
-                            {showPriorityPicker && (
-                                <motion.div 
-                                    initial={{ opacity: 0, y: 5 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 5 }}
-                                    className="absolute top-full left-0 mt-1 z-[100] bg-[#111] border border-[#333] rounded shadow-2xl p-1 flex flex-col gap-0.5 min-w-[80px]"
-                                >
-                                    {Object.values(TaskPriority).map(p => (
-                                        <button 
-                                            key={p} 
-                                            onClick={() => setPriority(p)}
-                                            className={`text-[8px] font-black font-mono p-1.5 rounded uppercase text-left hover:bg-white/5 transition-colors`}
-                                            style={{ color: PRIORITY_COLORS[p] }}
-                                        >
-                                            {p}
-                                        </button>
-                                    ))}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        <span className="text-[8px] font-mono text-gray-600 uppercase flex items-center gap-1">
-                            <Clock size={10} /> {new Date(task.timestamp).toLocaleDateString()}
-                        </span>
+        <motion.div layout className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl p-4 flex flex-col gap-3 group hover:border-[#333] transition-colors relative" style={{ borderLeft: `3px solid ${PRIORITY_COLORS[task.priority]}` }}>
+            <div className="flex justify-between items-start">
+                <div className="flex flex-col gap-1 min-w-0">
+                    <span className={`text-[11px] font-black font-mono uppercase truncate ${task.status === TaskStatus.DONE ? 'line-through opacity-30 text-gray-500' : 'text-white'}`}>{task.title}</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-[8px] font-black font-mono px-1.5 py-0.5 rounded border border-white/5 bg-black/50" style={{ color: PRIORITY_COLORS[task.priority] }}>{task.priority}</span>
+                        <span className="text-[8px] font-mono text-gray-600 uppercase">{STATUS_LABELS[task.status]}</span>
                     </div>
                 </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                    <button onClick={() => deleteTask(task.id)} className="p-1.5 text-gray-700 hover:text-red-500 transition-colors">
-                        <Trash2 size={14} />
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button onClick={handleAIBreakdown} disabled={isBreakingDown} className="p-1.5 hover:bg-[#9d4edd]/10 rounded text-gray-500 hover:text-[#9d4edd] transition-all">
+                        {isBreakingDown ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
+                    </button>
+                    <button onClick={() => deleteTask(task.id)} className="p-1.5 hover:bg-red-500/10 rounded text-gray-700 hover:text-red-500">
+                        <Trash2 size={12} />
                     </button>
                 </div>
             </div>
 
-            <p className="text-[11px] text-gray-500 font-mono mb-4 leading-relaxed line-clamp-2 italic">
-                "{task.description}"
-            </p>
+            <p className="text-[10px] text-gray-500 font-mono line-clamp-2 leading-relaxed italic">"{task.description}"</p>
 
-            {task.tags.length > 0 && (
-                <div className="flex flex-wrap gap-1 mb-4">
-                    {task.tags.map(tag => (
-                        <span key={tag} className="text-[8px] font-bold font-mono px-1.5 py-0.5 rounded bg-[#111] border border-white/5 text-[#22d3ee] uppercase tracking-tighter">
-                            #{tag}
-                        </span>
+            {task.subtasks.length > 0 && (
+                <div className="bg-black/40 rounded-lg p-2 space-y-1">
+                    <div className="flex justify-between text-[7px] font-black text-gray-700 uppercase tracking-[0.2em] mb-1">
+                        <span>Checkpoints</span>
+                        <span>{task.subtasks.filter(s => s.completed).length}/{task.subtasks.length}</span>
+                    </div>
+                    {task.subtasks.slice(0, 3).map(s => (
+                        <div key={s.id} className="flex items-center gap-2 text-[9px] font-mono text-gray-400">
+                            <div className={`w-1.5 h-1.5 rounded-full ${s.completed ? 'bg-[#42be65]' : 'bg-gray-800'}`} />
+                            <span className={s.completed ? 'line-through opacity-40' : ''}>{s.title}</span>
+                        </div>
                     ))}
+                    {task.subtasks.length > 3 && <div className="text-[7px] text-gray-600 font-mono text-center">+{task.subtasks.length - 3} more...</div>}
                 </div>
             )}
 
-            <div className="bg-black/30 rounded-lg p-2.5 border border-white/5 space-y-2">
-                <div className="flex items-center justify-between">
-                    <button 
-                        onClick={toggleCollapse}
-                        className="flex items-center gap-1 text-[9px] font-black font-mono text-gray-600 hover:text-white uppercase tracking-widest"
-                    >
-                        {task.isSubtasksCollapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
-                        LOG_TASKS ({completedCount}/{task.subtasks.length})
-                    </button>
-                    <div className="flex items-center gap-1">
-                        <button 
-                            onClick={handleAIBreakdown} 
-                            disabled={isBreakingDown}
-                            title="AI Decomposition"
-                            className={`p-1 rounded transition-all ${isBreakingDown ? 'text-[#9d4edd] animate-pulse' : 'text-gray-600 hover:text-[#9d4edd]'}`}
-                        >
-                            {isBreakingDown ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
-                        </button>
-                        <button 
-                            onClick={() => setIsAddingSubtask(!isAddingSubtask)}
-                            className="text-gray-600 hover:text-[#9d4edd] p-1"
-                        >
-                            <Plus size={12} />
-                        </button>
-                    </div>
-                </div>
-                
-                {!task.isSubtasksCollapsed && (
-                    <div className="space-y-1.5 mt-2 max-h-32 overflow-y-auto custom-scrollbar">
-                        {task.subtasks.map(sub => (
-                            <div key={sub.id} className="flex items-center justify-between group/sub">
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                    <button 
-                                        onClick={() => toggleSubtask(sub.id)}
-                                        className={`w-3.5 h-3.5 rounded-sm border flex items-center justify-center transition-all shrink-0 ${sub.completed ? 'bg-[#9d4edd]/20 border-[#9d4edd]/40 text-[#9d4edd]' : 'border-[#333] hover:border-[#9d4edd]'}`}
-                                    >
-                                        {sub.completed && <Check size={10} />}
-                                    </button>
-                                    <span className={`text-[10px] font-mono truncate ${sub.completed ? 'text-gray-700 line-through' : 'text-gray-400'}`}>
-                                        {sub.title}
-                                    </span>
-                                </div>
-                                <button onClick={() => removeSubtask(sub.id)} className="opacity-0 group-hover/sub:opacity-100 text-gray-700 hover:text-red-400 transition-all p-1">
-                                    <X size={10} />
-                                </button>
-                            </div>
-                        ))}
-                        {isAddingSubtask && (
-                            <form onSubmit={handleAddSubtask} className="flex items-center gap-2 mt-2">
-                                <input 
-                                    autoFocus
-                                    className="flex-1 bg-black border border-[#333] px-2 py-1 text-[10px] font-mono text-white outline-none rounded focus:border-[#9d4edd]"
-                                    placeholder="Task designation..."
-                                    value={newSubtaskTitle}
-                                    onChange={e => setNewSubtaskTitle(e.target.value)}
-                                    onBlur={() => !newSubtaskTitle && setIsAddingSubtask(false)}
-                                />
-                            </form>
-                        )}
-                    </div>
-                )}
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-white/5 flex gap-1.5">
-                {task.status !== TaskStatus.TODO && (
-                    <button 
-                        onClick={() => toggleStatus(TaskStatus.TODO)}
-                        className="flex-1 py-1.5 bg-[#111] hover:bg-[#3b82f6]/10 hover:text-[#3b82f6] border border-[#222] rounded-lg text-[8px] font-bold font-mono uppercase tracking-widest transition-all"
-                    >
-                        De-Prioritize
-                    </button>
-                )}
-                {task.status !== TaskStatus.IN_PROGRESS && (
-                    <button 
-                        onClick={() => toggleStatus(TaskStatus.IN_PROGRESS)}
-                        className="flex-1 py-1.5 bg-[#111] hover:bg-[#f59e0b]/10 hover:text-[#f59e0b] border border-[#222] rounded-lg text-[8px] font-bold font-mono uppercase tracking-widest transition-all"
-                    >
-                        Engage
-                    </button>
-                )}
-                {task.status !== TaskStatus.DONE && (
-                    <button 
-                        onClick={() => toggleStatus(TaskStatus.DONE)}
-                        className="flex-1 py-1.5 bg-[#9d4edd]/10 hover:bg-[#42be65] hover:text-black border border-[#9d4edd]/20 rounded-lg text-[8px] font-black font-mono uppercase tracking-widest transition-all flex items-center justify-center gap-1"
-                    >
-                        <CheckCircle2 size={10} /> Finalize
-                    </button>
-                )}
-            </div>
+            <button onClick={toggleStatus} className={`mt-2 w-full py-1.5 rounded-lg border text-[9px] font-black uppercase transition-all ${task.status === TaskStatus.DONE ? 'bg-transparent border-[#333] text-gray-600 hover:text-white' : 'bg-[#111] border-[#333] text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black'}`}>
+                {task.status === TaskStatus.DONE ? 'Re-Open Protocol' : 'Complete Cycle'}
+            </button>
         </motion.div>
     );
 };
+
+export default TaskBoard;

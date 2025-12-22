@@ -7,17 +7,15 @@ import {
     Code, Copy, Check, Loader2, Sparkles, FileText, AlertTriangle, 
     Activity, CheckCircle, Target, Layers, Cpu, Terminal, GitMerge, 
     BrainCircuit, X, HelpCircle, ArrowUpRight, Zap, Info, Binary, 
-    TrendingUp, History, ShieldCheck, Database, RefreshCw, Eye, Search
+    TrendingUp, History, ShieldCheck, Database, RefreshCw, Eye, Search, ListTodo
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MermaidDiagram from './MermaidDiagram';
+import TaskBoard from './TaskBoard';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 
 const highlightCode = (code: string, lang: string) => {
-    // Escape standard HTML characters first to prevent XSS and tag mangling
     let escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    
-    // We use style="color: ..." instead of class="..." to avoid matching the 'class' keyword inside our own highlighter tags
     return escaped
         .replace(/\b(const|let|var|function|class|import|from|return|if|else|for|while|async|await|export|default|interface|type|public|private|protected|new|try|catch|finally|switch|case|break|throw)\b/g, '<span style="color: #f1c21b">$1</span>')
         .replace(/\b(string|number|boolean|any|Promise|Array|Object|null|undefined|true|false)\b/g, '<span style="color: #22d3ee">$1</span>')
@@ -29,7 +27,7 @@ const CodeStudio: React.FC = () => {
   const { codeStudio, setCodeStudioState, process: processData, addLog } = useAppStore();
   const { track } = useFlywheel('BUILDER PROTOCOL');
   const { state: agentState } = useAgentRuntime();
-  const [activeTab, setActiveTab] = useState<'IDE' | 'EVOLUTION' | 'LATTICE' | 'ORCHESTRATION' | 'DETECTIVE'>('IDE');
+  const [activeTab, setActiveTab] = useState<'IDE' | 'TASKS' | 'EVOLUTION' | 'LATTICE' | 'ORCHESTRATION' | 'DETECTIVE'>('IDE');
   const [isCopied, setIsCopied] = React.useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
@@ -105,8 +103,6 @@ const CodeStudio: React.FC = () => {
 
   return (
     <div className={`flex flex-col h-full rounded-3xl border bg-[#030303] shadow-2xl overflow-hidden font-sans relative transition-all duration-700 ${syntaxErrors.length > 0 ? 'border-red-500 ring-2 ring-red-500/20' : 'border-[#1f1f1f]'}`}>
-      
-      {/* Evolution HUD Overlay */}
       <div className="absolute top-20 left-6 z-40 flex flex-col gap-4 pointer-events-none">
           <AnimatePresence>
               {codeStudio.isEvolving && (
@@ -122,15 +118,9 @@ const CodeStudio: React.FC = () => {
           </AnimatePresence>
       </div>
 
-      {/* Patch Notification Overlay - Neon Purple Box */}
       <AnimatePresence>
         {codeStudio.activePatch && (
-            <motion.div 
-                initial={{ y: -50, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -50, opacity: 0 }}
-                className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] w-full max-w-2xl"
-            >
+            <motion.div initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -50, opacity: 0 }} className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] w-full max-w-2xl">
                 <div className="mx-6 bg-[#0a0a0a]/95 backdrop-blur-xl border-2 border-[#9d4edd] p-6 rounded-3xl shadow-[0_0_100px_rgba(157,78,221,0.3)] flex items-center justify-between gap-8">
                     <div className="flex items-start gap-5">
                         <div className="p-3 bg-[#9d4edd]/20 rounded-2xl text-[#9d4edd] animate-pulse shrink-0">
@@ -159,6 +149,7 @@ const CodeStudio: React.FC = () => {
               <div className="flex bg-[#111] p-1 rounded-xl border border-white/5">
                 {[
                     { id: 'IDE', icon: Terminal, label: 'Editor' },
+                    { id: 'TASKS', icon: ListTodo, label: 'Tasks' },
                     { id: 'DETECTIVE', icon: Search, label: 'Detective' },
                     { id: 'EVOLUTION', icon: TrendingUp, label: 'Evolution' },
                     { id: 'LATTICE', icon: GitMerge, label: 'Lattice' },
@@ -228,6 +219,10 @@ const CodeStudio: React.FC = () => {
                   </div>
               )}
 
+              {activeTab === 'TASKS' && (
+                <TaskBoard />
+              )}
+
               {activeTab === 'DETECTIVE' && (
                   <div className="flex-1 flex flex-col p-10 bg-black overflow-y-auto custom-scrollbar">
                       <div className="max-w-3xl mx-auto w-full space-y-10">
@@ -240,7 +235,6 @@ const CodeStudio: React.FC = () => {
                                   <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.3em]">Advanced Semantic Framework Construction</p>
                               </div>
                           </div>
-                          
                           <div className="bg-[#0a0a0a] border border-[#222] p-8 rounded-3xl space-y-6 shadow-2xl relative overflow-hidden">
                               <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.05)_0%,transparent_70%)] pointer-events-none"></div>
                               <div className="space-y-3 relative z-10">
@@ -294,36 +288,26 @@ const CodeStudio: React.FC = () => {
                                   </div>
                                   <button onClick={applyEvolution} className="px-10 py-3.5 bg-cyan-400 text-black text-xs font-black uppercase rounded-2xl shadow-[0_0_30px_rgba(34,211,238,0.4)] hover:bg-cyan-300 transition-all hover:scale-105 active:scale-95 tracking-[0.2em]">MERGE EVOLUTION</button>
                               </div>
-                              
                               <div className="p-8 bg-[#0a0a0a] border-2 border-cyan-900/30 rounded-3xl text-xs font-mono text-gray-300 leading-relaxed italic border-l-[10px] border-l-cyan-400 shadow-xl">
                                   "{codeStudio.activeEvolution?.reasoning}"
                               </div>
-
                               <div className="rounded-3xl border border-[#1f1f1f] overflow-hidden bg-black shadow-2xl max-h-[600px] flex flex-col relative">
                                   <div className="h-10 bg-[#0a0a0a] border-b border-[#1f1f1f] flex items-center px-6 justify-between">
                                       <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Evolved Source Matrix</span>
-                                      <div className="flex gap-1.5">
-                                          <div className="w-2 h-2 rounded-full bg-red-500/20" />
-                                          <div className="w-2 h-2 rounded-full bg-yellow-500/20" />
-                                          <div className="w-2 h-2 rounded-full bg-green-500/20" />
-                                      </div>
                                   </div>
                                   <div className="overflow-y-auto custom-scrollbar flex-1">
                                       <pre className="p-8 text-[11px] font-mono text-gray-400 selection:bg-cyan-400/20 leading-relaxed">
                                           <code dangerouslySetInnerHTML={{ __html: highlightCode(codeStudio.activeEvolution?.code || '', codeStudio.language) }} />
                                       </pre>
                                   </div>
-                                  <div className="absolute inset-0 pointer-events-none opacity-[0.02] bg-[linear-gradient(rgba(34,211,238,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.1)_1px,transparent_1px)] bg-[size:20px_20px]"></div>
                               </div>
                           </motion.div>
                       )}
                   </div>
               )}
-
               {activeTab === 'LATTICE' && (
                   <div className="flex-1 p-6"><div className="h-full rounded-2xl border border-white/5 overflow-hidden shadow-inner bg-black"><MermaidDiagram code={processData.generatedCode || 'graph TD\n    A[IDE] --> B[Lattice]\n    B --> C[Orchestration]'} /></div></div>
               )}
-
               {activeTab === 'ORCHESTRATION' && (
                   <div className="flex-1 flex flex-col overflow-hidden bg-[#050505] p-6">
                       <div className="flex-1 overflow-y-auto custom-scrollbar font-mono text-[11px] space-y-4 bg-black/40 border border-white/5 rounded-2xl p-6">
@@ -341,7 +325,6 @@ const CodeStudio: React.FC = () => {
                   </div>
               )}
           </div>
-
           <div className="w-80 border-l border-[#1f1f1f] bg-[#0a0a0a] flex flex-col shrink-0">
                 <div className="p-6 border-b border-[#1f1f1f] flex items-center gap-3">
                     <Activity size={16} className="text-[#22d3ee]" />
@@ -375,12 +358,7 @@ const CodeStudio: React.FC = () => {
                         <span>Iterative Directive</span>
                         <Target size={10} />
                     </div>
-                    <textarea 
-                        value={codeStudio.prompt}
-                        onChange={e => setCodeStudioState({ prompt: e.target.value, lastEditTimestamp: Date.now() })}
-                        className="w-full bg-[#111] border border-[#222] p-4 rounded-2xl text-[11px] font-mono text-gray-300 outline-none h-40 resize-none focus:border-[#9d4edd] transition-all shadow-inner"
-                        placeholder="E.g. 'Build a React component for a task list' or 'Generate a PARA drive organization'..."
-                    />
+                    <textarea value={codeStudio.prompt} onChange={e => setCodeStudioState({ prompt: e.target.value, lastEditTimestamp: Date.now() })} className="w-full bg-[#111] border border-[#222] p-4 rounded-2xl text-[11px] font-mono text-gray-300 outline-none h-40 resize-none focus:border-[#9d4edd] transition-all shadow-inner" placeholder="E.g. 'Build a React component for a task list' or 'Generate a PARA drive organization'..." />
                 </div>
           </div>
       </div>

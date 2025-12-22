@@ -3,8 +3,8 @@ import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import JSZip from 'jszip';
 import { useAppStore } from '../store';
 import { AspectRatio, ImageSize, FileData, SOVEREIGN_DEFAULT_COLORWAY, ResonancePoint } from '../types';
-import { promptSelectKey, fileToGenerativePart, generateStoryboardPlan, constructCinematicPrompt, retryGeminiRequest, analyzeImageVision, generateNarrativeContext } from '../services/geminiService';
-import { Image as ImageIcon, Loader2, RefreshCw, Download, Plus, Trash2, Film, Wand2, Upload, X, Layers, AlertCircle, Eye, Activity, User, Palette, FileText, ChevronRight, MonitorPlay, Zap, Clapperboard, Play, Maximize, ToggleLeft, ToggleRight, Volume2, VolumeX, SkipForward, Globe, Lock, Unlock, Fingerprint, Cpu, Radio, Power, Box, Camera, Sun, Video, Package, Scan, Sparkles } from 'lucide-react';
+import { promptSelectKey, fileToGenerativePart, generateStoryboardPlan, constructCinematicPrompt, retryGeminiRequest, analyzeImageVision, generateNarrativeContext, generateVideo } from '../services/geminiService';
+import { Image as ImageIcon, Loader2, RefreshCw, Download, Plus, Trash2, Film, Wand2, Upload, X, Layers, AlertCircle, Eye, Activity, User, Palette, FileText, ChevronRight, MonitorPlay, Zap, Clapperboard, Play, Maximize, ToggleLeft, ToggleRight, Volume2, VolumeX, SkipForward, Globe, Lock, Unlock, Fingerprint, Cpu, Radio, Power, Box, Camera, Sun, Video, Package, Scan, Sparkles, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmotionalResonanceGraph from './EmotionalResonanceGraph';
 import { useVoiceAction } from '../hooks/useVoiceAction';
@@ -33,212 +33,66 @@ const STYLE_PRESETS = [
     { id: 'GRITTY_REALISM', label: 'Gritty Realism', desc: '35mm Grain, Desaturated, Tactical, Raw' },
 ];
 
-const MultiReferenceSlot: React.FC<{ label: string, icon: any, files: FileData[], onRemove: (idx: number) => void, onUpload: (e: React.ChangeEvent<HTMLInputElement>) => void, accept: string }> = ({ label, icon: Icon, files, onRemove, onUpload, accept }) => (
-    <div className="bg-[#0f0f0f] p-4 rounded-xl border border-[#222] hover:border-[#333] transition-colors group">
-        <div className="flex justify-between items-center mb-3">
-            <label className="text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider flex items-center gap-2 font-bold">
-                <Icon className="w-3 h-3" /> {label}
-            </label>
-            <span className="text-[9px] text-gray-600 font-mono">{files.length} ASSETS</span>
-        </div>
-        
-        <div className="grid grid-cols-4 gap-2 mb-2">
-            {files.map((file, idx) => (
-                <div key={idx} className="relative group/item aspect-square bg-black border border-[#333] rounded-lg overflow-hidden shadow-sm">
-                    {file.inlineData.mimeType.startsWith('image/') ? (
-                        <img src={`data:${file.inlineData.mimeType};base64,${file.inlineData.data}`} className="w-full h-full object-cover opacity-80 group-hover/item:opacity-100 transition-opacity" />
-                    ) : (
-                        <div className="w-full h-full flex items-center justify-center text-gray-600"><FileText className="w-4 h-4"/></div>
-                    )}
-                    <button 
-                        onClick={() => onRemove(idx)} 
-                        className="absolute top-0 right-0 bg-red-500/80 text-white p-1 opacity-0 group-hover/item:opacity-100 transition-opacity rounded-bl-lg backdrop-blur-sm"
-                    >
-                        <X className="w-2 h-2" />
-                    </button>
-                </div>
-            ))}
-            <label className="flex flex-col items-center justify-center aspect-square bg-[#0a0a0a] border border-dashed border-[#333] rounded-lg cursor-pointer hover:border-[#9d4edd] hover:bg-[#9d4edd]/5 transition-all group/add">
-                <Plus className="w-4 h-4 text-gray-600 group-hover/add:text-[#9d4edd]" />
-                <input type="file" multiple className="hidden" onChange={onUpload} accept={accept} />
-            </label>
-        </div>
-    </div>
-);
-
-const GenesisTeaser: React.FC<{ frames: Frame[] }> = ({ frames }) => {
-    const { user, setMode } = useAppStore();
-    const [bootPhase, setBootPhase] = useState<'IDLE' | 'PLAYBACK' | 'READY'>('IDLE');
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [activeImage, setActiveImage] = useState<string | null>(null);
-    const [activeText, setActiveText] = useState<string>('');
-    const [tunnelSpeed, setTunnelSpeed] = useState(2); 
-
-    const validFrames = frames.filter(f => f.imageUrl || f.scenePrompt);
-    const hasContent = validFrames.length > 0;
-
-    useEffect(() => {
-        if (bootPhase === 'PLAYBACK') {
-            setTunnelSpeed(15); 
-            const interval = setInterval(() => {
-                setCurrentIndex(prev => {
-                    if (prev >= validFrames.length - 1) {
-                        clearInterval(interval);
-                        setBootPhase('READY');
-                        setTunnelSpeed(2);
-                        return prev;
-                    }
-                    return prev + 1;
-                });
-            }, 3000); 
-            
-            return () => clearInterval(interval);
-        }
-    }, [bootPhase, validFrames.length]);
-
-    useEffect(() => {
-        if (bootPhase === 'PLAYBACK' && validFrames[currentIndex]) {
-            setActiveImage(validFrames[currentIndex].imageUrl || null);
-            const prompt = validFrames[currentIndex].scenePrompt || '';
-            setActiveText(prompt.substring(0, 100) + (prompt.length > 100 ? "..." : ""));
-        }
-    }, [currentIndex, bootPhase, validFrames]);
-
-    const handleInitialize = () => {
-        if (hasContent) {
-            setBootPhase('PLAYBACK');
-            setCurrentIndex(0);
-        } else {
-            setBootPhase('READY');
-        }
-    };
-
-    return (
-        <div className="relative w-full h-full bg-black overflow-hidden font-mono select-none">
-            <AnimatePresence mode="wait">
-                {activeImage && bootPhase === 'PLAYBACK' && (
-                    <motion.img 
-                        key={activeImage}
-                        src={activeImage}
-                        initial={{ opacity: 0, scale: 1.1 }}
-                        animate={{ opacity: 0.4, scale: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 1 }}
-                        className="absolute inset-0 w-full h-full object-cover z-0 grayscale contrast-125"
-                    />
-                )}
-            </AnimatePresence>
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.9)_80%)] pointer-events-none z-10"></div>
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.05)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-50 z-10"></div>
-
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-20 p-12">
-                <div className="mb-8 relative scale-150">
-                    {bootPhase === 'IDLE' && <Fingerprint className="w-16 h-16 text-[#333]" />}
-                    {bootPhase === 'PLAYBACK' && <Activity className="w-16 h-16 text-[#22d3ee] animate-pulse" />}
-                    {bootPhase === 'READY' && <Unlock className="w-16 h-16 text-[#9d4edd]" />}
-                </div>
-
-                <div className="h-40 flex flex-col items-center justify-center space-y-4 z-20 w-full max-w-2xl text-center">
-                    {bootPhase === 'IDLE' && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center">
-                            <h1 className="text-4xl font-black tracking-[0.5em] text-white mb-3">GENESIS TEASER</h1>
-                            <p className="text-sm text-gray-500 tracking-[0.3em] uppercase">
-                                {hasContent ? "Asset Sequence Ready // Initialize Playback" : "System Standby // No Assets Loaded"}
-                            </p>
-                        </motion.div>
-                    )}
-
-                    {bootPhase === 'PLAYBACK' && (
-                        <div className="text-center space-y-4 w-full">
-                            <div className="text-sm text-[#22d3ee] tracking-[0.2em] font-bold block mb-2">SEQUENCE {currentIndex + 1} / {validFrames.length}</div>
-                            <motion.div
-                                key={activeText}
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className="text-lg text-white font-bold leading-relaxed drop-shadow-md bg-black/50 p-4 rounded border border-[#22d3ee]/20 backdrop-blur-sm"
-                            >
-                                "{activeText}"
-                            </motion.div>
-                        </div>
-                    )}
-
-                    {bootPhase === 'READY' && (
-                        <motion.div 
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="text-center"
-                        >
-                            <h1 className="text-5xl font-black tracking-[0.2em] text-[#9d4edd] mb-6 drop-shadow-[0_0_25px_rgba(157,78,221,0.6)]">
-                                SYSTEM ONLINE
-                            </h1>
-                            <p className="text-sm text-gray-400 mb-8 max-w-lg mx-auto leading-relaxed font-mono">
-                                Welcome back, <span className="text-white font-bold">{user.displayName.toUpperCase()}</span>. 
-                                <br/>The Sovereign Architecture awaits your command.
-                            </p>
-                        </motion.div>
-                    )}
-                </div>
-
-                <div className="mt-12 z-20">
-                    {bootPhase === 'IDLE' && (
-                        <button 
-                            onClick={handleInitialize}
-                            className="group relative px-10 py-4 bg-black border border-[#333] hover:border-[#22d3ee] text-gray-300 hover:text-[#22d3ee] transition-all rounded-none uppercase tracking-[0.3em] text-xs font-bold overflow-hidden"
-                        >
-                            <span className="relative z-10 flex items-center gap-3">
-                                <Power className="w-4 h-4" /> {hasContent ? "PLAY SEQUENCE" : "INITIALIZE"}
-                            </span>
-                            <div className="absolute inset-0 bg-[#22d3ee]/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-in-out"></div>
-                        </button>
-                    )}
-
-                    {bootPhase === 'READY' && (
-                        <button 
-                            onClick={() => setMode('DASHBOARD' as any)} 
-                            className="group relative px-12 py-5 bg-[#9d4edd] text-black rounded-none uppercase tracking-[0.3em] text-sm font-black transition-all shadow-[0_0_40px_rgba(157,78,221,0.4)] hover:shadow-[0_0_60px_rgba(157,78,221,0.6)] hover:scale-105"
-                        >
-                            <span className="flex items-center gap-4">
-                                ENTER SYSTEM <ChevronRight className="w-5 h-5" />
-                            </span>
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            <div className="absolute bottom-8 left-8 right-8 flex justify-between text-[9px] text-gray-600 font-mono tracking-widest uppercase z-20">
-                <span>Metaventions AI v3.0.1</span>
-                <span className={bootPhase === 'READY' ? 'text-[#9d4edd] animate-pulse' : ''}>
-                    {bootPhase === 'IDLE' ? 'STANDBY' : bootPhase === 'READY' ? 'ONLINE' : 'PROCESSING...'}
-                </span>
-            </div>
-        </div>
-    );
-};
-
 const ImageGen: React.FC = () => {
   const { imageGen, setImageGenState, addLog } = useAppStore();
-  const [activeTab, setActiveTab] = useState<'SINGLE' | 'STORYBOARD' | 'TEASER'>('SINGLE');
-  
+  const [activeTab, setActiveTab] = useState<'SINGLE' | 'STORYBOARD' | 'VIDEO' | 'TEASER'>('SINGLE');
   const [frames, setFrames] = useState<Frame[]>([]);
   const [showERT, setShowERT] = useState(true);
   const [showPromptInspector, setShowPromptInspector] = useState(false);
-  const [activeFramePrompt, setActiveFramePrompt] = useState<string>("");
   
   const [isBatchRendering, setIsBatchRendering] = useState(false);
-  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
   const [isPlanning, setIsPlanning] = useState(false);
-  const [isExpanding, setIsExpanding] = useState(false);
   const [draftMode, setDraftMode] = useState(true);
-
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [visionAnalysis, setVisionAnalysis] = useState<string | null>(null);
   const [baseImage, setBaseImage] = useState<FileData | null>(null);
-  
+  const [visionAnalysis, setVisionAnalysis] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // Video State
+  const [videoPrompt, setVideoPrompt] = useState('');
+  const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [isVideoLoading, setIsVideoLoading] = useState(false);
+  const [videoProgressMsg, setVideoProgressMsg] = useState('');
+  const [videoSettings, setVideoSettings] = useState({ aspectRatio: '16:9' as const, resolution: '720p' as const });
+
   useEffect(() => {
       if (frames.length === 0) {
           setFrames(Array.from({ length: 10 }, (_, i) => ({ index: i, scenePrompt: '', continuity: '', status: 'pending' })));
       }
   }, []);
+
+  const handleVideoGenerate = async () => {
+      if (!videoPrompt.trim()) return;
+      setIsVideoLoading(true);
+      setVideoUrl(null);
+      addLog('SYSTEM', 'VEO_INIT: Initializing High-Fidelity Video Synthesis...');
+      
+      const messages = [
+          "Vectorizing Narrative Prompt...",
+          "Synthesizing Temporal Latent Space...",
+          "Rendering Motion Vectors...",
+          "Harmonizing Frame Consistency...",
+          "Polishing Final Sequence...",
+          "Establishing Secure Download Handshake..."
+      ];
+      
+      let msgIdx = 0;
+      const msgInterval = setInterval(() => {
+          setVideoProgressMsg(messages[msgIdx]);
+          msgIdx = (msgIdx + 1) % messages.length;
+      }, 8000);
+
+      try {
+          if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsVideoLoading(false); clearInterval(msgInterval); return; }
+          const url = await generateVideo(videoPrompt, videoSettings.aspectRatio, videoSettings.resolution);
+          setVideoUrl(url);
+          addLog('SUCCESS', 'VEO_COMPLETE: Video asset stabilized and ready for playback.');
+      } catch (err: any) {
+          addLog('ERROR', `VEO_FAIL: ${err.message}`);
+      } finally {
+          setIsVideoLoading(false);
+          clearInterval(msgInterval);
+      }
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: 'character' | 'style' | 'base') => {
       if (e.target.files && e.target.files.length > 0) {
@@ -249,546 +103,140 @@ const ImageGen: React.FC = () => {
                   const data = await fileToGenerativePart(file);
                   newFiles.push(data);
               } catch (err) {
-                  console.error(err);
                   addLog('ERROR', `Failed to upload ${e.target.files[i].name}`);
               }
           }
-          
-          if (target === 'character') {
-              setImageGenState({ characterRefs: [...(imageGen.characterRefs || []), ...newFiles] });
-              addLog('SUCCESS', `Added ${newFiles.length} Character Refs`);
-          } else if (target === 'style') {
-              setImageGenState({ styleRefs: [...(imageGen.styleRefs || []), ...newFiles] });
-              addLog('SUCCESS', `Added ${newFiles.length} Style Refs`);
-          } else if (target === 'base') {
-              setBaseImage(newFiles[0]);
-              addLog('SUCCESS', `Base Plate secured for re-imagining.`);
-          }
+          if (target === 'character') setImageGenState({ characterRefs: [...(imageGen.characterRefs || []), ...newFiles] });
+          else if (target === 'style') setImageGenState({ styleRefs: [...(imageGen.styleRefs || []), ...newFiles] });
+          else if (target === 'base') setBaseImage(newFiles[0]);
       }
-  };
-
-  const removeFile = (idx: number, target: 'character' | 'style' | 'base') => {
-      if (target === 'character') {
-          const newRefs = [...(imageGen.characterRefs || [])];
-          newRefs.splice(idx, 1);
-          setImageGenState({ characterRefs: newRefs });
-      } else if (target === 'style') {
-          const newRefs = [...(imageGen.styleRefs || [])];
-          newRefs.splice(idx, 1);
-          setImageGenState({ styleRefs: newRefs });
-      } else if (target === 'base') {
-          setBaseImage(null);
-          setVisionAnalysis(null);
-      }
-  };
-
-  const handleVisionScan = async () => {
-      if (!baseImage) return;
-      setIsAnalyzing(true);
-      try {
-          const analysis = await analyzeImageVision(baseImage);
-          setVisionAnalysis(analysis);
-          addLog('SUCCESS', 'Vision Scan complete. Matrix metadata extracted.');
-      } catch (e: any) {
-          addLog('ERROR', `Vision scan failed: ${e.message}`);
-      } finally {
-          setIsAnalyzing(false);
-      }
-  };
-
-  const handleDownloadAll = async () => {
-        const zip = new JSZip();
-        let count = 0;
-        frames.forEach((f, i) => {
-            if (f.imageUrl) {
-                const data = f.imageUrl.split(',')[1];
-                const ext = f.imageUrl.substring("data:image/".length, f.imageUrl.indexOf(";base64"));
-                zip.file(`frame_${(i + 1).toString().padStart(2, '0')}.${ext}`, data, {base64: true});
-                count++;
-            }
-        });
-        
-        if (count === 0) {
-            addLog('WARN', 'No generated frames to download.');
-            return;
-        }
-        
-        try {
-            const content = await zip.generateAsync({type:"blob"});
-            const url = URL.createObjectURL(content);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `storyboard_sequence_${Date.now()}.zip`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            addLog('SUCCESS', `Downloaded ${count} frames as ZIP.`);
-        } catch (e) {
-            addLog('ERROR', 'Failed to zip files.');
-        }
-    };
-
-  const generatePlan = async () => {
-      if (!imageGen.prompt) return; 
-      setIsPlanning(true);
-      try {
-          const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
-          if (!hasKey) await promptSelectKey();
-
-          const context = {
-              prompt: imageGen.prompt,
-              style: imageGen.activeStylePreset,
-              file: imageGen.styleRefs?.[0] || null,
-              ertData: imageGen.resonanceCurve,
-              visionAnalysis: visionAnalysis 
-          };
-
-          const plan = await generateStoryboardPlan(context, frames.length);
-          
-          const newFrames = frames.map((f, i) => {
-              if (plan[i]) {
-                  return { 
-                      ...f, 
-                      scenePrompt: plan[i].scenePrompt, 
-                      continuity: plan[i].continuity,
-                      camera: plan[i].camera,
-                      lighting: plan[i].lighting,
-                      audio_cue: plan[i].audio_cue
-                  };
-              }
-              return f;
-          });
-          
-          setFrames(newFrames);
-          addLog('SUCCESS', 'Storyboard Sequence generated with STRICT Vision Matrix alignment.');
-      } catch (err: any) {
-          addLog('ERROR', `Planning Failed: ${err.message}`);
-      } finally {
-          setIsPlanning(false);
-      }
-  };
-
-  const generateFrame = async (index: number, forceHighQuality = false) => {
-      let currentPrompt = '';
-      let currentCamera = '';
-      let currentLighting = '';
-      let shouldProceed = false;
-      
-      setFrames(prev => {
-          const f = prev[index];
-          if (f && f.scenePrompt && f.scenePrompt.trim() !== '') {
-              shouldProceed = true;
-              currentPrompt = f.scenePrompt;
-              currentCamera = f.camera || '';
-              currentLighting = f.lighting || '';
-              
-              const newFrames = [...prev];
-              newFrames[index] = { ...f, status: 'generating', error: undefined };
-              return newFrames;
-          }
-          return prev;
-      });
-
-      if (!shouldProceed) return;
-
-      try {
-          const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-          const isDraft = draftMode && !forceHighQuality;
-          const model = isDraft ? 'gemini-2.5-flash-image' : 'gemini-3-pro-image-preview';
-          
-          // Safe fallback for ResonancePoint
-          const curve = imageGen.resonanceCurve || [];
-          const ertFrame: ResonancePoint = (index < curve.length) 
-            ? curve[index] 
-            : { frame: index, tension: 50, dynamics: 50 };
-
-          // Composite Logic: Always check all references
-          const finalPrompt = await constructCinematicPrompt(
-              currentPrompt,
-              imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY,
-              !!baseImage,
-              imageGen.characterRefs.length > 0,
-              imageGen.styleRefs.length > 0,
-              ertFrame,
-              imageGen.activeStylePreset,
-              currentCamera,
-              currentLighting
-          );
-
-          setActiveFramePrompt(finalPrompt);
-
-          // Build Parts Stack: [Base, Characters, Styles, Prompt]
-          const parts: any[] = [];
-          if (baseImage) parts.push(baseImage);
-          if (imageGen.characterRefs) parts.push(...imageGen.characterRefs);
-          if (imageGen.styleRefs) parts.push(...imageGen.styleRefs);
-          parts.push({ text: finalPrompt });
-
-          const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-              model,
-              contents: { parts },
-              config: {
-                  imageConfig: {
-                      aspectRatio: imageGen.aspectRatio,
-                      ...( !isDraft ? { imageSize: '4K' } : {} )
-                  }
-              }
-          }));
-
-          let url = '';
-          for (const part of response.candidates?.[0]?.content?.parts || []) {
-              if (part.inlineData) {
-                  const mimeType = part.inlineData.mimeType || 'image/png';
-                  url = `data:${mimeType};base64,${part.inlineData.data}`;
-                  break;
-              }
-          }
-
-          if (url) {
-              setFrames(prev => prev.map((f, i) => i === index ? { ...f, imageUrl: url, status: 'done', isDraft: isDraft } : f));
-          } else {
-              throw new Error("No image generated");
-          }
-
-      } catch (err: any) {
-          setFrames(prev => prev.map((f, i) => i === index ? { ...f, status: 'error', error: err.message } : f));
-          addLog('ERROR', `Frame ${index + 1} Failed: ${err.message}`);
-      }
-  };
-
-  const handleBatchRender = async () => {
-      const activeIndices = frames.map((f, i) => f.scenePrompt && f.scenePrompt.trim() !== '' ? i : -1).filter(i => i !== -1);
-      
-      if (activeIndices.length === 0) {
-          addLog('WARN', 'No frames with prompts to render.');
-          return;
-        }
-
-      setIsBatchRendering(true);
-      setBatchProgress({ current: 0, total: activeIndices.length });
-
-      for (const i of activeIndices) {
-          await generateFrame(i);
-          setBatchProgress(prev => ({ ...prev, current: prev.current + 1 }));
-          await new Promise(r => setTimeout(r, 500));
-      }
-      
-      setIsBatchRendering(false);
-      addLog('SUCCESS', 'Batch Render Complete');
   };
 
   const generateSingleImage = async () => {
       if (!imageGen.prompt?.trim() && !baseImage) return;
       setImageGenState({ isLoading: true, error: null });
-      setShowPromptInspector(false);
-      
       try {
-          const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
-          if (!hasKey) { await promptSelectKey(); setImageGenState({ isLoading: false }); return; }
-
+          if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setImageGenState({ isLoading: false }); return; }
           const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-          const isDraft = draftMode;
-          const model = isDraft ? 'gemini-2.5-flash-image' : 'gemini-3-pro-image-preview';
-
-          // Composite Logic: Pass availability of ALL references
-          const finalPrompt = await constructCinematicPrompt(
-              imageGen.prompt || "Complete the architectural vision based on all provided anchors.", 
-              imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY, 
-              !!baseImage, 
-              imageGen.characterRefs.length > 0,
-              imageGen.styleRefs.length > 0,
-              undefined,
-              imageGen.activeStylePreset
-          );
-          
-          setActiveFramePrompt(finalPrompt);
-
-          // Build Composite Parts Array
+          const model = draftMode ? 'gemini-2.5-flash-image' : 'gemini-3-pro-image-preview';
+          const finalPrompt = await constructCinematicPrompt(imageGen.prompt || "Vision.", imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY, !!baseImage, imageGen.characterRefs.length > 0, imageGen.styleRefs.length > 0, undefined, imageGen.activeStylePreset);
           const parts: any[] = [];
           if (baseImage) parts.push(baseImage);
           if (imageGen.characterRefs) parts.push(...imageGen.characterRefs);
           if (imageGen.styleRefs) parts.push(...imageGen.styleRefs);
           parts.push({ text: finalPrompt });
-
-          const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-              model: model as any,
-              contents: { parts },
-              config: {
-                  imageConfig: {
-                      aspectRatio: imageGen.aspectRatio,
-                      ...( !isDraft ? { imageSize: '4K' } : {} )
-                  }
-              }
-          }));
-
+          const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({ model: model as any, contents: { parts }, config: { imageConfig: { aspectRatio: imageGen.aspectRatio, ...(!draftMode ? { imageSize: '4K' } : {}) } } }));
           let url = '';
-          for (const part of response.candidates?.[0]?.content?.parts || []) {
-              if (part.inlineData) {
-                  const mimeType = part.inlineData.mimeType || 'image/png';
-                  url = `data:${mimeType};base64,${part.inlineData.data}`;
-                  break;
-              }
-          }
-
-          if (url) {
-              setImageGenState({ 
-                  generatedImage: { 
-                      url, 
-                      prompt: finalPrompt,
-                      aspectRatio: imageGen.aspectRatio, 
-                      size: isDraft ? 'Flash Native' : '4K' 
-                  },
-                  isLoading: false 
-              });
-              addLog('SUCCESS', `Unified Asset Fabricated. Interweaving Narrative...`);
-
-              setIsExpanding(true);
-              try {
-                  const expansion = await generateNarrativeContext(imageGen.prompt || '', visionAnalysis || '');
-                  setImageGenState({ 
-                      prompt: expansion.narrative, 
-                      resonanceCurve: expansion.resonance 
-                  });
-              } catch (e) {
-                  console.warn("Expansion loop failed:", e);
-              } finally {
-                  setIsExpanding(false);
-              }
-
-          } else {
-              throw new Error("No image data returned from model.");
-          }
-
-      } catch (err: any) {
-          console.error("Generation Error:", err);
-          setImageGenState({ error: err.message, isLoading: false });
-          addLog('ERROR', `Generation Failed: ${err.message}`);
-      }
+          for (const part of response.candidates?.[0]?.content?.parts || []) { if (part.inlineData) { url = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`; break; } }
+          if (url) { setImageGenState({ generatedImage: { url, prompt: finalPrompt, aspectRatio: imageGen.aspectRatio, size: draftMode ? 'Native' : '4K' }, isLoading: false }); addLog('SUCCESS', `Asset Fabricated.`); }
+          else throw new Error("No image data returned.");
+      } catch (err: any) { setImageGenState({ error: err.message, isLoading: false }); addLog('ERROR', `Generation Failed: ${err.message}`); }
   };
-
-  useVoiceAction('generate_render', 'Generate single asset based on current prompt', generateSingleImage);
-  useVoiceAction('toggle_quality', 'Toggle between Draft and 4K Pro mode', () => setDraftMode(prev => !prev));
-
-  const hasAnyRef = !!baseImage || imageGen.characterRefs.length > 0 || imageGen.styleRefs.length > 0;
 
   return (
     <div className="h-full w-full bg-[#030303] flex flex-col border border-[#1f1f1f] rounded-xl overflow-hidden shadow-2xl relative z-10 font-sans">
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.03)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
-
         <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur z-20 flex items-center justify-between px-6">
             <div className="flex items-center gap-3">
-                <div className="p-1.5 bg-[#d946ef]/10 border border-[#d946ef] rounded">
-                    <ImageIcon className="w-4 h-4 text-[#d946ef]" />
-                </div>
-                <div>
-                    <h1 className="text-sm font-bold font-mono uppercase tracking-widest text-white">Cinematic Asset Studio</h1>
-                    <p className="text-[9px] text-gray-500 font-mono">Unified Composite Engine v3.0</p>
-                </div>
+                <div className="p-1.5 bg-[#d946ef]/10 border border-[#d946ef] rounded"><ImageIcon className="w-4 h-4 text-[#d946ef]" /></div>
+                <div><h1 className="text-sm font-bold font-mono uppercase tracking-widest text-white">Cinematic Asset Studio</h1><p className="text-[9px] text-gray-500 font-mono">Unified Composite Engine v3.1</p></div>
             </div>
-
-            {hasAnyRef && (
-                <div className="flex items-center gap-2 px-3 py-1 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-full animate-in fade-in slide-in-from-top-2">
-                    <Zap className="w-3 h-3 text-[#9d4edd] animate-pulse" />
-                    <span className="text-[9px] font-black font-mono text-[#9d4edd] uppercase tracking-widest">Composite Mode Active</span>
-                </div>
-            )}
-            
             <div className="flex items-center gap-2 bg-[#111] p-1 rounded border border-[#333]">
-                <button onClick={() => setActiveTab('SINGLE')} className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors ${activeTab === 'SINGLE' ? 'bg-[#d946ef] text-black' : 'text-gray-500 hover:text-white'}`}>
-                    <Wand2 className="w-3 h-3" /> Single Asset
-                </button>
-                <button onClick={() => setActiveTab('STORYBOARD')} className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${activeTab === 'STORYBOARD' ? 'bg-[#d946ef] text-black' : 'text-gray-500 hover:text-white'}`}>
-                    <div className="relative">
-                        <Clapperboard className="w-3 h-3" />
-                        {isExpanding && <span className="absolute -top-2 -right-2 w-1.5 h-1.5 bg-[#d946ef] rounded-full animate-ping"></span>}
-                    </div> 
-                    Storyboard
-                </button>
-                <button onClick={() => setActiveTab('TEASER')} className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors ${activeTab === 'TEASER' ? 'bg-[#d946ef] text-black' : 'text-gray-500 hover:text-white'}`}>
-                    <Video className="w-3 h-3" /> Genesis Teaser
-                </button>
+                <button onClick={() => setActiveTab('SINGLE')} className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors ${activeTab === 'SINGLE' ? 'bg-[#d946ef] text-black' : 'text-gray-500 hover:text-white'}`}><Wand2 className="w-3 h-3" /> Single</button>
+                <button onClick={() => setActiveTab('STORYBOARD')} className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${activeTab === 'STORYBOARD' ? 'bg-[#d946ef] text-black' : 'text-gray-500 hover:text-white'}`}><Clapperboard className="w-3 h-3" /> Storyboard</button>
+                <button onClick={() => setActiveTab('VIDEO')} className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-all ${activeTab === 'VIDEO' ? 'bg-[#d946ef] text-black' : 'text-gray-500 hover:text-white'}`}><Video className="w-3 h-3" /> Video</button>
+                <button onClick={() => setActiveTab('TEASER')} className={`px-3 py-1.5 rounded text-[10px] font-bold uppercase tracking-wider flex items-center gap-2 transition-colors ${activeTab === 'TEASER' ? 'bg-[#d946ef] text-black' : 'text-gray-500 hover:text-white'}`}><MonitorPlay className="w-3 h-3" /> Teaser</button>
             </div>
         </div>
 
         <div className="flex-1 overflow-hidden relative z-10 p-6">
             {activeTab === 'SINGLE' && (
                 <div className="h-full flex gap-6">
-                    <div className="w-[400px] flex flex-col bg-[#050505] border border-[#222] rounded-lg h-full overflow-hidden shadow-2xl relative">
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-2 border-b border-[#333] pb-2 mb-2">
-                                    <Film className="w-3 h-3 text-[#9d4edd]" />
-                                    <span className="text-[10px] font-bold text-white uppercase tracking-widest">Production Bible</span>
-                                </div>
-
-                                <MultiReferenceSlot 
-                                    label="Base Plate (Spatial Source)" 
-                                    icon={MonitorPlay} 
-                                    files={baseImage ? [baseImage] : []} 
-                                    onRemove={() => setBaseImage(null)}
-                                    onUpload={(e) => handleUpload(e, 'base')}
-                                    accept="image/*"
-                                />
-
-                                <MultiReferenceSlot 
-                                    label="Character Lock (Identity)" 
-                                    icon={User} 
-                                    files={imageGen.characterRefs || []} 
-                                    onRemove={(idx) => removeFile(idx, 'character')}
-                                    onUpload={(e) => handleUpload(e, 'character')}
-                                    accept="image/*,application/pdf"
-                                />
-
-                                <MultiReferenceSlot 
-                                    label="Style Reference (Texture)" 
-                                    icon={Palette} 
-                                    files={imageGen.styleRefs || []} 
-                                    onRemove={(idx) => removeFile(idx, 'style')}
-                                    onUpload={(e) => handleUpload(e, 'style')}
-                                    accept="image/*,application/pdf"
-                                />
-
-                                <div className="bg-[#0f0f0f] p-4 rounded-xl border border-[#222] hover:border-[#333] transition-colors">
-                                    <label className="text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider mb-2 block font-bold">Style Preset</label>
-                                    <select 
-                                        value={imageGen.activeStylePreset}
-                                        onChange={(e) => setImageGenState({ activeStylePreset: e.target.value })}
-                                        className="w-full bg-[#0a0a0a] border border-[#333] p-2.5 text-xs font-mono text-gray-300 outline-none focus:border-[#d946ef] rounded-lg mb-2 cursor-pointer transition-colors hover:bg-[#111]"
-                                    >
-                                        {STYLE_PRESETS.map(p => (
-                                            <option key={p.id} value={p.id}>{p.label}</option>
-                                        ))}
-                                    </select>
-                                    <p className="text-[9px] text-gray-500 font-mono italic px-1">
-                                        {STYLE_PRESETS.find(p => p.id === imageGen.activeStylePreset)?.desc}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4 pt-4 border-t border-[#333]">
-                                <div className="flex-1 flex flex-col">
-                                    <label className="text-[10px] font-mono text-gray-400 uppercase tracking-wider block mb-2 font-bold flex items-center gap-2">
-                                        <FileText className="w-3 h-3 text-[#22d3ee]" /> {baseImage ? 'Reification Directive' : 'Scene Directive'}
-                                    </label>
-                                    <textarea 
-                                        value={imageGen.prompt || ''}
-                                        onChange={(e) => setImageGenState({ prompt: e.target.value })}
-                                        className="flex-1 w-full bg-[#0f0f0f] border border-[#333] p-4 text-xs font-mono text-white outline-none focus:border-[#d946ef] rounded-xl resize-none min-h-[120px] shadow-inner placeholder:text-gray-700"
-                                        placeholder={baseImage ? "E.g. Transform this into a moody cyber-noir scene..." : "E.g. A solitary hacker standing in the rain..."}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-[9px] font-mono text-gray-500 uppercase tracking-wider block mb-2 font-bold">Aspect Ratio</label>
-                                        <select 
-                                            value={imageGen.aspectRatio}
-                                            onChange={(e) => setImageGenState({ aspectRatio: e.target.value as any })}
-                                            className="w-full bg-[#0f0f0f] border border-[#333] p-2.5 text-xs font-mono text-gray-300 outline-none focus:border-[#d946ef] rounded-lg cursor-pointer"
-                                        >
-                                            {Object.values(AspectRatio).map(r => <option key={r} value={r}>{r}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <label className="text-[9px] font-mono text-gray-500 uppercase tracking-wider block mb-2 font-bold">Render Quality</label>
-                                        <button 
-                                            onClick={() => setDraftMode(!draftMode)}
-                                            className={`flex-1 flex items-center justify-between px-3 py-2 rounded-lg border text-xs font-mono transition-all ${draftMode ? 'bg-[#111] border-[#333] text-gray-400' : 'bg-[#9d4edd]/10 border-[#9d4edd] text-[#9d4edd] shadow-[0_0_10px_rgba(157,78,221,0.2)]'}`}
-                                        >
-                                            <span>{draftMode ? 'DRAFT' : '4K PRO'}</span>
-                                            {draftMode ? <ToggleLeft className="w-4 h-4"/> : <ToggleRight className="w-4 h-4"/>}
-                                        </button>
-                                    </div>
-                                </div>
+                    <div className="w-80 flex flex-col bg-[#050505] border border-[#222] rounded-lg h-full overflow-hidden p-6 space-y-6 shrink-0 shadow-2xl">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4">
+                            <label className="text-[10px] font-mono text-gray-400 uppercase tracking-widest block font-bold">Base Plate</label>
+                            <label className="flex flex-col items-center justify-center aspect-video bg-[#0a0a0a] border border-dashed border-[#333] rounded-lg cursor-pointer hover:border-[#d946ef] transition-all">
+                                {baseImage ? <img src={`data:${baseImage.inlineData.mimeType};base64,${baseImage.inlineData.data}`} className="w-full h-full object-cover" /> : <Upload className="w-5 h-5 text-gray-700" />}
+                                <input type="file" className="hidden" onChange={(e) => handleUpload(e, 'base')} />
+                            </label>
+                            <label className="text-[10px] font-mono text-gray-400 uppercase tracking-widest block font-bold">Directive</label>
+                            <textarea value={imageGen.prompt} onChange={(e) => setImageGenState({ prompt: e.target.value })} className="w-full h-32 bg-[#0a0a0a] border border-[#222] p-3 text-xs font-mono text-white outline-none rounded-xl resize-none focus:border-[#d946ef]" placeholder="E.g. Neon rain in neo-tokyo..." />
+                            <div className="flex flex-col gap-2">
+                                <label className="text-[9px] font-mono text-gray-500 uppercase">Preset</label>
+                                <select value={imageGen.activeStylePreset} onChange={(e) => setImageGenState({ activeStylePreset: e.target.value })} className="w-full bg-[#0a0a0a] border border-[#222] p-2 text-xs font-mono text-white rounded-lg outline-none">
+                                    {STYLE_PRESETS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+                                </select>
                             </div>
                         </div>
-
-                        <div className="p-4 border-t border-[#222] bg-[#0a0a0a] relative z-20 flex flex-col gap-2">
-                            {baseImage && (
-                                <button 
-                                    onClick={handleVisionScan}
-                                    disabled={isAnalyzing}
-                                    className="w-full py-3 bg-[#111] border border-[#333] hover:border-[#22d3ee] text-gray-300 hover:text-[#22d3ee] font-bold text-[10px] font-mono uppercase tracking-widest rounded-lg transition-all flex items-center justify-center gap-2"
-                                >
-                                    {isAnalyzing ? <Loader2 className="w-3.5 h-3.5 animate-spin"/> : <Scan className="w-3.5 h-3.5"/>}
-                                    Vision Scan Base Plate
-                                </button>
-                            )}
-                            <button 
-                                onClick={generateSingleImage}
-                                disabled={imageGen.isLoading || (!imageGen.prompt?.trim() && !baseImage)}
-                                className="w-full py-4 bg-[#d946ef] text-black font-bold text-xs uppercase tracking-[0.2em] font-mono rounded-lg hover:bg-[#f0abfc] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-[0_0_30px_rgba(217,70,239,0.3)] hover:scale-[1.02] active:scale-[0.98]"
-                            >
-                                {imageGen.isLoading ? <Loader2 className="w-4 h-4 animate-spin"/> : <Layers className="w-4 h-4"/>}
-                                {imageGen.isLoading ? 'SYNTHESIZING...' : 'GENERATE COMPOSITE'}
-                            </button>
-                        </div>
+                        <button onClick={generateSingleImage} disabled={imageGen.isLoading} className="w-full py-4 bg-[#d946ef] text-black font-black text-xs uppercase tracking-widest rounded-xl hover:bg-[#f0abfc] transition-all shadow-[0_0_30px_rgba(217,70,239,0.3)] flex items-center justify-center gap-2">
+                            {imageGen.isLoading ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />} Render
+                        </button>
                     </div>
+                    <div className="flex-1 bg-[#050505] border border-[#222] rounded-lg overflow-hidden flex items-center justify-center relative shadow-2xl">
+                        {imageGen.generatedImage ? <img src={imageGen.generatedImage.url} className="max-w-full max-h-full object-contain" /> : <ImageIcon className="w-16 h-16 text-gray-800" />}
+                    </div>
+                </div>
+            )}
 
-                    <div className="flex-1 bg-[#050505] border border-[#222] rounded-lg relative overflow-hidden flex flex-col shadow-2xl">
-                        <div className="absolute inset-0 bg-[linear-gradient(rgba(34,211,238,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
-                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.8)_100%)] pointer-events-none"></div>
-
-                        {imageGen.generatedImage ? (
-                            <>
-                                <div className="relative flex-1 flex items-center justify-center p-8 z-10">
-                                    <div className="relative group">
-                                        <img 
-                                            src={imageGen.generatedImage.url} 
-                                            className="max-w-full max-h-[80vh] object-contain shadow-2xl border border-[#333] rounded-sm" 
-                                            alt="Generated" 
-                                        />
-                                        <div className="absolute bottom-0 left-0 right-0 bg-black/80 backdrop-blur-md p-4 opacity-0 group-hover:opacity-100 transition-opacity border-t border-[#333]">
-                                            <div className="flex justify-between items-center text-[10px] font-mono text-gray-400">
-                                                <span>{imageGen.generatedImage.size} • {imageGen.generatedImage.aspectRatio}</span>
-                                                <span className="text-[#9d4edd]">UNIFIED_ASSET_L0</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="absolute bottom-8 flex gap-3 z-20">
-                                        <button 
-                                            onClick={() => setShowPromptInspector(!showPromptInspector)} 
-                                            className="px-5 py-2.5 bg-black/80 backdrop-blur text-white text-xs font-mono uppercase rounded-full border border-[#333] hover:bg-[#1f1f1f] hover:border-white transition-all flex items-center gap-2 shadow-lg"
-                                        >
-                                            <Eye className="w-3 h-3" /> Inspect Matrix
-                                        </button>
-                                        <a href={imageGen.generatedImage.url} download={`generated-asset-${Date.now()}.png`} className="px-5 py-2.5 bg-[#d946ef] text-black text-xs font-mono uppercase rounded-full border border-[#d946ef] hover:bg-[#f0abfc] flex items-center gap-2 font-bold shadow-[0_0_20px_rgba(217,70,239,0.4)] hover:scale-105 transition-all">
-                                            <Download className="w-3 h-3" /> Save Asset
-                                        </a>
-                                    </div>
-                                </div>
-                            </>
-                        ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center text-center opacity-30 z-10 pointer-events-none">
-                                <div className="w-32 h-32 border-2 border-dashed border-gray-600 rounded-2xl flex items-center justify-center mb-6">
-                                    <Film className="w-12 h-12 text-gray-600" />
-                                </div>
-                                <p className="text-sm font-mono uppercase tracking-[0.2em] text-gray-500 font-bold">Visual Output Offline</p>
-                                <p className="text-xs font-mono text-gray-700 mt-2">Initialize fabrication sequence...</p>
+            {activeTab === 'VIDEO' && (
+                <div className="h-full flex gap-6">
+                    <div className="w-96 flex flex-col bg-[#050505] border border-[#222] rounded-lg h-full p-6 space-y-6 shrink-0 shadow-2xl">
+                        <div className="flex items-center gap-2 pb-4 border-b border-white/5">
+                            <Video className="w-5 h-5 text-[#d946ef]" />
+                            <h2 className="text-xs font-black font-mono text-white uppercase tracking-widest">VEO 3.1 Studio</h2>
+                        </div>
+                        <div className="space-y-4 flex-1">
+                            <div>
+                                <label className="text-[10px] font-mono text-gray-500 uppercase tracking-widest block mb-2 font-bold">Temporal Directive</label>
+                                <textarea value={videoPrompt} onChange={e => setVideoPrompt(e.target.value)} disabled={isVideoLoading} className="w-full h-40 bg-[#0a0a0a] border border-[#333] p-4 text-xs font-mono text-white outline-none rounded-xl resize-none focus:border-[#d946ef] transition-all" placeholder="Describe a cinematic sequence with high motion fidelity..." />
                             </div>
-                        )}
-                        
-                        <AnimatePresence>
-                            {showPromptInspector && (
-                                <motion.div 
-                                    initial={{ y: "100%" }}
-                                    animate={{ y: 0 }}
-                                    exit={{ y: "100%" }}
-                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                    className="absolute bottom-0 left-0 right-0 h-1/2 bg-[#0a0a0a]/95 backdrop-blur-xl border-t border-[#333] p-6 shadow-[0_-10px_40px_rgba(0,0,0,0.5)] flex flex-col z-30"
-                                >
-                                    <div className="flex justify-between items-center mb-4 pb-2 border-b border-[#333]">
-                                        <div className="flex items-center gap-2 text-[#d946ef]">
-                                            <Zap className="w-4 h-4" />
-                                            <span className="text-xs font-bold font-mono uppercase tracking-widest">Holo Deep Scan // Prompt Matrix</span>
-                                        </div>
-                                        <button onClick={() => setShowPromptInspector(false)} className="text-gray-500 hover:text-white"><X className="w-4 h-4"/></button>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[9px] font-mono text-gray-500 uppercase block mb-1">Aspect</label>
+                                    <select value={videoSettings.aspectRatio} onChange={e => setVideoSettings({...videoSettings, aspectRatio: e.target.value as any})} disabled={isVideoLoading} className="w-full bg-[#111] border border-[#333] p-2 text-[10px] text-white rounded">
+                                        <option value="16:9">Landscape (16:9)</option>
+                                        <option value="9:16">Portrait (9:16)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="text-[9px] font-mono text-gray-500 uppercase block mb-1">Res</label>
+                                    <select value={videoSettings.resolution} onChange={e => setVideoSettings({...videoSettings, resolution: e.target.value as any})} disabled={isVideoLoading} className="w-full bg-[#111] border border-[#333] p-2 text-[10px] text-white rounded">
+                                        <option value="1080p">HD (1080p)</option>
+                                        <option value="720p">Fast (720p)</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <button onClick={handleVideoGenerate} disabled={isVideoLoading || !videoPrompt.trim()} className="w-full py-4 bg-[#d946ef] text-black font-black text-xs uppercase tracking-widest rounded-xl hover:bg-[#f0abfc] transition-all shadow-[0_0_30px_rgba(217,70,239,0.3)] flex items-center justify-center gap-2">
+                            {isVideoLoading ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />} {isVideoLoading ? 'Synthesizing...' : 'Generate Sequence'}
+                        </button>
+                    </div>
+                    <div className="flex-1 bg-black border border-[#222] rounded-xl overflow-hidden relative shadow-2xl flex items-center justify-center">
+                        <AnimatePresence mode="wait">
+                            {isVideoLoading ? (
+                                <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center justify-center text-center gap-6">
+                                    <div className="relative">
+                                        <Loader2 size={64} className="text-[#d946ef] animate-spin" />
+                                        <div className="absolute inset-0 bg-[#d946ef]/20 blur-[30px] rounded-full animate-pulse" />
                                     </div>
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar font-mono text-[10px] text-gray-300 leading-relaxed whitespace-pre-wrap p-4 bg-[#000] border border-[#222] rounded-lg border-l-4 border-l-[#9d4edd]">
-                                        {imageGen.generatedImage?.prompt}
+                                    <div className="space-y-2">
+                                        <p className="text-sm font-black font-mono text-white uppercase tracking-[0.4em]">{videoProgressMsg}</p>
+                                        <p className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">VEO Engine is orchestrating temporal frames... This may take ~2-3 minutes.</p>
                                     </div>
                                 </motion.div>
+                            ) : videoUrl ? (
+                                <motion.div key="video" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full">
+                                    <video src={videoUrl} controls autoPlay loop className="w-full h-full object-contain" />
+                                    <div className="absolute bottom-6 right-6">
+                                        <a href={videoUrl} download="veo_sequence.mp4" className="p-3 bg-[#d946ef] text-black rounded-full shadow-2xl hover:scale-110 transition-transform flex items-center gap-2 font-black text-[10px] uppercase">
+                                            <Download size={18} /> Export MP4
+                                        </a>
+                                    </div>
+                                </motion.div>
+                            ) : (
+                                <div className="text-center opacity-20">
+                                    <Video size={80} className="mx-auto mb-6 text-gray-500" />
+                                    <p className="text-xs font-mono uppercase tracking-[0.5em]">Sequence Hub Offline</p>
+                                </div>
                             )}
                         </AnimatePresence>
                     </div>
@@ -796,159 +244,23 @@ const ImageGen: React.FC = () => {
             )}
 
             {activeTab === 'STORYBOARD' && (
-                <div className="h-full flex gap-6">
-                    <div className="w-[400px] flex flex-col bg-[#050505] border border-[#222] rounded-lg h-full overflow-hidden shadow-2xl relative">
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
-                            <div className="pb-4 border-b border-[#222]">
-                                <h3 className="text-xs font-bold text-[#9d4edd] uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <Film className="w-4 h-4" /> Narrative Architecture
-                                </h3>
-                                <textarea 
-                                    value={imageGen.prompt || ''}
-                                    onChange={(e) => setImageGenState({ prompt: e.target.value })}
-                                    className="w-full h-40 bg-[#0f0f0f] border border-[#333] p-4 text-xs text-gray-300 rounded-xl resize-none outline-none focus:border-[#9d4edd] font-mono shadow-inner leading-relaxed"
-                                    placeholder="NARRATIVE SEED: Start with a Single Asset render to auto-expand your narrative arc here."
-                                />
-                            </div>
-
-                            <div className="space-y-4">
-                                <MultiReferenceSlot 
-                                    label="Lead Actor Lock" 
-                                    icon={User} 
-                                    files={imageGen.characterRefs || []} 
-                                    onRemove={(idx) => removeFile(idx, 'character')}
-                                    onUpload={(e) => handleUpload(e, 'character')}
-                                    accept="image/*,application/pdf"
-                                />
-                                <MultiReferenceSlot 
-                                    label="Style Reference" 
-                                    icon={Palette} 
-                                    files={imageGen.styleRefs || []} 
-                                    onRemove={(idx) => removeFile(idx, 'style')}
-                                    onUpload={(e) => handleUpload(e, 'style')}
-                                    accept="image/*,application/pdf"
-                                />
-                            </div>
-
-                            <div className="mb-6">
-                                <button onClick={() => setShowERT(!showERT)} className="w-full flex justify-between items-center text-[10px] font-mono uppercase text-gray-500 mb-2 hover:text-white">
-                                    <span>Emotional Resonance (eRP)</span>
-                                    <Activity className="w-3 h-3" />
-                                </button>
-                                <AnimatePresence>
-                                    {showERT && (
-                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                                            <EmotionalResonanceGraph />
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        </div>
-
-                        <div className="p-4 border-t border-[#222] bg-[#0a0a0a] space-y-3 relative z-20">
-                            <div className="flex gap-2 items-center text-[9px] font-mono text-gray-500 justify-between">
-                                <span className="uppercase tracking-widest font-bold">Sequence Length</span>
-                                <input 
-                                    type="number" 
-                                    min="3" max="20" 
-                                    value={frames.length} 
-                                    onChange={(e) => setFrames(Array.from({ length: Math.max(1, parseInt(e.target.value)) }, (_, i) => ({ index: i, scenePrompt: '', continuity: '', status: 'pending' })))} 
-                                    className="w-16 bg-[#111] border border-[#333] rounded px-2 py-1 text-center text-white focus:border-[#9d4edd] outline-none"
-                                />
-                            </div>
-                            <button 
-                                onClick={generatePlan}
-                                disabled={isPlanning || !imageGen.prompt}
-                                className="w-full py-3 bg-[#1f1f1f] text-[#9d4edd] font-bold text-[10px] uppercase tracking-widest font-mono rounded-lg hover:bg-[#333] border border-[#333] hover:border-[#9d4edd] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                            >
-                                {isPlanning ? <Loader2 className="w-3 h-3 animate-spin"/> : <RefreshCw className="w-3 h-3"/>}
-                                Generate Plan
-                            </button>
-                            <div className="flex flex-col gap-2">
-                                <button 
-                                    onClick={handleBatchRender}
-                                    disabled={isBatchRendering || frames.every(f => !f.scenePrompt)}
-                                    className="w-full py-4 bg-[#9d4edd] text-black font-bold text-xs uppercase tracking-[0.2em] font-mono rounded-lg hover:bg-[#b06bf7] transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-[0_0_20px_rgba(157,78,221,0.3)] hover:scale-[1.02]"
-                                >
-                                    {isBatchRendering ? <Loader2 className="w-3 h-3 animate-spin"/> : <Play className="w-3 h-3"/>}
-                                    Render
-                                </button>
-                            </div>
+                <div className="h-full flex gap-6 overflow-hidden">
+                    <div className="w-80 flex flex-col bg-[#050505] border border-[#222] rounded-lg h-full p-6 space-y-6 shrink-0 shadow-2xl">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6">
+                            <button onClick={() => setShowERT(!showERT)} className="w-full flex justify-between items-center text-[10px] font-mono uppercase text-gray-500 hover:text-white"><span className="flex items-center gap-2"><Activity size={12}/> Emotional Curve</span> <ChevronDown size={12}/></button>
+                            {showERT && <EmotionalResonanceGraph />}
                         </div>
                     </div>
-
-                    <div className="flex-1 bg-[#0a0a0a] border border-[#1f1f1f] rounded-lg overflow-y-auto custom-scrollbar p-8 relative">
-                        <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.01)_1px,transparent_1px)] bg-[size:100px_100px] pointer-events-none"></div>
-                        
-                        <div className="space-y-8 max-w-5xl mx-auto">
-                            {frames.map((frame, idx) => (
-                                <div key={idx} className="flex gap-6 relative">
-                                    {idx !== frames.length - 1 && (
-                                        <div className="absolute left-[8.5rem] top-32 bottom-[-2rem] w-px bg-gradient-to-b from-[#333] to-transparent border-r border-dashed border-[#444]"></div>
-                                    )}
-                                    <div className="w-8 flex flex-col items-center pt-8 opacity-50 font-mono text-xs text-gray-500">
-                                        {(idx + 1).toString().padStart(2, '0')}
-                                    </div>
-                                    <div className="flex-1 bg-[#0e0e0e] p-6 rounded-xl border border-[#222] group hover:border-[#9d4edd]/50 transition-all shadow-lg hover:shadow-[0_0_30px_rgba(0,0,0,0.5)] flex gap-6">
-                                        <div className="w-72 aspect-video bg-black border border-[#333] rounded-lg flex items-center justify-center relative overflow-hidden shrink-0 group/img">
-                                            {frame.imageUrl ? (
-                                                <>
-                                                    <img 
-                                                        src={frame.imageUrl} 
-                                                        alt={`Frame ${idx + 1}`}
-                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover/img:scale-105" 
-                                                    />
-                                                </>
-                                            ) : (
-                                                <div className="text-center">
-                                                    {frame.status === 'generating' ? (
-                                                        <Loader2 className="w-8 h-8 text-[#9d4edd] animate-spin mx-auto" />
-                                                    ) : (
-                                                        <Film className="w-8 h-8 text-gray-700 mx-auto" />
-                                                    )}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1 flex flex-col gap-3 min-w-0">
-                                            <div className="flex justify-between items-center pb-2 border-b border-[#222]">
-                                                <span className="text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider font-bold">SEQ_{idx.toString().padStart(3, '0')}</span>
-                                                <div className="flex gap-2">
-                                                    <button 
-                                                        onClick={() => generateFrame(idx)}
-                                                        disabled={frame.status === 'generating' || !frame.scenePrompt}
-                                                        className="px-3 py-1.5 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase transition-all disabled:opacity-50 flex items-gap-1.5 font-bold"
-                                                    >
-                                                        <Wand2 className="w-3 h-3" /> Render
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="flex-1">
-                                                <label className="text-[9px] text-gray-500 uppercase block mb-1 font-bold">Visual Directive</label>
-                                                <textarea 
-                                                    value={frame.scenePrompt}
-                                                    onChange={(e) => {
-                                                        const newFrames = [...frames];
-                                                        newFrames[idx].scenePrompt = e.target.value;
-                                                        setFrames(newFrames);
-                                                    }}
-                                                    className="w-full h-20 bg-[#050505] border border-[#333] rounded-lg p-3 text-[11px] font-mono text-gray-300 resize-none outline-none focus:border-[#9d4edd] leading-relaxed transition-colors"
-                                                    placeholder="Frame description..."
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
+                    <div className="flex-1 bg-black/40 border border-[#222] rounded-lg overflow-y-auto custom-scrollbar p-6 grid grid-cols-2 gap-6 shadow-inner">
+                        {frames.map((f, i) => (
+                            <div key={i} className="bg-[#0a0a0a] border border-[#222] p-4 rounded-xl flex flex-col gap-3 group hover:border-[#d946ef]/40 transition-colors">
+                                <div className="aspect-video bg-black rounded-lg overflow-hidden relative flex items-center justify-center border border-white/5">
+                                    {f.imageUrl ? <img src={f.imageUrl} className="w-full h-full object-cover" /> : <Film size={32} className="text-gray-900" />}
                                 </div>
-                            ))}
-                        </div>
+                                <textarea value={f.scenePrompt} onChange={e => { const n = [...frames]; n[i].scenePrompt = e.target.value; setFrames(n); }} className="bg-black border border-[#222] p-2 text-[10px] font-mono text-gray-300 outline-none rounded-lg h-20 resize-none focus:border-[#d946ef]" placeholder={`Frame ${i+1} directive...`} />
+                            </div>
+                        ))}
                     </div>
-                </div>
-            )}
-
-            {activeTab === 'TEASER' && (
-                <div className="h-full w-full relative bg-black overflow-hidden rounded-lg shadow-2xl border border-[#333]">
-                    <GenesisTeaser frames={frames} />
                 </div>
             )}
         </div>

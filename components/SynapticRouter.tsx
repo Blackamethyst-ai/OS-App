@@ -1,5 +1,4 @@
-
-import React, { useEffect, useState, Suspense, lazy } from 'react';
+import React, { useEffect, useState, Suspense, lazy, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -28,17 +27,18 @@ const SynapticRouter: React.FC = () => {
         addLog, toggleTerminal
     } = useAppStore();
 
-    const [currentPath, setCurrentPath] = useState('');
+    const [routeInfo, setRouteInfo] = useState({ path: '', sub: '', params: new URLSearchParams() });
 
     useEffect(() => {
         const handleRouting = () => {
             const hash = window.location.hash || '#/dashboard';
-            const [pathPart, queryPart] = hash.replace('#', '').split('?');
-            const parts = pathPart.split('/').filter(Boolean);
+            const [fullPath, queryStr] = hash.replace('#', '').split('?');
+            const parts = fullPath.split('/').filter(Boolean);
             const mainPath = parts[0] || 'dashboard';
-            const subPath = parts[1];
+            const subPath = parts[1] || '';
+            const params = new URLSearchParams(queryStr);
 
-            setCurrentPath(pathPart || '');
+            setRouteInfo({ path: mainPath, sub: subPath, params });
 
             const routeMap: Record<string, AppMode> = {
                 'dashboard': AppMode.DASHBOARD,
@@ -148,32 +148,30 @@ const SynapticRouter: React.FC = () => {
         closeContextMenu();
     };
 
-    const LoadingSector = () => (
-        <div className="h-full w-full flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm">
-            <Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" />
-            <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em] animate-pulse">
-                Synchronizing Sector Topology...
-            </span>
-        </div>
-    );
-
-    // Some views like Process Visualizer (React Flow) or Code Studio need fixed height.
-    // Most content views should flow naturally and scroll globally.
-    const isFixedLayout = mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN;
+    const isFixedLayout = useMemo(() => 
+        mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN
+    , [mode]);
 
     return (
         <div className="flex-1 relative overflow-hidden flex flex-col">
-            <Suspense fallback={<LoadingSector />}>
+            <Suspense fallback={
+                <div className="h-full w-full flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm">
+                    <Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" />
+                    <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em] animate-pulse">
+                        Synchronizing Sector Topology...
+                    </span>
+                </div>
+            }>
                 <AnimatePresence mode="wait">
                     <motion.main
                         key={mode}
-                        initial={{ opacity: 0, x: -20, filter: 'blur(10px)' }}
-                        animate={{ opacity: 1, x: 0, filter: 'blur(0px)' }}
-                        exit={{ opacity: 0, x: 20, filter: 'blur(10px)' }}
-                        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                        initial={{ opacity: 0, x: -15, scale: 0.98 }}
+                        animate={{ opacity: 1, x: 0, scale: 1 }}
+                        exit={{ opacity: 0, x: 15, scale: 1.02 }}
+                        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                         className={`flex-1 relative z-10 p-6 flex flex-col ${
                             isFixedLayout ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar'
-                        } pb-44`} // Universal bottom padding of ~176px (roughly 20% of viewport)
+                        } pb-44`}
                     >
                         {mode === AppMode.DASHBOARD && <Dashboard />}
                         {mode === AppMode.SYNTHESIS_BRIDGE && <SynthesisBridge />}
@@ -184,21 +182,17 @@ const SynapticRouter: React.FC = () => {
                         {mode === AppMode.HARDWARE_ENGINEER && <HardwareEngine />}
                         {mode === AppMode.VOICE_MODE && <VoiceMode />}
                         {mode === AppMode.CODE_STUDIO && <CodeStudio />}
-                        
-                        {/* Universal Spacer to guarantee visibility of the very bottom of the content */}
                         <div className="h-20 w-full shrink-0" />
                     </motion.main>
                 </AnimatePresence>
             </Suspense>
 
-            {/* CONTEXT MENU LAYER */}
             <AnimatePresence>
                 {contextMenu.isOpen && (
                     <motion.div
                         initial={{ opacity: 0, scale: 0.9, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        transition={{ duration: 0.15 }}
                         className="fixed z-[9999] min-w-[220px] bg-[#0a0a0a]/95 backdrop-blur-2xl border border-[#333] rounded-lg shadow-2xl overflow-hidden p-1.5"
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
@@ -210,39 +204,13 @@ const SynapticRouter: React.FC = () => {
                                 <GitBranch className="w-3 h-3 text-[#9d4edd]" />
                             </div>
                             <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-600 uppercase truncate">
-                                <Hash className="w-2.5 h-2.5" /> {currentPath || 'DASHBOARD'}
+                                <Hash className="w-2.5 h-2.5" /> {routeInfo.path.toUpperCase() || 'DASHBOARD'}
                             </div>
                         </div>
-
                         <div className="flex flex-col gap-0.5">
-                            {contextMenu.contextType === 'GENERAL' && (
-                                <>
-                                    <MenuItem icon={ArrowUpRight} label="Jump to Dashboard" onClick={() => window.location.hash = '/dashboard'} />
-                                    <MenuItem icon={Activity} label="System Diagnostic" onClick={() => {
-                                        window.location.hash = '/memory';
-                                    }} />
-                                    <MenuItem icon={Terminal} label="Open Quake Terminal" onClick={() => toggleTerminal(true)} />
-                                </>
-                            )}
-
-                            {(contextMenu.contextType === 'TEXT' || contextMenu.contextType === 'CODE') && (
-                                <>
-                                    <MenuItem icon={Copy} label="Capture Fragment" onClick={() => handleAction('COPY')} />
-                                    <MenuItem icon={Search} label="Index Vector" onClick={() => handleAction('SEARCH')} />
-                                    <MenuItem icon={Eye} label="Holo Projection" onClick={() => handleAction('HOLO_VIEW')} />
-                                </>
-                            )}
-
-                            {contextMenu.contextType === 'CODE' && (
-                                <MenuItem icon={Wand2} label="Refactor in Studio" onClick={() => handleAction('JUMP_CODE')} />
-                            )}
-
-                            {contextMenu.contextType === 'IMAGE' && (
-                                <>
-                                    <MenuItem icon={Eye} label="Inspect Matrix" onClick={() => handleAction('HOLO_VIEW')} />
-                                    <MenuItem icon={Database} label="Archive to Memory" onClick={() => handleAction('ARCHIVE')} />
-                                </>
-                            )}
+                            <MenuItem icon={ArrowUpRight} label="Dashboard" onClick={() => window.location.hash = '/dashboard'} />
+                            <MenuItem icon={Activity} label="Diagnostics" onClick={() => window.location.hash = '/memory'} />
+                            <MenuItem icon={Terminal} label="Terminal" onClick={() => toggleTerminal(true)} />
                         </div>
                     </motion.div>
                 )}
@@ -252,10 +220,7 @@ const SynapticRouter: React.FC = () => {
 };
 
 const MenuItem: React.FC<{ icon: any, label: string, onClick: () => void }> = ({ icon: Icon, label, onClick }) => (
-    <button 
-        onClick={onClick}
-        className="w-full flex items-center gap-3 px-3 py-2 text-xs font-mono text-gray-300 hover:bg-white/5 hover:text-white rounded transition-all group text-left"
-    >
+    <button onClick={onClick} className="w-full flex items-center gap-3 px-3 py-2 text-xs font-mono text-gray-300 hover:bg-white/5 hover:text-white rounded transition-all group text-left">
         <Icon className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#9d4edd] transition-colors" />
         {label}
     </button>

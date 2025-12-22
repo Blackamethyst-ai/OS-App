@@ -1,10 +1,8 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { generateDecompositionMap, consensusEngine } from '../services/bicameralService';
 import { promptSelectKey, AGENT_DNA_BUILDER } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
-/* Added GitCommit to imports */
 import { BrainCircuit, Zap, Layers, Cpu, ArrowRight, CheckCircle2, Loader2, GitBranch, GitCommit, AlertOctagon, Save, ExternalLink, Dna, Info, Settings2, Sliders, X, MessageSquareCode, ShieldCheck, Activity, Target } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TugOfWarChart } from './Visualizations/TugOfWarChart';
@@ -275,8 +273,8 @@ ${result.output}
                                 <div>{'>'} WEIGHTS :: S={agentWeights.skepticism} E={agentWeights.excitement} A={agentWeights.alignment}</div>
                                 <div>{'>'} CURRENT_LEADER_MARGIN={swarmStatus.currentGap}</div>
                                 <div>{'>'} TOTAL_AGENTS_SPAWNED={swarmStatus.totalAttempts}</div>
-                                {swarmStatus.killedAgents > 0 && <div className="text-red-500 font-bold">{'>'} TERMINATION_PROTOCOL_ACTIVE :: {swarmStatus.killedAgents} VOIDED</div>}
-                                {swarmStatus.consensusProgress === 100 && <div className="text-[#22d3ee] font-black">{'>'} CONSENSUS_LOCKED :: EXPORTING_LEDGER</div>}
+                                {swarmStatus.killedAgents > 0 && <div className="text-red-500 font-bold">{' > '} TERMINATION_PROTOCOL_ACTIVE :: {swarmStatus.killedAgents} VOIDED</div>}
+                                {swarmStatus.consensusProgress === 100 && <div className="text-[#22d3ee] font-black">{' > '} CONSENSUS_LOCKED :: EXPORTING_LEDGER</div>}
                             </div>
                         </div>
                     </div>

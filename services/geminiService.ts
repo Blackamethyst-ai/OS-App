@@ -33,7 +33,6 @@ function extractGroundingSources(response: GenerateContentResponse): { title: st
             }
         });
     }
-    // Filter out unique URIs to prevent duplicates
     const uniqueUris = new Set<string>();
     return sources.filter(s => {
         if (uniqueUris.has(s.uri)) return false;
@@ -93,6 +92,33 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
         config: { systemInstruction: SYSTEM_COMMANDER_INSTRUCTION, responseMimeType: 'application/json' }
     }));
     return JSON.parse(response.text || "{}");
+}
+
+export async function generateVideo(prompt: string, aspectRatio: '16:9' | '9:16', resolution: '720p' | '1080p'): Promise<string> {
+    const ai = getAI();
+    let operation = await ai.models.generateVideos({
+        model: 'veo-3.1-fast-generate-preview',
+        prompt,
+        config: {
+            numberOfVideos: 1,
+            resolution,
+            aspectRatio
+        }
+    });
+
+    while (!operation.done) {
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        operation = await ai.operations.getVideosOperation({ operation: operation });
+    }
+
+    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+    if (!downloadLink) throw new Error("Video generation failed: No URI returned.");
+
+    const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+    if (!response.ok) throw new Error("Failed to fetch video stream from download link.");
+    
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
 }
 
 export async function evolveSystemArchitecture(code: string, language: string, context?: string): Promise<any> {
@@ -177,7 +203,6 @@ export async function performGlobalSearch(query: string): Promise<SearchResultIt
     const results: SearchResultItem[] = JSON.parse(response.text || "[]");
     const sources = extractGroundingSources(response);
     
-    // Enrich results with source metadata if available
     if (sources.length > 0 && results.length > 0) {
         results[0].meta = { ...results[0].meta, groundingSources: sources };
     }
@@ -355,7 +380,6 @@ export async function executeResearchQuery(query: string): Promise<FactChunk[]> 
 
     const sources = extractGroundingSources(response);
     if (sources.length > 0) {
-        // Map the first search source to the facts for transparency
         facts = facts.map(f => ({ ...f, source: sources[0].uri }));
     }
 
@@ -708,10 +732,6 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
     return response.text || "";
 }
 
-/**
- * --- MISSING EXPORTS AND UTILITIES ---
- */
-
 export interface HiveAgent {
     id: string;
     name: string;
@@ -865,7 +885,6 @@ class LiveSession {
                     if (config.callbacks?.onopen) config.callbacks.onopen();
                 },
                 onmessage: async (message: LiveServerMessage) => {
-                    // Refined to iterate through all parts to find audio data as per guidelines.
                     const parts = message.serverContent?.modelTurn?.parts || [];
                     for (const part of parts) {
                         const base64EncodedAudioString = part.inlineData?.data;
