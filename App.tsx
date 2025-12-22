@@ -22,6 +22,7 @@ import UserProfileOverlay from './components/UserProfileOverlay';
 import FlywheelOrbit from './components/FlywheelOrbit';
 import AgenticHUD from './components/AgenticHUD';
 import GlobalStatusBar from './components/GlobalStatusBar';
+import PeerMeshOverlay from './components/PeerMeshOverlay';
 
 import { useAutoSave } from './hooks/useAutoSave'; 
 import { useDaemonSwarm } from './hooks/useDaemonSwarm'; 
@@ -32,6 +33,7 @@ import {
     Code, HardDrive, GitMerge, Target, X, User, Bot 
 } from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
+import { collabService } from './services/collabService';
 import { audio } from './services/audioService'; 
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -108,6 +110,12 @@ const App: React.FC = () => {
   useResearchAgent(); 
 
   useEffect(() => {
+    // Initialize Collaboration Swarm
+    collabService.init();
+    return () => collabService.disconnect();
+  }, []);
+
+  useEffect(() => {
     const timer = setInterval(() => {
         useAppStore.setState(state => ({
             kernel: { ...state.kernel, uptime: state.kernel.uptime + 1 }
@@ -168,17 +176,13 @@ const App: React.FC = () => {
     <div className="h-screen w-screen font-sans overflow-hidden flex flex-col transition-all duration-500 ease-in-out relative" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', ...themeVars as any }}>
       <Starfield mode={mode} />
       
-      <GlobalStatusBar 
-        onToggleScrubber={() => setScrubberOpen(!isScrubberOpen)}
-        onToggleDiagnostics={() => setDiagnosticsOpen(!isDiagnosticsOpen)}
-        isScrubberOpen={isScrubberOpen}
-        isDiagnosticsOpen={isDiagnosticsOpen}
-      />
+      <GlobalStatusBar />
 
       <FocusOverlay />
       <VoiceCoreOverlay /> 
       <UserProfileOverlay /> 
       <CommandPalette /> 
+      <PeerMeshOverlay />
       <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} /> 
       <TimeTravelScrubber 
         mode={mode} 

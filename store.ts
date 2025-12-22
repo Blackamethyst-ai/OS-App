@@ -1,6 +1,12 @@
 
 import { create } from 'zustand';
-import { AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, InterventionProtocol, OperationalContext, AgentWallet, TemporalEra, Task, TaskStatus, AspectRatio, ProtocolStepResult, CustomThemeConfig, AutonomousAgent } from './types';
+import { 
+    AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, 
+    FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, 
+    InterventionProtocol, OperationalContext, AgentWallet, TemporalEra, Task, 
+    TaskStatus, AspectRatio, ProtocolStepResult, CustomThemeConfig, AutonomousAgent,
+    PeerPresence, SwarmEvent
+} from './types';
 
 interface KernelStatus {
     uptime: number;
@@ -26,6 +32,11 @@ interface AppState {
     system: any;
     kernel: KernelStatus;
     focusedSelector: string | null;
+    collaboration: {
+        peers: PeerPresence[];
+        events: SwarmEvent[];
+        isOverlayOpen: boolean;
+    };
     agents: {
         activeAgents: AutonomousAgent[];
         dispatchLog: string[];
@@ -218,6 +229,10 @@ interface AppState {
     toggleSubTask: (taskId: string, subTaskId: string) => void;
     updateProcessNode: (id: string, updates: any) => void;
     optimizeLayer: (id: string) => void;
+
+    // Collaboration Actions
+    setCollabState: (state: Partial<AppState['collaboration']> | ((prev: AppState['collaboration']) => Partial<AppState['collaboration']>)) => void;
+    addSwarmEvent: (event: Omit<SwarmEvent, 'id' | 'timestamp'>) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -236,6 +251,11 @@ export const useAppStore = create<AppState>((set) => ({
     system: { logs: [], isTerminalOpen: false, dockItems: [] },
     kernel: { uptime: 0, entropy: 12, coreLoad: 24, activeThreads: 8, integrity: 99 },
     focusedSelector: null,
+    collaboration: {
+        peers: [],
+        events: [],
+        isOverlayOpen: false,
+    },
     agents: {
         activeAgents: [
             { id: 'agent-alpha', name: 'Alpha-01', role: 'Logical Synthesis', context: OperationalContext.GENERAL_PURPOSE, status: 'IDLE', memoryBuffer: [], capabilities: ['Reasoning', 'Abstraction'], energyLevel: 100 },
@@ -341,6 +361,12 @@ export const useAppStore = create<AppState>((set) => ({
         strategyLibrary: [],
         wallets: [],
         economicProtocols: [],
+        // Fixed: Added missing activeRefractions and stressTest properties
+        activeRefractions: [],
+        stressTest: {
+            isTesting: false,
+            report: null
+        },
         sensingMatrix: {
             resourceStream: { leverage: 84, cap: '$1.2M', trend: [30, 45, 42, 50, 65, 84] },
             executionStream: { momentum: 92, progress: 'WEAVER v1', trend: [10, 25, 40, 60, 85, 92] },
@@ -436,6 +462,15 @@ export const useAppStore = create<AppState>((set) => ({
         metaventions: {
             ...state.metaventions,
             layers: state.metaventions.layers.map(l => l.id === id ? { ...l, status: 'OPTIMIZED' } : l)
+        }
+    })),
+
+    // Collaboration
+    setCollabState: (update) => set((state) => ({ collaboration: { ...state.collaboration, ...(typeof update === 'function' ? update(state.collaboration) : update) } })),
+    addSwarmEvent: (event) => set((state) => ({
+        collaboration: {
+            ...state.collaboration,
+            events: [{ ...event, id: crypto.randomUUID(), timestamp: Date.now() }, ...state.collaboration.events].slice(0, 50)
         }
     })),
 }));

@@ -177,7 +177,10 @@ export interface KnowledgeNode {
     connections: string[];
     strength: number;
     color?: string;
-    data?: Record<string, unknown>;
+    // Changed to any to allow complex objects like ArtifactAnalysis without explicit Record indexing errors
+    data?: any; 
+    // Added artifactRef to support graph-to-vault interaction
+    artifactRef?: any;
 }
 
 export interface ScienceHypothesis {
@@ -412,4 +415,24 @@ export interface BookDNA {
     summary: string;
     themes: string[];
     structure: any;
+}
+
+// Collaboration Types
+export interface PeerPresence {
+    id: string;
+    name: string;
+    role: string;
+    activeSector: AppMode;
+    status: 'ACTIVE' | 'IDLE' | 'BUSY';
+    lastSeen: number;
+    color: string;
+}
+
+export interface SwarmEvent {
+    id: string;
+    userId: string;
+    userName: string;
+    action: string;
+    target?: string;
+    timestamp: number;
 }
