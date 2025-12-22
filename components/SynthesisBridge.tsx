@@ -7,7 +7,7 @@ import {
     Microscope, Sparkles, Eye, History, Construction, Navigation2, 
     LineChart, ShieldAlert, Binary, Save, Radar, HardDrive, Dna, 
     BoxSelect, FlaskConical, CircleDot, AlertTriangle, ChevronRight, X,
-    Layers, RefreshCw, Hammer, Coins, Telescope
+    Layers, RefreshCw, Hammer, Coins, Telescope, Info, TrendingUp, BarChart3
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
@@ -65,6 +65,7 @@ const SynthesisBridge: React.FC = () => {
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [currentMetavention, setCurrentMetavention] = useState<any | null>(null);
+    const [showLayerDetails, setShowLayerDetails] = useState(false);
 
     const generateHack = async () => {
         if (!activeLayer) return;
@@ -134,8 +135,9 @@ const SynthesisBridge: React.FC = () => {
                     
                     {/* SECTION 1: CONTEXT PROTOCOLS (Knowledge Layers) */}
                     <div>
-                        <div className="text-[9px] font-mono font-bold text-[#9d4edd] uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                            <Binary size={12}/> Context Protocols
+                        <div className="text-[9px] font-mono font-bold text-[#9d4edd] uppercase tracking-[0.3em] mb-4 flex items-center justify-between">
+                            <span className="flex items-center gap-2"><Binary size={12}/> Context Protocols</span>
+                            <span className="text-[8px] opacity-40">{activeKnowledgeLayerIds.length} ACTIVE</span>
                         </div>
                         <div className="grid grid-cols-1 gap-2">
                             {Object.values(KNOWLEDGE_LAYERS).map((layer) => {
@@ -178,12 +180,21 @@ const SynthesisBridge: React.FC = () => {
 
                     {/* SECTION 2: STRATEGY LAYERS (Deployment Targets) */}
                     <div>
-                        <div className="text-[9px] font-mono font-bold text-gray-500 uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                            <Layers size={12}/> Strategy Layers
+                        <div className="text-[9px] font-mono font-bold text-gray-500 uppercase tracking-[0.3em] mb-4 flex items-center justify-between">
+                            <span className="flex items-center gap-2"><Layers size={12}/> Strategy Layers</span>
+                            <Info size={12} className="text-gray-700 cursor-help hover:text-white transition-colors" />
                         </div>
                         <div className="flex flex-col gap-2">
                             {layers.map(layer => (
-                                <div key={layer.id} onClick={() => setMetaventionsState({ activeLayerId: layer.id })} className={`p-4 rounded-xl border cursor-pointer transition-all duration-500 group relative overflow-hidden ${activeLayerId === layer.id ? 'bg-[#111] border-[#9d4edd] shadow-2xl' : 'bg-[#0a0a0a] border-[#222] opacity-40 hover:opacity-100'}`}>
+                                <div 
+                                    key={layer.id} 
+                                    onClick={() => {
+                                        setMetaventionsState({ activeLayerId: layer.id });
+                                        if (activeLayerId === layer.id) setShowLayerDetails(!showLayerDetails);
+                                        else setShowLayerDetails(true);
+                                    }} 
+                                    className={`p-4 rounded-xl border cursor-pointer transition-all duration-500 group relative overflow-hidden ${activeLayerId === layer.id ? 'bg-[#111] border-[#9d4edd] shadow-2xl' : 'bg-[#0a0a0a] border-[#222] opacity-40 hover:opacity-100'}`}
+                                >
                                     <div className="flex justify-between items-start mb-2">
                                         <span className="text-[10px] font-black text-white uppercase font-mono">{layer.name}</span>
                                         <div className="text-[8px] font-mono px-2 py-0.5 rounded border border-white/10 uppercase">{layer.status}</div>
@@ -208,18 +219,27 @@ const SynthesisBridge: React.FC = () => {
                 <div className="col-span-12 lg:col-span-5 flex flex-col gap-6 min-h-0">
                     <div className="bg-[#0a0a0a] border border-[#222] rounded-3xl p-8 flex flex-col h-full relative overflow-hidden shadow-2xl">
                         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent opacity-30"></div>
+                        
                         <div className="flex items-center justify-between mb-8">
                             <div className="flex items-center gap-3">
                                 <FlaskConical className="text-[#9d4edd] w-5 h-5 animate-pulse" />
                                 <h2 className="text-sm font-bold text-white font-mono uppercase tracking-widest">Protocol Synthesis</h2>
                             </div>
-                            {activeKnowledgeLayerIds.length > 0 && (
-                                <div className="flex gap-1">
-                                    {activeKnowledgeLayerIds.map(id => (
-                                        <div key={id} className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: KNOWLEDGE_LAYERS[id]?.color }} />
-                                    ))}
-                                </div>
-                            )}
+                            <div className="flex gap-2">
+                                <AnimatePresence>
+                                    {showLayerDetails && activeLayer && (
+                                        <motion.button 
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.9 }}
+                                            onClick={() => setShowLayerDetails(false)}
+                                            className="px-3 py-1.5 bg-[#111] border border-[#333] hover:border-[#9d4edd] text-[#9d4edd] text-[9px] font-black uppercase rounded-lg transition-all"
+                                        >
+                                            Hide Analysis
+                                        </motion.button>
+                                    )}
+                                </AnimatePresence>
+                            </div>
                         </div>
                         
                         {!activeLayer ? (
@@ -227,8 +247,79 @@ const SynthesisBridge: React.FC = () => {
                         ) : (
                             <div className="flex-1 flex flex-col">
                                 <AnimatePresence mode="wait">
-                                    {currentMetavention ? (
-                                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col">
+                                    {showLayerDetails ? (
+                                        <motion.div 
+                                            key="layer-analysis"
+                                            initial={{ opacity: 0, y: 20 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -20 }}
+                                            className="flex-1 flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2"
+                                        >
+                                            <div className="p-6 bg-black/40 border border-[#333] rounded-2xl">
+                                                <div className="flex items-center gap-4 mb-6">
+                                                    <div className="w-12 h-12 bg-[#9d4edd]/10 rounded-xl border border-[#9d4edd]/30 flex items-center justify-center text-[#9d4edd]">
+                                                        <Target size={24} />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-lg font-black text-white uppercase font-mono">{activeLayer.name}</h3>
+                                                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest">{activeLayer.role}</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="space-y-4">
+                                                    <div>
+                                                        <span className="text-[9px] font-mono text-[#9d4edd] uppercase tracking-widest block mb-1">Leverage Point</span>
+                                                        <p className="text-xs text-gray-300 font-mono leading-relaxed">{activeLayer.leverage}</p>
+                                                    </div>
+                                                    <div className="h-px bg-white/5" />
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        {activeLayer.metrics.map((m, i) => (
+                                                            <div key={i} className="space-y-1">
+                                                                <span className="text-[8px] text-gray-600 uppercase font-mono block">{m.label}</span>
+                                                                <div className="flex items-end gap-2">
+                                                                    <span className="text-xl font-black text-white font-mono">{m.value}</span>
+                                                                    {m.trend === 'up' && <TrendingUp size={14} className="text-[#42be65] mb-1" />}
+                                                                    {m.trend === 'stable' && <Activity size={14} className="text-[#22d3ee] mb-1" />}
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="p-4 bg-[#111] border border-white/5 rounded-xl">
+                                                    <div className="flex items-center gap-2 mb-2 text-[#f59e0b]">
+                                                        <AlertTriangle size={12} />
+                                                        <span className="text-[8px] font-black uppercase font-mono">Risk Vectors</span>
+                                                    </div>
+                                                    <ul className="text-[9px] text-gray-500 font-mono space-y-1.5">
+                                                        <li>• Centralization decay</li>
+                                                        <li>• Protocol fork collision</li>
+                                                    </ul>
+                                                </div>
+                                                <div className="p-4 bg-[#111] border border-white/5 rounded-xl">
+                                                    <div className="flex items-center gap-2 mb-2 text-[#42be65]">
+                                                        <GitBranch size={12} />
+                                                        <span className="text-[8px] font-black uppercase font-mono">Integration Chain</span>
+                                                    </div>
+                                                    <ul className="text-[9px] text-gray-500 font-mono space-y-1.5">
+                                                        <li>• Mainnet Uplink: OK</li>
+                                                        <li>• P2P Swarm: STABLE</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                            
+                                            <button 
+                                                onClick={generateHack}
+                                                className="w-full py-4 bg-white/5 border border-white/10 hover:border-[#9d4edd] text-[10px] font-black uppercase rounded-2xl transition-all flex items-center justify-center gap-3 group mt-auto"
+                                            >
+                                                <Zap size={14} className="group-hover:text-[#9d4edd] transition-colors" />
+                                                Synthesize Layer Intervention
+                                            </button>
+                                        </motion.div>
+                                    ) : currentMetavention ? (
+                                        <motion.div key="intervention" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col">
                                             <div className="flex-1 space-y-6">
                                                 <div className="bg-black/60 border border-[#222] p-5 rounded-2xl relative overflow-hidden">
                                                     <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
@@ -255,7 +346,7 @@ const SynthesisBridge: React.FC = () => {
                                             </div>
                                         </motion.div>
                                     ) : (
-                                        <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-[#222] rounded-3xl bg-black/20">
+                                        <div key="idle" className="flex-1 flex flex-col items-center justify-center border border-dashed border-[#222] rounded-3xl bg-black/20">
                                             <button onClick={generateHack} disabled={isGenerating} className="px-12 py-6 bg-[#9d4edd] text-black font-black text-xs uppercase tracking-[0.4em] rounded-2xl hover:scale-105 transition-all shadow-[0_0_50px_rgba(157,78,221,0.4)] flex items-center gap-4">
                                                 {isGenerating ? <Loader2 className="animate-spin" /> : <Radar size={18} />}
                                                 {isGenerating ? 'SIMULATING...' : 'RUN METAVENTION'}

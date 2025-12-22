@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppStore } from '../store';
 import { Sun, Moon, Contrast, Terminal, Book, Box, Zap, Palette, ShieldAlert, LayoutGrid } from 'lucide-react';
@@ -14,7 +13,8 @@ const UI_PREVIEW_MAP: Record<AppTheme, { bg: string; accent: string; text: strin
     [AppTheme.AMBER]: { bg: '#0a0500', accent: '#f59e0b', text: '#f59e0b' },
     [AppTheme.SOLARIZED]: { bg: '#fdf6e3', accent: '#2aa198', text: '#657b83' },
     [AppTheme.MIDNIGHT]: { bg: '#020617', accent: '#3b82f6', text: '#e2e8f0' },
-    [AppTheme.NEON_CYBER]: { bg: '#000000', accent: '#d946ef', text: '#22d3ee' }
+    [AppTheme.NEON_CYBER]: { bg: '#000000', accent: '#d946ef', text: '#22d3ee' },
+    [AppTheme.CUSTOM]: { bg: '#030303', accent: '#9d4edd', text: '#e5e5e5' }
 };
 
 const ThemeSwitcher: React.FC = () => {
@@ -30,7 +30,8 @@ const ThemeSwitcher: React.FC = () => {
         { id: AppTheme.SOLARIZED, icon: Book, label: 'Solarized', color: '#2aa198', desc: 'Optimized reading mode' },
         { id: AppTheme.NEON_CYBER, icon: Zap, label: 'Neon Cyber', color: '#d946ef', desc: 'High-entropy visual skin' },
         { id: AppTheme.CONTRAST, icon: Contrast, label: 'High Contrast', color: '#ffffff', desc: 'Pure black/white access' },
-        { id: AppTheme.HIGH_CONTRAST, icon: ShieldAlert, label: 'Max Contrast', color: '#00ff00', desc: 'Accessibility focus' }
+        { id: AppTheme.HIGH_CONTRAST, icon: ShieldAlert, label: 'Max Contrast', color: '#00ff00', desc: 'Accessibility focus' },
+        { id: AppTheme.CUSTOM, icon: Palette, label: 'Custom Skin', color: '#9d4edd', desc: 'User-defined visual parameters' }
     ];
 
     const currentTheme = themes.find(t => t.id === theme) || themes[0];

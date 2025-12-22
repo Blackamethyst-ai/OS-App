@@ -1,7 +1,9 @@
+
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { KnowledgeNode } from '../types';
-import { BrainCircuit, Link as LinkIcon, Info, X, Maximize2, Search, Target } from 'lucide-react';
+import { BrainCircuit, Link as LinkIcon, Info, X, Maximize2, Search, Target, GitBranch, Sparkles } from 'lucide-react';
+import { useAppStore } from '../store';
 
 interface KnowledgeGraphProps {
     nodes: KnowledgeNode[];
@@ -9,6 +11,7 @@ interface KnowledgeGraphProps {
 }
 
 const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) => {
+    const { addResearchTask, addLog } = useAppStore();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
@@ -22,6 +25,8 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
         vx: 0,
         vy: 0
     })), [nodes]);
+
+    const activeNode = useMemo(() => simulationNodes.find(n => n.id === selectedNodeId), [simulationNodes, selectedNodeId]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -152,6 +157,21 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
         setHoveredNodeId(hit?.id || null);
     };
 
+    const handleBranch = () => {
+        if (!activeNode) return;
+        const query = `Strategic investigation: ${activeNode.label}. Analyze its structural impact on the current lattice.`;
+        addResearchTask({
+            id: crypto.randomUUID(),
+            query,
+            status: 'QUEUED',
+            progress: 0,
+            logs: [`Branched from knowledge node: ${activeNode.id}`],
+            timestamp: Date.now()
+        });
+        addLog('SUCCESS', `LATTICE_BRANCH: Spawning new research for node "${activeNode.label}"`);
+        setSelectedNodeId(null);
+    };
+
     return (
         <div className="relative w-full h-full bg-[#050505] rounded-xl overflow-hidden border border-white/5">
             <div className="absolute top-4 left-4 z-10 flex flex-col gap-1 pointer-events-none">
@@ -187,31 +207,43 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
             />
             
             <AnimatePresence>
-                {selectedNodeId && (
+                {selectedNodeId && activeNode && (
                     <motion.div 
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
-                        className="absolute top-4 right-4 w-72 bg-black/80 backdrop-blur-md border border-[#333] p-5 rounded-xl shadow-2xl z-20"
+                        className="absolute top-4 right-4 w-80 bg-black/80 backdrop-blur-md border border-[#333] p-6 rounded-2xl shadow-2xl z-20"
                     >
                         <div className="flex justify-between items-start mb-4">
-                            <h4 className="text-sm font-bold text-white font-mono uppercase truncate">
-                                {simulationNodes.find(n => n.id === selectedNodeId)?.label}
-                            </h4>
+                            <div>
+                                <h4 className="text-sm font-bold text-white font-mono uppercase truncate mb-1">
+                                    {activeNode.label}
+                                </h4>
+                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">{activeNode.id.split('-')[0]}</span>
+                            </div>
                             <button onClick={() => setSelectedNodeId(null)} className="text-gray-500 hover:text-white">
                                 <X size={16} />
                             </button>
                         </div>
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2">
-                                <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-gray-400 font-mono">
-                                    {simulationNodes.find(n => n.id === selectedNodeId)?.type}
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-4">
+                                <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-gray-400 font-mono uppercase">
+                                    {activeNode.type}
                                 </span>
-                                <span className="text-[10px] text-[#42be65] font-mono">STRENGTH: {simulationNodes.find(n => n.id === selectedNodeId)?.strength}%</span>
+                                <span className="text-[10px] text-[#42be65] font-mono font-bold">STRENGTH: {activeNode.strength}%</span>
                             </div>
-                            <p className="text-[10px] text-gray-400 leading-relaxed font-mono italic">
-                                "{simulationNodes.find(n => n.id === selectedNodeId)?.data?.summary || 'Discrete logic node identified in the sovereign lattice.'}"
+                            <p className="text-[11px] text-gray-300 leading-relaxed font-mono italic border-l-2 border-[#9d4edd]/50 pl-4 py-1">
+                                "{activeNode.data?.summary || 'Discrete logic node identified in the sovereign lattice.'}"
                             </p>
+                            
+                            <div className="pt-4 border-t border-white/5 flex flex-col gap-2">
+                                <button onClick={handleBranch} className="w-full py-2.5 bg-[#9d4edd]/20 border border-[#9d4edd]/40 text-[#9d4edd] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#9d4edd] hover:text-black transition-all flex items-center justify-center gap-2">
+                                    <GitBranch size={12} /> Branch Investigation
+                                </button>
+                                <button className="w-full py-2.5 bg-[#111] border border-[#333] text-gray-400 rounded-xl text-[10px] font-black uppercase tracking-widest hover:border-white hover:text-white transition-all flex items-center justify-center gap-2">
+                                    <Sparkles size={12} /> Refine Context
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 )}

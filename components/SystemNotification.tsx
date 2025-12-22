@@ -1,8 +1,6 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
 import { useSystemMind } from '../stores/useSystemMind';
-// Fix: Added ShieldCheck to the imports from lucide-react
 import { X, Terminal, ShieldAlert, CheckCircle2, Info, AlertTriangle, Activity, Trash2, AlertOctagon, Bell, Cpu, Scan, Globe, ShieldCheck } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -225,7 +223,6 @@ const GlobalAlertMesh: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ i
                             <div className="flex-1 overflow-y-auto custom-scrollbar p-2 bg-[#050505]">
                                 {filteredLogs.length === 0 ? (
                                     <div className="h-full flex flex-col items-center justify-center text-gray-700 opacity-50 py-20">
-                                        {/* Fix: Added ShieldCheck to imports above on line 6 */}
                                         <ShieldCheck size={32} className="mb-4" />
                                         <p className="text-[10px] font-mono uppercase tracking-widest">Lattice Synchronized</p>
                                     </div>

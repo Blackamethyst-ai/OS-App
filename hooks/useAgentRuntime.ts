@@ -1,4 +1,3 @@
-
 import { useState, useCallback } from 'react';
 import { GoogleGenAI, FunctionDeclaration, Type } from "@google/genai";
 import { OS_TOOLS, ToolName } from '../services/toolRegistry';
@@ -39,6 +38,43 @@ export const useAgentRuntime = () => {
         });
 
         declarations.push({
+            name: 'focus_element',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    selector: { type: Type.STRING, description: 'CSS selector of the UI element to highlight and focus context.' }
+                },
+                required: ['selector']
+            },
+            description: 'Focus the visual interface on a specific element for contextual reasoning.'
+        });
+
+        declarations.push({
+            name: 'search_intel',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    query: { type: Type.STRING, description: 'The search query for grounded real-time information.' }
+                },
+                required: ['query']
+            },
+            description: 'Use Google Search grounding to retrieve real-time technical or strategic intelligence.'
+        });
+
+        declarations.push({
+            name: 'update_task_priority',
+            parameters: {
+                type: Type.OBJECT,
+                properties: {
+                    taskId: { type: Type.STRING, description: 'Unique ID of the task.' },
+                    priority: { type: Type.STRING, enum: ['LOW', 'MEDIUM', 'HIGH'], description: 'The priority level to assign.' }
+                },
+                required: ['taskId', 'priority']
+            },
+            description: 'Adjust the priority hierarchy of a system task.'
+        });
+
+        declarations.push({
             name: 'architect_generate_process',
             parameters: {
                 type: Type.OBJECT,
@@ -53,17 +89,6 @@ export const useAgentRuntime = () => {
 
         if (activeLayers.includes('BUILDER_PROTOCOL')) {
             declarations.push({
-                name: 'bigquery_query',
-                parameters: {
-                    type: Type.OBJECT,
-                    properties: {
-                        query: { type: Type.STRING, description: 'Structured SQL query for the BigQuery environment.' }
-                    },
-                    required: ['query']
-                },
-                description: 'Execute deep data mining against the system BigQuery warehouse.'
-            });
-            declarations.push({
                 name: 'github_repo_scan',
                 parameters: {
                     type: Type.OBJECT,
@@ -73,20 +98,6 @@ export const useAgentRuntime = () => {
                     required: ['repo']
                 },
                 description: 'Perform a recursive vulnerability and dependency scan on a code repository.'
-            });
-        }
-
-        if (activeLayers.includes('CRYPTO_CONTEXT')) {
-            declarations.push({
-                name: 'ethers_balance_check',
-                parameters: {
-                    type: Type.OBJECT,
-                    properties: {
-                        address: { type: Type.STRING, description: 'Valid EVM wallet address.' }
-                    },
-                    required: ['address']
-                },
-                description: 'Query on-chain protocols for real-time asset balances and usd valuation.'
             });
         }
 
@@ -128,7 +139,6 @@ export const useAgentRuntime = () => {
                     history: [...prev.history, { role: 'model', content: `AUTHORIZATION_REQUIRED: Negotiating tool [${toolName}]` }]
                 }));
 
-                // Visual Pacing
                 await new Promise(r => setTimeout(r, 1200));
 
                 const toolLogic = OS_TOOLS[toolName];

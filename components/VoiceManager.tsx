@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
 import { useSystemMind } from '../stores/useSystemMind';
@@ -12,9 +13,10 @@ import {
     SYSTEM_COMMANDER_INSTRUCTION,
     chatWithGemini,
     fastAIResponse,
-    transcribeAudio
+    transcribeAudio,
+    simulateExperiment
 } from '../services/geminiService';
-import { AppMode, ArtifactNode, AspectRatio, ImageSize, HardwareTier, AppTheme } from '../types';
+import { AppMode, ArtifactNode, AspectRatio, ImageSize, HardwareTier, AppTheme, ScienceHypothesis } from '../types';
 import { Radio, X, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FunctionDeclaration, Type, LiveServerMessage } from '@google/genai';
@@ -29,6 +31,19 @@ const logActivityTool: FunctionDeclaration = {
             message: { type: Type.STRING, description: "A technical description of the event." }
         },
         required: ['category', 'message']
+    }
+};
+
+const simulateExperimentTool: FunctionDeclaration = {
+    name: 'simulate_experiment',
+    description: 'Triggers a high-fidelity scientific simulation for a provided hypothesis.',
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            hypothesis_statement: { type: Type.STRING, description: "The scientific hypothesis statement to simulate." },
+            confidence: { type: Type.NUMBER, description: "Initial confidence value 0-100." }
+        },
+        required: ['hypothesis_statement']
     }
 };
 
@@ -80,6 +95,42 @@ const VoiceManager: React.FC = () => {
     const connectionAttemptRef = useRef(false);
     const partialTranscriptRef = useRef<string>("");
 
+    // Setup global tool handlers immediately to avoid race conditions
+    useEffect(() => {
+        liveSession.onToolCall = async (name, args) => {
+            if (name === 'simulate_experiment') {
+                addLog('SYSTEM', `ARIS_LAB: Scientific simulation initialized for hypothesis.`);
+                const hyp: ScienceHypothesis = {
+                    id: `hyp-${Date.now()}`,
+                    statement: args.hypothesis_statement,
+                    confidence: args.confidence || 50,
+                    status: 'TESTING'
+                };
+                const result = await simulateExperiment(hyp);
+                return { status: "SIMULATION_COMPLETE", outcome: result };
+            }
+            if (name === 'deep_reasoning') {
+                addLog('SYSTEM', `PRO_CORE: Deep Reasoning engaged for "${args.query}"`);
+                const response = await chatWithGemini(args.query);
+                return { status: "REASONING_COMPLETE", output: response };
+            }
+            if (name === 'quick_check') {
+                addLog('SYSTEM', `LITE_CORE: Quick check executed.`);
+                const response = await fastAIResponse(args.command);
+                return { status: "CHECK_COMPLETE", output: response };
+            }
+            if (name === 'high_fidelity_transcription') {
+                addLog('SYSTEM', `FLASH_CORE: Dedicated transcription activated.`);
+                return { status: "TRANSCRIPTION_READY" };
+            }
+            if (name === 'log_activity') {
+                addLog(args.category === 'CORE_LOGIC' ? 'SUCCESS' : 'INFO', `VOICE_CORE: ${args.message}`);
+                return { status: "LOGGED" };
+            }
+            return { error: "Unknown protocol" };
+        };
+    }, [addLog]);
+
     useEffect(() => {
         let mounted = true;
 
@@ -103,6 +154,7 @@ const VoiceManager: React.FC = () => {
                     - Access Pro Logic (gemini-3-pro-preview) via 'deep_reasoning'.
                     - Access Speed-Mode (gemini-2.5-flash-lite) via 'quick_check'.
                     - Access High-Fidelity Transcription (gemini-3-flash-preview) via 'high_fidelity_transcription'.
+                    - Access Scientific Simulation via 'simulate_experiment'.
 
                     DIRECTIVE:
                     You are the Metaventions Voice Core. You are welcoming, precise, and highly integrated.
@@ -120,7 +172,8 @@ const VoiceManager: React.FC = () => {
                             logActivityTool, 
                             deepReasoningTool, 
                             quickCheckTool, 
-                            highFidelityTranscriptionTool
+                            highFidelityTranscriptionTool,
+                            simulateExperimentTool
                         ] }],
                         outputAudioTranscription: {},
                         inputAudioTranscription: {},
@@ -172,29 +225,6 @@ const VoiceManager: React.FC = () => {
                             }
                         }
                     });
-
-                    // Trigger tool handling for the new features
-                    liveSession.onToolCall = async (name, args) => {
-                        if (name === 'deep_reasoning') {
-                            addLog('SYSTEM', `PRO_CORE: Deep Reasoning engaged for "${args.query}"`);
-                            const response = await chatWithGemini(args.query);
-                            return { status: "REASONING_COMPLETE", output: response };
-                        }
-                        if (name === 'quick_check') {
-                            addLog('SYSTEM', `LITE_CORE: Quick check executed.`);
-                            const response = await fastAIResponse(args.command);
-                            return { status: "CHECK_COMPLETE", output: response };
-                        }
-                        if (name === 'high_fidelity_transcription') {
-                            addLog('SYSTEM', `FLASH_CORE: Dedicated transcription activated.`);
-                            return { status: "TRANSCRIPTION_READY" };
-                        }
-                        if (name === 'log_activity') {
-                            addLog(args.category === 'CORE_LOGIC' ? 'SUCCESS' : 'INFO', `VOICE_CORE: ${args.message}`);
-                            return { status: "LOGGED" };
-                        }
-                        return { error: "Unknown protocol" };
-                    };
 
                 } catch (err: any) {
                     const message = err?.message || "Protocol handoff rejected";
