@@ -17,6 +17,10 @@ interface AppState {
     operationalContext: OperationalContext;
     isCommandPaletteOpen: boolean;
     isProfileOpen: boolean;
+    isHelpOpen: boolean;
+    isScrubberOpen: boolean;
+    isDiagnosticsOpen: boolean;
+    isHUDClosed: boolean;
     isAuthenticated: boolean;
     user: UserProfile;
     system: any;
@@ -40,7 +44,7 @@ interface AppState {
         generatedWorkflow: any | null;
         activeTab: string;
         governance: string;
-        workflowType: 'GENERAL' | 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE' | 'AGENTIC_ORCHESTRATION';
+        workflowType: 'GENERAL' | 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE' | 'AGENTIC_ORCHESTRATION' | 'CONVERGENT_SYNTHESIS';
         diagramStatus: 'OK' | 'ERROR';
         diagramError: string | null;
         nodes: any[];
@@ -50,6 +54,7 @@ interface AppState {
         audioUrl: string | null;
         audioTranscript: string | null;
         entropyScore: number;
+        coherenceScore: number;
         error: string | null;
         vaultInsights: { id: string; type: 'DEDUPE' | 'TAG' | 'BRIDGE' | 'ARCHIVE'; message: string; action: string; targetIds: string[] }[];
         activeStacks: Record<string, string[]>;
@@ -161,6 +166,10 @@ interface AppState {
     setOperationalContext: (ctx: OperationalContext) => void;
     toggleCommandPalette: (isOpen?: boolean) => void;
     toggleProfile: (isOpen?: boolean) => void;
+    setHelpOpen: (isOpen: boolean) => void;
+    setScrubberOpen: (isOpen: boolean) => void;
+    setDiagnosticsOpen: (isOpen: boolean) => void;
+    setHUDClosed: (isClosed: boolean) => void;
     setAuthenticated: (val: boolean) => void;
     setUserProfile: (profile: UserProfile) => void;
     setFocusedSelector: (selector: string | null) => void;
@@ -218,6 +227,10 @@ export const useAppStore = create<AppState>((set) => ({
     operationalContext: OperationalContext.STRATEGY_SYNTHESIS,
     isCommandPaletteOpen: false,
     isProfileOpen: false,
+    isHelpOpen: false,
+    isScrubberOpen: false,
+    isDiagnosticsOpen: false,
+    isHUDClosed: false,
     isAuthenticated: true, 
     user: { displayName: 'Architect', role: 'ARCHITECT', clearanceLevel: 5, avatar: null },
     system: { logs: [], isTerminalOpen: false, dockItems: [] },
@@ -256,6 +269,7 @@ export const useAppStore = create<AppState>((set) => ({
         audioUrl: null,
         audioTranscript: null,
         entropyScore: 0,
+        coherenceScore: 85,
         error: null,
         vaultInsights: [],
         activeStacks: {}
@@ -349,6 +363,10 @@ export const useAppStore = create<AppState>((set) => ({
     setOperationalContext: (operationalContext) => set({ operationalContext }),
     toggleCommandPalette: (isOpen) => set((state) => ({ isCommandPaletteOpen: isOpen ?? !state.isCommandPaletteOpen })),
     toggleProfile: (isOpen) => set((state) => ({ isProfileOpen: isOpen ?? !state.isProfileOpen })),
+    setHelpOpen: (isHelpOpen) => set({ isHelpOpen }),
+    setScrubberOpen: (isHelpOpen) => set({ isScrubberOpen: isHelpOpen }),
+    setDiagnosticsOpen: (isHelpOpen) => set({ isDiagnosticsOpen: isHelpOpen }),
+    setHUDClosed: (isHUDClosed) => set({ isHUDClosed }),
     setAuthenticated: (val) => { localStorage.setItem('auth-status', String(val)); set({ isAuthenticated: val }); },
     setUserProfile: (profile: UserProfile) => set({ user: profile }),
     setFocusedSelector: (selector) => set({ focusedSelector: selector }),

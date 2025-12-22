@@ -12,7 +12,8 @@ import {
     DraftingCompass, Server, Layers, Workflow, Loader2, Code,
     ShieldCheck, Sparkles, FileText, Upload, Eye, FileUp, Info,
     Boxes, Package, Scan, Trash2, Globe, Cpu, ChevronRight, Terminal, RotateCcw, Box,
-    FolderTree, Folder, HardDrive, Share2, Target, GitBranch, Layout, Hammer, Network
+    FolderTree, Folder, HardDrive, Share2, Target, GitBranch, Layout, Hammer, Network, Shield,
+    Merge
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useAppStore } from '../store';
@@ -26,7 +27,7 @@ const HolographicNode = ({ id, data: nodeData, selected, dragging }: NodeProps) 
     const data = nodeData as any;
     const Icon = (Icons as any)[data.iconName as string] || Icons.Box;
     const accentColor = data.color || '#9d4edd';
-    const isDone = data.status === 'DONE' || data.status === 'COMPLETED';
+    const isDone = data.status === 'DONE' || data.status === 'COMPLETED' || data.status === 'SYNTHESIZED';
 
     const handleComplete = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -243,7 +244,7 @@ const ProtocolLoom = ({ workflow, results, isSimulating, activeIndex, onExecute,
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.1 }}
                                 className={`p-6 bg-[#0a0a0a] border rounded-2xl transition-all relative group overflow-hidden
-                                    ${isDone ? 'border-emerald-500/30 bg-emerald-500/5' : isActive ? 'border-[#9d4edd] shadow-[0_0_30px_rgba(157,78,221,0.1)]' : 'border-[#1f1f1f]'}
+                                    ${isDone ? 'border-emerald-500/30 bg-emerald-500/5' : isActive ? 'border-[#9d4edd] shadow-[0_0_30px_rgba(157,78,221,0.15)]' : 'border-[#1f1f1f]'}
                                 `}
                             >
                                 <div className="flex justify-between items-start mb-4">
@@ -423,7 +424,14 @@ const ProcessVisualizerContent = () => {
             label: 'PARA Drive Taxonomy', 
             icon: FolderTree, 
             type: 'DRIVE_ORGANIZATION',
-            prompt: 'Forge a comprehensive PARA drive organization structure for a decentralized engineering firm. Include naming conventions and depth rules.' 
+            prompt: 'Forge a comprehensive PARA drive organization structure for a decentralized engineering firm. Include naming conventions (e.g., ISO dates) and depth rules.' 
+        },
+        { 
+            id: 'file_mgmt_flow', 
+            label: 'File Management Protocol', 
+            icon: Workflow, 
+            type: 'DRIVE_ORGANIZATION',
+            prompt: 'Synthesize a formal file management workflow for digital asset production. Include ingestion, review, and archival stages with strict metadata requirements.' 
         },
         { 
             id: 'arch_ha', 
@@ -440,11 +448,18 @@ const ProcessVisualizerContent = () => {
             prompt: 'Synthesize an event-driven system architecture utilizing message queues, serverless workers, and reactive data streams.' 
         },
         { 
-            id: 'swarm_cognitive', 
-            label: 'Cognitive Swarm', 
-            icon: GitBranch, 
-            type: 'AGENTIC_ORCHESTRATION',
-            prompt: 'Design an autonomous agent orchestration protocol for high-velocity strategic decision making using bicameral verification.' 
+            id: 'arch_security', 
+            label: 'Secure Enclave Mesh', 
+            icon: Shield, 
+            type: 'SYSTEM_ARCHITECTURE',
+            prompt: 'Design a hardened network topology for sensitive data processing using isolated security zones, mTLS, and real-time intrusion monitoring.' 
+        },
+        { 
+            id: 'conv_strat', 
+            label: 'Convergent Synthesis', 
+            icon: Merge, 
+            type: 'CONVERGENT_SYNTHESIS',
+            prompt: 'Identify intersections between existing digital strategies and physical resource availability. Bridge disparate lattices into a unified deployment directive.' 
         }
     ];
 
@@ -473,11 +488,22 @@ const ProcessVisualizerContent = () => {
                         ))}
                     </div>
                 </div>
-                <div className="flex items-center gap-3">
-                    <button onClick={handleAutoOrganize} className="p-2 bg-[#111] border border-[#333] hover:border-[#22d3ee] rounded text-gray-500 hover:text-[#22d3ee] transition-all" title="Auto-Organize Lattice"><Boxes size={16}/></button>
-                    <button onClick={() => handleRunGlobalSequence()} className="px-4 py-2 bg-[#9d4edd] text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-[#b06bf7] shadow-lg flex items-center gap-2">
-                        <Zap size={14} className="fill-current"/> Sequence Execution
-                    </button>
+                <div className="flex items-center gap-6">
+                    <div className="flex flex-col items-end">
+                        <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest">Lattice Coherence</span>
+                        <div className="flex items-center gap-2">
+                             <div className="w-20 h-1 bg-[#111] rounded-full overflow-hidden border border-white/5">
+                                 <motion.div animate={{ width: `${processData.coherenceScore}%` }} className="h-full bg-[#10b981] shadow-[0_0_8px_#10b981]" />
+                             </div>
+                             <span className="text-[10px] font-mono font-black text-[#10b981]">{processData.coherenceScore}%</span>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button onClick={handleAutoOrganize} className="p-2 bg-[#111] border border-[#333] hover:border-[#22d3ee] rounded text-gray-500 hover:text-[#22d3ee] transition-all" title="Auto-Organize Lattice"><Boxes size={16}/></button>
+                        <button onClick={() => handleRunGlobalSequence()} className="px-4 py-2 bg-[#9d4edd] text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-[#b06bf7] shadow-lg flex items-center gap-2">
+                            <Zap size={14} className="fill-current"/> Sequence Execution
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -503,7 +529,7 @@ const ProcessVisualizerContent = () => {
                                     <p className="text-xs text-gray-500 font-mono max-w-lg mx-auto">Synthesize high-fidelity structural logic for drives, systems, and agentic swarms.</p>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {TEMPLATES.map(template => (
                                         <button 
                                             key={template.id}
@@ -512,15 +538,15 @@ const ProcessVisualizerContent = () => {
                                                 setState({ workflowType: template.type as any });
                                                 audio.playClick();
                                             }}
-                                            className="p-5 bg-[#0a0a0a] border border-[#222] hover:border-[#9d4edd] rounded-2xl text-left transition-all group flex gap-4"
+                                            className="p-5 bg-[#0a0a0a] border border-[#222] hover:border-[#9d4edd] rounded-2xl text-left transition-all group flex flex-col gap-4"
                                         >
-                                            <div className="p-3 bg-[#111] rounded-xl text-gray-600 group-hover:text-[#9d4edd] transition-colors">
-                                                <template.icon size={24} />
-                                            </div>
-                                            <div>
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-3 bg-[#111] rounded-xl text-gray-600 group-hover:text-[#9d4edd] transition-colors">
+                                                    <template.icon size={24} />
+                                                </div>
                                                 <div className="text-xs font-black text-white uppercase mb-1">{template.label}</div>
-                                                <p className="text-[9px] text-gray-500 font-mono line-clamp-2">{template.prompt}</p>
                                             </div>
+                                            <p className="text-[9px] text-gray-500 font-mono line-clamp-2">{template.prompt}</p>
                                         </button>
                                     ))}
                                 </div>
@@ -533,7 +559,7 @@ const ProcessVisualizerContent = () => {
                                             {[
                                                 { id: 'DRIVE_ORGANIZATION', label: 'Drive Org', icon: FolderTree },
                                                 { id: 'SYSTEM_ARCHITECTURE', label: 'System Arch', icon: Network },
-                                                { id: 'AGENTIC_ORCHESTRATION', label: 'Agent Swarm', icon: GitBranch }
+                                                { id: 'CONVERGENT_SYNTHESIS', label: 'Convergence', icon: Merge }
                                             ].map(type => (
                                                 <button
                                                     key={type.id}
@@ -594,7 +620,7 @@ const ProcessVisualizerContent = () => {
                                 isSimulating={processData.isSimulating} 
                                 activeIndex={processData.activeStepIndex} 
                                 onExecute={handleExecuteStep} 
-                                onReset={handleResetSimulation} 
+                                onRemove={handleResetSimulation} 
                             />
                         </motion.div>
                     )}

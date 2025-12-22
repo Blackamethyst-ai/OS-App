@@ -3,10 +3,12 @@ import React, { useRef, useEffect } from 'react';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Terminal, Cpu, X, Activity } from 'lucide-react';
+import { useAppStore } from '../store';
 import DynamicWidget from './DynamicWidget';
 
-const AgenticHUD: React.FC<{ isClosed: boolean; onClose: () => void }> = ({ isClosed, onClose }) => {
+const AgenticHUD: React.FC = () => {
     const { state } = useAgentRuntime();
+    const { isHUDClosed, setHUDClosed } = useAppStore();
     const logContainerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -18,7 +20,7 @@ const AgenticHUD: React.FC<{ isClosed: boolean; onClose: () => void }> = ({ isCl
         }
     }, [state.history]);
 
-    if (isClosed) return null;
+    if (isHUDClosed) return null;
 
     return (
         <motion.div 
@@ -30,7 +32,7 @@ const AgenticHUD: React.FC<{ isClosed: boolean; onClose: () => void }> = ({ isCl
             <div className="w-[420px] pointer-events-auto">
                 <AnimatePresence>
                     {state.lastResult && (
-                        <DynamicWidget result={state.lastResult} onClose={onClose} />
+                        <DynamicWidget result={state.lastResult} onClose={() => setHUDClosed(true)} />
                     )}
                 </AnimatePresence>
             </div>
@@ -49,7 +51,7 @@ const AgenticHUD: React.FC<{ isClosed: boolean; onClose: () => void }> = ({ isCl
                                     <div className="p-1.5 bg-[#9d4edd]/20 rounded-lg text-[#9d4edd]"><Terminal size={14} /></div>
                                     <span className="text-[10px] font-black text-white font-mono uppercase tracking-widest">Thought Stream</span>
                                 </div>
-                                <button onClick={onClose} className="text-gray-600 hover:text-white"><X size={14} /></button>
+                                <button onClick={() => setHUDClosed(true)} className="text-gray-600 hover:text-white"><X size={14} /></button>
                             </div>
                             
                             <div ref={logContainerRef} className="flex-1 overflow-y-auto custom-scrollbar font-mono text-[10px] space-y-4 pr-2">
