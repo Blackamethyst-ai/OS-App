@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { useAppStore } from './store';
 import { useSystemMind } from './stores/useSystemMind'; 
@@ -29,7 +28,11 @@ import { useAutoSave } from './hooks/useAutoSave';
 import { useDaemonSwarm } from './hooks/useDaemonSwarm'; 
 import { useVoiceControl } from './hooks/useVoiceControl'; 
 import { useResearchAgent } from './hooks/useResearchAgent'; 
-import { LayoutGrid, Image, Settings, Activity, BookOpen, Mic, Cpu, Code, HardDrive, GitMerge, HelpCircle, User, ListTodo, ShieldAlert, CpuIcon, Target, X } from 'lucide-react';
+import { 
+    LayoutGrid, Image, Settings, Activity, BookOpen, Mic, Cpu, 
+    Code, HardDrive, GitMerge, HelpCircle, User, ListTodo, 
+    ShieldAlert, Target, X 
+} from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
 import { audio } from './services/audioService'; 
 import { AnimatePresence, motion } from 'framer-motion';

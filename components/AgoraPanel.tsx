@@ -4,7 +4,7 @@ import { SyntheticPersona, DebateTurn, SimulationReport, FileData, AppMode, Ment
 import { generatePersonas, runDebateTurn, synthesizeReport } from '../services/agoraService';
 import { liveSession, promptSelectKey, generateSpeech } from '../services/geminiService';
 import { useAppStore } from '../store';
-import { Users, Loader2, MessageSquare, AlertCircle, CheckCircle, Mic, Zap, Activity, GitCommit, Save, Layers, ArrowUpRight, Radio, Volume2, VolumeX } from 'lucide-react';
+import { Users, Loader2, MessageSquare, AlertCircle, CheckCircle, Mic, Zap, Activity, GitCommit, GitBranch, Save, Layers, ArrowUpRight, Radio, Volume2, VolumeX, Eye } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer, LineChart, Line, YAxis } from 'recharts';
 import { FunctionDeclaration, Type } from '@google/genai';
 
@@ -279,7 +279,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                     
                     <div className="flex gap-2 pointer-events-auto">
                         <button onClick={() => setIsNarrationMuted(!isNarrationMuted)} className={`flex items-center gap-2 px-3 py-1.5 rounded border transition-all text-[10px] font-mono uppercase tracking-wider ${!isNarrationMuted ? 'bg-[#9d4edd]/10 border-[#9d4edd]/30 text-[#9d4edd]' : 'bg-[#111] border border-[#333] text-gray-500 hover:text-white'}`}>
-                            {isNarrationMuted ? <VolumeX className="w-3 h-3" /> : <Volume2 className="w-3 h-3" />}
+                            {isNarrationMuted ? <VolumeX className="w-3 h-3 text-gray-500" /> : <Volume2 className="w-3 h-3 text-[#f59e0b] animate-pulse" />}
                         </button>
                         <button onClick={toggleVoice} className={`flex items-center gap-2 px-3 py-1.5 rounded border transition-all text-[10px] font-mono uppercase tracking-wider ${isVoiceActive ? 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.2)]' : 'bg-[#111] border border-[#333] text-gray-500 hover:text-white'}`}>
                             {isVoiceActive ? <Radio className="w-3 h-3 animate-pulse" /> : <Mic className="w-3 h-3" />}

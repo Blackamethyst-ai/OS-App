@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { RefreshCw, Image as ImageIcon, FileCode, Maximize, ZoomIn, ZoomOut, Move, Download, AlertCircle, Focus, Sparkles, Loader2 } from 'lucide-react';
+import { RefreshCw, Image as ImageIcon, FileCode, Maximize, ZoomIn, ZoomOut, Move, Download, AlertCircle, Target, Sparkles, Loader2 } from 'lucide-react';
 import mermaid from 'mermaid';
 import { motion, AnimatePresence } from 'framer-motion';
 import { repairMermaidSyntax, promptSelectKey } from '../services/geminiService';
@@ -107,7 +107,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-50 opacity-0 group-hover:opacity-100 transition-all">
          <div className="flex bg-[#0a0a0a]/90 border border-[#333] rounded-full p-2 shadow-2xl backdrop-blur-xl">
              <button onClick={() => setTransform(p => ({...p, scale: Math.max(0.1, p.scale - 0.2)}))} className="p-2 text-gray-400 hover:text-white transition-colors"><ZoomOut className="w-4 h-4"/></button>
-             <button onClick={() => setTransform({x:0, y:0, scale:1})} className="p-2 text-[#9d4edd] font-mono text-[10px] w-12 flex items-center justify-center gap-1"><Focus className="w-3 h-3"/>{Math.round(transform.scale * 100)}%</button>
+             <button onClick={() => setTransform({x:0, y:0, scale:1})} className="p-2 text-[#9d4edd] font-mono text-[10px] w-12 flex items-center justify-center gap-1"><Target className="w-3 h-3"/>{Math.round(transform.scale * 100)}%</button>
              <button onClick={() => setTransform(p => ({...p, scale: Math.min(10, p.scale + 0.2)}))} className="p-2 text-gray-400 hover:text-white transition-colors"><ZoomIn className="w-4 h-4"/></button>
          </div>
       </div>

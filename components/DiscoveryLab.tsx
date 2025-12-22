@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { generateHypotheses, simulateExperiment, generateTheory, promptSelectKey, compressKnowledge, fileToGenerativePart, classifyArtifact, smartOrganizeArtifact } from '../services/geminiService';
@@ -59,7 +58,7 @@ const DiscoveryLab: React.FC = () => {
         if (e.target.files && e.target.files.length > 0) {
             setIsUploading(true);
             const files = Array.from(e.target.files) as File[];
-            addLog('SYSTEM', `DISCOVERY_INGEST: Buffering ${files.length} primary units...`);
+            addLog('SYSTEM', `DISCOVERY_INGEST: Buffering ${files.length} primary sources...`);
             
             for (const file of files) {
                 try {
