@@ -156,19 +156,7 @@ export enum AppTheme {
     AMBER = 'AMBER',
     SOLARIZED = 'SOLARIZED',
     MIDNIGHT = 'MIDNIGHT',
-    NEON_CYBER = 'NEON_CYBER',
-    CUSTOM = 'CUSTOM'
-}
-
-export interface CustomThemeConfig {
-    bgMain: string;
-    textMain: string;
-    borderMain: string;
-    accentPrimary: string;
-    accentSecondary: string;
-    glassOpacity: number;
-    glassBlur: string;
-    fontFamily: string;
+    NEON_CYBER = 'NEON_CYBER'
 }
 
 export interface UserProfile {

@@ -1,12 +1,10 @@
-
 import { GoogleGenAI, Type, Schema, FunctionDeclaration, Blob as GenAIBlob, LiveServerMessage, Modality, GenerateContentResponse, GenerateContentParameters } from "@google/genai";
 import { 
     AppMode, FileData, SuggestedAction, AspectRatio, ImageSize, AnalysisResult, 
     ArtifactAnalysis, BookDNA, FactChunk, ScienceHypothesis, KnowledgeNode, 
     UserIntent, SyntheticPersona, SwarmStatus, AtomicTask, SwarmResult, VoteLedger, SearchResultItem,
     ResonancePoint, Colorway, Message, HardwareTier, ComponentRecommendation, EconomicProtocol,
-    CompressedAxiom, DigitizationResult, AgentDNA, StoredArtifact, NeuralLattice, ProtocolStepResult,
-    CustomThemeConfig
+    CompressedAxiom, DigitizationResult, AgentDNA, StoredArtifact, NeuralLattice, ProtocolStepResult
 } from '../types';
 
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -43,39 +41,6 @@ export const AGENT_DNA_BUILDER: AgentDNA[] = [
 ];
 
 /**
- * FEATURE: Interface Skin Global Vector Generation
- */
-export async function generateCustomTheme(prompt: string): Promise<CustomThemeConfig> {
-    const ai = getAI();
-    const schema: Schema = {
-        type: Type.OBJECT,
-        properties: {
-            bgMain: { type: Type.STRING, description: "HEX color for primary background" },
-            textMain: { type: Type.STRING, description: "HEX color for primary text" },
-            borderMain: { type: Type.STRING, description: "HEX color for borders" },
-            accentPrimary: { type: Type.STRING, description: "HEX color for main UI elements" },
-            accentSecondary: { type: Type.STRING, description: "HEX color for secondary UI elements" },
-            glassOpacity: { type: Type.NUMBER, description: "0 to 1 range for translucent elements" },
-            glassBlur: { type: Type.STRING, description: "CSS blur value, e.g. '10px' or '20px'" },
-            fontFamily: { type: Type.STRING, description: "Standard sans-serif or monospace fallback" }
-        },
-        required: ['bgMain', 'textMain', 'borderMain', 'accentPrimary', 'glassOpacity', 'glassBlur']
-    };
-
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Generate a UI theme configuration for a futuristic OS based on the description: "${prompt}". Return JSON.`,
-        config: { 
-            systemInstruction: "You are a specialized UI/UX design engine. Synthesize CSS variables for a high-tech interface.",
-            responseMimeType: 'application/json',
-            responseSchema: schema
-        }
-    });
-
-    return JSON.parse(response.text || "{}");
-}
-
-/**
  * FEATURE: AI powered chatbot using gemini-3-pro-preview
  */
 export async function chatWithGemini(message: string, history: Message[] = []): Promise<string> {
@@ -94,6 +59,7 @@ export async function chatWithGemini(message: string, history: Message[] = []): 
 export async function fastAIResponse(prompt: string): Promise<string> {
     const ai = getAI();
     const response = await ai.models.generateContent({
+        // Updated to recommended alias 'gemini-flash-lite-latest' from coding guidelines.
         model: 'gemini-flash-lite-latest',
         contents: prompt,
         config: { systemInstruction: "You are a low-latency command parser. Be terse." }
