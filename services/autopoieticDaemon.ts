@@ -1,3 +1,4 @@
+
 import { useAppStore } from '../store';
 import { evolveSystemArchitecture } from './geminiService';
 import { AppMode } from '../types';
@@ -39,13 +40,15 @@ export const autopoieticDaemon = async () => {
             return;
         }
 
-        const evolution = await evolveSystemArchitecture(
+        const evolutionResult = await evolveSystemArchitecture(
             codeStudio.generatedCode, 
             codeStudio.language,
             codeStudio.prompt
         );
 
-        if (evolution && evolution.code) {
+        // FIX: Properly handle Result return from evolveSystemArchitecture
+        if (evolutionResult.ok && evolutionResult.value.code) {
+            const evolution = evolutionResult.value;
             setCodeStudioState({ 
                 activeEvolution: {
                     code: evolution.code,

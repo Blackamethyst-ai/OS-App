@@ -1,5 +1,6 @@
+
 import { create } from 'zustand';
-import { AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, InterventionProtocol, OperationalContext, AgentWallet, TemporalEra, Task, TaskStatus, AspectRatio, ProtocolStepResult, CustomThemeConfig } from './types';
+import { AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, InterventionProtocol, OperationalContext, AgentWallet, TemporalEra, Task, TaskStatus, AspectRatio, ProtocolStepResult, CustomThemeConfig, AutonomousAgent } from './types';
 
 interface KernelStatus {
     uptime: number;
@@ -21,6 +22,11 @@ interface AppState {
     system: any;
     kernel: KernelStatus;
     focusedSelector: string | null;
+    agents: {
+        activeAgents: AutonomousAgent[];
+        dispatchLog: string[];
+        isDispatching: boolean;
+    };
     process: {
         artifacts: any[];
         chatHistory: any[];
@@ -159,6 +165,9 @@ interface AppState {
     setUserProfile: (profile: UserProfile) => void;
     setFocusedSelector: (selector: string | null) => void;
     
+    setAgentState: (state: Partial<AppState['agents']> | ((prev: AppState['agents']) => Partial<AppState['agents']>)) => void;
+    updateAgent: (id: string, updates: Partial<AutonomousAgent>) => void;
+    
     setProcessState: (state: Partial<AppState['process']> | ((prev: AppState['process']) => Partial<AppState['process']>)) => void;
     setCodeStudioState: (state: Partial<AppState['codeStudio']> | ((prev: AppState['codeStudio']) => Partial<AppState['codeStudio']>)) => void;
     setHardwareState: (state: Partial<AppState['hardware']> | ((prev: AppState['hardware']) => Partial<AppState['hardware']>)) => void;
@@ -168,6 +177,7 @@ interface AppState {
     setBicameralState: (state: any) => void;
     setVoiceState: (state: Partial<AppState['voice']> | ((prev: AppState['voice']) => Partial<AppState['voice']>)) => void;
     setSearchState: (state: any) => void;
+    setSearchQuery: (query: string) => void;
     setDiscoveryState: (state: any) => void;
     setMetaventionsState: (state: Partial<AppState['metaventions']> | ((prev: AppState['metaventions']) => Partial<AppState['metaventions']>)) => void;
     
@@ -196,6 +206,9 @@ interface AppState {
     addTask: (task: Omit<Task, 'id' | 'timestamp'>) => void;
     updateTask: (id: string, updates: Partial<Task>) => void;
     deleteTask: (id: string) => void;
+    toggleSubTask: (taskId: string, subTaskId: string) => void;
+    updateProcessNode: (id: string, updates: any) => void;
+    optimizeLayer: (id: string) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -210,6 +223,16 @@ export const useAppStore = create<AppState>((set) => ({
     system: { logs: [], isTerminalOpen: false, dockItems: [] },
     kernel: { uptime: 0, entropy: 12, coreLoad: 24, activeThreads: 8, integrity: 99 },
     focusedSelector: null,
+    agents: {
+        activeAgents: [
+            { id: 'agent-alpha', name: 'Alpha-01', role: 'Logical Synthesis', context: OperationalContext.GENERAL_PURPOSE, status: 'IDLE', memoryBuffer: [], capabilities: ['Reasoning', 'Abstraction'], energyLevel: 100 },
+            { id: 'agent-coder', name: 'Code Weaver', role: 'Logic Construction', context: OperationalContext.CODE_GENERATION, status: 'SLEEPING', memoryBuffer: [], capabilities: ['Typescript', 'Vite', 'React'], energyLevel: 85 },
+            { id: 'agent-analyst', name: 'Data Sentinel', role: 'Anomaly Detection', context: OperationalContext.DATA_ANALYSIS, status: 'IDLE', memoryBuffer: [], capabilities: ['Statistical Inference', 'Pattern Recognition'], energyLevel: 92 },
+            { id: 'agent-overwatch', name: 'System Core', role: 'Health Monitoring', context: OperationalContext.SYSTEM_MONITORING, status: 'ACTIVE', memoryBuffer: ['Kernel initialized.'], capabilities: ['Security', 'Diagnostics'], energyLevel: 100 }
+        ],
+        dispatchLog: ['Agent Swarm Initialized.'],
+        isDispatching: false
+    },
     process: { 
         artifacts: [], 
         chatHistory: [], 
@@ -330,6 +353,14 @@ export const useAppStore = create<AppState>((set) => ({
     setUserProfile: (profile: UserProfile) => set({ user: profile }),
     setFocusedSelector: (selector) => set({ focusedSelector: selector }),
 
+    setAgentState: (update) => set((state) => ({ agents: { ...state.agents, ...(typeof update === 'function' ? update(state.agents) : update) } })),
+    updateAgent: (id, updates) => set((state) => ({ 
+        agents: { 
+            ...state.agents, 
+            activeAgents: state.agents.activeAgents.map(a => a.id === id ? { ...a, ...updates } : a) 
+        } 
+    })),
+
     setProcessState: (update) => set((state) => ({ process: { ...state.process, ...(typeof update === 'function' ? update(state.process) : update) } })),
     setCodeStudioState: (update) => set((state) => ({ codeStudio: { ...state.codeStudio, ...(typeof update === 'function' ? update(state.codeStudio) : update) } })),
     setHardwareState: (update) => set((state) => ({ hardware: { ...state.hardware, ...(typeof update === 'function' ? update(state.hardware) : update) } })),
@@ -339,6 +370,7 @@ export const useAppStore = create<AppState>((set) => ({
     setBicameralState: (update) => set((state) => ({ bicameral: { ...state.bicameral, ...(typeof update === 'function' ? update(state.bicameral) : update) } })),
     setVoiceState: (update) => set((state) => ({ voice: { ...state.voice, ...(typeof update === 'function' ? update(state.voice) : update) } })),
     setSearchState: (update) => set((state) => ({ search: { ...state.search, ...(typeof update === 'function' ? update(state.search) : update) } })),
+    setSearchQuery: (query: string) => set((state) => ({ search: { ...state.search, query } })),
     setDiscoveryState: (update) => set((state) => ({ discovery: { ...state.discovery, ...(typeof update === 'function' ? update(state.discovery) : update) } })),
     setMetaventionsState: (update) => set((state) => ({ metaventions: { ...state.metaventions, ...(typeof update === 'function' ? update(state.metaventions) : update) } })),
     
@@ -370,4 +402,22 @@ export const useAppStore = create<AppState>((set) => ({
     addTask: (task) => set((state) => ({ tasks: [{ ...task, id: crypto.randomUUID(), timestamp: Date.now() }, ...state.tasks] })),
     updateTask: (id, updates) => set((state) => ({ tasks: state.tasks.map(t => t.id === id ? { ...t, ...updates } : t) })),
     deleteTask: (id) => set((state) => ({ tasks: state.tasks.filter(t => t.id !== id) })),
+    toggleSubTask: (taskId, subTaskId) => set((state) => ({
+        tasks: state.tasks.map(t => t.id === taskId ? {
+            ...t,
+            subtasks: t.subtasks.map(s => s.id === subTaskId ? { ...s, completed: !s.completed } : s)
+        } : t)
+    })),
+    updateProcessNode: (id, updates) => set((state) => ({
+        process: {
+            ...state.process,
+            nodes: state.process.nodes.map(n => n.id === id ? { ...n, data: { ...n.data, ...updates } } : n)
+        }
+    })),
+    optimizeLayer: (id) => set((state) => ({
+        metaventions: {
+            ...state.metaventions,
+            layers: state.metaventions.layers.map(l => l.id === id ? { ...l, status: 'OPTIMIZED' } : l)
+        }
+    })),
 }));

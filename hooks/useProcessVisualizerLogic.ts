@@ -41,7 +41,7 @@ export const VISUAL_THEMES: Record<AppTheme, any> = {
 };
 
 export const useProcessVisualizerLogic = () => {
-    const { process: state, setProcessState: setState, setCodeStudioState, setMode, theme: globalTheme, addLog, openHoloProjector } = useAppStore();
+    const { process: state, setProcessState: setState, setCodeStudioState, setMode, theme: globalTheme, addLog, openHoloProjector, updateProcessNode } = useAppStore();
     const activeTab = state.activeTab || 'living_map';
     const [visualTheme, setVisualTheme] = useState<AppTheme>(AppTheme.DARK);
     const [showGrid, setShowGrid] = useState(true);
@@ -140,6 +140,12 @@ export const useProcessVisualizerLogic = () => {
         setNodes((nds) => nds.concat(newNode));
     }, [visualTheme]);
 
+    const updateNodeStatus = (id: string, status: string) => {
+        setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, status } } : n));
+        updateProcessNode(id, { status });
+        if (status === 'COMPLETED' || status === 'DONE') audio.playSuccess();
+    };
+
     const handleSourceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             if (!(await checkApiKey())) return;
@@ -151,9 +157,17 @@ export const useProcessVisualizerLogic = () => {
                     const sourceId = `source-${Date.now()}`;
                     const newSource = { id: sourceId, name: file.name, type: file.type, inlineData: fileData.inlineData, analysis: null };
                     setState((prev: any) => ({ livingMapContext: { ...prev.livingMapContext, sources: [...(prev.livingMapContext?.sources || []), newSource] } }));
-                    classifyArtifact(fileData).then(analysis => {
-                        setState((prev: any) => ({ livingMapContext: { ...prev.livingMapContext, sources: prev.livingMapContext.sources.map((s: any) => s.id === sourceId ? { ...s, analysis } : s) } }));
-                        addLog('SUCCESS', `INGEST_COMPLETE: Indexed "${file.name}" as ${analysis.classification}.`);
+                    classifyArtifact(fileData).then(result => {
+                        if (result.ok) {
+                            const analysis = result.value;
+                            setState((prev: any) => ({ 
+                                livingMapContext: { 
+                                    ...prev.livingMapContext, 
+                                    sources: prev.livingMapContext.sources.map((s: any) => s.id === sourceId ? { ...s, analysis } : s) 
+                                } 
+                            }));
+                            addLog('SUCCESS', `INGEST_COMPLETE: Indexed "${file.name}" as ${analysis.classification}.`);
+                        }
                     });
                 } catch (err) { addLog('ERROR', `INGEST_FAIL: Could not process ${file.name}`); }
             }
@@ -280,6 +294,7 @@ export const useProcessVisualizerLogic = () => {
     return {
         state, activeTab, nodes, edges, onNodesChange, onEdgesChange, onConnect, onPaneContextMenu, onPaneClick, onPaneDoubleClick,
         visualTheme, showGrid, paneContextMenu, setPaneContextMenu, toggleGrid: () => setShowGrid(!showGrid), addNodeAtPosition,
+        updateNodeStatus,
         handleGenerateGraph: async () => {
             if (!(await checkApiKey())) return; 
             setIsGeneratingGraph(true);

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,12 +6,14 @@ import {
     Microscope, Sparkles, Eye, History, Construction, Navigation2, 
     LineChart, ShieldAlert, Binary, Save, Radar, HardDrive, Dna, 
     BoxSelect, FlaskConical, CircleDot, AlertTriangle, ChevronRight, X,
-    Layers, RefreshCw, Hammer, Coins, Telescope, Info, TrendingUp, BarChart3
+    Layers, RefreshCw, Hammer, Coins, Telescope, Info, TrendingUp, BarChart3,
+    CheckCircle2
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
 import { retryGeminiRequest, promptSelectKey } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
+import { audio } from '../services/audioService';
 
 const PhysicalDeltaGraph = ({ active }: { active: boolean }) => {
     const [data, setData] = useState(Array.from({ length: 20 }, (_, i) => ({
@@ -44,7 +45,7 @@ const PhysicalDeltaGraph = ({ active }: { active: boolean }) => {
             <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={data}>
                     <defs>
-                        <linearGradient id="deltaColor" x1="0" y1="0" x2="0" y2="1">
+                        <linearGradient id="deltaColor" x1="0" x2="0" y2="1">
                             <stop offset="5%" stopColor="#9d4edd" stopOpacity={0.3}/>
                             <stop offset="95%" stopColor="#9d4edd" stopOpacity={0}/>
                         </linearGradient>
@@ -58,7 +59,7 @@ const PhysicalDeltaGraph = ({ active }: { active: boolean }) => {
 };
 
 const SynthesisBridge: React.FC = () => {
-    const { metaventions, setMetaventionsState, addLog, archiveIntervention, knowledge, toggleKnowledgeLayer } = useAppStore();
+    const { metaventions, setMetaventionsState, addLog, archiveIntervention, knowledge, toggleKnowledgeLayer, optimizeLayer } = useAppStore();
     const { layers, activeLayerId, strategyLibrary } = metaventions;
     const activeLayer = layers.find(l => l.id === activeLayerId);
     const activeKnowledgeLayerIds = knowledge.activeLayers || [];
@@ -117,6 +118,14 @@ const SynthesisBridge: React.FC = () => {
         addLog('SUCCESS', 'ARCHIVE: Metavention protocol secured in vault.');
     };
 
+    const handleOptimize = () => {
+        if (activeLayer) {
+            optimizeLayer(activeLayer.id);
+            addLog('SUCCESS', `STRATEGY: Layer ${activeLayer.name} optimized for maximum leverage.`);
+            audio.playSuccess();
+        }
+    };
+
     return (
         <div className="h-full w-full bg-[#030303] flex flex-col font-sans overflow-hidden">
             <div className="flex flex-col md:flex-row justify-between items-end mb-10 px-2 shrink-0">
@@ -165,7 +174,7 @@ const SynthesisBridge: React.FC = () => {
                                                     <div className="text-[8px] text-gray-500 font-mono tracking-tighter">{layer.description}</div>
                                                 </div>
                                             </div>
-                                            <div className={`text-[8px] font-bold px-2 py-0.5 rounded border ${isActive ? 'bg-[var(--color)] text-black border-[var(--color)]' : 'border-[#333] text-gray-600'}`}>
+                                            <div className={`text-[8px] font-bold px-2 py-0.5 rounded border transition-colors ${isActive ? 'bg-[var(--color)] text-black border-[var(--color)] shadow-[0_0_10px_var(--color)]' : 'border-[#333] text-gray-600'}`}>
                                                 {isActive ? 'ACTIVE' : 'IDLE'}
                                             </div>
                                         </div>
@@ -196,8 +205,11 @@ const SynthesisBridge: React.FC = () => {
                                     className={`p-4 rounded-xl border cursor-pointer transition-all duration-500 group relative overflow-hidden ${activeLayerId === layer.id ? 'bg-[#111] border-[#9d4edd] shadow-2xl' : 'bg-[#0a0a0a] border-[#222] opacity-40 hover:opacity-100'}`}
                                 >
                                     <div className="flex justify-between items-start mb-2">
-                                        <span className="text-[10px] font-black text-white uppercase font-mono">{layer.name}</span>
-                                        <div className="text-[8px] font-mono px-2 py-0.5 rounded border border-white/10 uppercase">{layer.status}</div>
+                                        <div className="flex items-center gap-2">
+                                            {layer.status === 'OPTIMIZED' && <CheckCircle2 size={12} className="text-[#10b981] shadow-[0_0_8px_#10b981]" />}
+                                            <span className="text-[10px] font-black text-white uppercase font-mono">{layer.name}</span>
+                                        </div>
+                                        <div className={`text-[8px] font-mono px-2 py-0.5 rounded border border-white/10 uppercase ${layer.status === 'OPTIMIZED' ? 'text-[#10b981] border-[#10b981]/30' : ''}`}>{layer.status}</div>
                                     </div>
                                     <p className="text-[10px] text-gray-500 font-mono leading-relaxed line-clamp-1">{layer.leverage}</p>
                                     {activeLayerId === layer.id && (
@@ -278,7 +290,7 @@ const SynthesisBridge: React.FC = () => {
                                                                 <span className="text-[8px] text-gray-600 uppercase font-mono block">{m.label}</span>
                                                                 <div className="flex items-end gap-2">
                                                                     <span className="text-xl font-black text-white font-mono">{m.value}</span>
-                                                                    {m.trend === 'up' && <TrendingUp size={14} className="text-[#42be65] mb-1" />}
+                                                                    {m.trend === 'up' && <TrendingUp size={14} className="text-[#10b981] mb-1" />}
                                                                     {m.trend === 'stable' && <Activity size={14} className="text-[#22d3ee] mb-1" />}
                                                                 </div>
                                                             </div>
@@ -299,7 +311,7 @@ const SynthesisBridge: React.FC = () => {
                                                     </ul>
                                                 </div>
                                                 <div className="p-4 bg-[#111] border border-white/5 rounded-xl">
-                                                    <div className="flex items-center gap-2 mb-2 text-[#42be65]">
+                                                    <div className="flex items-center gap-2 mb-2 text-[#10b981]">
                                                         <GitBranch size={12} />
                                                         <span className="text-[8px] font-black uppercase font-mono">Integration Chain</span>
                                                     </div>
@@ -310,13 +322,22 @@ const SynthesisBridge: React.FC = () => {
                                                 </div>
                                             </div>
                                             
-                                            <button 
-                                                onClick={generateHack}
-                                                className="w-full py-4 bg-white/5 border border-white/10 hover:border-[#9d4edd] text-[10px] font-black uppercase rounded-2xl transition-all flex items-center justify-center gap-3 group mt-auto"
-                                            >
-                                                <Zap size={14} className="group-hover:text-[#9d4edd] transition-colors" />
-                                                Synthesize Layer Intervention
-                                            </button>
+                                            <div className="flex gap-4 mt-auto">
+                                                <button 
+                                                    onClick={generateHack}
+                                                    className="flex-1 py-4 bg-white/5 border border-white/10 hover:border-[#9d4edd] text-[10px] font-black uppercase rounded-2xl transition-all flex items-center justify-center gap-3 group"
+                                                >
+                                                    <Zap size={14} className="group-hover:text-[#9d4edd] transition-colors" />
+                                                    Synthesize Layer Intervention
+                                                </button>
+                                                <button 
+                                                    onClick={handleOptimize}
+                                                    className="px-6 py-4 bg-[#10b981]/10 border border-[#10b981]/30 hover:bg-[#10b981] hover:text-black text-[#10b981] text-[10px] font-black uppercase rounded-2xl transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <CheckCircle2 size={16} />
+                                                    Optimize
+                                                </button>
+                                            </div>
                                         </motion.div>
                                     ) : currentMetavention ? (
                                         <motion.div key="intervention" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col">
@@ -330,7 +351,7 @@ const SynthesisBridge: React.FC = () => {
                                                     <div className="flex gap-4">
                                                         <div className="flex-1 bg-[#111] p-3 rounded-xl border border-white/5">
                                                             <span className="text-[8px] text-gray-600 uppercase block mb-1">Reality Viability</span>
-                                                            <span className="text-lg font-black text-[#42be65] font-mono">{currentMetavention.viability}%</span>
+                                                            <span className="text-lg font-black text-[#10b981] font-mono">{currentMetavention.viability}%</span>
                                                         </div>
                                                         <div className="flex-1 bg-[#111] p-3 rounded-xl border border-white/5">
                                                             <span className="text-[8px] text-gray-600 uppercase block mb-1">Critical Friction</span>

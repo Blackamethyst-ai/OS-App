@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
 import { useSystemMind } from '../stores/useSystemMind';
@@ -5,12 +6,12 @@ import {
     liveSession, 
     HIVE_AGENTS,
     constructHiveContext,
-    HiveAgent,
     chatWithGemini,
     fastAIResponse,
     simulateExperiment
 } from '../services/geminiService';
-import { AppMode, ScienceHypothesis, TaskStatus, TaskPriority } from '../types';
+// HiveAgent is imported from ../types because it is not exported from geminiService.ts
+import { AppMode, ScienceHypothesis, TaskStatus, TaskPriority, HiveAgent } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FunctionDeclaration, Type, LiveServerMessage } from '@google/genai';
 

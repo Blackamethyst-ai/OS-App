@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, Suspense, lazy, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,6 +20,7 @@ const ImageGen = lazy(() => import('./ImageGen'));
 const HardwareEngine = lazy(() => import('./HardwareEngine'));
 const VoiceMode = lazy(() => import('./VoiceMode'));
 const CodeStudio = lazy(() => import('./CodeStudio'));
+const AgentControlCenter = lazy(() => import('./AgentControlCenter'));
 
 const SynapticRouter: React.FC = () => {
     const { 
@@ -50,6 +52,7 @@ const SynapticRouter: React.FC = () => {
                 'hardware': AppMode.HARDWARE_ENGINEER,
                 'code': AppMode.CODE_STUDIO,
                 'voice': AppMode.VOICE_MODE,
+                'agents': AppMode.AGENT_CONTROL,
             };
 
             const targetMode = routeMap[mainPath];
@@ -149,7 +152,7 @@ const SynapticRouter: React.FC = () => {
     };
 
     const isFixedLayout = useMemo(() => 
-        mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN
+        mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL
     , [mode]);
 
     return (
@@ -182,6 +185,7 @@ const SynapticRouter: React.FC = () => {
                         {mode === AppMode.HARDWARE_ENGINEER && <HardwareEngine />}
                         {mode === AppMode.VOICE_MODE && <VoiceMode />}
                         {mode === AppMode.CODE_STUDIO && <CodeStudio />}
+                        {mode === AppMode.AGENT_CONTROL && <AgentControlCenter />}
                         <div className="h-20 w-full shrink-0" />
                     </motion.main>
                 </AnimatePresence>

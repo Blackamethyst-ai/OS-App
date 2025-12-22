@@ -4,7 +4,7 @@ import { useAppStore } from '../store';
 import { 
     fileToGenerativePart, analyzeBookDNA,
     generateHypotheses, simulateExperiment, generateTheory, promptSelectKey, compressKnowledge,
-    synthesizeNodes, classifyArtifact, crystallizeKnowledge
+    synthesizeNodes, crystallizeKnowledge, classifyArtifact
 } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
 import { 
@@ -414,12 +414,17 @@ const BibliomorphicEngine: React.FC = () => {
                   if (!hasKey) { await promptSelectKey(); break; }
                   setBibliomorphicState(prev => ({ synapticReadout: [...prev.synapticReadout, { id: file.name, msg: `Perceiving technical structure of ${file.name}...`, type: 'PERCEPTION' }] }));
                   const fileData = await fileToGenerativePart(file);
-                  const analysis = await classifyArtifact(fileData);
-                  const vaultId = await neuralVault.saveArtifact(file, analysis);
-                  setBibliomorphicState(prev => ({ synapticReadout: [...prev.synapticReadout, { id: file.name + 'idx', msg: `Indexing ${analysis.classification} metadata to vault...`, type: 'INDEX' }] }));
-                  const newSource = { id: vaultId, name: file.name, type: analysis.classification, inlineData: fileData.inlineData, analysis: analysis };
-                  setActiveSources(prev => [...prev, newSource]);
-                  addLog('SUCCESS', `SOURCE_SYNC: "${file.name}" indexed and archived to Vault.`);
+                  
+                  // FIX: Properly handle Result return from classifyArtifact
+                  const analysisResult = await classifyArtifact(fileData);
+                  if (analysisResult.ok) {
+                      const analysis = analysisResult.value;
+                      const vaultId = await neuralVault.saveArtifact(file, analysis);
+                      setBibliomorphicState(prev => ({ synapticReadout: [...prev.synapticReadout, { id: file.name + 'idx', msg: `Indexing ${analysis.classification} metadata to vault...`, type: 'INDEX' }] }));
+                      const newSource = { id: vaultId, name: file.name, type: analysis.classification, inlineData: fileData.inlineData, analysis: analysis };
+                      setActiveSources(prev => [...prev, newSource]);
+                      addLog('SUCCESS', `SOURCE_SYNC: "${file.name}" indexed and archived to Vault.`);
+                  }
               } catch (err: any) {
                   addLog('ERROR', `INGEST_FAIL: ${err.message}`);
               }
