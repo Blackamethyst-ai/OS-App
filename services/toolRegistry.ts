@@ -1,7 +1,6 @@
-
-import { AppMode, ToolResult } from '../types';
+import { AppMode, ToolResult, TaskPriority } from '../types';
 import { useAppStore } from '../store';
-import { generateStructuredWorkflow } from './geminiService';
+import { generateStructuredWorkflow, searchGroundedIntel } from './geminiService';
 
 /**
  * SOVEREIGN TOOL REGISTRY
@@ -16,7 +15,6 @@ export const OS_TOOLS = {
         addLog('SYSTEM', `ARCHITECT: Synthesizing ${args.type} topology...`);
         
         try {
-            // Enhanced prompt instruction for specialized domains
             const domainContext = args.type === 'DRIVE_ORGANIZATION' 
                 ? "Focus on file management workflows, naming conventions, and PARA-based directory structures." 
                 : args.type === 'SYSTEM_ARCHITECTURE'
@@ -51,23 +49,50 @@ export const OS_TOOLS = {
         }
     },
 
-    // 2. DATA TOOLS (BIGQUERY / ANALYTICS)
-    bigquery_query: async (args: { query: string; projectId?: string }): Promise<ToolResult> => {
-        console.log(`[BigQuery] Executing: ${args.query}`);
-        const mockData = [
-            { id: 1, user: 'Aris_01', plan: 'Architect', status: 'Active', sign_up: '2023-11-20' },
-            { id: 2, user: 'Nova_Edge', plan: 'Operator', status: 'Pending', sign_up: '2023-11-21' },
-            { id: 3, user: 'Cypher_PK', plan: 'Architect', status: 'Active', sign_up: '2023-11-22' }
-        ];
+    // 2. GROUNDED INTEL SEARCH
+    search_intel: async (args: { query: string }): Promise<ToolResult> => {
+        const { addLog } = useAppStore.getState();
+        addLog('SYSTEM', `SEARCH_INTEL: Grounding intelligence for "${args.query}"...`);
+        try {
+            const result = await searchGroundedIntel(args.query);
+            return {
+                toolName: 'search_intel',
+                status: 'SUCCESS',
+                data: { intel: result },
+                uiHint: 'MESSAGE'
+            };
+        } catch (error: any) {
+            return { toolName: 'search_intel', status: 'ERROR', data: { error: error.message } };
+        }
+    },
+
+    // 3. UI CONTEXT FOCUS
+    focus_element: async (args: { selector: string }): Promise<ToolResult> => {
+        const { setFocusedSelector, addLog } = useAppStore.getState();
+        setFocusedSelector(args.selector);
+        addLog('SUCCESS', `UI_FOCUS: Targeted element context [${args.selector}]`);
         return {
-            toolName: 'bigquery_query',
+            toolName: 'focus_element',
             status: 'SUCCESS',
-            data: mockData,
-            uiHint: 'TABLE'
+            data: { message: `Context focus shifted to ${args.selector}` },
+            uiHint: 'NAV'
         };
     },
 
-    // 3. SYSTEM NAVIGATION
+    // 4. TASK MANAGEMENT
+    update_task_priority: async (args: { taskId: string, priority: TaskPriority }): Promise<ToolResult> => {
+        const { updateTask, addLog } = useAppStore.getState();
+        updateTask(args.taskId, { priority: args.priority });
+        addLog('SUCCESS', `TASK_UPDATE: Prioritized task ${args.taskId} to ${args.priority}`);
+        return {
+            toolName: 'update_task_priority',
+            status: 'SUCCESS',
+            data: { message: `Priority adjusted.` },
+            uiHint: 'MESSAGE'
+        };
+    },
+
+    // 5. SYSTEM NAVIGATION
     system_navigate: async (args: { target: string }): Promise<ToolResult> => {
         const { setMode } = useAppStore.getState();
         const targetMode = AppMode[args.target.toUpperCase() as keyof typeof AppMode];
@@ -88,7 +113,6 @@ export const OS_TOOLS = {
         };
     },
 
-    // 4. CRYPTO CONTEXT TOOLS
     ethers_balance_check: async (args: { address: string }): Promise<ToolResult> => {
         return {
             toolName: 'ethers_balance_check',
@@ -98,7 +122,6 @@ export const OS_TOOLS = {
         };
     },
 
-    // 5. CODE & REPO SCANNING
     github_repo_scan: async (args: { repo: string }): Promise<ToolResult> => {
         return {
             toolName: 'github_repo_scan',

@@ -12,7 +12,7 @@ import {
     Database, Archive, BoxSelect, X, Users, FlaskConical,
     Search, ArrowRight, XCircle, Sparkles, FileText, RotateCcw,
     Microscope, BrainCircuit, Link as LinkIcon, Radio, Settings, Play, CheckCircle2,
-    Layers, GitBranch, Split, FileUp, Eye, ShieldCheck, Info, Sparkle, Plus, Scan, Zap, Brain, Sliders
+    Layers, GitBranch, Split, FileUp, Eye, ShieldCheck, Info, Sparkle, Plus, Scan, Zap, Brain, Sliders, Target, Network
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { BookDNA, KnowledgeNode, ScienceHypothesis, StoredArtifact, FileData } from '../types';
@@ -24,7 +24,40 @@ import { useSystemMind } from '../stores/useSystemMind';
 
 const MotionDiv = motion.div as any;
 
-// --- SUB-COMPONENTS ---
+const TaskVisualization: React.FC<{ task: any, onNodeSelect: (node: KnowledgeNode) => void }> = ({ task, onNodeSelect }) => {
+    const nodes: KnowledgeNode[] = useMemo(() => {
+        const result: KnowledgeNode[] = [
+            { id: task.id, label: task.query, type: 'CONCEPT', connections: [], strength: 100, color: '#22d3ee' }
+        ];
+        
+        task.findings?.forEach((f: any) => {
+            result.push({ id: f.id, label: f.fact, type: 'FACT', connections: [task.id], strength: f.confidence * 100 });
+        });
+
+        task.hypotheses?.forEach((h: any) => {
+            result.push({ id: h.id, label: h.statement, type: 'HYPOTHESIS', connections: [task.id], strength: h.confidence });
+        });
+
+        return result;
+    }, [task]);
+
+    return (
+        <div className="w-full h-[500px] bg-black/40 border border-white/5 rounded-2xl overflow-hidden relative shadow-2xl">
+            <div className="absolute top-4 left-4 z-10">
+                <div className="flex items-center gap-2 text-[#22d3ee] mb-1">
+                    <Network size={14} className="animate-pulse" />
+                    <span className="text-[10px] font-black font-mono uppercase tracking-[0.2em]">Mission Topology</span>
+                </div>
+                <div className="text-[9px] font-mono text-gray-500 uppercase">{task.id.split('-')[0]} // Grounded Lattice</div>
+            </div>
+            <SuperLattice 
+                nodes={nodes} 
+                mode="FOCUS" 
+                onNodeSelect={onNodeSelect}
+            />
+        </div>
+    );
+};
 
 const SynapticHandshake = ({ readouts }: { readouts: any[] }) => (
     <div className="bg-black/80 border border-[#222] rounded-xl p-4 font-mono text-[9px] space-y-1 max-h-40 overflow-y-auto custom-scrollbar shadow-2xl">
@@ -228,7 +261,9 @@ const CrucibleFeed = ({ tasks, onAdjustTemperament }: { tasks: any[], onAdjustTe
     );
 };
 
-const CrystallizationView = ({ theory, hypotheses, onSynthesize, onGenerateHypotheses, isSynthesizing, isGeneratingHyps }: any) => {
+const CrystallizationView = ({ theory, hypotheses, onSynthesize, onGenerateHypotheses, isSynthesizing, isGeneratingHyps, completedTasks }: any) => {
+    const [selectedTask, setSelectedTask] = useState<any>(null);
+
     return (
         <div className="h-full overflow-y-auto custom-scrollbar p-8 bg-[#030303]/95 backdrop-blur-xl">
             {theory ? (
@@ -251,79 +286,96 @@ const CrystallizationView = ({ theory, hypotheses, onSynthesize, onGenerateHypot
                     </div>
                 </motion.div>
             ) : (
-                <div className="h-full flex flex-col items-center justify-center text-center space-y-6">
-                    <div className="relative">
-                        <div className="absolute inset-0 bg-[#9d4edd] blur-[50px] opacity-20 rounded-full animate-pulse"></div>
-                        <BrainCircuit className="w-16 h-16 text-gray-400 relative z-10" />
+                <div className="max-w-6xl mx-auto flex flex-col gap-12">
+                    <div className="flex flex-col items-center justify-center text-center space-y-6">
+                        <div className="relative">
+                            <div className="absolute inset-0 bg-[#9d4edd] blur-[50px] opacity-20 rounded-full animate-pulse"></div>
+                            <BrainCircuit className="w-16 h-16 text-gray-400 relative z-10" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg text-gray-200 font-mono font-bold uppercase tracking-widest">
+                                {hypotheses.length > 0 ? "Synthesis Ready" : "Protocol Standby"}
+                            </h3>
+                            <p className="text-xs text-gray-500 mt-2 max-w-sm mx-auto font-mono uppercase tracking-widest">
+                                {hypotheses.length} hypotheses verified. 
+                                {hypotheses.length === 0 ? " Initialize hypothesis generation to proceed." : " Engage crystallization sequence for final theory."}
+                            </p>
+                        </div>
+                        <button 
+                            onClick={hypotheses.length === 0 ? onGenerateHypotheses : onSynthesize}
+                            disabled={isSynthesizing || isGeneratingHyps}
+                            className="px-8 py-3 bg-[#9d4edd] text-black font-bold font-mono text-xs uppercase tracking-[0.2em] rounded-lg hover:bg-[#b06bf7] disabled:opacity-50 transition-all shadow-[0_0_20px_rgba(157,78,221,0.3)] flex items-center gap-2"
+                        >
+                            {isSynthesizing || isGeneratingHyps ? <Loader2 className="w-4 h-4 animate-spin"/> : hypotheses.length === 0 ? <Sparkle className="w-4 h-4"/> : <Layers className="w-4 h-4"/>}
+                            {isSynthesizing ? 'Crystallizing...' : isGeneratingHyps ? 'Synthesizing Hypotheses...' : hypotheses.length === 0 ? 'Generate Hypotheses' : 'Begin Synthesis'}
+                        </button>
                     </div>
-                    <div>
-                        <h3 className="text-lg text-gray-200 font-mono font-bold uppercase tracking-widest">
-                            {hypotheses.length > 0 ? "Synthesis Ready" : "Protocol Standby"}
-                        </h3>
-                        <p className="text-xs text-gray-500 mt-2 max-w-sm mx-auto font-mono uppercase tracking-widest">
-                            {hypotheses.length} hypotheses verified. 
-                            {hypotheses.length === 0 ? " Initialize hypothesis generation to proceed." : " Engage crystallization sequence for final theory."}
-                        </p>
-                    </div>
-                    <button 
-                        onClick={hypotheses.length === 0 ? onGenerateHypotheses : onSynthesize}
-                        disabled={isSynthesizing || isGeneratingHyps}
-                        className="px-8 py-3 bg-[#9d4edd] text-black font-bold font-mono text-xs uppercase tracking-[0.2em] rounded-lg hover:bg-[#b06bf7] disabled:opacity-50 transition-all shadow-[0_0_20px_rgba(157,78,221,0.3)] flex items-center gap-2"
-                    >
-                        {isSynthesizing || isGeneratingHyps ? <Loader2 className="w-4 h-4 animate-spin"/> : hypotheses.length === 0 ? <Sparkle className="w-4 h-4"/> : <Layers className="w-4 h-4"/>}
-                        {isSynthesizing ? 'Crystallizing...' : isGeneratingHyps ? 'Synthesizing Hypotheses...' : hypotheses.length === 0 ? 'Generate Hypotheses' : 'Begin Synthesis'}
-                    </button>
+
+                    {completedTasks.length > 0 && (
+                        <div className="space-y-6">
+                            <div className="flex items-center gap-3 border-b border-[#333] pb-4">
+                                <Activity className="w-5 h-5 text-[#22d3ee]" />
+                                <h3 className="text-sm font-black font-mono text-white uppercase tracking-widest">Interactive Investigation Matrix</h3>
+                            </div>
+                            <div className="grid grid-cols-12 gap-8">
+                                <div className="col-span-4 space-y-2">
+                                    <div className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-3">Completed Vectors</div>
+                                    {completedTasks.map((t: any) => (
+                                        <button 
+                                            key={t.id} 
+                                            onClick={() => setSelectedTask(t)}
+                                            className={`w-full text-left p-3 rounded-xl border transition-all flex flex-col gap-1 ${selectedTask?.id === t.id ? 'bg-[#22d3ee]/10 border-[#22d3ee] shadow-[0_0_15px_rgba(34,211,238,0.15)]' : 'bg-[#111] border border-[#222] hover:border-[#333]'}`}
+                                        >
+                                            <span className="text-[10px] font-black text-white uppercase font-mono truncate">{t.query}</span>
+                                            <span className="text-[8px] text-gray-600 font-mono uppercase">{t.findings?.length || 0} Facts secured</span>
+                                        </button>
+                                    ))}
+                                </div>
+                                <div className="col-span-8">
+                                    {selectedTask ? (
+                                        <TaskVisualization task={selectedTask} onNodeSelect={(n) => console.log(n)} />
+                                    ) : (
+                                        <div className="h-[500px] bg-black/20 border border-dashed border-[#333] rounded-2xl flex flex-col items-center justify-center opacity-30">
+                                            <Target size={40} className="mb-4" />
+                                            <p className="text-xs font-mono uppercase">Select vector to project lattice</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>
     );
 };
 
-// --- MAIN COMPONENT ---
-
 const BibliomorphicEngine: React.FC = () => {
   const { bibliomorphic, setBibliomorphicState, discovery, setDiscoveryState, research, addResearchTask, addLog, openHoloProjector } = useAppStore();
   const { setSector } = useSystemMind();
   
-  // Tab State
   const activeTab = bibliomorphic.activeTab || 'discovery'; 
   const setActiveTab = (tab: string) => setBibliomorphicState({ activeTab: tab });
 
-  // Living Lab State
   const [labPhase, setLabPhase] = useState<'CALIBRATION' | 'CRUCIBLE' | 'CRYSTALLIZATION'>('CALIBRATION');
   const [showTemperament, setShowTemperament] = useState(false);
   const [agentTemperament, setAgentTemperament] = useState({ skepticism: 50, visionary: 80 });
   
-  // Graph State
   const [selectedNodes, setSelectedNodes] = useState<string[]>([]);
   const [bridgeLoading, setBridgeLoading] = useState(false);
   const [bridgeNodes, setBridgeNodes] = useState<KnowledgeNode[]>([]);
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, node: KnowledgeNode } | null>(null);
 
-  // Discovery Source Integration
   const [activeSources, setActiveSources] = useState<any[]>([]);
   const [isUploadingSource, setIsUploadingSource] = useState(false);
   const [isVaultModalOpen, setIsVaultModalOpen] = useState(false);
   const [vaultArtifacts, setVaultArtifacts] = useState<StoredArtifact[]>([]);
 
-  // --- DATA COMPUTATION ---
   const activeKnowledge = useMemo(() => {
       const nodes: KnowledgeNode[] = [];
-      
-      // Source Nodes
       activeSources.forEach(s => {
-          nodes.push({ 
-            id: s.id, 
-            label: s.name, 
-            type: 'BRIDGE', 
-            connections: [], 
-            strength: 100, 
-            color: '#22d3ee',
-            data: s
-          });
+          nodes.push({ id: s.id, label: s.name, type: 'BRIDGE', connections: [], strength: 100, color: '#22d3ee', data: s });
       });
-
-      // Research Nodes
       research.tasks.forEach(t => {
           nodes.push({ id: t.id, label: t.query, type: 'CONCEPT', connections: [], strength: 10 });
           if (t.findings) {
@@ -332,16 +384,12 @@ const BibliomorphicEngine: React.FC = () => {
               });
           }
       });
-
-      // Hypotheses
       discovery.hypotheses.forEach(h => {
           nodes.push({ id: h.id, label: h.statement, type: 'HYPOTHESIS', connections: [], strength: h.confidence });
       });
-
       return [...nodes, ...bridgeNodes];
   }, [research.tasks, discovery.hypotheses, bridgeNodes, activeSources]);
 
-  // Sync Sector
   useEffect(() => {
       let locationId = 'NAV_BIBLIO_DISCOVERY';
       switch(activeTab) {
@@ -354,39 +402,22 @@ const BibliomorphicEngine: React.FC = () => {
       setSector(locationId);
   }, [activeTab, setSector]);
 
-  // --- HANDLERS ---
-
   const handleSourceUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files.length > 0) {
           setIsUploadingSource(true);
           const files = Array.from(e.target.files) as File[];
           addLog('SYSTEM', `DISCOVERY_INGEST: Buffering ${files.length} primary sources...`);
-          
           setBibliomorphicState({ synapticReadout: [{ id: 'init', msg: `Uplink Handshake initialized for ${files.length} units.`, type: 'HANDSHAKE' }] });
-
           for (const file of files) {
               try {
                   const hasKey = await window.aistudio?.hasSelectedApiKey();
                   if (!hasKey) { await promptSelectKey(); break; }
-
                   setBibliomorphicState(prev => ({ synapticReadout: [...prev.synapticReadout, { id: file.name, msg: `Perceiving technical structure of ${file.name}...`, type: 'PERCEPTION' }] }));
-
                   const fileData = await fileToGenerativePart(file);
                   const analysis = await classifyArtifact(fileData);
-                  
-                  // Auto-archive to Memory Core (Persistent Store)
                   const vaultId = await neuralVault.saveArtifact(file, analysis);
-                  
                   setBibliomorphicState(prev => ({ synapticReadout: [...prev.synapticReadout, { id: file.name + 'idx', msg: `Indexing ${analysis.classification} metadata to vault...`, type: 'INDEX' }] }));
-
-                  const newSource = {
-                      id: vaultId,
-                      name: file.name,
-                      type: analysis.classification,
-                      inlineData: fileData.inlineData,
-                      analysis: analysis
-                  };
-
+                  const newSource = { id: vaultId, name: file.name, type: analysis.classification, inlineData: fileData.inlineData, analysis: analysis };
                   setActiveSources(prev => [...prev, newSource]);
                   addLog('SUCCESS', `SOURCE_SYNC: "${file.name}" indexed and archived to Vault.`);
               } catch (err: any) {
@@ -409,18 +440,9 @@ const BibliomorphicEngine: React.FC = () => {
 
   const addFromVault = async (art: StoredArtifact) => {
       if (activeSources.find(s => s.id === art.id)) return;
-      
       const buffer = await art.data.arrayBuffer();
       const base64 = btoa(new Uint8Array(buffer).reduce((data, byte) => data + String.fromCharCode(byte), ''));
-      
-      const source = {
-          id: art.id,
-          name: art.name,
-          type: art.analysis?.classification || 'ARTIFACT',
-          inlineData: { data: base64, mimeType: art.type },
-          analysis: art.analysis
-      };
-
+      const source = { id: art.id, name: art.name, type: art.analysis?.classification || 'ARTIFACT', inlineData: { data: base64, mimeType: art.type }, analysis: art.analysis };
       setActiveSources(prev => [...prev, source]);
       setIsVaultModalOpen(false);
       addLog('INFO', `VAULT_LINK: Injected "${art.name}" from Memory Core into lattice.`);
@@ -429,22 +451,11 @@ const BibliomorphicEngine: React.FC = () => {
   const handleResearchDispatch = async (input: unknown) => {
       const sanitizedInput = typeof input === 'string' ? input.trim() : '';
       if (!sanitizedInput) return;
-      
       const hasKey = await window.aistudio?.hasSelectedApiKey();
       if (!hasKey) { await promptSelectKey(); return; }
-
-      const agents = ['Charon', 'Puck', 'Fenrir'];
+      const agents = ['Charon', 'Puck', 'Fenrir', 'Aris'];
       const agent = agents[Math.floor(Math.random() * agents.length)];
-
-      addResearchTask({
-          id: crypto.randomUUID(),
-          query: sanitizedInput,
-          status: 'QUEUED',
-          progress: 0,
-          logs: ['Initiating Science Protocol...'],
-          timestamp: Date.now(),
-          agentAssigned: agent
-      });
+      addResearchTask({ id: crypto.randomUUID(), query: sanitizedInput, status: 'QUEUED', progress: 0, logs: ['Initiating Science Protocol...'], timestamp: Date.now(), agentAssigned: agent });
       addLog('INFO', `SCIENCE_LAB: Research Agent ${agent} dispatched for vector "${sanitizedInput}"`);
       setLabPhase('CRUCIBLE'); 
   };
@@ -452,15 +463,12 @@ const BibliomorphicEngine: React.FC = () => {
   const handleGenerateHypotheses = async () => {
         const facts = activeKnowledge.filter(n => n.type === 'FACT').map(n => n.label);
         const sourceContext = activeSources.map(s => `[SOURCE: ${s.name}] ${s.analysis?.summary || ''}`).join('\n');
-        
         if (facts.length < 2 && activeSources.length === 0) {
             addLog('WARN', 'SCIENCE_LAB: Insufficient context. Inject sources or run research probes.');
             return;
         }
-        
         setDiscoveryState({ status: 'HYPOTHESIZING', isLoading: true });
         try {
-            // Include active sources as grounded context for Gemini
             const allContext = `PRIMARY_SOURCES:\n${sourceContext}\n\nRESEARCH_FINDINGS:\n${facts.join('; ')}`;
             const hyps = await generateHypotheses([allContext]);
             setDiscoveryState({ hypotheses: hyps, status: 'IDLE', isLoading: false });
@@ -474,7 +482,6 @@ const BibliomorphicEngine: React.FC = () => {
   const runSynthesis = async () => {
       setDiscoveryState({ status: 'SYNTHESIZING', isLoading: true });
       try {
-          // Pass the combined lattice and active source metadata for full crystallization
           const sourceSummaries = activeSources.map(s => s.analysis?.summary || "").join('\n');
           const theory = await crystallizeKnowledge([...activeKnowledge, { id: 'context', label: sourceSummaries, type: 'FACT', connections: [], strength: 100 } as any]);
           setDiscoveryState({ theory, status: 'IDLE', isLoading: false });
@@ -490,18 +497,12 @@ const BibliomorphicEngine: React.FC = () => {
           id: source.id,
           title: source.name,
           type: source.inlineData.mimeType.startsWith('image/') ? 'IMAGE' : 'TEXT',
-          content: source.inlineData.mimeType.startsWith('image/') 
-            ? `data:${source.inlineData.mimeType};base64,${source.inlineData.data}`
-            : (source.analysis?.summary || 'No technical indexing available.')
+          content: source.inlineData.mimeType.startsWith('image/') ? `data:${source.inlineData.mimeType};base64,${source.inlineData.data}` : (source.analysis?.summary || 'No technical indexing available.')
       });
   };
 
-  // --- RENDER ---
-
   return (
     <div className="h-full w-full bg-[#030303] text-white flex font-sans overflow-hidden border border-[#1f1f1f] rounded shadow-2xl relative" onClick={() => setContextMenu(null)}>
-      
-      {/* 1. CONTROL PLANE (Left) */}
       <div className="w-[320px] flex flex-col border-r border-[#1f1f1f] bg-[#0a0a0a] relative z-20 min-w-[320px]">
           <div className="h-14 flex items-center px-4 border-b border-[#1f1f1f]">
               <div className="flex items-center gap-2">
@@ -509,7 +510,6 @@ const BibliomorphicEngine: React.FC = () => {
                   <span className="font-mono font-bold text-white tracking-wider text-xs">BIBLIOMORPHIC</span>
               </div>
           </div>
-
           <div className="flex gap-1 p-2 border-b border-[#1f1f1f] bg-[#050505] overflow-x-auto">
               {[
                   { id: 'discovery', icon: FlaskConical, label: 'LIVING LAB' },
@@ -518,20 +518,12 @@ const BibliomorphicEngine: React.FC = () => {
                   { id: 'bicameral', icon: Split, label: 'SWARM' },
                   { id: 'library', icon: Archive, label: 'VAULT' },
               ].map(tab => (
-                  <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id as any)}
-                      className={`flex-1 flex flex-col items-center justify-center py-3 px-2 rounded-lg transition-all min-w-[60px]
-                          ${activeTab === tab.id ? 'bg-[#1f1f1f] text-white border border-white/10' : 'text-gray-600 hover:bg-[#111] hover:text-gray-400'}
-                      `}
-                  >
+                  <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-1 flex flex-col items-center justify-center py-3 px-2 rounded-lg transition-all min-w-[60px] ${activeTab === tab.id ? 'bg-[#1f1f1f] text-white border border-white/10' : 'text-gray-600 hover:bg-[#111] hover:text-gray-400'}`}>
                       <tab.icon className="w-4 h-4 mb-1" />
                       <span className="text-[7px] font-black tracking-[0.2em]">{tab.label}</span>
                   </button>
               ))}
           </div>
-
-          {/* Context Aware Sidebar */}
           <div className="flex-1 overflow-hidden relative flex flex-col">
               {activeTab === 'discovery' && (
                   <div className="h-full flex flex-col">
@@ -542,38 +534,23 @@ const BibliomorphicEngine: React.FC = () => {
                               { id: 'CRUCIBLE', label: '2. CRUCIBLE', icon: Activity },
                               { id: 'CRYSTALLIZATION', label: '3. CRYSTALLIZATION', icon: Sparkles },
                           ].map(sub => (
-                              <button
-                                  key={sub.id}
-                                  onClick={() => setLabPhase(sub.id as any)}
-                                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded text-[10px] font-mono transition-all border
-                                      ${labPhase === sub.id 
-                                          ? 'bg-[#22d3ee]/10 text-[#22d3ee] border-[#22d3ee]/30 shadow-[inset_0_0_10px_rgba(34,211,238,0.05)]' 
-                                          : 'text-gray-500 hover:bg-[#111] border-transparent'}
-                                  `}
-                              >
+                              <button key={sub.id} onClick={() => setLabPhase(sub.id as any)} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded text-[10px] font-mono transition-all border ${labPhase === sub.id ? 'bg-[#22d3ee]/10 text-[#22d3ee] border-[#22d3ee]/30 shadow-[inset_0_0_10px_rgba(34,211,238,0.05)]' : 'text-gray-500 hover:bg-[#111] border-transparent'}`}>
                                   <sub.icon className={`w-3 h-3 ${labPhase === sub.id ? 'animate-pulse' : ''}`} />
                                   {sub.label}
                               </button>
                           ))}
                       </div>
-                      
                       <div className="mt-auto p-4 border-t border-[#1f1f1f] bg-[#050505]">
                           <div className="flex justify-between items-center text-[10px] text-gray-500 font-mono mb-2 uppercase tracking-widest">
                               <span>ACTIVE HYPOTHESES</span>
                               <span className="text-white font-black">{discovery.hypotheses.length}</span>
                           </div>
                           {discovery.hypotheses.length > 0 && (
-                              <button 
-                                onClick={() => setLabPhase('CRYSTALLIZATION')}
-                                className="w-full py-2.5 bg-[#9d4edd] text-black text-[10px] font-black uppercase rounded hover:bg-[#b06bf7] transition-all shadow-[0_0_15px_rgba(157,78,221,0.3)]"
-                              >
-                                  View Synthesis
-                              </button>
+                              <button onClick={() => setLabPhase('CRYSTALLIZATION')} className="w-full py-2.5 bg-[#9d4edd] text-black text-[10px] font-black uppercase rounded hover:bg-[#b06bf7] transition-all shadow-[0_0_15px_rgba(157,78,221,0.3)]">View Synthesis</button>
                           )}
                       </div>
                   </div>
               )}
-
               {activeTab === 'chat' && (
                   <div className="flex-1 flex flex-col p-4 gap-4 bg-[#050505]">
                       <div className="text-[10px] font-mono text-gray-600 uppercase tracking-widest px-1">Artifact Ingestion</div>
@@ -582,7 +559,6 @@ const BibliomorphicEngine: React.FC = () => {
                           <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Buffer Primary Data</span>
                           <input type="file" onChange={handleSourceUpload} className="hidden" />
                       </label>
-                      
                       <AnimatePresence>
                           {bibliomorphic.synapticReadout.length > 0 && (
                               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mt-4">
@@ -590,339 +566,45 @@ const BibliomorphicEngine: React.FC = () => {
                               </motion.div>
                           )}
                       </AnimatePresence>
-
-                      <div className="bg-[#111] p-4 rounded-xl border border-white/5 space-y-2 mt-auto">
-                          <p className="text-[9px] text-gray-500 font-mono leading-relaxed italic">"Direct binary injection bypasses semantic translation layers. High fidelity recommended."</p>
-                      </div>
                   </div>
               )}
           </div>
       </div>
 
-      {/* 2. VISUALIZATION PLANE (Right) */}
       <div className="flex-1 relative flex flex-col bg-black overflow-hidden">
-          
           {activeTab === 'discovery' && (
               <>
-                  {/* The SuperLattice Background */}
                   <div className={`absolute inset-0 z-0 transition-opacity duration-1000 ${labPhase === 'CALIBRATION' ? 'opacity-20' : 'opacity-100'}`}>
-                      <SuperLattice 
-                          nodes={activeKnowledge} 
-                          mode={labPhase === 'CRUCIBLE' ? 'ACTIVE' : labPhase === 'CRYSTALLIZATION' ? 'FOCUS' : 'AMBIENT'}
-                          onNodeSelect={(n) => {
-                              setSelectedNodes(prev => prev.includes(n.id) ? prev.filter(id => id !== n.id) : [...prev, n.id].slice(-2));
-                          }}
-                          onNodeContextMenu={(e, n) => setContextMenu({ x: e.clientX, y: e.clientY, node: n })}
-                          selectedNodes={selectedNodes}
-                      />
+                      <SuperLattice nodes={activeKnowledge} mode={labPhase === 'CRUCIBLE' ? 'ACTIVE' : labPhase === 'CRYSTALLIZATION' ? 'FOCUS' : 'AMBIENT'} onNodeSelect={(n) => { setSelectedNodes(prev => prev.includes(n.id) ? prev.filter(id => id !== n.id) : [...prev, n.id].slice(-2)); }} onNodeContextMenu={(e, n) => setContextMenu({ x: e.clientX, y: e.clientY, node: n })} selectedNodes={selectedNodes} />
                   </div>
-
-                  {/* Bridge Tool Overlay */}
                   <AnimatePresence>
                       {selectedNodes.length > 0 && (
-                          <motion.div
-                              initial={{ y: 50, opacity: 0 }}
-                              animate={{ y: 0, opacity: 1 }}
-                              exit={{ y: 50, opacity: 0 }}
-                              className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-[#0a0a0a]/95 backdrop-blur border border-[#333] rounded-full px-6 py-2 shadow-2xl flex items-center gap-4 z-30"
-                          >
-                              <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">
-                                  {selectedNodes.length} Node{selectedNodes.length > 1 ? 's' : ''} Linked
-                              </span>
+                          <motion.div initial={{ y: 50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 50, opacity: 0 }} className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-[#0a0a0a]/95 backdrop-blur border border-[#333] rounded-full px-6 py-2 shadow-2xl flex items-center gap-4 z-30" >
+                              <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">{selectedNodes.length} Node{selectedNodes.length > 1 ? 's' : ''} Linked</span>
                               <div className="h-4 w-px bg-[#333]"></div>
-                              <button 
-                                  onClick={() => {
-                                      const nodeA = activeKnowledge.find(n => n.id === selectedNodes[0])!;
-                                      const nodeB = activeKnowledge.find(n => n.id === selectedNodes[1])!;
-                                      synthesizeNodes(nodeA, nodeB).then(bridge => {
-                                          setBridgeNodes(prev => [...prev, bridge]);
-                                          setSelectedNodes([]);
-                                          addLog('SUCCESS', `SYNAPSE: Bridge stabilized "${bridge.label}"`);
-                                      });
-                                  }}
-                                  disabled={selectedNodes.length !== 2 || bridgeLoading}
-                                  className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-mono font-bold uppercase transition-all
-                                      ${selectedNodes.length === 2 
-                                          ? 'bg-[#9d4edd] text-black hover:bg-[#b06bf7] shadow-[0_0_15px_rgba(157,78,221,0.3)]' 
-                                          : 'bg-[#111] text-gray-600 border border-[#333] cursor-not-allowed'}
-                                  `}
-                              >
-                                  {bridgeLoading ? <Loader2 className="w-3 h-3 animate-spin"/> : <LinkIcon className="w-3 h-3" />}
-                                  Synthesize Bridge
-                              </button>
-                              <button onClick={() => setSelectedNodes([])} className="text-gray-500 hover:text-white p-1 rounded-full hover:bg-[#222]">
-                                  <X className="w-3 h-3" />
-                              </button>
+                              <button onClick={() => { const nodeA = activeKnowledge.find(n => n.id === selectedNodes[0])!; const nodeB = activeKnowledge.find(n => n.id === selectedNodes[1])!; synthesizeNodes(nodeA, nodeB).then(bridge => { setBridgeNodes(prev => [...prev, bridge]); setSelectedNodes([]); addLog('SUCCESS', `SYNAPSE: Bridge stabilized "${bridge.label}"`); }); }} disabled={selectedNodes.length !== 2 || bridgeLoading} className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-mono font-bold uppercase transition-all ${selectedNodes.length === 2 ? 'bg-[#9d4edd] text-black hover:bg-[#b06bf7] shadow-[0_0_15px_rgba(157,78,221,0.3)]' : 'bg-[#111] text-gray-600 border border-[#333] cursor-not-allowed'} `} > {bridgeLoading ? <Loader2 className="w-3 h-3 animate-spin"/> : <LinkIcon className="w-3 h-3" />} Synthesize Bridge</button>
                           </motion.div>
                       )}
                   </AnimatePresence>
-
-                  {/* Content Overlay */}
                   <div className="relative z-10 h-full flex flex-col pointer-events-none">
                       <AnimatePresence mode="wait">
-                          {labPhase === 'CALIBRATION' && (
-                              <motion.div 
-                                  key="cal"
-                                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                  className="h-full pointer-events-auto"
-                              >
-                                  <CalibrationPanel onDispatch={handleResearchDispatch} />
-                              </motion.div>
-                          )}
-
-                          {labPhase === 'CRUCIBLE' && (
-                              <motion.div 
-                                  key="crucible"
-                                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                  className="h-full flex pointer-events-auto"
-                              >
-                                  {/* Enhanced Source Manager with Vault & Direct Upload Integration */}
-                                  <div className="w-72 h-full shrink-0">
-                                      <SourceManager 
-                                          activeSources={activeSources}
-                                          onUpload={handleSourceUpload}
-                                          onRemove={removeSource}
-                                          onSelectFromVault={openVaultSelector}
-                                          isUploading={isUploadingSource}
-                                          onPreview={handleSourcePreview}
-                                          synapticReadout={bibliomorphic.synapticReadout}
-                                      />
-                                  </div>
-                                  
-                                  <div className="w-80 h-full">
-                                      <CrucibleFeed 
-                                        tasks={research.tasks} 
-                                        onAdjustTemperament={() => setShowTemperament(!showTemperament)}
-                                      />
-                                  </div>
-
-                                  {showTemperament && (
-                                      <motion.div 
-                                        initial={{ opacity: 0, x: 20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        className="absolute top-20 right-8 w-64 bg-[#0a0a0a]/90 backdrop-blur border border-[#333] p-6 rounded-2xl shadow-2xl z-40 space-y-6"
-                                      >
-                                          <div className="flex justify-between items-center mb-2">
-                                              <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Environment Tuning</h3>
-                                              <button onClick={() => setShowTemperament(false)}><X size={14} /></button>
-                                          </div>
-                                          <div className="space-y-4">
-                                              <div className="space-y-2">
-                                                  <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase"><span>Skepticism Bias</span><span>{agentTemperament.skepticism}%</span></div>
-                                                  <input type="range" value={agentTemperament.skepticism} onChange={e => setAgentTemperament({...agentTemperament, skepticism: parseInt(e.target.value)})} className="w-full h-1 bg-[#111] rounded appearance-none accent-red-500" />
-                                              </div>
-                                              <div className="space-y-2">
-                                                  <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase"><span>Visionary Reach</span><span>{agentTemperament.visionary}%</span></div>
-                                                  <input type="range" value={agentTemperament.visionary} onChange={e => setAgentTemperament({...agentTemperament, visionary: parseInt(e.target.value)})} className="w-full h-1 bg-[#111] rounded appearance-none accent-[#9d4edd]" />
-                                              </div>
-                                          </div>
-                                          <p className="text-[8px] text-gray-600 font-mono italic leading-relaxed">Adjusting temperament alters the ReAct loop branching logic for assigned agents.</p>
-                                      </motion.div>
-                                  )}
-                              </motion.div>
-                          )}
-
-                          {labPhase === 'CRYSTALLIZATION' && (
-                              <motion.div 
-                                  key="crystal"
-                                  initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                                  className="h-full pointer-events-auto"
-                              >
-                                  <CrystallizationView 
-                                      theory={discovery.theory} 
-                                      hypotheses={discovery.hypotheses} 
-                                      onSynthesize={runSynthesis}
-                                      onGenerateHypotheses={handleGenerateHypotheses}
-                                      isSynthesizing={discovery.isLoading}
-                                      isGeneratingHyps={discovery.status === 'HYPOTHESIZING'}
-                                  />
-                              </motion.div>
-                          )}
+                          {labPhase === 'CALIBRATION' && <motion.div key="cal" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full pointer-events-auto"><CalibrationPanel onDispatch={handleResearchDispatch} /></motion.div>}
+                          {labPhase === 'CRUCIBLE' && <motion.div key="crucible" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex pointer-events-auto"><div className="w-72 h-full shrink-0"><SourceManager activeSources={activeSources} onUpload={handleSourceUpload} onRemove={removeSource} onSelectFromVault={openVaultSelector} isUploading={isUploadingSource} onPreview={handleSourcePreview} synapticReadout={bibliomorphic.synapticReadout} /></div><div className="w-80 h-full"><CrucibleFeed tasks={research.tasks} onAdjustTemperament={() => setShowTemperament(!showTemperament)} /></div>{showTemperament && <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="absolute top-20 right-8 w-64 bg-[#0a0a0a]/90 backdrop-blur border border-[#333] p-6 rounded-2xl shadow-2xl z-40 space-y-6"><div className="flex justify-between items-center mb-2"><h3 className="text-[10px] font-black text-white uppercase tracking-widest">Environment Tuning</h3><button onClick={() => setShowTemperament(false)}><X size={14} /></button></div><div className="space-y-4"><div className="space-y-2"><div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase"><span>Skepticism Bias</span><span>{agentTemperament.skepticism}%</span></div><input type="range" value={agentTemperament.skepticism} onChange={e => setAgentTemperament({...agentTemperament, skepticism: parseInt(e.target.value)})} className="w-full h-1 bg-[#111] rounded appearance-none accent-red-500" /></div><div className="space-y-2"><div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase"><span>Visionary Reach</span><span>{agentTemperament.visionary}%</span></div><input type="range" value={agentTemperament.visionary} onChange={e => setAgentTemperament({...agentTemperament, visionary: parseInt(e.target.value)})} className="w-full h-1 bg-[#111] rounded appearance-none accent-[#9d4edd]" /></div></div></motion.div>}</motion.div>}
+                          {labPhase === 'CRYSTALLIZATION' && <motion.div key="crystal" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="h-full pointer-events-auto"><CrystallizationView theory={discovery.theory} hypotheses={discovery.hypotheses} onSynthesize={runSynthesis} onGenerateHypotheses={handleGenerateHypotheses} isSynthesizing={discovery.isLoading} isGeneratingHyps={discovery.status === 'HYPOTHESIZING'} completedTasks={research.tasks.filter((t:any) => t.status === 'COMPLETED')} /></motion.div>}
                       </AnimatePresence>
                   </div>
               </>
           )}
-
-          {activeTab === 'agora' && (
-              <div className="h-full bg-black">
-                  {activeSources.length > 0 ? (
-                      <AgoraPanel artifact={{ inlineData: activeSources[0].inlineData, name: activeSources[0].name }} />
-                  ) : (
-                      <div className="flex flex-col items-center justify-center h-full text-gray-700 space-y-6 opacity-30">
-                          <Users className="w-20 h-20 animate-pulse" />
-                          <p className="text-xs font-mono uppercase tracking-[0.4em]">Primary Vector Required</p>
-                          <button onClick={() => setLabPhase('CRUCIBLE')} className="px-6 py-2 border border-gray-800 rounded-lg hover:border-white transition-colors text-[10px] font-bold uppercase tracking-widest">Inject Source</button>
-                      </div>
-                  )}
-              </div>
-          )}
-
-          {activeTab === 'bicameral' && (
-              <div className="h-full bg-black relative">
-                  <div className="absolute inset-0">
-                      <BicameralEngine />
-                  </div>
-              </div>
-          )}
-
-          {activeTab === 'library' && (
-              <div className="h-full bg-[#050505] p-10 overflow-y-auto custom-scrollbar">
-                  <div className="max-w-4xl mx-auto space-y-10">
-                      <div className="flex justify-between items-center border-b border-[#222] pb-6">
-                          <div>
-                              <h2 className="text-2xl font-black text-white uppercase tracking-tighter font-mono">Neural Vault Archive</h2>
-                              <p className="text-[10px] text-gray-500 font-mono mt-2 uppercase tracking-widest">Persistent Knowledge Repositories</p>
-                          </div>
-                          <div className="flex items-center gap-4">
-                              <div className="text-right">
-                                  <div className="text-[8px] text-gray-600 font-mono uppercase tracking-widest">Vault Entropy</div>
-                                  <div className="text-sm font-bold text-[#f59e0b] font-mono">12.4%</div>
-                              </div>
-                              <Database className="w-10 h-10 text-[#22d3ee] opacity-20" />
-                          </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-                          {activeSources.map(s => (
-                              <div key={s.id} className="bg-[#111] border border-[#222] p-5 rounded-2xl group hover:border-[#22d3ee] transition-all relative overflow-hidden flex flex-col h-full">
-                                  <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                      <FileText size={48} />
-                                  </div>
-                                  <div className="text-[10px] font-black text-white uppercase truncate mb-2 font-mono">{s.name}</div>
-                                  <div className="flex flex-wrap gap-2 mb-4">
-                                      <span className="text-[8px] bg-black/40 border border-white/5 px-2 py-0.5 rounded text-gray-500 uppercase font-mono">{s.type}</span>
-                                      {s.analysis?.entropyRating && <span className={`text-[8px] px-2 py-0.5 rounded uppercase font-bold ${s.analysis.entropyRating > 50 ? 'text-red-500 bg-red-500/10' : 'text-emerald-500 bg-emerald-500/10'}`}>ENT: {s.analysis.entropyRating}</span>}
-                                  </div>
-                                  <div className="text-[9px] text-gray-500 font-mono line-clamp-3 leading-relaxed mb-6 italic">
-                                      {s.analysis?.summary || 'Artifact secured. Perceptive indexing pending full digitization protocol.'}
-                                  </div>
-                                  <button onClick={() => handleSourcePreview(s)} className="mt-auto w-full py-2 bg-black hover:bg-[#22d3ee] hover:text-black text-white border border-[#333] text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all">Inspect Fragment</button>
-                              </div>
-                          ))}
-                          {activeSources.length === 0 && (
-                              <div className="col-span-full py-20 text-center border-2 border-dashed border-[#1f1f1f] rounded-3xl opacity-20 grayscale">
-                                  <Archive size={48} className="mx-auto mb-4" />
-                                  <p className="text-sm font-mono uppercase tracking-[0.2em]">Archive Empty</p>
-                              </div>
-                          )}
-                      </div>
-
-                      {activeSources.length > 2 && (
-                          <div className="bg-[#0a0a0a] border border-[#222] rounded-3xl p-8 mt-12 relative overflow-hidden">
-                              <div className="absolute top-0 right-0 p-8 opacity-5"><Zap size={120} className="text-[#9d4edd]"/></div>
-                              <div className="flex items-center gap-3 mb-6">
-                                  <Brain size={20} className="text-[#9d4edd] animate-pulse" />
-                                  <h3 className="text-sm font-black text-white uppercase tracking-widest">Cross-Artifact Resonance</h3>
-                              </div>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                  <div className="p-4 bg-black/40 border border-[#222] rounded-xl">
-                                      <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-2">Detected Synchronicity</span>
-                                      <p className="text-[10px] text-gray-300 font-mono">Resonance detected between <span className="text-[#22d3ee]">Architecture_Manifesto.pdf</span> and <span className="text-[#9d4edd]">Neural_Uplink_Specs.txt</span></p>
-                                  </div>
-                                  <div className="p-4 bg-black/40 border border-[#222] rounded-xl">
-                                      <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-2">Stability Protocol</span>
-                                      <p className="text-[10px] text-gray-300 font-mono">Consolidated 12 logical bridges to reduce overall vault entropy by 4.2%.</p>
-                                  </div>
-                              </div>
-                          </div>
-                      )}
-                  </div>
-              </div>
-          )}
-
+          {activeTab === 'agora' && <div className="h-full bg-black">{activeSources.length > 0 ? <AgoraPanel artifact={{ inlineData: activeSources[0].inlineData, name: activeSources[0].name }} /> : <div className="flex flex-col items-center justify-center h-full text-gray-700 space-y-6 opacity-30"><Users className="w-20 h-20 animate-pulse" /><p className="text-xs font-mono uppercase tracking-[0.4em]">Primary Vector Required</p><button onClick={() => setLabPhase('CRUCIBLE')} className="px-6 py-2 border border-gray-800 rounded-lg hover:border-white transition-colors text-[10px] font-bold uppercase tracking-widest">Inject Source</button></div>}</div>}
+          {activeTab === 'bicameral' && <div className="h-full bg-black relative"><div className="absolute inset-0"><BicameralEngine /></div></div>}
+          {activeTab === 'library' && <div className="h-full bg-[#050505] p-10 overflow-y-auto custom-scrollbar"><div className="max-w-4xl mx-auto space-y-10"><div className="flex justify-between items-center border-b border-[#222] pb-6"><div><h2 className="text-2xl font-black text-white uppercase tracking-tighter font-mono">Neural Vault Archive</h2><p className="text-[10px] text-gray-500 font-mono mt-2 uppercase tracking-widest">Persistent Knowledge Repositories</p></div><div className="flex items-center gap-4"><div className="text-right"><div className="text-[8px] text-gray-600 font-mono uppercase tracking-widest">Vault Entropy</div><div className="text-sm font-bold text-[#f59e0b] font-mono">12.4%</div></div><Database className="w-10 h-10 text-[#22d3ee] opacity-20" /></div></div><div className="grid grid-cols-2 md:grid-cols-3 gap-6">{activeSources.map(s => (<div key={s.id} className="bg-[#111] border border-[#222] p-5 rounded-2xl group hover:border-[#22d3ee] transition-all relative overflow-hidden flex flex-col h-full"><div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><FileText size={48} /></div><div className="text-[10px] font-black text-white uppercase truncate mb-2 font-mono">{s.name}</div><div className="flex flex-wrap gap-2 mb-4"><span className="text-[8px] bg-black/40 border border-white/5 px-2 py-0.5 rounded text-gray-500 uppercase font-mono">{s.type}</span>{s.analysis?.entropyRating && <span className={`text-[8px] px-2 py-0.5 rounded uppercase font-bold ${s.analysis.entropyRating > 50 ? 'text-red-500 bg-red-500/10' : 'text-emerald-500 bg-emerald-500/10'}`}>ENT: {s.analysis.entropyRating}</span>}</div><div className="text-[9px] text-gray-500 font-mono line-clamp-3 leading-relaxed mb-6 italic">{s.analysis?.summary || 'Artifact secured. Perceptive indexing pending full digitization protocol.'}</div><button onClick={() => handleSourcePreview(s)} className="mt-auto w-full py-2 bg-black hover:bg-[#22d3ee] hover:text-black text-white border border-[#333] text-[9px] font-bold uppercase tracking-widest rounded-lg transition-all">Inspect Fragment</button></div>))}</div></div></div>}
       </div>
-
-      {/* Vault Selection Modal */}
       <AnimatePresence>
-          {isVaultModalOpen && (
-              <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 backdrop-blur-sm p-6" onClick={() => setIsVaultModalOpen(false)}>
-                  <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.9, opacity: 0 }}
-                    onClick={e => e.stopPropagation()}
-                    className="bg-[#0a0a0a] border border-[#333] rounded-3xl w-full max-w-2xl h-[550px] flex flex-col overflow-hidden shadow-2xl relative"
-                  >
-                      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#22d3ee] to-transparent opacity-50"></div>
-                      <div className="p-6 border-b border-[#1f1f1f] flex justify-between items-center bg-[#111]">
-                          <div className="flex items-center gap-3">
-                              <Database className="w-5 h-5 text-[#22d3ee]" />
-                              <span className="text-sm font-black font-mono text-white uppercase tracking-widest">Memory Core Lookup</span>
-                          </div>
-                          <button onClick={() => setIsVaultModalOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors"><X className="w-5 h-5 text-gray-500 hover:text-white" /></button>
-                      </div>
-                      <div className="flex-1 overflow-y-auto custom-scrollbar p-6 grid grid-cols-2 gap-4 bg-black/20">
-                          {vaultArtifacts.map(art => (
-                              <div 
-                                key={art.id} 
-                                onClick={() => addFromVault(art)}
-                                className="p-4 bg-[#080808] border border-[#222] rounded-2xl hover:border-[#22d3ee] transition-all cursor-pointer group relative overflow-hidden"
-                              >
-                                  <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-10 transition-opacity">
-                                      <Plus className="w-8 h-8 text-[#22d3ee]" />
-                                  </div>
-                                  <div className="flex items-center gap-3 mb-2">
-                                      <FileText className="w-4 h-4 text-[#22d3ee]" />
-                                      <span className="text-[10px] font-black text-gray-200 truncate uppercase font-mono">{art.name}</span>
-                                  </div>
-                                  <p className="text-[9px] text-gray-600 font-mono line-clamp-2 italic">{(art.analysis as any)?.summary || 'Unindexed artifact.'}</p>
-                              </div>
-                          ))}
-                          {vaultArtifacts.length === 0 && (
-                              <div className="col-span-2 flex flex-col items-center justify-center h-full opacity-20 grayscale py-20">
-                                  <BoxSelect size={64} className="mb-6" />
-                                  <p className="text-xs font-mono uppercase tracking-[0.4em]">Vault Unreachable</p>
-                              </div>
-                          )}
-                      </div>
-                      <div className="p-4 border-t border-[#1f1f1f] bg-[#0a0a0a] flex justify-between items-center text-[8px] font-mono text-gray-600 uppercase tracking-widest">
-                          <span>Sector: MEM_CORE_L0</span>
-                          <span>Auth: SECURE_LINK</span>
-                      </div>
-                  </motion.div>
-              </div>
-          )}
+          {isVaultModalOpen && <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/90 backdrop-blur-sm p-6" onClick={() => setIsVaultModalOpen(false)}><motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} onClick={e => e.stopPropagation()} className="bg-[#0a0a0a] border border-[#333] rounded-3xl w-full max-w-2xl h-[550px] flex flex-col overflow-hidden shadow-2xl relative"><div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#22d3ee] to-transparent opacity-50"></div><div className="p-6 border-b border-[#1f1f1f] flex justify-between items-center bg-[#111]"><div className="flex items-center gap-3"><Database className="w-5 h-5 text-[#22d3ee]" /><span className="text-sm font-black font-mono text-white uppercase tracking-widest">Memory Core Lookup</span></div><button onClick={() => setIsVaultModalOpen(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors"><X className="w-5 h-5 text-gray-500 hover:text-white" /></button></div><div className="flex-1 overflow-y-auto custom-scrollbar p-6 grid grid-cols-2 gap-4 bg-black/20">{vaultArtifacts.map(art => (<div key={art.id} onClick={() => addFromVault(art)} className="p-4 bg-[#080808] border border-[#222] rounded-2xl hover:border-[#22d3ee] transition-all cursor-pointer group relative overflow-hidden"><div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-10 transition-opacity"><Plus className="w-8 h-8 text-[#22d3ee]" /></div><div className="flex items-center gap-3 mb-2"><FileText className="w-4 h-4 text-[#22d3ee]" /><span className="text-[10px] font-black text-gray-200 truncate uppercase font-mono">{art.name}</span></div><p className="text-[9px] text-gray-600 font-mono line-clamp-2 italic">{(art.analysis as any)?.summary || 'Unindexed artifact.'}</p></div>))}</div></motion.div></div>}
       </AnimatePresence>
-
-      {/* Context Menu */}
       <AnimatePresence>
-          {contextMenu && (
-              <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  style={{ top: contextMenu.y, left: contextMenu.x }}
-                  className="fixed z-[400] bg-[#0a0a0a]/95 backdrop-blur-2xl border border-[#333] rounded-xl shadow-2xl min-w-[200px] overflow-hidden p-1"
-              >
-                  <div className="px-3 py-1.5 border-b border-[#222] mb-1">
-                      <span className="text-[8px] font-black text-[#9d4edd] uppercase tracking-widest font-mono">
-                          {contextMenu.node.type}
-                      </span>
-                  </div>
-                  <button 
-                      onClick={() => {
-                          if (contextMenu.node.data) handleSourcePreview(contextMenu.node.data);
-                          setContextMenu(null);
-                      }}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-[10px] font-mono font-bold text-gray-300 hover:bg-[#9d4edd] hover:text-black transition-all rounded-lg group"
-                  >
-                      <Eye className="w-3.5 h-3.5 text-[#9d4edd] group-hover:text-black" />
-                      Inspect Fragment
-                  </button>
-                  <button 
-                      onClick={() => {
-                          setBibliomorphicState({ activeTab: 'agora' }); 
-                          setContextMenu(null);
-                      }}
-                      className="w-full flex items-center gap-3 px-3 py-2 text-[10px] font-mono font-bold text-gray-300 hover:bg-[#9d4edd] hover:text-black transition-all rounded-lg group"
-                  >
-                      <Radio className="w-3.5 h-3.5 text-[#9d4edd] group-hover:text-black" />
-                      Debate Vector
-                  </button>
-              </motion.div>
-          )}
+          {contextMenu && <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }} style={{ top: contextMenu.y, left: contextMenu.x }} className="fixed z-[400] bg-[#0a0a0a]/95 backdrop-blur-2xl border border-[#333] rounded-xl shadow-2xl min-w-[200px] overflow-hidden p-1" ><div className="px-3 py-1.5 border-b border-[#222] mb-1"><span className="text-[8px] font-black text-[#9d4edd] uppercase tracking-widest font-mono">{contextMenu.node.type}</span></div><button onClick={() => { if (contextMenu.node.data) handleSourcePreview(contextMenu.node.data); setContextMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2 text-[10px] font-mono font-bold text-gray-300 hover:bg-[#9d4edd] hover:text-black transition-all rounded-lg group" ><Eye className="w-3.5 h-3.5 text-[#9d4edd] group-hover:text-black" /> Inspect Fragment</button><button onClick={() => { setBibliomorphicState({ activeTab: 'agora' }); setContextMenu(null); }} className="w-full flex items-center gap-3 px-3 py-2 text-[10px] font-mono font-bold text-gray-300 hover:bg-[#9d4edd] hover:text-black transition-all rounded-lg group" ><Radio className="w-3.5 h-3.5 text-[#9d4edd] group-hover:text-black" /> Debate Vector</button></motion.div>}
       </AnimatePresence>
-
     </div>
   );
 };

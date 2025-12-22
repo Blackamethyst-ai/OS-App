@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
-import { generateHypotheses, simulateExperiment, generateTheory, promptSelectKey, compressKnowledge } from '../services/geminiService';
+import { generateHypotheses, simulateExperiment, generateTheory, promptSelectKey, compressKnowledge, fileToGenerativePart, classifyArtifact, smartOrganizeArtifact } from '../services/geminiService';
+import { neuralVault } from '../services/persistenceService';
 import { ScienceHypothesis, KnowledgeNode, CompressedAxiom } from '../types';
 import { 
     FlaskConical, BrainCircuit, Search, Loader2, Beaker, 
     Activity, Zap, Sparkles, Database, Layers, GitBranch, 
-    ChevronRight, ArrowRight, Minimize2, Trash2, CheckCircle2, Filter, Target, X, Unlock, Lock
+    ChevronRight, ArrowRight, Minimize2, Trash2, CheckCircle2, Filter, Target, X, Unlock, Lock, FileUp, Upload, ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SuperLattice from './visualizations/SuperLattice';
@@ -15,6 +16,7 @@ const DiscoveryLab: React.FC = () => {
     const { discovery, setDiscoveryState, addLog, research, addResearchTask, cancelResearchTask } = useAppStore();
     const [input, setInput] = useState('');
     const [isCompressing, setIsCompressing] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
     const [axioms, setAxioms] = useState<CompressedAxiom[]>([]);
     const [filterTaskId, setFilterTaskId] = useState<string | null>(null);
     
@@ -51,6 +53,31 @@ const DiscoveryLab: React.FC = () => {
         addResearchTask({ id: crypto.randomUUID(), query, status: 'QUEUED', progress: 0, logs: ['Initiating Science Protocol...'], timestamp: Date.now() });
         if (!customQuery) setInput('');
         addLog('INFO', `SCIENCE_LAB: Research Agent dispatched for "${query}"`);
+    };
+
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setIsUploading(true);
+            const files = Array.from(e.target.files) as File[];
+            addLog('SYSTEM', `DISCOVERY_INGEST: Buffering ${files.length} primary units...`);
+            
+            for (const file of files) {
+                try {
+                    const hasKey = await window.aistudio?.hasSelectedApiKey();
+                    if (!hasKey) { await promptSelectKey(); break; }
+
+                    const fileData = await fileToGenerativePart(file);
+                    const analysis = await classifyArtifact(fileData);
+                    const org = await smartOrganizeArtifact({ name: file.name });
+                    
+                    await neuralVault.saveArtifact(file, analysis);
+                    addLog('SUCCESS', `LATTICE_SEED: "${file.name}" indexed to vault.`);
+                } catch (err: any) {
+                    addLog('ERROR', `INGEST_FAIL: ${err.message}`);
+                }
+            }
+            setIsUploading(false);
+        }
     };
 
     const handleCompress = async () => {
@@ -115,6 +142,11 @@ const DiscoveryLab: React.FC = () => {
                     </AnimatePresence>
 
                     <div className="flex gap-2">
+                        <label className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-[#333] hover:border-[#9d4edd] text-gray-400 hover:text-[#9d4edd] rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer">
+                            {isUploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                            {isUploading ? 'INDEXING...' : 'Ingest Sources'}
+                            <input type="file" multiple className="hidden" onChange={handleFileUpload} />
+                        </label>
                         <button 
                             onClick={handleCompress}
                             disabled={isCompressing || activeKnowledge.length < 5}

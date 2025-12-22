@@ -156,7 +156,19 @@ export enum AppTheme {
     AMBER = 'AMBER',
     SOLARIZED = 'SOLARIZED',
     MIDNIGHT = 'MIDNIGHT',
-    NEON_CYBER = 'NEON_CYBER'
+    NEON_CYBER = 'NEON_CYBER',
+    CUSTOM = 'CUSTOM'
+}
+
+export interface CustomThemeConfig {
+    bgMain: string;
+    textMain: string;
+    borderMain: string;
+    accentPrimary: string;
+    accentSecondary: string;
+    glassOpacity: number;
+    glassBlur: string;
+    fontFamily: string;
 }
 
 export interface UserProfile {
@@ -227,14 +239,16 @@ export interface ResearchState {
 export interface ResearchTask {
     id: string;
     query: string;
-    status: 'QUEUED' | 'PLANNING' | 'SEARCHING' | 'SYNTHESIZING' | 'SWARM_VERIFY' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+    status: 'QUEUED' | 'PLANNING' | 'SEARCHING' | 'SYNTHESIZING' | 'SWARM_VERIFY' | 'COMPLETED' | 'FAILED' | 'CANCELLED' | 'RESUMING';
     progress: number;
     logs: string[];
     timestamp: number;
     subQueries?: string[];
     findings?: FactChunk[];
+    hypotheses?: ScienceHypothesis[];
     result?: string;
     agentAssigned?: string;
+    contextSnapshot?: string; // Persistent state memory for session recovery
 }
 
 export interface FactChunk {
@@ -255,6 +269,7 @@ export interface KnowledgeNode {
     z?: number;
     color?: string;
     data?: any;
+    artifactRef?: any;
 }
 
 export interface ScienceHypothesis {
