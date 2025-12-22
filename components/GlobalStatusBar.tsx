@@ -11,20 +11,12 @@ import {
 } from 'lucide-react';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 
-interface GlobalStatusBarProps {
-    onToggleScrubber: () => void;
-    onToggleDiagnostics: () => void;
-    isScrubberOpen: boolean;
-    isDiagnosticsOpen: boolean;
-}
-
-const GlobalStatusBar: React.FC<GlobalStatusBarProps> = ({ 
-    onToggleScrubber, 
-    onToggleDiagnostics,
-    isScrubberOpen,
-    isDiagnosticsOpen
-}) => {
-    const { kernel, knowledge, toggleKnowledgeLayer, system } = useAppStore();
+const GlobalStatusBar: React.FC = () => {
+    const { 
+        kernel, knowledge, toggleKnowledgeLayer, system,
+        isScrubberOpen, setScrubberOpen,
+        isDiagnosticsOpen, setDiagnosticsOpen
+    } = useAppStore();
     const { execute, state: agentState } = useAgentRuntime();
     const [input, setInput] = useState('');
     const [driveHealth, setDriveHealth] = useState(99);
@@ -161,14 +153,14 @@ const GlobalStatusBar: React.FC<GlobalStatusBarProps> = ({
 
                     <div className="flex items-center gap-2">
                         <button 
-                            onClick={onToggleScrubber}
+                            onClick={() => setScrubberOpen(!isScrubberOpen)}
                             className={`p-2.5 rounded-xl transition-all ${isScrubberOpen ? 'bg-[#9d4edd] text-black shadow-[0_0_15px_#9d4edd]' : 'bg-[#111] text-gray-500 hover:text-white'}`}
                             title="Temporal Navigation"
                         >
                             <History size={16} />
                         </button>
                         <button 
-                            onClick={onToggleDiagnostics}
+                            onClick={() => setDiagnosticsOpen(!isDiagnosticsOpen)}
                             className={`p-2.5 rounded-xl transition-all relative ${isDiagnosticsOpen ? 'bg-[#22d3ee] text-black shadow-[0_0_15px_#22d3ee]' : errorCount > 0 ? 'bg-red-950/30 text-red-500 animate-pulse border border-red-500/30' : 'bg-[#111] text-gray-500 hover:text-white'}`}
                             title="System Diagnostics"
                         >

@@ -1,6 +1,7 @@
+
 import { AppMode, ToolResult, TaskPriority } from '../types';
 import { useAppStore } from '../store';
-import { generateStructuredWorkflow, searchGroundedIntel } from './geminiService';
+import { generateStructuredWorkflow, searchGroundedIntel, convergeStrategicLattices } from './geminiService';
 
 /**
  * SOVEREIGN TOOL REGISTRY
@@ -8,7 +9,7 @@ import { generateStructuredWorkflow, searchGroundedIntel } from './geminiService
  */
 export const OS_TOOLS = {
     // 1. ARCHITECTURAL PROTOCOLS
-    architect_generate_process: async (args: { description: string; type: 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE' | 'AGENTIC_ORCHESTRATION' }): Promise<ToolResult> => {
+    architect_generate_process: async (args: { description: string; type: 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE' | 'AGENTIC_ORCHESTRATION' | 'CONVERGENT_SYNTHESIS' }): Promise<ToolResult> => {
         const { setProcessState, addLog } = useAppStore.getState();
         console.log(`[Architect] Designing ${args.type}: ${args.description}`);
         
@@ -19,6 +20,8 @@ export const OS_TOOLS = {
                 ? "Focus on file management workflows, naming conventions, and PARA-based directory structures." 
                 : args.type === 'SYSTEM_ARCHITECTURE'
                 ? "Focus on high-availability, low-latency, and zero-trust security layers."
+                : args.type === 'CONVERGENT_SYNTHESIS'
+                ? "Identify overlaps between existing lattices and forge unified directives."
                 : "Focus on swarm consensus and autonomous agency.";
 
             const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', args.type, { 
@@ -28,7 +31,8 @@ export const OS_TOOLS = {
             setProcessState({ 
                 generatedWorkflow: workflow, 
                 activeTab: 'workflow',
-                workflowType: args.type 
+                workflowType: args.type,
+                coherenceScore: workflow.coherenceScore || 80
             });
 
             return {
@@ -36,7 +40,8 @@ export const OS_TOOLS = {
                 status: 'SUCCESS',
                 data: { 
                     message: `Lattice for ${args.type} crystallized. Transitioning to Protocol Loom.`,
-                    folders: workflow.taxonomy?.root?.map((r: any) => r.folder)
+                    folders: workflow.taxonomy?.root?.map((r: any) => r.folder),
+                    coherence: workflow.coherenceScore
                 },
                 uiHint: 'MESSAGE'
             };
@@ -49,7 +54,42 @@ export const OS_TOOLS = {
         }
     },
 
-    // 2. GROUNDED INTEL SEARCH
+    // 2. LATTICE CONVERGENCE
+    converge_strategic_lattices: async (args: { targetGoal: string }): Promise<ToolResult> => {
+        const { addLog, setProcessState, process } = useAppStore.getState();
+        addLog('SYSTEM', `CONVERGENCE: Orchestrating multi-lattice synthesis for "${args.targetGoal}"...`);
+        
+        try {
+            // Take top 3 recent artifacts/nodes for context
+            const contextNodes = process.nodes.slice(-3);
+            const result = await convergeStrategicLattices(contextNodes, args.targetGoal);
+            
+            setProcessState({ 
+                nodes: result.nodes.map((n: any, i: number) => ({
+                    id: n.id,
+                    type: 'holographic',
+                    position: { x: 500 + i * 100, y: 300 + i * 50 },
+                    data: { label: n.label, subtext: 'CONVERGED_AXIOM', status: 'SYNTHESIZED', color: '#10b981' }
+                })),
+                coherenceScore: Math.round(result.coherence_index * 100)
+            });
+
+            return {
+                toolName: 'converge_strategic_lattices',
+                status: 'SUCCESS',
+                data: { 
+                    goal: result.unified_goal,
+                    coherence: result.coherence_index,
+                    new_nodes: result.nodes.length
+                },
+                uiHint: 'STAT'
+            };
+        } catch (error: any) {
+            return { toolName: 'converge_strategic_lattices', status: 'ERROR', data: { error: error.message } };
+        }
+    },
+
+    // 3. GROUNDED INTEL SEARCH
     search_intel: async (args: { query: string }): Promise<ToolResult> => {
         const { addLog } = useAppStore.getState();
         addLog('SYSTEM', `SEARCH_INTEL: Grounding intelligence for "${args.query}"...`);
@@ -66,7 +106,7 @@ export const OS_TOOLS = {
         }
     },
 
-    // 3. UI CONTEXT FOCUS
+    // 4. UI CONTEXT FOCUS
     focus_element: async (args: { selector: string }): Promise<ToolResult> => {
         const { setFocusedSelector, addLog } = useAppStore.getState();
         setFocusedSelector(args.selector);
@@ -79,7 +119,7 @@ export const OS_TOOLS = {
         };
     },
 
-    // 4. TASK MANAGEMENT
+    // 5. TASK MANAGEMENT
     update_task_priority: async (args: { taskId: string, priority: TaskPriority }): Promise<ToolResult> => {
         const { updateTask, addLog } = useAppStore.getState();
         updateTask(args.taskId, { priority: args.priority });
@@ -92,7 +132,7 @@ export const OS_TOOLS = {
         };
     },
 
-    // 5. SYSTEM NAVIGATION
+    // 6. SYSTEM NAVIGATION
     system_navigate: async (args: { target: string }): Promise<ToolResult> => {
         const { setMode } = useAppStore.getState();
         const targetMode = AppMode[args.target.toUpperCase() as keyof typeof AppMode];

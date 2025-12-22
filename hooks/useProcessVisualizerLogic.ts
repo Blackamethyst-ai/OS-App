@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
     useNodesState, useEdgesState, useReactFlow, addEdge, Connection, 
@@ -304,8 +305,8 @@ export const useProcessVisualizerLogic = () => {
                     addLog('SYSTEM', 'SWARM_SYNTHESIS: Forging cognitive architecture...');
                     result = await generateSwarmArchitecture(architecturePrompt);
                 } else {
-                    addLog('SYSTEM', 'ARCHITECT: Constructing system topology...');
-                    result = await generateSystemArchitecture(architecturePrompt);
+                    addLog('SYSTEM', `ARCHITECT: Constructing ${state.workflowType} topology...`);
+                    result = await generateSystemArchitecture(architecturePrompt, state.workflowType);
                 }
                 const newNodes = result.nodes.map((n: any, i: number) => ({ id: n.id, type: state.workflowType === 'AGENTIC_ORCHESTRATION' ? 'agentic' : 'holographic', position: { x: 600 + Math.cos(i) * 300, y: 400 + Math.sin(i) * 300 }, data: { ...n, theme: visualTheme, progress: 2 } }));
                 const newEdges = result.edges.map((e: any) => ({ id: e.id, source: e.source, target: e.target, type: 'cinematic', data: { color: e.color || '#9d4edd', variant: e.variant || 'stream', handoffCondition: e.handoffCondition } }));

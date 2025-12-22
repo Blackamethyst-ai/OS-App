@@ -91,12 +91,16 @@ const FocusOverlay = () => {
 };
 
 const App: React.FC = () => {
-  const { mode, user, theme, voice, toggleProfile, toggleCommandPalette, setSearchState, setVoiceState, addLog } = useAppStore();
+  const { 
+      mode, user, theme, voice, toggleProfile, toggleCommandPalette, 
+      setSearchState, setVoiceState, addLog, 
+      isHelpOpen, setHelpOpen, 
+      isScrubberOpen, setScrubberOpen, 
+      isDiagnosticsOpen, setDiagnosticsOpen, 
+      isHUDClosed, setHUDClosed 
+  } = useAppStore();
+  
   const { setSector } = useSystemMind(); 
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
-  const [isScrubberOpen, setIsScrubberOpen] = useState(false);
-  const [isDiagnosticsOpen, setIsDiagnosticsOpen] = useState(false);
-  const [isHUDClosed, setIsHUDClosed] = useState(false);
 
   useAutoSave(); 
   useDaemonSwarm(); 
@@ -139,12 +143,12 @@ const App: React.FC = () => {
               e.preventDefault(); setVoiceState({ isActive: !voice.isActive }); audio.playClick(); 
           }
           if (e.key === 'F1') {
-              e.preventDefault(); setIsHelpOpen(prev => !prev); audio.playClick();
+              e.preventDefault(); setHelpOpen(!isHelpOpen); audio.playClick();
           }
       };
       window.addEventListener('keydown', handleGlobalKeyDown);
       return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [voice.isActive, toggleCommandPalette, setSearchState, setVoiceState]);
+  }, [voice.isActive, isHelpOpen, toggleCommandPalette, setSearchState, setVoiceState, setHelpOpen]);
 
   const switchPath = (path: string) => {
       window.location.hash = path;
@@ -165,8 +169,8 @@ const App: React.FC = () => {
       <Starfield mode={mode} />
       
       <GlobalStatusBar 
-        onToggleScrubber={() => setIsScrubberOpen(!isScrubberOpen)}
-        onToggleDiagnostics={() => setIsDiagnosticsOpen(!isDiagnosticsOpen)}
+        onToggleScrubber={() => setScrubberOpen(!isScrubberOpen)}
+        onToggleDiagnostics={() => setDiagnosticsOpen(!isDiagnosticsOpen)}
         isScrubberOpen={isScrubberOpen}
         isDiagnosticsOpen={isDiagnosticsOpen}
       />
@@ -175,12 +179,12 @@ const App: React.FC = () => {
       <VoiceCoreOverlay /> 
       <UserProfileOverlay /> 
       <CommandPalette /> 
-      <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => setIsDiagnosticsOpen(false)} /> 
+      <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} /> 
       <TimeTravelScrubber 
         mode={mode} 
         onRestore={() => addLog('INFO', 'Timeline resync successful.')} 
         isOpen={isScrubberOpen}
-        onClose={() => setIsScrubberOpen(false)}
+        onClose={() => setScrubberOpen(false)}
       />
       <OverlayOS /> 
       <HoloProjector /> 
@@ -188,20 +192,20 @@ const App: React.FC = () => {
       <VoiceManager /> 
       
       <AnimatePresence>
-        {!isHUDClosed && <AgenticHUD isClosed={isHUDClosed} onClose={() => setIsHUDClosed(true)} />}
+        {!isHUDClosed && <AgenticHUD />}
       </AnimatePresence>
       
       {isHUDClosed && (
           <button 
-            onClick={() => setIsHUDClosed(false)}
-            className="fixed bottom-24 right-6 p-2 bg-[#9d4edd]/20 border border-[#9d4edd]/40 rounded-full text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black transition-all z-50"
+            onClick={() => setHUDClosed(false)}
+            className="fixed bottom-24 right-6 p-2 bg-[#9d4edd]/20 border border-[#9d4edd]/40 rounded-full text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black transition-all z-50 pointer-events-auto"
           >
               <Activity size={16} />
           </button>
       )}
 
       <AnimatePresence>
-        {isHelpOpen && <HelpCenter onClose={() => setIsHelpOpen(false)} />}
+        {isHelpOpen && <HelpCenter onClose={() => setHelpOpen(false)} />}
       </AnimatePresence>
 
       <header className="flex-shrink-0 h-16 border-b z-[100] px-6 flex items-center justify-between backdrop-blur-xl" style={{ backgroundColor: 'rgba(10,10,10,0.85)', borderColor: 'var(--border-main)' }}>
