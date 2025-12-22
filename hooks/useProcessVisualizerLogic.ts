@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
     useNodesState, useEdgesState, useReactFlow, addEdge, Connection, 
@@ -36,9 +37,7 @@ export const VISUAL_THEMES: Record<AppTheme, any> = {
     AMBER: { bg: '#0a0a0a', nodeBg: 'rgba(26,13,0,0.9)', nodeBorder: 'rgba(245,158,11,0.2)', text: '#f59e0b', subtext: '#78350f', grid: '#1a0d00' },
     SOLARIZED: { bg: '#fdf6e3', nodeBg: 'rgba(253,246,227,0.9)', nodeBorder: 'rgba(0,0,0,0.1)', text: '#657b83', subtext: '#93a1a1', grid: '#eee8d5' },
     MIDNIGHT: { bg: '#020617', nodeBg: 'rgba(15,23,42,0.9)', nodeBorder: 'rgba(59,130,246,0.2)', text: '#e2e8f0', subtext: '#94a3b8', grid: '#1e293b' },
-    NEON_CYBER: { bg: '#000', nodeBg: 'rgba(5,5,5,0.9)', nodeBorder: 'rgba(217,70,239,0.3)', text: '#22d3ee', subtext: '#d946ef', grid: '#111' },
-    // Fix: Added missing CUSTOM theme definition to satisfy the Record<AppTheme, any> requirement
-    CUSTOM: { bg: '#030303', nodeBg: 'rgba(10,10,10,0.9)', nodeBorder: 'rgba(157,78,221,0.2)', text: '#e5e5e5', subtext: '#9d4edd', grid: '#1f1f1f' }
+    NEON_CYBER: { bg: '#000', nodeBg: 'rgba(5,5,5,0.9)', nodeBorder: 'rgba(217,70,239,0.3)', text: '#22d3ee', subtext: '#d946ef', grid: '#111' }
 };
 
 export const useProcessVisualizerLogic = () => {
