@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { 
     AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, 
@@ -361,7 +360,6 @@ export const useAppStore = create<AppState>((set) => ({
         strategyLibrary: [],
         wallets: [],
         economicProtocols: [],
-        // Fixed: Added missing activeRefractions and stressTest properties
         activeRefractions: [],
         stressTest: {
             isTesting: false,

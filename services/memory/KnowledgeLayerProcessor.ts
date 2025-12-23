@@ -3,7 +3,14 @@ import { ContextProcessor } from './Processor';
 import { Event, LongTermMemory, ExternalArtifactStore, WorkingContext, CurrentScope } from './interfaces';
 import { KNOWLEDGE_LAYERS } from '../../data/knowledgeLayers';
 import { useAppStore } from '../../store';
+import { neuralVault } from '../persistenceService';
+import { KnowledgeLayer } from '../../types';
 
+/**
+ * KnowledgeLayerProcessor: Dynamic Contextual Handshake
+ * Asynchronously aggregates static and dynamic knowledge protocols 
+ * based on active layer toggles.
+ */
 export class KnowledgeLayerProcessor implements ContextProcessor {
     name = 'KnowledgeLayerProcessor';
 
@@ -13,23 +20,28 @@ export class KnowledgeLayerProcessor implements ContextProcessor {
         artifactStore: ExternalArtifactStore,
         scope: CurrentScope
     ): Promise<WorkingContext[]> {
-        // Direct store access to get active layers from knowledge slice
         const state = useAppStore.getState();
         const activeLayerIds = state.knowledge.activeLayers || [];
 
         if (activeLayerIds.length === 0) return [];
 
+        // Pre-fetch dynamic layers from the vault to combine with static layers
+        const dynamicLayers = await neuralVault.getKnowledgeLayers();
+        const allLayers: Record<string, KnowledgeLayer> = {
+            ...KNOWLEDGE_LAYERS,
+            ...Object.fromEntries(dynamicLayers.map(l => [l.id, l]))
+        };
+
         const contextParts: WorkingContext[] = [];
 
         activeLayerIds.forEach((id: string) => {
-            const layer = KNOWLEDGE_LAYERS[id];
+            const layer = allLayers[id];
             if (layer) {
-                // 1. Inject Persona/Instruction
+                // Inject specialized protocol into the model turn
                 contextParts.push({
                     role: 'system', 
-                    content: layer.systemInstruction
+                    content: `[PROTOCOL_ENGAGED: ${layer.label.toUpperCase()}]\n${layer.systemInstruction.trim()}`
                 });
-                // Note: Memory tag injection would happen here in a future hardening phase
             }
         });
 

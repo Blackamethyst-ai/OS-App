@@ -1,6 +1,6 @@
 
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { AppMode, ArtifactAnalysis, Message, UserProfile } from '../types';
+import { AppMode, ArtifactAnalysis, Message, UserProfile, KnowledgeLayer } from '../types';
 
 // --- SCHEMA DEFINITION ---
 
@@ -60,6 +60,12 @@ interface NeuralVaultSchema extends DBSchema {
       key: string; // "current_user"
       value: UserProfile;
   };
+
+  // 6. Knowledge Layers: Dynamic contextual protocols
+  knowledge_layers: {
+      key: string; // layerId
+      value: KnowledgeLayer;
+  };
 }
 
 // --- SERVICE IMPLEMENTATION ---
@@ -67,13 +73,14 @@ interface NeuralVaultSchema extends DBSchema {
 class NeuralVaultService {
   private dbName = 'structura_neural_vault_v1';
   private db: Promise<IDBPDatabase<NeuralVaultSchema>>;
+  private layersPromise: Promise<KnowledgeLayer[]> | null = null;
 
   constructor() {
     this.db = this.initDB();
   }
 
   private async initDB() {
-    return openDB<NeuralVaultSchema>(this.dbName, 2, {
+    return openDB<NeuralVaultSchema>(this.dbName, 3, {
       upgrade(db, oldVersion, newVersion, transaction) {
         // Artifacts Store
         if (!db.objectStoreNames.contains('artifacts')) {
@@ -98,9 +105,14 @@ class NeuralVaultService {
             db.createObjectStore('vectors', { keyPath: 'key' });
         }
 
-        // Profile Store (Added in V2)
+        // Profile Store
         if (!db.objectStoreNames.contains('profile')) {
             db.createObjectStore('profile');
+        }
+
+        // Knowledge Layers Store (New in V3)
+        if (!db.objectStoreNames.contains('knowledge_layers')) {
+            db.createObjectStore('knowledge_layers', { keyPath: 'id' });
         }
       },
     });
@@ -168,8 +180,6 @@ class NeuralVaultService {
     const db = await this.db;
     const timestamp = Date.now();
     
-    // Minimal compression (remove heavy binaries if needed, though IndexedDB handles large objects well)
-    // We clone to avoid mutating the live state during serialization if there are any getters
     const cleanState = JSON.parse(JSON.stringify(state)); 
 
     await db.put('snapshots', {
@@ -225,6 +235,22 @@ class NeuralVaultService {
       return db.get('profile', 'current_user');
   }
 
+  // --- KNOWLEDGE LAYER METHODS (React 19 Optimized) ---
+
+  getKnowledgeLayers(): Promise<KnowledgeLayer[]> {
+      if (!this.layersPromise) {
+          this.layersPromise = this.db.then(db => db.getAll('knowledge_layers'));
+      }
+      return this.layersPromise;
+  }
+
+  async saveKnowledgeLayer(layer: KnowledgeLayer) {
+      const db = await this.db;
+      await db.put('knowledge_layers', layer);
+      this.layersPromise = null; // Invalidate cache
+      console.log(`[NeuralVault] Knowledge Layer Secured: ${layer.label}`);
+  }
+
   // --- SYSTEM METHODS ---
 
   async getStorageUsage() {
@@ -244,6 +270,8 @@ class NeuralVaultService {
       await db.clear('snapshots');
       await db.clear('echoes');
       await db.clear('profile');
+      await db.clear('knowledge_layers');
+      this.layersPromise = null;
       console.warn('[NeuralVault] SYSTEM WIPE COMPLETE. AMNESIA INDUCED.');
   }
 }

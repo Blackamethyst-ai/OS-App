@@ -1,8 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, use, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
+import { neuralVault } from '../services/persistenceService';
+import { KnowledgeLayer } from '../types';
 import * as Icons from 'lucide-react';
 import { 
     Activity, Clock, Cpu, Shield, Zap, Hammer, Coins, 
@@ -11,18 +13,69 @@ import {
 } from 'lucide-react';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 
+/**
+ * LayerControlMesh: React 19 Suspense Component
+ * Uses 'use' hook to resolve vault-backed knowledge layers.
+ */
+const LayerControlMesh = () => {
+    const { toggleKnowledgeLayer, knowledge, addLog } = useAppStore();
+    const activeLayerIds = knowledge.activeLayers || [];
+    
+    // Resolve promise using React 19 'use' hook
+    const dynamicLayers = use(neuralVault.getKnowledgeLayers());
+    
+    const allLayers: Record<string, KnowledgeLayer> = {
+        ...KNOWLEDGE_LAYERS,
+        ...Object.fromEntries(dynamicLayers.map(l => [l.id, l]))
+    };
+
+    return (
+        <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl border border-white/5">
+            {Object.values(allLayers).map((layer) => {
+                const isActive = activeLayerIds.includes(layer.id);
+                // @ts-ignore
+                const Icon = Icons[layer.icon] || Icons.Layers;
+                return (
+                    <motion.button
+                        key={layer.id}
+                        onClick={() => {
+                            toggleKnowledgeLayer(layer.id);
+                            addLog('SYSTEM', `LAYER_SWITCH: Protocol ${layer.label} handshaking...`);
+                        }}
+                        whileHover={{ y: -1 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`
+                            flex items-center justify-center w-9 h-9 rounded-xl border transition-all duration-300
+                            ${isActive 
+                                ? 'bg-white/5 border-[var(--layer-color)] text-white shadow-[0_0_10px_rgba(var(--layer-rgb),0.3)]' 
+                                : 'bg-transparent border-transparent text-gray-600 hover:text-gray-400'}
+                        `}
+                        style={{ 
+                            '--layer-color': layer.color,
+                            '--layer-rgb': layer.color === '#f97316' ? '249,115,22' : layer.color === '#eab308' ? '234,179,8' : '168,85,247'
+                        } as React.CSSProperties}
+                        title={layer.label}
+                    >
+                        <Icon size={14} style={{ color: isActive ? layer.color : undefined }} />
+                    </motion.button>
+                );
+            })}
+        </div>
+    );
+};
+
 const GlobalStatusBar: React.FC = () => {
     const { 
         kernel, knowledge, toggleKnowledgeLayer, system,
         isScrubberOpen, setScrubberOpen,
         isDiagnosticsOpen, setDiagnosticsOpen,
-        collaboration, setCollabState
+        collaboration, setCollabState,
+        addLog
     } = useAppStore();
     const { execute, state: agentState } = useAgentRuntime();
     const [input, setInput] = useState('');
     const [driveHealth, setDriveHealth] = useState(99);
     
-    const activeLayers = knowledge.activeLayers || [];
     const errorCount = system.logs.filter((l: any) => l.level === 'ERROR').length;
     const peerCount = collaboration.peers.length;
 
@@ -56,7 +109,6 @@ const GlobalStatusBar: React.FC = () => {
         <div className="fixed bottom-4 left-4 right-4 z-[150] flex items-center pointer-events-none">
             <div className="flex-1 flex items-center justify-between px-6 py-2.5 bg-black/85 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-[0_25px_60px_rgba(0,0,0,0.9)] pointer-events-auto select-none overflow-hidden relative">
                 
-                {/* Global Scanline Overlay */}
                 <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.3)_50%),linear-gradient(90deg,rgba(255,0,0,0.08),rgba(0,255,0,0.03),rgba(0,0,255,0.08))] z-0 bg-[length:100%_2px,2px_100%]" />
 
                 {/* LEFT: KERNEL HUD */}
@@ -83,7 +135,6 @@ const GlobalStatusBar: React.FC = () => {
                 {/* CENTER: INTENT SPACEBAR */}
                 <div className="flex-1 flex justify-center px-10 relative z-10">
                     <div className="w-full max-w-[500px] relative group">
-                        {/* Circulating Loop Border Animation (Animated Border) */}
                         <div className="absolute -inset-[1px] rounded-xl overflow-hidden pointer-events-none">
                             <motion.div 
                                 animate={{ rotate: 360 }}
@@ -107,13 +158,6 @@ const GlobalStatusBar: React.FC = () => {
                                     placeholder={agentState.isThinking ? "NEGOTIATING..." : "ENTER INTENT SEQUENCE..."}
                                     className="w-full bg-transparent border-none outline-none text-[11px] font-mono text-white placeholder:text-gray-800 uppercase tracking-[0.3em]"
                                 />
-                                {agentState.isThinking && (
-                                    <motion.div 
-                                        initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
-                                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
-                                        className="absolute -bottom-1.5 left-0 h-[1px] w-full bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent origin-center"
-                                    />
-                                )}
                             </div>
                             <button type="submit" disabled={!input || agentState.isThinking} className={`p-1.5 transition-all ${!input || agentState.isThinking ? 'opacity-0' : 'opacity-100 text-[#9d4edd]'}`}>
                                 <ArrowRight size={18} />
@@ -124,7 +168,6 @@ const GlobalStatusBar: React.FC = () => {
 
                 {/* RIGHT: NAVIGATION & TEMPORAL */}
                 <div className="flex items-center gap-4 pl-6 border-l border-white/5 shrink-0 relative z-10">
-                    {/* Peer Swarm Indicator */}
                     <button 
                         onClick={() => setCollabState({ isOverlayOpen: !collaboration.isOverlayOpen })}
                         className={`group flex items-center gap-3 px-3 py-1.5 rounded-xl border transition-all ${collaboration.isOverlayOpen ? 'bg-[#22d3ee] text-black border-[#22d3ee]' : 'bg-white/5 border-white/10 hover:border-[#22d3ee]/40'}`}
@@ -138,34 +181,14 @@ const GlobalStatusBar: React.FC = () => {
                         </span>
                     </button>
 
-                    <div className="flex items-center gap-1.5">
-                        {Object.values(KNOWLEDGE_LAYERS).map((layer) => {
-                            const isActive = activeLayers.includes(layer.id);
-                            // @ts-ignore
-                            const Icon = Icons[layer.icon] || Icons.Layers;
-                            return (
-                                <motion.button
-                                    key={layer.id}
-                                    onClick={() => toggleKnowledgeLayer(layer.id)}
-                                    whileHover={{ y: -1 }}
-                                    whileTap={{ scale: 0.95 }}
-                                    className={`
-                                        flex items-center justify-center w-9 h-9 rounded-xl border transition-all duration-300
-                                        ${isActive 
-                                            ? 'bg-white/5 border-[var(--layer-color)] text-white shadow-[0_0_10px_rgba(var(--layer-rgb),0.3)]' 
-                                            : 'bg-transparent border-transparent text-gray-600 hover:text-gray-400'}
-                                    `}
-                                    style={{ 
-                                        '--layer-color': layer.color,
-                                        '--layer-rgb': layer.color === '#f97316' ? '249,115,22' : layer.color === '#eab308' ? '234,179,8' : '168,85,247'
-                                    } as React.CSSProperties}
-                                    title={layer.label}
-                                >
-                                    <Icon size={14} style={{ color: isActive ? layer.color : undefined }} />
-                                </motion.button>
-                            );
-                        })}
-                    </div>
+                    {/* Knowledge Layers: Suspenseful non-blocking fetch */}
+                    <Suspense fallback={
+                        <div className="flex items-center justify-center w-24 h-9 bg-black/40 rounded-xl border border-white/5">
+                            <Loader2 size={12} className="text-[#9d4edd] animate-spin" />
+                        </div>
+                    }>
+                        <LayerControlMesh />
+                    </Suspense>
 
                     <div className="flex items-center gap-2">
                         <button 

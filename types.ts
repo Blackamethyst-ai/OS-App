@@ -177,9 +177,7 @@ export interface KnowledgeNode {
     connections: string[];
     strength: number;
     color?: string;
-    // Changed to any to allow complex objects like ArtifactAnalysis without explicit Record indexing errors
     data?: any; 
-    // Added artifactRef to support graph-to-vault interaction
     artifactRef?: any;
 }
 
@@ -435,4 +433,15 @@ export interface SwarmEvent {
     action: string;
     target?: string;
     timestamp: number;
+}
+
+export interface KnowledgeLayer {
+    id: string;
+    label: string;
+    icon: string;
+    color: string;
+    description: string;
+    systemInstruction: string;
+    memoryTags: string[];
+    activeModes: AppMode[];
 }
