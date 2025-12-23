@@ -16,14 +16,15 @@ const ResearchTray: React.FC = () => {
     React.useEffect(() => { if (activeTasks.length > 0) setIsExpanded(true); }, [activeTasks.length]);
 
     const handleBranch = (fact: string, parentId: string) => {
-        const newQuery = `Deep investigation into: ${fact.substring(0, 50)}...`;
+        const safeFact = fact || 'Unknown Finding';
+        const newQuery = `Deep investigation into: ${safeFact.substring(0, 50)}...`;
         addLog('SUCCESS', `LATTICE_BRANCH: New investigation initialized from finding.`);
         addResearchTask({
             id: crypto.randomUUID(),
             query: newQuery,
             status: 'QUEUED',
             progress: 0,
-            logs: [`Branched from Task ID: ${parentId.substring(0, 8)}`],
+            logs: [`Branched from Task ID: ${(parentId || '').substring(0, 8)}`],
             timestamp: Date.now()
         });
         audio.playTransition();
@@ -67,7 +68,7 @@ const ResearchTray: React.FC = () => {
                                                 <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} className="mt-3 pt-3 border-t border-[#222] space-y-2 overflow-hidden">
                                                     {task.findings.slice(0, 3).map((f: any, i: number) => (
                                                         <button key={i} onClick={() => handleBranch(f.fact, task.id)} className="w-full text-left p-2 rounded bg-black border border-[#222] hover:border-[#9d4edd] transition-all group">
-                                                            <p className="text-[9px] text-gray-400 font-mono line-clamp-2 italic">"{f.fact}"</p>
+                                                            <p className="text-[9px] text-gray-400 font-mono line-clamp-2 italic">"{f.fact || 'Empty data point'}"</p>
                                                             <div className="mt-1 text-[7px] text-[#9d4edd] opacity-0 group-hover:opacity-100 flex items-center gap-1 font-black uppercase tracking-widest"><Sparkles size={8}/> Branch This Vector</div>
                                                         </button>
                                                     ))}

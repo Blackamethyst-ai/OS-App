@@ -107,7 +107,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
             simulationNodes.forEach(n => {
                 const isSelected = selectedNodeId === n.id;
                 const isHovered = hoveredNodeId === n.id;
-                const isMatch = searchTerm && n.label.toLowerCase().includes(searchTerm.toLowerCase());
+                const isMatch = searchTerm && (n.label || '').toLowerCase().includes(searchTerm.toLowerCase());
                 const radius = isSelected ? 8 : (isHovered || isMatch) ? 6 : 4;
                 
                 ctx.globalAlpha = (searchTerm && !isMatch && !isSelected) ? 0.2 : 1;
@@ -122,7 +122,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
                     ctx.font = '10px Fira Code';
                     ctx.fillStyle = isMatch ? '#22d3ee' : '#fff';
                     ctx.textAlign = 'center';
-                    ctx.fillText(n.label, n.x, n.y - 12);
+                    ctx.fillText(n.label || 'Node', n.x, n.y - 12);
                 }
             });
 
@@ -159,16 +159,16 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
 
     const handleBranch = () => {
         if (!activeNode) return;
-        const query = `Strategic investigation: ${activeNode.label}. Analyze its structural impact on the current lattice.`;
+        const query = `Strategic investigation: ${activeNode.label || 'Logic Node'}. Analyze its structural impact on the current lattice.`;
         addResearchTask({
             id: crypto.randomUUID(),
             query,
             status: 'QUEUED',
             progress: 0,
-            logs: [`Branched from knowledge node: ${activeNode.id}`],
+            logs: [`Branched from knowledge node: ${activeNode.id || 'Unknown'}`],
             timestamp: Date.now()
         });
-        addLog('SUCCESS', `LATTICE_BRANCH: Spawning new research for node "${activeNode.label}"`);
+        addLog('SUCCESS', `LATTICE_BRANCH: Spawning new research for node "${activeNode.label || 'Node'}"`);
         setSelectedNodeId(null);
     };
 
@@ -219,7 +219,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
                                 <h4 className="text-sm font-bold text-white font-mono uppercase truncate mb-1">
                                     {activeNode.label}
                                 </h4>
-                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">{activeNode.id.split('-')[0]}</span>
+                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">{(activeNode.id || '').split('-')[0]}</span>
                             </div>
                             <button onClick={() => setSelectedNodeId(null)} className="text-gray-500 hover:text-white">
                                 <X size={16} />
