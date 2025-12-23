@@ -3,56 +3,39 @@ import { FileData, SyntheticPersona, DebateTurn, SimulationReport, MentalState }
 import { HIVE_AGENTS, constructHiveContext, retryGeminiRequest } from './geminiService';
 
 // 1. GENESIS: Select Hive Agents relevant to the content
-// Instead of random generation, we pick from the Hive Registry and contextualize them.
 export async function generatePersonas(file: FileData): Promise<SyntheticPersona[]> {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        
-        // We select 3 archetypes from the Hive that best fit a debate
         const selection = [
             HIVE_AGENTS['Charon'], // Skeptic
             HIVE_AGENTS['Puck'],   // Visionary
             HIVE_AGENTS['Fenrir']  // Pragmatist
         ];
 
-        // Map to SyntheticPersona format
         const colors: Record<string, string> = {
-            'Charon': '#ef4444', // Red
-            'Puck': '#9d4edd',   // Purple
-            'Fenrir': '#22d3ee', // Cyan
+            'Charon': '#ef4444',
+            'Puck': '#9d4edd',
+            'Fenrir': '#22d3ee',
         };
 
-        const roleMap: Record<string, string> = {
-            'Charon': 'SKEPTIC',
-            'Puck': 'VISIONARY',
-            'Fenrir': 'PRAGMATIST'
-        };
-
-        return selection.map((agent, i) => {
+        return selection.map((agent) => {
             let mindset: MentalState = { skepticism: 50, excitement: 50, alignment: 50 };
-            
-            // Initial mindset based on weights
             if (agent.weights.skepticism > 0.7) mindset.skepticism = 90;
             if (agent.weights.creativity > 0.7) mindset.excitement = 90;
             if (agent.weights.empathy > 0.7) mindset.alignment = 80;
 
-            // Construct the Hive-Aware System Prompt
-            // We strip the "You are X" part from the helper because we'll inject context later per turn
-            // But here we need to store the base identity
-            
             return {
                 id: agent.id,
                 name: agent.name,
-                role: roleMap[agent.id] || 'AGENT',
+                role: agent.id.toUpperCase(),
                 bias: `Weights: Logic ${agent.weights.logic}, Skepticism ${agent.weights.skepticism}`,
-                systemPrompt: agent.systemPrompt, // Base prompt
+                systemPrompt: agent.systemPrompt,
                 avatar_color: colors[agent.id] || '#fff',
                 currentMindset: mindset,
                 voiceName: agent.voice
             };
         });
     } catch (error: any) {
-        console.error("Agora Service Error in generatePersonas:", error);
+        console.error("Agora Service GENESIS Error:", error);
         throw new Error(error.message || "Failed to generate personas.");
     }
 }
@@ -66,8 +49,6 @@ export async function runDebateTurn(
 ): Promise<DebateTurn> {
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-        
-        // Construct the "Script" so far
         const script = history.slice(-5).map(h => `${h.personaId === activePersona.id ? 'YOU' : 'OTHER'}: ${h.text}`).join('\n');
 
         const schema: Schema = {
@@ -77,47 +58,30 @@ export async function runDebateTurn(
                 mindset_shift: {
                     type: Type.OBJECT,
                     properties: {
-                        skepticism: { type: Type.NUMBER, description: "0-100" },
-                        excitement: { type: Type.NUMBER, description: "0-100" },
-                        alignment: { type: Type.NUMBER, description: "0-100" }
+                        skepticism: { type: Type.NUMBER },
+                        excitement: { type: Type.NUMBER },
+                        alignment: { type: Type.NUMBER }
                     }
                 }
             },
             required: ['response_text', 'mindset_shift']
         };
 
-        // --- HIVE MIND INJECTION ---
-        // We use the helper to ensure this agent shares the collective context but speaks with their own weights.
         const hiveContext = constructHiveContext(activePersona.id, `
-            CURRENT MENTAL STATE:
-            Skepticism: ${activePersona.currentMindset.skepticism}
-            Excitement: ${activePersona.currentMindset.excitement}
-            Alignment: ${activePersona.currentMindset.alignment}
-
-            RECENT CONVERSATION:
+            CURRENT MENTAL STATE: S=${activePersona.currentMindset.skepticism}, E=${activePersona.currentMindset.excitement}, A=${activePersona.currentMindset.alignment}
+            CONTEXT DOCUMENT ATTACHED.
+            TASK: Evaluate the architectural integrity of the proposal. If it involves drive organization, look for PARA depth violations. If system arch, look for centralization risks.
+            CONVERSATION HISTORY:
             ${script}
-            
-            CONTEXT DOCUMENT IS ATTACHED.
         `);
 
-        let prompt = `
-            ${hiveContext}
-
-            TASK:
-            1. Read the recent points.
-            2. Respond to the group (keep it under 40 words, punchy and realistic).
-            3. Output your NEW mental state scores (0-100) based on this interaction.
-        `;
-
-        if (godModeDirective) {
-            prompt += `\n\n*** SYSTEM OVERRIDE INSTRUCTION (SECRET WHISPER): ${godModeDirective} ***\nThis directive takes priority over your previous bias. Act on it immediately but subtly.`;
-        }
+        let prompt = `${hiveContext}\nKeep response under 40 words.`;
+        if (godModeDirective) prompt += `\n\nDIRECTIVE OVERRIDE: ${godModeDirective}`;
 
         const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-            // Use gemini-3-flash-preview for specialized conversational agents.
             model: 'gemini-3-flash-preview',
             contents: {
-                parts: [contextFile, { text: prompt }]
+                parts: [{ inlineData: contextFile.inlineData }, { text: prompt }]
             },
             config: {
                 responseMimeType: 'application/json',
@@ -126,22 +90,21 @@ export async function runDebateTurn(
         }));
 
         const data = JSON.parse(response.text || "{}");
-
         return {
             id: crypto.randomUUID(),
             personaId: activePersona.id,
             text: data.response_text || "...",
             timestamp: Date.now(),
-            sentiment: 'NEUTRAL', // Placeholder
+            sentiment: 'NEUTRAL',
             newMindset: data.mindset_shift
         };
     } catch (error: any) {
-        console.error("Agora Service Error in runDebateTurn:", error);
+        console.error("Agora Service TURN Error:", error);
         throw new Error(error.message || "Debate turn failed.");
     }
 }
 
-// 3. SYNTHESIS: Generate the Friction Report with Action Learning
+// 3. SYNTHESIS: Generate the Friction Report
 export async function synthesizeReport(history: DebateTurn[]): Promise<SimulationReport> {
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -151,7 +114,7 @@ export async function synthesizeReport(history: DebateTurn[]): Promise<Simulatio
             type: Type.OBJECT,
             properties: {
                 viabilityScore: { type: Type.NUMBER },
-                projectedUpside: { type: Type.NUMBER, description: "Potential score increase if fixes are applied" },
+                projectedUpside: { type: Type.NUMBER },
                 consensus: { type: Type.STRING },
                 majorFrictionPoints: { type: Type.ARRAY, items: { type: Type.STRING } },
                 actionableFixes: { type: Type.ARRAY, items: { type: Type.STRING } }
@@ -159,18 +122,8 @@ export async function synthesizeReport(history: DebateTurn[]): Promise<Simulatio
         };
 
         const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-            // Use gemini-3-flash-preview for reporting and logic analysis.
             model: 'gemini-3-flash-preview',
-            contents: `
-            Analyze this debate transcript.
-            
-            1. CALCULATE VIABILITY: 0-100 score based on agent consensus.
-            2. EXTRACT FRICTION: What specifically did the Skeptics hate?
-            3. PROPOSE ACTION LEARNING: Identify specific "Experiments" or "Fixes" to resolve the conflict.
-            4. ESTIMATE UPSIDE: If these fixes works, how much would the score improve (0-50)?
-            
-            Transcript:
-            ${script}`,
+            contents: `Synthesize report from this debate transcript. Focus on structural friction.\n\nTranscript:\n${script}`,
             config: {
                 responseMimeType: 'application/json',
                 responseSchema: schema
@@ -179,7 +132,7 @@ export async function synthesizeReport(history: DebateTurn[]): Promise<Simulatio
 
         return JSON.parse(response.text || "{}");
     } catch (error: any) {
-        console.error("Agora Service Error in synthesizeReport:", error);
+        console.error("Agora Service SYNTHESIS Error:", error);
         throw new Error(error.message || "Report synthesis failed.");
     }
 }

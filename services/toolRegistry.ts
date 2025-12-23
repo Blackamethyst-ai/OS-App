@@ -1,4 +1,3 @@
-
 import { AppMode, ToolResult, TaskPriority } from '../types';
 import { useAppStore } from '../store';
 import { generateStructuredWorkflow, searchGroundedIntel, convergeStrategicLattices } from './geminiService';
@@ -17,29 +16,29 @@ export const OS_TOOLS = {
         
         try {
             const domainContext = args.type === 'DRIVE_ORGANIZATION' 
-                ? "Focus on file management workflows, naming conventions, and PARA-based directory structures." 
+                ? "Generate a high-fidelity PARA drive structure. Include naming conventions (e.g. ISO 8601), strict directory depths (max 3), and specific folder mappings for Projects, Areas, Resources, and Archives. Prioritize deduplication and logic-based metadata tagging." 
                 : args.type === 'SYSTEM_ARCHITECTURE'
-                ? "Focus on high-availability, low-latency, and zero-trust security layers."
+                ? "Generate a high-availability cloud-native architecture. Include zero-trust security layers, mTLS handshake nodes, and asynchronous message queue clusters. Prioritize scalability and failover reliability indices."
                 : args.type === 'CONVERGENT_SYNTHESIS'
-                ? "Identify overlaps between existing lattices and forge unified directives."
-                : "Focus on swarm consensus and autonomous agency.";
+                ? "Identify strategic intersections between digital strategy lattices and physical resource availability. Bridge disparate lattices into a single deployment directive."
+                : "Focus on swarm consensus and autonomous agentic delegation.";
 
             const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', args.type, { 
-                prompt: `${args.description} | CONTEXT: ${domainContext}` 
+                prompt: `${args.description} | DOMAIN_GUIDANCE: ${domainContext}` 
             });
             
             setProcessState({ 
                 generatedWorkflow: workflow, 
-                activeTab: 'workflow',
+                activeTab: args.type === 'DRIVE_ORGANIZATION' ? 'vault' : 'workflow',
                 workflowType: args.type,
-                coherenceScore: workflow.coherenceScore || 80
+                coherenceScore: workflow.coherenceScore || 85
             });
 
             return {
                 toolName: 'architect_generate_process',
                 status: 'SUCCESS',
                 data: { 
-                    message: `Lattice for ${args.type} crystallized. Transitioning to Protocol Loom.`,
+                    message: `Lattice for ${args.type} crystallized. Coherence indexed at ${workflow.coherenceScore}%.`,
                     folders: workflow.taxonomy?.root?.map((r: any) => r.folder),
                     coherence: workflow.coherenceScore
                 },
@@ -60,7 +59,6 @@ export const OS_TOOLS = {
         addLog('SYSTEM', `CONVERGENCE: Orchestrating multi-lattice synthesis for "${args.targetGoal}"...`);
         
         try {
-            // Take top 3 recent artifacts/nodes for context
             const contextNodes = process.nodes.slice(-3);
             const result = await convergeStrategicLattices(contextNodes, args.targetGoal);
             
@@ -150,29 +148,6 @@ export const OS_TOOLS = {
             toolName: 'system_navigate',
             status: 'ERROR',
             data: { error: `Sector ${args.target} not found in lattice.` }
-        };
-    },
-
-    ethers_balance_check: async (args: { address: string }): Promise<ToolResult> => {
-        return {
-            toolName: 'ethers_balance_check',
-            status: 'SUCCESS',
-            data: { address: args.address, eth: '124.52', usd: '$254,120.00' },
-            uiHint: 'STAT'
-        };
-    },
-
-    github_repo_scan: async (args: { repo: string }): Promise<ToolResult> => {
-        return {
-            toolName: 'github_repo_scan',
-            status: 'SUCCESS',
-            data: {
-                repo: args.repo,
-                vulnerabilities: 0,
-                active_branches: 12,
-                last_deployment: '4 mins ago'
-            },
-            uiHint: 'STAT'
         };
     }
 };
