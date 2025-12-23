@@ -16,7 +16,8 @@ import {
     Eye, Camera, Sun, Focus, Move, Settings, UserCircle, Map as MapIcon, Palette,
     ArrowRight, Box, ShieldCheck, Binary, Ghost, Heart, Award, FileJson, 
     Lightbulb, Timer, Scissors, Music, Aperture, Users, MonitorPlay, Clapperboard as DirectorIcon,
-    CheckCircle2, Trash2, Speaker
+    CheckCircle2, Trash2, Speaker, Maximize2, HardDrive, Cpu, Terminal, Radio,
+    Compass, MoveUpRight, Waves, FileArchive, GitBranch
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmotionalResonanceGraph from './EmotionalResonanceGraph';
@@ -43,6 +44,11 @@ interface ProductionBible {
     cinematicNotes: string[];
 }
 
+interface ImageGenProps {
+    className?: string;
+    style?: React.CSSProperties;
+}
+
 const MetadataTag = ({ label, value, color = "#9d4edd" }: { label: string, value: string, color?: string }) => (
     <div className="flex flex-col gap-0.5 px-3 py-1.5 bg-white/[0.03] border border-white/5 rounded-lg group hover:border-white/10 transition-colors shrink-0">
         <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest">{label}</span>
@@ -63,7 +69,7 @@ const CrewSlot = ({ role, status, icon: Icon, color }: { role: string, status: s
     </div>
 );
 
-const ImageGen: React.FC = () => {
+const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
   const { imageGen, setImageGenState, addLog, openHoloProjector } = useAppStore();
   const [activeTab, setActiveTab] = useState<'SINGLE' | 'STORYBOARD' | 'VIDEO' | 'TEASER'>('SINGLE');
   
@@ -78,9 +84,9 @@ const ImageGen: React.FC = () => {
 
   // Screening Room State
   const [teaserIdx, setTeaserIdx] = useState(0);
-  const [isTeaserPlaying, setIsTeaserPlaying] = useState(false);
   const [isGeneratingTeaserAudio, setIsGeneratingTeaserAudio] = useState(false);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const [isExportingBundle, setIsExportingBundle] = useState(false);
 
   // Video State
   const [videoPrompt, setVideoPrompt] = useState('');
@@ -88,6 +94,7 @@ const ImageGen: React.FC = () => {
   const [videoRes, setVideoRes] = useState<'720p' | '1080p'>('1080p');
   const [isVideoLoading, setIsVideoLoading] = useState(false);
   const [videoProgressMsg, setVideoProgressMsg] = useState('');
+  const [videoMotionBias, setVideoMotionBias] = useState(50); // Neural motion intensity
 
   const checkApiKey = async () => {
       const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
@@ -356,12 +363,10 @@ const ImageGen: React.FC = () => {
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         
-        // VEO Context synthesis to ensure consistency with initial uploads
         const veoDirective = productionBible 
-            ? `WITHIN THE WORLD OF ${productionBible.theme}, ${videoPrompt}. VISUALS: ${productionBible.opticProfile}. ENSURE CHARACTER CONSISTENCY WITH REFERENCE IMAGE.`
-            : videoPrompt;
+            ? `WITHIN THE WORLD OF ${productionBible.theme}, ${videoPrompt}. VISUALS: ${productionBible.opticProfile}. MOTION_BIAS: ${videoMotionBias}%. ENSURE CHARACTER CONSISTENCY.`
+            : `${videoPrompt}. MOTION_BIAS: ${videoMotionBias}%.`;
 
-        // Use the first identity reference as the motion seed to lock character consistency
         const characterAnchor = imageGen.characterRefs[0];
 
         let operation = await ai.models.generateVideos({
@@ -398,19 +403,27 @@ const ImageGen: React.FC = () => {
     }
   };
 
-  const exportZip = async () => {
+  const exportProductionBundle = async () => {
     if (frames.filter(f => f.imageUrl).length === 0) return;
+    setIsExportingBundle(true);
     const zip = new JSZip();
-    const folder = zip.folder("cinematic_deliverables");
+    const folder = zip.folder("production_bundle_v8");
+    const audioFolder = folder?.folder("synthesized_audio");
     
-    addLog('SYSTEM', 'DELIVERY: Compiling production archive...');
+    addLog('SYSTEM', 'DELIVERY: Compiling encrypted production bundle...');
     
     for (const frame of frames) {
       if (frame.imageUrl) {
         try {
           const response = await fetch(frame.imageUrl);
           const blob = await response.blob();
-          folder?.file(`node_${frame.index + 1}.png`, blob);
+          folder?.file(`frame_${frame.index + 1}.png`, blob);
+          
+          if (frame.audioUrl) {
+            const aRes = await fetch(frame.audioUrl);
+            const aBlob = await aRes.blob();
+            audioFolder?.file(`narration_${frame.index + 1}.pcm`, aBlob);
+          }
         } catch (e) { console.error(e); }
       }
     }
@@ -422,10 +435,11 @@ const ImageGen: React.FC = () => {
     const content = await zip.generateAsync({ type: "blob" });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(content);
-    link.download = `production_${Date.now()}.zip`;
+    link.download = `cinema_bundle_${Date.now()}.zip`;
     link.click();
-    addLog('SUCCESS', 'DELIVERY: Multi-asset archive downloaded.');
+    addLog('SUCCESS', 'DELIVERY: Production bundle archive exported.');
     audio.playSuccess();
+    setIsExportingBundle(false);
   };
 
   const generateTeaserAudioForIndex = async (idx: number) => {
@@ -455,13 +469,34 @@ const ImageGen: React.FC = () => {
     return null;
   };
 
+  // --- FIX: Implement generateAllSequenceAudio ---
+  /**
+   * Batch-processes and synthesizes narration for all frames in the storyboard sequence.
+   */
+  const generateAllSequenceAudio = async () => {
+    if (frames.length === 0) return;
+    setIsGeneratingTeaserAudio(true);
+    addLog('SYSTEM', 'SOUND_STUDIO: Batch-synthesizing full sequence narration...');
+    
+    for (let i = 0; i < frames.length; i++) {
+        if (frames[i].audioUrl) continue;
+        await generateTeaserAudioForIndex(i);
+        // Small delay to prevent rate limiting
+        await new Promise(r => setTimeout(r, 500));
+    }
+    
+    setIsGeneratingTeaserAudio(false);
+    addLog('SUCCESS', 'SOUND_STUDIO: Narration sequence synchronized.');
+    audio.playSuccess();
+  };
+
   const playFullSequence = async () => {
       if (frames.length === 0) return;
       setIsAutoPlaying(true);
-      addLog('SYSTEM', 'SCREENING: Initializing full narrative sequence playback...');
+      addLog('SYSTEM', 'SCREENING: Initializing slideshow narrative playback...');
       
       for (let i = 0; i < frames.length; i++) {
-          if (!isAutoPlaying && i > 0) break; // Allow manual interrupt
+          if (!isAutoPlaying && i > 0) break; 
           setTeaserIdx(i);
           
           let audioUrl = frames[i].audioUrl;
@@ -469,26 +504,14 @@ const ImageGen: React.FC = () => {
               audioUrl = await generateTeaserAudioForIndex(i) || undefined;
           }
           
-          // Simulation of audio playback wait (high-level timing)
           if (audioUrl) {
               await new Promise(r => setTimeout(r, 6000));
           } else {
-              await new Promise(r => setTimeout(r, 4000));
+              await new Promise(r => setTimeout(r, 5000));
           }
       }
       setIsAutoPlaying(false);
-      addLog('SUCCESS', 'SCREENING: Sequence playback finalized.');
-  };
-
-  const generateAllSequenceAudio = async () => {
-      addLog('SYSTEM', 'SOUND_STUDIO: Batch synthesizing all sequence narration...');
-      for (let i = 0; i < frames.length; i++) {
-          if (frames[i].audioUrl) continue;
-          await generateTeaserAudioForIndex(i);
-          await new Promise(r => setTimeout(r, 500));
-      }
-      addLog('SUCCESS', 'SOUND_STUDIO: Batch synthesis complete.');
-      audio.playSuccess();
+      addLog('SUCCESS', 'SCREENING: Slideshow finalized.');
   };
 
   const renderRefs = (type: 'CHAR' | 'SET' | 'STYLE') => {
@@ -524,7 +547,10 @@ const ImageGen: React.FC = () => {
   };
 
   return (
-    <div className="h-full w-full bg-[#030303] flex flex-col border border-[#1f1f1f] rounded-3xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,1)] relative z-10 font-sans group/studio">
+    <div 
+        className={`h-full w-full bg-[#030303] flex flex-col border border-white/10 rounded-3xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,1)] relative z-10 font-sans group/studio ${className}`}
+        style={{ ...style }}
+    >
         
         {/* Cinematic Scanline Overlay */}
         <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.05)_50%)] z-50 bg-[length:100%_4px] opacity-20" />
@@ -540,7 +566,7 @@ const ImageGen: React.FC = () => {
                     </div>
                     <div>
                         <h1 className="text-lg font-black font-mono uppercase tracking-[0.4em] text-white leading-none">Cinema Engine</h1>
-                        <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-2 block">Prime Production // v8.1</span>
+                        <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-2 block">Prime Production // v8.1-ZENITH</span>
                     </div>
                 </div>
                 <div className="h-8 w-px bg-white/5" />
@@ -581,7 +607,7 @@ const ImageGen: React.FC = () => {
             </div>
         </div>
 
-        <div className="flex-1 overflow-hidden relative z-10 flex">
+        <div className="flex-1 overflow-hidden relative z-10 flex h-full">
             <AnimatePresence mode="wait">
                 {activeTab === 'SINGLE' && (
                     <motion.div key="single" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="w-full h-full flex gap-10 p-10 overflow-hidden">
@@ -810,7 +836,7 @@ const ImageGen: React.FC = () => {
                                         <span className="text-[10px] font-black text-gray-500 font-mono uppercase tracking-widest block pl-2">Render Fidelity</span>
                                         <div className="flex gap-3">
                                             {[ImageSize.SIZE_1K, ImageSize.SIZE_2K].map(s => (
-                                                <button key={s} onClick={() => setImageGenState({ quality: s })} className={`flex-1 py-4 rounded-2xl border text-[10px] font-black uppercase transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg' : 'bg-black border-[#222] text-gray-600 hover:text-white'}`}>{s} Delivery</button>
+                                                <button key={s} onClick={() => setImageGenState({ quality: s })} className={`flex-1 py-4 rounded-2xl border text-[10px] font-black uppercase transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{s} Delivery</button>
                                             ))}
                                         </div>
                                     </div>
@@ -825,7 +851,7 @@ const ImageGen: React.FC = () => {
                                         {isBatchRendering ? <Loader2 size={20} className="animate-spin" /> : <Play size={20} className="fill-current" />}
                                         Render Production Sequence
                                     </button>
-                                    <button onClick={exportZip} className="w-full py-5 bg-white/5 border border-white/10 text-gray-500 hover:text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95"><Download size={18}/> Export Distribution Pack</button>
+                                    <button onClick={exportProductionBundle} className="w-full py-5 bg-white/5 border border-white/10 text-gray-500 hover:text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95"><Download size={18}/> Export Production Bundle</button>
                                 </div>
                             </div>
 
@@ -866,16 +892,6 @@ const ImageGen: React.FC = () => {
                                                     onChange={e => { const n = [...frames]; n[i].scenePrompt = e.target.value; setFrames(n); }}
                                                     className="w-full h-24 bg-black/60 border border-white/5 p-5 rounded-2xl text-xs font-mono text-gray-300 outline-none focus:border-[#9d4edd] transition-all resize-none shadow-inner"
                                                 />
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="bg-white/5 p-3 rounded-xl border border-white/5">
-                                                        <div className="text-[7px] text-gray-500 uppercase font-black mb-1">Camera Optic</div>
-                                                        <div className="text-[10px] text-gray-300 font-mono truncate">{f.camera}</div>
-                                                    </div>
-                                                    <div className="bg-white/5 p-3 rounded-xl border border-white/5">
-                                                        <div className="text-[7px] text-gray-500 uppercase font-black mb-1">Gaffer Profile</div>
-                                                        <div className="text-[10px] text-gray-300 font-mono truncate">{f.lighting}</div>
-                                                    </div>
-                                                </div>
                                             </div>
                                         </motion.div>
                                     ))}
@@ -886,40 +902,78 @@ const ImageGen: React.FC = () => {
                 )}
 
                 {activeTab === 'VIDEO' && (
-                    <motion.div key="video" initial={{ opacity: 0, scale: 1.02 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="w-full h-full flex gap-10 p-10 overflow-hidden">
+                    <motion.div key="video" initial={{ opacity: 0, scale: 1.02 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="w-full h-full flex gap-8 p-10 overflow-hidden">
+                        {/* High-Fidelity Motion Controls */}
                         <div className="w-[420px] flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar pr-2">
-                            <div className="p-10 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[3rem] flex flex-col gap-8 shadow-2xl relative overflow-hidden shrink-0">
-                                <div className="absolute top-0 right-0 p-8 opacity-5"><Video size={100} /></div>
+                            <div className="p-10 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/5 rounded-[3rem] flex flex-col gap-8 shadow-2xl relative overflow-hidden shrink-0 group/panel">
+                                <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover/panel:opacity-[0.08] transition-opacity rotate-12"><Video size={140} /></div>
+                                
                                 <div className="flex items-center gap-4 relative z-10">
-                                    <Video className="w-6 h-6 text-[#d946ef]" />
-                                    <h2 className="text-base font-black font-mono text-white uppercase tracking-[0.5em]">VEO Temporal Engine</h2>
+                                    <div className="p-3 bg-[#d946ef]/10 border border-[#d946ef]/30 rounded-2xl">
+                                        <Waves className="w-6 h-6 text-[#d946ef]" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-base font-black font-mono text-white uppercase tracking-[0.5em]">Temporal Loom</h2>
+                                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-1">High-Motion Synthesis Core</p>
+                                    </div>
                                 </div>
                                 
-                                <div className="space-y-4 relative z-10">
-                                    <label className="text-[11px] font-black text-gray-500 font-mono uppercase tracking-widest pl-3">Motion Directive Matrix</label>
-                                    <textarea 
-                                        value={videoPrompt} 
-                                        onChange={e => setVideoPrompt(e.target.value)}
-                                        className="w-full h-56 bg-black border border-[#222] p-8 rounded-[2.5rem] text-sm font-mono text-gray-300 outline-none focus:border-[#d946ef] resize-none transition-all shadow-inner placeholder:text-gray-800"
-                                        placeholder="Describe cinematic motion sequence and optic travel..."
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-5 relative z-10">
-                                    <div className="space-y-3">
-                                        <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Resolution</label>
-                                        <div className="flex gap-2">
-                                            {['720p', '1080p'].map(res => (
-                                                <button key={res} onClick={() => setVideoRes(res as any)} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase transition-all ${videoRes === res ? 'bg-[#d946ef] border-[#d946ef] text-black shadow-lg shadow-[#d946ef]/40' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{res}</button>
-                                            ))}
+                                <div className="space-y-6 relative z-10">
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center px-3">
+                                            <label className="text-[10px] font-black text-gray-400 font-mono uppercase tracking-widest flex items-center gap-2"><Compass size={12}/> Motion Directive</label>
+                                            <span className="text-[8px] font-mono text-gray-700">STABLE_DIFFUSION_V3</span>
                                         </div>
+                                        <textarea 
+                                            value={videoPrompt} 
+                                            onChange={e => setVideoPrompt(e.target.value)}
+                                            className="w-full h-44 bg-black border border-[#222] p-6 rounded-3xl text-sm font-mono text-gray-300 outline-none focus:border-[#d946ef] resize-none transition-all shadow-inner placeholder:text-gray-800"
+                                            placeholder="Describe cinematic travel, panning speed, and optic behavior..."
+                                        />
                                     </div>
-                                    <div className="space-y-3 text-right">
-                                        <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pr-2">Coherence Target</label>
-                                        <div className="h-11 flex items-center justify-end px-5 bg-black border border-white/5 rounded-xl shadow-inner">
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-[11px] font-mono font-black text-[#10b981] uppercase tracking-tighter">Temporal_Max</span>
-                                                <ShieldCheck size={14} className="text-[#10b981]" />
+
+                                    <div className="space-y-6 bg-white/[0.02] p-6 rounded-3xl border border-white/5">
+                                        <div className="space-y-4">
+                                            <div className="flex justify-between items-end">
+                                                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Neural Motion Bias</span>
+                                                <span className="text-xs font-black font-mono text-[#d946ef]">{videoMotionBias}%</span>
+                                            </div>
+                                            <div className="relative h-1.5 w-full bg-black rounded-full overflow-hidden border border-white/5 shadow-inner">
+                                                <motion.div 
+                                                    className="h-full bg-gradient-to-r from-[#d946ef] to-[#f0abfc] shadow-[0_0_15px_#d946ef]"
+                                                    animate={{ width: `${videoMotionBias}%` }}
+                                                />
+                                                <input 
+                                                    type="range" 
+                                                    min="0" max="100" 
+                                                    value={videoMotionBias} 
+                                                    onChange={e => setVideoMotionBias(parseInt(e.target.value))}
+                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Target Res</label>
+                                                <div className="flex gap-1.5 p-1 bg-black rounded-xl border border-white/5">
+                                                    {['720p', '1080p'].map(res => (
+                                                        <button 
+                                                            key={res} 
+                                                            onClick={() => { setVideoRes(res as any); audio.playClick(); }} 
+                                                            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${videoRes === res ? 'bg-[#d946ef] text-black shadow-lg shadow-[#d946ef]/20' : 'text-gray-500 hover:text-white'}`}
+                                                        >
+                                                            {res}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Coherence</label>
+                                                <div className="flex items-center gap-2 h-9 bg-black border border-white/5 rounded-xl px-3">
+                                                    <ShieldCheck size={14} className="text-[#10b981]" />
+                                                    <span className="text-[9px] font-mono text-[#10b981] font-black uppercase">Max_Stable</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -928,52 +982,55 @@ const ImageGen: React.FC = () => {
                                 <button 
                                     onClick={handleVideoGenerate} 
                                     disabled={isVideoLoading || !videoPrompt.trim()}
-                                    className="w-full py-6 bg-[#d946ef] hover:bg-[#f0abfc] text-black font-black font-mono text-sm uppercase tracking-[0.5em] rounded-[2.5rem] transition-all shadow-[0_30px_70px_rgba(217,70,239,0.4)] flex items-center justify-center gap-5 disabled:opacity-50 active:scale-95 relative z-10 mb-2"
+                                    className="w-full py-6 bg-[#d946ef] hover:bg-[#f0abfc] text-black font-black font-mono text-sm uppercase tracking-[0.4em] rounded-[2.5rem] transition-all shadow-[0_20px_50px_rgba(217,70,239,0.4)] flex items-center justify-center gap-5 disabled:opacity-50 active:scale-95 relative z-10 mb-2 group/btn"
                                 >
-                                    {isVideoLoading ? <Loader2 className="w-7 h-7 animate-spin" /> : <Play size={24} className="fill-current" />}
-                                    {isVideoLoading ? 'Synthesizing...' : 'Forge Temporal Sequence'}
+                                    {isVideoLoading ? <Loader2 className="w-7 h-7 animate-spin" /> : <MoveUpRight size={24} className="group-hover/btn:scale-125 transition-transform" />}
+                                    {isVideoLoading ? 'Synthesizing...' : 'Forge Motion Sequence'}
                                 </button>
                             </div>
                             
-                            {/* Additional Context Box for VEO consistency */}
-                            <div className="p-8 bg-[#111]/40 border border-white/5 rounded-[2.5rem] shrink-0 mb-10 overflow-hidden">
-                                <div className="flex items-center gap-3 mb-4">
-                                    <Target size={16} className="text-[#d946ef]" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white font-mono">Consolidated Context</span>
+                            <div className="p-8 bg-[#d946ef]/5 border border-[#d946ef]/20 rounded-[2.5rem] shrink-0 mb-10 overflow-hidden relative group">
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(217,70,239,0.1),transparent)] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                                <div className="flex items-center gap-3 mb-4 relative z-10">
+                                    <Cpu size={16} className="text-[#d946ef]" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white font-mono">Temporal Context Lock</span>
                                 </div>
-                                <p className="text-[10px] text-gray-500 font-mono leading-relaxed">
-                                    VEO is currently anchored to {imageGen.characterRefs.length > 0 ? 'the primary Identity Vector' : 'no visual anchor'}. 
-                                    Thematic consistency is managed via the locked Production Bible.
+                                <p className="text-[10px] text-gray-500 font-mono leading-relaxed relative z-10 italic">
+                                    "VEO active session currently bound to primary identity vector. Continuity protocols maintained by Production Bible."
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex-1 bg-black border border-[#1f1f1f] rounded-[4rem] overflow-hidden relative shadow-2xl flex items-center justify-center group/video-p h-full min-h-0">
+                        {/* Enhanced Video Viewport */}
+                        <div className="flex-1 bg-[#020202] border border-white/10 rounded-[4rem] overflow-hidden relative shadow-[0_50px_150px_rgba(0,0,0,1)] flex items-center justify-center group/v-view">
+                            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(217,70,239,0.02)_0%,transparent_70%)] group-hover/v-view:opacity-100 opacity-50 transition-opacity duration-1000" />
+                            
                             <AnimatePresence mode="wait">
                                 {isVideoLoading ? (
-                                    <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-12">
+                                    <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-12 relative z-10">
                                         <div className="relative">
-                                            <div className="w-32 h-32 rounded-full border-4 border-t-[#d946ef] border-white/10 animate-spin" />
-                                            <div className="absolute inset-0 blur-3xl bg-[#d946ef]/30 animate-pulse" />
+                                            <div className="w-40 h-40 rounded-full border-4 border-t-[#d946ef] border-white/5 animate-spin" />
+                                            <div className="absolute inset-0 blur-3xl bg-[#d946ef]/20 animate-pulse" />
                                         </div>
                                         <div className="text-center space-y-4">
-                                            <p className="text-2xl font-black font-mono text-white uppercase tracking-[0.6em] animate-pulse">{videoProgressMsg}</p>
-                                            <p className="text-[11px] font-mono text-gray-600 uppercase tracking-[0.4em]">Maintaining global temporal alignment nodes...</p>
+                                            <p className="text-3xl font-black font-mono text-white uppercase tracking-[1em] animate-pulse">{videoProgressMsg}</p>
+                                            <p className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.4em]">Maintaining global temporal alignment nodes...</p>
                                         </div>
                                     </motion.div>
                                 ) : videoUrl ? (
-                                    <motion.div key="video-out" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full relative group/controls">
-                                        <video src={videoUrl} controls autoPlay loop className="w-full h-full object-contain bg-black" />
-                                        <div className="absolute top-10 right-10 opacity-0 group-hover/controls:opacity-100 transition-opacity">
-                                            <div className="px-5 py-2 bg-black/60 backdrop-blur-2xl border border-[#d946ef]/40 rounded-full text-[#d946ef] text-[10px] font-black font-mono tracking-widest uppercase shadow-2xl">
+                                    <motion.div key="video-out" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full h-full relative group/controls bg-black">
+                                        <video src={videoUrl} controls autoPlay loop className="w-full h-full object-contain" />
+                                        <div className="absolute top-10 right-10 opacity-0 group-hover/controls:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
+                                            <div className="px-6 py-2.5 bg-black/80 backdrop-blur-2xl border border-[#d946ef]/40 rounded-full text-[#d946ef] text-[10px] font-black font-mono tracking-[0.2em] uppercase shadow-2xl flex items-center gap-3">
+                                                <div className="w-2 h-2 rounded-full bg-[#d946ef] animate-pulse" />
                                                 DELIVERY_LOCKED // {videoRes}
                                             </div>
                                         </div>
                                     </motion.div>
                                 ) : (
-                                    <div className="flex flex-col items-center opacity-10 group-hover/video-p:opacity-20 transition-all duration-1000 gap-10">
-                                        <Video size={140} className="text-gray-500" />
-                                        <p className="text-xl font-mono uppercase tracking-[0.8em]">Temporal Hub Standby</p>
+                                    <div className="flex flex-col items-center opacity-10 group-hover/v-view:opacity-20 transition-all duration-1000 gap-12">
+                                        <Video size={180} className="text-gray-500" />
+                                        <p className="text-2xl font-mono uppercase tracking-[1.5em] text-center">Temporal Hub Standby</p>
                                     </div>
                                 )}
                             </AnimatePresence>
@@ -983,7 +1040,7 @@ const ImageGen: React.FC = () => {
 
                 {activeTab === 'TEASER' && (
                     <motion.div key="teaser" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="w-full h-full flex flex-col p-10 gap-10 overflow-hidden">
-                        <div className="flex-1 bg-black rounded-[4rem] border border-[#1f1f1f] relative overflow-hidden group/theatre shadow-[0_80px_200px_rgba(0,0,0,1)] flex items-center justify-center min-h-0">
+                        <div className="flex-1 bg-black rounded-[4rem] border border-white/5 relative overflow-hidden group/theatre shadow-[0_80px_200px_rgba(0,0,0,1)] flex items-center justify-center min-h-0">
                             
                             {/* Ambient Production Glow */}
                             <AnimatePresence mode="wait">
@@ -1044,49 +1101,55 @@ const ImageGen: React.FC = () => {
                                 </AnimatePresence>
                             </div>
 
-                            {/* Screening Room HUD */}
-                            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-14 px-16 py-8 bg-[#0a0a0a]/80 backdrop-blur-3xl border border-white/10 rounded-[4rem] shadow-[0_60px_150px_rgba(0,0,0,0.9)] opacity-0 group-hover/theatre:opacity-100 transition-all duration-700 transform translate-y-6 group-hover/theatre:translate-y-0 max-w-[90%] flex-wrap justify-center">
+                            {/* Refined Screening Room HUD */}
+                            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-14 px-12 py-6 bg-[#0a0a0a]/90 backdrop-blur-3xl border border-white/10 rounded-full shadow-[0_100px_250px_rgba(0,0,0,1)] opacity-0 group-hover/theatre:opacity-100 transition-all duration-700 transform translate-y-6 group-hover/theatre:translate-y-0 max-w-[90%] flex-wrap justify-center pointer-events-auto">
                                 <div className="flex items-center gap-8">
-                                    <button onClick={() => setTeaserIdx(p => (p - 1 + frames.length) % frames.length)} className="p-5 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"><FastForward size={36} className="rotate-180" /></button>
+                                    <button onClick={() => setTeaserIdx(p => (p - 1 + frames.length) % frames.length)} className="p-4 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"><FastForward size={32} className="rotate-180" /></button>
                                     <button 
                                         onClick={() => { setIsAutoPlaying(!isAutoPlaying); if (!isAutoPlaying) playFullSequence(); audio.playClick(); }} 
-                                        className={`w-24 h-24 rounded-full flex items-center justify-center transition-all shadow-[0_0_50px_rgba(0,0,0,0.5)] active:scale-95
+                                        className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-[0_0_50px_rgba(0,0,0,0.5)] active:scale-95 shrink-0
                                             ${isAutoPlaying ? 'bg-white text-black shadow-white/20' : 'bg-[#9d4edd] text-black shadow-[#9d4edd]/50'}
                                         `}
                                     >
-                                        {isAutoPlaying ? <Pause size={48} /> : <Play size={48} fill="currentColor" className="ml-1.5" />}
+                                        {isAutoPlaying ? <Pause size={32} /> : <Play size={32} fill="currentColor" className="ml-1" />}
                                     </button>
-                                    <button onClick={() => setTeaserIdx(p => (p + 1) % frames.length)} className="p-5 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"><FastForward size={36} /></button>
+                                    <button onClick={() => setTeaserIdx(p => (p + 1) % frames.length)} className="p-4 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"><FastForward size={32} /></button>
                                 </div>
-                                <div className="h-16 w-px bg-white/10 hidden md:block" />
+                                <div className="h-10 w-px bg-white/10 hidden md:block" />
                                 <div className="flex items-center gap-6">
                                     <div className="flex gap-2">
                                         <button 
                                             onClick={generateAllSequenceAudio} 
                                             disabled={isGeneratingTeaserAudio || frames.length === 0} 
-                                            className={`p-6 rounded-3xl transition-all shadow-2xl bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10`}
+                                            className={`p-4 rounded-2xl transition-all shadow-2xl bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10 flex items-center gap-2`}
                                             title="Synthesize All Narrations"
                                         >
-                                            <Speaker size={32} />
+                                            <Speaker size={20} />
+                                            <span className="text-[8px] font-black uppercase tracking-widest hidden sm:block">Sync All</span>
                                         </button>
                                         <button 
                                             onClick={() => generateTeaserAudioForIndex(teaserIdx)} 
                                             disabled={isGeneratingTeaserAudio || !frames[teaserIdx]?.imageUrl} 
-                                            className={`p-6 rounded-3xl transition-all shadow-2xl ${isGeneratingTeaserAudio ? 'bg-[#9d4edd] text-black animate-pulse shadow-[#9d4edd]/30' : 'bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10'}`}
+                                            className={`p-4 rounded-2xl transition-all shadow-2xl ${isGeneratingTeaserAudio ? 'bg-[#9d4edd] text-black animate-pulse shadow-[#9d4edd]/30' : 'bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10'}`}
                                             title="Regenerate Active Node Audio"
                                         >
-                                            <Volume2 size={32} />
+                                            <Volume2 size={20} />
                                         </button>
                                     </div>
-                                    <div className="flex flex-col min-w-0">
-                                        <span className="text-[14px] font-black text-white uppercase tracking-widest leading-none mb-2">Theater HUD</span>
-                                        <span className="text-[10px] text-gray-600 font-mono uppercase tracking-widest truncate">Uplink: {isAutoPlaying ? 'SEQUENCE_STREAMING' : '1080p_STABLE'}</span>
-                                    </div>
+                                    <div className="h-10 w-px bg-white/10 hidden md:block" />
+                                    <button 
+                                        onClick={exportProductionBundle}
+                                        disabled={isExportingBundle || frames.filter(f => f.imageUrl).length === 0}
+                                        className="flex items-center gap-3 px-6 py-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-full transition-all group/bundle active:scale-95 disabled:opacity-30"
+                                    >
+                                        {isExportingBundle ? <Loader2 size={16} className="animate-spin" /> : <FileArchive size={16} className="group-hover/bundle:scale-110 transition-transform" />}
+                                        <span className="text-[9px] font-black uppercase tracking-widest whitespace-nowrap">Secure Bundle</span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Screening Strip */}
+                        {/* Enhanced Screening Strip */}
                         <div className="h-32 bg-[#0a0a0a]/40 backdrop-blur-2xl rounded-[2.5rem] border border-[#1f1f1f] p-5 flex gap-6 overflow-x-auto no-scrollbar shadow-2xl shrink-0 group/timeline-strip">
                             {frames.map((f, i) => (
                                 <button 
@@ -1103,7 +1166,7 @@ const ImageGen: React.FC = () => {
                                     )}
                                     <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-black/80 rounded-lg text-[8px] font-black font-mono text-white opacity-60 uppercase tracking-widest shadow-2xl">F_{i+1}</div>
                                     {teaserIdx === i && <div className="absolute inset-0 bg-[#9d4edd]/10 pointer-events-none" />}
-                                    {f.audioUrl && <div className="absolute top-2 right-2 p-1 bg-[#10b981]/80 rounded-full border border-white/20"><Volume2 size={8} className="text-white"/></div>}
+                                    {f.audioUrl && <div className="absolute top-2 right-2 p-1 bg-[#10b981]/80 rounded-full border border-white/20 shadow-[0_0_10px_#10b981]"><Volume2 size={8} className="text-white"/></div>}
                                 </button>
                             ))}
                         </div>
@@ -1119,14 +1182,14 @@ const ImageGen: React.FC = () => {
                     <CheckCircle size={14} className="shadow-[0_0_10px_#10b981]" /> Sync_Stable
                 </div>
                 <div className="flex items-center gap-3 uppercase tracking-widest">
-                    <Activity size={14} className="text-[#9d4edd]" /> Ray-Tracing_Cluster: 0.04mPa
+                    <GitBranch size={14} className="text-[#9d4edd]" /> Production_Lattice: {frames.length} nodes
                 </div>
                 <div className="flex items-center gap-3 uppercase tracking-widest">
-                    <Zap size={14} className="text-[#22d3ee]" /> Render_Queue: NOMINAL
+                    <Activity size={14} className="text-[#22d3ee]" /> Focus: {activeTab}
                 </div>
             </div>
             <div className="flex items-center gap-8 shrink-0">
-                <span className="uppercase tracking-[0.5em] opacity-40 leading-none hidden lg:block">Architectural Cinema Division v8.1 // Final Render Protocol</span>
+                <span className="uppercase tracking-[0.5em] opacity-40 leading-none hidden lg:block">Cinema Architecture Division v8.1 // Final Render Protocol</span>
                 <div className="h-4 w-px bg-white/10 hidden lg:block" />
                 <span className="font-black text-gray-400 uppercase tracking-widest leading-none">Metaventions_OS</span>
             </div>

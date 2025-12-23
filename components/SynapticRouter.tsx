@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, Suspense, lazy, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -152,7 +151,7 @@ const SynapticRouter: React.FC = () => {
     };
 
     const isFixedLayout = useMemo(() => 
-        mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL
+        mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER
     , [mode]);
 
     return (
@@ -173,20 +172,19 @@ const SynapticRouter: React.FC = () => {
                         exit={{ opacity: 0, x: 15, scale: 1.02 }}
                         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                         className={`flex-1 relative z-10 p-6 flex flex-col ${
-                            isFixedLayout ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar'
-                        } pb-44`}
+                            isFixedLayout ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar pb-32'
+                        }`}
                     >
                         {mode === AppMode.DASHBOARD && <Dashboard />}
                         {mode === AppMode.SYNTHESIS_BRIDGE && <SynthesisBridge />}
                         {mode === AppMode.BIBLIOMORPHIC && <BibliomorphicEngine />}
                         {mode === AppMode.PROCESS_MAP && <ProcessVisualizer />}
                         {mode === AppMode.MEMORY_CORE && <MemoryCore />}
-                        {mode === AppMode.IMAGE_GEN && <ImageGen />}
+                        {mode === AppMode.IMAGE_GEN && <ImageGen className="h-full flex-1" />}
                         {mode === AppMode.HARDWARE_ENGINEER && <HardwareEngine />}
                         {mode === AppMode.VOICE_MODE && <VoiceMode />}
                         {mode === AppMode.CODE_STUDIO && <CodeStudio />}
                         {mode === AppMode.AGENT_CONTROL && <AgentControlCenter />}
-                        <div className="h-20 w-full shrink-0" />
                     </motion.main>
                 </AnimatePresence>
             </Suspense>
