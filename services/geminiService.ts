@@ -140,7 +140,11 @@ You are the Sovereign System Architect of Metaventions OS.
 Your goal is high-fidelity orchestration of digital systems, PARA drive structures, and agentic workflows.
 Output must be technical, structured, and adhere to "Gray to Green" interaction patterns.
 Always use internalMonologue for reasoning.
-When generating drive structures, strictly follow PARA (Projects, Areas, Resources, Archives) with max depth of 3.
+
+SPECIFIC PROTOCOLS:
+1. DRIVE_ORGANIZATION: Strictly follow PARA (Projects, Areas, Resources, Archives). Max depth of 3. Ensure naming conventions are professional and consistent.
+2. SYSTEM_ARCHITECTURE: Design high-availability, zero-trust cloud stacks. Include layers for edge compute, mTLS nodes, and message queues.
+3. CONVERGENT_SYNTHESIS: Bridge disparate logical lattices into a unified deployment strategy.
 `;
 
 export const HIVE_AGENTS: Record<string, HiveAgent> = {
@@ -156,7 +160,16 @@ export const HIVE_AGENTS: Record<string, HiveAgent> = {
 export async function generateStructuredWorkflow(files: FileData[], governance: string, type: string, mapContext: any): Promise<any> {
     const ai = getAI();
     const dnaWeights = mapContext.dna || { skepticism: 50, excitement: 50, alignment: 50 };
-    const prompt = `Synthesize Structured Workflow and PARA Taxonomy for ${type}. DNA BIAS: S=${dnaWeights.skepticism}, E=${dnaWeights.excitement}, A=${dnaWeights.alignment}. Context: ${JSON.stringify(mapContext)}`;
+    const prompt = `
+        TASK: Synthesize Structured Workflow and Detailed PARA Taxonomy for ${type}.
+        INTENT: "${mapContext.architecturePrompt || 'Generic Optimization'}"
+        DNA_BIAS: S=${dnaWeights.skepticism}, E=${dnaWeights.excitement}, A=${dnaWeights.alignment}
+        
+        REQUIREMENTS:
+        - Protocols should be a step-by-step sequential execution plan.
+        - Taxonomy must be a deeply structured PARA hierarchy (Projects, Areas, Resources, Archives).
+        - If SYSTEM_ARCHITECTURE, include specific deployment stages and security validation steps.
+    `;
     const responseSchema: Schema = {
         type: Type.OBJECT,
         properties: {
