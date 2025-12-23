@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -75,7 +74,7 @@ const HolographicNode = ({ id, data: nodeData, selected, dragging }: NodeProps) 
                             </button>
                         )
                     )}
-                    <span className="text-[7px] font-mono text-gray-600 mt-0.5">#{id?.substring(0,4) || 'CORE'}</span>
+                    <span className="text-[7px] font-mono text-gray-600 mt-0.5">#{(id || '').substring(0,4) || 'CORE'}</span>
                 </div>
             </div>
             
@@ -101,8 +100,6 @@ const CinematicEdge = ({ id, sourceX, sourceY, targetX, targetY, style, markerEn
         <path id={id} className="react-flow__edge-path" d={edgePath} strokeWidth={1.5} stroke={(edgeData?.color as string) || style?.stroke || '#333'} markerEnd={markerEnd} style={{ ...style, strokeOpacity: 0.6 }} />
     );
 };
-
-// --- RESTORED SUB-COMPONENTS ---
 
 const VaultDriveOrg = ({ workflow }: any) => {
     const [optimizedNodes, setOptimizedNodes] = useState<Set<string>>(new Set());
@@ -182,7 +179,7 @@ const VaultDriveOrg = ({ workflow }: any) => {
                                 </div>
 
                                 <h3 className="text-sm font-black text-white uppercase font-mono tracking-widest mb-1">{group.folder}</h3>
-                                <p className="text-[9px] text-gray-500 font-mono mb-4 uppercase tracking-tighter h-8 leading-tight">Automated PARA sector for {group.folder.toLowerCase()} assets.</p>
+                                <p className="text-[9px] text-gray-500 font-mono mb-4 uppercase tracking-tighter h-8 leading-tight">Automated PARA sector for {(group.folder || '').toLowerCase()} assets.</p>
 
                                 <div className="space-y-1.5">
                                     {group.items?.slice(0, 5).map((item: string, i: number) => (
@@ -255,8 +252,8 @@ const ProtocolLoom = ({ workflow, results, isSimulating, activeIndex, onExecute,
                                             {isDone ? <CheckCircle size={20} /> : String(i + 1).padStart(2, '0')}
                                         </div>
                                         <div>
-                                            <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">{step.role}</span>
-                                            <h4 className="text-sm font-bold text-white uppercase font-mono">{step.instruction.substring(0, 50)}...</h4>
+                                            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">{step.role}</span>
+                                            <h4 className="text-sm font-bold text-white uppercase font-mono">{(step.instruction || '').substring(0, 50)}...</h4>
                                         </div>
                                     </div>
                                     {!isDone && (
@@ -388,8 +385,6 @@ const SourceGrounding = ({ sources, onUpload, onRemove, onPreview }: any) => {
         </div>
     );
 };
-
-// --- MAIN PROCESS VISUALIZER ---
 
 const ProcessVisualizerContent = () => {
     const { addLog, setMode, process: processData } = useAppStore();

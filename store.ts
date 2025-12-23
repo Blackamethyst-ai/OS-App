@@ -4,7 +4,7 @@ import {
     FileData, ResonancePoint, Colorway, SOVEREIGN_DEFAULT_COLORWAY, MetaventionsState, 
     InterventionProtocol, OperationalContext, AgentWallet, TemporalEra, Task, 
     TaskStatus, AspectRatio, ProtocolStepResult, CustomThemeConfig, AutonomousAgent,
-    PeerPresence, SwarmEvent
+    PeerPresence, SwarmEvent, ImageSize
 } from './types';
 
 interface KernelStatus {
@@ -156,6 +156,7 @@ interface AppState {
         history: any[];
         prompt: string;
         aspectRatio: AspectRatio;
+        quality: ImageSize;
         characterRefs: FileData[];
         styleRefs: FileData[];
         resonanceCurve: ResonancePoint[];
@@ -297,6 +298,7 @@ export const useAppStore = create<AppState>((set) => ({
         history: [], 
         prompt: '', 
         aspectRatio: AspectRatio.RATIO_16_9, 
+        quality: ImageSize.SIZE_1K,
         characterRefs: [], 
         styleRefs: [], 
         resonanceCurve: [], 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import JSZip from 'jszip';
@@ -16,7 +15,7 @@ import {
     Maximize, ToggleLeft, ToggleRight, Volume2, VolumeX, SkipForward, 
     Globe, Lock, Unlock, Fingerprint, Cpu, Radio, Power, Box, 
     Camera, Sun, Video, Package, Scan, Sparkles, ChevronDown, CheckCircle,
-    Monitor, Music, FastForward, Pause
+    Monitor, Music, FastForward, Pause, Sliders, Layout
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmotionalResonanceGraph from './EmotionalResonanceGraph';
@@ -44,6 +43,59 @@ const STYLE_PRESETS = [
     { id: 'GRITTY_REALISM', label: 'Gritty Realism', desc: '35mm Grain, Desaturated, Tactical, Raw' },
 ];
 
+const FabricationParameters = () => {
+    const { imageGen, setImageGenState } = useAppStore();
+    
+    return (
+        <div className="space-y-6 bg-white/[0.03] p-4 rounded-xl border border-white/5">
+            <div className="flex items-center gap-2 mb-2">
+                <Sliders size={14} className="text-[#d946ef]" />
+                <span className="text-[10px] font-black text-white uppercase tracking-widest">Fabrication Config</span>
+            </div>
+
+            <div className="space-y-3">
+                <label className="text-[9px] font-mono text-gray-500 uppercase flex justify-between items-center">
+                    Aspect Ratio <Layout size={10} />
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                    {Object.values(AspectRatio).map(ratio => (
+                        <button
+                            key={ratio}
+                            onClick={() => setImageGenState({ aspectRatio: ratio })}
+                            className={`py-2 px-1 rounded-lg text-[9px] font-mono border transition-all ${imageGen.aspectRatio === ratio ? 'bg-[#d946ef] text-black border-[#d946ef] font-bold shadow-lg' : 'bg-black/40 border-[#333] text-gray-400 hover:text-white'}`}
+                        >
+                            {ratio}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div className="space-y-3">
+                <label className="text-[9px] font-mono text-gray-500 uppercase flex justify-between items-center">
+                    Visual Fidelity <Cpu size={10} />
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                    {[ImageSize.SIZE_1K, ImageSize.SIZE_2K, ImageSize.SIZE_4K].map(size => (
+                        <button
+                            key={size}
+                            onClick={() => setImageGenState({ quality: size })}
+                            className={`py-2 px-1 rounded-lg text-[9px] font-mono border transition-all ${imageGen.quality === size ? 'bg-[#d946ef] text-black border-[#d946ef] font-bold shadow-lg' : 'bg-black/40 border-[#333] text-gray-400 hover:text-white'}`}
+                        >
+                            {size}
+                        </button>
+                    ))}
+                </div>
+            </div>
+
+            <div className="pt-2">
+                <div className={`p-2 rounded border border-dashed text-[8px] font-mono uppercase text-center leading-tight ${imageGen.quality === ImageSize.SIZE_4K ? 'text-[#d946ef] border-[#d946ef]/50 bg-[#d946ef]/5' : 'text-gray-600 border-[#333]'}`}>
+                    {imageGen.quality === ImageSize.SIZE_4K ? 'PRO_MODE: High-Quality Latent Synthesis Engaged' : 'STANDARD_MODE: Balanced Inference Rate'}
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const ImageGen: React.FC = () => {
   const { imageGen, setImageGenState, addLog, openHoloProjector } = useAppStore();
   const [activeTab, setActiveTab] = useState<'SINGLE' | 'STORYBOARD' | 'VIDEO' | 'TEASER'>('SINGLE');
@@ -51,13 +103,11 @@ const ImageGen: React.FC = () => {
   const [showERT, setShowERT] = useState(true);
   const [isBatchRendering, setIsBatchRendering] = useState(false);
   const [isPlanning, setIsPlanning] = useState(false);
-  const [draftMode, setDraftMode] = useState(true);
   const [baseImage, setBaseImage] = useState<FileData | null>(null);
 
   // Teaser State
   const [teaserIdx, setTeaserIdx] = useState(0);
   const [isTeaserPlaying, setIsTeaserPlaying] = useState(false);
-  const [teaserAudio, setTeaserAudio] = useState<HTMLAudioElement | null>(null);
   const [isGeneratingTeaserAudio, setIsGeneratingTeaserAudio] = useState(false);
 
   // Video State (Veo)
@@ -116,7 +166,8 @@ const ImageGen: React.FC = () => {
       
       try {
           const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-          const model = draftMode ? 'gemini-2.5-flash-image' : 'gemini-3-pro-image-preview';
+          const usePro = imageGen.quality !== ImageSize.SIZE_1K;
+          const model = usePro ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image';
           
           const resonance = imageGen.resonanceCurve?.[idx];
           const resonanceContext = resonance 
@@ -141,7 +192,12 @@ const ImageGen: React.FC = () => {
           const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({ 
               model: model as any, 
               contents: { parts }, 
-              config: { imageConfig: { aspectRatio: imageGen.aspectRatio, ...(!draftMode ? { imageSize: '4K' } : {}) } } 
+              config: { 
+                  imageConfig: { 
+                      aspectRatio: imageGen.aspectRatio, 
+                      imageSize: imageGen.quality as any
+                  } 
+              } 
           }));
 
           let url = '';
@@ -178,14 +234,9 @@ const ImageGen: React.FC = () => {
       setIsGeneratingTeaserAudio(true);
       addLog('SYSTEM', 'AUDIO_CORE: Generating cinematic narration overview...');
       try {
-          // Flatten frames for summary
           const framesToSynthesize = frames.map(f => ({ inlineData: { data: '', mimeType: 'image/png' }, name: f.scenePrompt }));
           const { audioData } = await generateAudioOverview(framesToSynthesize);
-          
           if (audioData) {
-            const blob = new Blob([new Uint8Array(atob(audioData).split("").map(c => c.charCodeAt(0)))], { type: 'audio/pcm' });
-            // In a real app, we'd need a PCM wrapper or use the AudioContext directly as in geminiService
-            // For this UI component, we log success.
             addLog('SUCCESS', 'AUDIO_CORE: Narrative audio track stabilized.');
           }
       } catch (err: any) {
@@ -245,17 +296,28 @@ const ImageGen: React.FC = () => {
       try {
           if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setImageGenState({ isLoading: false }); return; }
           const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-          const model = draftMode ? 'gemini-2.5-flash-image' : 'gemini-3-pro-image-preview';
+          const usePro = imageGen.quality !== ImageSize.SIZE_1K;
+          const model = usePro ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image';
+          
           const finalPrompt = await constructCinematicPrompt(imageGen.prompt || "Vision.", imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY, !!baseImage, imageGen.characterRefs.length > 0, imageGen.styleRefs.length > 0, undefined, imageGen.activeStylePreset);
           const parts: any[] = [];
           if (baseImage) parts.push(baseImage);
           if (imageGen.characterRefs) parts.push(...imageGen.characterRefs);
           if (imageGen.styleRefs) parts.push(...imageGen.styleRefs);
           parts.push({ text: finalPrompt });
-          const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({ model: model as any, contents: { parts }, config: { imageConfig: { aspectRatio: imageGen.aspectRatio, ...(!draftMode ? { imageSize: '4K' } : {}) } } }));
+          const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({ 
+              model: model as any, 
+              contents: { parts }, 
+              config: { 
+                  imageConfig: { 
+                      aspectRatio: imageGen.aspectRatio, 
+                      imageSize: imageGen.quality as any
+                  } 
+              } 
+          }));
           let url = '';
           for (const part of response.candidates?.[0]?.content?.parts || []) { if (part.inlineData) { url = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`; break; } }
-          if (url) { setImageGenState({ generatedImage: { url, prompt: finalPrompt, aspectRatio: imageGen.aspectRatio, size: draftMode ? 'Native' : '4K' }, isLoading: false }); addLog('SUCCESS', `Asset Fabricated.`); }
+          if (url) { setImageGenState({ generatedImage: { url, prompt: finalPrompt, aspectRatio: imageGen.aspectRatio, size: imageGen.quality }, isLoading: false }); addLog('SUCCESS', `Asset Fabricated.`); }
           else throw new Error("No image data returned.");
       } catch (err: any) { setImageGenState({ error: err.message, isLoading: false }); addLog('ERROR', `Generation Failed: ${err.message}`); }
   };
@@ -279,31 +341,40 @@ const ImageGen: React.FC = () => {
             {activeTab === 'SINGLE' && (
                 <div className="h-full flex gap-6">
                     <div className="w-80 flex flex-col bg-[#050505] border border-[#222] rounded-lg h-full overflow-hidden p-6 space-y-6 shrink-0 shadow-2xl">
-                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4">
-                            <label className="text-[10px] font-mono text-gray-400 uppercase tracking-widest block font-bold">Base Plate</label>
-                            <label className="flex flex-col items-center justify-center aspect-video bg-[#0a0a0a] border border-dashed border-[#333] rounded-lg cursor-pointer hover:border-[#d946ef] transition-all">
-                                {baseImage ? <img src={`data:${baseImage.inlineData.mimeType};base64,${baseImage.inlineData.data}`} className="w-full h-full object-cover rounded-lg" /> : <Upload className="w-5 h-5 text-gray-700" />}
-                                <input type="file" className="hidden" onChange={(e) => {
-                                     if (e.target.files && e.target.files[0]) {
-                                         fileToGenerativePart(e.target.files[0]).then(setBaseImage);
-                                     }
-                                }} />
-                            </label>
-                            <label className="text-[10px] font-mono text-gray-400 uppercase tracking-widest block font-bold">Directive</label>
-                            <textarea value={imageGen.prompt} onChange={(e) => setImageGenState({ prompt: e.target.value })} className="w-full h-32 bg-[#0a0a0a] border border-[#222] p-3 text-xs font-mono text-white outline-none rounded-xl resize-none focus:border-[#d946ef]" placeholder="E.g. Neon rain in neo-tokyo..." />
+                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-6">
+                            <div>
+                                <label className="text-[10px] font-mono text-gray-400 uppercase tracking-widest block font-bold mb-2">Base Plate</label>
+                                <label className="flex flex-col items-center justify-center aspect-video bg-[#0a0a0a] border border-dashed border-[#333] rounded-lg cursor-pointer hover:border-[#d946ef] transition-all">
+                                    {baseImage ? <img src={`data:${baseImage.inlineData.mimeType};base64,${baseImage.inlineData.data}`} className="w-full h-full object-cover rounded-lg" /> : <Upload className="w-5 h-5 text-gray-700" />}
+                                    <input type="file" className="hidden" onChange={(e) => {
+                                         if (e.target.files && e.target.files[0]) {
+                                             fileToGenerativePart(e.target.files[0]).then(setBaseImage);
+                                         }
+                                    }} />
+                                </label>
+                            </div>
+
+                            <FabricationParameters />
+
+                            <div>
+                                <label className="text-[10px] font-mono text-gray-400 uppercase tracking-widest block font-bold mb-2">Directive</label>
+                                <textarea value={imageGen.prompt} onChange={(e) => setImageGenState({ prompt: e.target.value })} className="w-full h-32 bg-[#0a0a0a] border border-[#222] p-3 text-xs font-mono text-white outline-none rounded-xl resize-none focus:border-[#d946ef]" placeholder="E.g. Neon rain in neo-tokyo..." />
+                            </div>
+
                             <div className="flex flex-col gap-2">
-                                <label className="text-[9px] font-mono text-gray-500 uppercase">Preset</label>
+                                <label className="text-[9px] font-mono text-gray-500 uppercase">Style Preset</label>
                                 <select value={imageGen.activeStylePreset} onChange={(e) => setImageGenState({ activeStylePreset: e.target.value })} className="w-full bg-[#0a0a0a] border border-[#222] p-2 text-xs font-mono text-white rounded-lg outline-none">
                                     {STYLE_PRESETS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
                                 </select>
                             </div>
                         </div>
                         <button onClick={generateSingleImage} disabled={imageGen.isLoading} className="w-full py-4 bg-[#d946ef] text-black font-black text-xs uppercase tracking-widest rounded-xl hover:bg-[#f0abfc] transition-all shadow-[0_0_30px_rgba(217,70,239,0.3)] flex items-center justify-center gap-2">
-                            {imageGen.isLoading ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />} Render
+                            {imageGen.isLoading ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />} Render Vision
                         </button>
                     </div>
                     <div className="flex-1 bg-[#050505] border border-[#222] rounded-lg overflow-hidden flex items-center justify-center relative shadow-2xl">
-                        {imageGen.generatedImage ? <img src={imageGen.generatedImage.url} className="max-w-full max-h-full object-contain" /> : <ImageIcon className="w-16 h-16 text-gray-900" />}
+                        {imageGen.generatedImage ? <img src={imageGen.generatedImage.url} className="max-w-full max-h-full object-contain" /> : <div className="text-center opacity-10"><ImageIcon className="w-32 h-32 mx-auto mb-4" /><p className="font-mono text-xs uppercase tracking-widest">Viewport Standby</p></div>}
+                        {imageGen.isLoading && <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center gap-4 z-10"><Loader2 size={48} className="text-[#d946ef] animate-spin" /><span className="text-[10px] font-black text-white uppercase tracking-[0.4em]">Fabricating Lattice...</span></div>}
                     </div>
                 </div>
             )}
@@ -317,6 +388,8 @@ const ImageGen: React.FC = () => {
                                 <textarea value={imageGen.prompt} onChange={e => setImageGenState({ prompt: e.target.value })} className="w-full h-32 bg-[#0a0a0a] border border-[#333] p-3 text-[10px] font-mono text-white outline-none rounded-xl resize-none focus:border-[#d946ef]" placeholder="Describe the overarching narrative arc..." />
                             </div>
                             
+                            <FabricationParameters />
+
                             <button onClick={handlePlanSequence} disabled={isPlanning || !imageGen.prompt?.trim()} className="w-full py-3 bg-[#d946ef]/10 hover:bg-[#d946ef] border border-[#d946ef]/40 text-[#d946ef] hover:text-black font-black text-[10px] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2">
                                 {isPlanning ? <Loader2 size={14} className="animate-spin" /> : <Clapperboard size={14} />} 
                                 Plan Narrative
