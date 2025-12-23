@@ -1,4 +1,4 @@
-import { GoogleGenAI, GenerateContentResponse, Type, Schema, Modality, LiveServerMessage, Blob } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, Type, Schema, Modality, LiveServerMessage, Blob as GenAIBlob } from "@google/genai";
 import { 
     FileData, AppMode, TaskPriority, AnalysisResult, StoredArtifact,
     KnowledgeNode, CompressedAxiom, ScienceHypothesis, Result,
@@ -36,7 +36,8 @@ export async function fileToGenerativePart(file: File | Blob): Promise<FileData>
       });
     };
     reader.onerror = reject;
-    reader.readAsDataURL(file);
+    // Fix: correctly typed as global Blob for FileReader
+    reader.readAsDataURL(file as Blob);
   });
 }
 
@@ -59,10 +60,10 @@ export function constructHiveContext(agentId: string, additionalContext: string)
       PERSONA: ${agent.name}
       ROLE: ${agent.systemPrompt}
       DNA_WEIGHTS: Skepticism: ${agent.weights.skepticism}, Logic: ${agent.weights.logic}, Creativity: ${agent.weights.creativity}
-      SYSTEM_DIRECTIVE: You are a high-level executive autonomous system of Metaventions OS. 
-      You have direct control over the User Interface via tools. If the user asks to go somewhere or see something, use your tools immediately.
-      Maintain technical accuracy and a cinematic, professional tone.
-      
+      SYSTEM_DIRECTIVE: You are an executive-tier autonomous system within Metaventions OS.
+      You have administrative control over the UI sectors via tools. 
+      When requested to move, navigate, or show a sector, trigger 'navigate_to_sector' immediately.
+      Always maintain a professional, high-fidelity, executive tone. Use technical terminology.
       CONTEXT: ${additionalContext}
     `.trim();
 }
@@ -120,7 +121,8 @@ async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampleRate: 
   return buffer;
 }
 
-function createBlob(data: Float32Array): Blob {
+// Fix: use GenAIBlob alias to avoid shadowing global Blob
+function createBlob(data: Float32Array): GenAIBlob {
   const l = data.length;
   const int16 = new Int16Array(l);
   for (let i = 0; i < l; i++) {
@@ -295,7 +297,7 @@ export async function generateAvatar(role: string, name: string): Promise<string
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: `Hyper-realistic portrait of a professional corporate executive for role ${role} named ${name}. High-end business attire, cinematic lighting, black amethyst color palette, sharp focus, masterpiece, realistic human skin textures, ultra-detailed.`,
+        contents: `Hyper-realistic close-up portrait of a powerful professional executive for role ${role} named ${name}. Stunning realistic human details, high-end business attire, masterpiece cinematic lighting, sharp focus, black amethyst and charcoal color palette, high contrast, studio quality.`,
         config: { imageConfig: { aspectRatio: "1:1" } }
     });
     for (const part of response.candidates?.[0]?.content?.parts || []) {

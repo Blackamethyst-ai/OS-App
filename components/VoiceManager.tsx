@@ -13,14 +13,14 @@ import { audio } from '../services/audioService';
 
 const navigateTool: FunctionDeclaration = {
     name: 'navigate_to_sector',
-    description: 'Instantly moves the user interface and the Architect to a different OS sector. Use this whenever the user expresses intent to change their current view or switch focus.',
+    description: 'Instantly moves the entire user interface and the OS focus to a specific sector. Triggers a cinematic sector shift. Use this whenever the user expresses a desire to move, switch, or view another part of the app.',
     parameters: {
         type: Type.OBJECT,
         properties: {
             target_sector: { 
                 type: Type.STRING, 
                 enum: Object.values(AppMode),
-                description: 'The machine-readable ID of the sector to navigate to.'
+                description: 'The machine-readable ID of the sector to migrate focus to.'
             }
         },
         required: ['target_sector']
@@ -29,12 +29,12 @@ const navigateTool: FunctionDeclaration = {
 
 const synthesizeTopologyTool: FunctionDeclaration = {
     name: 'synthesize_topology',
-    description: 'Generates a structured PARA drive taxonomy or System Architecture blueprint based on user requirements.',
+    description: 'Generates a high-fidelity PARA drive taxonomy or cloud system architecture blueprint based on verbal requirements.',
     parameters: {
         type: Type.OBJECT,
         properties: {
-            description: { type: Type.STRING, description: 'The user requirements for the topology.' },
-            type: { type: Type.STRING, enum: ['DRIVE_ORGANIZATION', 'SYSTEM_ARCHITECTURE'], description: 'The domain of the topology synthesis.' }
+            description: { type: Type.STRING, description: 'Natural language user requirements.' },
+            type: { type: Type.STRING, enum: ['DRIVE_ORGANIZATION', 'SYSTEM_ARCHITECTURE'], description: 'Domain of the structural synthesis.' }
         },
         required: ['description', 'type']
     }
@@ -42,14 +42,14 @@ const synthesizeTopologyTool: FunctionDeclaration = {
 
 const recalibrateDnaTool: FunctionDeclaration = {
     name: 'recalibrate_dna',
-    description: 'Adjusts the mental state weights (skepticism, excitement, alignment) for an agent to change its reasoning bias.',
+    description: 'Dynamically adjusts the agents internal cognitive biases (skepticism, excitement, alignment).',
     parameters: {
         type: Type.OBJECT,
         properties: {
-            agentId: { type: Type.STRING, description: 'The ID of the agent to recalibrate.' },
-            skepticism: { type: Type.NUMBER, description: 'New skepticism level (0-100).' },
-            excitement: { type: Type.NUMBER, description: 'New excitement level (0-100).' },
-            alignment: { type: Type.NUMBER, description: 'New alignment level (0-100).' }
+            agentId: { type: Type.STRING, description: 'ID of the agent node to recalibrate.' },
+            skepticism: { type: Type.NUMBER, description: 'Filter intensity (0-100).' },
+            excitement: { type: Type.NUMBER, description: 'Generative reach (0-100).' },
+            alignment: { type: Type.NUMBER, description: 'Directive stability (0-100).' }
         },
         required: ['agentId']
     }
@@ -67,9 +67,8 @@ const VoiceManager: React.FC = () => {
     useEffect(() => {
         liveSession.onToolCall = async (name, args) => {
             if (name === 'navigate_to_sector') {
-                const target = (args.target_sector as string).toUpperCase() as AppMode;
+                const target = (args.target_sector as string || '').toUpperCase() as AppMode;
                 
-                // Route mapping validation
                 const routeMap: Record<AppMode, string> = {
                     [AppMode.DASHBOARD]: '/dashboard',
                     [AppMode.BIBLIOMORPHIC]: '/bibliomorphic',
@@ -87,17 +86,17 @@ const VoiceManager: React.FC = () => {
                 if (routeMap[target]) {
                     setMode(target);
                     window.location.hash = routeMap[target];
-                    addLog('SUCCESS', `VOICE_SYNC: Navigation to ${target} initiated.`);
+                    addLog('SUCCESS', `VOICE_EXECUTIVE: Sector migration to [${target}] synchronized.`);
                     audio.playTransition();
-                    return { status: "OK", transition_vector: "SYNAPTIC_JUMP", destination: target };
+                    return { status: "OK", vector: "SYNAPTIC_HANDOVER_COMPLETE", target };
                 } else {
-                    addLog('ERROR', `VOICE_SYNC: Destination sector [${target}] not found in logic map.`);
-                    return { error: "Destination not found", available_sectors: Object.values(AppMode) };
+                    addLog('ERROR', `VOICE_EXECUTIVE: Handover vector [${target}] not mapped.`);
+                    return { error: "Destination node offline", available: Object.values(AppMode) };
                 }
             }
             
             if (name === 'synthesize_topology') {
-                addLog('SYSTEM', `VOICE_ARCHITECT: Initializing ${args.type} logic loop...`);
+                addLog('SYSTEM', `VOICE_ARCHITECT: Initializing ${args.type} logic crystallization...`);
                 const result = await (OS_TOOLS.architect_generate_process as any)(args);
                 return result.data;
             }
@@ -110,7 +109,7 @@ const VoiceManager: React.FC = () => {
                 return result.data;
             }
             
-            return { error: "Protocol mismatch in execution layer." };
+            return { error: "Unknown executive protocol." };
         };
     }, [addLog, setMode]);
 
@@ -124,11 +123,10 @@ const VoiceManager: React.FC = () => {
                     const agentId = Object.keys(HIVE_AGENTS).find(k => HIVE_AGENTS[k].name === agentName) || 'Puck';
                     
                     const sharedContext = `
-                    OS_STATUS: Currently monitoring sector: ${currentLocation || 'HUB'}.
-                    OPERATIONAL_CONTEXT: ${operationalContext || 'GENERAL_PURPOSE'}.
-                    SYSTEM_ACCESS: Full UI Control enabled. 
-                    DIRECTIVE: You must act as a synchronous assistant. If the user asks for information you don't see, navigate to the relevant sector (e.g., Code Studio for code, Asset Studio for images).
-                    Sectors mapped: ${Object.values(AppMode).join(', ')}.
+                    OS_STATUS: Node monitoring sector [${currentLocation || 'HUB'}].
+                    DOMAINS: Full UI Sector Control authorized.
+                    OPERATIONAL_PRIORITY: Synchronous user assistance.
+                    DIRECTIVE: You are an executive-tier OS assistant. Respond quickly and use tools to drive the UI whenever navigation or synthesis is requested.
                     `;
 
                     await liveSession.primeAudio();
@@ -139,11 +137,12 @@ const VoiceManager: React.FC = () => {
                         inputAudioTranscription: {},
                         callbacks: {
                             onmessage: async (message: LiveServerMessage) => {
-                                if (message.serverContent?.outputAudioTranscription) {
-                                    partialTranscriptRef.current += message.serverContent.outputAudioTranscription.text;
+                                // Fix: Correct property names per SDK spec
+                                if (message.serverContent?.outputTranscription) {
+                                    partialTranscriptRef.current += message.serverContent.outputTranscription.text;
                                     setVoiceState({ partialTranscript: { role: 'model', text: partialTranscriptRef.current } });
-                                } else if (message.serverContent?.inputAudioTranscription) {
-                                    partialTranscriptRef.current += message.serverContent.inputAudioTranscription.text;
+                                } else if (message.serverContent?.inputTranscription) {
+                                    partialTranscriptRef.current += message.serverContent.inputTranscription.text;
                                     setVoiceState({ partialTranscript: { role: 'user', text: partialTranscriptRef.current } });
                                 }
 
@@ -158,9 +157,8 @@ const VoiceManager: React.FC = () => {
                                     partialTranscriptRef.current = "";
                                 }
                             },
-                            onopen: () => { if (mounted) { setVoiceState({ isConnecting: false }); addLog('SUCCESS', `VOICE_CORE: Neural handshake synchronized.`); } },
+                            onopen: () => { if (mounted) { setVoiceState({ isConnecting: false }); addLog('SUCCESS', `VOICE_CORE: Neural handshake finalized.`); } },
                             onerror: (err: any) => { 
-                                console.error("Voice Core Error:", err);
                                 connectionAttemptRef.current = false; 
                                 setVoiceState({ isActive: false, isConnecting: false }); 
                             },
