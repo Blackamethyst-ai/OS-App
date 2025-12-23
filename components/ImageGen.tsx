@@ -15,7 +15,8 @@ import {
     Video, Sparkles, ChevronDown, CheckCircle, Monitor, Info, Target,
     Eye, Camera, Sun, Focus, Move, Settings, UserCircle, Map as MapIcon, Palette,
     ArrowRight, Box, ShieldCheck, Binary, Ghost, Heart, Award, FileJson, 
-    Lightbulb, Timer, Scissors, Music, Aperture, Users, MonitorPlay, Clapperboard as DirectorIcon
+    Lightbulb, Timer, Scissors, Music, Aperture, Users, MonitorPlay, Clapperboard as DirectorIcon,
+    CheckCircle2, Trash2, Speaker
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmotionalResonanceGraph from './EmotionalResonanceGraph';
@@ -29,6 +30,7 @@ interface Frame {
   lighting: string; 
   status: 'pending' | 'generating' | 'done' | 'error';
   imageUrl?: string;
+  audioUrl?: string;
   error?: string;
 }
 
@@ -42,14 +44,14 @@ interface ProductionBible {
 }
 
 const MetadataTag = ({ label, value, color = "#9d4edd" }: { label: string, value: string, color?: string }) => (
-    <div className="flex flex-col gap-0.5 px-3 py-1.5 bg-white/[0.03] border border-white/5 rounded-lg group hover:border-white/10 transition-colors">
+    <div className="flex flex-col gap-0.5 px-3 py-1.5 bg-white/[0.03] border border-white/5 rounded-lg group hover:border-white/10 transition-colors shrink-0">
         <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest">{label}</span>
         <span className="text-[9px] font-black font-mono uppercase truncate" style={{ color }}>{value}</span>
     </div>
 );
 
 const CrewSlot = ({ role, status, icon: Icon, color }: { role: string, status: string, icon: any, color: string }) => (
-    <div className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-all">
+    <div className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-all shrink-0">
         <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}15`, color }}>
             <Icon size={14} />
         </div>
@@ -66,9 +68,6 @@ const ImageGen: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'SINGLE' | 'STORYBOARD' | 'VIDEO' | 'TEASER'>('SINGLE');
   
   // Cinematic Production State
-  const [characterRef, setCharacterRef] = useState<FileData | null>(null);
-  const [settingRef, setSettingRef] = useState<FileData | null>(null);
-  const [styleRef, setStyleRef] = useState<FileData | null>(null);
   const [productionBible, setProductionBible] = useState<ProductionBible | null>(null);
   const [isSynthesizingBible, setIsSynthesizingBible] = useState(false);
 
@@ -81,7 +80,7 @@ const ImageGen: React.FC = () => {
   const [teaserIdx, setTeaserIdx] = useState(0);
   const [isTeaserPlaying, setIsTeaserPlaying] = useState(false);
   const [isGeneratingTeaserAudio, setIsGeneratingTeaserAudio] = useState(false);
-  const [teaserAudioUrl, setTeaserAudioUrl] = useState<string | null>(null);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
 
   // Video State
   const [videoPrompt, setVideoPrompt] = useState('');
@@ -99,20 +98,39 @@ const ImageGen: React.FC = () => {
       return true;
   };
 
+  const downloadAsset = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    audio.playSuccess();
+  };
+
   const handleRefUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'CHAR' | 'SET' | 'STYLE') => {
-    if (e.target.files && e.target.files[0]) {
-        const file = e.target.files[0];
-        const data = await fileToGenerativePart(file);
-        if (type === 'CHAR') setCharacterRef(data);
-        if (type === 'SET') setSettingRef(data);
-        if (type === 'STYLE') setStyleRef(data);
+    if (e.target.files) {
+        const files = Array.from(e.target.files) as File[];
+        const dataPromises = files.map(file => fileToGenerativePart(file));
+        const newDatas = await Promise.all(dataPromises);
+        
+        if (type === 'CHAR') setImageGenState({ characterRefs: [...imageGen.characterRefs, ...newDatas] });
+        if (type === 'SET') setImageGenState({ worldRefs: [...imageGen.worldRefs, ...newDatas] });
+        if (type === 'STYLE') setImageGenState({ styleRefs: [...imageGen.styleRefs, ...newDatas] });
+        
         audio.playClick();
-        addLog('INFO', `ASSET_LOAD: Reference for ${type} established.`);
+        addLog('INFO', `ASSET_LOAD: Added ${newDatas.length} references to ${type} buffer.`);
     }
   };
 
+  const removeRef = (idx: number, type: 'CHAR' | 'SET' | 'STYLE') => {
+      if (type === 'CHAR') setImageGenState({ characterRefs: imageGen.characterRefs.filter((_, i) => i !== idx) });
+      if (type === 'SET') setImageGenState({ worldRefs: imageGen.worldRefs.filter((_, i) => i !== idx) });
+      if (type === 'STYLE') setImageGenState({ styleRefs: imageGen.styleRefs.filter((_, i) => i !== idx) });
+  };
+
   const synthesizeProductionBible = async () => {
-      if (!characterRef && !settingRef && !styleRef) return;
+      if (imageGen.characterRefs.length === 0 && imageGen.worldRefs.length === 0 && imageGen.styleRefs.length === 0) return;
       setIsSynthesizingBible(true);
       addLog('SYSTEM', 'PRODUCTION_BIBLE: Executing multi-modal scan for cinematic consistency...');
       
@@ -121,12 +139,22 @@ const ImageGen: React.FC = () => {
           const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
           
           const parts: any[] = [];
-          if (characterRef) parts.push({ ...characterRef, text: "Reference: Identity Vector" });
-          if (settingRef) parts.push({ ...settingRef, text: "Reference: World Vector" });
-          if (styleRef) parts.push({ ...styleRef, text: "Reference: Aesthetic Vector" });
-          parts.push({ text: "Generate a production-grade Cinematic Bible. Output JSON {theme, atmosphere, visualLogic, narrativeArc, opticProfile, cinematicNotes[]}." });
+          
+          if (imageGen.characterRefs.length > 0) {
+              parts.push({ text: "IDENTITY REFERENCE VECTORS:" });
+              imageGen.characterRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
+          }
+          if (imageGen.worldRefs.length > 0) {
+              parts.push({ text: "WORLD/ENVIRONMENT REFERENCE VECTORS:" });
+              imageGen.worldRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
+          }
+          if (imageGen.styleRefs.length > 0) {
+              parts.push({ text: "AESTHETIC/STYLE REFERENCE VECTORS:" });
+              imageGen.styleRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
+          }
 
-          // Fix: Explicitly type the GenerateContentResponse to avoid 'unknown' type errors
+          parts.push({ text: "Synthesize a comprehensive Production Bible for this film series. Ensure extreme realism and consistent theme application. Output JSON {theme, atmosphere, visualLogic, narrativeArc, opticProfile, cinematicNotes[]}." });
+
           const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
               model: 'gemini-3-flash-preview',
               contents: { parts },
@@ -149,7 +177,7 @@ const ImageGen: React.FC = () => {
 
           const bible = JSON.parse(response.text || '{}');
           setProductionBible(bible);
-          addLog('SUCCESS', 'PRODUCTION_BIBLE: Coherence matrices locked. Studio ready.');
+          addLog('SUCCESS', 'PRODUCTION_BIBLE: Cinematic DNA locked. Theme consistency prioritized.');
           audio.playSuccess();
       } catch (err: any) {
           addLog('ERROR', `SCAN_FAIL: ${err.message}`);
@@ -159,7 +187,7 @@ const ImageGen: React.FC = () => {
   };
 
   const generateSingleImage = async () => {
-      if (!imageGen.prompt?.trim() && !characterRef) return;
+      if (!imageGen.prompt?.trim() && imageGen.characterRefs.length === 0) return;
       if (!(await checkApiKey())) return;
 
       setImageGenState({ isLoading: true, error: null });
@@ -177,17 +205,17 @@ const ImageGen: React.FC = () => {
           const finalPrompt = await constructCinematicPrompt(
               contextualPrompt || "A cinematic still shot on 35mm.", 
               imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY, 
-              !!characterRef, 
-              !!characterRef, 
-              !!styleRef, 
+              imageGen.characterRefs.length > 0, 
+              imageGen.worldRefs.length > 0, 
+              imageGen.styleRefs.length > 0, 
               productionBible?.cinematicNotes.join(' '), 
               imageGen.activeStylePreset
           );
 
           const parts: any[] = [];
-          if (characterRef) parts.push(characterRef);
-          if (settingRef) parts.push(settingRef);
-          if (styleRef) parts.push(styleRef);
+          imageGen.characterRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
+          imageGen.worldRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
+          imageGen.styleRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
           parts.push({ text: finalPrompt });
 
           const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({ 
@@ -269,16 +297,17 @@ const ImageGen: React.FC = () => {
         const finalPrompt = await constructCinematicPrompt(
             `BIBLE: ${productionBible?.theme}. SCENE_${idx}: ${frame.scenePrompt} ${resonance}`, 
             imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY, 
-            !!characterRef, 
-            !!characterRef, 
-            !!styleRef, 
+            imageGen.characterRefs.length > 0, 
+            imageGen.worldRefs.length > 0, 
+            imageGen.styleRefs.length > 0, 
             `CAM: ${frame.camera}. LITE: ${frame.lighting}. CONT: ${frame.continuity}`, 
             imageGen.activeStylePreset
         );
 
         const parts: any[] = [];
-        if (characterRef) parts.push(characterRef);
-        if (styleRef) parts.push(styleRef);
+        imageGen.characterRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
+        imageGen.worldRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
+        imageGen.styleRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
         parts.push({ text: finalPrompt });
 
         const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({ 
@@ -326,11 +355,22 @@ const ImageGen: React.FC = () => {
     
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        
+        // VEO Context synthesis to ensure consistency with initial uploads
+        const veoDirective = productionBible 
+            ? `WITHIN THE WORLD OF ${productionBible.theme}, ${videoPrompt}. VISUALS: ${productionBible.opticProfile}. ENSURE CHARACTER CONSISTENCY WITH REFERENCE IMAGE.`
+            : videoPrompt;
+
+        // Use the first identity reference as the motion seed to lock character consistency
+        const characterAnchor = imageGen.characterRefs[0];
+
         let operation = await ai.models.generateVideos({
             model: 'veo-3.1-fast-generate-preview',
-            prompt: productionBible 
-                ? `WITHIN THE WORLD OF ${productionBible.theme}, ${videoPrompt}. VISUALS: ${productionBible.opticProfile}`
-                : videoPrompt,
+            prompt: veoDirective,
+            image: characterAnchor ? {
+                imageBytes: characterAnchor.inlineData.data,
+                mimeType: characterAnchor.inlineData.mimeType
+            } : undefined,
             config: {
                 numberOfVideos: 1,
                 resolution: videoRes as any,
@@ -339,7 +379,7 @@ const ImageGen: React.FC = () => {
         });
 
         while (!operation.done) {
-            setVideoProgressMsg(`Inverting Motion Vectors... [${Math.floor(Math.random() * 30 + 30)}%]`);
+            setVideoProgressMsg(`Syncing Temporal Vectors... [${Math.floor(Math.random() * 30 + 30)}%]`);
             await new Promise(resolve => setTimeout(resolve, 8000));
             operation = await ai.operations.getVideosOperation({ operation });
         }
@@ -388,16 +428,14 @@ const ImageGen: React.FC = () => {
     audio.playSuccess();
   };
 
-  const handleGenerateTeaserAudio = async () => {
-    const currentFrame = frames[teaserIdx];
+  const generateTeaserAudioForIndex = async (idx: number) => {
+    const currentFrame = frames[idx];
     if (!currentFrame || !currentFrame.scenePrompt) return;
     
-    setIsGeneratingTeaserAudio(true);
-    setTeaserAudioUrl(null);
-    addLog('SYSTEM', 'SOUND_STUDIO: Synthesizing narrative overview track...');
+    addLog('SYSTEM', `SOUND_STUDIO: Synthesizing narrative for Node_${idx+1}...`);
     
     try {
-      if (!(await checkApiKey())) { setIsGeneratingTeaserAudio(false); return; }
+      if (!(await checkApiKey())) return;
       const narrativeText = productionBible 
         ? `In the cinematic world of ${productionBible.theme}, ${currentFrame.scenePrompt}`
         : currentFrame.scenePrompt;
@@ -408,15 +446,81 @@ const ImageGen: React.FC = () => {
       }]);
       
       if (audioData) {
-        setTeaserAudioUrl(`data:audio/pcm;base64,${audioData}`);
-        addLog('SUCCESS', 'SOUND_STUDIO: Narrative track rendered.');
-        audio.playSuccess();
+        setFrames(prev => prev.map((f, i) => i === idx ? { ...f, audioUrl: `data:audio/pcm;base64,${audioData}` } : f));
+        return `data:audio/pcm;base64,${audioData}`;
       }
     } catch (err: any) {
-        addLog('ERROR', `SOUND_FAIL: ${err.message}`);
-    } finally {
-      setIsGeneratingTeaserAudio(false);
+        addLog('ERROR', `SOUND_FAIL_NODE_${idx+1}: ${err.message}`);
     }
+    return null;
+  };
+
+  const playFullSequence = async () => {
+      if (frames.length === 0) return;
+      setIsAutoPlaying(true);
+      addLog('SYSTEM', 'SCREENING: Initializing full narrative sequence playback...');
+      
+      for (let i = 0; i < frames.length; i++) {
+          if (!isAutoPlaying && i > 0) break; // Allow manual interrupt
+          setTeaserIdx(i);
+          
+          let audioUrl = frames[i].audioUrl;
+          if (!audioUrl) {
+              audioUrl = await generateTeaserAudioForIndex(i) || undefined;
+          }
+          
+          // Simulation of audio playback wait (high-level timing)
+          if (audioUrl) {
+              await new Promise(r => setTimeout(r, 6000));
+          } else {
+              await new Promise(r => setTimeout(r, 4000));
+          }
+      }
+      setIsAutoPlaying(false);
+      addLog('SUCCESS', 'SCREENING: Sequence playback finalized.');
+  };
+
+  const generateAllSequenceAudio = async () => {
+      addLog('SYSTEM', 'SOUND_STUDIO: Batch synthesizing all sequence narration...');
+      for (let i = 0; i < frames.length; i++) {
+          if (frames[i].audioUrl) continue;
+          await generateTeaserAudioForIndex(i);
+          await new Promise(r => setTimeout(r, 500));
+      }
+      addLog('SUCCESS', 'SOUND_STUDIO: Batch synthesis complete.');
+      audio.playSuccess();
+  };
+
+  const renderRefs = (type: 'CHAR' | 'SET' | 'STYLE') => {
+      const refs = type === 'CHAR' ? imageGen.characterRefs : type === 'SET' ? imageGen.worldRefs : imageGen.styleRefs;
+      const Icon = type === 'CHAR' ? UserCircle : type === 'SET' ? MapIcon : Palette;
+      const label = type === 'CHAR' ? 'Identity' : type === 'SET' ? 'World' : 'Aesthetic';
+
+      return (
+          <div className="space-y-3 shrink-0">
+              <div className="flex justify-between items-center px-1">
+                  <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                      <Icon size={12} /> {label} Vector
+                  </span>
+                  <label className="p-1 cursor-pointer hover:text-white text-gray-600 transition-colors">
+                      <Plus size={14}/>
+                      <input type="file" multiple className="hidden" onChange={(e) => handleRefUpload(e, type)} />
+                  </label>
+              </div>
+              <div className="grid grid-cols-4 gap-2">
+                  {refs.map((ref, i) => (
+                      <div key={i} className="aspect-square relative rounded-lg overflow-hidden border border-white/5 group/ref">
+                          <img src={`data:${ref.inlineData.mimeType};base64,${ref.inlineData.data}`} className="w-full h-full object-cover grayscale-[30%] group-hover/ref:grayscale-0 transition-all" />
+                          <button onClick={() => removeRef(i, type)} className="absolute top-1 right-1 p-1 bg-black/60 rounded text-white opacity-0 group-hover/ref:opacity-100 transition-opacity"><X size={10}/></button>
+                      </div>
+                  ))}
+                  <label className="aspect-square rounded-lg border border-dashed border-white/5 flex flex-col items-center justify-center cursor-pointer hover:border-[#9d4edd]/40 group/add">
+                      <Plus size={16} className="text-gray-700 group-hover/add:text-[#9d4edd] transition-colors" />
+                      <input type="file" multiple className="hidden" onChange={(e) => handleRefUpload(e, type)} />
+                  </label>
+              </div>
+          </div>
+      );
   };
 
   return (
@@ -462,7 +566,7 @@ const ImageGen: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-6">
-                <div className="flex flex-col items-end gap-1">
+                <div className="flex flex-col items-end gap-1.5 shrink-0">
                     <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">Spectral Integrity</span>
                     <div className="flex items-center gap-2">
                         <span className="text-[10px] font-mono font-bold text-[#10b981] uppercase">Optimal</span>
@@ -477,44 +581,27 @@ const ImageGen: React.FC = () => {
             </div>
         </div>
 
-        <div className="flex-1 overflow-hidden relative z-10">
+        <div className="flex-1 overflow-hidden relative z-10 flex">
             <AnimatePresence mode="wait">
                 {activeTab === 'SINGLE' && (
-                    <motion.div key="single" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="h-full flex gap-10 p-10">
+                    <motion.div key="single" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="w-full h-full flex gap-10 p-10 overflow-hidden">
                         {/* Sidebar: Global References */}
-                        <div className="w-[420px] flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar pr-2">
+                        <div className="w-[420px] flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar pr-4">
                             
-                            <div className="text-[10px] font-black text-[#9d4edd] font-mono uppercase tracking-[0.4em] flex items-center gap-2 px-1">
+                            <div className="text-[10px] font-black text-[#9d4edd] font-mono uppercase tracking-[0.4em] flex items-center gap-2 px-1 shrink-0">
                                 <Award size={14} /> Production Matrix
                             </div>
 
-                            <div className="grid grid-cols-3 gap-4">
-                                {[
-                                    { id: 'CHAR', label: 'Identity', icon: UserCircle, state: characterRef, set: setCharacterRef },
-                                    { id: 'SET', label: 'World', icon: MapIcon, state: settingRef, set: setSettingRef },
-                                    { id: 'STYLE', label: 'Aesthetic', icon: Palette, state: styleRef, set: setStyleRef }
-                                ].map(ref => (
-                                    <div key={ref.id} className="relative group/ref aspect-square bg-[#0a0a0a] border border-[#222] rounded-[1.5rem] overflow-hidden hover:border-[#9d4edd] transition-all shadow-xl">
-                                        {ref.state ? (
-                                            <div className="w-full h-full relative">
-                                                <img src={`data:${ref.state.inlineData.mimeType};base64,${ref.state.inlineData.data}`} className="w-full h-full object-cover group-hover/ref:scale-105 transition-all duration-700" />
-                                                <button onClick={() => ref.set(null)} className="absolute top-3 right-3 p-1.5 bg-black/60 backdrop-blur-md rounded-xl text-white opacity-0 group-hover/ref:opacity-100 transition-opacity"><X size={12}/></button>
-                                            </div>
-                                        ) : (
-                                            <label className="w-full h-full flex flex-col items-center justify-center cursor-pointer p-4 text-center">
-                                                <ref.icon size={24} className="text-gray-700 mb-3 group-hover/ref:text-[#9d4edd] transition-all" />
-                                                <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest leading-none">{ref.label}</span>
-                                                <input type="file" className="hidden" onChange={(e) => handleRefUpload(e, ref.id as any)} />
-                                            </label>
-                                        )}
-                                    </div>
-                                ))}
+                            <div className="space-y-6 shrink-0">
+                                {renderRefs('CHAR')}
+                                {renderRefs('SET')}
+                                {renderRefs('STYLE')}
                             </div>
 
                             <button 
                                 onClick={synthesizeProductionBible}
-                                disabled={isSynthesizingBible || (!characterRef && !settingRef && !styleRef)}
-                                className={`w-full py-5 border rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 shadow-2xl
+                                disabled={isSynthesizingBible || (imageGen.characterRefs.length === 0 && imageGen.worldRefs.length === 0 && imageGen.styleRefs.length === 0)}
+                                className={`w-full py-5 border rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 shadow-2xl shrink-0
                                     ${productionBible ? 'bg-[#10b981]/10 border-[#10b981]/40 text-[#10b981]' : 'bg-[#111] border-[#333] text-gray-500 hover:text-white'}
                                 `}
                             >
@@ -524,7 +611,7 @@ const ImageGen: React.FC = () => {
 
                             <AnimatePresence>
                                 {productionBible && (
-                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="p-6 bg-[#0a0a0a] border border-[#10b981]/20 rounded-3xl space-y-4 shadow-inner">
+                                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="p-6 bg-[#0a0a0a] border border-[#10b981]/20 rounded-3xl space-y-4 shadow-inner shrink-0 overflow-hidden">
                                         <div className="flex items-center justify-between text-[#10b981]">
                                             <div className="flex items-center gap-2">
                                                 <FileJson size={14} />
@@ -544,7 +631,7 @@ const ImageGen: React.FC = () => {
                                 )}
                             </AnimatePresence>
 
-                            <div className="flex flex-col gap-4 mt-2">
+                            <div className="flex flex-col gap-4 mt-2 shrink-0">
                                 <span className="text-[10px] font-black text-[#9d4edd] font-mono uppercase tracking-[0.4em] flex items-center gap-2 px-1">
                                     <Focus size={14} /> Master Directive
                                 </span>
@@ -556,7 +643,7 @@ const ImageGen: React.FC = () => {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-4 shrink-0">
                                 <div className="space-y-3">
                                     <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Optics (Aspect)</label>
                                     <div className="grid grid-cols-2 gap-2">
@@ -569,7 +656,7 @@ const ImageGen: React.FC = () => {
                                     <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Fidelity (Tier)</label>
                                     <div className="flex flex-col gap-2">
                                         {[ImageSize.SIZE_1K, ImageSize.SIZE_2K, ImageSize.SIZE_4K].map(s => (
-                                            <button key={s} onClick={() => setImageGenState({ quality: s })} className={`w-full py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20' : 'bg-[#0a0a0a] border-[#222] text-gray-600 hover:text-gray-400'}`}>{s}</button>
+                                            <button key={s} onClick={() => setImageGenState({ quality: s })} className={`w-full py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20' : 'bg-[#0a0a0a] border-[#222] text-gray-600 hover:text-white'}`}>{s}</button>
                                         ))}
                                     </div>
                                 </div>
@@ -577,8 +664,8 @@ const ImageGen: React.FC = () => {
 
                             <button 
                                 onClick={generateSingleImage} 
-                                disabled={imageGen.isLoading || (!imageGen.prompt?.trim() && !characterRef)}
-                                className="w-full py-6 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black font-mono text-xs uppercase tracking-[0.5em] rounded-[2.5rem] transition-all shadow-[0_30px_60px_rgba(157,78,221,0.4)] flex items-center justify-center gap-5 group/btn active:scale-95 disabled:opacity-50"
+                                disabled={imageGen.isLoading || (!imageGen.prompt?.trim() && imageGen.characterRefs.length === 0)}
+                                className="w-full py-6 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black font-mono text-xs uppercase tracking-[0.5em] rounded-[2.5rem] transition-all shadow-[0_30px_60px_rgba(157,78,221,0.4)] flex items-center justify-center gap-5 group/btn active:scale-95 disabled:opacity-50 shrink-0 mb-10"
                             >
                                 {imageGen.isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap size={22} className="group-hover/btn:scale-125 transition-transform" />}
                                 {imageGen.isLoading ? 'Processing Scene...' : 'Render Master Frame'}
@@ -586,7 +673,7 @@ const ImageGen: React.FC = () => {
                         </div>
 
                         {/* Viewport Area */}
-                        <div className="flex-1 flex flex-col gap-6">
+                        <div className="flex-1 flex flex-col gap-6 min-w-0 h-full">
                             <div className="flex-1 bg-[#050505] border border-[#1f1f1f] rounded-[3.5rem] overflow-hidden relative flex items-center justify-center shadow-2xl group/viewport">
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.02)_0%,transparent_80%)] pointer-events-none" />
                                 
@@ -644,14 +731,19 @@ const ImageGen: React.FC = () => {
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <button onClick={() => imageGen.generatedImage && openHoloProjector({ id: 'current', title: 'Master Frame', type: 'IMAGE', content: imageGen.generatedImage.url })} className="px-8 py-3 bg-white/5 border border-white/10 hover:border-white/40 text-gray-300 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">Fullscreen</button>
-                                    <button className="px-8 py-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-[0_0_20px_rgba(157,78,221,0.2)] active:scale-95"><Download size={16}/> Secure Buffer</button>
+                                    <button 
+                                        onClick={() => imageGen.generatedImage && downloadAsset(imageGen.generatedImage.url, `master_frame_${Date.now()}.png`)} 
+                                        className="px-8 py-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-[0_0_20px_rgba(157,78,221,0.2)] active:scale-95"
+                                    >
+                                        <Download size={16}/> Secure Buffer
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
                         {/* Right Sidebar: Active Studio Crew */}
-                        <div className="w-[320px] flex flex-col gap-6 shrink-0">
-                            <div className="p-6 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2rem] flex flex-col gap-6 shadow-2xl">
+                        <div className="w-[320px] flex flex-col gap-6 shrink-0 h-full overflow-y-auto custom-scrollbar">
+                            <div className="p-6 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2rem] flex flex-col gap-6 shadow-2xl shrink-0">
                                 <div className="flex items-center gap-3 mb-2 px-1">
                                     <Users size={16} className="text-[#22d3ee]" />
                                     <h2 className="text-[10px] font-black font-mono text-white uppercase tracking-[0.4em]">Active Studio Crew</h2>
@@ -673,7 +765,7 @@ const ImageGen: React.FC = () => {
                                 </div>
                             </div>
                             
-                            <div className="flex-1 bg-gradient-to-br from-[#9d4edd]/5 to-transparent border border-white/5 rounded-[2rem] p-8 flex flex-col justify-center text-center relative overflow-hidden group/award">
+                            <div className="flex-1 min-h-[200px] bg-gradient-to-br from-[#9d4edd]/5 to-transparent border border-white/5 rounded-[2rem] p-8 flex flex-col justify-center text-center relative overflow-hidden group/award shrink-0 mb-10">
                                 <Award size={48} className="mx-auto text-[#f1c21b] mb-6 group-hover/award:scale-125 transition-transform duration-700" />
                                 <h3 className="text-xs font-black font-mono text-white uppercase tracking-widest mb-4">Award-Ready Fidelity</h3>
                                 <p className="text-[10px] text-gray-500 font-mono leading-relaxed px-4">Assets optimized for large-scale projection and cinematic delivery chains.</p>
@@ -684,7 +776,7 @@ const ImageGen: React.FC = () => {
                 )}
 
                 {activeTab === 'STORYBOARD' && (
-                    <motion.div key="storyboard" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }} className="h-full flex flex-col overflow-hidden">
+                    <motion.div key="storyboard" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }} className="w-full h-full flex flex-col overflow-hidden">
                         <div className="flex-1 flex gap-8 p-8 overflow-hidden">
                             <div className="w-[400px] bg-[#0a0a0a] border border-[#1f1f1f] rounded-[3rem] flex flex-col shrink-0 shadow-2xl overflow-hidden">
                                 <div className="p-10 border-b border-[#1f1f1f] bg-white/[0.02]">
@@ -738,14 +830,14 @@ const ImageGen: React.FC = () => {
                             </div>
 
                             <div className="flex-1 bg-black/40 border border-[#1f1f1f] rounded-[3.5rem] overflow-y-auto custom-scrollbar p-10 shadow-inner">
-                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
+                                <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 pb-10">
                                     {frames.map((f, i) => (
                                         <motion.div 
                                             key={i} 
                                             initial={{ opacity: 0, y: 30 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             transition={{ delay: i * 0.05 }}
-                                            className={`bg-[#0a0a0a] border rounded-[2.5rem] overflow-hidden transition-all duration-700 relative group
+                                            className={`bg-[#0a0a0a] border rounded-[2.5rem] overflow-hidden transition-all duration-700 relative group shrink-0
                                                 ${f.status === 'done' ? 'border-emerald-500/20 bg-emerald-950/5' : f.status === 'generating' ? 'border-[#9d4edd] shadow-[0_0_30px_rgba(157,78,221,0.1)] animate-pulse' : 'border-[#1f1f1f] hover:border-[#333]'}
                                             `}
                                         >
@@ -764,7 +856,7 @@ const ImageGen: React.FC = () => {
                                                     {f.imageUrl && <button onClick={() => openHoloProjector({ id: `f-${i}`, title: `Frame ${i+1}`, type: 'IMAGE', content: f.imageUrl })} className="p-4 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95"><Maximize size={24}/></button>}
                                                 </div>
                                             </div>
-                                            <div className="p-8 space-y-6">
+                                            <div className="p-8 space-y-6 overflow-y-auto max-h-[300px] custom-scrollbar">
                                                 <div className="flex justify-between items-center text-[9px] font-black font-mono text-gray-600 uppercase tracking-widest">
                                                     <span>Scene Protocol</span>
                                                     {f.status === 'done' && <CheckCircle size={16} className="text-[#10b981]" />}
@@ -794,9 +886,9 @@ const ImageGen: React.FC = () => {
                 )}
 
                 {activeTab === 'VIDEO' && (
-                    <motion.div key="video" initial={{ opacity: 0, scale: 1.02 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="h-full flex gap-10 p-10">
-                        <div className="w-[420px] flex flex-col gap-6 shrink-0">
-                            <div className="p-10 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[3rem] flex flex-col gap-8 shadow-2xl relative overflow-hidden">
+                    <motion.div key="video" initial={{ opacity: 0, scale: 1.02 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="w-full h-full flex gap-10 p-10 overflow-hidden">
+                        <div className="w-[420px] flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar pr-2">
+                            <div className="p-10 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[3rem] flex flex-col gap-8 shadow-2xl relative overflow-hidden shrink-0">
                                 <div className="absolute top-0 right-0 p-8 opacity-5"><Video size={100} /></div>
                                 <div className="flex items-center gap-4 relative z-10">
                                     <Video className="w-6 h-6 text-[#d946ef]" />
@@ -836,15 +928,27 @@ const ImageGen: React.FC = () => {
                                 <button 
                                     onClick={handleVideoGenerate} 
                                     disabled={isVideoLoading || !videoPrompt.trim()}
-                                    className="w-full py-6 bg-[#d946ef] hover:bg-[#f0abfc] text-black font-black font-mono text-sm uppercase tracking-[0.5em] rounded-[2.5rem] transition-all shadow-[0_30px_70px_rgba(217,70,239,0.4)] flex items-center justify-center gap-5 disabled:opacity-50 active:scale-95 relative z-10"
+                                    className="w-full py-6 bg-[#d946ef] hover:bg-[#f0abfc] text-black font-black font-mono text-sm uppercase tracking-[0.5em] rounded-[2.5rem] transition-all shadow-[0_30px_70px_rgba(217,70,239,0.4)] flex items-center justify-center gap-5 disabled:opacity-50 active:scale-95 relative z-10 mb-2"
                                 >
                                     {isVideoLoading ? <Loader2 className="w-7 h-7 animate-spin" /> : <Play size={24} className="fill-current" />}
                                     {isVideoLoading ? 'Synthesizing...' : 'Forge Temporal Sequence'}
                                 </button>
                             </div>
+                            
+                            {/* Additional Context Box for VEO consistency */}
+                            <div className="p-8 bg-[#111]/40 border border-white/5 rounded-[2.5rem] shrink-0 mb-10 overflow-hidden">
+                                <div className="flex items-center gap-3 mb-4">
+                                    <Target size={16} className="text-[#d946ef]" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white font-mono">Consolidated Context</span>
+                                </div>
+                                <p className="text-[10px] text-gray-500 font-mono leading-relaxed">
+                                    VEO is currently anchored to {imageGen.characterRefs.length > 0 ? 'the primary Identity Vector' : 'no visual anchor'}. 
+                                    Thematic consistency is managed via the locked Production Bible.
+                                </p>
+                            </div>
                         </div>
 
-                        <div className="flex-1 bg-black border border-[#1f1f1f] rounded-[4rem] overflow-hidden relative shadow-2xl flex items-center justify-center group/video-p">
+                        <div className="flex-1 bg-black border border-[#1f1f1f] rounded-[4rem] overflow-hidden relative shadow-2xl flex items-center justify-center group/video-p h-full min-h-0">
                             <AnimatePresence mode="wait">
                                 {isVideoLoading ? (
                                     <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-12">
@@ -878,8 +982,8 @@ const ImageGen: React.FC = () => {
                 )}
 
                 {activeTab === 'TEASER' && (
-                    <motion.div key="teaser" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="h-full flex flex-col p-10 gap-10">
-                        <div className="flex-1 bg-black rounded-[4rem] border border-[#1f1f1f] relative overflow-hidden group/theatre shadow-[0_80px_200px_rgba(0,0,0,1)] flex items-center justify-center">
+                    <motion.div key="teaser" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="w-full h-full flex flex-col p-10 gap-10 overflow-hidden">
+                        <div className="flex-1 bg-black rounded-[4rem] border border-[#1f1f1f] relative overflow-hidden group/theatre shadow-[0_80px_200px_rgba(0,0,0,1)] flex items-center justify-center min-h-0">
                             
                             {/* Ambient Production Glow */}
                             <AnimatePresence mode="wait">
@@ -897,7 +1001,7 @@ const ImageGen: React.FC = () => {
 
                             <div className="absolute inset-0 bg-black/70 backdrop-blur-3xl z-0" />
 
-                            <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-24">
+                            <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-12 overflow-y-auto custom-scrollbar">
                                 <AnimatePresence mode="wait">
                                     {frames[teaserIdx]?.imageUrl ? (
                                         <motion.div 
@@ -906,9 +1010,9 @@ const ImageGen: React.FC = () => {
                                             animate={{ opacity: 1, y: 0, scale: 1 }} 
                                             exit={{ opacity: 0, y: -40, scale: 1.02 }} 
                                             transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-                                            className="relative flex flex-col items-center gap-14 w-full max-w-7xl"
+                                            className="relative flex flex-col items-center gap-10 w-full max-w-7xl"
                                         >
-                                            <div className="w-full aspect-video rounded-[3rem] overflow-hidden shadow-[0_0_150px_rgba(0,0,0,1)] border border-white/10 relative group/hero">
+                                            <div className="w-full aspect-video rounded-[3rem] overflow-hidden shadow-[0_0_150px_rgba(0,0,0,1)] border border-white/10 relative group/hero shrink-0">
                                                 <img src={frames[teaserIdx].imageUrl} className="w-full h-full object-cover group-hover/hero:scale-105 transition-transform duration-[15s] ease-linear" alt="Theater View" />
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30 opacity-60" />
                                                 
@@ -920,13 +1024,13 @@ const ImageGen: React.FC = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="text-center space-y-10 max-w-5xl">
-                                                <div className="flex justify-center items-center gap-8">
+                                            <div className="text-center space-y-8 max-w-5xl overflow-y-auto max-h-[300px] custom-scrollbar px-4">
+                                                <div className="flex justify-center items-center gap-8 shrink-0">
                                                     <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent opacity-40" />
-                                                    <span className="text-[12px] font-black text-[#9d4edd] uppercase tracking-[1em]">Lattice Screening Synthesis</span>
+                                                    <span className="text-[12px] font-black text-[#9d4edd] uppercase tracking-[1em] whitespace-nowrap">Lattice Screening Synthesis</span>
                                                     <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent opacity-40" />
                                                 </div>
-                                                <p className="text-4xl font-mono text-white leading-relaxed italic font-medium selection:bg-[#9d4edd]/40 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,1)]">
+                                                <p className="text-4xl font-mono text-white leading-relaxed italic font-medium selection:bg-[#9d4edd]/40 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,1)] pb-4">
                                                     "{frames[teaserIdx].scenePrompt}"
                                                 </p>
                                             </div>
@@ -941,27 +1045,42 @@ const ImageGen: React.FC = () => {
                             </div>
 
                             {/* Screening Room HUD */}
-                            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-14 px-16 py-8 bg-[#0a0a0a]/80 backdrop-blur-3xl border border-white/10 rounded-[4rem] shadow-[0_60px_150px_rgba(0,0,0,0.9)] opacity-0 group-hover/theatre:opacity-100 transition-all duration-700 transform translate-y-6 group-hover/theatre:translate-y-0">
-                                <div className="flex items-center gap-10">
+                            <div className="absolute bottom-16 left-1/2 -translate-x-1/2 z-30 flex items-center gap-14 px-16 py-8 bg-[#0a0a0a]/80 backdrop-blur-3xl border border-white/10 rounded-[4rem] shadow-[0_60px_150px_rgba(0,0,0,0.9)] opacity-0 group-hover/theatre:opacity-100 transition-all duration-700 transform translate-y-6 group-hover/theatre:translate-y-0 max-w-[90%] flex-wrap justify-center">
+                                <div className="flex items-center gap-8">
                                     <button onClick={() => setTeaserIdx(p => (p - 1 + frames.length) % frames.length)} className="p-5 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"><FastForward size={36} className="rotate-180" /></button>
                                     <button 
-                                        onClick={() => { setIsTeaserPlaying(!isTeaserPlaying); audio.playClick(); }} 
+                                        onClick={() => { setIsAutoPlaying(!isAutoPlaying); if (!isAutoPlaying) playFullSequence(); audio.playClick(); }} 
                                         className={`w-24 h-24 rounded-full flex items-center justify-center transition-all shadow-[0_0_50px_rgba(0,0,0,0.5)] active:scale-95
-                                            ${isTeaserPlaying ? 'bg-white text-black shadow-white/20' : 'bg-[#9d4edd] text-black shadow-[#9d4edd]/50'}
+                                            ${isAutoPlaying ? 'bg-white text-black shadow-white/20' : 'bg-[#9d4edd] text-black shadow-[#9d4edd]/50'}
                                         `}
                                     >
-                                        {isTeaserPlaying ? <Pause size={48} /> : <Play size={48} fill="currentColor" className="ml-1.5" />}
+                                        {isAutoPlaying ? <Pause size={48} /> : <Play size={48} fill="currentColor" className="ml-1.5" />}
                                     </button>
                                     <button onClick={() => setTeaserIdx(p => (p + 1) % frames.length)} className="p-5 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"><FastForward size={36} /></button>
                                 </div>
-                                <div className="h-16 w-px bg-white/10" />
+                                <div className="h-16 w-px bg-white/10 hidden md:block" />
                                 <div className="flex items-center gap-6">
-                                    <button onClick={handleGenerateTeaserAudio} disabled={isGeneratingTeaserAudio} className={`p-6 rounded-3xl transition-all shadow-2xl ${isGeneratingTeaserAudio ? 'bg-[#9d4edd] text-black animate-pulse shadow-[#9d4edd]/30' : 'bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10'}`}>
-                                        <Volume2 size={40} />
-                                    </button>
-                                    <div className="flex flex-col">
+                                    <div className="flex gap-2">
+                                        <button 
+                                            onClick={generateAllSequenceAudio} 
+                                            disabled={isGeneratingTeaserAudio || frames.length === 0} 
+                                            className={`p-6 rounded-3xl transition-all shadow-2xl bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10`}
+                                            title="Synthesize All Narrations"
+                                        >
+                                            <Speaker size={32} />
+                                        </button>
+                                        <button 
+                                            onClick={() => generateTeaserAudioForIndex(teaserIdx)} 
+                                            disabled={isGeneratingTeaserAudio || !frames[teaserIdx]?.imageUrl} 
+                                            className={`p-6 rounded-3xl transition-all shadow-2xl ${isGeneratingTeaserAudio ? 'bg-[#9d4edd] text-black animate-pulse shadow-[#9d4edd]/30' : 'bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10'}`}
+                                            title="Regenerate Active Node Audio"
+                                        >
+                                            <Volume2 size={32} />
+                                        </button>
+                                    </div>
+                                    <div className="flex flex-col min-w-0">
                                         <span className="text-[14px] font-black text-white uppercase tracking-widest leading-none mb-2">Theater HUD</span>
-                                        <span className="text-[10px] text-gray-600 font-mono uppercase tracking-widest">Uplink: 1080p_STABLE</span>
+                                        <span className="text-[10px] text-gray-600 font-mono uppercase tracking-widest truncate">Uplink: {isAutoPlaying ? 'SEQUENCE_STREAMING' : '1080p_STABLE'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -972,7 +1091,7 @@ const ImageGen: React.FC = () => {
                             {frames.map((f, i) => (
                                 <button 
                                     key={i} 
-                                    onClick={() => { setTeaserIdx(i); audio.playClick(); }}
+                                    onClick={() => { setTeaserIdx(i); setIsAutoPlaying(false); audio.playClick(); }}
                                     className={`relative w-56 h-full rounded-2xl border-2 overflow-hidden transition-all duration-700 shrink-0 group/tn
                                         ${teaserIdx === i ? 'border-[#9d4edd] ring-8 ring-[#9d4edd]/10 scale-105 shadow-[0_0_40px_rgba(157,78,221,0.4)] z-10' : 'border-transparent opacity-30 hover:opacity-100 hover:border-white/20'}
                                     `}
@@ -984,6 +1103,7 @@ const ImageGen: React.FC = () => {
                                     )}
                                     <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-black/80 rounded-lg text-[8px] font-black font-mono text-white opacity-60 uppercase tracking-widest shadow-2xl">F_{i+1}</div>
                                     {teaserIdx === i && <div className="absolute inset-0 bg-[#9d4edd]/10 pointer-events-none" />}
+                                    {f.audioUrl && <div className="absolute top-2 right-2 p-1 bg-[#10b981]/80 rounded-full border border-white/20"><Volume2 size={8} className="text-white"/></div>}
                                 </button>
                             ))}
                         </div>
@@ -994,7 +1114,7 @@ const ImageGen: React.FC = () => {
 
         {/* Global Production Footer HUD */}
         <div className="h-10 bg-[#0a0a0a] border-t border-[#1f1f1f] px-8 flex items-center justify-between text-[9px] font-mono text-gray-600 shrink-0 relative z-[60]">
-            <div className="flex gap-10 items-center">
+            <div className="flex gap-10 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
                 <div className="flex items-center gap-3 text-emerald-500 font-bold uppercase tracking-[0.2em]">
                     <CheckCircle size={14} className="shadow-[0_0_10px_#10b981]" /> Sync_Stable
                 </div>
@@ -1005,9 +1125,9 @@ const ImageGen: React.FC = () => {
                     <Zap size={14} className="text-[#22d3ee]" /> Render_Queue: NOMINAL
                 </div>
             </div>
-            <div className="flex items-center gap-8">
-                <span className="uppercase tracking-[0.5em] opacity-40 leading-none">Architectural Cinema Division v8.1 // Final Render Protocol</span>
-                <div className="h-4 w-px bg-white/10" />
+            <div className="flex items-center gap-8 shrink-0">
+                <span className="uppercase tracking-[0.5em] opacity-40 leading-none hidden lg:block">Architectural Cinema Division v8.1 // Final Render Protocol</span>
+                <div className="h-4 w-px bg-white/10 hidden lg:block" />
                 <span className="font-black text-gray-400 uppercase tracking-widest leading-none">Metaventions_OS</span>
             </div>
         </div>

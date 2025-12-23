@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { 
     AppMode, ResearchState, UserProfile, AppTheme, ScienceHypothesis, KnowledgeNode, 
@@ -158,6 +159,7 @@ interface AppState {
         aspectRatio: AspectRatio;
         quality: ImageSize;
         characterRefs: FileData[];
+        worldRefs: FileData[];
         styleRefs: FileData[];
         resonanceCurve: ResonancePoint[];
         isLoading: boolean;
@@ -300,6 +302,7 @@ export const useAppStore = create<AppState>((set) => ({
         aspectRatio: AspectRatio.RATIO_16_9, 
         quality: ImageSize.SIZE_1K,
         characterRefs: [], 
+        worldRefs: [],
         styleRefs: [], 
         resonanceCurve: [], 
         isLoading: false, 
