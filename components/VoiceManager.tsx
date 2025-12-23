@@ -19,11 +19,7 @@ const navigateTool: FunctionDeclaration = {
     parameters: {
         type: Type.OBJECT,
         properties: {
-            target_sector: { 
-                type: Type.STRING, 
-                enum: Object.values(AppMode), 
-                description: "Destination sector code." 
-            }
+            target_sector: { type: Type.STRING, enum: Object.values(AppMode) }
         },
         required: ['target_sector']
     }
@@ -31,28 +27,29 @@ const navigateTool: FunctionDeclaration = {
 
 const synthesizeTopologyTool: FunctionDeclaration = {
     name: 'synthesize_topology',
-    description: 'Triggers the Protocol Architect to generate a structured PARA drive taxonomy or System Architecture.',
+    description: 'Generates a structured PARA drive taxonomy or System Architecture blueprint.',
     parameters: {
         type: Type.OBJECT,
         properties: {
-            description: { type: Type.STRING, description: "Detailed goal for the organization or system." },
-            type: { type: Type.STRING, enum: ['DRIVE_ORGANIZATION', 'SYSTEM_ARCHITECTURE'], description: "Domain of synthesis." }
+            description: { type: Type.STRING },
+            type: { type: Type.STRING, enum: ['DRIVE_ORGANIZATION', 'SYSTEM_ARCHITECTURE'] }
         },
         required: ['description', 'type']
     }
 };
 
-const createTaskTool: FunctionDeclaration = {
-    name: 'create_system_task',
-    description: 'Adds a new tactical task to the OS Task Board.',
+const recalibrateDnaTool: FunctionDeclaration = {
+    name: 'recalibrate_dna',
+    description: 'Adjusts the mental state weights (skepticism, excitement, alignment) for an agent.',
     parameters: {
         type: Type.OBJECT,
         properties: {
-            title: { type: Type.STRING },
-            description: { type: Type.STRING },
-            priority: { type: Type.STRING, enum: Object.values(TaskPriority) }
+            agentId: { type: Type.STRING },
+            skepticism: { type: Type.NUMBER },
+            excitement: { type: Type.NUMBER },
+            alignment: { type: Type.NUMBER }
         },
-        required: ['title', 'description']
+        required: ['agentId']
     }
 };
 
@@ -62,7 +59,6 @@ const VoiceManager: React.FC = () => {
         operationalContext
     } = useAppStore();
     const { currentLocation } = useSystemMind();
-    
     const connectionAttemptRef = useRef(false);
     const partialTranscriptRef = useRef<string>("");
 
@@ -71,26 +67,20 @@ const VoiceManager: React.FC = () => {
             if (name === 'navigate_to_sector') {
                 const target = args.target_sector as AppMode;
                 setMode(target);
-                addLog('SYSTEM', `VOICE_NAV: Redirecting to ${target} sector.`);
-                return { status: "NAVIGATION_SUCCESSFUL", sector: target };
+                addLog('SYSTEM', `VOICE_NAV: Sector Shift -> ${target}`);
+                return { status: "NAVIGATION_SUCCESS" };
             }
             if (name === 'synthesize_topology') {
-                addLog('SYSTEM', `VOICE_ARCHITECT: Initializing ${args.type} synthesis loop...`);
-                // Trigger actual tool logic from registry
+                addLog('SYSTEM', `VOICE_ARCHITECT: Initializing ${args.type} loop...`);
                 const result = await (OS_TOOLS.architect_generate_process as any)(args);
                 return result.data;
             }
-            if (name === 'create_system_task') {
-                addTask({
-                    title: args.title,
-                    description: args.description,
-                    priority: (args.priority as TaskPriority) || TaskPriority.MEDIUM,
-                    status: TaskStatus.TODO,
-                    tags: ['VOICE_INJECT'],
-                    subtasks: []
+            if (name === 'recalibrate_dna') {
+                const result = await (OS_TOOLS.adjust_agent_dna as any)({
+                    agentId: args.agentId,
+                    weights: { skepticism: args.skepticism, excitement: args.excitement, alignment: args.alignment }
                 });
-                addLog('SUCCESS', `VOICE_TASK: Tactical unit "${args.title}" created.`);
-                return { status: "TASK_CREATED" };
+                return result.data;
             }
             return { error: "Unknown protocol" };
         };
@@ -103,22 +93,17 @@ const VoiceManager: React.FC = () => {
                 connectionAttemptRef.current = true;
                 try {
                     const agentName = voice.voiceName || 'Puck';
-                    const agentEntry = Object.entries(HIVE_AGENTS).find(([id, a]) => (a as HiveAgent).name === agentName);
-                    const agentId = agentEntry ? agentEntry[0] : 'Puck';
+                    const agentId = Object.keys(HIVE_AGENTS).find(k => HIVE_AGENTS[k].name === agentName) || 'Puck';
                     
                     const sharedContext = `
                     OS_STATUS: Sector: ${currentLocation}, Context Level: ${operationalContext}
-                    CAPABILITIES: Navigate, Create Tasks, and Synthesize Topologies (PARA Drive Org or System Architecture).
+                    CAPABILITIES: Navigate, Recalibrate DNA (agent mental states), and Synthesize Topologies.
                     ADDRESS USER AS: Architect.
                     `;
 
                     await liveSession.connect(agentName, {
                         systemInstruction: constructHiveContext(agentId, sharedContext),
-                        tools: [{ functionDeclarations: [
-                            navigateTool,
-                            synthesizeTopologyTool,
-                            createTaskTool
-                        ] }],
+                        tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool] }],
                         outputAudioTranscription: {},
                         inputAudioTranscription: {},
                         callbacks: {
@@ -135,40 +120,20 @@ const VoiceManager: React.FC = () => {
                                     const finalText = partialTranscriptRef.current;
                                     if (finalText) {
                                         setVoiceState(prev => ({
-                                            transcripts: [...prev.transcripts, { 
-                                                role: prev.partialTranscript?.role || 'user', 
-                                                text: finalText, 
-                                                timestamp: Date.now() 
-                                            }],
+                                            transcripts: [...prev.transcripts, { role: prev.partialTranscript?.role || 'user', text: finalText, timestamp: Date.now() }],
                                             partialTranscript: null
                                         }));
                                     }
                                     partialTranscriptRef.current = "";
                                 }
                             },
-                            onopen: () => {
-                                if (mounted) {
-                                    setVoiceState({ isConnecting: false });
-                                    addLog('SUCCESS', `VOICE_CORE: [${agentName}] uplink stable.`);
-                                }
-                            },
-                            onerror: () => {
-                                connectionAttemptRef.current = false;
-                                setVoiceState({ isActive: false, isConnecting: false });
-                            },
-                            onclose: () => {
-                                if (mounted) {
-                                    connectionAttemptRef.current = false;
-                                    setVoiceState({ isActive: false, isConnecting: false });
-                                }
-                            }
+                            onopen: () => { if (mounted) { setVoiceState({ isConnecting: false }); addLog('SUCCESS', `VOICE_CORE: Uplink synchronized.`); } },
+                            onerror: () => { connectionAttemptRef.current = false; setVoiceState({ isActive: false, isConnecting: false }); },
+                            onclose: () => { if (mounted) { connectionAttemptRef.current = false; setVoiceState({ isActive: false, isConnecting: false }); } }
                         }
                     });
-                } catch (err) {
-                    connectionAttemptRef.current = false;
-                }
-            } 
-            else if (!voice.isActive && liveSession.isConnected()) {
+                } catch (err) { connectionAttemptRef.current = false; }
+            } else if (!voice.isActive && liveSession.isConnected()) {
                 liveSession.disconnect();
                 connectionAttemptRef.current = false;
                 setVoiceState({ partialTranscript: null, isConnecting: false });

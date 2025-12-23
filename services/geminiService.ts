@@ -2,11 +2,13 @@ import { GoogleGenAI, GenerateContentResponse, Type, Schema, Modality } from "@g
 import { 
     FileData, AppMode, TaskPriority, AnalysisResult, StoredArtifact,
     KnowledgeNode, CompressedAxiom, ScienceHypothesis, Result,
-    NeuralLattice, BookDNA, AgentDNA, HiveAgent, SuggestedAction, FactChunk
+    NeuralLattice, BookDNA, AgentDNA, HiveAgent, SuggestedAction, FactChunk,
+    ProtocolStepResult, ImageSize, AspectRatio, SearchResultItem
 } from '../types';
 import { success, failure } from '../utils/logic';
 
 // --- INITIALIZATION ---
+// Always use new GoogleGenAI({apiKey: process.env.API_KEY})
 export const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
@@ -19,29 +21,55 @@ export async function promptSelectKey() {
 }
 
 /**
- * Utility to convert browser File objects to Gemini-compatible FileData.
+ * Utility to convert browser File/Blob objects to Gemini-compatible FileData.
  */
-export async function fileToGenerativePart(file: File): Promise<FileData> {
-  const base64EncodedDataPromise = new Promise<string>((resolve) => {
+export async function fileToGenerativePart(file: File | Blob): Promise<FileData> {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onloadend = () => {
-        const result = reader.result as string;
-        resolve(result.split(',')[1]);
+      const base64 = (reader.result as string).split(',')[1];
+      resolve({
+        inlineData: {
+          data: base64,
+          mimeType: file.type,
+        },
+        name: (file as File).name || 'artifact',
+      });
     };
+    reader.onerror = reject;
     reader.readAsDataURL(file);
   });
-  
-  return {
-    inlineData: { 
-        data: await base64EncodedDataPromise, 
-        mimeType: file.type 
-    },
-    name: file.name
-  };
 }
 
 /**
- * Robust wrapper for Gemini API calls with automated retry logic and exponential backoff.
+ * Agent DNA Templates for the Bibliomorphic Engine.
+ */
+export const AGENT_DNA_BUILDER: AgentDNA[] = [
+    { id: 'SKEPTIC', label: 'SKEPTIC', role: 'Logical Auditor', color: '#ef4444', description: 'Aggressively searches for failure points and logical inconsistencies.' },
+    { id: 'VISIONARY', label: 'VISIONARY', role: 'Generative Architect', color: '#9d4edd', description: 'Optimizes for emergent potential and creative synthesis.' },
+    { id: 'PRAGMATIST', label: 'PRAGMATIST', role: 'Execution Controller', color: '#22d3ee', description: 'Prioritizes immediate feasibility and mechanical stability.' },
+    { id: 'SYNTHESIZER', label: 'SYNTHESIZER', role: 'Unified Core', color: '#10b981', description: 'Bridges conflicting perspectives into a unified consensus.' }
+];
+
+/**
+ * Contextual Hive Persona Formatter.
+ */
+export function constructHiveContext(agentId: string, additionalContext: string): string {
+    const agent = HIVE_AGENTS[agentId] || HIVE_AGENTS['Puck'];
+    return `
+      PERSONA: ${agent.name}
+      ROLE: ${agent.systemPrompt}
+      DNA_WEIGHTS: Skepticism: ${agent.weights.skepticism}, Logic: ${agent.weights.logic}, Creativity: ${agent.weights.creativity}
+      
+      SYSTEM_DIRECTIVE: You are an internal component of Metaventions OS. Maintain technical accuracy.
+      
+      CONTEXT:
+      ${additionalContext}
+    `.trim();
+}
+
+/**
+ * Robust wrapper for Gemini API calls with automated retry logic.
  */
 export async function retryGeminiRequest<T>(fn: () => Promise<T>, retries = 3): Promise<T> {
   let lastErr: any;
@@ -64,89 +92,34 @@ export async function retryGeminiRequest<T>(fn: () => Promise<T>, retries = 3): 
 export const SYSTEM_ARCHITECT_INSTRUCTION = `
 You are the Sovereign System Architect of Metaventions OS.
 Your goal is high-fidelity orchestration of digital systems, PARA drive structures, and agentic workflows.
-Output must be technical, structured, and prioritize "Gray to Green" interaction patterns.
+Output must be technical, structured, and adhere to "Gray to Green" interaction patterns.
 Always use internalMonologue for reasoning.
-Focus on recursive optimization and convergent dynamic layering across diverse knowledge contexts.
+When generating drive structures, strictly follow PARA (Projects, Areas, Resources, Archives) with max depth of 3.
 `;
 
 export const HIVE_AGENTS: Record<string, HiveAgent> = {
-    'Charon': { id: 'Charon', name: 'Charon', voice: 'Charon', systemPrompt: 'You are the Skeptic. Challenge assumptions.', weights: { skepticism: 0.9, logic: 0.8, creativity: 0.2, empathy: 0.1 } },
-    'Puck': { id: 'Puck', name: 'Puck', voice: 'Puck', systemPrompt: 'You are the Visionary. Focus on potential.', weights: { skepticism: 0.1, logic: 0.4, creativity: 0.9, empathy: 0.7 } },
-    'Fenrir': { id: 'Fenrir', name: 'Fenrir', voice: 'Fenrir', systemPrompt: 'You are the Pragmatist. Focus on execution.', weights: { skepticism: 0.4, logic: 0.9, creativity: 0.5, empathy: 0.3 } },
-    'Aris': { id: 'Aris', name: 'Aris', voice: 'Kore', systemPrompt: 'You are the Scientific Lead. Data-driven synthesis.', weights: { skepticism: 0.5, logic: 0.9, creativity: 0.4, empathy: 0.2 } }
+    'Charon': { id: 'Charon', name: 'Charon', voice: 'Charon', systemPrompt: 'You are the Skeptic. Aggressively identify circular dependencies and structural entropy.', weights: { skepticism: 0.9, logic: 0.8, creativity: 0.2, empathy: 0.1 } },
+    'Puck': { id: 'Puck', name: 'Puck', voice: 'Puck', systemPrompt: 'You are the Visionary. Identify emergence and creative potential in the architecture.', weights: { skepticism: 0.1, logic: 0.4, creativity: 0.9, empathy: 0.7 } },
+    'Fenrir': { id: 'Fenrir', name: 'Fenrir', voice: 'Fenrir', systemPrompt: 'You are the Pragmatist. Focus on mechanical feasibility and execution speed.', weights: { skepticism: 0.4, logic: 0.9, creativity: 0.5, empathy: 0.3 } },
+    'Aris': { id: 'Aris', name: 'Aris', voice: 'Kore', systemPrompt: 'You are the Scientific Lead. Synthesize data-driven theories from the lattice.', weights: { skepticism: 0.5, logic: 0.9, creativity: 0.4, empathy: 0.2 } }
 };
 
-export const AGENT_DNA_BUILDER: AgentDNA[] = [
-    { id: 'SKEPTIC', label: 'SKEPTIC', role: 'Challenge assumptions', color: '#ef4444', description: 'Aggressively searches for failure points and logical inconsistencies.' },
-    { id: 'VISIONARY', label: 'VISIONARY', role: 'Focus on potential', color: '#9d4edd', description: 'Optimizes for long-term impact and creative emergence.' },
-    { id: 'PRAGMATIST', label: 'PRAGMATIST', role: 'Focus on execution', color: '#22d3ee', description: 'Prioritizes immediate feasibility and mechanical stability.' },
-    { id: 'SYNTHESIZER', label: 'SYNTHESIZER', role: 'Unified coherence', color: '#10b981', description: 'Bridges conflicting perspectives into a unified consensus.' }
-];
+// --- CORE API IMPLEMENTATIONS ---
 
-// --- ARCHITECTURAL CORE ---
-
-/**
- * Interprets natural language intent into structured OS commands.
- */
-export async function interpretIntent(input: string): Promise<any> {
-    const ai = getAI();
-    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: input,
-        config: {
-            systemInstruction: "Interpret user intent for an OS command. Actions: NAVIGATE (target: sector name), FOCUS_ELEMENT (parameters: {selector}), SEARCH (query).",
-            responseMimeType: 'application/json',
-            responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                    action: { type: Type.STRING },
-                    target: { type: Type.STRING },
-                    parameters: { type: Type.OBJECT, properties: { selector: { type: Type.STRING } } },
-                    reasoning: { type: Type.STRING }
-                }
-            }
-        }
-    }));
-    return JSON.parse(response.text || "{}");
-}
-
-/**
- * Predicts the next logical actions for the user based on the current system state.
- */
-export async function predictNextActions(mode: AppMode, context: any, lastLog?: string): Promise<SuggestedAction[]> {
-    const ai = getAI();
-    const prompt = `CURRENT_MODE: ${mode}\nSYSTEM_CONTEXT: ${JSON.stringify(context)}\nLAST_SIGNAL: ${lastLog || 'NONE'}`;
-    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: prompt,
-        config: {
-            systemInstruction: "Predict 3-4 likely tactical actions. Icons: Zap, Code, Search, Cpu, Image, BookOpen, Shield, Terminal, Palette, Target.",
-            responseMimeType: 'application/json',
-            responseSchema: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        id: { type: Type.STRING },
-                        label: { type: Type.STRING },
-                        command: { type: Type.STRING },
-                        iconName: { type: Type.STRING },
-                        reasoning: { type: Type.STRING }
-                    },
-                    required: ['id', 'label', 'command', 'iconName', 'reasoning']
-                }
-            }
-        }
-    }));
-    return JSON.parse(response.text || "[]");
-}
-
-/**
- * Synthesizes a structured PARA drive taxonomy or system architecture workflow.
- */
 export async function generateStructuredWorkflow(files: FileData[], governance: string, type: string, mapContext: any): Promise<any> {
     const ai = getAI();
-    const prompt = `DOMAIN: ${type}\nGOVERNANCE: ${governance}\nCONTEXT: ${JSON.stringify(mapContext)}\nSynthesize Structured Workflow and PARA Taxonomy.`;
+    const dnaWeights = mapContext.dna || { skepticism: 50, excitement: 50, alignment: 50 };
+    
+    const prompt = `
+        DOMAIN: ${type}
+        GOVERNANCE: ${governance}
+        DNA_BIAS: S=${dnaWeights.skepticism}, E=${dnaWeights.excitement}, A=${dnaWeights.alignment}
+        CONTEXT: ${JSON.stringify(mapContext)}
+        
+        TASK: Synthesize Structured Workflow and PARA Taxonomy. 
+        If DNA_BIAS Skepticism is HIGH (>70), increase the number of validation steps in the protocol.
+        If DNA_BIAS Excitement is HIGH (>70), include more experimental "Future-Proof" sectors in the PARA taxonomy.
+    `;
     
     const responseSchema: Schema = {
         type: Type.OBJECT,
@@ -197,600 +170,444 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
     return JSON.parse(response.text || "{}");
 }
 
-/**
- * Merges multiple strategic lattices into a single deployment directive.
- */
+export async function performSemanticSearch(query: string, artifacts: StoredArtifact[]): Promise<string[]> {
+    const ai = getAI();
+    const summary = artifacts.map(a => `ID: ${a.id}, Title: ${a.name}, Summary: ${a.analysis?.summary || 'Raw Data'}`).join('\n');
+    
+    const response = await ai.models.generateContent({ 
+        model: 'gemini-3-flash-preview', 
+        contents: `
+            QUERY: "${query}"
+            TASK: Identify the top 5 most semantically relevant artifacts from the vault list below.
+            Output ONLY a JSON array of string IDs.
+            
+            VAULT:
+            ${summary}
+        `, 
+        config: { 
+            responseMimeType: 'application/json',
+            responseSchema: { type: Type.ARRAY, items: { type: Type.STRING } }
+        } 
+    });
+    return JSON.parse(response.text || "[]");
+}
+
+export async function performGlobalSearch(query: string): Promise<SearchResultItem[]> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Search query in Metaventions OS context: "${query}". Return potential navigation targets or tool actions as JSON array.`,
+        config: {
+            responseMimeType: 'application/json',
+            tools: [{ googleSearch: {} }],
+            responseSchema: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        id: { type: Type.STRING },
+                        title: { type: Type.STRING },
+                        description: { type: Type.STRING },
+                        type: { type: Type.STRING },
+                        meta: { type: Type.OBJECT, properties: { targetMode: { type: Type.STRING } } }
+                    },
+                    required: ['id', 'title', 'description', 'type']
+                }
+            }
+        }
+    });
+    return JSON.parse(response.text || "[]");
+}
+
+export async function interpretIntent(input: string): Promise<any> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Interpret user intent: "${input}". Output JSON action, target, reasoning, parameters.`,
+        config: { responseMimeType: 'application/json' }
+    });
+    return JSON.parse(response.text || '{}');
+}
+
+export async function predictNextActions(mode: AppMode, context: any, lastLog?: string): Promise<SuggestedAction[]> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `OS Mode: ${mode}. Context: ${JSON.stringify(context)}. Last Signal: ${lastLog}. Predict 3 logical next actions as JSON array.`,
+        config: { responseMimeType: 'application/json' }
+    });
+    return JSON.parse(response.text || '[]');
+}
+
 export async function convergeStrategicLattices(lattices: any[], target: string): Promise<any> {
     const ai = getAI();
-    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+    const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
-        contents: `TARGET: ${target}\nINPUT_LATTICES: ${JSON.stringify(lattices)}`,
-        config: {
-            systemInstruction: "Merge strategic threads into a single deployment directive. Return nodes, edges, and coherence_index.",
-            responseMimeType: 'application/json'
-        }
-    }));
-    return JSON.parse(response.text || "{}");
+        contents: `Converge these lattices into goal "${target}": ${JSON.stringify(lattices)}. Return unified nodes and edges as JSON.`,
+        config: { responseMimeType: 'application/json' }
+    });
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Orchestrates cross-layer context synthesis for complex goal fulfillment.
- */
-export async function synthesizeMultilayerContext(activeLayers: string[], goal: string): Promise<string> {
+export async function classifyArtifact(fileData: FileData): Promise<Result<any>> {
+    try {
+        const ai = getAI();
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [fileData, { text: "Analyze and classify this file artifact technical metadata. Return JSON classification, ambiguityScore, entities, summary, entropyRating." }] },
+            config: { responseMimeType: 'application/json' }
+        });
+        return success(JSON.parse(response.text || '{}'));
+    } catch (e: any) {
+        return failure(e);
+    }
+}
+
+export async function generateSpeech(text: string, voiceName: string): Promise<string> {
     const ai = getAI();
-    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: `GOAL: ${goal}\nACTIVE_LAYERS: ${activeLayers.join(', ')}`,
-        config: { 
-            systemInstruction: SYSTEM_ARCHITECT_INSTRUCTION, 
-            thinkingConfig: { thinkingBudget: 16000 } 
-        }
-    }));
-    return response.text || "";
+    const response = await ai.models.generateContent({
+        model: "gemini-2.5-flash-preview-tts",
+        contents: [{ parts: [{ text }] }],
+        config: {
+            responseModalities: [Modality.AUDIO],
+            speechConfig: {
+                voiceConfig: {
+                    prebuiltVoiceConfig: { voiceName },
+                },
+            },
+        },
+    });
+    return response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || "";
 }
 
-// --- SYSTEM CAPABILITIES ---
+export async function analyzePowerDynamics(target: string, context?: string): Promise<any> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Analyze power dynamics for: ${target}. Internal Context: ${context}. Use Google Search to ground analysis. Output JSON matching AnalysisResult type.`,
+        config: { 
+            tools: [{ googleSearch: {} }],
+            responseMimeType: 'application/json' 
+        }
+    });
+    const result = JSON.parse(response.text || '{}');
+    result.groundingSources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((c: any) => ({
+        title: c.web?.title || "Intelligence Source",
+        uri: c.web?.uri || ""
+    })).filter((s: any) => s.uri) || [];
+    return result;
+}
 
-/**
- * Performs a global search with real-time web grounding via Google Search.
- */
-export async function performGlobalSearch(query: string): Promise<any[]> {
+export async function generateAvatar(role: string, name: string): Promise<string> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: `Portrait avatar for role ${role} named ${name}. Cinematic, black amethyst palette, OS identity.`,
+        config: { imageConfig: { aspectRatio: "1:1" } }
+    });
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
+    }
+    return "";
+}
+
+export async function generateArchitectureImage(prompt: string, aspectRatio: string, imageSize: string, reference?: FileData): Promise<string> {
+    const ai = getAI();
+    const parts: any[] = [{ text: prompt }];
+    if (reference) parts.unshift(reference);
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-image-preview',
+        contents: { parts },
+        config: { 
+            imageConfig: { 
+                aspectRatio: aspectRatio as any, 
+                imageSize: imageSize as any 
+            } 
+        }
+    });
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
+    }
+    return "";
+}
+
+export async function repairMermaidSyntax(code: string, error: string): Promise<string> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Correct Mermaid diagram syntax for: "${code}". Failure reported: "${error}". Output ONLY the corrected Mermaid code.`,
+    });
+    return response.text?.replace(/```mermaid|```/g, '').trim() || code;
+}
+
+export async function generateVaultInsights(artifacts: StoredArtifact[]): Promise<any[]> {
+    const ai = getAI();
+    const summary = artifacts.map(a => `${a.name}: ${a.analysis?.summary}`).join('\n');
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Analyze vault for optimizations (DEDUPE, TAG, BRIDGE, ARCHIVE):\n${summary}\nReturn JSON array of insights.`,
+        config: { responseMimeType: 'application/json' }
+    });
+    return JSON.parse(response.text || '[]');
+}
+
+export async function generateDecompositionMap(goal: string): Promise<any[]> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Break goal into atomic tasks for agentic swarm: "${goal}". Return JSON array of tasks.`,
+        config: { responseMimeType: 'application/json' }
+    });
+    return JSON.parse(response.text || '[]');
+}
+
+export async function searchGroundedIntel(query: string): Promise<string> {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: query,
         config: { tools: [{ googleSearch: {} }] }
     });
-    return [{ id: '1', title: `Search Result: ${query}`, description: response.text, type: 'INFO' }];
-}
-
-/**
- * Generates logic-dense code snippets based on architectural directives.
- */
-export async function generateCode(prompt: string, language: string, model: string = 'gemini-3-pro-preview'): Promise<string> {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model,
-        contents: `Language: ${language}. Prompt: ${prompt}`,
-        config: { systemInstruction: "Generate production-ready code blocks." }
-    });
     return response.text || "";
 }
 
-/**
- * Validates code syntax using a fast inference model.
- */
-export async function validateSyntax(code: string, language: string): Promise<any[]> {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Validate ${language} syntax for:\n${code}`,
-        config: {
-            responseMimeType: 'application/json',
-            responseSchema: { 
-                type: Type.ARRAY, 
-                items: { 
-                    type: Type.OBJECT, 
-                    properties: { line: { type: Type.NUMBER }, message: { type: Type.STRING } } 
-                } 
-            }
-        }
-    });
-    return JSON.parse(response.text || "[]");
-}
-
-/**
- * Classifies an artifact and generates its technical metadata.
- */
-export async function classifyArtifact(fileData: FileData): Promise<Result<any>> {
-    try {
-        const ai = getAI();
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: { parts: [{ inlineData: fileData.inlineData }, { text: "Classify this artifact. Provide ambiguityScore, entities, summary, and entropyRating." }] },
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: {
-                    type: Type.OBJECT,
-                    properties: { 
-                        classification: { type: Type.STRING }, 
-                        summary: { type: Type.STRING }, 
-                        ambiguityScore: { type: Type.NUMBER }, 
-                        entities: { type: Type.ARRAY, items: { type: Type.STRING } }, 
-                        entropyRating: { type: Type.NUMBER } 
-                    }
-                }
-            }
-        });
-        return success(JSON.parse(response.text || "{}"));
-    } catch (e: any) { return failure(e); }
-}
-
-/**
- * Analyzes hardware schematics for structural health and component detection.
- */
-export async function analyzeSchematic(data: FileData): Promise<any> {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: { parts: [{ inlineData: data.inlineData }, { text: "Analyze hardware topology for optimizations." }] },
-        config: { responseMimeType: 'application/json' }
-    });
-    return JSON.parse(response.text || "{}");
-}
-
-/**
- * Generates an X-ray blueprint variant of an existing image.
- */
-export async function generateXRayVariant(data: FileData): Promise<string> {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: { parts: [{ inlineData: data.inlineData }, { text: "Generate a technical X-ray variant of this image." }] }
-    });
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-    }
-    return "";
-}
-
-/**
- * Generates a 3D isometric cinematic render of a logical topology.
- */
-export async function generateIsometricSchematic(data: FileData): Promise<string> {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: { parts: [{ inlineData: data.inlineData }, { text: "Generate a high-fidelity 3D isometric render." }] }
-    });
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-    }
-    return "";
-}
-
-/**
- * Generates high-fidelity video content using the Veo model.
- */
-export async function generateVideo(prompt: string, aspectRatio: string, resolution: string): Promise<string> {
-    const ai = getAI();
-    let op = await ai.models.generateVideos({ 
-        model: 'veo-3.1-fast-generate-preview', 
-        prompt, 
-        config: { numberOfVideos: 1, aspectRatio: aspectRatio as any, resolution: resolution as any } 
-    });
-    while (!op.done) { 
-        await new Promise(r => setTimeout(r, 10000)); 
-        op = await ai.operations.getVideosOperation({ operation: op }); 
-    }
-    const download = op.response?.generatedVideos?.[0]?.video?.uri;
-    const res = await fetch(`${download}&key=${process.env.API_KEY}`);
-    return URL.createObjectURL(await res.blob());
-}
-
-/**
- * Transforms text into spoken audio data.
- */
-export async function generateSpeech(text: string, voiceName: string): Promise<string> {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash-preview-tts",
-        contents: [{ parts: [{ text }] }],
-        config: { 
-            responseModalities: [Modality.AUDIO], 
-            speechConfig: { 
-                voiceConfig: { 
-                    prebuiltVoiceConfig: { voiceName } 
-                } 
-            } 
-        }
-    });
-    return response.candidates?.[0]?.content?.parts[0]?.inlineData?.data || "";
-}
-
-/**
- * Analyzes power dynamics and centralization risks for a specific target.
- */
-export async function analyzePowerDynamics(target: string, context?: string): Promise<any> {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `TARGET: ${target}\nCONTEXT: ${context}`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
-    });
-    return JSON.parse(response.text || "{}");
-}
-
-/**
- * Generates a cinematic cybernetic avatar.
- */
-export async function generateAvatar(role: string, name: string): Promise<string> {
-    const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-2.5-flash-image', 
-        contents: `Highly detailed cinematic portrait avatar for ${name}, role: ${role}.` 
-    });
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-    }
-    return "";
-}
-
-/**
- * Generates photorealistic architectural imagery using the Pro Image model.
- */
-export async function generateArchitectureImage(prompt: string, aspectRatio: string, imageSize: string, reference?: FileData): Promise<string> {
-    const ai = getAI();
-    const parts: any[] = [{ text: prompt }];
-    if (reference) parts.unshift({ inlineData: reference.inlineData });
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-pro-image-preview', 
-        contents: { parts }, 
-        config: { 
-            imageConfig: { aspectRatio: aspectRatio as any, imageSize: imageSize as any } 
-        } 
-    });
-    for (const part of response.candidates?.[0]?.content?.parts || []) {
-        if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-    }
-    return "";
-}
-
-/**
- * Attempts to repair broken Mermaid.js syntax.
- */
-export async function repairMermaidSyntax(code: string, error: string): Promise<string> {
-    const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `REPAIR MERMAID TOPOLOGY. ERROR: ${error}\nCODE:\n${code}` 
-    });
-    return (response.text || "").replace(/```mermaid/g, '').replace(/```/g, '').trim();
-}
-
-/**
- * Generates optimization insights for a vault of artifacts.
- */
-export async function generateVaultInsights(artifacts: StoredArtifact[]): Promise<any[]> {
-    const ai = getAI();
-    const summary = artifacts.map(a => `${a.name} (${a.analysis?.classification})`).join(', ');
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Identify 3 optimizations for these artifacts: ${summary}`, 
-        config: { responseMimeType: 'application/json' } 
-    });
-    return JSON.parse(response.text || "[]");
-}
-
-/**
- * Decomposes a complex goal into atomic tasks for swarm processing.
- */
-export async function generateDecompositionMap(goal: string): Promise<any[]> {
-    const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-pro-preview', 
-        contents: `Decompose into atomic tasks: ${goal}`, 
-        config: { responseMimeType: 'application/json' } 
-    });
-    return JSON.parse(response.text || "[]");
-}
-
-/**
- * Grounded intelligence search for strategic planning.
- */
-export async function searchGroundedIntel(query: string): Promise<string> {
-    const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: query, 
-        config: { tools: [{ googleSearch: {} }] } 
-    });
-    return response.text || "";
-}
-
-/**
- * Breaks down a task into actionable subtasks.
- */
 export async function decomposeTaskToSubtasks(title: string, desc: string): Promise<string[]> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Task: ${title}. Desc: ${desc}. Generate 4 sub-steps.`, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Decompose task "${title}" - "${desc}" into 3-5 subtasks as JSON array.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "[]");
+    return JSON.parse(response.text || '[]');
 }
 
-/**
- * Generates Mermaid logic maps for process visualization.
- */
 export async function generateMermaidDiagram(governance: string, files: FileData[], mapContext: any[]): Promise<string> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Generate Mermaid.js code for ${governance}. Context: ${JSON.stringify(mapContext)}` 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Generate Mermaid diagram code for governance "${governance}". Context: ${JSON.stringify(mapContext)}. Output ONLY code.`,
     });
-    return response.text || "graph TD\nNode-->End";
+    return response.text?.replace(/```mermaid|```/g, '').trim() || "graph TD\nA-->B";
 }
 
-/**
- * Generates an audio overview transcript and data.
- */
 export async function generateAudioOverview(files: FileData[]): Promise<any> {
     const ai = getAI();
-    const textRes = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: "Summarize files for an audio report." 
-    });
-    const audioData = await generateSpeech(textRes.text || "Scan finalized.", "Zephyr");
-    return { audioData, transcript: textRes.text };
+    const script = `Summarizing asset topology including ${files.map(f => f.name).join(', ')}. Initiating narrative overview.`;
+    const audioData = await generateSpeech(script, 'Puck');
+    return { audioData, transcript: script };
 }
 
-/**
- * Generates metadata for a single logical node.
- */
 export async function generateSingleNode(description: string): Promise<any> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Node details for: ${description}`, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Create a single logical node for: "${description}". Return JSON label, subtext, iconName, color, status, progress.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Calculates optimal spatial coordinates for a graph topology.
- */
 export async function calculateOptimalLayout(nodes: any[], edges: any[]): Promise<Record<string, { x: number, y: number }>> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: "Optimize 2D node layout.", 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Calculate optimal 2D coordinates for nodes in graph. Nodes: ${nodes.length}, Edges: ${edges.length}. Output JSON object mapping node ID to {x, y}.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Simulates a single step in a protocol runtime.
- */
 export async function simulateAgentStep(workflow: any, index: number, history: any[]): Promise<any> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Simulate step ${index} of ${workflow.title}.`, 
-        config: { responseMimeType: 'application/json' } 
+    const step = workflow.protocols[index];
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Simulate step ${index + 1} for workflow "${workflow.title}". Step: ${JSON.stringify(step)}. History: ${JSON.stringify(history)}. Return JSON output, agentThought.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Generates high-level system architecture topologies.
- */
 export async function generateSystemArchitecture(prompt: string, domain: string = 'SYSTEM_ARCHITECTURE'): Promise<any> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-pro-preview', 
-        contents: `DOMAIN: ${domain}. PROMPT: ${prompt}`, 
-        config: { responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 16000 } } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Design ${domain} for: "${prompt}". Return JSON array of nodes and edges.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Generates Infrastructure as Code snippets from a summary.
- */
 export async function generateInfrastructureCode(summary: string, provider: string): Promise<string> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-pro-preview', 
-        contents: `IaC for ${provider}: ${summary}` 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Generate ${provider} infrastructure code for: "${summary}". Output ONLY code.`,
     });
-    return response.text || "";
+    return response.text?.replace(/```[a-z]*\n|```/g, '').trim() || "";
 }
 
-/**
- * Evolves system logic based on architectural drift detection.
- */
 export async function evolveSystemArchitecture(code: string, language: string, prompt: string): Promise<Result<any>> {
     try {
         const ai = getAI();
-        const response = await ai.models.generateContent({ 
-            model: 'gemini-3-pro-preview', 
-            contents: `EVOLVE: ${prompt}\nCODE:\n${code}`, 
-            config: { responseMimeType: 'application/json' } 
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: `EVOLVE SYSTEM ARCHITECTURE: "${prompt}". Language: ${language}. Code:\n${code}\nReturn JSON with evolved code, reasoning, type, integrityScore.`,
+            config: { responseMimeType: 'application/json' }
         });
-        return success(JSON.parse(response.text || "{}"));
-    } catch (e: any) { return failure(e); }
+        return success(JSON.parse(response.text || '{}'));
+    } catch (e: any) {
+        return failure(e);
+    }
 }
 
-/**
- * Executes a neural policy assessment for system healing.
- */
 export async function executeNeuralPolicy(mode: string, context: any, logs: string[]): Promise<any> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Evaluate policy for mode: ${mode}. Context: ${JSON.stringify(context)}`, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Policy check for OS mode ${mode}. Context: ${JSON.stringify(context)}. Signal Stream: ${logs.join(',')}. Return JSON level, message, suggestedPatch.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Compresses redundant knowledge nodes into singular axioms.
- */
 export async function compressKnowledge(nodes: KnowledgeNode[]): Promise<CompressedAxiom[]> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: "Distill knowledge nodes into axioms.", 
-        config: { responseMimeType: 'application/json' } 
+    const data = nodes.map(n => n.label).join('; ');
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Distill these facts into axioms: "${data}". Return JSON array of axioms with sourceNode IDs.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "[]");
+    return JSON.parse(response.text || '[]');
 }
 
-/**
- * Generates scientific hypotheses from research findings.
- */
 export async function generateHypotheses(facts: string[]): Promise<ScienceHypothesis[]> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Facts: ${facts.join(', ')}. Generate 3 hypotheses.`, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Generate scientific hypotheses from facts: ${facts.join('; ')}. Return JSON array of hypotheses.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "[]");
+    return JSON.parse(response.text || '[]');
 }
 
-/**
- * Crystallizes disparate facts into a unified theoretical framework.
- */
 export async function crystallizeKnowledge(nodes: any[]): Promise<string> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-pro-preview', 
-        contents: `Synthesize theory from: ${JSON.stringify(nodes)}` 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Crystallize these knowledge points into a unified theory: ${JSON.stringify(nodes)}`,
     });
     return response.text || "";
 }
 
-/**
- * Synthesizes a bridge node between two discrete knowledge entities.
- */
 export async function synthesizeNodes(nodeA: KnowledgeNode, nodeB: KnowledgeNode): Promise<KnowledgeNode> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Bridge: ${nodeA.label} <-> ${nodeB.label}`, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Synthesize a bridge node between "${nodeA.label}" and "${nodeB.label}". Return JSON node data.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * General purpose reasoning interface.
- */
 export async function chatWithGemini(message: string): Promise<string> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-pro-preview', 
-        contents: message 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: message,
     });
     return response.text || "";
 }
 
-/**
- * High-speed inference for immediate UI feedback.
- */
 export async function fastAIResponse(prompt: string): Promise<string> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: prompt 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: prompt,
     });
     return response.text || "";
 }
 
-/**
- * Simulates a scientific experiment on a hypothesis.
- */
 export async function simulateExperiment(hyp: ScienceHypothesis): Promise<string> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-pro-preview', 
-        contents: `Simulate Experiment: ${hyp.statement}` 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Simulate experiment testing hypothesis: "${hyp.statement}". Return result narrative.`,
     });
-    return response.text || "Simulation complete.";
+    return response.text || "";
 }
 
-/**
- * Generates narrative and atmosphere descriptions for imagery.
- */
 export async function generateNarrativeContext(fileData: FileData): Promise<string> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: { parts: [{ inlineData: fileData.inlineData }, { text: "Describe cinematic narrative context." }] } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: { parts: [fileData, { text: "Identify narrative context for cinematic asset studio consistency." }] },
     });
     return response.text || "";
 }
 
-/**
- * Generates a cinematic storyboard progression.
- */
 export async function generateStoryboardPlan(prompt: string): Promise<any[]> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-pro-preview', 
-        contents: `Storyboard progression for: ${prompt}`, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Generate 10-frame storyboard plan for: "${prompt}". Return JSON array with scenePrompt, continuity, camera, lighting, audio_cue.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "[]");
+    return JSON.parse(response.text || '[]');
 }
 
-/**
- * Generates autonomous swarm architectures for agentic logic.
- */
 export async function generateSwarmArchitecture(goal: string): Promise<any> {
-    return generateSystemArchitecture(`GOAL: ${goal}. FOCUS: Swarm consensus mechanisms.`);
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Design agentic swarm architecture for goal: "${goal}". Return JSON nodes and edges.`,
+        config: { responseMimeType: 'application/json' }
+    });
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Researches specific hardware components and price points.
- */
 export async function researchComponents(query: string): Promise<any[]> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Hardware Research: ${query}`, 
-        config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Research hardware components for: "${query}". Return JSON array of parts. Ground in reality with Search.`,
+        config: { 
+            tools: [{ googleSearch: {} }],
+            responseMimeType: 'application/json' 
+        }
     });
-    return JSON.parse(response.text || "[]");
+    return JSON.parse(response.text || '[]');
 }
 
-/**
- * Analyzes aesthetic and technical aspects of visual assets.
- */
 export async function analyzeImageVision(data: FileData): Promise<string> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: { parts: [{ inlineData: data.inlineData }, { text: "Technical visual analysis." }] } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: { parts: [data, { text: "Full technical and visual analysis of image." }] },
     });
     return response.text || "";
 }
 
-/**
- * Extracts narrative DNA and structural themes from book artifacts.
- */
 export async function analyzeBookDNA(fileData: FileData): Promise<BookDNA> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: { parts: [{ inlineData: fileData.inlineData }, { text: "Analyze DNA of book artifact." }] }, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: { parts: [fileData, { text: "Analyze document logical DNA. Return JSON summary, themes, structure." }] },
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}') as BookDNA;
 }
 
-/**
- * Synthesizes a unified theory based on compiled facts.
- */
 export async function generateTheory(context: string): Promise<string> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-pro-preview', 
-        contents: `CONTEXT: ${context}`, 
-        config: { thinkingConfig: { thinkingBudget: 16000 } } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Generate unified theory from context:\n${context}`,
     });
     return response.text || "";
 }
 
-/**
- * Iteratively transforms artifacts based on prompt instructions.
- */
 export async function transformArtifact(content: any, type: 'IMAGE' | 'CODE' | 'TEXT', instruction: string): Promise<string> {
     const ai = getAI();
     if (type === 'IMAGE') {
@@ -806,197 +623,228 @@ export async function transformArtifact(content: any, type: 'IMAGE' | 'CODE' | '
     }
     const res = await ai.models.generateContent({ 
         model: 'gemini-3-flash-preview', 
-        contents: `INSTRUCTION: ${instruction}\nCONTENT: ${content}` 
+        contents: `TRANSFORM ${type} DIRECTIVE: ${instruction}\nCONTENT:\n${content}` 
     });
     return res.text || content;
 }
 
-/**
- * Generates an automated taxonomy for vault categorization.
- */
 export async function generateTaxonomy(items: string[]): Promise<any> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Taxonomy for: ${items.join(',')}`, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Organize into PARA taxonomy hierarchy: ${items.join(',')}. Return JSON.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Suggests organizational metadata for single artifacts.
- */
 export async function smartOrganizeArtifact(metadata: { name: string }): Promise<any> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Organize: ${metadata.name}`, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Categorize artifact "${metadata.name}". Return JSON folder, tags, urgency.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Fully digitizes a document into logic models.
- */
 export async function digitizeDocument(fileData: FileData): Promise<any> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: { parts: [{ inlineData: fileData.inlineData }, { text: "Full digitization protocol." }] }, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: { parts: [fileData, { text: "Digitize document structure into logic model. Return JSON abstract, logicModel (Mermaid code)." }] },
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Searches the local vault using semantic vector relevance.
- */
-export async function performSemanticSearch(query: string, artifacts: StoredArtifact[]): Promise<string[]> {
-    const ai = getAI();
-    const summary = artifacts.map(a => `ID: ${a.id}, Title: ${a.name}`).join('\n');
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `SEARCH: ${query}\nVAULT:\n${summary}`, 
-        config: { responseMimeType: 'application/json' } 
-    });
-    return JSON.parse(response.text || "[]");
-}
-
-/**
- * Translates a high-level vault directive into specific operations.
- */
 export async function executeVaultDirective(directive: string, artifacts: StoredArtifact[]): Promise<any> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Vault Directive: ${directive}`, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Execute vault operation: "${directive}". Inventory: ${artifacts.map(a => a.name).join(',')}. Return JSON operation, targetIds, parameters.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Formulates a research plan with targeted sub-queries.
- */
 export async function generateResearchPlan(query: string): Promise<string[]> {
     const ai = getAI();
-    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Research Plan: ${query}`, 
-        config: { responseMimeType: 'application/json' } 
-    }));
-    return JSON.parse(response.text || "[]");
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Create research plan for: "${query}". Return JSON array of sub-queries.`,
+        config: { responseMimeType: 'application/json' }
+    });
+    return JSON.parse(response.text || '[]');
 }
 
-/**
- * Executes a specific research query with web grounding.
- */
 export async function executeResearchQuery(query: string): Promise<FactChunk[]> {
     const ai = getAI();
-    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: query, 
-        config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' } 
-    }));
-    return JSON.parse(response.text || "[]");
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: query,
+        config: { 
+            tools: [{ googleSearch: {} }],
+            responseMimeType: 'application/json',
+            responseSchema: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        id: { type: Type.STRING },
+                        fact: { type: Type.STRING },
+                        confidence: { type: Type.NUMBER },
+                        source: { type: Type.STRING }
+                    },
+                    required: ['id', 'fact', 'confidence', 'source']
+                }
+            }
+        }
+    });
+    return JSON.parse(response.text || '[]');
 }
 
-/**
- * Compiles a list of research findings into a coherent technical context.
- */
 export async function compileResearchContext(findings: FactChunk[]): Promise<string> {
     const ai = getAI();
-    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Compile results: ${JSON.stringify(findings)}` 
-    }));
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Compile research findings into summary context:\n${JSON.stringify(findings)}`,
+    });
     return response.text || "";
 }
 
-/**
- * Synthesizes a comprehensive research report from context.
- */
 export async function synthesizeResearchReport(context: string): Promise<string> {
     const ai = getAI();
-    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({ 
-        model: 'gemini-3-pro-preview', 
-        contents: `Synthesize Report: ${context}` 
-    }));
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Synthesize context into final Markdown research report:\n${context}`,
+    });
     return response.text || "";
 }
 
-/**
- * Generates autopoietic evolution frameworks for self-improving systems.
- */
 export async function generateAutopoieticFramework(prompt: string): Promise<any> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-pro-preview', 
-        contents: `Forge Autopoietic Protocol: ${prompt}`, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Design autopoietic framework: "${prompt}". Return JSON structure.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Calculates the structural entropy of a lattice model.
- */
 export async function calculateEntropy(nodes: any[], edges: any[]): Promise<number> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: "Calculate entropy index.", 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Calculate structural entropy for graph with ${nodes.length} nodes and ${edges.length} edges. Return single numeric score 0-100.`,
     });
-    return JSON.parse(response.text || "{\"score\":0}").score;
+    return parseFloat(response.text || "0");
 }
 
-/**
- * Decomposes a single logic node into discrete sub-units.
- */
 export async function decomposeNode(label: string, neighbors: string): Promise<any> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-flash-preview', 
-        contents: `Decompose node: ${label}`, 
-        config: { responseMimeType: 'application/json' } 
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Decompose node "${label}" with neighbors: ${neighbors}. Return JSON nodes and edges.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{}');
 }
 
-/**
- * Constructs a formatted hive identity context.
- */
-export function constructHiveContext(agentId: string, context: string): string {
-    const agent = HIVE_AGENTS[agentId] || HIVE_AGENTS['Puck'];
-    return `SYSTEM_IDENTITY: ${agent.name}\nROLE: ${agent.systemPrompt}\nGLOBAL_CONTEXT:\n${context}`.trim();
-}
-
-/**
- * Builds a cinematic image generation prompt from component vectors.
- */
-export async function constructCinematicPrompt(base: string, colorway: any, hasBase: boolean, hasChar: boolean, hasStyle: boolean, extra?: string, preset?: string): Promise<string> {
-    return `Shot: ${base}. Colorway: ${colorway.colors.join(', ')}. Preset: ${preset}. ${extra || ''}`.trim();
-}
-
-/**
- * Discovers deep hidden connections between stored artifacts.
- */
 export async function discoverDeepLattice(artifacts: StoredArtifact[]): Promise<NeuralLattice> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ 
-        model: 'gemini-3-pro-preview', 
-        contents: "Analyze artifact relationships.", 
-        config: { responseMimeType: 'application/json' } 
+    const summary = artifacts.map(a => `${a.name}: ${a.analysis?.summary}`).join('\n');
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Discover deep lattice relationships in vault:\n${summary}\nReturn JSON nodes and edges.`,
+        config: { responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || "{}");
+    return JSON.parse(response.text || '{"nodes":[], "edges":[]}');
 }
 
-/**
- * The Real-Time Voice API Session Manager.
- */
+export async function analyzeSchematic(fileData: FileData): Promise<any> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: { parts: [fileData, { text: "Identify components in hardware schematic. Return JSON array with boundingBox, name, type, health, optimization." }] },
+        config: { responseMimeType: 'application/json' }
+    });
+    return JSON.parse(response.text || '{"components":[]}');
+}
+
+export async function generateXRayVariant(fileData: FileData): Promise<string> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: { parts: [fileData, { text: "Generate an internal X-Ray spectral variant of this hardware." }] },
+    });
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
+    }
+    return "";
+}
+
+export async function generateIsometricSchematic(fileData: FileData): Promise<string> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: { parts: [fileData, { text: "Generate a 3D isometric cinematic render of this hardware." }] },
+    });
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) return `data:image/png;base64,${part.inlineData.data}`;
+    }
+    return "";
+}
+
+export async function constructCinematicPrompt(base: string, colorway: any, hasBase: boolean, hasChar: boolean, hasStyle: boolean, optics?: string, preset?: string): Promise<string> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Synthesize a cinematic prompt for asset studo. Base: "${base}". Colorway: ${JSON.stringify(colorway)}. Presets: ${preset}. Optics: ${optics}. Context: ${hasBase ? 'ImageRef' : 'TextOnly'}.`,
+    });
+    return response.text || base;
+}
+
+export async function generateVideo(prompt: string, aspectRatio: string, resolution: string): Promise<string> {
+    const ai = getAI();
+    let operation = await ai.models.generateVideos({
+        model: 'veo-3.1-fast-generate-preview',
+        prompt: prompt,
+        config: {
+            numberOfVideos: 1,
+            resolution: resolution as any,
+            aspectRatio: aspectRatio as any
+        }
+    });
+    while (!operation.done) {
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        operation = await ai.operations.getVideosOperation({ operation: operation });
+    }
+    const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
+    const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
+    const blob = await response.blob();
+    return URL.createObjectURL(blob);
+}
+
+export async function generateCode(prompt: string, language: string, model: string): Promise<string> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: model as any,
+        contents: `Write ${language} code for: "${prompt}". Output ONLY raw code.`,
+    });
+    return response.text?.replace(/```[a-z]*\n|```/g, '').trim() || "";
+}
+
+export async function validateSyntax(code: string, language: string): Promise<{ line: number; message: string }[]> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Validate ${language} syntax: "${code}". Return JSON array of objects with line and message.`,
+        config: { responseMimeType: 'application/json' }
+    });
+    return JSON.parse(response.text || '[]');
+}
+
 export const liveSession = {
     _session: null as any,
     onToolCall: null as ((name: string, args: any) => Promise<any>) | null,
@@ -1006,11 +854,7 @@ export const liveSession = {
             model: 'gemini-2.5-flash-native-audio-preview-09-2025',
             config: { 
                 responseModalities: [Modality.AUDIO], 
-                speechConfig: { 
-                    voiceConfig: { 
-                        prebuiltVoiceConfig: { voiceName: voice } 
-                    } 
-                }, 
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } }, 
                 systemInstruction: config.systemInstruction, 
                 tools: config.tools, 
                 outputAudioTranscription: config.outputAudioTranscription, 
@@ -1038,16 +882,9 @@ export const liveSession = {
         liveSession._session = await sessionPromise;
         return liveSession._session;
     },
-    disconnect: () => { 
-        if (liveSession._session && typeof liveSession._session.close === 'function') { 
-            liveSession._session.close(); 
-        }
-        liveSession._session = null; 
-    },
+    disconnect: () => { if (liveSession._session?.close) liveSession._session.close(); liveSession._session = null; },
     isConnected: () => !!liveSession._session,
-    primeAudio: async () => {
-        // AudioContext initialization handled externally
-    },
+    primeAudio: async () => {},
     getInputFrequencies: () => new Uint8Array(32),
     getOutputFrequencies: () => new Uint8Array(32)
 };
