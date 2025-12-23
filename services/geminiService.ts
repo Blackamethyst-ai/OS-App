@@ -36,7 +36,6 @@ export async function fileToGenerativePart(file: File | Blob): Promise<FileData>
       });
     };
     reader.onerror = reject;
-    // Fix: correctly typed as global Blob for FileReader
     reader.readAsDataURL(file as Blob);
   });
 }
@@ -121,7 +120,6 @@ async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampleRate: 
   return buffer;
 }
 
-// Fix: use GenAIBlob alias to avoid shadowing global Blob
 function createBlob(data: Float32Array): GenAIBlob {
   const l = data.length;
   const int16 = new Int16Array(l);
@@ -550,9 +548,34 @@ export async function generateNarrativeContext(fileData: FileData): Promise<stri
     return response.text || "";
 }
 
+/**
+ * PRODUCTION-GRADE STORYBOARD PLANNER
+ * Synthesizes 10 sequential narrative nodes with high-end optics and continuity logic.
+ */
 export async function generateStoryboardPlan(prompt: string): Promise<any[]> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ model: 'gemini-3-pro-preview', contents: `10-frame storyboard plan: "${prompt}".`, config: { responseMimeType: 'application/json' } });
+    const responseSchema: Schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                scenePrompt: { type: Type.STRING },
+                continuity: { type: Type.STRING },
+                camera: { type: Type.STRING },
+                lighting: { type: Type.STRING }
+            },
+            required: ['scenePrompt', 'continuity', 'camera', 'lighting']
+        }
+    };
+    
+    const response = await ai.models.generateContent({ 
+        model: 'gemini-3-pro-preview', 
+        contents: `ROLE: Senior Film Director. TASK: Synthesize a 10-frame high-fidelity storyboard plan for the following directive: "${prompt}". Use award-winning cinematic terminology (e.g., Anamorphic, Low Key, Rembrandt, Tracking Shot). Return JSON array.`, 
+        config: { 
+            responseMimeType: 'application/json',
+            responseSchema
+        } 
+    });
     return JSON.parse(response.text || '[]');
 }
 
@@ -691,9 +714,21 @@ export async function generateIsometricSchematic(fileData: FileData): Promise<st
     return "";
 }
 
+/**
+ * HIGH-END CINEMATIC PROMPT CONSTRUCTOR
+ * Transforms base intent into award-winning quality render instructions.
+ */
 export async function constructCinematicPrompt(base: string, colorway: any, hasBase: boolean, hasChar: boolean, hasStyle: boolean, optics?: string, preset?: string): Promise<string> {
     const ai = getAI();
-    const response = await ai.models.generateContent({ model: 'gemini-3-flash-preview', contents: `Prompt for: "${base}".` });
+    const response = await ai.models.generateContent({ 
+        model: 'gemini-3-flash-preview', 
+        contents: `ROLE: Professional Colorist and DP. TASK: Transform this intent into a high-end cinematic render prompt. 
+        INTENT: "${base}"
+        OPTICS: "${optics || '35mm Anamorphic'}"
+        PRESET: "${preset || 'Masterpiece'}"
+        REQUIREMENT: Prioritize hyper-realism, correct sub-surface scattering, volumetric lighting, and extreme micro-detail. 
+        OUTPUT ONLY THE PROMPT STRING.` 
+    });
     return response.text || base;
 }
 
