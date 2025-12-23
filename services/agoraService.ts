@@ -40,7 +40,7 @@ export async function generatePersonas(file: FileData): Promise<SyntheticPersona
     }
 }
 
-// 2. THE TURN: Execute one round of debate with Mental State Update
+// 2. THE TURN: Execute round with DNA weighting
 export async function runDebateTurn(
     activePersona: SyntheticPersona, 
     history: DebateTurn[], 
@@ -67,15 +67,18 @@ export async function runDebateTurn(
             required: ['response_text', 'mindset_shift']
         };
 
+        // INJECTING DNA WEIGHTS INTO CORE SYSTEM INSTRUCTION
         const hiveContext = constructHiveContext(activePersona.id, `
             CURRENT MENTAL STATE: S=${activePersona.currentMindset.skepticism}, E=${activePersona.currentMindset.excitement}, A=${activePersona.currentMindset.alignment}
-            CONTEXT DOCUMENT ATTACHED.
-            TASK: Evaluate the architectural integrity of the proposal. If it involves drive organization, look for PARA depth violations. If system arch, look for centralization risks.
-            CONVERSATION HISTORY:
+            TASK: Evaluate the architectural integrity of the proposal. 
+            If your Skepticism is > 70, you MUST find at least one critical flaw (e.g. PARA depth > 3, naming collisions).
+            If your Excitement is > 70, you MUST suggest a high-tech refinement.
+            Keep response under 40 words.
+            CONVERSATION:
             ${script}
         `);
 
-        let prompt = `${hiveContext}\nKeep response under 40 words.`;
+        let prompt = `${hiveContext}`;
         if (godModeDirective) prompt += `\n\nDIRECTIVE OVERRIDE: ${godModeDirective}`;
 
         const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
@@ -100,11 +103,11 @@ export async function runDebateTurn(
         };
     } catch (error: any) {
         console.error("Agora Service TURN Error:", error);
-        throw new Error(error.message || "Debate turn failed.");
+        throw new Error("Debate turn failed.");
     }
 }
 
-// 3. SYNTHESIS: Generate the Friction Report
+// 3. SYNTHESIS: Generate report
 export async function synthesizeReport(history: DebateTurn[]): Promise<SimulationReport> {
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -123,16 +126,12 @@ export async function synthesizeReport(history: DebateTurn[]): Promise<Simulatio
 
         const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
             model: 'gemini-3-flash-preview',
-            contents: `Synthesize report from this debate transcript. Focus on structural friction.\n\nTranscript:\n${script}`,
-            config: {
-                responseMimeType: 'application/json',
-                responseSchema: schema
-            }
+            contents: `Synthesize Report: focus on PARA integrity and structural entropy.\n\nTranscript:\n${script}`,
+            config: { responseMimeType: 'application/json', responseSchema: schema }
         }));
 
         return JSON.parse(response.text || "{}");
     } catch (error: any) {
-        console.error("Agora Service SYNTHESIS Error:", error);
-        throw new Error(error.message || "Report synthesis failed.");
+        throw new Error("Report synthesis failed.");
     }
 }
