@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
     useNodesState, useEdgesState, useReactFlow, addEdge, Connection, 
@@ -243,14 +242,24 @@ export const useProcessVisualizerLogic = () => {
         try {
             const sources = state.livingMapContext.sources || [];
             const files = (sources as any[]).map((s) => ({ inlineData: s.inlineData, name: s.name })) as FileData[];
-            const mapContext = { nodes: nodes.map(n => ({ label: n.data.label, subtext: n.data.subtext })), edges: edges.map(e => e.id) };
+            const mapContext = { 
+                nodes: nodes.map(n => ({ label: n.data.label, subtext: n.data.subtext })), 
+                edges: edges.map(e => e.id),
+                architecturePrompt: architecturePrompt,
+                domain: state.workflowType
+            };
+            
             const code = await generateMermaidDiagram(state.governance, files, [mapContext]);
             setState({ generatedCode: code }); setSequenceProgress(30);
+            
             const workflow = await generateStructuredWorkflow(files, state.governance, state.workflowType, mapContext);
             setState({ generatedWorkflow: workflow }); setSequenceProgress(70);
+            
             const { audioData, transcript } = await generateAudioOverview(files);
             setState({ audioUrl: audioData, audioTranscript: transcript }); setSequenceProgress(100);
-            setSequenceStatus('COMPLETE'); setState({ activeTab: 'diagram', isLoading: false });
+            
+            setSequenceStatus('COMPLETE'); 
+            setState({ activeTab: state.workflowType === 'DRIVE_ORGANIZATION' ? 'vault' : 'workflow', isLoading: false });
             setTimeout(() => setSequenceStatus('IDLE'), 3000);
         } catch (err: any) { handleApiError('Global Sequence', err); }
     };
@@ -261,7 +270,7 @@ export const useProcessVisualizerLogic = () => {
         try {
             const sources = state.livingMapContext.sources || [];
             const files = (sources as any[]).map((s) => ({ inlineData: s.inlineData, name: s.name })) as FileData[];
-            const mapContext = { nodes: nodes.map(n => n.data.label), edges: edges.length };
+            const mapContext = { nodes: nodes.map(n => n.data.label), edges: edges.length, domain: state.workflowType };
             if (type === 'diagram') {
                 const code = await generateMermaidDiagram(state.governance, files, [mapContext]);
                 setState({ generatedCode: code, isLoading: false });
