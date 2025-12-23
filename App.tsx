@@ -171,6 +171,10 @@ const App: React.FC = () => {
       }
   }, [theme]);
 
+  const isFixedLayout = useMemo(() => 
+    mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER
+  , [mode]);
+
   return (
     <div className="h-screen w-screen font-sans overflow-hidden flex flex-col transition-all duration-500 ease-in-out relative" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', ...themeVars as any }}>
       <Starfield mode={mode} />
@@ -247,7 +251,9 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <SynapticRouter />
+      <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-10' : 'pb-32 overflow-y-auto custom-scrollbar'}`}>
+        <SynapticRouter />
+      </div>
     </div>
   );
 };
