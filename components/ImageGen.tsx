@@ -648,7 +648,7 @@ const ImageGen: React.FC = () => {
                                     <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Optics (Aspect)</label>
                                     <div className="grid grid-cols-2 gap-2">
                                         {Object.values(AspectRatio).map(r => (
-                                            <button key={r} onClick={() => setImageGenState({ aspectRatio: r })} className={`py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.aspectRatio === r ? 'bg-[#9d4edd] border-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/20' : 'bg-[#0a0a0a] border-[#222] text-gray-600 hover:text-gray-400'}`}>{r}</button>
+                                            <button key={r} onClick={() => setImageGenState({ aspectRatio: r })} className={`py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.aspectRatio === r ? 'bg-[#9d4edd] border-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/20' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{r}</button>
                                         ))}
                                     </div>
                                 </div>
@@ -656,7 +656,7 @@ const ImageGen: React.FC = () => {
                                     <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Fidelity (Tier)</label>
                                     <div className="flex flex-col gap-2">
                                         {[ImageSize.SIZE_1K, ImageSize.SIZE_2K, ImageSize.SIZE_4K].map(s => (
-                                            <button key={s} onClick={() => setImageGenState({ quality: s })} className={`w-full py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20' : 'bg-[#0a0a0a] border-[#222] text-gray-600 hover:text-white'}`}>{s}</button>
+                                            <button key={s} onClick={() => setImageGenState({ quality: s })} className={`w-full py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{s}</button>
                                         ))}
                                     </div>
                                 </div>
@@ -910,7 +910,7 @@ const ImageGen: React.FC = () => {
                                         <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Resolution</label>
                                         <div className="flex gap-2">
                                             {['720p', '1080p'].map(res => (
-                                                <button key={res} onClick={() => setVideoRes(res as any)} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase transition-all ${videoRes === res ? 'bg-[#d946ef] border-[#d946ef] text-black shadow-lg shadow-[#d946ef]/40' : 'bg-black border-[#222] text-gray-600 hover:text-white'}`}>{res}</button>
+                                                <button key={res} onClick={() => setVideoRes(res as any)} className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase transition-all ${videoRes === res ? 'bg-[#d946ef] border-[#d946ef] text-black shadow-lg shadow-[#d946ef]/40' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{res}</button>
                                             ))}
                                         </div>
                                     </div>
