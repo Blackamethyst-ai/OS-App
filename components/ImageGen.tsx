@@ -17,7 +17,7 @@ import {
     ArrowRight, Box, ShieldCheck, Binary, Ghost, Heart, Award, FileJson, 
     Lightbulb, Timer, Scissors, Music, Aperture, Users, MonitorPlay, Clapperboard as DirectorIcon,
     CheckCircle2, Trash2, Speaker, Maximize2, HardDrive, Cpu, Terminal, Radio,
-    Compass, MoveUpRight, Waves, FileArchive, GitBranch
+    Compass, MoveUpRight, Waves, FileArchive, GitBranch, LayoutGrid, FileArchive as ArchiveIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmotionalResonanceGraph from './EmotionalResonanceGraph';
@@ -469,7 +469,6 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     return null;
   };
 
-  // --- FIX: Implement generateAllSequenceAudio ---
   /**
    * Batch-processes and synthesizes narration for all frames in the storyboard sequence.
    */
@@ -804,54 +803,97 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                 {activeTab === 'STORYBOARD' && (
                     <motion.div key="storyboard" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.02 }} className="w-full h-full flex flex-col overflow-hidden">
                         <div className="flex-1 flex gap-8 p-8 overflow-hidden">
-                            <div className="w-[400px] bg-[#0a0a0a] border border-[#1f1f1f] rounded-[3rem] flex flex-col shrink-0 shadow-2xl overflow-hidden">
-                                <div className="p-10 border-b border-[#1f1f1f] bg-white/[0.02]">
-                                    <div className="flex items-center justify-between mb-8">
-                                        <span className="text-[11px] font-black text-[#9d4edd] font-mono uppercase tracking-[0.5em]">Director's Script</span>
-                                        <Clapperboard size={20} className="text-[#9d4edd]" />
+                            <div className="w-[420px] bg-[#0a0a0a] border border-[#1f1f1f] rounded-[3rem] flex flex-col shrink-0 shadow-2xl overflow-hidden h-full">
+                                {/* Top Control Panel: Input, Synthesis, Render, Export */}
+                                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 border-b border-[#1f1f1f] bg-white/[0.01] flex flex-col gap-5">
+                                    <div className="flex items-center justify-between shrink-0">
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] font-black text-[#9d4edd] font-mono uppercase tracking-[0.4em]">Director's Script</span>
+                                            <span className="text-[7px] text-gray-600 font-mono uppercase mt-0.5 tracking-widest">Active Sequence Buffer</span>
+                                        </div>
+                                        <div className="p-2.5 bg-[#9d4edd]/10 rounded-xl border border-[#9d4edd]/30 text-[#9d4edd] shadow-inner">
+                                            <Clapperboard size={18} />
+                                        </div>
                                     </div>
-                                    <textarea 
-                                        value={imageGen.prompt} 
-                                        onChange={e => setImageGenState({ prompt: e.target.value })}
-                                        className="w-full h-36 bg-black border border-[#222] p-6 rounded-[2rem] text-sm font-mono text-gray-300 outline-none focus:border-[#9d4edd] resize-none transition-all placeholder:text-gray-800 shadow-inner"
-                                        placeholder="Define the narrative arc and emotional beats..."
-                                    />
-                                    <button 
-                                        onClick={handlePlanSequence} 
-                                        disabled={isPlanning || (!imageGen.prompt?.trim() && !productionBible)}
-                                        className="w-full py-5 mt-8 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-[2rem] text-[11px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-4 disabled:opacity-30 shadow-2xl active:scale-95"
-                                    >
-                                        {isPlanning ? <Loader2 size={16} className="animate-spin"/> : <Sparkles size={16} />}
-                                        Initialize Script Synthesis
-                                    </button>
-                                </div>
 
-                                <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-10">
-                                    <div className="space-y-5">
-                                        <span className="text-[10px] font-black text-gray-500 font-mono uppercase tracking-widest flex items-center gap-3 px-2"><Activity size={16}/> Resonance Curve</span>
-                                        <EmotionalResonanceGraph />
+                                    <div className="flex-1 min-h-[160px] relative group">
+                                        <textarea 
+                                            value={imageGen.prompt} 
+                                            onChange={e => setImageGenState({ prompt: e.target.value })}
+                                            className="w-full h-full bg-black border border-[#222] p-5 rounded-[2rem] text-sm font-mono text-gray-300 outline-none focus:border-[#9d4edd] resize-none transition-all placeholder:text-gray-800 shadow-inner group-hover:border-[#333]"
+                                            placeholder="Define the narrative arc and visual intent..."
+                                        />
+                                        <div className="absolute bottom-4 right-6 opacity-20 pointer-events-none">
+                                            <Wand2 size={14} className="text-gray-500" />
+                                        </div>
                                     </div>
-                                    
-                                    <div className="pt-6 border-t border-white/5 space-y-5">
-                                        <span className="text-[10px] font-black text-gray-500 font-mono uppercase tracking-widest block pl-2">Render Fidelity</span>
+
+                                    <div className="space-y-3 shrink-0 pb-2">
+                                        <button 
+                                            onClick={handlePlanSequence} 
+                                            disabled={isPlanning || (!imageGen.prompt?.trim() && !productionBible)}
+                                            className="w-full py-4 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 disabled:opacity-30 active:scale-95 shadow-xl group"
+                                        >
+                                            {isPlanning ? <Loader2 size={16} className="animate-spin"/> : <Sparkles size={16} className="group-hover:scale-110 transition-transform" />}
+                                            Initialize Synthesis
+                                        </button>
+                                        
                                         <div className="flex gap-3">
-                                            {[ImageSize.SIZE_1K, ImageSize.SIZE_2K].map(s => (
-                                                <button key={s} onClick={() => setImageGenState({ quality: s })} className={`flex-1 py-4 rounded-2xl border text-[10px] font-black uppercase transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{s} Delivery</button>
-                                            ))}
+                                            <button 
+                                                onClick={renderSequence} 
+                                                disabled={isBatchRendering || frames.length === 0}
+                                                className="flex-1 py-3.5 bg-[#9d4edd] text-black font-black font-mono text-[9px] uppercase tracking-[0.2em] rounded-[1.2rem] hover:bg-[#b06bf7] transition-all shadow-[0_10px_25px_rgba(157,78,221,0.25)] flex items-center justify-center gap-2.5 disabled:opacity-30 active:scale-95"
+                                            >
+                                                {isBatchRendering ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} className="fill-current" />}
+                                                Render
+                                            </button>
+                                            <button 
+                                                onClick={exportProductionBundle} 
+                                                disabled={frames.filter(f => f.imageUrl).length === 0}
+                                                className="flex-1 py-3.5 bg-white/5 border border-white/10 text-gray-500 hover:text-white hover:bg-white/10 rounded-[1.2rem] text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2.5 active:scale-95 disabled:opacity-20"
+                                            >
+                                                <ArchiveIcon size={14}/> 
+                                                Export
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="p-10 bg-[#050505] border-t border-[#1f1f1f] space-y-4">
-                                    <button 
-                                        onClick={renderSequence} 
-                                        disabled={isBatchRendering || frames.length === 0}
-                                        className="w-full py-6 bg-[#9d4edd] text-black font-black font-mono text-xs uppercase tracking-[0.5em] rounded-[2rem] hover:bg-[#b06bf7] transition-all shadow-[0_20px_50px_rgba(157,78,221,0.3)] flex items-center justify-center gap-4 disabled:opacity-30 active:scale-95"
-                                    >
-                                        {isBatchRendering ? <Loader2 size={20} className="animate-spin" /> : <Play size={20} className="fill-current" />}
-                                        Render Production Sequence
-                                    </button>
-                                    <button onClick={exportProductionBundle} className="w-full py-5 bg-white/5 border border-white/10 text-gray-500 hover:text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95"><Download size={18}/> Export Production Bundle</button>
+                                {/* Bottom Half: Emotional Resonance Curve */}
+                                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 min-h-0 space-y-6 flex flex-col bg-[#050505]/40">
+                                    <div className="flex-1 flex flex-col space-y-5 min-h-[300px]">
+                                        <div className="flex justify-between items-center px-1 shrink-0">
+                                            <div className="flex items-center gap-3">
+                                                <Activity size={16} className="text-[#22d3ee] animate-pulse" />
+                                                <span className="text-[10px] font-black text-gray-500 font-mono uppercase tracking-[0.3em]">Resonance Curve</span>
+                                            </div>
+                                            <div className="flex gap-1.5 p-1 bg-black/40 rounded-xl border border-white/5">
+                                                {[ImageSize.SIZE_1K, ImageSize.SIZE_2K].map(s => (
+                                                    <button key={s} onClick={() => setImageGenState({ quality: s })} className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20' : 'bg-transparent border-transparent text-gray-600 hover:text-gray-300'}`}>{s}</button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 bg-black/60 rounded-[2rem] overflow-hidden border border-white/5 shadow-inner">
+                                          <EmotionalResonanceGraph />
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="pt-5 border-t border-white/5 grid grid-cols-2 gap-3 shrink-0">
+                                        <div className="p-3 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col gap-1">
+                                            <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Coherence</span>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] font-black text-[#10b981] font-mono uppercase tracking-tighter">LOCKED</span>
+                                                <CheckCircle2 size={12} className="text-[#10b981]" />
+                                            </div>
+                                        </div>
+                                        <div className="p-3 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col gap-1">
+                                            <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Acoustic Sync</span>
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-[10px] font-black text-[#22d3ee] font-mono uppercase tracking-tighter">READY</span>
+                                                <Speaker size={12} className="text-[#22d3ee]" />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -922,13 +964,13 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     <div className="space-y-4">
                                         <div className="flex justify-between items-center px-3">
                                             <label className="text-[10px] font-black text-gray-400 font-mono uppercase tracking-widest flex items-center gap-2"><Compass size={12}/> Motion Directive</label>
-                                            <span className="text-[8px] font-mono text-gray-700">STABLE_DIFFUSION_V3</span>
+                                            <span className="text-[8px] font-mono text-gray-700">VEO_CORE_V3</span>
                                         </div>
                                         <textarea 
                                             value={videoPrompt} 
                                             onChange={e => setVideoPrompt(e.target.value)}
-                                            className="w-full h-44 bg-black border border-[#222] p-6 rounded-3xl text-sm font-mono text-gray-300 outline-none focus:border-[#d946ef] resize-none transition-all shadow-inner placeholder:text-gray-800"
-                                            placeholder="Describe cinematic travel, panning speed, and optic behavior..."
+                                            className="w-full h-40 bg-black border border-[#222] p-6 rounded-3xl text-sm font-mono text-gray-300 outline-none focus:border-[#d946ef] resize-none transition-all shadow-inner placeholder:text-gray-800"
+                                            placeholder="Describe cinematic travel, panning speed..."
                                         />
                                     </div>
 
@@ -982,7 +1024,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                 <button 
                                     onClick={handleVideoGenerate} 
                                     disabled={isVideoLoading || !videoPrompt.trim()}
-                                    className="w-full py-6 bg-[#d946ef] hover:bg-[#f0abfc] text-black font-black font-mono text-sm uppercase tracking-[0.4em] rounded-[2.5rem] transition-all shadow-[0_20px_50px_rgba(217,70,239,0.4)] flex items-center justify-center gap-5 disabled:opacity-50 active:scale-95 relative z-10 mb-2 group/btn"
+                                    className="w-full py-5 bg-[#d946ef] hover:bg-[#f0abfc] text-black font-black font-mono text-[10px] uppercase tracking-[0.4em] rounded-[2.5rem] transition-all shadow-[0_20px_50px_rgba(217,70,239,0.4)] flex items-center justify-center gap-5 disabled:opacity-50 active:scale-95 relative z-10 mb-2 group/btn"
                                 >
                                     {isVideoLoading ? <Loader2 className="w-7 h-7 animate-spin" /> : <MoveUpRight size={24} className="group-hover/btn:scale-125 transition-transform" />}
                                     {isVideoLoading ? 'Synthesizing...' : 'Forge Motion Sequence'}
@@ -996,7 +1038,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white font-mono">Temporal Context Lock</span>
                                 </div>
                                 <p className="text-[10px] text-gray-500 font-mono leading-relaxed relative z-10 italic">
-                                    "VEO active session currently bound to primary identity vector. Continuity protocols maintained by Production Bible."
+                                    "Continuity protocols maintained by Production Bible."
                                 </p>
                             </div>
                         </div>
@@ -1102,48 +1144,48 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                             </div>
 
                             {/* Refined Screening Room HUD */}
-                            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-14 px-12 py-6 bg-[#0a0a0a]/90 backdrop-blur-3xl border border-white/10 rounded-full shadow-[0_100px_250px_rgba(0,0,0,1)] opacity-0 group-hover/theatre:opacity-100 transition-all duration-700 transform translate-y-6 group-hover/theatre:translate-y-0 max-w-[90%] flex-wrap justify-center pointer-events-auto">
-                                <div className="flex items-center gap-8">
-                                    <button onClick={() => setTeaserIdx(p => (p - 1 + frames.length) % frames.length)} className="p-4 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"><FastForward size={32} className="rotate-180" /></button>
+                            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-14 px-10 py-5 bg-[#0a0a0a]/90 backdrop-blur-3xl border border-white/10 rounded-full shadow-[0_100px_250px_rgba(0,0,0,1)] opacity-0 group-hover/theatre:opacity-100 transition-all duration-700 transform translate-y-6 group-hover/theatre:translate-y-0 max-w-[90%] flex-wrap justify-center pointer-events-auto">
+                                <div className="flex items-center gap-6">
+                                    <button onClick={() => setTeaserIdx(p => (p - 1 + frames.length) % frames.length)} className="p-3 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"><FastForward size={24} className="rotate-180" /></button>
                                     <button 
                                         onClick={() => { setIsAutoPlaying(!isAutoPlaying); if (!isAutoPlaying) playFullSequence(); audio.playClick(); }} 
-                                        className={`w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-[0_0_50px_rgba(0,0,0,0.5)] active:scale-95 shrink-0
+                                        className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-[0_0_40px_rgba(0,0,0,0.4)] active:scale-95 shrink-0
                                             ${isAutoPlaying ? 'bg-white text-black shadow-white/20' : 'bg-[#9d4edd] text-black shadow-[#9d4edd]/50'}
                                         `}
                                     >
-                                        {isAutoPlaying ? <Pause size={32} /> : <Play size={32} fill="currentColor" className="ml-1" />}
+                                        {isAutoPlaying ? <Pause size={24} /> : <Play size={24} fill="currentColor" className="ml-1" />}
                                     </button>
-                                    <button onClick={() => setTeaserIdx(p => (p + 1) % frames.length)} className="p-4 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"><FastForward size={32} /></button>
+                                    <button onClick={() => setTeaserIdx(p => (p + 1) % frames.length)} className="p-3 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"><FastForward size={24} /></button>
                                 </div>
-                                <div className="h-10 w-px bg-white/10 hidden md:block" />
+                                <div className="h-8 w-px bg-white/10 hidden md:block" />
                                 <div className="flex items-center gap-6">
                                     <div className="flex gap-2">
                                         <button 
                                             onClick={generateAllSequenceAudio} 
                                             disabled={isGeneratingTeaserAudio || frames.length === 0} 
-                                            className={`p-4 rounded-2xl transition-all shadow-2xl bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10 flex items-center gap-2`}
+                                            className={`p-3 rounded-2xl transition-all shadow-2xl bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10 flex items-center gap-2`}
                                             title="Synthesize All Narrations"
                                         >
-                                            <Speaker size={20} />
+                                            <Speaker size={18} />
                                             <span className="text-[8px] font-black uppercase tracking-widest hidden sm:block">Sync All</span>
                                         </button>
                                         <button 
                                             onClick={() => generateTeaserAudioForIndex(teaserIdx)} 
                                             disabled={isGeneratingTeaserAudio || !frames[teaserIdx]?.imageUrl} 
-                                            className={`p-4 rounded-2xl transition-all shadow-2xl ${isGeneratingTeaserAudio ? 'bg-[#9d4edd] text-black animate-pulse shadow-[#9d4edd]/30' : 'bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10'}`}
+                                            className={`p-3 rounded-2xl transition-all shadow-2xl ${isGeneratingTeaserAudio ? 'bg-[#9d4edd] text-black animate-pulse shadow-[#9d4edd]/30' : 'bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10'}`}
                                             title="Regenerate Active Node Audio"
                                         >
-                                            <Volume2 size={20} />
+                                            <Volume2 size={18} />
                                         </button>
                                     </div>
-                                    <div className="h-10 w-px bg-white/10 hidden md:block" />
+                                    <div className="h-8 w-px bg-white/10 hidden md:block" />
                                     <button 
                                         onClick={exportProductionBundle}
                                         disabled={isExportingBundle || frames.filter(f => f.imageUrl).length === 0}
-                                        className="flex items-center gap-3 px-6 py-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-full transition-all group/bundle active:scale-95 disabled:opacity-30"
+                                        className="flex items-center gap-3 px-5 py-2.5 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-full transition-all group/bundle active:scale-95 disabled:opacity-30"
                                     >
-                                        {isExportingBundle ? <Loader2 size={16} className="animate-spin" /> : <FileArchive size={16} className="group-hover/bundle:scale-110 transition-transform" />}
-                                        <span className="text-[9px] font-black uppercase tracking-widest whitespace-nowrap">Secure Bundle</span>
+                                        {isExportingBundle ? <Loader2 size={14} className="animate-spin" /> : <FileArchive size={14} className="group-hover/bundle:scale-110 transition-transform" />}
+                                        <span className="text-[8px] font-black uppercase tracking-widest whitespace-nowrap">Secure Bundle</span>
                                     </button>
                                 </div>
                             </div>
@@ -1176,7 +1218,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
         </div>
 
         {/* Global Production Footer HUD */}
-        <div className="h-10 bg-[#0a0a0a] border-t border-[#1f1f1f] px-8 flex items-center justify-between text-[9px] font-mono text-gray-600 shrink-0 relative z-[60]">
+        <div className="h-10 bg-[#0a0a0a] border-t border-[#1f1f1f] px-8 flex items-center justify-between text-[8px] font-mono text-gray-600 shrink-0 relative z-[60]">
             <div className="flex gap-10 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
                 <div className="flex items-center gap-3 text-emerald-500 font-bold uppercase tracking-[0.2em]">
                     <CheckCircle size={14} className="shadow-[0_0_10px_#10b981]" /> Sync_Stable
