@@ -26,6 +26,7 @@ import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, ScatterChart, Scatt
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
+import MetaventionsLogo from './MetaventionsLogo';
 
 // --- SHARED VOICE SUB-COMPONENTS ---
 
@@ -689,7 +690,7 @@ const Dashboard: React.FC = () => {
                       <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse"></div>
                       <span className="text-[8px] font-black font-mono text-gray-700 uppercase tracking-[0.4em]">Sovereign_Alpha</span>
                   </div>
-                  <h1 className="text-4xl font-black font-mono text-white tracking-tighter uppercase leading-none italic">Metaventions AI</h1>
+                  <MetaventionsLogo size={42} showText={true} />
               </div>
 
               <div className="flex items-center gap-6 pb-1">

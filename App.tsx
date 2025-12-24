@@ -23,6 +23,7 @@ import FlywheelOrbit from './components/FlywheelOrbit';
 import AgenticHUD from './components/AgenticHUD';
 import GlobalStatusBar from './components/GlobalStatusBar';
 import PeerMeshOverlay from './components/PeerMeshOverlay';
+import MetaventionsLogo from './components/MetaventionsLogo';
 
 import { useAutoSave } from './hooks/useAutoSave'; 
 import { useDaemonSwarm } from './hooks/useDaemonSwarm'; 
@@ -110,7 +111,6 @@ const App: React.FC = () => {
   useResearchAgent(); 
 
   useEffect(() => {
-    // Initialize Collaboration Swarm
     collabService.init();
     return () => collabService.disconnect();
   }, []);
@@ -218,11 +218,8 @@ const App: React.FC = () => {
 
       <header className="flex-shrink-0 h-14 border-b z-[100] px-4 flex items-center justify-between backdrop-blur-xl" style={{ backgroundColor: 'rgba(10,10,10,0.85)', borderColor: 'var(--border-main)' }}>
         <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => switchPath('/dashboard')}>
-          <NeuralHeader />
-          <div className="flex items-center gap-1">
-            <span className="text-base font-black leading-none tracking-tight font-mono text-white group-hover:text-[#9d4edd] transition-colors uppercase">Metaventions</span>
-            <FlywheelOrbit />
-          </div>
+          <MetaventionsLogo size={32} showText={true} />
+          <FlywheelOrbit />
         </div>
         
         <nav className="flex items-center space-x-0.5 p-0.5 rounded-lg border border-white/5 mx-auto overflow-x-auto no-scrollbar" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
