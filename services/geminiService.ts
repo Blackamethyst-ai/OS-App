@@ -42,6 +42,74 @@ export async function fileToGenerativePart(file: File | Blob): Promise<FileData>
 }
 
 /**
+ * REAL-WORLD INTELLIGENCE ENGINE
+ * Uses search grounding to find real financial and strategic opportunities.
+ */
+export async function fetchMarketIntelligence(): Promise<any[]> {
+    const ai = getAI();
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: "Perform a deep search for current high-yield opportunities in DePIN (Akash, Render, Helium), AI infrastructure arbitrage, and yield-bearing decentralized protocols. Identify specific strategies with estimated yield (%), risk profile, and technical reasoning. Output strictly JSON array [{id, title, yield, risk, logic}].",
+            config: {
+                tools: [{ googleSearch: {} }],
+                responseMimeType: 'application/json'
+            }
+        });
+        return JSON.parse(response.text || "[]");
+    } catch (e) {
+        console.error("Intelligence fetch failed", e);
+        return [];
+    }
+}
+
+export async function searchRealWorldOpportunities(domain: string): Promise<any[]> {
+    const ai = getAI();
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: `Identify 5 real-world revenue-generating opportunities in the ${domain} sector as of today. Use Google Search to get current market data, token prices, and hardware availability. Focus on actionable arbitrage or deployment strategies. Output strictly JSON array [{title, type, potential, risk, source_uri, yield}].`,
+            config: {
+                tools: [{ googleSearch: {} }],
+                responseMimeType: 'application/json'
+            }
+        });
+        return JSON.parse(response.text || "[]");
+    } catch (e) {
+        console.error("Arbitrage search failed", e);
+        return [];
+    }
+}
+
+export async function getLiveSupplyChainData(componentName: string): Promise<any> {
+    const ai = getAI();
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-pro-preview',
+            contents: `Get real-world current pricing, unit availability, and shipping lead times for hardware: "${componentName}". Search major distributors like Mouser, DigiKey, Mouser, and Arrow. Also check secondary market pricing on eBay/StockX if applicable for GPUs. Output JSON {price, availability, leadTime, source, trend}.`,
+            config: {
+                tools: [{ googleSearch: {} }],
+                responseMimeType: 'application/json'
+            }
+        });
+        return JSON.parse(response.text || "{}");
+    } catch (e) {
+        console.error("Supply chain fetch failed", e);
+        return null;
+    }
+}
+
+export async function analyzeDeploymentFeasibility(strategy: string): Promise<string> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Analyze the real-world deployment feasibility for this strategy: "${strategy}". Use Search to identify competitors, hardware entry barriers, and current market saturation levels. Provide a terse executive diagnostic.`,
+        config: { tools: [{ googleSearch: {} }] }
+    });
+    return response.text || "Analysis unavailable.";
+}
+
+/**
  * NEURAL EMBEDDING ENGINE
  * Converts text into 768-dimension vectors for semantic search.
  */
@@ -50,9 +118,9 @@ export async function generateEmbedding(text: string): Promise<number[]> {
     try {
         const response = await ai.models.embedContent({
             model: 'text-embedding-004',
-            content: { parts: [{ text }] }
+            contents: [{ parts: [{ text }] }]
         });
-        return response.embedding.values;
+        return response.embeddings[0].values;
     } catch (e) {
         console.error("Embedding generation failed", e);
         return [];
@@ -302,7 +370,7 @@ export async function performGlobalSearch(query: string): Promise<SearchResultIt
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Search query in Metaventions OS context: "${query}". Identify navigation targets or tool actions as JSON array. 
-        Possible sectors: DASHBOARD, BIBLIOMORPHIC, PROCESS_MAP, MEMORY_CORE, IMAGE_GEN, HARDWARE_ENGINEER, CODE_STUDIO, VOICE_MODE, SYNTHESIS_BRIDGE, AGENT_CONTROL.`,
+        Possible sectors: DASHBOARD, BIBLIOMORPHIC, PROCESS_MAP, MEMORY_CORE, IMAGE_GEN, HARDWARE_ENGINEER, CODE_STUDIO, VOICE_MODE, SYNTHESIS_BRIDGE, AGENT_CONTROL, AUTONOMOUS_FINANCE.`,
         config: {
             responseMimeType: 'application/json',
             tools: [{ googleSearch: {} }],

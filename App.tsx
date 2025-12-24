@@ -31,7 +31,7 @@ import { useVoiceControl } from './hooks/useVoiceControl';
 import { useResearchAgent } from './hooks/useResearchAgent'; 
 import { 
     LayoutGrid, Image, Settings, Activity, BookOpen, Mic, Cpu, 
-    Code, HardDrive, GitMerge, Target, X, User, Bot, ExternalLink, Moon
+    Code, HardDrive, GitMerge, Target, X, User, Bot, ExternalLink, Moon, DollarSign
 } from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
 import { collabService } from './services/collabService';
@@ -43,6 +43,7 @@ const NAV_CONFIG = [
   { id: AppMode.DASHBOARD, label: 'HOME', path: '/dashboard' },
   { id: AppMode.BIBLIOMORPHIC, label: 'VISION', path: '/bibliomorphic' },
   { id: AppMode.PROCESS_MAP, label: 'PROCESS', path: '/process' },
+  { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance' },
   { id: AppMode.CODE_STUDIO, label: 'CODE', path: '/code' },
   { id: AppMode.AGENT_CONTROL, label: 'AGENTS', path: '/agents' },
   { id: AppMode.MEMORY_CORE, label: 'VAULT', path: '/memory' },
@@ -175,7 +176,7 @@ const App: React.FC = () => {
   }, [theme]);
 
   const isFixedLayout = useMemo(() => 
-    mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.SYNTHESIS_BRIDGE || mode === AppMode.VOICE_MODE
+    mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.SYNTHESIS_BRIDGE || mode === AppMode.VOICE_MODE || mode === AppMode.AUTONOMOUS_FINANCE
   , [mode]);
 
   return (
@@ -239,14 +240,14 @@ const App: React.FC = () => {
             <div className="h-10 w-px bg-white/5" />
 
             {/* High-Density Navigation Tabs (Auto-Adjusting Space) */}
-            <nav className="flex items-center gap-4 xl:gap-6 overflow-x-auto no-scrollbar max-w-[800px]">
+            <nav className="flex items-center gap-2 xl:gap-4 overflow-x-auto no-scrollbar max-w-[900px]">
                 {NAV_CONFIG.map(item => (
                     <button 
                         key={item.id} 
                         onClick={() => switchPath(item.path)} 
-                        className="relative py-6 px-1.5 group flex-shrink-0"
+                        className="relative py-6 px-1.5 xl:px-2.5 group flex-shrink-0"
                     >
-                        <span className={`text-[9px] font-black uppercase tracking-[0.15em] font-mono transition-colors duration-500 ${mode === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-200'}`}>
+                        <span className={`text-[8.5px] xl:text-[9.5px] font-[900] uppercase tracking-[0.15em] font-mono transition-all duration-500 ${mode === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-200'}`}>
                             {item.label}
                         </span>
                         {mode === item.id && (

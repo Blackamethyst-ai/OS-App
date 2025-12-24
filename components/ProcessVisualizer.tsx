@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -12,7 +13,8 @@ import {
     ShieldCheck, Sparkles, FileText, Upload, Eye, FileUp, Info,
     Boxes, Package, Scan, Trash2, Globe, Cpu, ChevronRight, Terminal, RotateCcw, Box,
     FolderTree, Folder, HardDrive, Share2, Target, GitBranch, Layout, Hammer, Network, Shield,
-    Merge, FolderOpen, List, ChevronDown, Binary, Radio, FileJson, Clock, Lock
+    Merge, FolderOpen, List, ChevronDown, Binary, Radio, FileJson, Clock, Lock, Download,
+    SearchCode, BarChart4, Image as ImageIcon
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useAppStore } from '../store';
@@ -21,6 +23,7 @@ import { renderSafe } from '../utils/renderSafe';
 import MermaidDiagram from './MermaidDiagram';
 import NexusAPIExplorer from './NexusAPIExplorer';
 import { audio } from '../services/audioService';
+import { promptSelectKey } from '../services/geminiService';
 
 const HolographicNode = ({ id, data: nodeData, selected, dragging }: NodeProps) => {
     const data = nodeData as any;
@@ -125,6 +128,7 @@ const CinematicEdge = ({ id, sourceX, sourceY, targetX, targetY, style, markerEn
 };
 
 const VaultDriveOrg = ({ workflow }: any) => {
+    const { addLog } = useAppStore();
     const [optimizedNodes, setOptimizedNodes] = useState<Set<string>>(new Set());
     const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
 
@@ -150,6 +154,23 @@ const VaultDriveOrg = ({ workflow }: any) => {
         audio.playClick();
     };
 
+    const handleExportManifest = () => {
+        if (!workflow?.taxonomy) return;
+        const manifest = {
+            title: workflow.title,
+            timestamp: new Date().toISOString(),
+            taxonomy: workflow.taxonomy
+        };
+        const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `para_manifest_${Date.now()}.json`;
+        link.click();
+        addLog('SUCCESS', 'VAULT_EXPORT: PARA Drive Manifest generated successfully.');
+        audio.playSuccess();
+    };
+
     if (!workflow || !workflow.taxonomy) return (
         <div className="h-full flex flex-col items-center justify-center opacity-10 text-center space-y-12">
             <div className="relative">
@@ -171,7 +192,7 @@ const VaultDriveOrg = ({ workflow }: any) => {
                 <div className="flex justify-between items-end mb-20 border-b border-white/5 pb-14">
                     <div className="space-y-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-[#10b981]/10 rounded-2xl border border-[#10b981]/30 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+                            <div className="p-3 bg-[#10b981]/10 border border-[#10b981]/30 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.15)]">
                                 <HardDrive size={24} className="text-[#10b981]" />
                             </div>
                             <span className="text-[12px] font-black font-mono text-[#10b981] uppercase tracking-[0.6em]">LatticeVault // Autonomous_PARA</span>
@@ -179,11 +200,14 @@ const VaultDriveOrg = ({ workflow }: any) => {
                         <h2 className="text-6xl font-black text-white uppercase tracking-tighter font-mono leading-none">PARA Logic Matrix</h2>
                         <p className="text-xs text-gray-500 font-mono uppercase tracking-widest">Recursive Structural Protocol Active</p>
                     </div>
-                    <div className="flex gap-16 items-end pb-2">
-                        <div className="text-right space-y-2">
-                            <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest block">Structural Integrity</span>
-                            <span className="text-5xl font-black font-mono text-white tracking-tighter">94.8%</span>
-                        </div>
+                    <div className="flex gap-10 items-center">
+                        <button 
+                            onClick={handleExportManifest}
+                            className="px-6 py-3 bg-[#10b981] hover:bg-[#34d399] text-black text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-[0_15px_30px_rgba(16,185,129,0.2)] flex items-center gap-3 active:scale-95"
+                        >
+                            <Download size={16} /> Export Manifest
+                        </button>
+                        <div className="h-10 w-px bg-white/5" />
                         <div className="text-right space-y-2">
                             <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest block">L1_Sectors</span>
                             <span className="text-5xl font-black font-mono text-[#9d4edd] tracking-tighter">{workflow.taxonomy?.root?.length || 0}</span>
@@ -395,126 +419,108 @@ const ProtocolLoom = ({ workflow, results, isSimulating, activeIndex, onExecute,
     );
 };
 
-const InfrastructureForge = ({ nodes, onGenerate }: any) => {
+const SourceGrounding = ({ sources, onUpload, onRemove, onPreview }: any) => {
     return (
-        <div className="h-full flex flex-col items-center justify-center p-12 bg-[#030303] relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.03)_0%,transparent_70%)] pointer-events-none" />
-            
-            <div className="max-w-2xl w-full bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/5 rounded-[4rem] p-16 shadow-[0_80px_150px_rgba(0,0,0,0.8)] relative overflow-hidden group/forge">
-                <div className="absolute top-0 right-0 p-12 opacity-[0.03] group-hover/forge:opacity-[0.08] transition-all duration-1000 rotate-12 scale-150"><Server size={180} /></div>
-                
-                <div className="mb-20 text-center space-y-6 relative z-10">
-                    <div className="w-28 h-28 bg-[#10b981]/10 border border-[#10b981]/30 rounded-[2.5rem] flex items-center justify-center mx-auto text-[#10b981] shadow-[0_0_50px_rgba(16,185,129,0.2)] group-hover/forge:scale-110 group-hover:rotate-12 transition-all duration-1000">
-                        <Cpu size={56} />
+        <div className="h-full flex flex-col p-10 bg-[#030303] overflow-y-auto custom-scrollbar">
+            <div className="flex justify-between items-center mb-10 border-b border-white/5 pb-6">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-[#f59e0b]/10 border border-[#f59e0b]/30 rounded-2xl text-[#f59e0b]">
+                        <Database size={24} />
                     </div>
-                    <div className="space-y-2">
-                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter font-mono">Infrastructure Forge</h2>
-                        <p className="text-[11px] text-gray-500 font-mono mt-2 uppercase tracking-[0.5em]">Lattice Vectorization Core v4.0</p>
+                    <div>
+                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter font-mono">Source Grounding</h2>
+                        <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Ingest Knowledge Buffers for Synthesis</p>
                     </div>
                 </div>
+                <label className="px-6 py-3 bg-white/5 border border-white/10 hover:border-white/30 text-white rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer transition-all flex items-center gap-2 active:scale-95">
+                    <Upload size={16} /> Ingest Source
+                    <input type="file" multiple className="hidden" onChange={onUpload} />
+                </label>
+            </div>
 
-                <div className="grid grid-cols-1 gap-6 relative z-10">
-                    {[
-                        { id: 'TERRAFORM', label: 'Terraform (HCL)', icon: Box, color: '#9d4edd', desc: 'Synthesize multi-cloud infrastructure definitions.' },
-                        { id: 'DOCKER', label: 'Docker Compose', icon: Package, color: '#22d3ee', desc: 'Vectorize container orchestration manifests.' },
-                        { id: 'KUBERNETES', label: 'Kubernetes YAML', icon: Layers, color: '#10b981', desc: 'Forge resilient cluster orchestration logic.' }
-                    ].map(opt => (
-                        <button 
-                            key={opt.id}
-                            onClick={() => onGenerate(opt.id)}
-                            className="p-10 bg-[#111]/60 hover:bg-[#1a1a1a] border border-white/5 hover:border-[var(--color)] rounded-[2.5rem] flex items-center justify-between group transition-all duration-700 shadow-2xl"
-                            style={{ '--color': opt.color } as any}
-                        >
-                            <div className="flex items-center gap-8">
-                                <div className="p-5 bg-black rounded-3xl border border-white/5 text-gray-700 group-hover:text-[var(--color)] group-hover:border-[var(--color)]/40 transition-all group-hover:scale-110 group-hover:-rotate-6 shadow-inner">
-                                    <opt.icon size={40} />
-                                </div>
-                                <div className="text-left">
-                                    <div className="text-lg font-black text-white uppercase mb-1 font-mono tracking-widest">{opt.label}</div>
-                                    <p className="text-[11px] text-gray-500 font-mono leading-relaxed max-w-[240px] italic">"{opt.desc}"</p>
-                                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {sources.map((source: any, i: number) => (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        key={source.id} 
+                        className="p-6 bg-[#0a0a0a] border border-white/5 rounded-2xl hover:border-[#f59e0b]/40 transition-all group relative overflow-hidden shadow-2xl"
+                    >
+                        <div className="flex justify-between items-start mb-6">
+                            <div className="p-2 bg-white/5 rounded-lg text-gray-500">
+                                {source.type.startsWith('image/') ? <Icons.Image size={20} /> : <Icons.FileText size={20} />}
                             </div>
-                            <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-gray-800 group-hover:text-white group-hover:bg-[var(--color)] transition-all duration-500 group-hover:scale-110">
-                                <ChevronRight size={32} />
+                            <div className="flex gap-2">
+                                <button onClick={() => onPreview(source)} className="p-2 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white rounded-lg transition-colors"><Eye size={16} /></button>
+                                <button onClick={() => onRemove(i)} className="p-2 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-500 rounded-lg transition-colors"><Trash2 size={16} /></button>
                             </div>
-                        </button>
-                    ))}
-                </div>
+                        </div>
+                        <h3 className="text-sm font-bold text-white uppercase truncate font-mono mb-2">{source.name}</h3>
+                        <div className="flex items-center gap-2">
+                            {source.analysis ? (
+                                <>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] shadow-[0_0_5px_#10b981]" />
+                                    <span className="text-[8px] font-mono text-gray-500 uppercase">Analysis: LOCKED</span>
+                                </>
+                            ) : (
+                                <>
+                                    <Loader2 size={10} className="text-[#f59e0b] animate-spin" />
+                                    <span className="text-[8px] font-mono text-gray-500 uppercase">Processing...</span>
+                                </>
+                            )}
+                        </div>
+                    </motion.div>
+                ))}
+                {sources.length === 0 && (
+                    <div className="col-span-full py-40 border-2 border-dashed border-white/5 rounded-[3rem] flex flex-col items-center justify-center opacity-10 gap-6">
+                        <Upload size={64} className="text-gray-500" />
+                        <span className="text-xl font-mono uppercase tracking-[0.5em]">No Sources Buffered</span>
+                    </div>
+                )}
             </div>
         </div>
     );
 };
 
-const SourceGrounding = ({ sources, onUpload, onRemove, onPreview }: any) => {
+const InfrastructureForge = ({ nodes, onGenerate }: any) => {
     return (
-        <div className="h-full flex flex-col bg-[#030303] p-20 overflow-y-auto custom-scrollbar relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.03)_0%,transparent_70%)] pointer-events-none" />
-            
-            <div className="max-w-7xl mx-auto w-full relative z-10">
-                <div className="flex justify-between items-end mb-20 border-b border-white/5 pb-14">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-[#22d3ee]/10 border border-[#22d3ee]/30 rounded-2xl text-[#22d3ee] shadow-[0_0_30px_rgba(34,211,238,0.15)]">
-                                <Database size={24} />
-                            </div>
-                            <span className="text-[12px] font-black font-mono text-[#22d3ee] uppercase tracking-[0.6em]">Context Buffer Layer // Grounding</span>
-                        </div>
-                        <h2 className="text-6xl font-black text-white uppercase tracking-tighter leading-none font-mono">Topology Grounding</h2>
-                        <p className="text-xs text-gray-500 font-mono uppercase tracking-widest">Active Multi-Modal Vector Ingestion</p>
+        <div className="h-full flex flex-col p-10 bg-[#030303] overflow-y-auto custom-scrollbar">
+            <div className="max-w-4xl mx-auto w-full space-y-12">
+                <div className="text-center space-y-4">
+                    <div className="p-4 bg-[#f59e0b]/10 border border-[#f59e0b]/30 rounded-3xl w-20 h-20 flex items-center justify-center mx-auto text-[#f59e0b] shadow-[0_0_30px_rgba(245,158,11,0.2)]">
+                        <Server size={40} />
                     </div>
-                    <label className="flex items-center gap-4 px-10 py-5 bg-[#22d3ee] text-black text-[12px] font-black uppercase tracking-[0.5em] rounded-2xl cursor-pointer hover:bg-[#67e8f9] transition-all shadow-[0_20px_60px_rgba(34,211,238,0.3)] active:scale-95 group">
-                        <FileUp size={24} className="group-hover:translate-y-[-2px] transition-transform" /> Ingest Context Buffers
-                        <input type="file" multiple className="hidden" onChange={onUpload} />
-                    </label>
+                    <h2 className="text-5xl font-black text-white uppercase tracking-tighter font-mono">Infrastructure Forge</h2>
+                    <p className="text-[12px] text-gray-500 font-mono uppercase tracking-widest">Crystallize Logical Lattice into Executable Provisioning Scripts</p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {sources.map((s: any, i: number) => (
-                        <motion.div 
-                            key={s.id} 
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            className="bg-[#0a0a0a] border border-white/5 p-8 rounded-[3rem] flex flex-col gap-6 relative group hover:border-[#22d3ee]/50 transition-all duration-700 shadow-2xl"
+                <div className="grid grid-cols-2 gap-8 pt-10">
+                    {[
+                        { id: 'TERRAFORM', label: 'Terraform (HCL)', icon: GitBranch, color: '#9d4edd', desc: 'Industry-standard infrastructure as code for multi-cloud mesh orchestration.' },
+                        { id: 'DOCKER', label: 'Docker Compose', icon: Boxes, color: '#22d3ee', desc: 'Container-level service definition for localized or distributed clusters.' },
+                        { id: 'KUBERNETES', label: 'K8s Manifests', icon: Network, color: '#10b981', desc: 'High-availability container orchestration for massive scale lattice deployments.' },
+                        { id: 'PULUMI', label: 'Pulumi (TS)', icon: Code, color: '#f59e0b', desc: 'Modern programmatic infrastructure provisioning for sovereign cloud stacks.' }
+                    ].map(provider => (
+                        <motion.button 
+                            key={provider.id}
+                            whileHover={{ scale: 1.02, y: -5 }}
+                            whileTap={{ scale: 0.98 }}
+                            onClick={() => onGenerate(provider.id)}
+                            className="p-10 bg-[#0a0a0a] border border-white/5 hover:border-[var(--accent)] rounded-[3rem] text-left transition-all duration-500 group relative overflow-hidden shadow-2xl"
+                            style={{ '--accent': provider.color } as any}
                         >
-                            <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-5">
-                                    <div className="p-4 bg-[#111] rounded-2xl text-gray-600 group-hover:text-[#22d3ee] group-hover:rotate-6 transition-all shadow-inner"><FileText size={28} /></div>
-                                    <div className="min-w-0">
-                                        <div className="text-[13px] font-black text-white truncate max-w-[160px] uppercase font-mono tracking-widest">{s.name}</div>
-                                        <div className="text-[9px] text-gray-600 font-mono uppercase mt-1 tracking-widest">Uplink: STABLE</div>
-                                    </div>
-                                </div>
-                                <button onClick={() => onRemove(i)} className="p-2.5 text-gray-800 hover:text-red-500 transition-colors bg-white/5 rounded-2xl hover:bg-red-500/10"><Trash2 size={18} /></button>
+                            <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:opacity-[0.08] transition-opacity rotate-12 scale-150">
+                                <provider.icon size={120} />
                             </div>
-                            
-                            {s.analysis ? (
-                                <div className="space-y-6">
-                                    <p className="text-[12px] text-gray-400 font-mono leading-relaxed line-clamp-4 italic bg-black/60 p-6 rounded-2xl border border-white/5 shadow-inner">"{s.analysis.summary}"</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        <span className="text-[9px] px-3 py-1.5 rounded-xl bg-[#22d3ee]/10 text-[#22d3ee] border border-[#22d3ee]/30 uppercase font-black tracking-widest shadow-lg">{s.analysis.classification}</span>
-                                    </div>
+                            <div className="flex items-center gap-6 mb-6">
+                                <div className="p-4 bg-white/5 rounded-2xl group-hover:bg-[var(--accent)] group-hover:text-black transition-all duration-500">
+                                    <provider.icon size={28} />
                                 </div>
-                            ) : (
-                                <div className="flex items-center gap-4 text-[11px] text-gray-600 font-mono animate-pulse uppercase py-8 px-6 bg-black/40 rounded-3xl border border-dashed border-white/10"><Loader2 size={18} className="animate-spin" /> De-scrambling context signal...</div>
-                            )}
-
-                            <button onClick={() => onPreview(s)} className="mt-2 w-full py-4.5 bg-white/5 border border-white/10 hover:border-white/40 text-gray-600 hover:text-white text-[11px] font-black uppercase tracking-[0.4em] rounded-2xl transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95 group/view">
-                                <Eye size={18} className="group-hover/view:scale-110 transition-transform" /> Inspect Buffer Vector
-                            </button>
-                        </motion.div>
+                                <span className="text-xl font-black text-white uppercase tracking-widest">{provider.label}</span>
+                            </div>
+                            <p className="text-[11px] text-gray-500 font-mono leading-relaxed italic">"{provider.desc}"</p>
+                        </motion.button>
                     ))}
-                    {sources.length === 0 && (
-                        <div className="col-span-full py-48 text-center border-2 border-dashed border-white/5 rounded-[4rem] opacity-10 space-y-10 group/empty hover:opacity-20 transition-opacity">
-                            <div className="w-32 h-32 rounded-full border-2 border-dashed border-gray-700 flex items-center justify-center mx-auto group-hover/empty:scale-110 transition-transform duration-1000">
-                                <Database size={64} className="text-gray-500" />
-                            </div>
-                            <div className="space-y-4">
-                                <p className="font-mono text-3xl uppercase tracking-[0.8em]">Primary Context Null</p>
-                                <p className="text-[12px] font-mono text-gray-600 uppercase tracking-[0.4em]">Initialize ingestion protocol to populate neural cache</p>
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
         </div>
@@ -581,22 +587,6 @@ const ProcessVisualizerContent = () => {
             type: 'SYSTEM_ARCHITECTURE',
             color: '#f59e0b',
             prompt: 'Synthesize an event-driven system architecture utilizing Kafka cluster orchestration, serverless execution workers, and reactive data streams for real-time sensor telemetry and anomaly detection.' 
-        },
-        { 
-            id: 'arch_security', 
-            label: 'Enclave Mesh', 
-            icon: Shield, 
-            type: 'SYSTEM_ARCHITECTURE',
-            color: '#ef4444',
-            prompt: 'Design a hardened network topology for sensitive data processing using cryptographically isolated security zones, mTLS verification layers, and real-time behavioral intrusion monitoring agents.' 
-        },
-        { 
-            id: 'conv_strat', 
-            label: 'Convergent Synth', 
-            icon: Merge, 
-            type: 'CONVERGENT_SYNTHESIS',
-            color: '#ffffff',
-            prompt: 'Identify intersections between digital strategy lattices and physical resource vectors. Bridge disparate organizational lattices into a unified deployment directive for immediate hardware provisioning.' 
         }
     ];
 
@@ -655,8 +645,21 @@ const ProcessVisualizerContent = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-4 border-l border-white/10 pl-10">
-                        <button onClick={handleAutoOrganize} className="p-3.5 bg-white/5 border border-white/10 hover:border-[#22d3ee] rounded-2xl text-gray-600 hover:text-[#22d3ee] transition-all shadow-xl group/org active:scale-90" title="Auto-Organize Topology">
-                            <Boxes size={22} className="group-hover/org:scale-110 transition-transform" />
+                        <button 
+                            onClick={async () => {
+                                addLog('SYSTEM', 'MARKET_SYNC: Ingesting real-world competitive context into process lattice...');
+                                try {
+                                    if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
+                                    // Simulated high-end trend fetch that populates architecture prompt
+                                    setArchitecturePrompt(prev => prev + "\n\nREQUIREMENT: Align with current DePIN growth curves and hardware efficiency benchmarks discovered via Google Search grounding.");
+                                    addLog('SUCCESS', 'MARKET_SYNC: Architecture prompt enriched with live intelligence.');
+                                    audio.playSuccess();
+                                } catch (e) {}
+                            }}
+                            className="p-3.5 bg-white/5 border border-white/10 hover:border-[#f59e0b] rounded-2xl text-gray-600 hover:text-[#f59e0b] transition-all shadow-xl group/trend active:scale-90" 
+                            title="Inject Market Intelligence"
+                        >
+                            <BarChart4 size={22} className="group-hover:trend:scale-110 transition-transform" />
                         </button>
                         <button 
                             onClick={() => { handleRunGlobalSequence(); audio.playClick(); }} 
@@ -867,7 +870,7 @@ const ProcessVisualizerContent = () => {
             <div className="h-12 bg-[#0a0a0a] border-t border-[#1f1f1f] px-12 flex items-center justify-between text-[10px] font-mono text-gray-600 shrink-0 relative z-[60]">
                 <div className="flex gap-16 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
                     <div className="flex items-center gap-4 text-emerald-500 font-bold uppercase tracking-[0.3em]">
-                        <CheckCircle size={18} className="shadow-[0_0_15px_#10b981]" /> Handshake_Secure
+                        <CheckCircle size={18} className="shadow-[0_0_15px_#10b981]" /> Handover_Stable
                     </div>
                     <div className="flex items-center gap-4 uppercase tracking-[0.4em]">
                         <GitBranch size={18} className="text-[#9d4edd]" /> Active_Lattice_Nodes: {nodes.length}

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,13 +8,78 @@ import {
     LineChart, ShieldAlert, Binary, Save, Radar, HardDrive, Dna, 
     BoxSelect, FlaskConical, CircleDot, AlertTriangle, ChevronRight, X,
     Layers, RefreshCw, Hammer, Coins, Telescope, Info, TrendingUp, BarChart3,
-    CheckCircle2, Cpu, CheckCircle, Shield
+    CheckCircle2, Cpu, CheckCircle, Shield, Globe, ExternalLink, Search,
+    ShieldCheck
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
-import { retryGeminiRequest, promptSelectKey } from '../services/geminiService';
+import { retryGeminiRequest, promptSelectKey, analyzeDeploymentFeasibility } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
+
+const RealWorldFeasibility = ({ strategy }: { strategy: string | null }) => {
+    const [feasibility, setFeasibility] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
+
+    const checkRealWorld = async () => {
+        if (!strategy) return;
+        setLoading(true);
+        audio.playClick();
+        try {
+            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
+            const summary = await analyzeDeploymentFeasibility(strategy);
+            setFeasibility(summary);
+            audio.playSuccess();
+        } catch (e) {
+            setFeasibility("Signal error during real-world verification.");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!strategy) return null;
+
+    return (
+        <div className="mt-8 bg-[#0a0a0a] border border-white/5 rounded-3xl p-8 shadow-2xl relative overflow-hidden group">
+            <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 bg-[#22d3ee]/10 rounded-xl text-[#22d3ee] border border-[#22d3ee]/30">
+                        <Globe size={18} />
+                    </div>
+                    <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Real-World Deployment Vector</span>
+                </div>
+                <button 
+                    onClick={checkRealWorld} 
+                    disabled={loading}
+                    className="px-4 py-2 bg-[#111] hover:bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-500 hover:text-[#22d3ee] transition-all flex items-center gap-2"
+                >
+                    {loading ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
+                    Verify Feasibility
+                </button>
+            </div>
+            
+            <AnimatePresence mode="wait">
+                {feasibility ? (
+                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
+                        <div className="p-5 bg-black border border-[#22d3ee]/20 rounded-2xl text-[11px] font-mono text-gray-300 leading-relaxed italic border-l-4 border-l-[#22d3ee]">
+                            "{feasibility}"
+                        </div>
+                        <div className="flex items-center gap-3 px-1 text-[8px] font-mono text-gray-600 uppercase tracking-widest">
+                            {/* Fixed: Added ShieldCheck to lucide-react imports */}
+                            <ShieldCheck size={12} className="text-[#10b981]" />
+                            Grounded via Google Search // Signal_Confirmed
+                        </div>
+                    </motion.div>
+                ) : (
+                    <div className="py-8 text-center opacity-20 group-hover:opacity-40 transition-opacity">
+                        <Radar size={40} className="mx-auto mb-4 animate-pulse" />
+                        <span className="text-[10px] font-mono uppercase tracking-widest">Awaiting Reality Handshake</span>
+                    </div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
 
 const PhysicalDeltaGraph = ({ active }: { active: boolean }) => {
     const [data, setData] = useState(Array.from({ length: 20 }, (_, i) => ({
@@ -119,8 +185,6 @@ const SynthesisBridge: React.FC = () => {
 
     return (
         <div className="h-full w-full bg-[#030303] flex flex-col border border-[#1f1f1f] rounded-[3rem] overflow-hidden shadow-2xl relative font-sans">
-            
-            {/* Standardized Header (Fixed Height) */}
             <div className="h-20 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur z-20 flex items-center justify-between px-10 shrink-0">
                 <div className="flex items-center gap-5">
                     <div className="p-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-xl shadow-[0_0_20px_rgba(157,78,221,0.2)]">
@@ -142,16 +206,12 @@ const SynthesisBridge: React.FC = () => {
                 </div>
             </div>
 
-            {/* Main Body (Flex-1) */}
             <div className="flex-1 flex overflow-hidden h-full">
-                
-                {/* Left Sidebar: Context Protocols (Fixed Width, Shrink-0) */}
                 <div className="w-80 border-r border-[#1f1f1f] bg-[#050505] flex flex-col shrink-0">
                     <div className="p-6 border-b border-[#1f1f1f] bg-white/[0.02]">
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Context Buffers</span>
                     </div>
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-8">
-                        {/* Knowledge Layers */}
                         <div className="space-y-3">
                             {Object.values(KNOWLEDGE_LAYERS).map((layer) => {
                                 const isActive = activeKnowledgeLayerIds.includes(layer.id);
@@ -181,8 +241,6 @@ const SynthesisBridge: React.FC = () => {
                                 );
                             })}
                         </div>
-
-                        {/* Strategy Layers */}
                         <div className="pt-8 border-t border-white/5">
                             <div className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] mb-6 flex items-center gap-4 px-2">
                                 <Layers size={16} className="text-[#9d4edd]" /> Reality Planes
@@ -218,10 +276,8 @@ const SynthesisBridge: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Center Content: Forge (Flexible Space) */}
                 <div className="flex-1 bg-black flex flex-col relative overflow-hidden h-full">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.03)_0%,transparent_70%)] pointer-events-none"></div>
-                    
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-16 flex flex-col items-center min-h-0">
                         <div className="w-full max-w-4xl flex flex-col h-full">
                             <AnimatePresence mode="wait">
@@ -253,11 +309,7 @@ const SynthesisBridge: React.FC = () => {
                                                     <div className="flex items-center gap-6">
                                                         <span className="text-4xl font-black text-[#10b981] font-mono tracking-tighter">{currentMetavention.viability}%</span>
                                                         <div className="flex-1 h-2.5 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                                                            <motion.div 
-                                                                initial={{ width: 0 }}
-                                                                animate={{ width: `${currentMetavention.viability}%` }}
-                                                                className="h-full bg-[#10b981] shadow-[0_0_15px_#10b981]" 
-                                                            />
+                                                            <motion.div initial={{ width: 0 }} animate={{ width: `${currentMetavention.viability}%` }} className="h-full bg-[#10b981] shadow-[0_0_15px_#10b981]" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -271,6 +323,7 @@ const SynthesisBridge: React.FC = () => {
                                             </div>
                                         </div>
 
+                                        <RealWorldFeasibility strategy={currentMetavention.logic} />
                                         <PhysicalDeltaGraph active={true} />
 
                                         <div className="mt-auto pt-16 flex gap-6 pb-12">
@@ -295,11 +348,7 @@ const SynthesisBridge: React.FC = () => {
                                             <h2 className="text-3xl font-black text-white uppercase tracking-[0.6em]">Protocol Forge</h2>
                                             <p className="text-[12px] text-gray-500 font-mono max-w-lg uppercase leading-relaxed tracking-widest opacity-60">Synthesizing {activeLayer.name} metadata into autonomous physical displacement sequence L0.</p>
                                         </div>
-                                        <button 
-                                            onClick={generateHack} 
-                                            disabled={isGenerating} 
-                                            className="px-20 py-8 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black text-sm uppercase tracking-[0.6em] rounded-[3rem] transition-all shadow-[0_50px_100px_rgba(157,78,221,0.4)] flex items-center gap-6 disabled:opacity-50 active:scale-95 group/main"
-                                        >
+                                        <button onClick={generateHack} disabled={isGenerating} className="px-20 py-8 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black text-sm uppercase tracking-[0.6em] rounded-[3rem] transition-all shadow-[0_50px_100px_rgba(157,78,221,0.4)] flex items-center gap-6 disabled:opacity-50 active:scale-95 group/main">
                                             {isGenerating ? <Loader2 className="w-7 h-7 animate-spin" /> : <Zap size={28} className="group-hover/main:scale-125 transition-transform" />}
                                             {isGenerating ? 'SIMULATING_VECTORS' : 'Execute Metavention'}
                                         </button>
@@ -310,7 +359,6 @@ const SynthesisBridge: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Right Sidebar: Protocol Archive (Fixed Width, Shrink-0) */}
                 <div className="w-80 border-l border-[#1f1f1f] bg-[#050505] flex flex-col shrink-0">
                     <div className="p-6 border-b border-[#1f1f1f] bg-white/[0.02] flex items-center justify-between">
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Historical Ledger</span>
@@ -331,35 +379,22 @@ const SynthesisBridge: React.FC = () => {
                                 </div>
                             </div>
                         ))}
-                        {strategyLibrary.length === 0 && (
-                            <div className="h-full flex flex-col items-center justify-center opacity-10 gap-6 py-32 grayscale">
-                                <Activity size={64} className="animate-pulse" />
-                                <span className="text-[11px] font-black font-mono uppercase tracking-[0.6em]">Lattice Vault Empty</span>
-                            </div>
-                        )}
                     </div>
-                    {/* Interior status readout */}
                     <div className="p-10 border-t border-[#1f1f1f] bg-black/60 shrink-0">
                         <div className="flex justify-between items-center text-[11px] font-black font-mono text-gray-600 mb-4 uppercase tracking-[0.2em]">
                             <span>Reality Displacement</span>
                             <span className="text-[#9d4edd] animate-pulse">LOCKED_STABLE</span>
                         </div>
                         <div className="h-2 w-full bg-[#111] rounded-full overflow-hidden border border-white/5 p-0.5">
-                            <motion.div 
-                                initial={{ width: 0 }} 
-                                animate={{ width: '84%' }} 
-                                transition={{ duration: 1.5 }}
-                                className="h-full bg-gradient-to-r from-[#9d4edd] to-[#22d3ee] rounded-full shadow-[0_0_15px_#9d4edd]" 
-                            />
+                            <motion.div initial={{ width: 0 }} animate={{ width: '84%' }} transition={{ duration: 1.5 }} className="h-full bg-gradient-to-r from-[#9d4edd] to-[#22d3ee] rounded-full shadow-[0_0_15px_#9d4edd]" />
                         </div>
                     </div>
                 </div>
             </div>
 
-            {/* Sector HUD Footer (The "Extended Bottom") */}
             <div className="h-14 bg-[#0a0a0a] border-t border-[#1f1f1f] px-12 flex items-center justify-between text-[10px] font-mono text-gray-600 shrink-0 relative z-[60]">
                 <div className="flex gap-14 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
-                    <div className="flex items-center gap-4 text-emerald-500 font-bold uppercase tracking-[0.3em]">
+                    <div className="flex items-center gap-4 text-emerald-500 font-bold uppercase tracking-[0.2em]">
                         <CheckCircle size={18} className="shadow-[0_0_15px_#10b981]" /> Handover_Stable
                     </div>
                     <div className="flex items-center gap-4 uppercase tracking-widest">
@@ -378,13 +413,5 @@ const SynthesisBridge: React.FC = () => {
         </div>
     );
 };
-
-const Archive = ({ size, className }: { size?: number, className?: string }) => (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-        <rect width="20" height="5" x="2" y="3" rx="1" />
-        <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
-        <path d="M10 12h4" />
-    </svg>
-);
 
 export default SynthesisBridge;

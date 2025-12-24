@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
 import { 
@@ -152,7 +153,7 @@ const BibliomorphicEngine: React.FC = () => {
           <div className="h-14 flex items-center px-4 border-b border-[#1f1f1f]">
               <div className="flex items-center gap-2">
                   <div className="w-3 h-3 bg-white rounded-full shadow-[0_0_10px_white] animate-pulse"></div>
-                  <span className="font-mono font-bold text-white tracking-wider text-xs uppercase">Bibliomorphic</span>
+                  <span className="font-mono font-bold text-white tracking-wider text-xs uppercase">Vision Sector</span>
               </div>
           </div>
           <div className="flex gap-1 p-2 border-b border-[#1f1f1f] bg-[#050505] overflow-x-auto">
@@ -161,7 +162,6 @@ const BibliomorphicEngine: React.FC = () => {
                   { id: 'dna', icon: Dna, label: 'DNA' },
                   { id: 'agora', icon: Users, label: 'AGORA' },
                   { id: 'bicameral', icon: Split, label: 'SWARM' },
-                  { id: 'library', icon: Archive, label: 'VAULT' },
               ].map(tab => (
                   <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-1 flex flex-col items-center justify-center py-3 px-2 rounded-lg transition-all min-w-[60px] ${activeTab === tab.id ? 'bg-[#1f1f1f] text-white border border-white/10' : 'text-gray-600 hover:bg-[#111] hover:text-gray-400'}`}>
                       <tab.icon className="w-4 h-4 mb-1" />

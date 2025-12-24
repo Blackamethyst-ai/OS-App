@@ -9,7 +9,8 @@ import {
     generateStructuredWorkflow,
     liveSession,
     HIVE_AGENTS,
-    generateAvatar
+    generateAvatar,
+    fetchMarketIntelligence
 } from '../services/geminiService';
 import { AspectRatio, ImageSize, AppMode } from '../types';
 import { 
@@ -20,7 +21,8 @@ import {
     ChevronDown, Bot as BotIcon, CheckCircle, Navigation, Globe, Server, Radio,
     Compass, GitBranch, LayoutGrid, Monitor, ShieldAlert, Cpu as CpuIcon,
     Box, Diamond, Hexagon, Component, Share2, Binary, Fingerprint, Lock,
-    ChevronUp, Volume2, Timer, History, Languages, Hash, Activity as PulseIcon
+    ChevronUp, Volume2, Timer, History, Languages, Hash, Activity as PulseIcon,
+    TrendingUp, TrendingDown, DollarSign
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, ScatterChart, Scatter, ZAxis, Cell } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,6 +31,79 @@ import { cn } from '../utils/cn';
 import MetaventionsLogo from './MetaventionsLogo';
 
 // --- SHARED VOICE SUB-COMPONENTS ---
+
+const RealWorldIntelFeed = () => {
+    const { marketData, addLog } = useAppStore();
+    const [isSyncing, setIsSyncing] = useState(false);
+
+    const syncIntel = async () => {
+        setIsSyncing(true);
+        audio.playClick();
+        addLog('SYSTEM', 'INTEL_UPLINK: Fetching real-world market signals...');
+        try {
+            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
+            const intel = await fetchMarketIntelligence();
+            useAppStore.setState(s => ({ marketData: { ...s.marketData, opportunities: intel, lastSync: Date.now() } }));
+            addLog('SUCCESS', `INTEL_UPLINK: Captured ${intel.length} strategic opportunities.`);
+            audio.playSuccess();
+        } catch (e) {
+            addLog('ERROR', 'INTEL_FAIL: Outside signal interrupt.');
+        } finally {
+            setIsSyncing(false);
+        }
+    };
+
+    useEffect(() => {
+        if (marketData.opportunities.length === 0) syncIntel();
+    }, []);
+
+    return (
+        <div className="bg-[#050505] border border-white/5 rounded-2xl p-5 flex flex-col gap-4 h-[320px] relative overflow-hidden group shadow-inner">
+            <div className="flex items-center justify-between relative z-10 px-1 shrink-0">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-[#f59e0b]/5 rounded-xl border border-[#f59e0b]/10 text-[#f59e0b]">
+                        <Globe size={16} />
+                    </div>
+                    <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.3em]">Real-World Intel</span>
+                </div>
+                <button onClick={syncIntel} disabled={isSyncing} className="p-1.5 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-all">
+                    {isSyncing ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+                </button>
+            </div>
+            
+            <div className="space-y-3 overflow-y-auto custom-scrollbar pr-1 flex-1 relative z-10">
+                {marketData.opportunities.map((op, i) => (
+                    <div key={i} className="p-3 bg-[#0a0a0a] border border-white/5 rounded-xl hover:border-[#f59e0b]/30 transition-all group/op">
+                        <div className="flex justify-between items-start mb-1.5">
+                            <span className="text-[10px] font-black text-gray-300 uppercase truncate pr-4">{op.title}</span>
+                            <span className="text-[9px] font-black font-mono text-[#10b981]">{op.yield}</span>
+                        </div>
+                        <p className="text-[8px] font-mono text-gray-600 uppercase leading-relaxed line-clamp-2">"{op.logic}"</p>
+                        <div className="mt-2 flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                                <Shield size={8} className={op.risk === 'HIGH' ? 'text-red-500' : 'text-gray-600'} />
+                                <span className="text-[7px] font-mono text-gray-700 uppercase">Risk: {op.risk}</span>
+                            </div>
+                            <span className="text-[7px] font-black text-[#9d4edd] uppercase tracking-tighter">Verified_L0</span>
+                        </div>
+                    </div>
+                ))}
+                {marketData.opportunities.length === 0 && !isSyncing && (
+                    <div className="h-full flex flex-col items-center justify-center opacity-10 text-center space-y-4 py-10">
+                        <Radio size={40} className="animate-pulse" />
+                        <span className="text-[10px] font-mono uppercase">Signal Void</span>
+                    </div>
+                )}
+            </div>
+            <div className="h-10 bg-black/40 border-t border-white/5 flex items-center justify-between px-3 text-[7px] font-mono text-gray-600 uppercase tracking-widest shrink-0">
+                <span>Last_Sync: {marketData.lastSync ? new Date(marketData.lastSync).toLocaleTimeString() : 'N/A'}</span>
+                <span className="text-[#f59e0b]">Active_Feed</span>
+            </div>
+        </div>
+    );
+};
+
+// --- PRE-EXISTING COMPONENTS (CLEANED) ---
 
 const NeuralReasoningCanvas: React.FC<{ isThinking: boolean; userActive: boolean; agentActive: boolean }> = ({ isThinking, userActive, agentActive }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -233,8 +308,6 @@ const CognitiveLattice: React.FC<{
     );
 };
 
-// --- CORE UPGRADE: PRISMATIC FRACTAL CORE (ITERATION 8.0) ---
-
 interface ShardSplinter {
     id: string;
     x: number; y: number;
@@ -411,8 +484,6 @@ const PrismaticLatticeCore = ({ cpu, integrity }: { cpu: number, integrity: numb
     );
 };
 
-// --- DATA VISUALIZATION MODULES ---
-
 const CompactMetric = ({ title, value, detail, icon: Icon, color, data, trend }: any) => (
     <div className="bg-[#050505] border border-white/5 rounded-xl p-3 relative overflow-hidden group shadow-xl h-24 flex flex-col justify-between transition-all hover:border-white/10">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent opacity-15" style={{ '--accent': color } as any}></div>
@@ -438,77 +509,6 @@ const CompactMetric = ({ title, value, detail, icon: Icon, color, data, trend }:
     </div>
 );
 
-const DrivePARAIntegrity = ({ health, syncProgress }: { health: number, syncProgress: number }) => (
-    <div className="bg-[#050505] border border-white/5 rounded-2xl p-5 flex flex-col gap-5 relative overflow-hidden h-[220px] shadow-inner">
-        <div className="absolute top-0 right-0 p-5 opacity-[0.01] -rotate-12"><HardDrive size={100} /></div>
-        <div className="flex items-center justify-between relative z-10 px-1">
-            <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-[#22d3ee]/5 text-[#22d3ee] border border-[#22d3ee]/10">
-                    <Boxes size={16} />
-                </div>
-                <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.3em]">Drive Matrix</span>
-            </div>
-            <span className="text-[9px] font-mono text-gray-700 uppercase">{health}% Health</span>
-        </div>
-        
-        <div className="space-y-3 relative z-10 flex-1 flex flex-col justify-center px-1">
-            {[
-                { label: 'Project', val: 94, color: '#9d4edd', usage: '12GB' },
-                { label: 'Area', val: 82, color: '#22d3ee', usage: '42GB' },
-                { label: 'Resource', val: 71, color: '#f59e0b', usage: '118GB' },
-                { label: 'Archive', val: 99, color: '#10b981', usage: '2.4TB' }
-            ].map((cat) => (
-                <div key={cat.label} className="space-y-1.5">
-                    <div className="flex justify-between items-center text-[8px] font-mono text-gray-600 uppercase tracking-widest">
-                        <span>{cat.label}</span>
-                        <span className="text-gray-500 font-bold">{cat.usage}</span>
-                    </div>
-                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${cat.val}%` }} className="h-full" style={{ backgroundColor: cat.color }} />
-                    </div>
-                </div>
-            ))}
-        </div>
-    </div>
-);
-
-const SwarmHiveControl = () => {
-    const { agents } = useAppStore();
-    const activeAccent = useAppStore(s => s.dashboard.activeThemeColor) || '#9d4edd';
-
-    return (
-        <div className="bg-[#050505] border border-white/5 rounded-2xl p-5 flex flex-col gap-5 h-[280px] relative overflow-hidden group shadow-inner">
-            <div className="flex items-center justify-between relative z-10 px-1 shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#9d4edd]/5 rounded-xl border border-[#9d4edd]/10 text-[#9d4edd]">
-                        <Users size={16} />
-                    </div>
-                    <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.3em]">Swarm Hive</span>
-                </div>
-            </div>
-            
-            <div className="space-y-2 overflow-y-auto custom-scrollbar pr-1 flex-1 relative z-10">
-                {agents.activeAgents.map(agent => (
-                    <div key={agent.id} className="p-3 bg-[#0a0a0a] border border-white/5 rounded-xl hover:border-[#9d4edd]/30 transition-all flex items-center justify-between group/agent">
-                        <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] shrink-0" />
-                            <span className="text-[10px] font-black text-gray-500 uppercase truncate group-hover/agent:text-white">{agent.name}</span>
-                        </div>
-                        <div className="flex flex-col items-end shrink-0">
-                            <span className="text-[8px] font-mono text-gray-700 uppercase">{agent.energyLevel}% ENG</span>
-                        </div>
-                    </div>
-                ))}
-            </div>
-            <button className="w-full py-2 bg-[#111] border border-white/5 hover:border-[#9d4edd]/40 rounded-xl text-[9px] font-black font-mono uppercase tracking-[0.3em] transition-all text-gray-700 shrink-0">
-                Register_Node
-            </button>
-        </div>
-    );
-};
-
-// --- MAIN DASHBOARD COMPONENT ---
-
 const Dashboard: React.FC = () => {
   const { dashboard, setDashboardState, user, toggleProfile, system, addLog, openHoloProjector, setMode, setProcessState, voice, setVoiceState } = useAppStore();
   const accent = dashboard.activeThemeColor || '#9d4edd';
@@ -519,7 +519,6 @@ const Dashboard: React.FC = () => {
   const [memHistory, setMemHistory] = useState<{value: number}[]>([]);
   const [loadHistory, setLoadHistory] = useState<{value: number}[]>([]);
 
-  // Integrated Voice State
   const [userFreqs, setUserFreqs] = useState<Uint8Array | null>(null);
   const [agentFreqs, setAgentFreqs] = useState<Uint8Array | null>(null);
   const [showDialogueStream, setShowDialogueStream] = useState(true);
@@ -566,27 +565,6 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
       if (voiceScrollRef.current) voiceScrollRef.current.scrollTop = voiceScrollRef.current.scrollHeight;
   }, [voice.transcripts, voice.partialTranscript]);
-
-  useEffect(() => {
-      if (!agentAvatar && !isGeneratingAgentAvatar) {
-          const triggerAgentGen = async () => {
-              setIsGeneratingAgentAvatar(true);
-              try {
-                  const hasKey = await window.aistudio?.hasSelectedApiKey();
-                  if (hasKey) {
-                      const agent = HIVE_AGENTS[voice.voiceName] || HIVE_AGENTS['Puck'];
-                      const url = await generateAvatar(agent.id, agent.name);
-                      setVoiceState(prev => ({ 
-                          agentAvatars: { ...prev.agentAvatars, [voice.voiceName]: url } 
-                      }));
-                  }
-              } catch (e) {} finally {
-                  setIsGeneratingAgentAvatar(false);
-              }
-          };
-          triggerAgentGen();
-      }
-  }, [voice.voiceName, agentAvatar, setVoiceState, isGeneratingAgentAvatar]);
 
   const toggleVoiceSession = async () => {
     if (voice.isActive || voice.isConnecting) {
@@ -662,8 +640,6 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="w-full text-gray-200 font-sans relative h-full transition-colors duration-[2000ms] overflow-y-auto custom-scrollbar bg-[#020202]">
-      
-      {/* Protocol Ticker */}
       <div className="h-6 bg-black border-b border-white/5 flex items-center overflow-hidden shrink-0 z-50 relative">
           <div className="flex gap-12 animate-marquee whitespace-nowrap px-4 items-center">
               {[
@@ -682,10 +658,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="relative z-10 max-w-[1920px] mx-auto p-6 space-y-6 pb-32">
-          {/* Grid Layout */}
           <div className="grid grid-cols-12 gap-6 pt-4">
-              
-              {/* Left Column: Telemetry & Swarm */}
               <div className="col-span-3 space-y-6 flex flex-col h-[1000px]">
                   <div className="grid grid-cols-2 gap-3 shrink-0">
                       <CompactMetric title="CPU" value={`${telemetry.cpu.toFixed(1)}%`} detail="12c_Sync" icon={CpuIcon} color={accent} data={cpuHistory} />
@@ -695,7 +668,7 @@ const Dashboard: React.FC = () => {
                   </div>
                   
                   <div className="shrink-0">
-                    <SwarmHiveControl />
+                    <RealWorldIntelFeed />
                   </div>
 
                   <div className="flex-1 flex flex-col min-h-0">
@@ -703,11 +676,8 @@ const Dashboard: React.FC = () => {
                   </div>
               </div>
 
-              {/* Center Stage: Interactive Viewport */}
               <div className="col-span-6 flex flex-col gap-6 h-[1000px]">
                   <div className="flex-1 bg-[#020202] border border-white/5 rounded-3xl relative overflow-hidden group shadow-2xl flex flex-col transition-all">
-                      
-                      {/* Main Hub Projection */}
                       <div className="flex-1 flex items-center justify-center p-8 relative overflow-hidden group/viewport">
                           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_40%,rgba(0,0,0,0.8)_100%)] z-10 pointer-events-none" />
                           <div className="absolute inset-0 pointer-events-none opacity-5" style={{ backgroundImage: `radial-gradient(${accent} 1px, transparent 1px)`, backgroundSize: '24px 24px' }} />
@@ -729,7 +699,6 @@ const Dashboard: React.FC = () => {
                           )}
                       </div>
 
-                      {/* Viewport Controls */}
                       <div className="h-16 border-t border-white/5 bg-[#050505] flex items-center justify-between px-8 shrink-0">
                          <div className="flex gap-3">
                              {[
@@ -758,7 +727,6 @@ const Dashboard: React.FC = () => {
                       </div>
                   </div>
 
-                  {/* Handover Ledger Log */}
                   <div className="h-44 bg-[#050505] border border-white/5 rounded-3xl p-5 flex flex-col gap-4 shadow-xl relative overflow-hidden group/log">
                       <div className="flex items-center justify-between px-1 border-b border-white/5 pb-3 shrink-0">
                           <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.3em]">Handover Ledger</span>
@@ -780,7 +748,6 @@ const Dashboard: React.FC = () => {
                   </div>
               </div>
 
-              {/* Right Column: Style & PARA */}
               <div className="col-span-3 space-y-6 flex flex-col h-[1000px]">
                   <div className="bg-[#050505] border border-white/5 rounded-3xl p-4 flex flex-col gap-4 shadow-xl group/ref relative overflow-hidden h-[180px]">
                       <div className="flex items-center gap-2 relative z-10">
@@ -809,7 +776,34 @@ const Dashboard: React.FC = () => {
                       </div>
                   </div>
 
-                  <DrivePARAIntegrity health={Math.round(telemetry.load)} syncProgress={Math.round(telemetry.load - 5)} />
+                  <div className="bg-[#050505] border border-white/5 rounded-2xl p-5 flex flex-col gap-5 relative overflow-hidden h-[220px] shadow-inner">
+                      <div className="flex items-center justify-between relative z-10 px-1">
+                          <div className="flex items-center gap-3">
+                              <div className="p-2 rounded-xl bg-[#22d3ee]/5 text-[#22d3ee] border border-[#22d3ee]/10">
+                                  <DollarSign size={16} />
+                              </div>
+                              <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.3em]">Yield Matrix</span>
+                          </div>
+                      </div>
+                      <div className="space-y-3 relative z-10 flex-1 flex flex-col justify-center px-1">
+                          {[
+                              { label: 'Compute Arb', val: 94, color: '#9d4edd', usage: '$1.2k/hr' },
+                              { label: 'Network Stake', val: 82, color: '#22d3ee', usage: '$420/day' },
+                              { label: 'Asset Liquidity', val: 71, color: '#f59e0b', usage: '$8.2k/wk' },
+                              { label: 'Strategic Reserves', val: 99, color: '#10b981', usage: '$120k' }
+                          ].map((cat) => (
+                              <div key={cat.label} className="space-y-1.5">
+                                  <div className="flex justify-between items-center text-[8px] font-mono text-gray-600 uppercase tracking-widest">
+                                      <span>{cat.label}</span>
+                                      <span className="text-gray-500 font-bold">{cat.usage}</span>
+                                  </div>
+                                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                      <motion.div initial={{ width: 0 }} animate={{ width: `${cat.val}%` }} className="h-full" style={{ backgroundColor: cat.color }} />
+                                  </div>
+                              </div>
+                          ))}
+                      </div>
+                  </div>
                   
                   <div className="flex-1 bg-[#050505] border border-white/5 rounded-3xl p-4 shadow-xl relative overflow-hidden flex flex-col">
                       <div className="flex items-center gap-3 mb-4 shrink-0 px-1">
@@ -831,16 +825,10 @@ const Dashboard: React.FC = () => {
               </div>
           </div>
 
-          {/* --- INNOVATED VOICE CORE TERMINAL --- */}
           <div className="pt-16 border-t border-white/5">
-              <div 
-                className="w-full bg-[#010101] flex flex-col relative overflow-hidden font-sans border border-white/10 rounded-[5rem] shadow-[0_0_200px_rgba(0,0,0,1)] group/voicestudio h-[2000px]"
-              >
+              <div className="w-full bg-[#010101] flex flex-col relative overflow-hidden font-sans border border-white/10 rounded-[5rem] shadow-[0_0_200px_rgba(0,0,0,1)] group/voicestudio h-[2000px]">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(241,194,27,0.02)_0%,transparent_90%)] pointer-events-none" />
-                  
                   <NeuralReasoningCanvas isThinking={voice.isActive && !!voice.partialTranscript} userActive={!!userFreqs && userFreqs.some(v => v > 50)} agentActive={!!agentFreqs && agentFreqs.some(v => v > 50)} />
-
-                  {/* High Density Header */}
                   <div className="h-20 flex justify-between items-center px-16 bg-[#080808]/95 backdrop-blur-3xl border-b border-white/5 z-30 shrink-0 relative">
                       <div className="flex items-center gap-8">
                           <div className="p-4 bg-[#22d3ee]/5 border border-[#22d3ee]/20 rounded-[1.2rem]">
@@ -853,24 +841,16 @@ const Dashboard: React.FC = () => {
                               </div>
                           </div>
                       </div>
-                      
                       <div className="flex items-center gap-6">
                            <div className="flex items-center gap-5 bg-black/70 border border-white/5 px-6 py-3 rounded-2xl shadow-inner">
                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Active Node</span>
                                <div className="h-4 w-px bg-white/10" />
-                               <select 
-                                value={voice.voiceName} 
-                                onChange={(e) => setVoiceState({ voiceName: e.target.value })} 
-                                disabled={voice.isActive} 
-                                className="bg-transparent text-xs font-black font-mono text-[#f1c21b] outline-none uppercase cursor-pointer transition-colors hover:text-white"
-                               >
+                               <select value={voice.voiceName} onChange={(e) => setVoiceState({ voiceName: e.target.value })} disabled={voice.isActive} className="bg-transparent text-xs font-black font-mono text-[#f1c21b] outline-none uppercase cursor-pointer transition-colors hover:text-white">
                                     {Object.keys(HIVE_AGENTS).map(name => (<option key={name} value={name} className="bg-[#0a0a0a]">{name}</option>))}
                                 </select>
                            </div>
                       </div>
                   </div>
-
-                  {/* EXPANDED CORE NODE SECTOR */}
                   <div className="h-[750px] flex items-center justify-center gap-40 p-16 relative overflow-hidden shrink-0">
                      <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col items-center gap-12">
                         <div className="flex items-center gap-4 px-8 py-2.5 rounded-full bg-white/5 border border-white/10 shadow-lg opacity-60">
@@ -879,27 +859,14 @@ const Dashboard: React.FC = () => {
                         </div>
                         <CognitiveLattice image={user.avatar} freqs={userFreqs} color="#22d3ee" isAgent={false} />
                      </motion.div>
-
                      <div className="flex flex-col items-center gap-12 relative pt-8">
-                        <button 
-                            onClick={toggleVoiceSession} 
-                            disabled={voice.isConnecting}
-                            className={`w-36 h-36 rounded-full flex items-center justify-center transition-all duration-700 relative z-10 overflow-hidden border-4
-                                ${voice.isActive 
-                                    ? 'bg-red-950/80 border-red-500/40 shadow-[0_0_120px_rgba(239,68,68,0.3)] rotate-90 scale-105' 
-                                    : 'bg-[#0a0a0a] border-[#f1c21b]/20 shadow-[0_0_80px_rgba(241,194,27,0.15)] hover:border-[#f1c21b]/50 hover:scale-105 active:scale-95'
-                                }
-                            `}
-                        >
+                        <button onClick={toggleVoiceSession} disabled={voice.isConnecting} className={`w-36 h-36 rounded-full flex items-center justify-center transition-all duration-700 relative z-10 overflow-hidden border-4 ${voice.isActive ? 'bg-red-950/80 border-red-500/40 shadow-[0_0_120px_rgba(239,68,68,0.3)] rotate-90 scale-105' : 'bg-[#0a0a0a] border-[#f1c21b]/20 shadow-[0_0_80px_rgba(241,194,27,0.15)] hover:border-[#f1c21b]/50 hover:scale-105 active:scale-95'}`}>
                             <div className="relative z-20">
                                 {voice.isConnecting ? <Loader2 className="animate-spin text-[#f1c21b] w-12 h-12" /> : voice.isActive ? <Power className="text-red-500 w-12 h-12" /> : <Mic className="text-[#f1c21b] w-12 h-12" />}
                             </div>
                         </button>
-                        <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.8em]">
-                            {voice.isActive ? 'SEVER_UPLINK' : 'ENGAGE_LATTICE'}
-                        </span>
+                        <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.8em]">{voice.isActive ? 'SEVER_UPLINK' : 'ENGAGE_LATTICE'}</span>
                      </div>
-
                      <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col items-center gap-12">
                         <div className="flex items-center gap-4 px-8 py-2.5 rounded-full bg-white/5 border border-white/10 shadow-lg opacity-60">
                             <BotIcon size={18} className="text-[#f1c21b]" />
@@ -908,8 +875,6 @@ const Dashboard: React.FC = () => {
                         <CognitiveLattice image={agentAvatar} freqs={agentFreqs} color="#f1c21b" isAgent={true} isThinking={voice.isActive && !!voice.partialTranscript} />
                      </motion.div>
                   </div>
-
-                  {/* SYMMETRICAL NEURAL PACKET STREAM */}
                   <div className="flex-1 border-t border-white/10 bg-[#050505]/98 backdrop-blur-3xl p-16 flex flex-col min-h-0 relative">
                       <div className="flex items-center justify-between mb-12 border-b border-white/5 pb-10 shrink-0">
                         <div className="flex items-center gap-8">
@@ -922,17 +887,13 @@ const Dashboard: React.FC = () => {
                             <ChevronDown size={22} className={showDialogueStream ? '' : 'rotate-180'} />
                         </button>
                       </div>
-                      
                       <div className="flex-1 overflow-y-auto custom-scrollbar font-mono text-base pr-10" ref={voiceScrollRef}>
                           <AnimatePresence initial={false}>
                               {showDialogueStream && voice.transcripts.map((t, i) => {
                                   const isUser = (t.role || '').toLowerCase() === 'user';
                                   const currentAvatar = isUser ? user.avatar : agentAvatar;
                                   return (
-                                      <motion.div 
-                                        initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} key={i} 
-                                        className={`mb-12 flex gap-12 p-12 rounded-[4rem] border transition-all duration-1000 ${isUser ? 'bg-[#22d3ee]/5 border-[#22d3ee]/20 flex-row-reverse text-[#22d3ee]' : 'bg-[#f1c21b]/5 border-[#f1c21b]/20 text-[#f1c21b]'}`}
-                                      >
+                                      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} key={i} className={`mb-12 flex gap-12 p-12 rounded-[4rem] border transition-all duration-1000 ${isUser ? 'bg-[#22d3ee]/5 border-[#22d3ee]/20 flex-row-reverse text-[#22d3ee]' : 'bg-[#f1c21b]/5 border-[#f1c21b]/20 text-[#f1c21b]'}`}>
                                           <div className={`w-20 h-20 rounded-[2rem] border-2 flex items-center justify-center shrink-0 overflow-hidden bg-[#0a0a0a] ${isUser ? 'border-[#22d3ee]/50' : 'border-[#f1c21b]/50'}`}>
                                               {currentAvatar ? <img src={currentAvatar} className="w-full h-full object-cover" alt="Node" /> : isUser ? <User size={36} /> : <BotIcon size={36} />}
                                           </div>
@@ -946,8 +907,6 @@ const Dashboard: React.FC = () => {
                           </AnimatePresence>
                       </div>
                   </div>
-
-                  {/* OS Tactical HUD Footer */}
                   <div className="h-16 bg-[#050505] border-t border-white/5 px-16 flex items-center justify-between text-[11px] font-mono text-gray-700 shrink-0 relative z-[60]">
                     <div className="flex gap-16 items-center">
                         <div className="flex items-center gap-6 text-emerald-900 font-bold uppercase tracking-[0.3em]"><ShieldCheck size={20} /> Handshake_Secure</div>

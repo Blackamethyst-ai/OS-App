@@ -81,6 +81,7 @@ const VoiceManager: React.FC = () => {
                     [AppMode.SYNTHESIS_BRIDGE]: '/bridge',
                     [AppMode.BICAMERAL]: '/bibliomorphic/bicameral',
                     [AppMode.AGENT_CONTROL]: '/agents',
+                    [AppMode.AUTONOMOUS_FINANCE]: '/finance',
                 };
 
                 if (routeMap[target]) {
