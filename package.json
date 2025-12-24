@@ -23,7 +23,9 @@
     "jszip": "^3.10.1",
     "html-to-image": "^1.11.11",
     "serve": "^14.2.3",
-    "mermaid": "^11.4.1"
+    "mermaid": "^11.4.1",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.2"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

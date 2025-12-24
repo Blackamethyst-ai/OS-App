@@ -164,8 +164,8 @@ Output must be technical, structured, and adhere to "Gray to Green" interaction 
 Always use internalMonologue for reasoning.
 
 SPECIFIC PROTOCOLS:
-1. DRIVE_ORGANIZATION: Strictly follow PARA (Projects, Areas, Resources, Archives). Max depth of 3. Ensure naming conventions are professional and consistent. Include file management workflows (Ingestion -> Classification -> Archival).
-2. SYSTEM_ARCHITECTURE: Design high-availability, zero-trust cloud stacks. Include layers for edge compute, mTLS nodes, message queues, and distributed databases. Focus on logical isolation and fault tolerance.
+1. DRIVE_ORGANIZATION: Strictly follow PARA (Projects, Areas, Resources, Archives). Max depth of 3. Ensure naming conventions follow professional snake_case or ISO 8601. Include file management life-cycles (Ingestion -> Deduplication -> Classification -> Tiered Archival).
+2. SYSTEM_ARCHITECTURE: Design high-availability, zero-trust cloud stacks. Include layers for edge compute, mTLS nodes, message queue clusters (Kafka/RabbitMQ), and distributed ACID-compliant databases. Prioritize logical isolation and hardware-backed enclaves.
 3. CONVERGENT_SYNTHESIS: Bridge disparate logical lattices into a unified deployment strategy.
 `;
 
@@ -188,10 +188,10 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
         DNA_BIAS: S=${dnaWeights.skepticism}, E=${dnaWeights.excitement}, A=${dnaWeights.alignment}
         
         REQUIREMENTS:
-        - Protocols should be a step-by-step sequential execution plan.
-        - Taxonomy must be a deeply structured PARA hierarchy (Projects, Areas, Resources, Archives).
-        - If SYSTEM_ARCHITECTURE, include specific deployment stages and security validation steps.
-        - If DRIVE_ORGANIZATION, focus on file management workflows and deduplication strategies.
+        - Protocols: Define a step-by-step sequential execution plan with handoff conditions.
+        - Taxonomy: A deeply structured PARA hierarchy (Projects, Areas, Resources, Archives).
+        - If SYSTEM_ARCHITECTURE, include specific multi-cloud deployment stages, mTLS validation nodes, and high-availability cluster definitions.
+        - If DRIVE_ORGANIZATION, focus on automated PARA sorting, naming conventions, and archival life-cycle management.
     `;
     const responseSchema: Schema = {
         type: Type.OBJECT,
@@ -231,8 +231,8 @@ export async function generateProcessFromContext(artifacts: StoredArtifact[], ta
 
         TASK:
         Generate a highly structured process definition.
-        - If DRIVE_ORGANIZATION: Focus on optimizing the storage hierarchy, file management life-cycles, and PARA alignment.
-        - If SYSTEM_ARCHITECTURE: Focus on infrastructure nodes, connectivity protocols, and zero-trust security layers.
+        - If DRIVE_ORGANIZATION: Focus on optimizing the PARA hierarchy, storage life-cycle protocols, and naming conventions.
+        - If SYSTEM_ARCHITECTURE: Focus on high-availability cluster nodes, zero-trust protocols, and infrastructure isolation layers.
 
         Output must be JSON.
     `;

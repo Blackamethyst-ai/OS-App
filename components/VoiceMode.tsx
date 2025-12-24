@@ -342,7 +342,7 @@ const VoiceMode: React.FC = () => {
           <div className="flex items-center gap-5">
                <button 
                 onClick={() => { setShowTuning(!showTuning); audio.playClick(); }} 
-                className={`p-3 border rounded-2xl transition-all duration-500 group ${showTuning ? 'bg-[#9d4edd] text-black border-[#9d4edd] shadow-lg shadow-[#9d4edd]/20' : 'bg-[#111] border-[#333] text-gray-500 hover:text-white shadow-xl'}`}
+                className={`p-3 border rounded-2xl transition-all duration-500 group ${showTuning ? 'bg-[#9d4edd] text-black border-[#9d4edd] shadow-lg shadow-[#9d4edd]/20' : 'bg-[#111] border border-[#333] text-gray-500 hover:text-white shadow-xl'}`}
                >
                    <Sliders size={18} className="group-active:scale-90 transition-transform" />
                </button>

@@ -28,7 +28,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     if (this.state.hasError) {
       return (
         <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#030303] text-white font-mono p-12 overflow-hidden relative">
-            <div className="absolute inset-0 bg-[linear-gradient(rgba(239,68,68,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(239,68,68,0.05)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
+            <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.05)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
             
             <div className="w-full max-w-2xl bg-[#0a0a0a] border border-red-500/30 p-10 rounded-2xl shadow-[0_0_100px_rgba(239,68,68,0.15)] relative overflow-hidden flex flex-col items-center text-center">
                 <div className="absolute top-0 left-0 w-full h-1 bg-red-500"></div>
@@ -59,7 +59,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                 
                 <div className="mt-12 pt-6 border-t border-[#1f1f1f] w-full flex justify-between text-[8px] text-gray-600 uppercase tracking-widest">
                     <span>ERR: KERNEL_PANIC_RUNTIME</span>
-                    <span>STRUCTURA OS // STABLE_CORE_V3</span>
+                    <span>METAVENTIONS AI // SOVEREIGN_CORE_V1</span>
                 </div>
             </div>
         </div>
