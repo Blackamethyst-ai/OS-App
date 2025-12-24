@@ -127,17 +127,17 @@ const VoiceManager: React.FC = () => {
                     DOMAINS: Full UI Sector Control authorized.
                     OPERATIONAL_PRIORITY: Synchronous user assistance.
                     DIRECTIVE: You are an executive-tier OS assistant. Respond quickly and use tools to drive the UI whenever navigation or synthesis is requested.
+                    MENTAL_STATE: Your current DNA weights are S:${voice.mentalState.skepticism}, E:${voice.mentalState.excitement}, A:${voice.mentalState.alignment}.
                     `;
 
                     await liveSession.primeAudio();
                     await liveSession.connect(agentName, {
-                        systemInstruction: constructHiveContext(agentId, sharedContext),
+                        systemInstruction: constructHiveContext(agentId, sharedContext, voice.mentalState),
                         tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool] }],
                         outputAudioTranscription: {},
                         inputAudioTranscription: {},
                         callbacks: {
                             onmessage: async (message: LiveServerMessage) => {
-                                // Fix: Correct property names per SDK spec
                                 if (message.serverContent?.outputTranscription) {
                                     partialTranscriptRef.current += message.serverContent.outputTranscription.text;
                                     setVoiceState({ partialTranscript: { role: 'model', text: partialTranscriptRef.current } });
@@ -178,7 +178,7 @@ const VoiceManager: React.FC = () => {
 
         manageConnection();
         return () => { mounted = false; };
-    }, [voice.isActive, voice.voiceName, setVoiceState, addLog, currentLocation, operationalContext]); 
+    }, [voice.isActive, voice.voiceName, setVoiceState, addLog, currentLocation, operationalContext, voice.mentalState]); 
 
     return null;
 };

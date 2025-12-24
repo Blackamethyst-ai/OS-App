@@ -198,7 +198,6 @@ const VaultDriveOrg = ({ workflow }: any) => {
                                             onClick={() => toggleOptimize(group.folder)}
                                             className={`p-2 rounded-xl transition-all ${isOptimized ? 'bg-[#10b981] text-black shadow-lg shadow-[#10b981]/20' : 'bg-white/5 text-gray-500 hover:text-white'}`}
                                         >
-                                            {/* Fix: replaced CheckCircle2 with CheckCircle */}
                                             <CheckCircle size={18} />
                                         </button>
                                         <button 
@@ -492,7 +491,8 @@ const ProcessVisualizerContent = () => {
         architecturePrompt, setArchitecturePrompt,
         handleGenerateGraph, isGeneratingGraph, handleRunGlobalSequence,
         updateNodeStatus, handleExecuteStep, handleResetSimulation,
-        handleGenerateIaC, handleSourceUpload, removeSource, viewSourceAnalysis
+        handleGenerateIaC, handleSourceUpload, removeSource, viewSourceAnalysis,
+        handleSynthesizeFromVault, isSynthesizingVault
     } = logic;
 
     const nodeTypes = useMemo(() => ({ holographic: HolographicNode }), []);
@@ -650,7 +650,6 @@ const ProcessVisualizerContent = () => {
                             {/* Visual Signal Tags */}
                             <div className="absolute top-8 left-8 flex flex-col gap-3 pointer-events-none">
                                 <div className="px-3 py-1 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-full text-[9px] font-black font-mono text-[#9d4edd] flex items-center gap-2">
-                                    {/* Fix: Radio is now imported from lucide-react */}
                                     <Radio size={10} className="animate-pulse" /> SIGNAL_CHAIN_ACTIVE
                                 </div>
                                 <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-black font-mono text-gray-500 flex items-center gap-2">
@@ -740,7 +739,7 @@ const ProcessVisualizerContent = () => {
                                                 <label className="text-[10px] font-black text-[#9d4edd] uppercase tracking-[0.4em] flex items-center gap-3">
                                                     <Binary size={14} /> Structural Directive Lattice
                                                 </label>
-                                                <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">Input: STRAT_INTENT_v4</span>
+                                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">Input: STRAT_INTENT_v4</span>
                                             </div>
                                             <textarea 
                                                 value={architecturePrompt} 
@@ -751,14 +750,24 @@ const ProcessVisualizerContent = () => {
                                         </div>
                                     </div>
 
-                                    <button 
-                                        onClick={() => { handleGenerateGraph(); audio.playClick(); }} 
-                                        disabled={isGeneratingGraph || !architecturePrompt.trim()} 
-                                        className="w-full bg-[#9d4edd] text-black py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.4em] flex items-center justify-center gap-5 relative z-10 shadow-[0_20px_60px_rgba(157,78,221,0.4)] hover:bg-[#b06bf7] hover:scale-[1.02] transition-all disabled:opacity-30 active:scale-95 group/gen-btn"
-                                    >
-                                        {isGeneratingGraph ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} className="group-hover/gen-btn:scale-125 transition-transform" />} 
-                                        {isGeneratingGraph ? 'FORGING TOPOLOGY...' : 'Construct Blueprint'}
-                                    </button>
+                                    <div className="flex gap-4 relative z-10">
+                                        <button 
+                                            onClick={() => { handleGenerateGraph(); audio.playClick(); }} 
+                                            disabled={isGeneratingGraph || isSynthesizingVault || !architecturePrompt.trim()} 
+                                            className="flex-1 bg-[#9d4edd] text-black py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.4em] flex items-center justify-center gap-5 shadow-[0_20px_60px_rgba(157,78,221,0.4)] hover:bg-[#b06bf7] hover:scale-[1.02] transition-all disabled:opacity-30 active:scale-95 group/gen-btn"
+                                        >
+                                            {isGeneratingGraph ? <Loader2 className="animate-spin" size={20} /> : <Sparkles size={20} className="group-hover/gen-btn:scale-125 transition-transform" />} 
+                                            {isGeneratingGraph ? 'FORGING TOPOLOGY...' : 'Construct Blueprint'}
+                                        </button>
+                                        <button 
+                                            onClick={() => { handleSynthesizeFromVault(); audio.playClick(); }} 
+                                            disabled={isGeneratingGraph || isSynthesizingVault || !architecturePrompt.trim()} 
+                                            className="px-10 bg-[#111] border border-white/10 text-white py-6 rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] flex items-center justify-center gap-4 hover:border-[#22d3ee] transition-all disabled:opacity-30 active:scale-95 group/vault-btn"
+                                        >
+                                            {isSynthesizingVault ? <Loader2 className="animate-spin" size={18} /> : <Database size={18} className="group-hover/vault-btn:text-[#22d3ee] transition-colors" />} 
+                                            Synthesize from Vault
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>

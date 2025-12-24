@@ -13,6 +13,7 @@ interface AgoraPanelProps {
 }
 
 const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
+    const { voice, setProcessState, setMode, addLog } = useAppStore();
     const [status, setStatus] = useState<'IDLE' | 'GEN_PERSONAS' | 'DEBATING' | 'SYNTHESIZING' | 'COMPLETE'>('IDLE');
     const [personas, setPersonas] = useState<SyntheticPersona[]>([]);
     const [history, setHistory] = useState<DebateTurn[]>([]);
@@ -24,7 +25,6 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
     const [isNarrationMuted, setIsNarrationMuted] = useState(false);
     const [conflictHealth, setConflictHealth] = useState<{time: number, tension: number}[]>([]);
     const [lastIntervention, setLastIntervention] = useState<{target: string, msg: string} | null>(null);
-    const { setProcessState, setMode, addLog } = useAppStore();
     
     const pendingWhispers = useRef<Record<string, string>>({});
     const audioCtxRef = useRef<AudioContext | null>(null);
@@ -101,7 +101,8 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
         setConflictHealth([]);
         
         try {
-            const agents = await generatePersonas(artifact);
+            // Pass the global mental state calibrated in the DNA Builder
+            const agents = await generatePersonas(artifact, voice.mentalState);
             if (!agents || agents.length === 0) {
                 addLog('WARN', 'AGORA: Agent generation returned empty set. Aborting.');
                 setStatus('IDLE');
