@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
+import { useFlywheelStore } from '../store/flywheelStore';
 import { useSystemMind } from '../stores/useSystemMind';
-import { X, Terminal, ShieldAlert, CheckCircle2, Info, AlertTriangle, Activity, Trash2, AlertOctagon, Bell, Cpu, Scan, Globe, ShieldCheck } from 'lucide-react';
+import { X, Terminal, ShieldAlert, CheckCircle2, Info, AlertTriangle, Activity, Trash2, AlertOctagon, Bell, Cpu, Scan, Globe, ShieldCheck, Zap, Shield, TrendingUp } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const NotificationCard: React.FC<{ 
@@ -129,6 +130,83 @@ const LogRow: React.FC<{ log: any }> = ({ log }) => {
     );
 };
 
+const TeleologicalEnginePanel = () => {
+    const { velocity, confidenceScore } = useFlywheelStore();
+    
+    const getTheme = (score: number) => {
+        if (score > 0.8) return { color: '#22d3ee', label: 'OPTIMAL', glow: 'shadow-[0_0_15px_rgba(34,211,238,0.2)]' };
+        if (score > 0.5) return { color: '#9d4edd', label: 'STABLE', glow: 'shadow-[0_0_15px_rgba(157,78,221,0.2)]' };
+        return { color: '#ef4444', label: 'CRITICAL', glow: 'shadow-[0_0_15px_rgba(239,68,68,0.2)]' };
+    };
+
+    const theme = getTheme(confidenceScore);
+    const rotationDuration = velocity > 0 ? Math.max(0.3, 55 / velocity) : 20;
+
+    return (
+        <div className="p-6 bg-[#0a0a0a] border-b border-white/5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(157,78,221,0.03)_0%,transparent_70%)] pointer-events-none"></div>
+            
+            <div className="flex items-center justify-between mb-6 relative z-10">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-xl">
+                        <Shield size={16} className="text-[#9d4edd]" />
+                    </div>
+                    <div>
+                        <h3 className="text-[11px] font-black font-mono text-white uppercase tracking-[0.2em]">Teleological Engine</h3>
+                        <p className="text-[8px] text-gray-500 font-mono uppercase tracking-widest">Core Momentum Metrics</p>
+                    </div>
+                </div>
+                <Activity size={14} style={{ color: theme.color }} className="animate-pulse" />
+            </div>
+
+            <div className="flex items-center gap-8 relative z-10">
+                {/* Mini Orbit Vis */}
+                <div className="relative w-16 h-16 flex items-center justify-center shrink-0">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ repeat: Infinity, duration: rotationDuration * 2, ease: "linear" }}
+                        className="absolute inset-0 rounded-full border border-dashed border-white/10"
+                    />
+                    <motion.div
+                        animate={{ rotate: -360 }}
+                        transition={{ repeat: Infinity, duration: rotationDuration, ease: "linear" }}
+                        className="absolute inset-1 rounded-full border-t border-l border-transparent"
+                        style={{ borderTopColor: theme.color, borderLeftColor: theme.color }}
+                    />
+                    <div className={`w-8 h-8 rounded-full bg-black border border-white/10 flex items-center justify-center ${theme.glow}`}>
+                        <span className="text-[9px] font-black font-mono" style={{ color: theme.color }}>{Math.round(confidenceScore * 100)}%</span>
+                    </div>
+                </div>
+
+                {/* Statistical Readout */}
+                <div className="flex-1 space-y-4">
+                    <div className="space-y-1.5">
+                        <div className="flex justify-between items-center text-[9px] font-mono">
+                            <span className="text-gray-500 uppercase tracking-widest">Velocity</span>
+                            <span className="text-white font-black tracking-tighter">{Math.round(velocity)} m/s</span>
+                        </div>
+                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                            <motion.div 
+                                animate={{ width: `${velocity}%` }}
+                                className="h-full bg-white transition-all duration-700" 
+                                style={{ backgroundColor: theme.color }}
+                            />
+                        </div>
+                    </div>
+
+                    <div className="flex justify-between items-center bg-white/[0.02] border border-white/5 rounded-lg px-3 py-2">
+                        <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">Alignment State</span>
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full animate-pulse" style={{ backgroundColor: theme.color }} />
+                            <span className="text-[10px] font-black font-mono uppercase" style={{ color: theme.color }}>{theme.label}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const GlobalAlertMesh: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
     const store = useAppStore();
     const { notifications, pushNotification, dismissNotification } = useSystemMind();
@@ -206,7 +284,7 @@ const GlobalAlertMesh: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ i
                             transition={{ type: 'spring', damping: 25, stiffness: 180 }}
                             className="fixed bottom-[88px] right-6 top-20 w-[450px] bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/10 z-[9999] shadow-2xl flex flex-col rounded-2xl overflow-hidden"
                         >
-                            <div className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-white/[0.02]">
+                            <div className="h-14 border-b border-white/5 flex items-center justify-between px-6 bg-white/[0.02] shrink-0">
                                 <div className="flex items-center gap-3 text-[#22d3ee]">
                                     <div className="p-1.5 bg-[#22d3ee]/20 rounded-lg"><Activity size={18} /></div>
                                     <span className="text-xs font-black font-mono uppercase tracking-[0.2em]">Neural Diagnostics</span>
@@ -214,7 +292,10 @@ const GlobalAlertMesh: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ i
                                 <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-2 bg-[#111] rounded-lg border border-[#222]"><X size={18} /></button>
                             </div>
 
-                            <div className="p-3 border-b border-white/5 flex gap-2 overflow-x-auto bg-black/40">
+                            {/* Teleological Engine (Flywheel) integrated here */}
+                            <TeleologicalEnginePanel />
+
+                            <div className="p-3 border-b border-white/5 flex gap-2 overflow-x-auto bg-black/40 shrink-0">
                                 {['ALL', 'ERROR', 'WARNING', 'SYSTEM'].map(f => (
                                     <button key={f} onClick={() => setFilter(f as any)} className={`px-4 py-1.5 rounded-lg text-[9px] font-black font-mono uppercase tracking-widest border transition-all ${filter === f ? 'bg-[#22d3ee] text-black border-[#22d3ee]' : 'bg-[#111] text-gray-500 border-[#222] hover:border-gray-400'}`}>{f}</button>
                                 ))}
@@ -231,7 +312,7 @@ const GlobalAlertMesh: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ i
                                 )}
                             </div>
 
-                            <div className="p-4 border-t border-white/5 bg-black/60 flex justify-between items-center text-[9px] font-mono text-gray-500">
+                            <div className="p-4 border-t border-white/5 bg-black/60 flex justify-between items-center text-[9px] font-mono text-gray-500 shrink-0">
                                 <div className="flex items-center gap-3">
                                     <div className={`w-1.5 h-1.5 rounded-full ${errorCount > 0 ? 'bg-red-500 animate-pulse' : 'bg-[#10b981]'}`}></div>
                                     <span className="font-black uppercase tracking-tighter">{errorCount} Active Faults</span>
