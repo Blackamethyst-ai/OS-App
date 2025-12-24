@@ -14,7 +14,7 @@ import {
     Layers, Cpu, Zap, Radio, Globe, Terminal, History, GitBranch,
     ChevronRight, ChevronDown, Package, AlertCircle, Command,
     Filter, LayoutGrid, Boxes, Brain, Tag, Archive, Plus, Info, Target, GitCommit, FileJson, Bookmark, Maximize,
-    SignalHigh, SignalMedium, SignalLow
+    SignalHigh, SignalMedium, SignalLow, Microscope
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoredArtifact, KnowledgeNode, NeuralLattice } from '../types';
@@ -29,7 +29,7 @@ const MemoryCore: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'XRAY'>('GRAPH');
+    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'XRAY' | 'VISION'>('GRAPH');
     
     // Semantic State
     const [semanticResults, setSemanticResults] = useState<{id: string, score: number}[] | null>(null);
@@ -140,8 +140,14 @@ const MemoryCore: React.FC = () => {
                 .map(res => artifacts.find(a => a.id === res.id))
                 .filter(Boolean) as StoredArtifact[];
         }
+        if (viewMode === 'VISION') {
+            return artifacts.filter(a => 
+                (a.analysis?.classification === 'RESEARCH_FINDING' || a.analysis?.classification === 'CONSENSUS_LEDGER') &&
+                a.name.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+        }
         return artifacts.filter(a => a.name.toLowerCase().includes(searchQuery.toLowerCase()));
-    }, [artifacts, searchQuery, semanticResults]);
+    }, [artifacts, searchQuery, semanticResults, viewMode]);
 
     const getScoreIcon = (score: number) => {
         if (score > 0.8) return <SignalHigh size={12} className="text-[#10b981]" />;
@@ -242,6 +248,7 @@ const MemoryCore: React.FC = () => {
                         {[
                             { id: 'GRAPH', icon: BrainCircuit, label: 'Lattice' }, 
                             { id: 'GRID', icon: LayoutGrid, label: 'Matrix' }, 
+                            { id: 'VISION', icon: Microscope, label: 'Vision' },
                             { id: 'XRAY', icon: Activity, label: 'X-Ray' }
                         ].map(btn => (
                             <button 
@@ -272,7 +279,7 @@ const MemoryCore: React.FC = () => {
                                 />
                             </motion.div>
                         )}
-                        {viewMode === 'GRID' && (
+                        {(viewMode === 'GRID' || viewMode === 'VISION') && (
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-8 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 overflow-y-auto h-full custom-scrollbar">
                                 {filteredArtifacts.map(art => (
                                     <div 
@@ -284,12 +291,18 @@ const MemoryCore: React.FC = () => {
                                     >
                                         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/20 to-transparent" />
                                         <div className="aspect-square bg-[#050505] rounded-xl flex items-center justify-center text-gray-700 group-hover:text-[#9d4edd] transition-colors mb-4 border border-white/5 shadow-inner">
-                                            <FileIcon size={32} />
+                                            {viewMode === 'VISION' ? <Microscope size={32} /> : <FileIcon size={32} />}
                                         </div>
                                         <div className="text-[10px] font-black text-white uppercase truncate font-mono mb-1">{art.name}</div>
                                         <div className="text-[8px] text-gray-600 font-mono uppercase tracking-widest">{art.analysis?.classification || 'RAW'}</div>
                                     </div>
                                 ))}
+                                {filteredArtifacts.length === 0 && viewMode === 'VISION' && (
+                                    <div className="col-span-full h-full flex flex-col items-center justify-center opacity-10 text-center space-y-4 py-20">
+                                        <Microscope size={64} />
+                                        <p className="font-mono text-sm uppercase tracking-widest">No Vision findings detected in current cache.</p>
+                                    </div>
+                                )}
                             </motion.div>
                         )}
                         {viewMode === 'XRAY' && (

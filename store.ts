@@ -27,6 +27,11 @@ interface AppState {
         logs: any[];
         dockItems: any[];
     };
+    marketData: {
+        lastSync: number;
+        opportunities: { id: string; title: string; yield: string; risk: string; logic: string }[];
+        isSyncing: boolean;
+    };
     search: {
         isOpen: boolean;
         isSearching: boolean;
@@ -249,6 +254,11 @@ export const useAppStore = create<AppState>((set) => ({
         isTerminalOpen: false,
         logs: [],
         dockItems: []
+    },
+    marketData: {
+        lastSync: 0,
+        opportunities: [],
+        isSyncing: false
     },
     search: {
         isOpen: false,

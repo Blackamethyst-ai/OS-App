@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, Suspense, lazy, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -20,6 +21,7 @@ const HardwareEngine = lazy(() => import('./HardwareEngine'));
 const VoiceMode = lazy(() => import('./VoiceMode'));
 const CodeStudio = lazy(() => import('./CodeStudio'));
 const AgentControlCenter = lazy(() => import('./AgentControlCenter'));
+const AutonomousFinance = lazy(() => import('./AutonomousFinance'));
 
 const SynapticRouter: React.FC = () => {
     const { 
@@ -52,6 +54,7 @@ const SynapticRouter: React.FC = () => {
                 'code': AppMode.CODE_STUDIO,
                 'voice': AppMode.VOICE_MODE,
                 'agents': AppMode.AGENT_CONTROL,
+                'finance': AppMode.AUTONOMOUS_FINANCE,
             };
 
             const targetMode = routeMap[mainPath];
@@ -143,6 +146,7 @@ const SynapticRouter: React.FC = () => {
                 window.location.hash = '/code';
                 if (targetContent) {
                     const safePrompt = `Refactor this logic:\n\n${String(targetContent || '').substring(0, 500)}`;
+                    const { setCodeStudioState } = useAppStore.getState();
                     setCodeStudioState({ prompt: safePrompt });
                 }
                 break;
@@ -151,7 +155,7 @@ const SynapticRouter: React.FC = () => {
     };
 
     const isFixedLayout = useMemo(() => 
-        mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER
+        mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.AUTONOMOUS_FINANCE
     , [mode]);
 
     return (
@@ -185,6 +189,7 @@ const SynapticRouter: React.FC = () => {
                         {mode === AppMode.VOICE_MODE && <VoiceMode />}
                         {mode === AppMode.CODE_STUDIO && <CodeStudio />}
                         {mode === AppMode.AGENT_CONTROL && <AgentControlCenter />}
+                        {mode === AppMode.AUTONOMOUS_FINANCE && <AutonomousFinance />}
                     </motion.main>
                 </AnimatePresence>
             </Suspense>

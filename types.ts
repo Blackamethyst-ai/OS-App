@@ -65,7 +65,8 @@ export enum AppMode {
     VOICE_MODE = 'VOICE_MODE',
     SYNTHESIS_BRIDGE = 'SYNTHESIS_BRIDGE',
     BICAMERAL = 'BICAMERAL',
-    AGENT_CONTROL = 'AGENT_CONTROL'
+    AGENT_CONTROL = 'AGENT_CONTROL',
+    AUTONOMOUS_FINANCE = 'AUTONOMOUS_FINANCE'
 }
 
 export enum TaskStatus {
@@ -208,9 +209,10 @@ export const SOVEREIGN_DEFAULT_COLORWAY: Colorway = {
 
 export interface EconomicProtocol {
     id: string;
-    type: 'SWAP' | 'MINT' | 'STAKE' | 'LEND';
+    type: 'SWAP' | 'MINT' | 'STAKE' | 'LEND' | 'ARB';
     status: 'ACTIVE' | 'PENDING' | 'HALTED';
     volume: string;
+    yield?: string;
 }
 
 export interface StrategyRefraction {
