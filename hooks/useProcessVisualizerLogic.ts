@@ -253,14 +253,14 @@ export const useProcessVisualizerLogic = () => {
 
             const result = await generateProcessFromContext(artifacts as StoredArtifact[], state.workflowType, architecturePrompt);
             
-            const newNodes = result.nodes.map((n: any, i: number) => ({
+            const newNodes = (result.nodes || []).map((n: any, i: number) => ({
                 id: n.id,
                 type: 'holographic',
                 position: { x: 500 + Math.cos(i) * 300, y: 300 + Math.sin(i) * 300 },
                 data: { ...n, theme: visualTheme, progress: 2 }
             }));
             
-            const newEdges = result.edges.map((e: any) => ({
+            const newEdges = (result.edges || []).map((e: any) => ({
                 id: e.id,
                 source: e.source,
                 target: e.target,

@@ -107,7 +107,6 @@ const DNABuilder = () => {
 };
 
 const BibliomorphicEngine: React.FC = () => {
-  // Fix: Destructure voice from useAppStore to provide access to mentalState in the DNA tab
   const { bibliomorphic, setBibliomorphicState, discovery, setDiscoveryState, research, addResearchTask, addLog, openHoloProjector, voice } = useAppStore();
   const { setSector } = useSystemMind();
   
