@@ -3,7 +3,7 @@ import { FileData, SyntheticPersona, DebateTurn, SimulationReport, MentalState }
 import { HIVE_AGENTS, constructHiveContext, retryGeminiRequest } from './geminiService';
 
 // 1. GENESIS: Select Hive Agents relevant to the content
-export async function generatePersonas(file: FileData): Promise<SyntheticPersona[]> {
+export async function generatePersonas(file: FileData, baselineMindset?: MentalState): Promise<SyntheticPersona[]> {
     try {
         const selection = [
             HIVE_AGENTS['Charon'], // Skeptic
@@ -18,10 +18,16 @@ export async function generatePersonas(file: FileData): Promise<SyntheticPersona
         };
 
         return selection.map((agent) => {
-            let mindset: MentalState = { skepticism: 50, excitement: 50, alignment: 50 };
-            if (agent.weights.skepticism > 0.7) mindset.skepticism = 90;
-            if (agent.weights.creativity > 0.7) mindset.excitement = 90;
-            if (agent.weights.empathy > 0.7) mindset.alignment = 80;
+            // Use baseline from DNA Builder if provided, otherwise compute from agent defaults
+            let mindset: MentalState = baselineMindset 
+                ? { ...baselineMindset } 
+                : { skepticism: 50, excitement: 50, alignment: 50 };
+
+            if (!baselineMindset) {
+                if (agent.weights.skepticism > 0.7) mindset.skepticism = 90;
+                if (agent.weights.creativity > 0.7) mindset.excitement = 90;
+                if (agent.weights.empathy > 0.7) mindset.alignment = 80;
+            }
 
             return {
                 id: agent.id,
@@ -76,7 +82,7 @@ export async function runDebateTurn(
             Keep response under 40 words.
             CONVERSATION:
             ${script}
-        `);
+        `, activePersona.currentMindset);
 
         let prompt = `${hiveContext}`;
         if (godModeDirective) prompt += `\n\nDIRECTIVE OVERRIDE: ${godModeDirective}`;

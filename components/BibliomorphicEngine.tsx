@@ -20,8 +20,7 @@ import BicameralEngine from './BicameralEngine';
 import SuperLattice from './visualizations/SuperLattice';
 import { useVoiceExpose } from '../hooks/useVoiceExpose';
 import { useSystemMind } from '../stores/useSystemMind';
-
-const MotionDiv = motion.div as any;
+import { audio } from '../services/audioService';
 
 const DNABuilder = () => {
     const { voice, setVoiceState, addLog } = useAppStore();
@@ -29,6 +28,18 @@ const DNABuilder = () => {
 
     const handleUpdate = (key: string, val: number) => {
         setVoiceState({ mentalState: { ...mentalState, [key]: val } });
+    };
+
+    const applyBaseline = (dna: any) => {
+        let nextState = { skepticism: 50, excitement: 50, alignment: 50 };
+        if (dna.id === 'SKEPTIC') nextState = { skepticism: 90, excitement: 20, alignment: 40 };
+        if (dna.id === 'VISIONARY') nextState = { skepticism: 10, excitement: 95, alignment: 60 };
+        if (dna.id === 'PRAGMATIST') nextState = { skepticism: 40, excitement: 40, alignment: 90 };
+        if (dna.id === 'SYNTHESIZER') nextState = { skepticism: 50, excitement: 50, alignment: 80 };
+        
+        setVoiceState({ mentalState: nextState });
+        addLog('SUCCESS', `DNA_CALIBRATION: Applied ${dna.label} baseline.`);
+        audio.playSuccess();
     };
 
     return (
@@ -76,14 +87,12 @@ const DNABuilder = () => {
                 </div>
 
                 <div className="pt-6 border-t border-white/5 flex flex-col gap-3">
+                    <div className="text-[8px] font-mono text-gray-600 uppercase tracking-widest mb-1">Calibration Presets</div>
                     <div className="grid grid-cols-2 gap-3">
                         {AGENT_DNA_BUILDER.map(dna => (
                             <button 
                                 key={dna.id}
-                                onClick={() => {
-                                    setVoiceState({ mentalState: { skepticism: 50, excitement: 50, alignment: 50 } });
-                                    addLog('INFO', `DNA_LOAD: Applying ${dna.label} baseline.`);
-                                }}
+                                onClick={() => applyBaseline(dna)}
                                 className="p-3 bg-[#111] border border-[#222] hover:border-[#9d4edd] rounded-xl text-left transition-all group"
                             >
                                 <div className="text-[9px] font-black text-white uppercase mb-1">{dna.label}</div>
@@ -98,7 +107,8 @@ const DNABuilder = () => {
 };
 
 const BibliomorphicEngine: React.FC = () => {
-  const { bibliomorphic, setBibliomorphicState, discovery, setDiscoveryState, research, addResearchTask, addLog, openHoloProjector } = useAppStore();
+  // Fix: Destructure voice from useAppStore to provide access to mentalState in the DNA tab
+  const { bibliomorphic, setBibliomorphicState, discovery, setDiscoveryState, research, addResearchTask, addLog, openHoloProjector, voice } = useAppStore();
   const { setSector } = useSystemMind();
   
   const activeTab = bibliomorphic.activeTab || 'discovery'; 
@@ -168,6 +178,25 @@ const BibliomorphicEngine: React.FC = () => {
                         <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase mb-2"><span>Knowledge Density</span><span>{Math.round((activeKnowledge.length/50)*100)}%</span></div>
                         <div className="h-1 bg-[#222] rounded-full overflow-hidden"><div className="h-full bg-[#22d3ee]" style={{ width: `${Math.min(100, (activeKnowledge.length/50)*100)}%` }} /></div>
                     </div>
+                  </div>
+              )}
+              {activeTab === 'dna' && (
+                  <div className="space-y-4">
+                      <div className="text-[10px] font-mono text-gray-500 uppercase tracking-widest px-1">Current Profile</div>
+                      <div className="bg-[#111] p-4 rounded-xl border border-[#222] space-y-3">
+                          <div className="flex justify-between items-center text-[9px] font-mono">
+                              <span className="text-gray-500">SKEPTICISM</span>
+                              <span className="text-[#ef4444] font-bold">{voice.mentalState.skepticism}%</span>
+                          </div>
+                          <div className="flex justify-between items-center text-[9px] font-mono">
+                              <span className="text-gray-500">EXCITEMENT</span>
+                              <span className="text-[#f59e0b] font-bold">{voice.mentalState.excitement}%</span>
+                          </div>
+                          <div className="flex justify-between items-center text-[9px] font-mono">
+                              <span className="text-gray-500">ALIGNMENT</span>
+                              <span className="text-[#22d3ee] font-bold">{voice.mentalState.alignment}%</span>
+                          </div>
+                      </div>
                   </div>
               )}
           </div>

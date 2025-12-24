@@ -11,9 +11,9 @@ import {
     generateAutopoieticFramework, generateStructuredWorkflow,
     generateSystemArchitecture, calculateEntropy, decomposeNode, generateInfrastructureCode,
     generateSingleNode, calculateOptimalLayout, generateSwarmArchitecture,
-    simulateAgentStep
+    simulateAgentStep, generateProcessFromContext
 } from '../services/geminiService';
-import { FileData, AppMode, AppTheme, ProtocolStepResult } from '../types';
+import { FileData, AppMode, AppTheme, ProtocolStepResult, StoredArtifact } from '../types';
 import { audio } from '../services/audioService';
 
 export const THEME = {
@@ -51,6 +51,7 @@ export const useProcessVisualizerLogic = () => {
     const [isDecomposing, setIsDecomposing] = useState(false);
     const [isOptimizing, setIsOptimizing] = useState(false);
     const [isOrganizing, setIsOrganizing] = useState(false);
+    const [isSynthesizingVault, setIsSynthesizingVault] = useState(false);
     const [sequenceStatus, setSequenceStatus] = useState<'IDLE' | 'RUNNING' | 'COMPLETE'>('IDLE');
     const [sequenceProgress, setSequenceProgress] = useState(0);
 
@@ -116,7 +117,7 @@ export const useProcessVisualizerLogic = () => {
 
     const handleApiError = (context: string, err: any) => {
         setState({ error: err.message || "Operation failed", isLoading: false });
-        setIsGeneratingGraph(false); setIsDecomposing(false); setIsOptimizing(false); setIsOrganizing(false); setSequenceStatus('IDLE');
+        setIsGeneratingGraph(false); setIsDecomposing(false); setIsOptimizing(false); setIsOrganizing(false); setSequenceStatus('IDLE'); setIsSynthesizingVault(false);
     };
 
     const onConnect = useCallback((params: Connection) => {
@@ -235,6 +236,51 @@ export const useProcessVisualizerLogic = () => {
         }
     };
 
+    const handleSynthesizeFromVault = async () => {
+        setIsSynthesizingVault(true);
+        setState({ isLoading: true });
+        addLog('SYSTEM', 'VAULT_SYNTHESIS: Scanning artifacts for structural emergence...');
+        
+        try {
+            if (!(await checkApiKey())) return;
+            const artifacts = await neuralVault.getArtifacts();
+            if (artifacts.length === 0) {
+                addLog('WARN', 'VAULT_EMPTY: No artifacts found in Neural Vault.');
+                setIsSynthesizingVault(false);
+                setState({ isLoading: false });
+                return;
+            }
+
+            const result = await generateProcessFromContext(artifacts as StoredArtifact[], state.workflowType, architecturePrompt);
+            
+            const newNodes = result.nodes.map((n: any, i: number) => ({
+                id: n.id,
+                type: 'holographic',
+                position: { x: 500 + Math.cos(i) * 300, y: 300 + Math.sin(i) * 300 },
+                data: { ...n, theme: visualTheme, progress: 2 }
+            }));
+            
+            const newEdges = result.edges.map((e: any) => ({
+                id: e.id,
+                source: e.source,
+                target: e.target,
+                type: 'cinematic',
+                data: { color: e.color || '#9d4edd', variant: e.variant || 'stream' }
+            }));
+
+            setNodes(newNodes);
+            setEdges(newEdges);
+            addLog('SUCCESS', `VAULT_SYNTHESIS: Lattice crystallized for "${result.title}".`);
+            setTimeout(() => fitView({ duration: 1000 }), 100);
+
+        } catch (err: any) {
+            handleApiError('Vault Synthesis', err);
+        } finally {
+            setIsSynthesizingVault(false);
+            setState({ isLoading: false });
+        }
+    };
+
     const handleRunGlobalSequence = async () => {
         if (sequenceStatus === 'RUNNING') return;
         if (!(await checkApiKey())) return;
@@ -337,6 +383,7 @@ export const useProcessVisualizerLogic = () => {
         },
         handleOptimizeNode, 
         handleAutoOrganize,
+        handleSynthesizeFromVault,
         handleGenerateIaC: async (provider: string) => {
             try {
                 if (!(await checkApiKey())) return;
@@ -348,7 +395,7 @@ export const useProcessVisualizerLogic = () => {
             } catch (err: any) { handleApiError('IaC', err); }
         },
         handleAIAddNode, handleGenerate, architecturePrompt, setArchitecturePrompt, sequenceStatus, sequenceProgress,
-        selectedNode, isGeneratingGraph, isDecomposing, isOptimizing, isOrganizing, saveGraph: () => { localStorage.setItem('pm_layout', JSON.stringify({ nodes, edges })); addLog('SUCCESS', 'Layout cached.'); },
+        selectedNode, isGeneratingGraph, isDecomposing, isOptimizing, isOrganizing, isSynthesizingVault, saveGraph: () => { localStorage.setItem('pm_layout', JSON.stringify({ nodes, edges })); addLog('SUCCESS', 'Layout cached.'); },
         restoreGraph: () => { const saved = localStorage.getItem('pm_layout'); if (saved) { const { nodes: ns, edges: es } = JSON.parse(saved); setNodes(ns); setEdges(es); } },
         getTabLabel: (t: string) => t.replace('_', ' '), getPriorityBadgeStyle: (p: string) => p === 'HIGH' ? 'bg-red-900/20 text-red-400 border-red-500/30' : 'bg-[#111] text-gray-500',
         handleSourceUpload, removeSource, viewSourceAnalysis, setState,

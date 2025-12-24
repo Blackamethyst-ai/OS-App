@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { 
@@ -12,7 +11,7 @@ import {
     TrendingDown, ShieldCheck, History, Package, Shield, 
     Box, Tag, BarChart3, Clock, ArrowRight, Layers,
     Maximize2, Info, ChevronRight, CheckCircle2, AlertTriangle, GitCommit,
-    RotateCcw, SlidersHorizontal, Check, BoxSelect, Monitor
+    RotateCcw, SlidersHorizontal, Check, BoxSelect, Monitor, ChevronDown
 } from 'lucide-react';
 import { TemporalEra, FileData, AppMode } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -98,6 +97,7 @@ const HardwareEngine: React.FC = () => {
     const [isGenerating3D, setIsGenerating3D] = useState(false);
     const [rotation, setRotation] = useState({ x: 0, y: 0 });
     const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+    const [isSearchingComponents, setIsSearchingComponents] = useState(false);
 
     useVoiceExpose('hardware-engine-v6', { era: currentEra, activeVendor, bomCount: bom.length });
 
@@ -127,11 +127,31 @@ const HardwareEngine: React.FC = () => {
         });
     };
 
+    const handleSearchComponents = async () => {
+        if (!componentQuery.trim()) return;
+        setIsSearchingComponents(true);
+        addLog('SYSTEM', `HARDWARE_SEARCH: Initializing component research for "${componentQuery}"...`);
+        audio.playClick();
+        
+        try {
+            if (!(await (window as any).aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
+            const results = await researchComponents(componentQuery);
+            setHardwareState({ recommendations: results });
+            addLog('SUCCESS', `HARDWARE_SEARCH: Retrieved ${results.length} relevant component nodes.`);
+            audio.playSuccess();
+        } catch (err: any) {
+            addLog('ERROR', `SEARCH_FAIL: ${err.message}`);
+            audio.playError();
+        } finally {
+            setIsSearchingComponents(false);
+        }
+    };
+
     const handleSearchKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
             addToHistory(componentQuery);
             setIsHistoryOpen(false);
-            audio.playClick();
+            handleSearchComponents();
         }
     };
 
@@ -182,8 +202,8 @@ const HardwareEngine: React.FC = () => {
 
     const filteredRecommendations = useMemo(() => {
         return recommendations.filter(item => {
-            const matchesSearch = item.partNumber.toLowerCase().includes((componentQuery || '').toLowerCase());
-            const matchesVendor = activeVendor === 'ALL' || item.manufacturer.toUpperCase() === activeVendor;
+            const matchesSearch = item.partNumber?.toLowerCase().includes((componentQuery || '').toLowerCase());
+            const matchesVendor = activeVendor === 'ALL' || item.manufacturer?.toUpperCase() === activeVendor;
             const matchesPrice = (item.price || 0) >= (filters.minPrice || 0) && (item.price || 0) <= (filters.maxPrice || Infinity);
             const matchesStock = !filters.showOutOfStock || item.stock > 0;
             return matchesSearch && matchesVendor && matchesPrice && matchesStock;
@@ -264,9 +284,12 @@ const HardwareEngine: React.FC = () => {
                                 onKeyDown={handleSearchKeyDown}
                                 onChange={e => setHardwareState({ componentQuery: e.target.value })} 
                                 placeholder="Search component matrix..." 
-                                className="w-full bg-black border border-[#222] p-3 pl-10 text-xs text-white focus:border-[#9d4edd] outline-none rounded-xl" 
+                                className="w-full bg-black border border-[#222] p-3 pl-10 pr-10 text-xs text-white focus:border-[#9d4edd] outline-none rounded-xl" 
                             />
                             <Search className="absolute left-3 top-3 w-4 h-4 text-gray-700" />
+                            <div className="absolute right-3 top-3">
+                                {isSearchingComponents && <Loader2 className="w-4 h-4 text-[#9d4edd] animate-spin" />}
+                            </div>
                             
                             <AnimatePresence>
                                 {isHistoryOpen && searchHistory && searchHistory.length > 0 && (
@@ -289,7 +312,7 @@ const HardwareEngine: React.FC = () => {
                                             {searchHistory.map((h, i) => (
                                                 <button 
                                                     key={i}
-                                                    onClick={() => { setHardwareState({ componentQuery: h }); setIsHistoryOpen(false); audio.playClick(); }}
+                                                    onClick={() => { setHardwareState({ componentQuery: h }); setIsHistoryOpen(false); audio.playClick(); handleSearchComponents(); }}
                                                     className="w-full text-left px-4 py-2.5 text-[10px] font-mono text-gray-400 hover:bg-[#111] hover:text-[#9d4edd] transition-colors flex items-center gap-3 border-b border-white/5 last:border-0"
                                                 >
                                                     <History size={12} className="text-gray-600" />
@@ -310,19 +333,24 @@ const HardwareEngine: React.FC = () => {
                                     exit={{ height: 0, opacity: 0 }}
                                     className="overflow-hidden border-b border-white/5 pb-4 space-y-4"
                                 >
-                                    {/* Vendor Filter */}
+                                    {/* Vendor Filter Dropdown */}
                                     <div className="space-y-2">
                                         <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Vendor Node</label>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {['ALL', 'NVIDIA', 'INTEL', 'AMD', 'SUPERMICRO'].map(v => (
-                                                <button 
-                                                    key={v}
-                                                    onClick={() => { setHardwareState({ activeVendor: v as any }); audio.playClick(); }}
-                                                    className={`px-3 py-1.5 rounded-lg border text-[9px] font-black font-mono transition-all ${activeVendor === v ? 'bg-[#9d4edd] text-black border-[#9d4edd]' : 'bg-black text-gray-500 border-[#222]'}`}
-                                                >
-                                                    {v}
-                                                </button>
-                                            ))}
+                                        <div className="relative group">
+                                            <select 
+                                                value={activeVendor}
+                                                onChange={e => { setHardwareState({ activeVendor: e.target.value as any }); audio.playClick(); }}
+                                                className="w-full bg-[#050505] border border-[#333] rounded-lg px-4 py-2.5 text-[10px] font-black font-mono text-[#9d4edd] uppercase appearance-none outline-none focus:border-[#9d4edd] transition-all cursor-pointer"
+                                            >
+                                                <option value="ALL">ALL VENDORS</option>
+                                                <option value="NVIDIA">NVIDIA_CORE</option>
+                                                <option value="INTEL">INTEL_NODE</option>
+                                                <option value="AMD">AMD_LATTICE</option>
+                                                <option value="SUPERMICRO">SUPERMICRO_INFRA</option>
+                                            </select>
+                                            <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 group-hover:text-[#9d4edd] transition-colors">
+                                                <ChevronDown size={14} />
+                                            </div>
                                         </div>
                                     </div>
 
@@ -366,12 +394,12 @@ const HardwareEngine: React.FC = () => {
                     </div>
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
-                        {filteredRecommendations.map((item) => (
-                            <div key={item.id} className={`p-4 border rounded-xl cursor-pointer transition-all flex items-center justify-between ${inspectedComponent?.id === item.id ? 'border-[#9d4edd] bg-[#9d4edd]/5' : 'border-transparent hover:bg-white/[0.02]'}`} onClick={() => setInspectedComponent(item)}>
+                        {filteredRecommendations.map((item, idx) => (
+                            <div key={item.id || idx} className={`p-4 border rounded-xl cursor-pointer transition-all flex items-center justify-between ${inspectedComponent?.id === item.id ? 'border-[#9d4edd] bg-[#9d4edd]/5' : 'border-transparent hover:bg-white/[0.02]'}`} onClick={() => setInspectedComponent(item)}>
                                 <div className="flex-1 min-w-0 pr-4">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h4 className="text-[11px] font-black text-gray-200 uppercase truncate">{item.partNumber}</h4>
-                                        {item.stock > 0 ? (
+                                        <h4 className="text-[11px] font-black text-gray-200 uppercase truncate">{item.partNumber || item.name}</h4>
+                                        {(item.stock > 0 || item.availability === 'In Stock') ? (
                                             <span className="w-1.5 h-1.5 rounded-full bg-[#10b981]" title="In Stock" />
                                         ) : (
                                             <span className="w-1.5 h-1.5 rounded-full bg-red-500" title="Out of Stock" />
@@ -385,7 +413,9 @@ const HardwareEngine: React.FC = () => {
                         {filteredRecommendations.length === 0 && (
                             <div className="p-12 text-center opacity-30 flex flex-col items-center gap-4">
                                 <Package size={32} />
-                                <span className="text-[10px] font-mono uppercase">No components match current filters</span>
+                                <span className="text-[10px] font-mono uppercase">
+                                    {recommendations.length > 0 ? "No components match current filters" : "Initiate search to research components"}
+                                </span>
                             </div>
                         )}
                     </div>

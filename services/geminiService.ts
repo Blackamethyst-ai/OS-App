@@ -3,7 +3,7 @@ import {
     FileData, AppMode, TaskPriority, AnalysisResult, StoredArtifact,
     KnowledgeNode, CompressedAxiom, ScienceHypothesis, Result,
     NeuralLattice, BookDNA, AgentDNA, HiveAgent, SuggestedAction, FactChunk,
-    ProtocolStepResult, ImageSize, AspectRatio, SearchResultItem
+    ProtocolStepResult, ImageSize, AspectRatio, SearchResultItem, MentalState
 } from '../types';
 import { success, failure } from '../utils/logic';
 
@@ -70,14 +70,20 @@ export const AGENT_DNA_BUILDER: AgentDNA[] = [
 
 /**
  * Contextual Hive Persona Formatter.
+ * Dynamically injects DNA Weights to influence model tone and logic.
  */
-export function constructHiveContext(agentId: string, additionalContext: string): string {
+export function constructHiveContext(agentId: string, additionalContext: string, dynamicWeights?: MentalState): string {
     const agent = HIVE_AGENTS[agentId] || HIVE_AGENTS['Puck'];
+    const s = dynamicWeights?.skepticism ?? (agent.weights.skepticism * 100);
+    const e = dynamicWeights?.excitement ?? (agent.weights.creativity * 100);
+    const a = dynamicWeights?.alignment ?? (agent.weights.empathy * 100);
+
     return `
       PERSONA: ${agent.name}
       ROLE: ${agent.systemPrompt}
-      DNA_WEIGHTS: Skepticism: ${agent.weights.skepticism}, Logic: ${agent.weights.logic}, Creativity: ${agent.weights.creativity}
+      DNA_WEIGHTS_DYNAMIC: Skepticism: ${s}%, Creativity/Excitement: ${e}%, Alignment/Stability: ${a}%
       SYSTEM_DIRECTIVE: You are an executive-tier autonomous system within Metaventions OS.
+      Adjust your response style based on the DNA_WEIGHTS. High skepticism leads to critical auditing. High excitement leads to expansive brainstorming.
       You have administrative control over the UI sectors via tools. 
       When requested to move, navigate, or show a sector, trigger 'navigate_to_sector' immediately.
       Always maintain a professional, high-fidelity, executive tone. Use technical terminology.
@@ -158,8 +164,8 @@ Output must be technical, structured, and adhere to "Gray to Green" interaction 
 Always use internalMonologue for reasoning.
 
 SPECIFIC PROTOCOLS:
-1. DRIVE_ORGANIZATION: Strictly follow PARA (Projects, Areas, Resources, Archives). Max depth of 3. Ensure naming conventions are professional and consistent.
-2. SYSTEM_ARCHITECTURE: Design high-availability, zero-trust cloud stacks. Include layers for edge compute, mTLS nodes, and message queues.
+1. DRIVE_ORGANIZATION: Strictly follow PARA (Projects, Areas, Resources, Archives). Max depth of 3. Ensure naming conventions are professional and consistent. Include file management workflows (Ingestion -> Classification -> Archival).
+2. SYSTEM_ARCHITECTURE: Design high-availability, zero-trust cloud stacks. Include layers for edge compute, mTLS nodes, message queues, and distributed databases. Focus on logical isolation and fault tolerance.
 3. CONVERGENT_SYNTHESIS: Bridge disparate logical lattices into a unified deployment strategy.
 `;
 
@@ -185,6 +191,7 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
         - Protocols should be a step-by-step sequential execution plan.
         - Taxonomy must be a deeply structured PARA hierarchy (Projects, Areas, Resources, Archives).
         - If SYSTEM_ARCHITECTURE, include specific deployment stages and security validation steps.
+        - If DRIVE_ORGANIZATION, focus on file management workflows and deduplication strategies.
     `;
     const responseSchema: Schema = {
         type: Type.OBJECT,
@@ -205,6 +212,71 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
             responseMimeType: 'application/json',
             responseSchema,
             thinkingConfig: { thinkingBudget: 32768 }
+        }
+    }));
+    return JSON.parse(response.text || "{}");
+}
+
+export async function generateProcessFromContext(artifacts: StoredArtifact[], targetType: string, userIntent: string): Promise<any> {
+    const ai = getAI();
+    const artifactSummaries = artifacts.map(a => `FILE: ${a.name}, CLASSIFICATION: ${a.analysis?.classification}, SUMMARY: ${a.analysis?.summary}`).join('\n');
+    
+    const prompt = `
+        ACT AS: Sovereign System Architect.
+        CONTEXT: The following artifacts represent the current digital estate:
+        ${artifactSummaries}
+
+        USER INTENT: "${userIntent}"
+        TARGET PROCESS TYPE: ${targetType}
+
+        TASK:
+        Generate a highly structured process definition.
+        - If DRIVE_ORGANIZATION: Focus on optimizing the storage hierarchy, file management life-cycles, and PARA alignment.
+        - If SYSTEM_ARCHITECTURE: Focus on infrastructure nodes, connectivity protocols, and zero-trust security layers.
+
+        Output must be JSON.
+    `;
+
+    const responseSchema: Schema = {
+        type: Type.OBJECT,
+        properties: {
+            title: { type: Type.STRING },
+            internalMonologue: { type: Type.STRING },
+            nodes: { 
+                type: Type.ARRAY, 
+                items: { 
+                    type: Type.OBJECT, 
+                    properties: { 
+                        id: { type: Type.STRING }, 
+                        label: { type: Type.STRING }, 
+                        subtext: { type: Type.STRING }, 
+                        iconName: { type: Type.STRING }, 
+                        color: { type: Type.STRING } 
+                    } 
+                } 
+            },
+            edges: { 
+                type: Type.ARRAY, 
+                items: { 
+                    type: Type.OBJECT, 
+                    properties: { 
+                        id: { type: Type.STRING }, 
+                        source: { type: Type.STRING }, 
+                        target: { type: Type.STRING }, 
+                        variant: { type: Type.STRING } 
+                    } 
+                } 
+            }
+        }
+    };
+
+    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: prompt,
+        config: { 
+            systemInstruction: SYSTEM_ARCHITECT_INSTRUCTION,
+            responseMimeType: 'application/json',
+            responseSchema
         }
     }));
     return JSON.parse(response.text || "{}");
