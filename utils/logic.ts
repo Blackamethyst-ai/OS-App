@@ -1,4 +1,3 @@
-
 /**
  * Senior Architect Pattern: Result Type
  * Standardizes error handling across the OS.

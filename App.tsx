@@ -172,7 +172,7 @@ const App: React.FC = () => {
   }, [theme]);
 
   const isFixedLayout = useMemo(() => 
-    mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER
+    mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.SYNTHESIS_BRIDGE
   , [mode]);
 
   return (
@@ -251,7 +251,7 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-10' : 'pb-32 overflow-y-auto custom-scrollbar'}`}>
+      <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-6' : 'pb-32 overflow-y-auto custom-scrollbar'}`}>
         <SynapticRouter />
       </div>
     </div>
