@@ -681,33 +681,9 @@ const Dashboard: React.FC = () => {
           </div>
       </div>
 
-      <div className="relative z-10 max-w-[1920px] mx-auto p-6 space-y-12 pb-32">
-          
-          {/* Header Cluster */}
-          <div className="flex justify-between items-end pb-4 border-b border-white/5">
-              <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-3">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse"></div>
-                      <span className="text-[8px] font-black font-mono text-gray-700 uppercase tracking-[0.4em]">Sovereign_Alpha</span>
-                  </div>
-                  <MetaventionsLogo size={42} showText={true} />
-              </div>
-
-              <div className="flex items-center gap-6 pb-1">
-                  <button onClick={() => toggleProfile(true)} className="flex items-center gap-4 group">
-                      <div className="text-right">
-                          <div className="text-[10px] font-black text-white group-hover:text-[#9d4edd] transition-colors uppercase tracking-widest">{user.displayName}</div>
-                          <div className="text-[7px] font-mono text-gray-600 uppercase tracking-tighter mt-1">AUTH_L05</div>
-                      </div>
-                      <div className="w-10 h-10 rounded-xl border border-white/5 overflow-hidden bg-black flex items-center justify-center group-hover:border-[#9d4edd]/40 transition-all shadow-2xl">
-                          {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="User" /> : <User className="text-gray-700" size={16}/>}
-                      </div>
-                  </button>
-              </div>
-          </div>
-
+      <div className="relative z-10 max-w-[1920px] mx-auto p-6 space-y-6 pb-32">
           {/* Grid Layout */}
-          <div className="grid grid-cols-12 gap-6">
+          <div className="grid grid-cols-12 gap-6 pt-4">
               
               {/* Left Column: Telemetry & Swarm */}
               <div className="col-span-3 space-y-6 flex flex-col h-[1000px]">
@@ -855,10 +831,10 @@ const Dashboard: React.FC = () => {
               </div>
           </div>
 
-          {/* --- INNOVATED VOICE CORE TERMINAL (HIGH DENSITY + NODE EXPANSION) --- */}
-          <div className="pt-24 border-t border-white/5">
+          {/* --- INNOVATED VOICE CORE TERMINAL --- */}
+          <div className="pt-16 border-t border-white/5">
               <div 
-                className="w-full bg-[#010101] flex flex-col relative overflow-hidden font-sans border border-white/10 rounded-[5rem] shadow-[0_0_200px_rgba(0,0,0,1)] group/voicestudio h-[2600px]"
+                className="w-full bg-[#010101] flex flex-col relative overflow-hidden font-sans border border-white/10 rounded-[5rem] shadow-[0_0_200px_rgba(0,0,0,1)] group/voicestudio h-[2000px]"
               >
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(241,194,27,0.02)_0%,transparent_90%)] pointer-events-none" />
                   
@@ -896,13 +872,7 @@ const Dashboard: React.FC = () => {
 
                   {/* EXPANDED CORE NODE SECTOR */}
                   <div className="h-[750px] flex items-center justify-center gap-40 p-16 relative overflow-hidden shrink-0">
-                     
-                     {/* Operator Node */}
-                     <motion.div 
-                        initial={{ opacity: 0, x: -50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex flex-col items-center gap-12"
-                     >
+                     <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col items-center gap-12">
                         <div className="flex items-center gap-4 px-8 py-2.5 rounded-full bg-white/5 border border-white/10 shadow-lg opacity-60">
                             <Target size={18} className="text-[#22d3ee]" />
                             <span className="text-[11px] font-black text-[#22d3ee] uppercase tracking-[0.5em]">Operator_Enclave</span>
@@ -910,11 +880,7 @@ const Dashboard: React.FC = () => {
                         <CognitiveLattice image={user.avatar} freqs={userFreqs} color="#22d3ee" isAgent={false} />
                      </motion.div>
 
-                     {/* Central Control Hub */}
                      <div className="flex flex-col items-center gap-12 relative pt-8">
-                        <div className={`absolute -inset-24 border-2 border-dashed rounded-full pointer-events-none transition-all duration-[3000ms] ${voice.isActive ? 'border-[#f1c21b]/20 animate-[spin_60s_linear_infinite]' : 'opacity-0'}`} />
-                        <div className={`absolute -inset-16 border border-white/5 rounded-full pointer-events-none transition-all duration-[2000ms] ${voice.isActive ? 'scale-110 opacity-100' : 'scale-90 opacity-0'}`} />
-                        
                         <button 
                             onClick={toggleVoiceSession} 
                             disabled={voice.isConnecting}
@@ -928,179 +894,66 @@ const Dashboard: React.FC = () => {
                             <div className="relative z-20">
                                 {voice.isConnecting ? <Loader2 className="animate-spin text-[#f1c21b] w-12 h-12" /> : voice.isActive ? <Power className="text-red-500 w-12 h-12" /> : <Mic className="text-[#f1c21b] w-12 h-12" />}
                             </div>
-                            <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.05] to-transparent pointer-events-none" />
                         </button>
-                        
-                        <div className="flex flex-col items-center gap-3">
-                            <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.8em] transition-all drop-shadow-[0_0_12px_rgba(255,255,255,0.3)]">
-                                {voice.isActive ? 'SEVER_UPLINK' : 'ENGAGE_LATTICE'}
-                            </span>
-                        </div>
+                        <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.8em]">
+                            {voice.isActive ? 'SEVER_UPLINK' : 'ENGAGE_LATTICE'}
+                        </span>
                      </div>
 
-                     {/* AI Node */}
-                     <motion.div 
-                        initial={{ opacity: 0, x: 50 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="flex flex-col items-center gap-12"
-                     >
+                     <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col items-center gap-12">
                         <div className="flex items-center gap-4 px-8 py-2.5 rounded-full bg-white/5 border border-white/10 shadow-lg opacity-60">
                             <BotIcon size={18} className="text-[#f1c21b]" />
                             <span className="text-[11px] font-black text-[#f1c21b] uppercase tracking-[0.5em]">Lattice_AI_Core</span>
                         </div>
-                        <CognitiveLattice 
-                            image={agentAvatar} 
-                            freqs={agentFreqs} 
-                            color="#f1c21b" 
-                            isAgent={true} 
-                            isThinking={voice.isActive && !!voice.partialTranscript}
-                        />
+                        <CognitiveLattice image={agentAvatar} freqs={agentFreqs} color="#f1c21b" isAgent={true} isThinking={voice.isActive && !!voice.partialTranscript} />
                      </motion.div>
                   </div>
 
-                  {/* SYMMETRICAL NEURAL PACKET STREAM (LEDGER) */}
+                  {/* SYMMETRICAL NEURAL PACKET STREAM */}
                   <div className="flex-1 border-t border-white/10 bg-[#050505]/98 backdrop-blur-3xl p-16 flex flex-col min-h-0 relative">
                       <div className="flex items-center justify-between mb-12 border-b border-white/5 pb-10 shrink-0">
                         <div className="flex items-center gap-8">
-                            <div className="p-4 bg-[#f1c21b]/10 border border-[#f1c21b]/30 rounded-[1.5rem] relative shadow-[0_0_40px_rgba(241,194,27,0.1)]">
+                            <div className="p-4 bg-[#f1c21b]/10 border border-[#f1c21b]/30 rounded-[1.5rem] relative">
                                 <Binary size={24} className="text-[#f1c21b]" />
-                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#f1c21b] rounded-full animate-ping" />
                             </div>
-                            <div className="flex flex-col">
-                                <span className="text-lg font-black uppercase tracking-[0.5em] text-white">Synaptic Ledger</span>
-                                <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest mt-2 flex items-center gap-3">
-                                    <History size={12} /> Bilateral Transmission // {voice.transcripts.length} packets cached
-                                </span>
-                            </div>
+                            <span className="text-lg font-black uppercase tracking-[0.5em] text-white">Synaptic Ledger</span>
                         </div>
-                        <div className="flex items-center gap-8">
-                            <div className="flex items-center gap-4 text-[10px] font-mono text-emerald-500 font-black uppercase tracking-widest bg-emerald-500/10 px-6 py-2.5 rounded-2xl border border-emerald-500/30">
-                                <ShieldCheck size={16} /> L0_GROUNDED
-                            </div>
-                            <button onClick={() => { setShowDialogueStream(!showDialogueStream); audio.playClick(); }} className="text-gray-700 hover:text-white transition-all active:scale-90 p-3 bg-white/5 rounded-2xl border border-white/10">
-                                <ChevronDown size={22} className={showDialogueStream ? '' : 'rotate-180'} />
-                            </button>
-                        </div>
+                        <button onClick={() => setShowDialogueStream(!showDialogueStream)} className="text-gray-700 hover:text-white transition-all p-3 bg-white/5 rounded-2xl border border-white/10">
+                            <ChevronDown size={22} className={showDialogueStream ? '' : 'rotate-180'} />
+                        </button>
                       </div>
                       
-                      <div className="flex-1 overflow-y-auto custom-scrollbar font-mono text-base leading-relaxed pr-10" ref={voiceScrollRef}>
+                      <div className="flex-1 overflow-y-auto custom-scrollbar font-mono text-base pr-10" ref={voiceScrollRef}>
                           <AnimatePresence initial={false}>
                               {showDialogueStream && voice.transcripts.map((t, i) => {
                                   const isUser = (t.role || '').toLowerCase() === 'user';
                                   const currentAvatar = isUser ? user.avatar : agentAvatar;
-                                  
                                   return (
                                       <motion.div 
-                                        initial={{ opacity: 0, y: 30, scale: 0.99 }} 
-                                        animate={{ opacity: 1, y: 0, scale: 1 }} 
-                                        key={i} 
-                                        className={`mb-12 flex gap-12 p-12 rounded-[4rem] border transition-all duration-1000 shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative group/card overflow-hidden
-                                            ${isUser 
-                                                ? 'bg-[#22d3ee]/5 border-[#22d3ee]/20 flex-row-reverse text-[#22d3ee]' 
-                                                : 'bg-[#f1c21b]/5 border-[#f1c21b]/20 text-[#f1c21b]'
-                                            }`}
+                                        initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} key={i} 
+                                        className={`mb-12 flex gap-12 p-12 rounded-[4rem] border transition-all duration-1000 ${isUser ? 'bg-[#22d3ee]/5 border-[#22d3ee]/20 flex-row-reverse text-[#22d3ee]' : 'bg-[#f1c21b]/5 border-[#f1c21b]/20 text-[#f1c21b]'}`}
                                       >
-                                          <div className={`w-20 h-20 rounded-[2rem] border-2 flex items-center justify-center shrink-0 shadow-2xl transition-transform duration-1000 group-hover/card:scale-110 relative z-10 overflow-hidden bg-[#0a0a0a]
-                                              ${isUser ? 'border-[#22d3ee]/50' : 'border-[#f1c21b]/50'}`}>
-                                              {currentAvatar ? (
-                                                  <img src={currentAvatar} className="w-full h-full object-cover" alt="Node" />
-                                              ) : (
-                                                  isUser ? <User size={36} /> : <BotIcon size={36} />
-                                              )}
+                                          <div className={`w-20 h-20 rounded-[2rem] border-2 flex items-center justify-center shrink-0 overflow-hidden bg-[#0a0a0a] ${isUser ? 'border-[#22d3ee]/50' : 'border-[#f1c21b]/50'}`}>
+                                              {currentAvatar ? <img src={currentAvatar} className="w-full h-full object-cover" alt="Node" /> : isUser ? <User size={36} /> : <BotIcon size={36} />}
                                           </div>
-                                          <div className={`flex-1 relative z-10 ${isUser ? 'text-right' : 'text-left'}`}>
-                                              <div className={`flex items-center gap-4 mb-5 opacity-60 uppercase text-[10px] font-black tracking-[0.5em] ${isUser ? 'justify-end' : 'justify-start'}`}>
-                                                  {isUser ? (
-                                                      <>
-                                                        <PulseIcon size={12} className="text-[#22d3ee]" />
-                                                        <span>Live_Neural_Ingest</span>
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-cyan-500" />
-                                                        <span>ACK_OK</span>
-                                                      </>
-                                                  ) : (
-                                                      <>
-                                                        <Languages size={12} className="text-[#f1c21b]" />
-                                                        <span className="text-[#f1c21b]">Live_Neural_Synthesis</span>
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-[#f1c21b]/30" />
-                                                        <span>LATTICE_SYNC</span>
-                                                      </>
-                                                  )}
-                                              </div>
-                                              <p className="text-gray-100 font-medium tracking-tight text-2xl selection:bg-current selection:text-black leading-relaxed">{(t.text || '').toString()}</p>
-                                              
-                                              <div className={`mt-8 flex items-center gap-10 opacity-25 ${isUser ? 'justify-end' : 'justify-start'}`}>
-                                                  <div className="flex items-center gap-2">
-                                                      <Hash size={12} />
-                                                      <span className="text-[9px] font-mono tracking-widest">PKT_{i.toString().padStart(4, '0')}</span>
-                                                  </div>
-                                                  <div className="flex items-center gap-2">
-                                                      <Zap size={12} />
-                                                      <span className="text-[9px] font-mono tracking-widest">LTNCY_14ms</span>
-                                                  </div>
-                                                  <span className="text-[11px] font-mono tracking-widest">{new Date(t.timestamp).toLocaleTimeString()}</span>
-                                              </div>
+                                          <div className={`flex-1 ${isUser ? 'text-right' : 'text-left'}`}>
+                                              <p className="text-gray-100 font-medium text-2xl">{(t.text || '').toString()}</p>
+                                              <span className="mt-8 block text-[11px] font-mono tracking-widest opacity-25">{new Date(t.timestamp).toLocaleTimeString()}</span>
                                           </div>
                                       </motion.div>
                                   );
                               })}
                           </AnimatePresence>
-
-                          {/* LIVE NEURAL TRANSLATION (SYMMETRICAL) */}
-                          {voice.partialTranscript && (
-                              <motion.div 
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                className={`flex gap-12 p-12 rounded-[4rem] border border-dashed opacity-60 mb-12 transition-all duration-700
-                                    ${voice.partialTranscript.role === 'user' 
-                                        ? 'bg-[#22d3ee]/5 border-[#22d3ee]/40 flex-row-reverse text-[#22d3ee]' 
-                                        : 'bg-[#f1c21b]/5 border-[#f1c21b]/40 text-[#f1c21b]'
-                                    }`}
-                              >
-                                  <div className={`w-20 h-20 rounded-[2rem] border-2 flex items-center justify-center shrink-0 shadow-2xl overflow-hidden bg-black
-                                      ${voice.partialTranscript.role === 'user' ? 'border-[#22d3ee]/30' : 'border-[#f1c21b]/30'}`}>
-                                      {(voice.partialTranscript.role === 'user' ? user.avatar : agentAvatar) ? (
-                                          <img src={voice.partialTranscript.role === 'user' ? user.avatar! : agentAvatar!} className="w-full h-full object-cover opacity-50 grayscale contrast-125" />
-                                      ) : (
-                                          <Loader2 size={36} className="animate-spin text-current opacity-40" />
-                                      )}
-                                  </div>
-                                  <div className={`flex-1 ${voice.partialTranscript.role === 'user' ? 'text-right' : 'text-left'}`}>
-                                      <div className={`flex items-center gap-4 mb-5 opacity-40 uppercase text-[10px] font-black tracking-[0.5em] ${voice.partialTranscript.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                          <Loader2 size={12} className="animate-spin" />
-                                          <span>Neural_Translation_Buffer</span>
-                                      </div>
-                                      <p className="text-gray-300 italic text-2xl">{(voice.partialTranscript.text || '').toString()}_</p>
-                                  </div>
-                              </motion.div>
-                          )}
-
-                          {voice.transcripts.length === 0 && !voice.partialTranscript && (
-                              <div className="h-full flex flex-col items-center justify-center opacity-10 text-center py-48 grayscale">
-                                  <Waves size={160} className="mb-12 text-gray-500 animate-pulse" />
-                                  <p className="text-4xl font-mono uppercase tracking-[1.2em]">Acoustic Cache Null</p>
-                              </div>
-                          )}
                       </div>
                   </div>
 
                   {/* OS Tactical HUD Footer */}
                   <div className="h-16 bg-[#050505] border-t border-white/5 px-16 flex items-center justify-between text-[11px] font-mono text-gray-700 shrink-0 relative z-[60]">
-                    <div className="flex gap-16 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
-                        <div className="flex items-center gap-6 text-emerald-900 font-bold uppercase tracking-[0.3em]">
-                            <ShieldCheck size={20} className="shadow-[0_0_25px_rgba(16,185,129,0.25)]" /> Handshake_Secure
-                        </div>
-                        <div className="flex items-center gap-6 uppercase tracking-[0.5em]">
-                            <GitBranch size={20} className="text-[#f1c21b]" /> Kernel: EXECUTIVE_DIRECTIVE
-                        </div>
-                        <div className="flex items-center gap-6 uppercase tracking-[0.5em]">
-                            <Globe size={20} className="text-[#22d3ee]" /> Node: SOVEREIGN_ALPHA
-                        </div>
+                    <div className="flex gap-16 items-center">
+                        <div className="flex items-center gap-6 text-emerald-900 font-bold uppercase tracking-[0.3em]"><ShieldCheck size={20} /> Handshake_Secure</div>
+                        <div className="flex items-center gap-6 uppercase tracking-[0.5em]"><GitBranch size={20} className="text-[#f1c21b]" /> Kernel: EXECUTIVE</div>
                     </div>
-                    <div className="flex items-center gap-16 shrink-0">
-                        <span className="uppercase tracking-[0.7em] opacity-40 text-[10px] hidden lg:block">Arch v9.5 // Neural Link Prime</span>
-                        <div className="h-6 w-px bg-white/10 hidden lg:block" />
-                        <span className="font-black text-gray-500 uppercase tracking-widest text-xs">SYSTEM_CORE</span>
-                    </div>
+                    <span className="font-black text-gray-500 uppercase tracking-widest text-xs">SYSTEM_CORE</span>
                   </div>
               </div>
           </div>

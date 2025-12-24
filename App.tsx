@@ -31,24 +31,26 @@ import { useVoiceControl } from './hooks/useVoiceControl';
 import { useResearchAgent } from './hooks/useResearchAgent'; 
 import { 
     LayoutGrid, Image, Settings, Activity, BookOpen, Mic, Cpu, 
-    Code, HardDrive, GitMerge, Target, X, User, Bot 
+    Code, HardDrive, GitMerge, Target, X, User, Bot, ExternalLink, Moon
 } from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
 import { collabService } from './services/collabService';
 import { audio } from './services/audioService'; 
 import { AnimatePresence, motion } from 'framer-motion';
 
-// --- NAVIGATION CONFIGURATION ---
+// --- NAVIGATION CONFIGURATION (Full Operational Suite) ---
 const NAV_CONFIG = [
-  { id: AppMode.DASHBOARD, label: 'Command Center', path: '/dashboard', icon: LayoutGrid },
-  { id: AppMode.BIBLIOMORPHIC, label: 'Research', path: '/bibliomorphic', icon: BookOpen },
-  { id: AppMode.PROCESS_MAP, label: 'Process', path: '/process', icon: GitMerge },
-  { id: AppMode.MEMORY_CORE, label: 'Vault', path: '/memory', icon: HardDrive },
-  { id: AppMode.IMAGE_GEN, label: 'Studio', path: '/assets', icon: Image },
-  { id: AppMode.HARDWARE_ENGINEER, label: 'Hardware', path: '/hardware', icon: Cpu },
-  { id: AppMode.CODE_STUDIO, label: 'Code', path: '/code', icon: Code },
-  { id: AppMode.AGENT_CONTROL, label: 'Agents', path: '/agents', icon: Bot },
-  { id: AppMode.SYNTHESIS_BRIDGE, label: 'Bridge', path: '/bridge', icon: Activity },
+  { id: AppMode.DASHBOARD, label: 'HOME', path: '/dashboard' },
+  { id: AppMode.BIBLIOMORPHIC, label: 'VISION', path: '/bibliomorphic' },
+  { id: AppMode.PROCESS_MAP, label: 'PROCESS', path: '/process' },
+  { id: AppMode.CODE_STUDIO, label: 'CODE', path: '/code' },
+  { id: AppMode.AGENT_CONTROL, label: 'AGENTS', path: '/agents' },
+  { id: AppMode.MEMORY_CORE, label: 'VAULT', path: '/memory' },
+  { id: AppMode.IMAGE_GEN, label: 'STUDIO', path: '/assets' },
+  { id: AppMode.HARDWARE_ENGINEER, label: 'HARDWARE', path: '/hardware' },
+  { id: AppMode.VOICE_MODE, label: 'VOICE', path: '/voice' },
+  { id: AppMode.SYNTHESIS_BRIDGE, label: 'BRIDGE', path: '/bridge' },
+  { id: AppMode.BICAMERAL, label: 'SWARM', path: '/swarm' },
 ];
 
 const FocusOverlay = () => {
@@ -216,35 +218,75 @@ const App: React.FC = () => {
         {isHelpOpen && <HelpCenter onClose={() => setHelpOpen(false)} />}
       </AnimatePresence>
 
-      <header className="flex-shrink-0 h-14 border-b z-[100] px-4 flex items-center justify-between backdrop-blur-xl" style={{ backgroundColor: 'rgba(10,10,10,0.85)', borderColor: 'var(--border-main)' }}>
-        <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => switchPath('/dashboard')}>
-          <MetaventionsLogo size={32} showText={true} />
-          <FlywheelOrbit />
-        </div>
+      {/* --- REDESIGNED CONTROL CENTER HEADER (FIXED HEIGHT 72px) --- */}
+      <header className="flex-shrink-0 h-[72px] border-b z-[100] px-8 flex items-center justify-between backdrop-blur-3xl bg-[#030303]/90 border-white/5 shadow-2xl">
         
-        <nav className="flex items-center space-x-0.5 p-0.5 rounded-lg border border-white/5 mx-auto overflow-x-auto no-scrollbar" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
-          {NAV_CONFIG.map(item => (
-              <button 
-                key={item.id} 
-                onClick={() => switchPath(item.path)} 
-                className={`flex items-center px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-wider transition-all duration-300 font-mono whitespace-nowrap ${mode === item.id ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white'}`}
-              >
-                <item.icon className="w-2.5 h-2.5 mr-1.5" />
-                {item.label}
-              </button>
-          ))}
-        </nav>
+        {/* Left: Branding & Multi-Line Status Bar */}
+        <div className="flex items-center gap-10">
+            <div className="flex flex-col cursor-pointer group" onClick={() => switchPath('/dashboard')}>
+                <div className="flex flex-col gap-0 mb-1 opacity-50 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1.5">
+                        <div className="w-1 h-1 rounded-full bg-[#10b981] animate-pulse" />
+                        <span className="text-[7px] font-black font-mono text-gray-400 uppercase tracking-[0.3em]">Sovereign_Alpha_Online</span>
+                    </div>
+                    <span className="text-[6px] font-mono text-gray-600 uppercase tracking-[0.1em] mt-0.5">
+                        Architected Intelligence — Sovereign Thinking // v1.0
+                    </span>
+                </div>
+                <MetaventionsLogo size={32} showText={true} />
+            </div>
 
-        <div className="flex items-center gap-3">
+            <div className="h-10 w-px bg-white/5" />
+
+            {/* High-Density Navigation Tabs (Auto-Adjusting Space) */}
+            <nav className="flex items-center gap-4 xl:gap-6 overflow-x-auto no-scrollbar max-w-[800px]">
+                {NAV_CONFIG.map(item => (
+                    <button 
+                        key={item.id} 
+                        onClick={() => switchPath(item.path)} 
+                        className="relative py-6 px-1.5 group flex-shrink-0"
+                    >
+                        <span className={`text-[9px] font-black uppercase tracking-[0.15em] font-mono transition-colors duration-500 ${mode === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-200'}`}>
+                            {item.label}
+                        </span>
+                        {mode === item.id && (
+                            <motion.div 
+                                layoutId="activeTabGlow"
+                                className="absolute bottom-4 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-[#00f2ff] shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+                            />
+                        )}
+                        {mode !== item.id && (
+                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-0 h-[1px] bg-white/20 group-hover:w-full transition-all duration-300" />
+                        )}
+                    </button>
+                ))}
+            </nav>
+        </div>
+
+        {/* Right: Functional Control Stack */}
+        <div className="flex items-center gap-6">
             <GlobalSearchBar />
-            <ThemeSwitcher />
-            <div className="h-4 w-px bg-white/10" />
-            <button 
-                onClick={() => toggleProfile(true)} 
-                className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg border border-[#333] hover:border-[#9d4edd] transition-all bg-black/40 group"
-            >
-                <User className="w-3 h-3 text-gray-400 group-hover:text-[#9d4edd]" />
-                <span className="text-[9px] font-mono uppercase text-gray-300 group-hover:text-white tracking-widest">{user.displayName}</span>
+            
+            <div className="h-6 w-px bg-white/5" />
+
+            <div className="flex items-center gap-1.5">
+                <ThemeSwitcher />
+                <button 
+                    onClick={() => toggleProfile(true)}
+                    className="p-2 text-gray-500 hover:text-[#9d4edd] transition-colors rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10"
+                    title="Architect Core"
+                >
+                    <User size={16} />
+                </button>
+            </div>
+
+            {/* D-Ecosystem Call to Action */}
+            <button className="relative group/eco px-6 py-2.5 bg-black border border-white/10 hover:border-white/40 rounded-lg transition-all duration-500 shadow-2xl overflow-hidden active:scale-95">
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover/eco:opacity-100 transition-opacity" />
+                <span className="relative z-10 text-[9px] font-black font-mono text-white tracking-[0.25em] uppercase flex items-center gap-2.5">
+                    The D-Ecosystem
+                    <ExternalLink size={10} className="text-gray-600 group-hover/eco:text-white transition-colors" />
+                </span>
             </button>
         </div>
       </header>
