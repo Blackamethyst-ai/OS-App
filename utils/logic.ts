@@ -15,7 +15,7 @@ export const failure = <E>(error: E): Result<never, E> => ({ ok: false, error })
  * Converts array of entities to a Hash Map for O(1) retrieval.
  */
 export function createFastLookup<T extends { id: string }>(items: T[]): Map<string, T> {
-    return new Map(items.map(item => [item.id, item }));
+    return new Map(items.map(item => [item.id, item]));
 }
 
 /**
