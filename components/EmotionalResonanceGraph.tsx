@@ -15,7 +15,7 @@ const EmotionalResonanceGraph: React.FC = () => {
     const [dynamicsRange, setDynamicsRange] = useState(1); // 0.5 to 1.5
 
     const width = 600;
-    const height = 150;
+    const height = 220; // Increased height from baseline
     const padding = 20;
     const pointsCount = 10;
     const xStep = (width - padding * 2) / (pointsCount - 1);
@@ -121,31 +121,32 @@ const EmotionalResonanceGraph: React.FC = () => {
     if (!Array.isArray(resonanceCurve)) return null;
 
     return (
-        <div className="w-full bg-[#050505] border border-[#222] rounded-lg overflow-hidden relative group">
+        <div className="w-full h-full bg-[#050505] border border-[#222] rounded-lg overflow-hidden relative group flex flex-col">
             
             {/* Toolbar */}
-            <div className="flex items-center justify-between px-4 py-2 border-b border-[#222] bg-[#0a0a0a]">
+            <div className="flex items-center justify-between px-4 py-1.5 border-b border-[#222] bg-[#0a0a0a] shrink-0">
                 <div className="flex items-center gap-4 text-[9px] font-mono uppercase tracking-widest">
-                    <span className="text-[#9d4edd] flex items-center gap-1"><Activity className="w-3 h-3"/> Narrative Tension</span>
-                    <span className="text-[#22d3ee] flex items-center gap-1"><AudioWaveform className="w-3 h-3"/> Visual Dynamics</span>
+                    <span className="text-[#9d4edd] flex items-center gap-1"><Activity className="w-3 h-3"/> Tension</span>
+                    <span className="text-[#22d3ee] flex items-center gap-1"><AudioWaveform className="w-3 h-3"/> Dynamics</span>
                 </div>
                 
                 {/* Generative Synthesizer Buttons */}
                 <div className="flex gap-1">
-                    <button onClick={() => applyAlgorithm('HERO')} className="px-2 py-1 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Hero's Journey">Hero</button>
-                    <button onClick={() => applyAlgorithm('RISING')} className="px-2 py-1 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Linear Rise">Rise</button>
-                    <button onClick={() => applyAlgorithm('CHAOS')} className="px-2 py-1 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Randomize">Chaos</button>
-                    <button onClick={() => applyAlgorithm('STEADY')} className="px-2 py-1 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Consistent">Flow</button>
+                    <button onClick={() => applyAlgorithm('HERO')} className="px-2 py-0.5 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Hero's Journey">Hero</button>
+                    <button onClick={() => applyAlgorithm('RISING')} className="px-2 py-0.5 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Linear Rise">Rise</button>
+                    <button onClick={() => applyAlgorithm('CHAOS')} className="px-2 py-0.5 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Randomize">Chaos</button>
+                    <button onClick={() => applyAlgorithm('STEADY')} className="px-2 py-0.5 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Consistent">Flow</button>
                 </div>
             </div>
 
             {/* Graph Area */}
-            <div className="relative p-4 bg-gradient-to-b from-[#0a0a0a] to-[#050505]">
+            <div className="flex-1 relative p-4 bg-gradient-to-b from-[#0a0a0a] to-[#050505]">
                 <svg 
                     ref={svgRef}
                     width="100%" 
-                    height="150" 
+                    height="100%" 
                     viewBox={`0 0 ${width} ${height}`}
+                    preserveAspectRatio="none"
                     className="overflow-visible cursor-crosshair"
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
@@ -193,33 +194,33 @@ const EmotionalResonanceGraph: React.FC = () => {
             </div>
 
             {/* Mixer Controls (Bottom) */}
-            <div className="grid grid-cols-2 gap-4 p-4 border-t border-[#222] bg-[#080808]">
-                <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-[9px] font-mono text-gray-500 uppercase">
+            <div className="grid grid-cols-2 gap-4 p-3 border-t border-[#222] bg-[#080808] shrink-0">
+                <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase">
                         <span>Tension Bias</span>
                         <span className="text-[#9d4edd]">SHIFT</span>
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={() => nudgeTension(-10)} className="px-2 py-1 bg-[#1f1f1f] rounded text-[9px] hover:text-white">-</button>
-                        <div className="flex-1 h-6 bg-[#111] rounded flex items-center px-2 relative overflow-hidden">
+                        <button onClick={() => nudgeTension(-10)} className="px-2 py-0.5 bg-[#1f1f1f] rounded text-[9px] hover:text-white">-</button>
+                        <div className="flex-1 h-4 bg-[#111] rounded flex items-center px-2 relative overflow-hidden">
                             <div className="w-full h-0.5 bg-[#333]"></div>
-                            <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-[#9d4edd] rounded-full -translate-y-1/2 -translate-x-1/2"></div>
+                            <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 bg-[#9d4edd] rounded-full -translate-y-1/2 -translate-x-1/2"></div>
                         </div>
-                        <button onClick={() => nudgeTension(10)} className="px-2 py-1 bg-[#1f1f1f] rounded text-[9px] hover:text-white">+</button>
+                        <button onClick={() => nudgeTension(10)} className="px-2 py-0.5 bg-[#1f1f1f] rounded text-[9px] hover:text-white">+</button>
                     </div>
                 </div>
-                <div className="flex flex-col gap-2">
-                    <div className="flex justify-between text-[9px] font-mono text-gray-500 uppercase">
+                <div className="flex flex-col gap-1.5">
+                    <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase">
                         <span>Dynamics Range</span>
                         <span className="text-[#22d3ee]">AMP</span>
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={() => scaleDynamics(0.9)} className="px-2 py-1 bg-[#1f1f1f] rounded text-[9px] hover:text-white">-</button>
-                        <div className="flex-1 h-6 bg-[#111] rounded flex items-center px-2 relative overflow-hidden">
+                        <button onClick={() => scaleDynamics(0.9)} className="px-2 py-0.5 bg-[#1f1f1f] rounded text-[9px] hover:text-white">-</button>
+                        <div className="flex-1 h-4 bg-[#111] rounded flex items-center px-2 relative overflow-hidden">
                             <div className="w-full h-0.5 bg-[#333]"></div>
-                            <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-[#22d3ee] rounded-full -translate-y-1/2 -translate-x-1/2"></div>
+                            <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 bg-[#22d3ee] rounded-full -translate-y-1/2 -translate-x-1/2"></div>
                         </div>
-                        <button onClick={() => scaleDynamics(1.1)} className="px-2 py-1 bg-[#1f1f1f] rounded text-[9px] hover:text-white">+</button>
+                        <button onClick={() => scaleDynamics(1.1)} className="px-2 py-0.5 bg-[#1f1f1f] rounded text-[9px] hover:text-white">+</button>
                     </div>
                 </div>
             </div>
