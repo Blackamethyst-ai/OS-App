@@ -17,7 +17,8 @@ import {
     ArrowRight, Box, ShieldCheck, Binary, Ghost, Heart, Award, FileJson, 
     Lightbulb, Timer, Scissors, Music, Aperture, Users, MonitorPlay, Clapperboard as DirectorIcon,
     CheckCircle2, Trash2, Speaker, Maximize2, HardDrive, Cpu, Terminal, Radio,
-    Compass, MoveUpRight, Waves, FileArchive, GitBranch, LayoutGrid, FileArchive as ArchiveIcon
+    Compass, MoveUpRight, Waves, FileArchive, GitBranch, LayoutGrid, FileArchive as ArchiveIcon,
+    Scan, ZoomIn, SearchCode
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmotionalResonanceGraph from './EmotionalResonanceGraph';
@@ -81,6 +82,9 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
   const [frames, setFrames] = useState<Frame[]>([]);
   const [isBatchRendering, setIsBatchRendering] = useState(false);
   const [isPlanning, setIsPlanning] = useState(false);
+
+  // View Layers
+  const [viewLayer, setViewLayer] = useState<'NORMAL' | 'GRAIN' | 'DEPTH'>('NORMAL');
 
   // Screening Room State
   const [teaserIdx, setTeaserIdx] = useState(0);
@@ -545,6 +549,11 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
       );
   };
 
+  const toggleViewLayer = (layer: 'NORMAL' | 'GRAIN' | 'DEPTH') => {
+      setViewLayer(prev => prev === layer ? 'NORMAL' : layer);
+      audio.playClick();
+  };
+
   return (
     <div 
         className={`h-full w-full bg-[#030303] flex flex-col border border-white/10 rounded-3xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,1)] relative z-10 font-sans group/studio ${className}`}
@@ -715,9 +724,26 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             </div>
                                         </motion.div>
                                     ) : imageGen.generatedImage ? (
-                                        <motion.div key="image" initial={{ opacity: 0, scale: 1.02 }} animate={{ opacity: 1, scale: 1 }} className="w-full h-full p-10 flex items-center justify-center">
-                                            <img src={imageGen.generatedImage.url} className="max-w-full max-h-full object-contain rounded-3xl shadow-[0_60px_120px_rgba(0,0,0,1)] border border-white/5 transition-transform duration-1000 group-hover/viewport:scale-[1.01]" alt="Generated Output" />
+                                        <motion.div 
+                                            key="image" 
+                                            initial={{ opacity: 0, scale: 1.02 }} 
+                                            animate={{ 
+                                                opacity: 1, 
+                                                scale: viewLayer === 'GRAIN' ? 1.5 : 1,
+                                                filter: viewLayer === 'DEPTH' ? 'grayscale(1) contrast(2) brightness(0.7)' : 'none'
+                                            }} 
+                                            className="w-full h-full p-10 flex items-center justify-center relative overflow-hidden"
+                                        >
+                                            <img 
+                                                src={imageGen.generatedImage.url} 
+                                                className="max-w-full max-h-full object-contain rounded-3xl shadow-[0_60px_120px_rgba(0,0,0,1)] border border-white/5 transition-all duration-700" 
+                                                alt="Generated Output" 
+                                            />
                                             
+                                            {viewLayer === 'GRAIN' && (
+                                                <div className="absolute inset-0 pointer-events-none opacity-40 mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat" />
+                                            )}
+
                                             {/* Technical Overlays */}
                                             <div className="absolute top-14 left-14 flex flex-col gap-4">
                                                 <MetadataTag label="Production Node" value="A100_VOLTA_HUB" />
@@ -726,7 +752,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             <div className="absolute bottom-14 right-14 flex flex-col items-end gap-4">
                                                 <div className="px-5 py-3 bg-black/70 backdrop-blur-2xl border border-white/10 rounded-2xl flex items-center gap-4 shadow-2xl">
                                                     <span className="text-[11px] font-mono text-gray-400 uppercase tracking-widest font-black">RES: {imageGen.quality} // {imageGen.aspectRatio}</span>
-                                                    <div className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_10px_#10b981]" />
+                                                    <div className={`w-2.5 h-2.5 rounded-full ${viewLayer !== 'NORMAL' ? 'bg-[#9d4edd]' : 'bg-[#10b981]'} animate-pulse shadow-[0_0_10px_currentColor]`} />
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -745,22 +771,46 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                 </AnimatePresence>
                             </div>
 
-                            <div className="h-20 bg-[#0a0a0a]/60 backdrop-blur-2xl border border-[#1f1f1f] rounded-[2.5rem] px-12 flex items-center justify-between shrink-0 shadow-2xl">
-                                <div className="flex items-center gap-10">
-                                    <button className="flex items-center gap-3 text-[11px] font-black font-mono text-gray-500 hover:text-white transition-all group">
-                                        <Eye size={18} className="group-hover:scale-125 transition-transform" /> INSPECT_GRAIN
+                            {/* Unified Lens Control Tray */}
+                            <div className="h-20 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2.5rem] flex items-center shrink-0 shadow-2xl overflow-hidden relative">
+                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:100%_4px] opacity-20 pointer-events-none" />
+                                
+                                <div className="flex-1 flex items-center gap-8 px-10">
+                                    <button 
+                                        onClick={() => toggleViewLayer('GRAIN')}
+                                        className={`flex items-center gap-3 text-[11px] font-black font-mono transition-all group ${viewLayer === 'GRAIN' ? 'text-[#9d4edd]' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        <ZoomIn size={18} className={`${viewLayer === 'GRAIN' ? 'scale-125' : 'group-hover:scale-125'} transition-transform`} /> 
+                                        <span className="tracking-widest">INSPECT_GRAIN</span>
+                                        {viewLayer === 'GRAIN' && <motion.div layoutId="layer-dot" className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />}
                                     </button>
-                                    <button className="flex items-center gap-3 text-[11px] font-black font-mono text-gray-500 hover:text-white transition-all group">
-                                        <Layers size={18} className="group-hover:scale-125 transition-transform" /> DEPTH_MAP
+                                    
+                                    <div className="h-6 w-px bg-white/5" />
+                                    
+                                    <button 
+                                        onClick={() => toggleViewLayer('DEPTH')}
+                                        className={`flex items-center gap-3 text-[11px] font-black font-mono transition-all group ${viewLayer === 'DEPTH' ? 'text-[#22d3ee]' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        <Scan size={18} className={`${viewLayer === 'DEPTH' ? 'scale-125' : 'group-hover:scale-125'} transition-transform`} /> 
+                                        <span className="tracking-widest">DEPTH_MAP</span>
+                                        {viewLayer === 'DEPTH' && <motion.div layoutId="layer-dot" className="w-1.5 h-1.5 rounded-full bg-[#22d3ee] shadow-[0_0_8px_#22d3ee]" />}
                                     </button>
                                 </div>
-                                <div className="flex items-center gap-4">
-                                    <button onClick={() => imageGen.generatedImage && openHoloProjector({ id: 'current', title: 'Master Frame', type: 'IMAGE', content: imageGen.generatedImage.url })} className="px-8 py-3 bg-white/5 border border-white/10 hover:border-white/40 text-gray-300 hover:text-white rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95">Fullscreen</button>
+
+                                <div className="h-full w-px bg-[#1f1f1f]" />
+
+                                <div className="flex items-center gap-4 px-10">
+                                    <button 
+                                        onClick={() => imageGen.generatedImage && openHoloProjector({ id: 'current', title: 'Master Frame', type: 'IMAGE', content: imageGen.generatedImage.url })} 
+                                        className="px-6 py-2.5 bg-white/5 border border-white/10 hover:border-white/40 text-gray-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2"
+                                    >
+                                        <Maximize2 size={14} /> Fullscreen
+                                    </button>
                                     <button 
                                         onClick={() => imageGen.generatedImage && downloadAsset(imageGen.generatedImage.url, `master_frame_${Date.now()}.png`)} 
-                                        className="px-8 py-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-[0_0_20px_rgba(157,78,221,0.2)] active:scale-95"
+                                        className="px-6 py-2.5 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(157,78,221,0.2)] active:scale-95"
                                     >
-                                        <Download size={16}/> Secure Buffer
+                                        <Download size={14}/> Secure Buffer
                                     </button>
                                 </div>
                             </div>
