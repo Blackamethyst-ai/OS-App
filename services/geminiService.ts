@@ -1,3 +1,4 @@
+
 import { GoogleGenAI, GenerateContentResponse, Type, Schema, Modality, LiveServerMessage, Blob as GenAIBlob } from "@google/genai";
 import { 
     FileData, AppMode, TaskPriority, AnalysisResult, StoredArtifact,
@@ -398,7 +399,7 @@ export async function generateAvatar(role: string, name: string): Promise<string
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: `Hyper-realistic close-up portrait of a powerful professional executive for role ${role} named ${name}. Stunning realistic human details, high-end business attire, masterpiece cinematic lighting, sharp focus, black amethyst and charcoal color palette, high contrast, studio quality.`,
+        contents: `Close-up cinematic headshot portrait of an African god-like business leader for the role: ${role} named ${name}. The aesthetic is 'Modern Wakanda in Manhattan'—combining regal African royalty heritage with elite modern day American corporate power. Attire is tech-integrated high-fashion business formal (e.g., bespoke charcoal suit with intricate vibrant geometric kente-patterned silk lapels and gold micro-tech accents). Powerful, wise expression. Lighting is dramatic Rembrandt-style against a deep obsidian and gold holographic corporate office background. Photorealistic 8k masterpiece.`,
         config: { imageConfig: { aspectRatio: "1:1" } }
     });
     for (const part of response.candidates?.[0]?.content?.parts || []) {
