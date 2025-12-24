@@ -41,6 +41,24 @@ export async function fileToGenerativePart(file: File | Blob): Promise<FileData>
 }
 
 /**
+ * NEURAL EMBEDDING ENGINE
+ * Converts text into 768-dimension vectors for semantic search.
+ */
+export async function generateEmbedding(text: string): Promise<number[]> {
+    const ai = getAI();
+    try {
+        const response = await ai.models.embedContent({
+            model: 'text-embedding-004',
+            content: { parts: [{ text }] }
+        });
+        return response.embedding.values;
+    } catch (e) {
+        console.error("Embedding generation failed", e);
+        return [];
+    }
+}
+
+/**
  * Agent DNA Templates for the Bibliomorphic Engine.
  */
 export const AGENT_DNA_BUILDER: AgentDNA[] = [
