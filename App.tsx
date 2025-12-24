@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAppStore } from './store';
 import { useSystemMind } from './stores/useSystemMind'; 
@@ -36,17 +37,17 @@ import { collabService } from './services/collabService';
 import { audio } from './services/audioService'; 
 import { AnimatePresence, motion } from 'framer-motion';
 
+// --- NAVIGATION CONFIGURATION ---
 const NAV_CONFIG = [
-    { id: AppMode.DASHBOARD, label: 'Dashboard', icon: LayoutGrid, path: '/dashboard' },
-    { id: AppMode.SYNTHESIS_BRIDGE, label: 'Strategy Bridge', icon: GitMerge, path: '/bridge' },
-    { id: AppMode.AGENT_CONTROL, label: 'Agent Center', icon: Bot, path: '/agents' },
-    { id: AppMode.BIBLIOMORPHIC, label: 'Bibliomorphic', icon: BookOpen, path: '/bibliomorphic' },
-    { id: AppMode.PROCESS_MAP, label: 'Process Logic', icon: Settings, path: '/process' },
-    { id: AppMode.MEMORY_CORE, label: 'Memory Core', icon: HardDrive, path: '/memory' },
-    { id: AppMode.IMAGE_GEN, label: 'Asset Studio', icon: Image, path: '/assets' },
-    { id: AppMode.HARDWARE_ENGINEER, label: 'Hardware', icon: Cpu, path: '/hardware' },
-    { id: AppMode.CODE_STUDIO, label: 'Code Studio', icon: Code, path: '/code' },
-    { id: AppMode.VOICE_MODE, label: 'Voice Core', icon: Mic, path: '/voice' },
+  { id: AppMode.DASHBOARD, label: 'Command Center', path: '/dashboard', icon: LayoutGrid },
+  { id: AppMode.BIBLIOMORPHIC, label: 'Research', path: '/bibliomorphic', icon: BookOpen },
+  { id: AppMode.PROCESS_MAP, label: 'Process', path: '/process', icon: GitMerge },
+  { id: AppMode.MEMORY_CORE, label: 'Vault', path: '/memory', icon: HardDrive },
+  { id: AppMode.IMAGE_GEN, label: 'Studio', path: '/assets', icon: Image },
+  { id: AppMode.HARDWARE_ENGINEER, label: 'Hardware', path: '/hardware', icon: Cpu },
+  { id: AppMode.CODE_STUDIO, label: 'Code', path: '/code', icon: Code },
+  { id: AppMode.AGENT_CONTROL, label: 'Agents', path: '/agents', icon: Bot },
+  { id: AppMode.SYNTHESIS_BRIDGE, label: 'Bridge', path: '/bridge', icon: Activity },
 ];
 
 const FocusOverlay = () => {
@@ -205,7 +206,7 @@ const App: React.FC = () => {
       {isHUDClosed && (
           <button 
             onClick={() => setHUDClosed(false)}
-            className="fixed bottom-24 right-6 p-2 bg-[#9d4edd]/20 border border-[#9d4edd]/40 rounded-full text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black transition-all z-50 pointer-events-auto"
+            className="fixed bottom-12 right-6 p-2 bg-[#9d4edd]/20 border border-[#9d4edd]/40 rounded-full text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black transition-all z-50 pointer-events-auto"
           >
               <Activity size={16} />
           </button>
@@ -215,43 +216,43 @@ const App: React.FC = () => {
         {isHelpOpen && <HelpCenter onClose={() => setHelpOpen(false)} />}
       </AnimatePresence>
 
-      <header className="flex-shrink-0 h-16 border-b z-[100] px-6 flex items-center justify-between backdrop-blur-xl" style={{ backgroundColor: 'rgba(10,10,10,0.85)', borderColor: 'var(--border-main)' }}>
-        <div className="flex items-center space-x-2 cursor-pointer group" onClick={() => switchPath('/dashboard')}>
+      <header className="flex-shrink-0 h-14 border-b z-[100] px-4 flex items-center justify-between backdrop-blur-xl" style={{ backgroundColor: 'rgba(10,10,10,0.85)', borderColor: 'var(--border-main)' }}>
+        <div className="flex items-center space-x-3 cursor-pointer group" onClick={() => switchPath('/dashboard')}>
           <NeuralHeader />
           <div className="flex items-center gap-1">
-            <span className="text-lg font-bold leading-none tracking-tight font-mono text-white group-hover:text-[#9d4edd] transition-colors uppercase">Metaventions OS</span>
+            <span className="text-base font-black leading-none tracking-tight font-mono text-white group-hover:text-[#9d4edd] transition-colors uppercase">Metaventions</span>
             <FlywheelOrbit />
           </div>
         </div>
         
-        <nav className="flex items-center space-x-1 p-1 rounded-sm border border-white/5 mx-auto overflow-x-auto no-scrollbar" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
+        <nav className="flex items-center space-x-0.5 p-0.5 rounded-lg border border-white/5 mx-auto overflow-x-auto no-scrollbar" style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}>
           {NAV_CONFIG.map(item => (
               <button 
                 key={item.id} 
                 onClick={() => switchPath(item.path)} 
-                className={`flex items-center px-4 py-1.5 rounded-sm text-[9px] font-bold uppercase tracking-wider transition-all duration-300 font-mono whitespace-nowrap ${mode === item.id ? 'bg-white/10 text-white border border-white/20' : 'text-gray-500 hover:text-white'}`}
+                className={`flex items-center px-3 py-1 rounded-md text-[8px] font-black uppercase tracking-wider transition-all duration-300 font-mono whitespace-nowrap ${mode === item.id ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white'}`}
               >
-                <item.icon className="w-3 h-3 mr-2" />
+                <item.icon className="w-2.5 h-2.5 mr-1.5" />
                 {item.label}
               </button>
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
             <GlobalSearchBar />
             <ThemeSwitcher />
             <div className="h-4 w-px bg-white/10" />
             <button 
                 onClick={() => toggleProfile(true)} 
-                className="flex items-center gap-3 px-3 py-1.5 rounded-sm border border-[#333] hover:border-[#9d4edd] transition-all bg-black/40 group"
+                className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg border border-[#333] hover:border-[#9d4edd] transition-all bg-black/40 group"
             >
-                <User className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#9d4edd]" />
-                <span className="text-[10px] font-mono uppercase text-gray-300 group-hover:text-white tracking-widest">{user.displayName}</span>
+                <User className="w-3 h-3 text-gray-400 group-hover:text-[#9d4edd]" />
+                <span className="text-[9px] font-mono uppercase text-gray-300 group-hover:text-white tracking-widest">{user.displayName}</span>
             </button>
         </div>
       </header>
 
-      <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-0' : 'pb-32 overflow-y-auto custom-scrollbar'}`}>
+      <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-0' : 'pb-12 overflow-y-auto custom-scrollbar'}`}>
         <SynapticRouter />
       </div>
     </div>
