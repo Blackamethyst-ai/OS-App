@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -100,7 +99,7 @@ const PeerMeshOverlay: React.FC = () => {
                                                 <span className="text-[8px] text-gray-600 font-mono">{new Date(event.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'})}</span>
                                             </div>
                                             <p className="text-[11px] text-gray-300 font-mono leading-relaxed">
-                                                <span className="text-[#9d4edd] font-black mr-2">>>></span>
+                                                <span className="text-[#9d4edd] font-black mr-2">{" >>> "}</span>
                                                 {event.action}
                                                 {event.target && <span className="text-gray-500 ml-2">[{event.target}]</span>}
                                             </p>

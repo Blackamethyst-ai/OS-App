@@ -201,7 +201,7 @@ const HardwareEngine: React.FC = () => {
     };
 
     const filteredRecommendations = useMemo(() => {
-        return recommendations.filter(item => {
+        return (recommendations || []).filter(item => {
             const matchesSearch = item.partNumber?.toLowerCase().includes((componentQuery || '').toLowerCase());
             const matchesVendor = activeVendor === 'ALL' || item.manufacturer?.toUpperCase() === activeVendor;
             const matchesPrice = (item.price || 0) >= (filters.minPrice || 0) && (item.price || 0) <= (filters.maxPrice || Infinity);
