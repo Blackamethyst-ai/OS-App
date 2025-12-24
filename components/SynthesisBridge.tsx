@@ -7,7 +7,7 @@ import {
     LineChart, ShieldAlert, Binary, Save, Radar, HardDrive, Dna, 
     BoxSelect, FlaskConical, CircleDot, AlertTriangle, ChevronRight, X,
     Layers, RefreshCw, Hammer, Coins, Telescope, Info, TrendingUp, BarChart3,
-    CheckCircle2
+    CheckCircle2, Cpu, CheckCircle, Shield
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
@@ -38,8 +38,8 @@ const PhysicalDeltaGraph = ({ active }: { active: boolean }) => {
     }, [active]);
 
     return (
-        <div className="h-40 w-full mt-6 bg-black/40 border border-[#222] rounded-2xl p-4 overflow-hidden relative">
-            <div className="absolute top-2 left-4 text-[8px] font-mono text-gray-600 uppercase tracking-widest flex items-center gap-2">
+        <div className="h-44 w-full mt-6 bg-black/40 border border-[#222] rounded-2xl p-4 overflow-hidden relative">
+            <div className="absolute top-3 left-5 text-[8px] font-black font-mono text-gray-500 uppercase tracking-[0.2em] flex items-center gap-2">
                 <Radar size={10} className="text-[#9d4edd] animate-pulse" /> Physical Reality Displacement Delta
             </div>
             <ResponsiveContainer width="100%" height="100%">
@@ -66,7 +66,6 @@ const SynthesisBridge: React.FC = () => {
 
     const [isGenerating, setIsGenerating] = useState(false);
     const [currentMetavention, setCurrentMetavention] = useState<any | null>(null);
-    const [showLayerDetails, setShowLayerDetails] = useState(false);
 
     const generateHack = async () => {
         if (!activeLayer) return;
@@ -118,297 +117,264 @@ const SynthesisBridge: React.FC = () => {
         addLog('SUCCESS', 'ARCHIVE: Metavention protocol secured in vault.');
     };
 
-    const handleOptimize = () => {
-        if (activeLayer) {
-            optimizeLayer(activeLayer.id);
-            addLog('SUCCESS', `STRATEGY: Layer ${activeLayer.name} optimized for maximum leverage.`);
-            audio.playSuccess();
-        }
-    };
-
     return (
-        <div className="h-full w-full bg-[#030303] flex flex-col font-sans overflow-hidden">
-            <div className="flex flex-col md:flex-row justify-between items-end mb-10 px-2 shrink-0">
-                <div>
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="p-2 bg-[#9d4edd]/20 rounded-lg border border-[#9d4edd]/40"><GitMerge className="w-6 h-6 text-[#9d4edd]" /></div>
-                        <span className="text-[11px] font-black font-mono text-[#9d4edd] uppercase tracking-[0.5em]">Strategy Bridge</span>
+        <div className="h-full w-full bg-[#030303] flex flex-col border border-[#1f1f1f] rounded-3xl overflow-hidden shadow-2xl relative font-sans">
+            
+            {/* Standardized Header (Fixed Height) */}
+            <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur z-20 flex items-center justify-between px-6 shrink-0">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-xl shadow-[0_0_20px_rgba(157,78,221,0.2)]">
+                        <GitMerge className="w-5 h-5 text-[#9d4edd]" />
                     </div>
-                    <h1 className="text-5xl font-black text-white tracking-tighter uppercase leading-none">The Metaventions Stack</h1>
-                    <p className="text-[11px] text-gray-500 font-mono mt-4 uppercase tracking-[0.3em]">Mapping Digital Intent to Physical Reality Delta</p>
+                    <div>
+                        <h1 className="text-sm font-black font-mono uppercase tracking-[0.4em] text-white leading-none">Strategy Bridge</h1>
+                        <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-1.5 block">Handover Control // v3.1-LATTICE</span>
+                    </div>
+                </div>
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3">
+                        <span className="text-[9px] font-black font-mono text-gray-600 uppercase tracking-widest">Lattice Density</span>
+                        <div className="w-2 h-2 rounded-full bg-[#9d4edd] animate-pulse shadow-[0_0_10px_#9d4edd]" />
+                    </div>
+                    <button className="p-3 bg-white/5 border border-white/10 hover:border-[#9d4edd] rounded-2xl text-gray-500 hover:text-white transition-all shadow-xl group">
+                        <RefreshCw size={16} className="group-active:rotate-180 transition-transform duration-500" />
+                    </button>
                 </div>
             </div>
 
-            <div className="flex-1 grid grid-cols-12 gap-8 min-h-0 px-2">
-                <div className="col-span-12 lg:col-span-4 flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2 pb-20">
-                    
-                    {/* SECTION 1: CONTEXT PROTOCOLS (Knowledge Layers) */}
-                    <div>
-                        <div className="text-[9px] font-mono font-bold text-[#9d4edd] uppercase tracking-[0.3em] mb-4 flex items-center justify-between">
-                            <span className="flex items-center gap-2"><Binary size={12}/> Context Protocols</span>
-                            <span className="text-[8px] opacity-40">{activeKnowledgeLayerIds.length} ACTIVE</span>
-                        </div>
-                        <div className="grid grid-cols-1 gap-2">
+            {/* Main Body (Flex-1) */}
+            <div className="flex-1 flex overflow-hidden">
+                
+                {/* Left Sidebar: Context Protocols (Fixed Width, Shrink-0) */}
+                <div className="w-80 border-r border-[#1f1f1f] bg-[#050505] flex flex-col shrink-0">
+                    <div className="p-5 border-b border-[#1f1f1f] bg-white/[0.02]">
+                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Context Buffers</span>
+                    </div>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-6">
+                        {/* Knowledge Layers */}
+                        <div className="space-y-2">
                             {Object.values(KNOWLEDGE_LAYERS).map((layer) => {
                                 const isActive = activeKnowledgeLayerIds.includes(layer.id);
                                 return (
                                     <button 
                                         key={layer.id}
                                         onClick={() => toggleKnowledgeLayer(layer.id)}
-                                        className={`p-4 rounded-xl border transition-all duration-300 text-left relative overflow-hidden group
+                                        className={`w-full p-4 rounded-2xl border transition-all duration-500 text-left relative overflow-hidden group
                                             ${isActive 
-                                                ? 'bg-[#111] border-[var(--color)] shadow-[0_0_20px_rgba(0,0,0,0.4)]' 
-                                                : 'bg-[#0a0a0a] border-[#222] opacity-40 hover:opacity-100'}
+                                                ? 'bg-[#111] border-[var(--color)] shadow-2xl' 
+                                                : 'bg-transparent border-transparent hover:bg-white/[0.02] opacity-40 hover:opacity-100'}
                                         `}
                                         style={{ '--color': layer.color } as any}
                                     >
-                                        <div className="flex justify-between items-center relative z-10">
-                                            <div className="flex items-center gap-3">
-                                                <div className="p-1.5 rounded bg-white/5" style={{ color: layer.color }}>
-                                                    {layer.id === 'BUILDER_PROTOCOL' && <Hammer size={14} />}
-                                                    {layer.id === 'CRYPTO_CONTEXT' && <Coins size={14} />}
-                                                    {layer.id === 'STRATEGIC_FUTURISM' && <Telescope size={14} />}
-                                                </div>
-                                                <div>
-                                                    <div className="text-[10px] font-black text-white uppercase font-mono">{layer.label}</div>
-                                                    <div className="text-[8px] text-gray-500 font-mono tracking-tighter">{layer.description}</div>
-                                                </div>
+                                        <div className="flex items-center gap-4 relative z-10">
+                                            <div className="p-2 rounded-xl bg-white/5" style={{ color: layer.color }}>
+                                                {layer.id === 'BUILDER_PROTOCOL' && <Hammer size={16} />}
+                                                {layer.id === 'CRYPTO_CONTEXT' && <Coins size={16} />}
+                                                {layer.id === 'STRATEGIC_FUTURISM' && <Telescope size={16} />}
                                             </div>
-                                            <div className={`text-[8px] font-bold px-2 py-0.5 rounded border transition-colors ${isActive ? 'bg-[var(--color)] text-black border-[var(--color)] shadow-[0_0_10px_var(--color)]' : 'border-[#333] text-gray-600'}`}>
-                                                {isActive ? 'ACTIVE' : 'IDLE'}
+                                            <div>
+                                                <div className="text-[11px] font-black text-white uppercase font-mono tracking-widest">{layer.label}</div>
+                                                <div className="text-[8px] text-gray-600 font-mono tracking-tight mt-0.5">{layer.description}</div>
                                             </div>
                                         </div>
-                                        {isActive && (
-                                            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--color)] to-transparent opacity-50" />
-                                        )}
                                     </button>
                                 );
                             })}
                         </div>
-                    </div>
 
-                    {/* SECTION 2: STRATEGY LAYERS (Deployment Targets) */}
-                    <div>
-                        <div className="text-[9px] font-mono font-bold text-gray-500 uppercase tracking-[0.3em] mb-4 flex items-center justify-between">
-                            <span className="flex items-center gap-2"><Layers size={12}/> Strategy Layers</span>
-                            <Info size={12} className="text-gray-700 cursor-help hover:text-white transition-colors" />
-                        </div>
-                        <div className="flex flex-col gap-2">
-                            {layers.map(layer => (
-                                <div 
-                                    key={layer.id} 
-                                    onClick={() => {
-                                        setMetaventionsState({ activeLayerId: layer.id });
-                                        if (activeLayerId === layer.id) setShowLayerDetails(!showLayerDetails);
-                                        else setShowLayerDetails(true);
-                                    }} 
-                                    className={`p-4 rounded-xl border cursor-pointer transition-all duration-500 group relative overflow-hidden ${activeLayerId === layer.id ? 'bg-[#111] border-[#9d4edd] shadow-2xl' : 'bg-[#0a0a0a] border-[#222] opacity-40 hover:opacity-100'}`}
-                                >
-                                    <div className="flex justify-between items-start mb-2">
-                                        <div className="flex items-center gap-2">
-                                            {layer.status === 'OPTIMIZED' && <CheckCircle2 size={12} className="text-[#10b981] shadow-[0_0_8px_#10b981]" />}
-                                            <span className="text-[10px] font-black text-white uppercase font-mono">{layer.name}</span>
+                        {/* Strategy Layers */}
+                        <div className="pt-6 border-t border-white/5">
+                            <div className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] mb-4 flex items-center gap-3 px-1">
+                                <Layers size={14} className="text-[#9d4edd]" /> Reality Planes
+                            </div>
+                            <div className="space-y-2">
+                                {layers.map(layer => (
+                                    <div 
+                                        key={layer.id} 
+                                        onClick={() => setMetaventionsState({ activeLayerId: layer.id })} 
+                                        className={`p-5 rounded-[1.5rem] border cursor-pointer transition-all duration-500 group relative overflow-hidden ${activeLayerId === layer.id ? 'bg-[#0a0a0a] border-[#9d4edd] shadow-[0_20px_40px_rgba(0,0,0,0.5)]' : 'bg-transparent border-transparent hover:bg-white/[0.02]'}`}
+                                    >
+                                        <div className="flex justify-between items-start mb-3">
+                                            <div className="flex items-center gap-3">
+                                                {layer.status === 'OPTIMIZED' && <CheckCircle2 size={12} className="text-[#10b981]" />}
+                                                <span className={`text-[11px] font-black font-mono uppercase tracking-widest transition-colors ${activeLayerId === layer.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-300'}`}>{layer.name}</span>
+                                            </div>
+                                            <div className={`text-[8px] font-black font-mono px-2 py-0.5 rounded-lg border border-white/10 uppercase ${layer.status === 'OPTIMIZED' ? 'text-[#10b981] border-[#10b981]/30' : 'text-gray-600'}`}>{layer.status}</div>
                                         </div>
-                                        <div className={`text-[8px] font-mono px-2 py-0.5 rounded border border-white/10 uppercase ${layer.status === 'OPTIMIZED' ? 'text-[#10b981] border-[#10b981]/30' : ''}`}>{layer.status}</div>
+                                        {activeLayerId === layer.id && (
+                                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="grid grid-cols-2 gap-2 mt-5">
+                                                {layer.metrics.slice(0,2).map((m, i) => (
+                                                    <div key={i} className="bg-black/60 p-3 rounded-xl border border-white/5 shadow-inner">
+                                                        <div className="text-[7px] text-gray-600 uppercase font-mono tracking-widest mb-1">{m.label}</div>
+                                                        <div className="text-[10px] text-white font-black font-mono">{m.value}</div>
+                                                    </div>
+                                                ))}
+                                            </motion.div>
+                                        )}
                                     </div>
-                                    <p className="text-[10px] text-gray-500 font-mono leading-relaxed line-clamp-1">{layer.leverage}</p>
-                                    {activeLayerId === layer.id && (
-                                        <div className="grid grid-cols-2 gap-2 mt-4 animate-in fade-in slide-in-from-top-2">
-                                            {layer.metrics.map((m, i) => (
-                                                <div key={i} className="bg-black/40 p-2 rounded-lg border border-white/5">
-                                                    <div className="text-[7px] text-gray-600 uppercase font-mono">{m.label}</div>
-                                                    <div className="text-[10px] text-white font-bold">{m.value}</div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="col-span-12 lg:col-span-5 flex flex-col gap-6 min-h-0">
-                    <div className="bg-[#0a0a0a] border border-[#222] rounded-3xl p-8 flex flex-col h-full relative overflow-hidden shadow-2xl">
-                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent opacity-30"></div>
-                        
-                        <div className="flex items-center justify-between mb-8">
-                            <div className="flex items-center gap-3">
-                                <FlaskConical className="text-[#9d4edd] w-5 h-5 animate-pulse" />
-                                <h2 className="text-sm font-bold text-white font-mono uppercase tracking-widest">Protocol Synthesis</h2>
-                            </div>
-                            <div className="flex gap-2">
-                                <AnimatePresence>
-                                    {showLayerDetails && activeLayer && (
-                                        <motion.button 
-                                            initial={{ opacity: 0, scale: 0.9 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            exit={{ opacity: 0, scale: 0.9 }}
-                                            onClick={() => setShowLayerDetails(false)}
-                                            className="px-3 py-1.5 bg-[#111] border border-[#333] hover:border-[#9d4edd] text-[#9d4edd] text-[9px] font-black uppercase rounded-lg transition-all"
-                                        >
-                                            Hide Analysis
-                                        </motion.button>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        </div>
-                        
-                        {!activeLayer ? (
-                            <div className="flex-1 flex flex-col items-center justify-center opacity-20"><Dna size={64} className="mb-4" /><p className="font-mono text-xs uppercase tracking-widest">Select Logic Layer</p></div>
-                        ) : (
-                            <div className="flex-1 flex flex-col">
-                                <AnimatePresence mode="wait">
-                                    {showLayerDetails ? (
-                                        <motion.div 
-                                            key="layer-analysis"
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: -20 }}
-                                            className="flex-1 flex flex-col gap-6 overflow-y-auto custom-scrollbar pr-2"
-                                        >
-                                            <div className="p-6 bg-black/40 border border-[#333] rounded-2xl">
-                                                <div className="flex items-center gap-4 mb-6">
-                                                    <div className="w-12 h-12 bg-[#9d4edd]/10 rounded-xl border border-[#9d4edd]/30 flex items-center justify-center text-[#9d4edd]">
-                                                        <Target size={24} />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-lg font-black text-white uppercase font-mono">{activeLayer.name}</h3>
-                                                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest">{activeLayer.role}</p>
-                                                    </div>
-                                                </div>
-                                                
-                                                <div className="space-y-4">
-                                                    <div>
-                                                        <span className="text-[9px] font-mono text-[#9d4edd] uppercase tracking-widest block mb-1">Leverage Point</span>
-                                                        <p className="text-xs text-gray-300 font-mono leading-relaxed">{activeLayer.leverage}</p>
-                                                    </div>
-                                                    <div className="h-px bg-white/5" />
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        {activeLayer.metrics.map((m, i) => (
-                                                            <div key={i} className="space-y-1">
-                                                                <span className="text-[8px] text-gray-600 uppercase font-mono block">{m.label}</span>
-                                                                <div className="flex items-end gap-2">
-                                                                    <span className="text-xl font-black text-white font-mono">{m.value}</span>
-                                                                    {m.trend === 'up' && <TrendingUp size={14} className="text-[#10b981] mb-1" />}
-                                                                    {m.trend === 'stable' && <Activity size={14} className="text-[#22d3ee] mb-1" />}
-                                                                </div>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="p-4 bg-[#111] border border-white/5 rounded-xl">
-                                                    <div className="flex items-center gap-2 mb-2 text-[#f59e0b]">
-                                                        <AlertTriangle size={12} />
-                                                        <span className="text-[8px] font-black uppercase font-mono">Risk Vectors</span>
-                                                    </div>
-                                                    <ul className="text-[9px] text-gray-500 font-mono space-y-1.5">
-                                                        <li>• Centralization decay</li>
-                                                        <li>• Protocol fork collision</li>
-                                                    </ul>
-                                                </div>
-                                                <div className="p-4 bg-[#111] border border-white/5 rounded-xl">
-                                                    <div className="flex items-center gap-2 mb-2 text-[#10b981]">
-                                                        <GitBranch size={12} />
-                                                        <span className="text-[8px] font-black uppercase font-mono">Integration Chain</span>
-                                                    </div>
-                                                    <ul className="text-[9px] text-gray-500 font-mono space-y-1.5">
-                                                        <li>• Mainnet Uplink: OK</li>
-                                                        <li>• P2P Swarm: STABLE</li>
-                                                    </ul>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="flex gap-4 mt-auto">
-                                                <button 
-                                                    onClick={generateHack}
-                                                    className="flex-1 py-4 bg-white/5 border border-white/10 hover:border-[#9d4edd] text-[10px] font-black uppercase rounded-2xl transition-all flex items-center justify-center gap-3 group"
-                                                >
-                                                    <Zap size={14} className="group-hover:text-[#9d4edd] transition-colors" />
-                                                    Synthesize Layer Intervention
-                                                </button>
-                                                <button 
-                                                    onClick={handleOptimize}
-                                                    className="px-6 py-4 bg-[#10b981]/10 border border-[#10b981]/30 hover:bg-[#10b981] hover:text-black text-[#10b981] text-[10px] font-black uppercase rounded-2xl transition-all flex items-center justify-center gap-2"
-                                                >
-                                                    <CheckCircle2 size={16} />
-                                                    Optimize
-                                                </button>
-                                            </div>
-                                        </motion.div>
-                                    ) : currentMetavention ? (
-                                        <motion.div key="intervention" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col">
-                                            <div className="flex-1 space-y-6">
-                                                <div className="bg-black/60 border border-[#222] p-5 rounded-2xl relative overflow-hidden">
-                                                    <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-                                                        <Sparkles size={48} className="text-[#9d4edd]" />
-                                                    </div>
-                                                    <h3 className="text-lg font-black text-[#9d4edd] uppercase font-mono mb-3">{currentMetavention.title}</h3>
-                                                    <p className="text-xs text-gray-400 font-mono leading-relaxed italic mb-4">"{currentMetavention.logic}"</p>
-                                                    <div className="flex gap-4">
-                                                        <div className="flex-1 bg-[#111] p-3 rounded-xl border border-white/5">
-                                                            <span className="text-[8px] text-gray-600 uppercase block mb-1">Reality Viability</span>
-                                                            <span className="text-lg font-black text-[#10b981] font-mono">{currentMetavention.viability}%</span>
-                                                        </div>
-                                                        <div className="flex-1 bg-[#111] p-3 rounded-xl border border-white/5">
-                                                            <span className="text-[8px] text-gray-600 uppercase block mb-1">Critical Friction</span>
-                                                            <span className="text-[10px] font-black text-[#ef4444] font-mono uppercase">{currentMetavention.riskVector}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <PhysicalDeltaGraph active={!!currentMetavention} />
-                                            </div>
-                                            <div className="mt-8 flex gap-3">
-                                                <button onClick={handleArchive} className="flex-1 py-4 bg-[#111] border border-[#333] hover:border-white text-white text-[10px] font-black uppercase rounded-2xl transition-all flex items-center justify-center gap-2"><Save size={14} /> Vault Protocol</button>
-                                                <button onClick={generateHack} className="px-6 bg-[#9d4edd] text-black font-black uppercase text-[10px] rounded-2xl hover:bg-[#b06bf7] transition-all"><RefreshCw size={14} /></button>
-                                            </div>
-                                        </motion.div>
-                                    ) : (
-                                        <div key="idle" className="flex-1 flex flex-col items-center justify-center border border-dashed border-[#222] rounded-3xl bg-black/20">
-                                            <button onClick={generateHack} disabled={isGenerating} className="px-12 py-6 bg-[#9d4edd] text-black font-black text-xs uppercase tracking-[0.4em] rounded-2xl hover:scale-105 transition-all shadow-[0_0_50px_rgba(157,78,221,0.4)] flex items-center gap-4">
-                                                {isGenerating ? <Loader2 className="animate-spin" /> : <Radar size={18} />}
-                                                {isGenerating ? 'SIMULATING...' : 'RUN METAVENTION'}
-                                            </button>
-                                            <p className="mt-6 text-[8px] font-mono text-gray-600 uppercase tracking-widest">
-                                                Active Contexts: {activeKnowledgeLayerIds.length > 0 ? activeKnowledgeLayerIds.join(', ') : 'NONE'}
-                                            </p>
+                {/* Center Content: Forge (Flexible Space) */}
+                <div className="flex-1 bg-black flex flex-col relative overflow-hidden">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.03)_0%,transparent_70%)] pointer-events-none"></div>
+                    
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-12 flex flex-col items-center">
+                        <div className="w-full max-w-3xl flex flex-col h-full">
+                            <AnimatePresence mode="wait">
+                                {!activeLayer ? (
+                                    <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center justify-center opacity-20 text-center gap-8">
+                                        <div className="w-40 h-40 rounded-full border-2 border-dashed border-gray-800 flex items-center justify-center animate-[spin_20s_linear_infinite]">
+                                            <Dna size={80} className="text-gray-600" />
                                         </div>
-                                    )}
-                                </AnimatePresence>
+                                        <div>
+                                            <p className="font-mono text-lg uppercase tracking-[0.6em] text-white">Synaptic Link Offline</p>
+                                            <p className="text-[11px] text-gray-500 mt-3 uppercase tracking-widest">Select a reality plane from the context buffers to begin</p>
+                                        </div>
+                                    </motion.div>
+                                ) : currentMetavention ? (
+                                    <motion.div key="result" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col gap-8">
+                                        <div className="bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/10 p-10 rounded-[2.5rem] relative overflow-hidden shadow-2xl group/result">
+                                            <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover/result:opacity-[0.07] transition-opacity rotate-12"><Sparkles size={120} className="text-[#9d4edd]" /></div>
+                                            <div className="flex items-center gap-4 mb-8">
+                                                <div className="px-5 py-2 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-full shadow-[0_0_20px_rgba(157,78,221,0.1)]">
+                                                    <span className="text-[10px] font-black text-[#9d4edd] uppercase font-mono tracking-[0.2em]">Protocol_Stabilized</span>
+                                                </div>
+                                            </div>
+                                            <h3 className="text-4xl font-black text-white uppercase font-mono tracking-tighter mb-6">{currentMetavention.title}</h3>
+                                            <p className="text-sm text-gray-300 font-mono leading-relaxed italic border-l-4 border-[#9d4edd] pl-8 mb-10">"{currentMetavention.logic}"</p>
+                                            
+                                            <div className="grid grid-cols-2 gap-6">
+                                                <div className="bg-black/60 p-6 rounded-[1.5rem] border border-white/5 shadow-inner">
+                                                    <span className="text-[9px] text-gray-600 uppercase font-black block mb-4 tracking-[0.3em]">Viability Index</span>
+                                                    <div className="flex items-center gap-4">
+                                                        <span className="text-3xl font-black text-[#10b981] font-mono tracking-tighter">{currentMetavention.viability}%</span>
+                                                        <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                                                            <div className="h-full bg-[#10b981] shadow-[0_0_10px_#10b981]" style={{ width: `${currentMetavention.viability}%` }} />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-black/60 p-6 rounded-[1.5rem] border border-white/5 shadow-inner">
+                                                    <span className="text-[9px] text-gray-600 uppercase font-black block mb-4 tracking-[0.3em]">System Risk Vector</span>
+                                                    <div className="flex items-center gap-3 text-red-500">
+                                                        <ShieldAlert size={18} />
+                                                        <span className="text-[11px] font-black font-mono uppercase tracking-widest truncate">{currentMetavention.riskVector}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <PhysicalDeltaGraph active={true} />
+
+                                        <div className="mt-auto pt-12 flex gap-5">
+                                            <button onClick={handleArchive} className="flex-1 py-5 bg-white/5 border border-white/10 hover:border-white/40 text-white text-[11px] font-black uppercase tracking-[0.3em] rounded-[1.5rem] transition-all flex items-center justify-center gap-4 shadow-xl active:scale-95">
+                                                <Save size={18} /> Secure to Vault
+                                            </button>
+                                            <button onClick={generateHack} className="px-14 py-5 bg-[#9d4edd] text-black font-black uppercase text-[11px] tracking-[0.4em] rounded-[1.5rem] hover:bg-[#b06bf7] transition-all shadow-[0_30px_60px_rgba(157,78,221,0.4)] active:scale-95">
+                                                <RefreshCw size={18} />
+                                            </button>
+                                        </div>
+                                    </motion.div>
+                                ) : (
+                                    <motion.div key="forge" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center justify-center gap-12">
+                                        <div className="relative group cursor-pointer" onClick={generateHack}>
+                                            <div className="absolute inset-0 bg-[#9d4edd]/20 rounded-full blur-[80px] group-hover:blur-[100px] transition-all animate-pulse" />
+                                            <div className="w-48 h-48 rounded-full border-2 border-dashed border-[#9d4edd]/40 flex items-center justify-center relative z-10 group-hover:rotate-90 transition-transform duration-[2s]">
+                                                <Target size={64} className="text-[#9d4edd] group-hover:scale-110 transition-transform duration-500" />
+                                            </div>
+                                        </div>
+                                        <div className="text-center space-y-5">
+                                            <h2 className="text-2xl font-black text-white uppercase tracking-[0.5em]">Protocol Forge</h2>
+                                            <p className="text-[11px] text-gray-500 font-mono max-w-sm uppercase leading-relaxed tracking-widest opacity-60">Bridging {activeLayer.name} metadata into autonomous physical displacement sequence.</p>
+                                        </div>
+                                        <button 
+                                            onClick={generateHack} 
+                                            disabled={isGenerating} 
+                                            className="px-16 py-6 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black text-xs uppercase tracking-[0.5em] rounded-[2rem] transition-all shadow-[0_40px_80px_rgba(157,78,221,0.3)] flex items-center gap-5 disabled:opacity-50 active:scale-95 group"
+                                        >
+                                            {isGenerating ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap size={22} className="group-hover:scale-125 transition-transform" />}
+                                            {isGenerating ? 'SIMULATING_VECTORS' : 'Execute Metavention'}
+                                        </button>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Sidebar: Protocol Archive (Fixed Width, Shrink-0) */}
+                <div className="w-80 border-l border-[#1f1f1f] bg-[#050505] flex flex-col shrink-0">
+                    <div className="p-5 border-b border-[#1f1f1f] bg-white/[0.02] flex items-center justify-between">
+                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Historical Ledger</span>
+                        <History size={16} className="text-gray-700" />
+                    </div>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-3 space-y-2.5">
+                        {strategyLibrary.map(item => (
+                            <div key={item.id} className="p-5 bg-[#0a0a0a] border border-white/5 hover:border-[#9d4edd]/30 rounded-[1.5rem] transition-all duration-500 cursor-default group relative overflow-hidden shadow-lg">
+                                <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-10 transition-opacity"><Zap size={32} className="text-[#9d4edd]" /></div>
+                                <div className="flex justify-between items-start mb-3">
+                                    <span className="text-[11px] font-black text-gray-200 uppercase truncate pr-4 font-mono tracking-widest">{item.title}</span>
+                                    <span className="text-[8px] text-gray-600 font-mono whitespace-nowrap bg-white/5 px-2 py-0.5 rounded-lg">{new Date(item.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+                                </div>
+                                <p className="text-[9px] text-gray-500 font-mono leading-relaxed line-clamp-2 italic group-hover:text-gray-400 transition-colors">"{item.logic}"</p>
+                                <div className="mt-4 flex items-center gap-3">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />
+                                    <span className="text-[9px] font-black text-[#9d4edd] uppercase font-mono tracking-widest">{item.context}</span>
+                                </div>
+                            </div>
+                        ))}
+                        {strategyLibrary.length === 0 && (
+                            <div className="h-full flex flex-col items-center justify-center opacity-10 gap-5 py-24 grayscale">
+                                <Archive size={48} />
+                                <span className="text-[10px] font-black font-mono uppercase tracking-[0.4em]">Vault Empty</span>
                             </div>
                         )}
                     </div>
-                </div>
-
-                <div className="col-span-12 lg:col-span-3 flex flex-col gap-6 min-h-0">
-                    <div className="bg-[#0a0a0a] border border-[#1f1f1f] rounded-3xl h-full flex flex-col overflow-hidden shadow-2xl">
-                        <div className="h-12 bg-[#111] border-b border-[#1f1f1f] flex items-center px-6 justify-between">
-                            <span className="text-[10px] font-bold text-gray-500 uppercase font-mono tracking-widest flex items-center gap-2"><History size={14}/> Protocol Archive</span>
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                    {/* Interior status readout */}
+                    <div className="p-8 border-t border-[#1f1f1f] bg-black/60">
+                        <div className="flex justify-between items-center text-[10px] font-black font-mono text-gray-600 mb-3 uppercase tracking-widest">
+                            <span>Reality Displacement</span>
+                            <span className="text-[#9d4edd]">Stable</span>
                         </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
-                            {strategyLibrary.map(item => (
-                                <div key={item.id} className="p-4 bg-black/40 border border-[#222] rounded-2xl hover:border-[#9d4edd]/50 transition-all cursor-default group">
-                                    <div className="flex justify-between items-start mb-2">
-                                        <span className="text-[10px] font-black text-white uppercase group-hover:text-[#9d4edd] transition-colors">{item.title}</span>
-                                        <span className="text-[8px] text-gray-600 font-mono">{new Date(item.timestamp).toLocaleDateString()}</span>
-                                    </div>
-                                    <p className="text-[9px] text-gray-500 font-mono leading-relaxed line-clamp-2">"{item.logic}"</p>
-                                    <div className="mt-3 text-[7px] text-[#9d4edd] bg-[#9d4edd]/10 px-1.5 py-0.5 rounded border border-[#9d4edd]/20 w-fit uppercase font-bold">{item.context}</div>
-                                </div>
-                            ))}
-                            {strategyLibrary.length === 0 && (
-                                <div className="h-full flex flex-col items-center justify-center opacity-10 py-20 grayscale"><History size={48} /><p className="text-[10px] font-mono mt-4">NO_PROTOCOLS_SECURED</p></div>
-                            )}
+                        <div className="h-1.5 w-full bg-[#111] rounded-full overflow-hidden border border-white/5">
+                            <motion.div initial={{ width: 0 }} animate={{ width: '84%' }} className="h-full bg-gradient-to-r from-[#9d4edd] to-[#22d3ee] shadow-[0_0_10px_#9d4edd]" />
                         </div>
                     </div>
+                </div>
+            </div>
+
+            {/* Sector HUD Footer (The "Extended Bottom") */}
+            <div className="h-12 bg-[#0a0a0a] border-t border-[#1f1f1f] px-10 flex items-center justify-between text-[9px] font-mono text-gray-600 shrink-0 relative z-[60]">
+                <div className="flex gap-10 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
+                    <div className="flex items-center gap-3 text-emerald-500 font-bold uppercase tracking-[0.2em]">
+                        <CheckCircle size={14} className="shadow-[0_0_10px_#10b981]" /> Sync_Stable
+                    </div>
+                    <div className="flex items-center gap-3 uppercase tracking-widest">
+                        <Shield size={14} className="text-[#9d4edd]" /> Enclave_Locked
+                    </div>
+                    <div className="flex items-center gap-3 uppercase tracking-widest">
+                        <Activity size={14} className="text-[#22d3ee]" /> Logic_Integrity: 98%
+                    </div>
+                </div>
+                <div className="flex items-center gap-8 shrink-0">
+                    <span className="uppercase tracking-[0.5em] opacity-40 leading-none hidden lg:block text-[8px]">Strategic Handover Protocol v3.1 // Real-Time Displacement</span>
+                    <div className="h-4 w-px bg-white/10 hidden lg:block" />
+                    <span className="font-black text-gray-400 uppercase tracking-widest leading-none text-[8px]">Sovereign_OS</span>
                 </div>
             </div>
         </div>
     );
 };
+
+const Archive = ({ size, className }: { size?: number, className?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <rect width="20" height="5" x="2" y="3" rx="1" />
+        <path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8" />
+        <path d="M10 12h4" />
+    </svg>
+);
 
 export default SynthesisBridge;
