@@ -1,7 +1,11 @@
 
 import { useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
-import { generateResearchPlan, executeResearchQuery, compileResearchContext, synthesizeResearchReport, generateHypotheses, promptSelectKey } from '../services/geminiService';
+import { 
+    generateResearchPlan, executeResearchQuery, compileResearchContext, 
+    synthesizeResearchReport, generateHypotheses, promptSelectKey,
+    generateEmbedding 
+} from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
 import { consensusEngine } from '../services/bicameralService';
 import { FactChunk, AtomicTask, ScienceHypothesis } from '../types';
@@ -18,7 +22,6 @@ export const useResearchAgent = () => {
                 const parsed = JSON.parse(savedState);
                 if (useAppStore.getState().research.tasks.length === 0) {
                     parsed.tasks.forEach((t: any) => {
-                        // Resuming interrupted tasks
                         if (['PLANNING', 'SEARCHING', 'SYNTHESIZING', 'SWARM_VERIFY'].includes(t.status)) {
                             t.status = 'RESUMING';
                             t.logs = [...t.logs, "RESUMING: Restoring context snapshot..."];
@@ -32,7 +35,6 @@ export const useResearchAgent = () => {
         }
     }, []);
 
-    // Save state whenever tasks change for persistence
     useEffect(() => {
         localStorage.setItem('structura_research_state', JSON.stringify(research));
     }, [research]);
@@ -43,21 +45,18 @@ export const useResearchAgent = () => {
             
             for (const task of activeTasks) {
                 if (processingRef.current.has(task.id)) continue;
-                
-                const isCancelled = () => {
-                    const currentTask = useAppStore.getState().research.tasks.find(t => t.id === task.id);
-                    return currentTask?.status === 'CANCELLED';
-                };
-
                 processingRef.current.add(task.id);
-
-                const currentStatus = task.status;
-                updateResearchAgentWorkflow(task, currentStatus === 'RESUMING');
+                updateResearchAgentWorkflow(task, task.status === 'RESUMING');
             }
         };
 
         const updateResearchAgentWorkflow = async (task: any, isResuming: boolean) => {
             try {
+                const isCancelled = () => {
+                    const currentTask = useAppStore.getState().research.tasks.find(t => t.id === task.id);
+                    return currentTask?.status === 'CANCELLED';
+                };
+
                 if (isResuming) {
                     addLog('INFO', `RESEARCH_AGENT: Resuming persistent investigation for "${task.query}"`);
                 }
@@ -68,15 +67,9 @@ export const useResearchAgent = () => {
                     logs: [...task.logs, isResuming ? "RE-PLANNING: Optimizing vectors..." : "Generating Strategic Plan..."] 
                 });
 
-                // Simulated context snapshot recovery
-                if (isResuming && task.contextSnapshot) {
-                    addLog('SUCCESS', `RESEARCH_AGENT: Identity and context recovered for "${task.query}"`);
-                }
-
                 const subQueries = await generateResearchPlan(task.query);
-                if (isCancelled(task.id)) throw new Error("Cancelled");
+                if (isCancelled()) throw new Error("Cancelled");
 
-                // Update context snapshot for persistence
                 updateResearchTask(task.id, { 
                     subQueries: subQueries && subQueries.length > 0 ? subQueries : [task.query], 
                     status: 'SEARCHING', 
@@ -90,7 +83,7 @@ export const useResearchAgent = () => {
                 
                 let completed = 0;
                 for (const q of safeQueries) {
-                    if (isCancelled(task.id)) throw new Error("Cancelled");
+                    if (isCancelled()) throw new Error("Cancelled");
                     updateResearchTask(task.id, { logs: [...task.logs, `Scanning: "${q}"...`] });
                     const resultFacts = await executeResearchQuery(q);
                     findings.push(...resultFacts);
@@ -107,7 +100,6 @@ export const useResearchAgent = () => {
                     logs: [...task.logs, "Synthesizing theoretical model..."] 
                 });
 
-                // Hypothesis generation
                 const facts = findings.map(f => f.fact);
                 const hypotheses = await generateHypotheses(facts);
                 updateResearchTask(task.id, { hypotheses });
@@ -141,14 +133,33 @@ export const useResearchAgent = () => {
                 setBicameralState({ isSwarming: false });
 
                 const finalReport = bicameralResult.output;
+                
+                // --- VAULT INTEGRATION START ---
+                // Persist the research finding as an indexed artifact for Vector Search
+                const researchBlob = new Blob([finalReport], { type: 'text/markdown' });
+                const researchFile = new File([researchBlob], `RESEARCH_${task.id.slice(0,8)}.md`, { type: 'text/markdown' });
+                
+                const artifactId = await neuralVault.saveArtifact(researchFile, {
+                    classification: 'RESEARCH_FINDING',
+                    ambiguityScore: 10,
+                    entities: findings.slice(0, 3).map(f => f.fact.substring(0, 10)),
+                    summary: `Synthesized report for query: "${task.query}"`
+                });
+
+                const embedding = await generateEmbedding(finalReport.substring(0, 5000));
+                if (embedding.length > 0) {
+                    await neuralVault.saveVector(artifactId, embedding, { query: task.query });
+                }
+                // --- VAULT INTEGRATION END ---
+
                 updateResearchTask(task.id, { 
                     result: finalReport, 
                     status: 'COMPLETED', 
                     progress: 100, 
-                    logs: [...task.logs, "Research mission accomplished."] 
+                    logs: [...task.logs, "Research mission accomplished and archived to Vault."] 
                 });
                 
-                addLog('SUCCESS', `RESEARCH_AGENT: Mission finalized for "${task.query}"`);
+                addLog('SUCCESS', `RESEARCH_AGENT: Mission finalized and indexed for "${task.query}"`);
 
             } catch (e: any) {
                 if (e.message !== "Cancelled") {
@@ -156,11 +167,6 @@ export const useResearchAgent = () => {
                 }
                 processingRef.current.delete(task.id);
             }
-        };
-
-        const isCancelled = (id: string) => {
-            const currentTask = useAppStore.getState().research.tasks.find(t => t.id === id);
-            return currentTask?.status === 'CANCELLED';
         };
 
         const interval = setInterval(checkQueue, 2000);

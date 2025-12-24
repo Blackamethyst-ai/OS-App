@@ -1,6 +1,6 @@
-
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { AppMode, ArtifactAnalysis, Message, UserProfile, KnowledgeLayer } from '../types';
+import { cosineSimilarity } from '../utils/vector';
 
 // --- SCHEMA DEFINITION ---
 
@@ -45,13 +45,13 @@ interface NeuralVaultSchema extends DBSchema {
     indexes: { 'by-mode': string };
   };
 
-  // 4. VectorIndex: Placeholder for future embeddings
+  // 4. VectorIndex: High-dimensional embeddings for semantic search
   vectors: {
-    key: string; // chunkId
+    key: string; // chunkId or artifactId
     value: {
-      content: string;
+      id: string;
       embedding: number[];
-      sourceId: string;
+      metadata?: any;
     };
   };
 
@@ -102,7 +102,7 @@ class NeuralVaultService {
         
         // Vector Store
         if (!db.objectStoreNames.contains('vectors')) {
-            db.createObjectStore('vectors', { keyPath: 'key' });
+            db.createObjectStore('vectors', { keyPath: 'id' });
         }
 
         // Profile Store
@@ -116,6 +116,29 @@ class NeuralVaultService {
         }
       },
     });
+  }
+
+  // --- VECTOR METHODS ---
+
+  async saveVector(id: string, embedding: number[], metadata?: any) {
+      const db = await this.db;
+      await db.put('vectors', { id, embedding, metadata });
+      console.log(`[NeuralVault] Vector Indexed: ${id.substring(0,8)}`);
+  }
+
+  async searchVectors(queryEmbedding: number[], limit: number = 5): Promise<{id: string, score: number}[]> {
+      const db = await this.db;
+      const allVectors = await db.getAll('vectors');
+      
+      const scoredResults = allVectors.map(v => ({
+          id: v.id,
+          score: cosineSimilarity(queryEmbedding, v.embedding)
+      }));
+
+      // Sort by descending similarity score
+      return scoredResults
+          .sort((a, b) => b.score - a.score)
+          .slice(0, limit);
   }
 
   // --- ARTIFACT METHODS ---
@@ -172,6 +195,7 @@ class NeuralVaultService {
   async deleteArtifact(id: string) {
       const db = await this.db;
       await db.delete('artifacts', id);
+      await db.delete('vectors', id); // Clean up vector as well
   }
 
   // --- SNAPSHOT METHODS (Time Travel) ---
@@ -271,6 +295,7 @@ class NeuralVaultService {
       await db.clear('echoes');
       await db.clear('profile');
       await db.clear('knowledge_layers');
+      await db.clear('vectors');
       this.layersPromise = null;
       console.warn('[NeuralVault] SYSTEM WIPE COMPLETE. AMNESIA INDUCED.');
   }
