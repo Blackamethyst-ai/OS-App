@@ -65,7 +65,6 @@ const RealWorldFeasibility = ({ strategy }: { strategy: string | null }) => {
                             "{feasibility}"
                         </div>
                         <div className="flex items-center gap-3 px-1 text-[8px] font-mono text-gray-600 uppercase tracking-widest">
-                            {/* Fixed: Added ShieldCheck to lucide-react imports */}
                             <ShieldCheck size={12} className="text-[#10b981]" />
                             Grounded via Google Search // Signal_Confirmed
                         </div>
