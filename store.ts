@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { 
     AppMode, AppTheme, UserProfile, FileData, Task, 
@@ -136,6 +135,15 @@ interface AppState {
         xrayImage: string | null;
         searchHistory: string[];
         activeTier: string;
+        finTelemetry: {
+            totalBomCost: number;
+            roiProjection: number;
+            maintenanceEst: number;
+        };
+    };
+    memory: {
+        driveManifest: any | null;
+        activeCollection: string | null;
     };
     bibliomorphic: {
         activeTab: string;
@@ -204,6 +212,7 @@ interface AppState {
     setImageGenState: (update: any) => void;
     setCodeStudioState: (update: any) => void;
     setHardwareState: (update: any) => void;
+    setMemoryState: (update: any) => void;
     setBibliomorphicState: (update: any) => void;
     setDiscoveryState: (update: any) => void;
     addResearchTask: (task: any) => void;
@@ -230,6 +239,8 @@ interface AppState {
     removeDockItem: (id: string) => void;
     archiveIntervention: (protocol: any) => void;
     setMetaventionsState: (update: any) => void;
+    pushToInvestmentQueue: (metavention: any) => void;
+    commitInvestment: (id: string, amount: number) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -363,7 +374,16 @@ export const useAppStore = create<AppState>((set) => ({
         error: null,
         xrayImage: null,
         searchHistory: [],
-        activeTier: 'PRO'
+        activeTier: 'PRO',
+        finTelemetry: {
+            totalBomCost: 0,
+            roiProjection: 0,
+            maintenanceEst: 0
+        }
+    },
+    memory: {
+        driveManifest: null,
+        activeCollection: null
     },
     bibliomorphic: {
         activeTab: 'discovery',
@@ -510,6 +530,9 @@ export const useAppStore = create<AppState>((set) => ({
     setHardwareState: (update) => set((state) => ({ 
         hardware: { ...state.hardware, ...(typeof update === 'function' ? update(state.hardware) : update) } 
     })),
+    setMemoryState: (update) => set((state) => ({ 
+        memory: { ...state.memory, ...(typeof update === 'function' ? update(state.memory) : update) } 
+    })),
     setBibliomorphicState: (update) => set((state) => ({ 
         bibliomorphic: { ...state.bibliomorphic, ...(typeof update === 'function' ? update(state.bibliomorphic) : update) } 
     })),
@@ -588,5 +611,27 @@ export const useAppStore = create<AppState>((set) => ({
     })),
     setMetaventionsState: (update) => set((state) => ({ 
         metaventions: { ...state.metaventions, ...(typeof update === 'function' ? update(state.metaventions) : update) } 
+    })),
+    pushToInvestmentQueue: (metavention) => set((state) => ({
+        marketData: {
+            ...state.marketData,
+            opportunities: [{
+                id: `metavention-${Date.now()}`,
+                title: metavention.title,
+                yield: `${metavention.viability}%`,
+                risk: metavention.riskVector === 'LOW' ? 'LOW' : 'HIGH',
+                logic: metavention.logic
+            }, ...state.marketData.opportunities].slice(0, 10)
+        }
+    })),
+    commitInvestment: (id, amount) => set((state) => ({
+        marketData: {
+            ...state.marketData,
+            opportunities: state.marketData.opportunities.filter(o => o.id !== id)
+        },
+        metaventions: {
+            ...state.metaventions,
+            strategyLog: [...state.metaventions.strategyLog, `Invested $${amount.toLocaleString()} into [${id}]`]
+        }
     })),
 }));

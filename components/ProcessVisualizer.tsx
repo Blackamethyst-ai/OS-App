@@ -13,7 +13,8 @@ import {
     Boxes, Package, Scan, Trash2, Globe, Cpu, ChevronRight, Terminal, RotateCcw, Box,
     FolderTree, Folder, HardDrive, Share2, Target, GitBranch, Layout, Hammer, Network, Shield,
     Merge, FolderOpen, List, ChevronDown, Binary, Radio, FileJson, Clock, Lock, Download,
-    SearchCode, BarChart4, Cloud, Image as ImageIcon, CheckCircle2
+    SearchCode, BarChart4, Cloud, Image as ImageIcon, CheckCircle2, FileTerminal, FileCode,
+    ArrowUpRight
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useAppStore } from '../store';
@@ -22,7 +23,8 @@ import { renderSafe } from '../utils/renderSafe';
 import MermaidDiagram from './MermaidDiagram';
 import NexusAPIExplorer from './NexusAPIExplorer';
 import { audio } from '../services/audioService';
-import { promptSelectKey } from '../services/geminiService';
+import { promptSelectKey, generateDriveShellScript } from '../services/geminiService';
+import { AppMode } from '../types';
 
 const HolographicNode = ({ id, data: nodeData, selected, dragging }: NodeProps) => {
     const data = nodeData as any;
@@ -47,8 +49,7 @@ const HolographicNode = ({ id, data: nodeData, selected, dragging }: NodeProps) 
                 borderColor: selected ? accentColor : 'rgba(255,255,255,0.05)'
             }}
             transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-            className={`relative px-6 py-5 rounded-[2rem] border transition-all duration-300 min-w-[280px] backdrop-blur-3xl group 
-                ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
+            className={`relative px-6 py-5 rounded-[2rem] border transition-all duration-300 min-w-[280px] backdrop-blur-3xl group ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
             style={{ backgroundColor: 'rgba(5,5,5,0.95)' }}
         >
             <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
@@ -127,9 +128,10 @@ const CinematicEdge = ({ id, sourceX, sourceY, targetX, targetY, style, markerEn
 };
 
 const VaultDriveOrg = ({ workflow }: any) => {
-    const { addLog } = useAppStore();
+    const { addLog, setMemoryState, setMode } = useAppStore();
     const [optimizedNodes, setOptimizedNodes] = useState<Set<string>>(new Set());
     const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+    const [isForgingScript, setIsForgingScript] = useState(false);
 
     const toggleOptimize = (id: string) => {
         setOptimizedNodes(prev => {
@@ -157,17 +159,40 @@ const VaultDriveOrg = ({ workflow }: any) => {
         if (!workflow?.taxonomy) return;
         const manifest = {
             title: workflow.title,
-            timestamp: new Date().toISOString(),
+            timestamp: Date.now(),
             taxonomy: workflow.taxonomy
         };
-        const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `para_manifest_${Date.now()}.json`;
-        link.click();
-        addLog('SUCCESS', 'VAULT_EXPORT: PARA Drive Manifest generated successfully.');
+        
+        // Handover to MemoryCore
+        setMemoryState({ driveManifest: manifest });
+        addLog('SUCCESS', 'VAULT_HANDOVER: PARA Drive Manifest synchronized with Memory Core.');
         audio.playSuccess();
+
+        // Optional: Trigger sector migration
+        if (confirm("Lattice logic stabilized. Handover to Memory Core for autonomous organization?")) {
+            setMode(AppMode.MEMORY_CORE);
+        }
+    };
+
+    const handleForgeShellScript = async () => {
+        if (!workflow?.taxonomy) return;
+        setIsForgingScript(true);
+        addLog('SYSTEM', 'SCRIPT_FORGE: Synthesizing POSIX directory protocol...');
+        try {
+            const script = await generateDriveShellScript(workflow.taxonomy);
+            const blob = new Blob([script], { type: 'text/x-shellscript' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `setup_vault_${Date.now()}.sh`;
+            link.click();
+            addLog('SUCCESS', 'SCRIPT_FORGE: Shell protocol stabilized and exported.');
+            audio.playSuccess();
+        } catch (e) {
+            addLog('ERROR', 'SCRIPT_FORGE_FAIL: Link corruption.');
+        } finally {
+            setIsForgingScript(false);
+        }
     };
 
     if (!workflow || !workflow.taxonomy) return (
@@ -191,22 +216,30 @@ const VaultDriveOrg = ({ workflow }: any) => {
                 <div className="flex justify-between items-end mb-20 border-b border-white/5 pb-14">
                     <div className="space-y-4">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-[#10b981]/10 border border-[#10b981]/30 rounded-2xl border border-[#10b981]/30 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+                            <div className="p-3 bg-[#10b981]/10 border border-[#10b981]/30 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.15)]">
                                 <HardDrive size={24} className="text-[#10b981]" />
                             </div>
                             <span className="text-[12px] font-black font-mono text-[#10b981] uppercase tracking-[0.6em]">LatticeVault // Autonomous_PARA</span>
                         </div>
-                        <h2 className="text-6xl font-black text-white uppercase tracking-tighter font-mono leading-none">PARA Logic Matrix</h2>
+                        <h2 className="text-6xl font-black text-white uppercase tracking-tighter font-mono leading-none">{workflow.title}</h2>
                         <p className="text-xs text-gray-500 font-mono uppercase tracking-widest">Recursive Structural Protocol Active</p>
                     </div>
-                    <div className="flex gap-10 items-center">
+                    <div className="flex gap-4 items-center">
+                        <button 
+                            onClick={handleForgeShellScript}
+                            disabled={isForgingScript}
+                            className="px-6 py-3 bg-[#22d3ee]/10 hover:bg-[#22d3ee] border border-[#22d3ee]/40 text-[#22d3ee] hover:text-black text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-xl flex items-center gap-3 active:scale-95 disabled:opacity-30"
+                        >
+                            {isForgingScript ? <Loader2 size={16} className="animate-spin" /> : <FileTerminal size={16} />}
+                            {isForgingScript ? 'FORGING...' : 'Forge Shell Script'}
+                        </button>
                         <button 
                             onClick={handleExportManifest}
                             className="px-6 py-3 bg-[#10b981] hover:bg-[#34d399] text-black text-[10px] font-black uppercase tracking-widest rounded-xl transition-all shadow-[0_15px_30px_rgba(16,185,129,0.2)] flex items-center gap-3 active:scale-95"
                         >
-                            <Download size={16} /> Export Manifest
+                            <ArrowUpRight size={16} /> Handover to Vault
                         </button>
-                        <div className="h-10 w-px bg-white/5" />
+                        <div className="h-10 w-px bg-white/5 mx-2" />
                         <div className="text-right space-y-2">
                             <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest block">L1_Sectors</span>
                             <span className="text-5xl font-black font-mono text-[#9d4edd] tracking-tighter">{workflow.taxonomy?.root?.length || 0}</span>
@@ -225,9 +258,7 @@ const VaultDriveOrg = ({ workflow }: any) => {
                                 initial={{ opacity: 0, y: 30 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: idx * 0.08 }}
-                                className={`p-10 bg-[#080808] border rounded-[3rem] group relative overflow-hidden transition-all duration-1000
-                                    ${isOptimized ? 'border-[#10b981]/50 bg-[#10b981]/5 shadow-[0_0_80px_rgba(16,185,129,0.1)]' : 'border-white/5 hover:border-white/10 hover:bg-[#0a0a0a] shadow-2xl'}
-                                `}
+                                className={`p-10 bg-[#080808] border rounded-[3rem] group relative overflow-hidden transition-all duration-1000 ${isOptimized ? 'border-[#10b981]/50 bg-[#10b981]/5 shadow-[0_0_80px_rgba(16,185,129,0.1)]' : 'border-white/5 hover:border-white/10 hover:bg-[#0a0a0a] shadow-2xl'}`}
                             >
                                 <div className="absolute top-0 right-0 p-12 opacity-[0.02] group-hover:opacity-[0.08] transition-all duration-1000 group-hover:scale-125 rotate-12">
                                     <FolderTree size={160} />
@@ -360,15 +391,11 @@ const ProtocolLoom = ({ workflow, results, isSimulating, activeIndex, onExecute,
                                 initial={{ opacity: 0, x: -30 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.1 }}
-                                className={`p-10 bg-[#080808] border rounded-[3rem] transition-all duration-1000 relative group overflow-hidden
-                                    ${isDone ? 'border-emerald-500/30 bg-emerald-950/5' : isActive ? 'border-[#9d4edd] bg-[#9d4edd]/5 shadow-[0_0_80px_rgba(157,78,221,0.15)]' : 'border-white/5 hover:border-white/10 hover:bg-[#0a0a0a]'}
-                                `}
+                                className={`p-10 bg-[#080808] border rounded-[3rem] transition-all duration-1000 relative group overflow-hidden ${isDone ? 'border-emerald-500/30 bg-emerald-950/5' : isActive ? 'border-[#9d4edd] bg-[#9d4edd]/5 shadow-[0_0_80px_rgba(157,78,221,0.15)]' : 'border-white/5 hover:border-white/10 hover:bg-[#0a0a0a]'}`}
                             >
                                 <div className="flex justify-between items-start mb-8 relative z-10">
                                     <div className="flex items-center gap-8">
-                                        <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center font-mono font-black text-xl border transition-all duration-1000 shadow-inner
-                                            ${isDone ? 'bg-[#10b981] text-black border-[#10b981] shadow-[0_0_30px_#10b981]' : isActive ? 'bg-[#9d4edd] text-black border-[#9d4edd] animate-pulse' : 'bg-[#111] text-gray-700 border-white/5'}
-                                        `}>
+                                        <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center font-mono font-black text-xl border transition-all duration-1000 shadow-inner ${isDone ? 'bg-[#10b981] text-black border-[#10b981] shadow-[0_0_30px_#10b981]' : isActive ? 'bg-[#9d4edd] text-black border-[#9d4edd] animate-pulse' : 'bg-[#111] text-gray-700 border-white/5'}`}>
                                             {isDone ? <CheckCircle size={32} /> : String(i + 1).padStart(2, '0')}
                                         </div>
                                         <div>
@@ -418,7 +445,6 @@ const ProtocolLoom = ({ workflow, results, isSimulating, activeIndex, onExecute,
     );
 };
 
-// Define missing SourceGrounding component to fix "Cannot find name 'SourceGrounding'"
 const SourceGrounding = ({ sources, onUpload, onRemove, onPreview }: any) => {
     return (
         <div className="h-full flex flex-col p-10 bg-[#030303] overflow-y-auto custom-scrollbar relative">
@@ -485,7 +511,6 @@ const SourceGrounding = ({ sources, onUpload, onRemove, onPreview }: any) => {
     );
 };
 
-// Define missing InfrastructureForge component to fix "Cannot find name 'InfrastructureForge'"
 const InfrastructureForge = ({ nodes, onGenerate }: any) => {
     return (
         <div className="h-full flex flex-col p-20 bg-[#030303] overflow-y-auto custom-scrollbar relative">
@@ -637,7 +662,7 @@ const ProcessVisualizerContent = () => {
                                 key={tab.id} 
                                 onClick={() => { setState({ activeTab: tab.id }); audio.playClick(); }} 
                                 className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all whitespace-nowrap group/tab
-                                    ${activeTab === tab.id ? 'bg-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/30' : 'text-gray-500 hover:text-gray-300 hover:bg-white/5'}
+                                    ${activeTab === tab.id ? 'bg-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/30' : 'text-gray-500 hover:text-gray-200 hover:bg-white/5'}
                                 `}
                             >
                                 <tab.icon size={16} className={`${activeTab === tab.id ? 'fill-current' : 'group-hover/tab:scale-110 transition-transform'}`} /> <span>{tab.label}</span>
@@ -662,7 +687,6 @@ const ProcessVisualizerContent = () => {
                                 addLog('SYSTEM', 'MARKET_SYNC: Ingesting real-world competitive context into process lattice...');
                                 try {
                                     if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
-                                    // Simulated high-end trend fetch that populates architecture prompt
                                     setArchitecturePrompt(prev => prev + "\n\nREQUIREMENT: Align with current DePIN growth curves and hardware efficiency benchmarks discovered via Google Search grounding.");
                                     addLog('SUCCESS', 'MARKET_SYNC: Architecture prompt enriched with live intelligence.');
                                     audio.playSuccess();
@@ -671,7 +695,7 @@ const ProcessVisualizerContent = () => {
                             className="p-3.5 bg-white/5 border border-white/10 hover:border-[#f59e0b] rounded-2xl text-gray-600 hover:text-[#f59e0b] transition-all shadow-xl group/trend active:scale-90" 
                             title="Inject Market Intelligence"
                         >
-                            <BarChart4 size={22} className="group-hover:trend:scale-110 transition-transform" />
+                            <BarChart4 size={22} className="group-hover/trend:scale-110 transition-transform" />
                         </button>
                         <button 
                             onClick={() => { handleRunGlobalSequence(); audio.playClick(); }} 
@@ -683,7 +707,6 @@ const ProcessVisualizerContent = () => {
                 </div>
             </div>
 
-            {/* Main Sector Viewport */}
             <div className="flex-1 relative overflow-hidden bg-[#020202] z-10">
                 <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%)] z-50 bg-[length:100%_4px] opacity-10" />
                 
@@ -701,7 +724,6 @@ const ProcessVisualizerContent = () => {
                                 />
                             </ReactFlow>
                             
-                            {/* Topological Status Tags */}
                             <div className="absolute top-12 left-12 flex flex-col gap-4 pointer-events-none">
                                 <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="px-5 py-2.5 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-full text-[10px] font-black font-mono text-[#9d4edd] flex items-center gap-3 shadow-2xl backdrop-blur-xl">
                                     <Radio size={14} className="animate-pulse" /> NEURAL_LATTICE_SYNC_ACTIVE
@@ -778,9 +800,7 @@ const ProcessVisualizerContent = () => {
                                                 <button
                                                     key={type.id}
                                                     onClick={() => { setState({ workflowType: type.id as any }); audio.playClick(); }}
-                                                    className={`flex-1 flex items-center justify-center gap-4 py-6 rounded-[2rem] border text-[13px] font-black uppercase tracking-widest transition-all duration-1000
-                                                        ${processData.workflowType === type.id ? 'bg-[#9d4edd] border-[#9d4edd] text-black shadow-[0_20px_40px_rgba(157,78,221,0.3)] scale-105' : 'bg-transparent border-transparent text-gray-700 hover:text-gray-300 hover:bg-white/5'}
-                                                    `}
+                                                    className={`flex-1 flex items-center justify-center gap-4 py-6 rounded-[2rem] border text-[13px] font-black uppercase tracking-widest transition-all duration-1000 ${processData.workflowType === type.id ? 'bg-[#9d4edd] border-[#9d4edd] text-black shadow-[0_20px_40px_rgba(157,78,221,0.3)] scale-105' : 'bg-transparent border-transparent text-gray-700 hover:text-gray-300 hover:bg-white/5'}`}
                                                 >
                                                     <type.icon size={20} />
                                                     {type.label}
@@ -878,7 +898,6 @@ const ProcessVisualizerContent = () => {
                 </AnimatePresence>
             </div>
 
-            {/* Sovereign Sector HUD Footer */}
             <div className="h-12 bg-[#0a0a0a] border-t border-[#1f1f1f] px-12 flex items-center justify-between text-[10px] font-mono text-gray-600 shrink-0 relative z-[60]">
                 <div className="flex gap-16 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
                     <div className="flex items-center gap-4 text-emerald-500 font-bold uppercase tracking-[0.3em]">

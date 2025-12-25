@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,13 +8,14 @@ import {
     BoxSelect, FlaskConical, CircleDot, AlertTriangle, ChevronRight, X,
     Layers, RefreshCw, Hammer, Coins, Telescope, Info, TrendingUp, BarChart3,
     CheckCircle2, Cpu, CheckCircle, Shield, Globe, ExternalLink, Search,
-    ShieldCheck
+    ShieldCheck, ArrowUpRight, DollarSign
 } from 'lucide-react';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
 import { retryGeminiRequest, promptSelectKey, analyzeDeploymentFeasibility } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
+import { AppMode } from '../types';
 
 const RealWorldFeasibility = ({ strategy }: { strategy: string | null }) => {
     const [feasibility, setFeasibility] = useState<string | null>(null);
@@ -124,7 +124,7 @@ const PhysicalDeltaGraph = ({ active }: { active: boolean }) => {
 };
 
 const SynthesisBridge: React.FC = () => {
-    const { metaventions, setMetaventionsState, addLog, archiveIntervention, knowledge, toggleKnowledgeLayer, optimizeLayer } = useAppStore();
+    const { metaventions, setMetaventionsState, addLog, archiveIntervention, knowledge, toggleKnowledgeLayer, setMode, pushToInvestmentQueue } = useAppStore();
     const { layers, activeLayerId, strategyLibrary } = metaventions;
     const activeLayer = layers.find(l => l.id === activeLayerId);
     const activeKnowledgeLayerIds = knowledge.activeLayers || [];
@@ -165,6 +165,16 @@ const SynthesisBridge: React.FC = () => {
             addLog('ERROR', 'METAVENTION_FAIL: Strategic collision detected.');
         } finally {
             setIsGenerating(false);
+        }
+    };
+
+    const handleHandoffToTreasury = () => {
+        if (!currentMetavention) return;
+        pushToInvestmentQueue(currentMetavention);
+        addLog('SUCCESS', `FIN_HANDOVER: "${currentMetavention.title}" pushed to Treasury sector.`);
+        audio.playSuccess();
+        if (confirm("Metavention pushed to Finance sector for capital allocation. Transition to Treasury?")) {
+            setMode(AppMode.AUTONOMOUS_FINANCE);
         }
     };
 
@@ -328,6 +338,9 @@ const SynthesisBridge: React.FC = () => {
                                         <div className="mt-auto pt-16 flex gap-6 pb-12">
                                             <button onClick={handleArchive} className="flex-1 py-6 bg-white/5 border border-white/10 hover:border-white/40 text-white text-[12px] font-black uppercase tracking-[0.4em] rounded-[2.5rem] transition-all flex items-center justify-center gap-5 shadow-2xl active:scale-95 group/save">
                                                 <Save size={22} className="group-hover/save:scale-110 transition-transform" /> Secure to Sovereign Vault
+                                            </button>
+                                            <button onClick={handleHandoffToTreasury} className="flex-1 py-6 bg-[#10b981]/10 border border-[#10b981]/40 text-[#10b981] text-[12px] font-black uppercase tracking-[0.4em] rounded-[2.5rem] transition-all flex items-center justify-center gap-5 shadow-2xl active:scale-95 group/fin">
+                                                <DollarSign size={22} className="group-hover/fin:scale-110 transition-transform" /> Commit to Treasury
                                             </button>
                                             <button onClick={generateHack} className="px-16 py-6 bg-[#9d4edd] text-black font-black uppercase text-[12px] tracking-[0.5em] rounded-[2.5rem] hover:bg-[#b06bf7] transition-all shadow-[0_40px_80px_rgba(157,78,221,0.5)] active:scale-95 group/refresh">
                                                 <RefreshCw size={22} className="group-hover/refresh:rotate-90 transition-transform duration-500" />

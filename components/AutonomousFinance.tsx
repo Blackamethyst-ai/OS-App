@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -7,47 +6,13 @@ import {
     ArrowUpRight, Binary, Cpu, Wallet, Compass, Search,
     Lock, CheckCircle, Info, TrendingDown, Layers, Terminal,
     LineChart as ChartIcon, Coins, Landmark, Briefcase, 
-    ShieldAlert, Network, Share2, ArrowRight, Server, Radio, Shield
+    ShieldAlert, Network, Share2, ArrowRight, Server, Radio, Shield,
+    CheckCircle2, AlertTriangle, PlayCircle, X
 } from 'lucide-react';
 import { useAppStore } from '../store';
-import { searchRealWorldOpportunities, promptSelectKey, fetchMarketIntelligence } from '../services/geminiService';
+import { searchRealWorldOpportunities, promptSelectKey, assessInvestmentRisk } from '../services/geminiService';
 import { audio } from '../services/audioService';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip, BarChart, Bar, CartesianGrid } from 'recharts';
-
-const LiveOpportunitiesTerminal = ({ opportunities }: { opportunities: any[] }) => {
-    return (
-        <div className="bg-black border border-white/5 rounded-2xl flex flex-col h-full overflow-hidden shadow-inner group">
-            <div className="h-10 border-b border-white/5 bg-white/[0.02] flex items-center px-4 justify-between shrink-0">
-                <div className="flex items-center gap-2">
-                    <Terminal size={12} className="text-[#10b981]" />
-                    <span className="text-[9px] font-black font-mono text-gray-500 uppercase tracking-widest">Real-Time Signal Log</span>
-                </div>
-                <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
-                    <span className="text-[7px] font-mono text-gray-600">LIVE_FEED_L0</span>
-                </div>
-            </div>
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-4 font-mono text-[10px] space-y-3">
-                {opportunities.map((op, i) => (
-                    <motion.div 
-                        initial={{ opacity: 0, x: -10 }} 
-                        animate={{ opacity: 1, x: 0 }} 
-                        key={i} 
-                        className="flex gap-3 border-l border-[#10b981]/20 pl-3 py-1 hover:bg-white/[0.02] transition-colors"
-                    >
-                        <span className="text-gray-700 shrink-0">[{new Date().toLocaleTimeString().split(' ')[0]}]</span>
-                        <span className="text-[#10b981] font-bold shrink-0">FOUND:</span>
-                        <span className="text-gray-300 flex-1 italic">"{op.title}" // CONFIDENCE: {Math.round(Math.random() * 20 + 80)}%</span>
-                        <span className="text-[#22d3ee] shrink-0">{op.yield}</span>
-                    </motion.div>
-                ))}
-                {opportunities.length === 0 && (
-                    <div className="h-full flex items-center justify-center opacity-20 italic">Awaiting strategic handshake...</div>
-                )}
-            </div>
-        </div>
-    );
-};
 
 const ProtocolNode = ({ name, yield: y, growth, icon: Icon, color }: any) => (
     <div className="p-4 bg-[#0a0a0a] border border-white/5 rounded-2xl hover:border-white/20 transition-all group relative overflow-hidden">
@@ -76,11 +41,149 @@ const ProtocolNode = ({ name, yield: y, growth, icon: Icon, color }: any) => (
     </div>
 );
 
+const InvestmentQueue = () => {
+    const { marketData, commitInvestment, addLog } = useAppStore();
+    const [evaluations, setEvaluations] = useState<Record<string, any>>({});
+    const [isEvaluating, setIsEvaluating] = useState<string | null>(null);
+
+    const runEvaluation = async (id: string) => {
+        const op = marketData.opportunities.find(o => o.id === id);
+        if (!op) return;
+        
+        setIsEvaluating(id);
+        addLog('SYSTEM', `TREASURY_EVAL: Running risk assessment on [${op.title}]...`);
+        try {
+            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
+            const result = await assessInvestmentRisk(op, { tvl: 1420500 });
+            setEvaluations(prev => ({ ...prev, [id]: result }));
+            addLog('SUCCESS', `TREASURY_EVAL: ${result.verdict} verdict stabilized for ${op.title}.`);
+            audio.playSuccess();
+        } catch (e) {
+            addLog('ERROR', 'EVAL_FAIL: Oracles offline.');
+        } finally {
+            setIsEvaluating(null);
+        }
+    };
+
+    const handleCommit = (id: string) => {
+        const evalData = evaluations[id];
+        if (!evalData) return;
+        commitInvestment(id, evalData.adjustedAmount || 50000);
+        addLog('SUCCESS', `TREASURY_EXEC: Disbursed capital to ${id}. Cycle locked.`);
+        audio.playSuccess();
+    };
+
+    return (
+        <div className="bg-black border border-white/5 rounded-[3rem] flex flex-col h-full overflow-hidden shadow-inner group">
+            <div className="h-14 border-b border-white/5 bg-white/[0.02] flex items-center px-8 justify-between shrink-0">
+                <div className="flex items-center gap-4">
+                    <div className="p-2 bg-[#10b981]/10 rounded-xl text-[#10b981]">
+                        <GitMerge size={16} />
+                    </div>
+                    <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Investment Handover Queue</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                    <span className="text-[7px] font-mono text-gray-600">INBOUND_VECTORS: {marketData.opportunities.length}</span>
+                </div>
+            </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-6">
+                <AnimatePresence mode="popLayout">
+                    {marketData.opportunities.map((op) => {
+                        const evalData = evaluations[op.id];
+                        const busy = isEvaluating === op.id;
+
+                        return (
+                            <motion.div 
+                                layout
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, x: 100 }}
+                                key={op.id}
+                                className={`p-6 rounded-[2.5rem] border transition-all duration-700
+                                    ${evalData?.verdict === 'APPROVE' ? 'bg-[#0a2a0a] border-[#10b981]/30 shadow-[0_0_40px_rgba(16,185,129,0.1)]' : 'bg-white/[0.02] border-white/5 hover:border-white/10'}
+                                `}
+                            >
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="flex-1">
+                                        <h4 className="text-lg font-black text-white uppercase font-mono tracking-tighter mb-2">{op.title}</h4>
+                                        <p className="text-[10px] text-gray-500 font-mono leading-relaxed line-clamp-2 italic">"{op.logic}"</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest block mb-1">Projected Yield</span>
+                                        <span className="text-xl font-black font-mono text-[#10b981]">{op.yield}</span>
+                                    </div>
+                                </div>
+
+                                <AnimatePresence mode="wait">
+                                    {evalData ? (
+                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="pt-6 border-t border-white/5 space-y-6 overflow-hidden">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
+                                                    <span className="text-[8px] font-mono text-gray-600 uppercase mb-2 block">Allocated Capital</span>
+                                                    <span className="text-lg font-black font-mono text-white">${evalData.adjustedAmount?.toLocaleString()}</span>
+                                                </div>
+                                                <div className="p-4 bg-black/40 rounded-2xl border border-white/5">
+                                                    <span className="text-[8px] font-mono text-gray-600 uppercase mb-2 block">Payback Cycle</span>
+                                                    <span className="text-lg font-black font-mono text-[#22d3ee]">{evalData.expectedPaybackDays} Cycles</span>
+                                                </div>
+                                            </div>
+                                            <div className="p-4 bg-black/60 rounded-2xl border border-white/5 flex gap-4 items-start">
+                                                <Info size={14} className="text-[#9d4edd] shrink-0 mt-0.5" />
+                                                <p className="text-[9px] font-mono text-gray-400 leading-relaxed uppercase">{evalData.logic}</p>
+                                            </div>
+                                            <div className="flex gap-4">
+                                                <button 
+                                                    onClick={() => handleCommit(op.id)}
+                                                    className="flex-1 py-4 bg-[#10b981] text-black font-black uppercase text-[9px] tracking-[0.3em] rounded-2xl hover:bg-[#34d399] transition-all shadow-[0_0_20px_#10b98140]"
+                                                >
+                                                    Authorize Allocation
+                                                </button>
+                                                <button 
+                                                    onClick={() => setEvaluations(prev => { const n = {...prev}; delete n[op.id]; return n; })}
+                                                    className="px-6 py-4 bg-white/5 text-gray-500 rounded-2xl hover:text-white transition-all"
+                                                >
+                                                    {/* Fix: Cannot find name 'X'. Imported from lucide-react. */}
+                                                    <X size={16} />
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    ) : (
+                                        <div className="flex gap-4">
+                                            <button 
+                                                /* Fix: Cannot find name 'runArchitecture'. Changed to 'runEvaluation'. */
+                                                onClick={() => runEvaluation(op.id)}
+                                                disabled={busy}
+                                                className="flex-1 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[9px] font-black uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-3 active:scale-95"
+                                            >
+                                                {busy ? <Loader2 size={14} className="animate-spin" /> : <PlayCircle size={14} />}
+                                                Run Risk Evaluation
+                                            </button>
+                                        </div>
+                                    )}
+                                </AnimatePresence>
+                            </motion.div>
+                        );
+                    })}
+                </AnimatePresence>
+                {marketData.opportunities.length === 0 && (
+                    <div className="h-full flex flex-col items-center justify-center opacity-10 text-center space-y-8 select-none">
+                        <Radio size={80} className="text-gray-500 animate-pulse" />
+                        <div>
+                            <p className="text-xl font-mono uppercase tracking-[0.8em]">Queue Offline</p>
+                            <p className="text-[10px] font-mono mt-4 uppercase tracking-[0.4em]">Establish strategic link in the Bridge to push opportunities</p>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
 const AutonomousFinance: React.FC = () => {
     const { addLog, setMetaventionsState, metaventions } = useAppStore();
     const { layers, activeLayerId, strategyLibrary } = metaventions;
     const activeLayer = layers.find(l => l.id === activeLayerId);
-    const [opportunities, setOpportunities] = useState<any[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [activeDomain, setActiveDomain] = useState<'DEPIN' | 'AI_COMPUTE' | 'ARBITRAGE'>('DEPIN');
     const [tvl, setTVL] = useState(1420500);
@@ -99,7 +202,9 @@ const AutonomousFinance: React.FC = () => {
         try {
             if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
             const results = await searchRealWorldOpportunities(activeDomain);
-            setOpportunities(results);
+            // Ensure they have stable IDs
+            const sanitized = results.map((r: any, i: number) => ({ ...r, id: `external-${activeDomain}-${Date.now()}-${i}` }));
+            useAppStore.setState(s => ({ marketData: { ...s.marketData, opportunities: [...sanitized, ...s.marketData.opportunities].slice(0, 15) } }));
             addLog('SUCCESS', `FINANCE_SCAN: Captured ${results.length} actionable revenue vectors.`);
             audio.playSuccess();
         } catch (e) {
@@ -132,7 +237,7 @@ const AutonomousFinance: React.FC = () => {
                         </div>
                         <div>
                             <h1 className="text-base font-black font-mono uppercase tracking-[0.4em] text-white leading-none">Revenue Nexus</h1>
-                            <span className="text-[10px] text-gray-600 font-mono uppercase tracking-widest mt-2 block">Autonomous Treasury Management // LATTICE_ALPHA</span>
+                            <span className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-2 block">Autonomous Treasury Management // LATTICE_ALPHA</span>
                         </div>
                     </div>
                     
@@ -191,11 +296,11 @@ const AutonomousFinance: React.FC = () => {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={chartData}>
                                         <defs>
-                                            <linearGradient id="yieldColor" x1="0" y1="0" x2="0" y2="1">
+                                            <linearGradient id="yieldColor" x1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
                                                 <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                                             </linearGradient>
-                                            <linearGradient id="volColor" x1="0" y1="0" x2="0" y2="1">
+                                            <linearGradient id="volColor" x1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.1}/>
                                                 <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
                                             </linearGradient>
@@ -239,83 +344,9 @@ const AutonomousFinance: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Middle Row: Opportunities and Protocol Monitor */}
-                    <div className="grid grid-cols-12 gap-8 flex-1 min-h-[500px]">
-                        <div className="col-span-7 flex flex-col gap-6 h-full">
-                            <div className="flex items-center justify-between px-2">
-                                <div className="flex items-center gap-4">
-                                    <Compass size={18} className="text-[#10b981]" />
-                                    <h2 className="text-sm font-black font-mono text-white uppercase tracking-[0.3em]">Alpha Opportunity Map</h2>
-                                </div>
-                                <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest flex items-center gap-2">
-                                    <ShieldCheck size={12} className="text-[#10b981]" /> Grounded Intelligence
-                                </span>
-                            </div>
-
-                            <AnimatePresence mode="wait">
-                                {isSearching ? (
-                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex-1 flex flex-col items-center justify-center border-2 border-dashed border-white/5 rounded-[3.5rem] opacity-40 gap-10">
-                                        <div className="relative">
-                                            <div className="w-24 h-24 rounded-full border-4 border-t-[#10b981] border-white/5 animate-spin" />
-                                            <div className="absolute inset-0 blur-3xl bg-[#10b981]/20 animate-pulse" />
-                                        </div>
-                                        <div className="text-center space-y-3">
-                                            <p className="text-2xl font-black font-mono text-white uppercase tracking-[1em] animate-pulse">Syncing Lattice...</p>
-                                            <p className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em]">Crawling Global Physical Resources</p>
-                                        </div>
-                                    </motion.div>
-                                ) : (
-                                    <div className="grid grid-cols-2 gap-6 pb-10">
-                                        {opportunities.map((op, i) => (
-                                            <motion.div 
-                                                key={i} 
-                                                initial={{ opacity: 0, y: 20 }} 
-                                                animate={{ opacity: 1, y: 0 }} 
-                                                transition={{ delay: i * 0.1 }}
-                                                className="p-8 bg-[#0a100a] border border-white/5 rounded-[3rem] hover:border-[#10b981]/40 transition-all duration-700 group/card relative overflow-hidden shadow-2xl"
-                                            >
-                                                <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover/card:opacity-[0.08] transition-opacity rotate-12"><Target size={120} /></div>
-                                                <div className="flex justify-between items-start mb-10 relative z-10">
-                                                    <div className={`px-5 py-2 rounded-full border text-[9px] font-black uppercase tracking-widest shadow-lg
-                                                        ${op.risk === 'HIGH' ? 'bg-red-500/10 border-red-500/40 text-red-400' : 'bg-[#10b981]/10 border-[#10b981]/40 text-[#10b981]'}
-                                                    `}>
-                                                        {op.type} // {op.risk} RISK
-                                                    </div>
-                                                    <a href={op.source_uri} target="_blank" rel="noopener noreferrer" className="p-2.5 text-gray-700 hover:text-white transition-all bg-white/5 border border-white/5 rounded-xl hover:shadow-[0_0_15px_rgba(255,255,255,0.1)] active:scale-90"><ArrowUpRight size={18}/></a>
-                                                </div>
-                                                <h3 className="text-2xl font-black text-white uppercase font-mono tracking-tighter mb-4 group-hover/card:text-[#10b981] transition-colors leading-tight">{op.title}</h3>
-                                                <p className="text-xs text-gray-500 font-mono leading-relaxed mb-10 line-clamp-4 italic">"{op.potential}"</p>
-                                                <div className="mt-auto pt-8 border-t border-white/5 flex items-center justify-between relative z-10">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="text-[10px] font-black font-mono text-[#10b981] uppercase tracking-[0.2em]">{op.yield} APY</div>
-                                                    </div>
-                                                    <button className="text-[10px] font-black font-mono text-gray-600 hover:text-white uppercase tracking-widest flex items-center gap-2 group/link">
-                                                        Inject_Vector <ArrowRight size={12} className="group-hover/link:translate-x-1 transition-transform" />
-                                                    </button>
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                    </div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-
-                        <div className="col-span-5 flex flex-col gap-6">
-                            <div className="flex items-center gap-4 px-2">
-                                <Network size={18} className="text-[#22d3ee]" />
-                                <h2 className="text-sm font-black font-mono text-white uppercase tracking-[0.3em]">Protocol Stacks</h2>
-                            </div>
-                            <div className="flex-1 bg-[#050505] border border-white/5 rounded-[3rem] p-8 space-y-6 shadow-2xl relative overflow-hidden">
-                                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] opacity-10 pointer-events-none" />
-                                
-                                <div className="space-y-4 h-full overflow-y-auto custom-scrollbar pr-2">
-                                    <ProtocolNode name="Akash Compute" yield="14.2%" growth="22" icon={Server} color="#ef4444" />
-                                    <ProtocolNode name="Helium Mesh" yield="8.4%" growth="5" icon={Radio} color="#22d3ee" />
-                                    <ProtocolNode name="Hivemapper Map" yield="18.9%" growth="41" icon={Target} color="#f59e0b" />
-                                    <ProtocolNode name="Render Token" yield="12.1%" growth="18" icon={Cpu} color="#d946ef" />
-                                    <ProtocolNode name="Qubic POUW" yield="24.5%" growth="64" icon={Binary} color="#10b981" />
-                                </div>
-                            </div>
+                    <div className="grid grid-cols-12 gap-8 flex-1 min-h-[500px] mb-12">
+                        <div className="col-span-12 flex flex-col h-full">
+                            <InvestmentQueue />
                         </div>
                     </div>
                 </div>
@@ -414,7 +445,7 @@ const AutonomousFinance: React.FC = () => {
                     </div>
 
                     <div className="p-10 border-t border-white/5 bg-black/80 shrink-0 space-y-6">
-                        <div className="flex justify-between items-center text-[11px] font-black font-mono text-gray-500 uppercase tracking-widest">
+                        <div className="flex justify-between items-center text-[11px] font-black font-mono text-gray-600 mb-4 uppercase tracking-widest">
                             <span>OS Revenue Velocity</span>
                             <span className="text-[#10b981] animate-pulse">+$542.80/hr</span>
                         </div>
