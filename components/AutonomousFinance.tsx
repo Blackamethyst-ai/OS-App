@@ -132,7 +132,7 @@ const AutonomousFinance: React.FC = () => {
                         </div>
                         <div>
                             <h1 className="text-base font-black font-mono uppercase tracking-[0.4em] text-white leading-none">Revenue Nexus</h1>
-                            <span className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-2 block">Autonomous Treasury Management // LATTICE_ALPHA</span>
+                            <span className="text-[10px] text-gray-600 font-mono uppercase tracking-widest mt-2 block">Autonomous Treasury Management // LATTICE_ALPHA</span>
                         </div>
                     </div>
                     
@@ -191,11 +191,11 @@ const AutonomousFinance: React.FC = () => {
                                 <ResponsiveContainer width="100%" height="100%">
                                     <AreaChart data={chartData}>
                                         <defs>
-                                            <linearGradient id="yieldColor" x1="0" x2="0" y2="1">
+                                            <linearGradient id="yieldColor" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
                                                 <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                                             </linearGradient>
-                                            <linearGradient id="volColor" x1="0" x2="0" y2="1">
+                                            <linearGradient id="volColor" x1="0" y1="0" x2="0" y2="1">
                                                 <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.1}/>
                                                 <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
                                             </linearGradient>
