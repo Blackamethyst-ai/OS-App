@@ -5,6 +5,7 @@ import {
     NodeProps, EdgeProps, BackgroundVariant, ReactFlowProvider,
     Handle, Position, getSmoothStepPath, useReactFlow
 } from '@xyflow/react';
+// Added Search to the list of imports
 import { 
     BrainCircuit, X, Activity, Database, Zap, Wrench, 
     Grid3X3, Map, Play, CheckCircle, RefreshCw,
@@ -14,7 +15,7 @@ import {
     FolderTree, Folder, HardDrive, Share2, Target, GitBranch, Layout, Hammer, Network, Shield,
     Merge, FolderOpen, List, ChevronDown, Binary, Radio, FileJson, Clock, Lock, Download,
     SearchCode, BarChart4, Cloud, Image as ImageIcon, CheckCircle2, FileTerminal, FileCode,
-    ArrowUpRight
+    ArrowUpRight, AlertTriangle, Fingerprint, Search
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useAppStore } from '../store';
@@ -31,6 +32,7 @@ const HolographicNode = ({ id, data: nodeData, selected, dragging }: NodeProps) 
     const Icon = (Icons as any)[data.iconName as string] || Icons.Box;
     const accentColor = data.color || '#9d4edd';
     const isDone = data.status === 'DONE' || data.status === 'COMPLETED' || data.status === 'SYNTHESIZED';
+    const drift = data.drift || 0; // Procedural drift / entropy
 
     const handleComplete = (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -46,12 +48,17 @@ const HolographicNode = ({ id, data: nodeData, selected, dragging }: NodeProps) 
                 opacity: 1,
                 filter: 'blur(0px)',
                 boxShadow: selected ? `0 0 50px ${accentColor}50` : '0 10px 30px rgba(0,0,0,0.5)',
-                borderColor: selected ? accentColor : 'rgba(255,255,255,0.05)'
+                borderColor: selected ? accentColor : drift > 50 ? '#ef4444' : 'rgba(255,255,255,0.05)'
             }}
             transition={{ type: 'spring', damping: 15, stiffness: 200 }}
-            className={`relative px-6 py-5 rounded-[2rem] border transition-all duration-300 min-w-[280px] backdrop-blur-3xl group ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
+            className={`relative px-6 py-5 rounded-[2rem] border transition-all duration-300 min-w-[280px] backdrop-blur-3xl group ${dragging ? 'cursor-grabbing' : 'cursor-grab'} ${drift > 70 ? 'animate-pulse border-red-500' : ''}`} 
             style={{ backgroundColor: 'rgba(5,5,5,0.95)' }}
         >
+            {/* Entropy Flare */}
+            {drift > 40 && (
+                <div className="absolute -inset-1 rounded-[2rem] bg-red-500/5 blur-md pointer-events-none opacity-40" />
+            )}
+
             <div className="absolute inset-0 rounded-[2rem] bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
             
             {isDone && (
@@ -66,7 +73,7 @@ const HolographicNode = ({ id, data: nodeData, selected, dragging }: NodeProps) 
             <Handle type="source" position={Position.Bottom} className="!bg-[#333] !border-none !w-2 !h-2" />
             
             <div className="flex justify-between items-start mb-5">
-                <div className="p-3 rounded-2xl flex items-center justify-center transition-all duration-700 shadow-2xl group-hover:scale-110 group-hover:rotate-6" style={{ backgroundColor: `${accentColor}15`, border: `1px solid ${accentColor}40`, color: accentColor }}>
+                <div className="p-3 rounded-2xl flex items-center justify-center transition-all duration-700 shadow-2xl group-hover:scale-110 group-hover:rotate-6" style={{ backgroundColor: `${drift > 60 ? '#ef4444' : accentColor}15`, border: `1px solid ${drift > 60 ? '#ef4444' : accentColor}40`, color: drift > 60 ? '#ef4444' : accentColor }}>
                     <Icon size={22} />
                 </div>
                 <div className="flex gap-2.5">
@@ -92,8 +99,8 @@ const HolographicNode = ({ id, data: nodeData, selected, dragging }: NodeProps) 
                 <div className="flex flex-col gap-1">
                     <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Coherence</span>
                     <div className="flex items-center gap-2">
-                         <div className={`w-2 h-2 rounded-full ${isDone ? 'bg-emerald-500' : 'bg-[#9d4edd] animate-pulse'}`} />
-                         <span className="text-[10px] font-black font-mono text-white/90 uppercase tracking-tighter">{data.status || 'SYNCING'}</span>
+                         <div className={`w-2 h-2 rounded-full ${isDone ? 'bg-emerald-500' : drift > 50 ? 'bg-red-500 animate-pulse' : 'bg-[#9d4edd] animate-pulse'}`} />
+                         <span className={`text-[10px] font-black font-mono uppercase tracking-tighter ${drift > 50 ? 'text-red-500' : 'text-white/90'}`}>{drift > 50 ? `DRIFT_${drift}%` : data.status || 'SYNCING'}</span>
                     </div>
                 </div>
                 <div className="text-right">
@@ -340,229 +347,190 @@ const VaultDriveOrg = ({ workflow }: any) => {
     );
 };
 
-const ProtocolLoom = ({ workflow, results, isSimulating, activeIndex, onExecute, onReset }: any) => {
-    if (!workflow) return (
-        <div className="h-full flex flex-col items-center justify-center opacity-10 text-center space-y-12">
-            <div className="relative">
-                <Workflow size={160} className="text-gray-700" strokeWidth={0.5} />
-                <div className="absolute inset-0 bg-[#22d3ee]/5 blur-3xl animate-pulse" />
+// Fix: Implemented missing SourceGrounding sub-component
+const SourceGrounding = ({ sources, onUpload, onRemove, onPreview }: any) => (
+    <div className="h-full flex flex-col p-20 bg-black/20 overflow-y-auto custom-scrollbar">
+        <div className="max-w-4xl mx-auto w-full space-y-10">
+            <div className="flex justify-between items-end border-b border-white/5 pb-10">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-[#22d3ee]/10 border border-[#22d3ee]/30 rounded-2xl">
+                            <Database size={24} className="text-[#22d3ee]" />
+                        </div>
+                        <span className="text-[12px] font-black font-mono text-[#22d3ee] uppercase tracking-[0.6em]">Context Grounding Source</span>
+                    </div>
+                    <h2 className="text-5xl font-black text-white uppercase tracking-tighter font-mono">Knowledge Ingestion</h2>
+                </div>
+                <label className="px-8 py-4 bg-[#22d3ee] hover:bg-[#67e8f9] text-black text-[12px] font-black uppercase tracking-widest rounded-2xl transition-all cursor-pointer shadow-[0_15px_30px_rgba(34,211,238,0.2)] active:scale-95">
+                    <Upload size={18} className="inline mr-3" /> Ingest Sources
+                    <input type="file" multiple className="hidden" onChange={onUpload} />
+                </label>
             </div>
-            <p className="text-2xl font-mono uppercase tracking-[0.8em] text-white">Protocol Loom Offline</p>
-            <p className="text-[11px] text-gray-600 font-mono mt-4 uppercase tracking-[0.4em]">Synthesize procedural logic to visualize sequence</p>
-        </div>
-    );
 
-    return (
-        <div className="h-full flex flex-col p-20 bg-[#030303] overflow-y-auto custom-scrollbar relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_left,rgba(34,211,238,0.03)_0%,transparent_70%)] pointer-events-none" />
-            
-            <div className="max-w-5xl mx-auto w-full space-y-16 relative z-10">
-                <div className="flex justify-between items-center border-b border-white/5 pb-14">
-                    <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-[#22d3ee]/10 border border-[#22d3ee]/30 rounded-2xl text-[#22d3ee] shadow-[0_0_30px_rgba(34,211,238,0.15)]">
-                                <Workflow size={24} />
+            <div className="grid grid-cols-1 gap-4">
+                {(sources || []).map((s: any, i: number) => (
+                    <div key={s.id} className="p-6 bg-[#0a0a0a] border border-white/5 rounded-3xl flex items-center justify-between group hover:border-[#22d3ee]/30 transition-all">
+                        <div className="flex items-center gap-6">
+                            <div className="p-3 bg-white/5 rounded-2xl text-gray-600 group-hover:text-[#22d3ee] transition-all">
+                                {s.type?.startsWith('image/') ? <ImageIcon size={24} /> : <FileText size={24} />}
                             </div>
-                            <span className="text-[12px] font-black font-mono text-[#22d3ee] uppercase tracking-[0.6em]">Protocol Loom // Execution_Head</span>
+                            <div>
+                                <div className="text-sm font-bold text-white uppercase font-mono">{s.name}</div>
+                                <div className="text-[10px] text-gray-600 font-mono uppercase mt-1">{s.type} // {s.analysis ? 'INDEXED' : 'PENDING_SCAN'}</div>
+                            </div>
                         </div>
-                        <h2 className="text-5xl font-black text-white uppercase tracking-tighter font-mono leading-tight">{workflow.title}</h2>
+                        <div className="flex gap-3">
+                            <button onClick={() => onPreview(s)} className="p-3 bg-white/5 text-gray-600 hover:text-white rounded-xl transition-all"><Eye size={18}/></button>
+                            <button onClick={() => onRemove(i)} className="p-3 bg-white/5 text-gray-600 hover:text-red-500 rounded-xl transition-all"><Trash2 size={18}/></button>
+                        </div>
                     </div>
-                    <button onClick={onReset} className="p-4 text-gray-600 hover:text-red-500 bg-[#0a0a0a] border border-white/5 rounded-3xl transition-all shadow-2xl active:scale-95 group"><RotateCcw size={28} className="group-hover:rotate-180 transition-transform duration-700" /></button>
-                </div>
-
-                <div className="p-12 bg-[#080808]/90 backdrop-blur-3xl border border-white/5 rounded-[3.5rem] relative overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)] group/monologue">
-                    <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-[#9d4edd] to-transparent opacity-60 group-hover/monologue:opacity-100 transition-opacity" />
-                    <div className="flex items-center gap-4 mb-6">
-                        <Terminal size={18} className="text-[#9d4edd]" />
-                        <span className="text-[11px] font-black font-mono text-[#9d4edd] uppercase tracking-[0.4em]">Architect's Neural Reflection</span>
+                ))}
+                {(!sources || sources.length === 0) && (
+                    <div className="py-20 text-center opacity-20 flex flex-col items-center gap-6 grayscale">
+                        {/* Added Search icon component correctly */}
+                        <Search size={64} />
+                        <p className="text-sm font-mono uppercase tracking-[0.4em]">No grounding sources identified</p>
                     </div>
-                    <p className="text-lg text-gray-200 font-mono italic leading-relaxed pl-8 border-l border-white/5 py-2">"{workflow.internalMonologue}"</p>
-                </div>
-
-                <div className="space-y-8 pb-20">
-                    {workflow.protocols?.map((step: any, i: number) => {
-                        const result = results[i];
-                        const isActive = activeIndex === i;
-                        const isDone = !!result;
-
-                        return (
-                            <motion.div 
-                                key={i} 
-                                initial={{ opacity: 0, x: -30 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: i * 0.1 }}
-                                className={`p-10 bg-[#080808] border rounded-[3rem] transition-all duration-1000 relative group overflow-hidden ${isDone ? 'border-emerald-500/30 bg-emerald-950/5' : isActive ? 'border-[#9d4edd] bg-[#9d4edd]/5 shadow-[0_0_80px_rgba(157,78,221,0.15)]' : 'border-white/5 hover:border-white/10 hover:bg-[#0a0a0a]'}`}
-                            >
-                                <div className="flex justify-between items-start mb-8 relative z-10">
-                                    <div className="flex items-center gap-8">
-                                        <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center font-mono font-black text-xl border transition-all duration-1000 shadow-inner ${isDone ? 'bg-[#10b981] text-black border-[#10b981] shadow-[0_0_30px_#10b981]' : isActive ? 'bg-[#9d4edd] text-black border-[#9d4edd] animate-pulse' : 'bg-[#111] text-gray-700 border-white/5'}`}>
-                                            {isDone ? <CheckCircle size={32} /> : String(i + 1).padStart(2, '0')}
-                                        </div>
-                                        <div>
-                                            <div className="flex items-center gap-4 mb-2">
-                                                <span className={`text-[11px] font-black font-mono uppercase px-3 py-1 rounded-full border ${isDone ? 'text-[#10b981] border-[#10b981]/30 bg-[#10b981]/5' : 'text-[#9d4edd] border-[#9d4edd]/30 bg-[#9d4edd]/5'}`}>{step.role}</span>
-                                                <div className="h-px w-10 bg-white/5" />
-                                                <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">Protocol Sector {(i+1).toString().padStart(2, '0')}</span>
-                                            </div>
-                                            <h4 className="text-2xl font-bold text-white uppercase font-mono tracking-tighter leading-none">{step.instruction}</h4>
-                                        </div>
-                                    </div>
-                                    {!isDone && (
-                                        <button 
-                                            onClick={() => onExecute(i)} 
-                                            disabled={isSimulating}
-                                            className="px-8 py-4 bg-[#9d4edd] hover:bg-[#b06bf7] text-black text-[12px] font-black uppercase tracking-[0.4em] rounded-2xl transition-all disabled:opacity-30 shadow-[0_20px_50px_rgba(157,78,221,0.3)] active:scale-95 flex items-center gap-4 group/btn"
-                                        >
-                                            {isSimulating && isActive ? <Loader2 size={18} className="animate-spin" /> : <Play size={18} className="fill-current group-hover/btn:scale-125 transition-transform" />}
-                                            Run Node Cycle
-                                        </button>
-                                    )}
-                                </div>
-
-                                <AnimatePresence mode="wait">
-                                    {isDone && (
-                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="pt-8 border-t border-white/5 space-y-8 relative z-10">
-                                            <div className="p-8 bg-black border border-white/5 rounded-3xl font-mono text-[14px] leading-relaxed text-emerald-100/90 shadow-inner group/out">
-                                                <div className="text-[9px] text-gray-600 uppercase font-black tracking-[0.5em] mb-4 border-b border-white/5 pb-3">Execution Output Buffer</div>
-                                                {result.output}
-                                            </div>
-                                            <div className="flex items-start gap-6 p-6 bg-[#9d4edd]/5 border border-[#9d4edd]/10 rounded-2xl group/thought transition-all hover:bg-[#9d4edd]/10">
-                                                <BrainCircuit size={24} className="text-[#9d4edd] shrink-0 mt-1" />
-                                                <div>
-                                                    <span className="text-[10px] font-black text-[#9d4edd] uppercase tracking-[0.4em] block mb-2">Agent Trace Matrix</span>
-                                                    <p className="text-[13px] font-mono text-gray-400 italic leading-relaxed">"{result.agentThought}"</p>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </motion.div>
-                        );
-                    })}
-                </div>
+                )}
             </div>
         </div>
-    );
-};
+    </div>
+);
 
-const SourceGrounding = ({ sources, onUpload, onRemove, onPreview }: any) => {
-    return (
-        <div className="h-full flex flex-col p-10 bg-[#030303] overflow-y-auto custom-scrollbar relative">
-            <div className="max-w-4xl mx-auto w-full space-y-10">
-                <div className="flex justify-between items-end border-b border-white/5 pb-10">
-                    <div>
-                        <div className="flex items-center gap-3 mb-2">
-                            <Database size={20} className="text-[#22d3ee]" />
-                            <span className="text-[10px] font-black text-[#22d3ee] uppercase tracking-[0.4em]">Contextual Grounding</span>
+// Fix: Implemented missing ProtocolLoom sub-component
+const ProtocolLoom = ({ workflow, results, isSimulating, activeIndex, onExecute, onReset }: any) => (
+    <div className="h-full flex flex-col p-20 bg-black/40 overflow-y-auto custom-scrollbar relative">
+        <div className="max-w-5xl mx-auto w-full space-y-12 relative z-10">
+            <div className="flex justify-between items-end border-b border-white/5 pb-10">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-[#f59e0b]/10 border border-[#f59e0b]/30 rounded-2xl">
+                            <Workflow size={24} className="text-[#f59e0b]" />
                         </div>
-                        <h2 className="text-4xl font-black text-white uppercase tracking-tighter font-mono">Source Ingestion</h2>
+                        <span className="text-[12px] font-black font-mono text-[#f59e0b] uppercase tracking-[0.6em]">Protocol Loom // Logic Sequence</span>
                     </div>
-                    <label className="px-6 py-3 bg-[#22d3ee] hover:bg-[#67e8f9] text-black text-[10px] font-black uppercase tracking-widest rounded-xl transition-all cursor-pointer flex items-center gap-2">
-                        <Upload size={16} /> Ingest Source
-                        <input type="file" multiple className="hidden" onChange={onUpload} />
-                    </label>
+                    <h2 className="text-6xl font-black text-white uppercase tracking-tighter font-mono">{workflow?.title || 'System Protocol'}</h2>
                 </div>
+                <button onClick={onReset} className="px-6 py-3 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95">Reset Simulation</button>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {sources.map((source: any, i: number) => (
-                        <motion.div 
-                            key={source.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="p-6 bg-[#080808] border border-white/5 rounded-3xl group relative overflow-hidden"
-                        >
+            <div className="space-y-6">
+                {workflow?.protocols?.map((p: any, i: number) => {
+                    const result = results?.[i];
+                    const isActive = activeIndex === i;
+                    return (
+                        <div key={i} className={`p-8 bg-[#080808] border rounded-[2.5rem] transition-all duration-700 relative overflow-hidden ${result ? 'border-[#10b981]/30 bg-[#10b981]/5' : isActive ? 'border-[#f59e0b] shadow-[0_0_40px_rgba(245,158,11,0.15)]' : 'border-white/5'}`}>
                             <div className="flex justify-between items-start mb-6">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 bg-white/5 rounded-xl text-gray-400 group-hover:text-[#22d3ee] transition-colors">
-                                        {source.type.startsWith('image/') ? <ImageIcon size={20} /> : <FileText size={20} />}
-                                    </div>
-                                    <div className="min-w-0">
-                                        <div className="text-[11px] font-black text-white uppercase truncate pr-4">{source.name}</div>
-                                        <div className="text-[8px] text-gray-600 font-mono uppercase mt-1">{source.type}</div>
+                                <div className="flex items-center gap-6">
+                                    <div className={`p-4 rounded-2xl font-mono font-black text-lg ${result ? 'bg-[#10b981] text-black' : 'bg-white/5 text-gray-700'}`}>{String(i + 1).padStart(2, '0')}</div>
+                                    <div>
+                                        <div className="text-xs font-black text-gray-500 font-mono uppercase tracking-widest mb-1">{p.role}</div>
+                                        <div className="text-lg font-bold text-white uppercase tracking-tight">{p.instruction}</div>
                                     </div>
                                 </div>
-                                <div className="flex gap-2">
-                                    <button onClick={() => onPreview(source)} className="p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-colors">
-                                        <Eye size={16} />
+                                {!result && (
+                                    <button 
+                                        onClick={() => onExecute(i)} 
+                                        disabled={isSimulating}
+                                        className="p-4 bg-[#f59e0b] text-black rounded-2xl hover:scale-110 transition-transform active:scale-95 disabled:opacity-30 shadow-xl"
+                                    >
+                                        {isSimulating && isActive ? <Loader2 size={24} className="animate-spin" /> : <Play size={24} fill="currentColor" />}
                                     </button>
-                                    <button onClick={() => onRemove(i)} className="p-2 hover:bg-red-500/10 rounded-lg text-gray-500 hover:text-red-500 transition-colors">
-                                        <Trash2 size={16} />
-                                    </button>
-                                </div>
+                                )}
                             </div>
-                            {source.analysis ? (
-                                <div className="space-y-3">
-                                    <div className="flex items-center gap-2">
-                                        <CheckCircle size={10} className="text-[#10b981]" />
-                                        <span className="text-[8px] font-mono text-[#10b981] uppercase font-bold">Analysis Locked</span>
+                            {result && (
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 mt-8 pt-8 border-t border-white/5">
+                                    <div className="p-6 bg-black rounded-2xl border border-white/5 italic text-sm text-gray-400 font-mono leading-relaxed border-l-4 border-l-[#10b981]">
+                                        "{result.agentThought}"
                                     </div>
-                                    <p className="text-[10px] text-gray-400 font-mono line-clamp-2 italic">"{source.analysis.summary}"</p>
-                                </div>
-                            ) : (
-                                <div className="flex items-center gap-3 text-[10px] font-mono text-gray-600 animate-pulse">
-                                    <Loader2 size={12} className="animate-spin" /> Analyzing spectral signature...
-                                </div>
+                                    <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl font-mono text-xs text-[#10b981] whitespace-pre-wrap">
+                                        {result.output}
+                                    </div>
+                                </motion.div>
                             )}
-                        </motion.div>
-                    ))}
-                </div>
+                        </div>
+                    );
+                })}
             </div>
         </div>
-    );
-};
+    </div>
+);
 
-const InfrastructureForge = ({ nodes, onGenerate }: any) => {
-    return (
-        <div className="h-full flex flex-col p-20 bg-[#030303] overflow-y-auto custom-scrollbar relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(157,78,221,0.03)_0%,transparent_70%)] pointer-events-none" />
-            
-            <div className="max-w-4xl mx-auto w-full space-y-16 relative z-10 text-center">
-                <div className="space-y-6">
-                    <div className="w-24 h-24 bg-[#9d4edd]/10 rounded-[2.5rem] flex items-center justify-center mx-auto text-[#9d4edd] border border-[#9d4edd]/30 shadow-[0_0_50px_rgba(157,78,221,0.2)]">
-                        <Server size={40} />
-                    </div>
-                    <div className="space-y-3">
-                        <h2 className="text-5xl font-black text-white uppercase tracking-tighter font-mono">Infrastructure Forge</h2>
-                        <p className="text-xs text-gray-500 font-mono uppercase tracking-[0.4em]">Synthesize IaC from logic topologies</p>
-                    </div>
+// Fix: Implemented missing InfrastructureForge sub-component
+const InfrastructureForge = ({ nodes, onGenerate }: any) => (
+    <div className="h-full flex flex-col p-20 bg-[#030303] overflow-y-auto custom-scrollbar relative">
+        <div className="max-w-4xl mx-auto w-full space-y-16">
+            <div className="text-center space-y-6">
+                <div className="p-4 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-[2rem] w-20 h-20 flex items-center justify-center mx-auto text-[#9d4edd] shadow-2xl">
+                    <Server size={40} />
                 </div>
+                <h2 className="text-5xl font-black text-white uppercase tracking-tighter font-mono">Infrastructure Forge</h2>
+                <p className="text-xs text-gray-600 font-mono max-w-lg mx-auto uppercase tracking-widest leading-relaxed">Synthesize production-ready IaC manifests from current lattice topology. Target multi-cloud or bare-metal barebones.</p>
+            </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {[
-                        { id: 'TERRAFORM', label: 'Terraform (HCL)', desc: 'Multi-cloud resource orchestration', icon: Cloud, color: '#623ce4' },
-                        { id: 'KUBERNETES', label: 'K8s Manifests', desc: 'Container orchestration logic', icon: Box, color: '#326ce5' },
-                        { id: 'DOCKER', label: 'Docker Compose', desc: 'Local deployment vectors', icon: Box, color: '#2496ed' }
-                    ].map(provider => (
-                        <button 
-                            key={provider.id}
-                            onClick={() => onGenerate(provider.id)}
-                            className="p-10 bg-[#080808] border border-white/5 hover:border-[#9d4edd] rounded-[3rem] text-center transition-all duration-700 group hover:bg-[#0a0a0a] shadow-2xl"
-                        >
-                            <div className="p-5 bg-white/5 rounded-2xl mb-6 flex items-center justify-center text-gray-500 group-hover:text-white transition-all">
-                                <provider.icon size={36} />
+            <div className="grid grid-cols-2 gap-8">
+                {[
+                    { id: 'TERRAFORM', label: 'Terraform (HCL)', icon: Box, desc: 'Generate high-level resource orchestration.', color: '#9d4edd' },
+                    { id: 'DOCKER', label: 'Docker Compose', icon: Boxes, desc: 'Containerize node stack logic.', color: '#22d3ee' },
+                    { id: 'KUBERNETES', label: 'K8s Manifests', icon: Grid3X3, desc: 'Cluster orchestration protocols.', color: '#10b981' },
+                    { id: 'CLOUD_INIT', label: 'Cloud-Init', icon: FileJson, desc: 'Bare-metal boot orchestration.', color: '#f59e0b' }
+                ].map(provider => (
+                    <button 
+                        key={provider.id} 
+                        onClick={() => onGenerate(provider.id)}
+                        className="p-10 bg-[#0a0a0a] border border-white/5 hover:border-[var(--color)] rounded-[3rem] text-left transition-all duration-700 group relative overflow-hidden shadow-2xl"
+                        style={{ '--color': provider.color } as any}
+                    >
+                        <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:opacity-[0.08] transition-opacity rotate-12 scale-150"><provider.icon size={120} /></div>
+                        <div className="flex items-center gap-6 mb-6">
+                            <div className="p-4 rounded-2xl bg-white/5 text-gray-500 group-hover:text-white transition-all group-hover:scale-110" style={{ color: provider.color }}>
+                                <provider.icon size={32} />
                             </div>
-                            <div className="text-lg font-black text-white uppercase tracking-widest mb-2 font-mono">{provider.label}</div>
-                            <p className="text-[10px] text-gray-600 font-mono leading-relaxed">{provider.desc}</p>
-                        </button>
-                    ))}
-                </div>
+                            <span className="text-xl font-black text-white uppercase font-mono tracking-widest">{provider.label}</span>
+                        </div>
+                        <p className="text-[11px] text-gray-600 font-mono uppercase leading-relaxed group-hover:text-gray-400 transition-colors">{provider.desc}</p>
+                    </button>
+                ))}
+            </div>
+        </div>
+    </div>
+);
 
-                <div className="pt-10 border-t border-white/5">
-                    <div className="flex items-center justify-center gap-10 opacity-30">
-                        <div className="flex items-center gap-3">
-                            <CheckCircle2 size={16} />
-                            <span className="text-[10px] font-mono uppercase">Lattice Verified</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                            <ShieldCheck size={16} />
-                            <span className="text-[10px] font-mono uppercase">Zero-Trust Config</span>
-                        </div>
+const IntegrityHUD = ({ coherence, driftCount }: { coherence: number, driftCount: number }) => (
+    <div className="absolute top-12 left-1/2 -translate-x-1/2 flex items-center gap-10 px-10 py-4 bg-black/80 backdrop-blur-3xl border border-white/10 rounded-full shadow-[0_40px_100px_rgba(0,0,0,0.8)] z-[70] pointer-events-none border-b-2 border-b-[#9d4edd]/40">
+        <div className="flex items-center gap-4 border-r border-white/10 pr-10">
+            <div className="p-2.5 bg-[#9d4edd]/20 rounded-xl">
+                <ShieldCheck size={18} className="text-[#9d4edd]" />
+            </div>
+            <div className="flex flex-col">
+                <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.3em]">Topology Coherence</span>
+                <div className="flex items-center gap-3 mt-0.5">
+                    <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div animate={{ width: `${coherence}%` }} className="h-full bg-gradient-to-r from-[#9d4edd] to-[#22d3ee]" />
                     </div>
+                    <span className="text-[12px] font-black font-mono text-white">{coherence}%</span>
                 </div>
             </div>
         </div>
-    );
-};
+        
+        <div className="flex items-center gap-5">
+            <div className={`p-2.5 rounded-xl ${driftCount > 0 ? 'bg-red-500/20 animate-pulse' : 'bg-[#10b981]/10'}`}>
+                <AlertTriangle size={18} className={driftCount > 0 ? 'text-red-500' : 'text-[#10b981]'} />
+            </div>
+            <div className="flex flex-col">
+                <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.3em]">Structural Drift</span>
+                <span className={`text-[12px] font-black font-mono mt-0.5 ${driftCount > 0 ? 'text-red-500' : 'text-[#10b981]'}`}>
+                    {driftCount > 0 ? `${driftCount} NODES_OUT_OF_SYNC` : 'SYSTEM_NOMINAL'}
+                </span>
+            </div>
+        </div>
+
+        <div className="flex items-center gap-4 border-l border-white/10 pl-10">
+            <Fingerprint size={16} className="text-gray-600" />
+            <span className="text-[10px] font-black font-mono text-gray-500 uppercase tracking-widest">Sovereign_Lattice_v8.1</span>
+        </div>
+    </div>
+);
 
 const ProcessVisualizerContent = () => {
     const { addLog, setMode, process: processData } = useAppStore();
@@ -579,6 +547,8 @@ const ProcessVisualizerContent = () => {
 
     const nodeTypes = useMemo(() => ({ holographic: HolographicNode }), []);
     const edgeTypes = useMemo(() => ({ cinematic: CinematicEdge }), []);
+
+    const driftCount = useMemo(() => nodes.filter(n => (n.data?.drift || 0) > 60).length, [nodes]);
 
     useEffect(() => {
         (window as any).processLogic = { updateNodeStatus };
@@ -671,39 +641,27 @@ const ProcessVisualizerContent = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-10">
-                    <div className="flex flex-col items-end gap-2">
-                        <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest">Topology Coherence</span>
-                        <div className="flex items-center gap-4">
-                             <div className="w-32 h-2 bg-[#111] rounded-full overflow-hidden border border-white/5 shadow-inner">
-                                 <motion.div animate={{ width: `${processData.coherenceScore}%` }} className="h-full bg-gradient-to-r from-[#10b981] to-[#22d3ee] shadow-[0_0_15px_#10b981]" />
-                             </div>
-                             <span className="text-[12px] font-mono font-black text-[#10b981] tracking-tighter">{processData.coherenceScore}%</span>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-4 border-l border-white/10 pl-10">
-                        <button 
-                            onClick={async () => {
-                                addLog('SYSTEM', 'MARKET_SYNC: Ingesting real-world competitive context into process lattice...');
-                                try {
-                                    if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
-                                    setArchitecturePrompt(prev => prev + "\n\nREQUIREMENT: Align with current DePIN growth curves and hardware efficiency benchmarks discovered via Google Search grounding.");
-                                    addLog('SUCCESS', 'MARKET_SYNC: Architecture prompt enriched with live intelligence.');
-                                    audio.playSuccess();
-                                } catch (e) {}
-                            }}
-                            className="p-3.5 bg-white/5 border border-white/10 hover:border-[#f59e0b] rounded-2xl text-gray-600 hover:text-[#f59e0b] transition-all shadow-xl group/trend active:scale-90" 
-                            title="Inject Market Intelligence"
-                        >
-                            <BarChart4 size={22} className="group-hover/trend:scale-110 transition-transform" />
-                        </button>
-                        <button 
-                            onClick={() => { handleRunGlobalSequence(); audio.playClick(); }} 
-                            className="px-8 py-4 bg-[#9d4edd] hover:bg-[#b06bf7] text-black rounded-[1.5rem] text-[12px] font-black uppercase tracking-[0.3em] transition-all shadow-[0_20px_50px_rgba(157,78,221,0.4)] flex items-center gap-4 active:scale-95 group/seq"
-                        >
-                            <Zap size={20} className="fill-current group-hover/seq:animate-pulse"/> Forge Sequence
-                        </button>
-                    </div>
+                <div className="flex items-center gap-6">
+                    <button 
+                        onClick={async () => {
+                            addLog('SYSTEM', 'LATTICE_REALIGN: Re-calculating structural vectors for zero entropy...');
+                            try {
+                                if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
+                                handleAutoOrganize();
+                                audio.playSuccess();
+                            } catch (e) {}
+                        }}
+                        className="p-3.5 bg-white/5 border border-white/10 hover:border-[#10b981] rounded-2xl text-gray-600 hover:text-[#10b981] transition-all shadow-xl group/align active:scale-90" 
+                        title="Re-align Lattice Topology"
+                    >
+                        <RefreshCw size={22} className="group-hover/align:rotate-180 transition-transform duration-500" />
+                    </button>
+                    <button 
+                        onClick={() => { handleRunGlobalSequence(); audio.playClick(); }} 
+                        className="px-8 py-4 bg-[#9d4edd] hover:bg-[#b06bf7] text-black rounded-[1.5rem] text-[12px] font-black uppercase tracking-[0.3em] transition-all shadow-[0_20px_50px_rgba(157,78,221,0.4)] flex items-center gap-4 active:scale-95 group/seq"
+                    >
+                        <Zap size={20} className="fill-current group-hover/seq:animate-pulse"/> Forge Sequence
+                    </button>
                 </div>
             </div>
 
@@ -713,6 +671,7 @@ const ProcessVisualizerContent = () => {
                 <AnimatePresence mode="wait">
                     {activeTab === 'living_map' && (
                         <motion.div key="map" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full relative">
+                            <IntegrityHUD coherence={processData.coherenceScore} driftCount={driftCount} />
                             <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} nodeTypes={nodeTypes} edgeTypes={edgeTypes} fitView>
                                 <Background color="#111" gap={60} size={1.5} variant={BackgroundVariant.Dots} style={{ opacity: 0.3 }} />
                                 <Controls className="!bg-[#0a0a0a] !border-white/10 !rounded-2xl !shadow-2xl !p-2" />
@@ -723,15 +682,6 @@ const ProcessVisualizerContent = () => {
                                     className="border border-white/10 !bg-[#050505] !rounded-[2.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.8)]" 
                                 />
                             </ReactFlow>
-                            
-                            <div className="absolute top-12 left-12 flex flex-col gap-4 pointer-events-none">
-                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="px-5 py-2.5 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-full text-[10px] font-black font-mono text-[#9d4edd] flex items-center gap-3 shadow-2xl backdrop-blur-xl">
-                                    <Radio size={14} className="animate-pulse" /> NEURAL_LATTICE_SYNC_ACTIVE
-                                </motion.div>
-                                <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-black font-mono text-gray-500 flex items-center gap-3 shadow-2xl backdrop-blur-xl">
-                                    <Target size={14} /> TOPOLOGY_MAP: {nodes.length} NODES
-                                </motion.div>
-                            </div>
                         </motion.div>
                     )}
 
