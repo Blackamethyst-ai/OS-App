@@ -62,6 +62,26 @@ export const useProcessVisualizerLogic = () => {
 
     const selectedNode = useMemo(() => nodes.find(n => n.selected), [nodes]);
 
+    // UI Innovation: Procedural Node Drift (Entropy Simulation)
+    useEffect(() => {
+        const interval = setInterval(() => {
+            if (activeTab !== 'living_map') return;
+            setNodes(nds => nds.map(n => {
+                const currentDrift = n.data?.drift || 0;
+                // Chance to increase drift for non-done nodes
+                const isResolved = n.data?.status === 'DONE' || n.data?.status === 'COMPLETED';
+                const delta = isResolved ? -1 : (Math.random() > 0.9 ? Math.floor(Math.random() * 5) : 0);
+                const nextDrift = Math.max(0, Math.min(100, currentDrift + delta));
+                
+                if (nextDrift !== currentDrift) {
+                    return { ...n, data: { ...n.data, drift: nextDrift } };
+                }
+                return n;
+            }));
+        }, 3000);
+        return () => clearInterval(interval);
+    }, [activeTab, setNodes]);
+
     useEffect(() => {
         if (nodes.length > 0 || edges.length > 0) {
             setState({ nodes, edges });
@@ -70,7 +90,7 @@ export const useProcessVisualizerLogic = () => {
 
     useEffect(() => {
         if (state.pendingAIAddition) {
-            const newNode = { ...state.pendingAIAddition, data: { ...state.pendingAIAddition.data, theme: visualTheme } };
+            const newNode = { ...state.pendingAIAddition, data: { ...state.pendingAIAddition.data, theme: visualTheme, drift: 0 } };
             setNodes(nds => nds.concat(newNode));
             setState({ pendingAIAddition: null });
             setEdges(eds => eds.concat({
@@ -94,11 +114,11 @@ export const useProcessVisualizerLogic = () => {
     useEffect(() => {
         if (nodes.length === 0) {
             setNodes([
-                { id: 'memory', type: 'holographic', position: { x: 500, y: 50 }, data: { label: 'CONTEXT MEMORY', subtext: 'RAG / Vector Store', iconName: 'Database', color: THEME.accent.memory, status: 'READY', footerLeft: '0/0 ARTIFACTS', footerRight: 'STABLE_STORAGE', theme: visualTheme, progress: 2 } },
-                { id: 'tools', type: 'holographic', position: { x: 150, y: 400 }, data: { label: 'TOOLING LAYER', subtext: 'Compute / Search / Code', iconName: 'Wrench', color: THEME.accent.tools, status: 'AVAILABLE', footerLeft: '5 MODULES', footerRight: 'GEN_AI', theme: visualTheme, progress: 3 } },
-                { id: 'core', type: 'holographic', position: { x: 500, y: 400 }, data: { label: 'SOVEREIGN AGENT', subtext: 'SYSTEM IDLE', iconName: 'BrainCircuit', color: THEME.accent.core, status: 'ONLINE', footerLeft: 'V3.2 KERNEL', footerRight: 'ROOT_ACCESS', theme: visualTheme, progress: 2 } },
-                { id: 'action', type: 'holographic', position: { x: 850, y: 400 }, data: { label: 'EXECUTION LAYER', subtext: 'Output Generation', iconName: 'Zap', color: THEME.accent.execution, status: 'STANDBY', footerLeft: 'GEN_AI', footerRight: 'QUEUE_EMPTY', theme: visualTheme, progress: 2 } },
-                { id: 'reflect', type: 'holographic', position: { x: 500, y: 750 }, data: { label: 'REFLECT LOOP', subtext: 'Self-Correction', iconName: 'Activity', color: THEME.accent.alert, status: 'PASSIVE', footerLeft: 'REASONING_L0', footerRight: 'IDLE', theme: visualTheme, progress: 1 } }
+                { id: 'memory', type: 'holographic', position: { x: 500, y: 50 }, data: { label: 'CONTEXT MEMORY', subtext: 'RAG / Vector Store', iconName: 'Database', color: THEME.accent.memory, status: 'READY', footerLeft: '0/0 ARTIFACTS', footerRight: 'STABLE_STORAGE', theme: visualTheme, progress: 2, drift: 0 } },
+                { id: 'tools', type: 'holographic', position: { x: 150, y: 400 }, data: { label: 'TOOLING LAYER', subtext: 'Compute / Search / Code', iconName: 'Wrench', color: THEME.accent.tools, status: 'AVAILABLE', footerLeft: '5 MODULES', footerRight: 'GEN_AI', theme: visualTheme, progress: 3, drift: 10 } },
+                { id: 'core', type: 'holographic', position: { x: 500, y: 400 }, data: { label: 'SOVEREIGN AGENT', subtext: 'SYSTEM IDLE', iconName: 'BrainCircuit', color: THEME.accent.core, status: 'ONLINE', footerLeft: 'V3.2 KERNEL', footerRight: 'ROOT_ACCESS', theme: visualTheme, progress: 2, drift: 0 } },
+                { id: 'action', type: 'holographic', position: { x: 850, y: 400 }, data: { label: 'EXECUTION LAYER', subtext: 'Output Generation', iconName: 'Zap', color: THEME.accent.execution, status: 'STANDBY', footerLeft: 'GEN_AI', footerRight: 'QUEUE_EMPTY', theme: visualTheme, progress: 2, drift: 5 } },
+                { id: 'reflect', type: 'holographic', position: { x: 500, y: 750 }, data: { label: 'REFLECT LOOP', subtext: 'Self-Correction', iconName: 'Activity', color: THEME.accent.alert, status: 'PASSIVE', footerLeft: 'REASONING_L0', footerRight: 'IDLE', theme: visualTheme, progress: 1, drift: 2 } }
             ]);
             setEdges([
                 { id: 'e1', source: 'memory', target: 'core', type: 'cinematic', data: { color: THEME.accent.memory, variant: 'stream' } },
@@ -137,12 +157,12 @@ export const useProcessVisualizerLogic = () => {
     }, [screenToFlowPosition]);
 
     const addNodeAtPosition = useCallback((position: { x: number, y: number }, type: string, label: string, color: string) => {
-        const newNode: Node = { id: `node_${Date.now()}`, type, position, data: { label, subtext: 'System Node', iconName: 'Box', color, status: 'DRAFT', theme: visualTheme, progress: 1 } };
+        const newNode: Node = { id: `node_${Date.now()}`, type, position, data: { label, subtext: 'System Node', iconName: 'Box', color, status: 'DRAFT', theme: visualTheme, progress: 1, drift: 0 } };
         setNodes((nds) => nds.concat(newNode));
     }, [visualTheme]);
 
     const updateNodeStatus = (id: string, status: string) => {
-        setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, status } } : n));
+        setNodes(nds => nds.map(n => n.id === id ? { ...n, data: { ...n.data, status, drift: status === 'COMPLETED' ? 0 : n.data.drift } } : n));
         updateProcessNode(id, { status });
         if (status === 'COMPLETED' || status === 'DONE') audio.playSuccess();
     };
@@ -197,7 +217,7 @@ export const useProcessVisualizerLogic = () => {
             if (!(await checkApiKey())) return;
             const nodeData = await generateSingleNode(description);
             const centerPosition = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
-            const newNode: Node = { id: `node_${Date.now()}`, type: 'holographic', position: centerPosition, data: { ...nodeData, theme: visualTheme, status: 'INITIALIZED', progress: 1 } };
+            const newNode: Node = { id: `node_${Date.now()}`, type: 'holographic', position: centerPosition, data: { ...nodeData, theme: visualTheme, status: 'INITIALIZED', progress: 1, drift: 0 } };
             setNodes(nds => nds.concat(newNode));
             addLog('SUCCESS', `AI_NODE: Crystallized "${nodeData.label}" at viewport center.`);
             setState({ isLoading: false });
@@ -227,7 +247,7 @@ export const useProcessVisualizerLogic = () => {
         try {
             if (!(await checkApiKey())) return;
             const newPositions = await calculateOptimalLayout(nodes, edges);
-            setNodes(nds => nds.map(node => ({ ...node, position: newPositions[node.id] || node.position })));
+            setNodes(nds => nds.map(node => ({ ...node, position: newPositions[node.id] || node.position, data: { ...node.data, drift: Math.max(0, (node.data?.drift || 0) - 20) } })));
             addLog('SUCCESS', 'LATTICE_SYNC: Autopoietic organization complete.');
             setTimeout(() => fitView({ duration: 1000 }), 100);
         } catch (err: any) { handleApiError('Auto-Organize', err); } finally {
@@ -257,7 +277,7 @@ export const useProcessVisualizerLogic = () => {
                 id: n.id,
                 type: 'holographic',
                 position: { x: 500 + Math.cos(i) * 300, y: 300 + Math.sin(i) * 300 },
-                data: { ...n, theme: visualTheme, progress: 2 }
+                data: { ...n, theme: visualTheme, progress: 2, drift: 0 }
             }));
             
             const newEdges = (result.edges || []).map((e: any) => ({
@@ -363,7 +383,7 @@ export const useProcessVisualizerLogic = () => {
                     addLog('SYSTEM', `ARCHITECT: Constructing ${state.workflowType} topology...`);
                     result = await generateSystemArchitecture(architecturePrompt, state.workflowType);
                 }
-                const newNodes = result.nodes.map((n: any, i: number) => ({ id: n.id, type: state.workflowType === 'AGENTIC_ORCHESTRATION' ? 'agentic' : 'holographic', position: { x: 600 + Math.cos(i) * 300, y: 400 + Math.sin(i) * 300 }, data: { ...n, theme: visualTheme, progress: 2 } }));
+                const newNodes = result.nodes.map((n: any, i: number) => ({ id: n.id, type: state.workflowType === 'AGENTIC_ORCHESTRATION' ? 'agentic' : 'holographic', position: { x: 600 + Math.cos(i) * 300, y: 400 + Math.sin(i) * 300 }, data: { ...n, theme: visualTheme, progress: 2, drift: 0 } }));
                 const newEdges = result.edges.map((e: any) => ({ id: e.id, source: e.source, target: e.target, type: 'cinematic', data: { color: e.color || '#9d4edd', variant: e.variant || 'stream', handoffCondition: e.handoffCondition } }));
                 setNodes(newNodes); setEdges(newEdges); setTimeout(() => fitView({ duration: 1000 }), 100);
             } catch (err: any) { handleApiError('Blueprint', err); } finally { setIsGeneratingGraph(false); }
@@ -374,7 +394,7 @@ export const useProcessVisualizerLogic = () => {
             try {
                 if (!(await checkApiKey())) return;
                 const result = await decomposeNode(selectedNode.data.label as string, "");
-                const expanded = result.nodes.map((n: any, i: number) => ({ id: n.id, type: 'holographic', position: { x: selectedNode.position.x + Math.cos(i) * 200, y: selectedNode.position.y + Math.sin(i) * 200 }, data: { ...n, theme: visualTheme, progress: 1 } }));
+                const expanded = result.nodes.map((n: any, i: number) => ({ id: n.id, type: 'holographic', position: { x: selectedNode.position.x + Math.cos(i) * 200, y: selectedNode.position.y + Math.sin(i) * 200 }, data: { ...n, theme: visualTheme, progress: 1, drift: 0 } }));
                 setNodes([...nodes.filter(n => n.id !== selectedNode.id), ...expanded]);
                 const newEdges = result.edges.map((e: any) => ({ ...e, type: 'cinematic', data: { color: '#42be65', variant: 'stream' } }));
                 setEdges([...edges.filter(e => e.source !== selectedNode.id && e.target !== selectedNode.id), ...newEdges]);

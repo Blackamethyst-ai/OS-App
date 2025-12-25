@@ -192,7 +192,7 @@ interface AppState {
 
     setMode: (mode: AppMode) => void;
     setTheme: (theme: AppTheme) => void;
-    setUserProfile: (user: Partial<UserProfile>) => void;
+    setUserProfile: (profile: Partial<UserProfile>) => void;
     setAuthenticated: (auth: boolean) => void;
     toggleProfile: (open?: boolean) => void;
     toggleCommandPalette: (open?: boolean) => void;
@@ -299,6 +299,7 @@ export const useAppStore = create<AppState>((set) => ({
         isAnalyzing: false
     },
     dashboard: {
+        // Fix: Removed 'boolean =' as it is a type usage in a value position
         isGenerating: false,
         identityUrl: null,
         referenceImage: null,
@@ -612,7 +613,7 @@ export const useAppStore = create<AppState>((set) => ({
     setMetaventionsState: (update) => set((state) => ({ 
         metaventions: { ...state.metaventions, ...(typeof update === 'function' ? update(state.metaventions) : update) } 
     })),
-    pushToInvestmentQueue: (metavention) => set((state) => ({
+    pushToInvestmentQueue: (metavention: any) => set((state) => ({
         marketData: {
             ...state.marketData,
             opportunities: [{

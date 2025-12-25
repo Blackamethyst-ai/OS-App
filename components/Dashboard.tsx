@@ -29,7 +29,78 @@ import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import MetaventionsLogo from './MetaventionsLogo';
 
-// --- SHARED VOICE SUB-COMPONENTS ---
+// --- REAL-TIME NEURAL PULSE COMPONENT ---
+const NeuralMomentumPulse = ({ entropy }: { entropy: number }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let frame = 0;
+        const render = () => {
+            frame++;
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const scale = 1 + (entropy / 200);
+            const radius = 80 * scale;
+
+            // Concentric Energy Rings
+            for (let i = 0; i < 3; i++) {
+                const ringRad = radius + Math.sin(frame * 0.05 + i) * 10;
+                ctx.beginPath();
+                ctx.arc(cx, cy, ringRad, 0, Math.PI * 2);
+                ctx.strokeStyle = `rgba(157, 126, 221, ${0.1 / (i + 1)})`;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+
+            // Neural Fibers
+            const fiberCount = 12;
+            for (let i = 0; i < fiberCount; i++) {
+                const angle = (i / fiberCount) * Math.PI * 2 + frame * 0.01;
+                const tx = cx + Math.cos(angle) * (radius + 20);
+                const ty = cy + Math.sin(angle) * (radius + 20);
+                
+                ctx.beginPath();
+                ctx.moveTo(cx, cy);
+                ctx.quadraticCurveTo(
+                    cx + Math.cos(angle + 0.5) * radius,
+                    cy + Math.sin(angle + 0.5) * radius,
+                    tx, ty
+                );
+                ctx.strokeStyle = `rgba(157, 126, 221, ${0.05})`;
+                ctx.stroke();
+            }
+
+            requestAnimationFrame(render);
+        };
+        const handle = requestAnimationFrame(render);
+        return () => cancelAnimationFrame(handle);
+    }, [entropy]);
+
+    return (
+        <div className="w-full h-full relative flex items-center justify-center">
+            <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
+            <motion.div 
+                animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 3, repeat: Infinity }}
+                className="relative z-10 w-32 h-32 rounded-full bg-gradient-to-br from-[#9d4edd]/20 to-transparent border border-[#9d4edd]/30 backdrop-blur-3xl flex items-center justify-center"
+            >
+                <div className="text-center">
+                    <span className="text-[10px] font-mono text-[#9d4edd] block uppercase tracking-[0.3em] mb-1">Coherence</span>
+                    <span className="text-3xl font-black font-mono text-white tracking-tighter">{100 - Math.round(entropy)}%</span>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
 
 const RealWorldIntelFeed = () => {
     const { marketData, addLog } = useAppStore();
@@ -102,387 +173,6 @@ const RealWorldIntelFeed = () => {
     );
 };
 
-// --- PRE-EXISTING COMPONENTS (CLEANED) ---
-
-const NeuralReasoningCanvas: React.FC<{ isThinking: boolean; userActive: boolean; agentActive: boolean }> = ({ isThinking, userActive, agentActive }) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const particles = useRef<{ x: number; y: number; vx: number; vy: number; life: number; color: string }[]>([]);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        let frameId: number;
-        const render = () => {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-
-            if (isThinking || userActive || agentActive) {
-                const count = isThinking ? 8 : 2;
-                for (let i = 0; i < count; i++) {
-                    const angle = Math.random() * Math.PI * 2;
-                    const r = 100 + Math.random() * 80;
-                    particles.current.push({
-                        x: cx + Math.cos(angle) * r,
-                        y: cy + Math.sin(angle) * r,
-                        vx: (Math.random() - 0.5) * 1.8,
-                        vy: (Math.random() - 0.5) * 1.8,
-                        life: 1.0,
-                        color: userActive ? '#22d3ee' : agentActive ? '#f1c21b' : '#9d4edd'
-                    });
-                }
-            }
-
-            particles.current.forEach((p, idx) => {
-                p.x += p.vx;
-                p.y += p.vy;
-                p.life -= 0.003; 
-
-                if (p.life <= 0) {
-                    particles.current.splice(idx, 1);
-                    return;
-                }
-
-                ctx.globalAlpha = p.life * 0.4;
-                ctx.fillStyle = p.color;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, 1.2, 0, Math.PI * 2);
-                ctx.fill();
-
-                if (p.life > 0.8) {
-                    ctx.strokeStyle = p.color;
-                    ctx.lineWidth = 0.15;
-                    ctx.beginPath();
-                    ctx.moveTo(p.x, p.y);
-                    ctx.lineTo(cx, cy);
-                    ctx.stroke();
-                }
-            });
-
-            ctx.globalAlpha = 1;
-            frameId = requestAnimationFrame(render);
-        };
-        render();
-        return () => cancelAnimationFrame(frameId);
-    }, [isThinking, userActive, agentActive]);
-
-    return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-40" />;
-};
-
-const TelemetryRing = ({ color, duration, delay, radius, volume, opacity = 0.2 }: { color: string, duration: number, delay: number, radius: number, volume: number, opacity?: number }) => (
-    <motion.div
-        animate={{ 
-            rotate: 360, 
-            scale: [1, 1 + (volume / 350), 1],
-            opacity: [opacity, opacity * 1.8, opacity] 
-        }}
-        transition={{ duration, repeat: Infinity, ease: "linear", delay }}
-        className="absolute rounded-full border border-dashed pointer-events-none"
-        style={{ 
-            width: radius * 2, 
-            height: radius * 2, 
-            borderColor: color,
-            filter: `drop-shadow(0 0 ${4 + volume/25}px ${color})`
-        }}
-    >
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
-            <div className="w-1 h-1 rounded-full bg-white opacity-60" />
-        </div>
-    </motion.div>
-);
-
-const CognitiveLattice: React.FC<{ 
-    image: string | null; 
-    freqs: Uint8Array | null; 
-    color: string; 
-    isAgent: boolean; 
-    isThinking?: boolean;
-}> = ({ image, freqs, color, isAgent, isThinking }) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    
-    const volume = useMemo(() => {
-        if (freqs && freqs.length > 0) {
-            return freqs.reduce((a, b) => a + b, 0) / freqs.length;
-        }
-        return 0;
-    }, [freqs]);
-
-    useEffect(() => {
-        let frameId: number;
-        const canvas = canvasRef.current;
-        const ctx = canvas?.getContext('2d');
-        const render = () => {
-            if (!canvas || !ctx) return;
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const normalizedVol = volume / 255;
-            const time = Date.now() / 4000; 
-
-            const nodeCount = 8;
-            for(let i=0; i<nodeCount; i++) {
-                const angle = (i / nodeCount) * Math.PI * 2 + time * (isAgent ? 0.8 : -0.6);
-                const r = 130 + Math.sin(time * 2 + i) * 12;
-                const px = cx + Math.cos(angle) * r;
-                const py = cy + Math.sin(angle) * r;
-                
-                ctx.beginPath();
-                ctx.arc(px, py, 1.5 + normalizedVol * 2.5, 0, Math.PI * 2);
-                ctx.fillStyle = color;
-                ctx.globalAlpha = 0.2 + normalizedVol * 0.6;
-                ctx.fill();
-                
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.lineTo(px, py);
-                ctx.strokeStyle = `${color}06`;
-                ctx.stroke();
-            }
-
-            const threadCount = 18;
-            const baseRadius = 100;
-            ctx.lineWidth = 0.4;
-            for (let i = 0; i < threadCount; i++) {
-                const angle = (i / threadCount) * Math.PI * 2 + time * 0.15;
-                const r = baseRadius + Math.sin(time * 3 + i) * 15 * normalizedVol;
-                const tx = cx + Math.cos(angle) * r;
-                const ty = cy + Math.sin(angle) * r;
-
-                ctx.beginPath();
-                ctx.strokeStyle = `${color}${Math.floor((0.03 + normalizedVol * 0.3) * 255).toString(16).padStart(2, '0')}`;
-                ctx.moveTo(cx, cy);
-                ctx.quadraticCurveTo(cx + Math.cos(angle + 0.6) * (r * 0.7), cy + Math.sin(angle + 0.6) * (r * 0.7), tx, ty);
-                ctx.stroke();
-            }
-
-            frameId = requestAnimationFrame(render);
-        };
-        render();
-        return () => cancelAnimationFrame(frameId);
-    }, [volume, color, isAgent, isThinking]);
-
-    return (
-        <div className="relative w-80 h-80 flex items-center justify-center group/node">
-            <AnimatePresence>
-                <TelemetryRing color={color} duration={35} delay={0} radius={125} volume={volume} opacity={0.12} />
-                <TelemetryRing color={color} duration={22} delay={0.4} radius={155} volume={volume} opacity={0.06} />
-                {isThinking && <TelemetryRing color="#f1c21b" duration={4} delay={0} radius={185} volume={volume * 1.5} opacity={0.25} />}
-            </AnimatePresence>
-            
-            <canvas ref={canvasRef} className="absolute inset-[-100px] w-[calc(100%+200px)] h-[calc(100%+200px)] pointer-events-none z-0 opacity-50 group-hover/node:opacity-95 transition-opacity" />
-            
-            <motion.div 
-                whileHover={{ scale: 1.05 }}
-                className={`relative z-10 w-56 h-56 rounded-full border-2 border-white/5 overflow-hidden bg-[#020202] shadow-[0_0_100px_rgba(0,0,0,1)] transition-all duration-[1000ms] ${isThinking ? 'border-[#f1c21b]/40 scale-105 shadow-[0_0_60px_rgba(241,194,27,0.2)]' : ''}`}
-            >
-                {image ? (
-                    <img src={image} className="w-full h-full object-cover grayscale-[20%] contrast-125 group-hover/node:grayscale-0 transition-all duration-[1200ms]" alt="Entity" />
-                ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-black">
-                        {isAgent ? <BotIcon size={64} className="text-gray-800" /> : <User size={64} className="text-gray-800" />}
-                    </div>
-                )}
-                
-                {isThinking && (
-                    <div className="absolute inset-0 bg-black/70 backdrop-blur-[3px] flex flex-col items-center justify-center">
-                         <div className="relative">
-                            <Loader2 className="w-12 h-12 text-[#f1c21b] animate-spin mb-2" />
-                            <div className="absolute inset-0 bg-[#f1c21b]/20 blur-2xl animate-pulse" />
-                         </div>
-                         <span className="text-[8px] font-black font-mono text-[#f1c21b] uppercase tracking-[0.5em]">Lattice_Sync</span>
-                    </div>
-                )}
-                <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.12)_50%)] z-20 bg-[length:100%_4px] opacity-25" />
-            </motion.div>
-        </div>
-    );
-};
-
-interface ShardSplinter {
-    id: string;
-    x: number; y: number;
-    vx: number; vy: number;
-    rotation: number;
-    rv: number;
-    size: number;
-    opacity: number;
-    hue: number;
-    level: number; 
-}
-
-const PrismaticLatticeCore = ({ cpu, integrity }: { cpu: number, integrity: number }) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    const { mode, system } = useAppStore();
-    const lastLogCount = useRef(0);
-    const currC = useRef({ x: 0, y: 0 });
-    const shards = useRef<ShardSplinter[]>([]);
-    
-    const [weights, setWeights] = useState<Record<string, number>>({
-        RESEARCH: 10, PROCESS: 10, VAULT: 10, STUDIO: 10, HARDWARE: 10, CODE: 10, AGENT: 10, BRIDGE: 10
-    });
-
-    useEffect(() => {
-        const logs = system.logs || [];
-        if (logs.length > lastLogCount.current) {
-            const latest = logs[logs.length - 1];
-            const msg = (latest?.message || "").toString().toUpperCase();
-            let sector = "";
-            if (msg.includes("VAULT") || msg.includes("DRIVE")) sector = "VAULT";
-            else if (msg.includes("RESEARCH") || msg.includes("BIBLIO")) sector = "RESEARCH";
-            else if (msg.includes("AGENT") || msg.includes("SWARM")) sector = "AGENT";
-            else if (msg.includes("CODE") || msg.includes("FORGE")) sector = "CODE";
-            else if (msg.includes("HW") || msg.includes("THERMAL")) sector = "HARDWARE";
-            else if (msg.includes("PROCESS") || msg.includes("BLUEPRINT")) sector = "PROCESS";
-            else if (msg.includes("STUDIO") || msg.includes("ASSET")) sector = "STUDIO";
-            else if (msg.includes("BRIDGE") || msg.includes("REALITY")) sector = "BRIDGE";
-
-            if (sector) {
-                setWeights(prev => ({ ...prev, [sector]: 320 }));
-                if (cpu > 60) {
-                    const victims = shards.current.filter(s => s.level === 0 && Math.random() > 0.5).slice(0, 3);
-                    victims.forEach(v => {
-                        v.vx *= 3; v.vy *= 3; 
-                    });
-                }
-            }
-            lastLogCount.current = logs.length;
-        }
-
-        const decay = setInterval(() => {
-            setWeights(prev => {
-                const next = { ...prev };
-                Object.keys(next).forEach(key => {
-                    next[key] = Math.max(10, next[key] * 0.988);
-                });
-                const modeMap: Record<string, string> = {
-                    [AppMode.BIBLIOMORPHIC]: 'RESEARCH',
-                    [AppMode.PROCESS_MAP]: 'PROCESS',
-                    [AppMode.MEMORY_CORE]: 'VAULT',
-                    [AppMode.IMAGE_GEN]: 'STUDIO',
-                    [AppMode.HARDWARE_ENGINEER]: 'HARDWARE',
-                    [AppMode.CODE_STUDIO]: 'CODE',
-                    [AppMode.AGENT_CONTROL]: 'AGENT',
-                    [AppMode.SYNTHESIS_BRIDGE]: 'BRIDGE',
-                    [AppMode.DASHBOARD]: 'PROCESS'
-                };
-                const currentSector = modeMap[mode as string];
-                if (currentSector) next[currentSector] = Math.max(next[currentSector], 240);
-                return next;
-            });
-        }, 800); 
-        return () => clearInterval(decay);
-    }, [mode, system.logs, cpu]);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        let frameId: number;
-        const sectors = Object.keys(weights);
-
-        if (shards.current.length === 0) {
-            for (let i = 0; i < 35; i++) {
-                shards.current.push({
-                    id: Math.random().toString(36), x: Math.random() * 400, y: Math.random() * 400,
-                    vx: 0, vy: 0, rotation: Math.random() * Math.PI, rv: (Math.random() - 0.5) * 0.04,
-                    size: 6 + Math.random() * 10, opacity: 0.1 + Math.random() * 0.6,
-                    hue: 260 + Math.random() * 40, level: 0
-                });
-            }
-        }
-
-        const render = () => {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const time = Date.now() / 15000;
-
-            const coherence = integrity / 100;
-            const entropy = cpu / 100;
-
-            let targetX = 0, targetY = 0, totalW = 0;
-            sectors.forEach((key, i) => {
-                const angle = (i / sectors.length) * Math.PI * 2 - Math.PI / 2;
-                const w = weights[key];
-                const rX = canvas.width * 0.38, rY = canvas.height * 0.38;
-                const sx = cx + Math.cos(angle) * rX, sy = cy + Math.sin(angle) * rY;
-                targetX += sx * w; targetY += sy * w; totalW += w;
-
-                if (w > 120) {
-                    ctx.beginPath();
-                    ctx.arc(sx, sy, 1 + w/120, 0, Math.PI * 2);
-                    ctx.fillStyle = w > 220 ? '#fff' : '#9d4edd22';
-                    ctx.fill();
-                }
-            });
-
-            currC.current.x += (targetX / totalW - currC.current.x) * 0.03;
-            currC.current.y += (targetY / totalW - currC.current.y) * 0.03;
-
-            const activeShards = [...shards.current];
-            activeShards.forEach((s, i) => {
-                const dx = currC.current.x - s.x;
-                const dy = currC.current.y - s.y;
-                const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-
-                s.vx += (dx / dist) * 0.12 * coherence;
-                s.vy += (dy / dist) * 0.12 * coherence;
-                s.vx *= 0.98; s.vy *= 0.98;
-                s.x += s.vx; s.y += s.vy;
-                s.rotation += s.rv + entropy * 0.04;
-
-                ctx.save();
-                ctx.translate(s.x, s.y);
-                ctx.rotate(s.rotation);
-                
-                const baseAlpha = s.opacity * (0.3 + coherence * 0.7);
-                ctx.fillStyle = `hsla(${s.hue}, 80%, 70%, ${baseAlpha})`;
-                ctx.beginPath();
-                const radius = s.size;
-                ctx.moveTo(0, -radius);
-                ctx.lineTo(radius * 0.8, radius * 0.6);
-                ctx.lineTo(-radius * 0.8, radius * 0.6);
-                ctx.fill();
-                ctx.restore();
-            });
-
-            frameId = requestAnimationFrame(render);
-        };
-        render();
-        return () => cancelAnimationFrame(frameId);
-    }, [weights, cpu, integrity]);
-
-    return (
-        <div className="bg-[#050505] border border-white/5 rounded-2xl p-6 h-full flex flex-col group shadow-2xl relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.01)_0%,transparent_95%)] pointer-events-none" />
-            <div className="flex justify-between items-center mb-1 z-10 shrink-0">
-                <div className="flex items-center gap-3">
-                    <Atom size={16} className="text-[#9d4edd] animate-spin-slow opacity-30" />
-                    <span className="text-[9px] font-black font-mono text-white uppercase tracking-[0.4em]">Neural Core</span>
-                </div>
-                <div className="text-[6px] font-mono text-gray-700 uppercase tracking-tighter">Sync_LOCKED</div>
-            </div>
-            <canvas ref={canvasRef} className="flex-1 w-full min-h-0" />
-            <div className="absolute bottom-4 left-6 right-6 flex justify-between text-[6px] font-black font-mono text-gray-800 uppercase tracking-[0.3em] z-10 pointer-events-none pt-4 border-t border-white/5">
-                <span>Entropy: {Math.round(cpu)}%</span>
-            </div>
-        </div>
-    );
-};
-
 const CompactMetric = ({ title, value, detail, icon: Icon, color, data, trend }: any) => (
     <div className="bg-[#050505] border border-white/5 rounded-xl p-3 relative overflow-hidden group shadow-xl h-24 flex flex-col justify-between transition-all hover:border-white/10">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent opacity-15" style={{ '--accent': color } as any}></div>
@@ -521,13 +211,6 @@ const Dashboard: React.FC = () => {
   const [memHistory, setMemHistory] = useState<{value: number}[]>([]);
   const [loadHistory, setLoadHistory] = useState<{value: number}[]>([]);
 
-  const [userFreqs, setUserFreqs] = useState<Uint8Array | null>(null);
-  const [agentFreqs, setAgentFreqs] = useState<Uint8Array | null>(null);
-  const [showDialogueStream, setShowDialogueStream] = useState(true);
-  const voiceScrollRef = useRef<HTMLDivElement>(null);
-  const agentAvatar = voice.agentAvatars[voice.voiceName] || null;
-  const [isGeneratingAgentAvatar, setIsGeneratingAgentAvatar] = useState(false);
-
   useEffect(() => {
       const interval = setInterval(() => {
           setTelemetry(prev => {
@@ -547,50 +230,6 @@ const Dashboard: React.FC = () => {
       }, 4000); 
       return () => clearInterval(interval);
   }, []);
-
-  useEffect(() => {
-      let rafId: number;
-      const loop = () => {
-          if (voice.isActive) {
-              setUserFreqs(liveSession.getInputFrequencies());
-              setAgentFreqs(liveSession.getOutputFrequencies());
-          } else {
-              setUserFreqs(null);
-              setAgentFreqs(null);
-          }
-          rafId = requestAnimationFrame(loop);
-      };
-      loop();
-      return () => cancelAnimationFrame(rafId);
-  }, [voice.isActive]);
-
-  useEffect(() => {
-      if (voiceScrollRef.current) voiceScrollRef.current.scrollTop = voiceScrollRef.current.scrollHeight;
-  }, [voice.transcripts, voice.partialTranscript]);
-
-  const toggleVoiceSession = async () => {
-    if (voice.isActive || voice.isConnecting) {
-        liveSession.disconnect();
-        setVoiceState({ isActive: false, isConnecting: false });
-        addLog('SYSTEM', 'VOICE_CORE: Severed.');
-        audio.playError();
-    } else {
-        await liveSession.primeAudio();
-        setVoiceState({ isConnecting: true });
-        try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { 
-                await promptSelectKey(); 
-                setVoiceState({ isConnecting: false });
-                return; 
-            }
-            setVoiceState({ isActive: true, isConnecting: false });
-            addLog('SUCCESS', 'VOICE_CORE: Handshake stable.');
-            audio.playSuccess();
-        } catch (err: any) {
-            setVoiceState({ isConnecting: false });
-        }
-    }
-  };
 
   const handleIdentityGen = async () => {
     setDashboardState({ isGenerating: true });
@@ -642,26 +281,10 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="w-full text-gray-200 font-sans relative h-full transition-colors duration-[2000ms] overflow-y-auto custom-scrollbar bg-[#020202]">
-      <div className="h-6 bg-black border-b border-white/5 flex items-center overflow-hidden shrink-0 z-50 relative">
-          <div className="flex gap-12 animate-marquee whitespace-nowrap px-4 items-center">
-              {[
-                  { label: 'Uplink', val: 'STABLE', color: '#10b981' },
-                  { label: 'Entropy', val: `${(telemetry.cpu / 100).toFixed(3)}v`, color: '#9d4edd' },
-                  { label: 'Drive_Sync', val: 'CONNECTED', color: '#22d3ee' },
-                  { label: 'Lattice', val: 'ITERATION_8.0', color: '#10b981' },
-                  { label: 'Kernel', val: 'v8.1.0-Z', color: '#9d4edd' }
-              ].map((t, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                      <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">{t.label}:</span>
-                      <span className="text-[8px] font-black font-mono" style={{ color: t.color }}>{t.val}</span>
-                  </div>
-              ))}
-          </div>
-      </div>
-
       <div className="relative z-10 max-w-[1920px] mx-auto p-6 space-y-6 pb-32">
           <div className="grid grid-cols-12 gap-6 pt-4">
-              <div className="col-span-3 space-y-6 flex flex-col h-[1000px]">
+              {/* Left Column: Telemetry & Intel */}
+              <div className="col-span-3 space-y-6 flex flex-col h-[900px]">
                   <div className="grid grid-cols-2 gap-3 shrink-0">
                       <CompactMetric title="CPU" value={`${telemetry.cpu.toFixed(1)}%`} detail="12c_Sync" icon={CpuIcon} color={accent} data={cpuHistory} trend={telemetry.cpu > 50 ? 'up' : 'down'} />
                       <CompactMetric title="NET" value={`${telemetry.net.toFixed(1)}GB`} detail="Secure" icon={Network} color={accent} data={netHistory} trend="up" />
@@ -673,16 +296,23 @@ const Dashboard: React.FC = () => {
                     <RealWorldIntelFeed />
                   </div>
 
-                  <div className="flex-1 flex flex-col min-h-0">
-                    <PrismaticLatticeCore cpu={telemetry.cpu} integrity={telemetry.load} />
+                  <div className="flex-1 bg-[#050505] border border-white/5 rounded-2xl p-6 relative overflow-hidden group shadow-2xl">
+                      <div className="flex justify-between items-center mb-4 relative z-10">
+                          <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.4em]">Sovereign Pulse</span>
+                          <div className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] animate-pulse shadow-[0_0_8px_#9d4edd]" />
+                      </div>
+                      <NeuralMomentumPulse entropy={telemetry.cpu} />
+                      <div className="absolute bottom-4 left-6 right-6 text-[8px] font-mono text-gray-700 uppercase tracking-widest text-center border-t border-white/5 pt-4">
+                        Cognitive Mesh Analysis Active
+                      </div>
                   </div>
               </div>
 
-              <div className="col-span-6 flex flex-col gap-6 h-[1000px]">
+              {/* Middle Column: Hub Visualizer */}
+              <div className="col-span-6 flex flex-col gap-6 h-[900px]">
                   <div className="flex-1 bg-[#020202] border border-white/5 rounded-3xl relative overflow-hidden group shadow-2xl flex flex-col transition-all">
                       <div className="flex-1 flex items-center justify-center p-8 relative overflow-hidden group/viewport">
                           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_40%,rgba(0,0,0,0.8)_100%)] z-10 pointer-events-none" />
-                          <div className="absolute inset-0 pointer-events-none opacity-5" style={{ backgroundImage: `radial-gradient(${accent} 1px, transparent 1px)`, backgroundSize: '24px 24px' }} />
                           
                           {dashboard.identityUrl ? (
                               <motion.div 
@@ -750,7 +380,8 @@ const Dashboard: React.FC = () => {
                   </div>
               </div>
 
-              <div className="col-span-3 space-y-6 flex flex-col h-[1000px]">
+              {/* Right Column: Assets & Yield */}
+              <div className="col-span-3 space-y-6 flex flex-col h-[900px]">
                   <div className="bg-[#050505] border border-white/5 rounded-3xl p-4 flex flex-col gap-4 shadow-xl group/ref relative overflow-hidden h-[180px]">
                       <div className="flex items-center gap-2 relative z-10">
                           <Target size={14} className="text-[#9d4edd]" />
@@ -778,143 +409,61 @@ const Dashboard: React.FC = () => {
                       </div>
                   </div>
 
-                  <div className="bg-[#050505] border border-white/5 rounded-2xl p-5 flex flex-col gap-5 relative overflow-hidden h-[220px] shadow-inner">
+                  <div className="bg-[#050505] border border-white/5 rounded-2xl p-5 flex flex-col gap-5 relative overflow-hidden h-[240px] shadow-inner">
                       <div className="flex items-center justify-between relative z-10 px-1">
                           <div className="flex items-center gap-3">
                               <div className="p-2 rounded-xl bg-[#22d3ee]/5 text-[#22d3ee] border border-[#22d3ee]/10">
                                   <DollarSign size={16} />
                               </div>
-                              <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.3em]">Yield Matrix</span>
+                              <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.3em]">Capital Pulse</span>
                           </div>
+                          <TrendingUp size={14} className="text-[#10b981]" />
                       </div>
-                      <div className="space-y-3 relative z-10 flex-1 flex flex-col justify-center px-1">
+                      <div className="space-y-4 relative z-10 flex-1 flex flex-col justify-center px-1">
                           {[
-                              { label: 'Compute Arb', val: 94, color: '#9d4edd', usage: '$1.2k/hr' },
-                              { label: 'Network Stake', val: 82, color: '#22d3ee', usage: '$420/day' },
-                              { label: 'Asset Liquidity', val: 71, color: '#f59e0b', usage: '$8.2k/wk' },
-                              { label: 'Strategic Reserves', val: 99, color: '#10b981', usage: '$120k' }
+                              { label: 'Compute Arb', val: 94, color: '#9d4edd', usage: '+$1.2k/hr' },
+                              { label: 'Network Stake', val: 82, color: '#22d3ee', usage: '+$420/day' },
+                              { label: 'Asset Liquidity', val: 71, color: '#f59e0b', usage: '+$8.2k/wk' },
+                              { label: 'Strategic Reserves', val: 99, color: '#10b981', usage: '$120k CAP' }
                           ].map((cat) => (
-                              <div key={cat.label} className="space-y-1.5">
+                              <div key={cat.label} className="space-y-1.5 group/pulse">
                                   <div className="flex justify-between items-center text-[8px] font-mono text-gray-600 uppercase tracking-widest">
-                                      <span>{cat.label}</span>
+                                      <span className="group-hover/pulse:text-white transition-colors">{cat.label}</span>
                                       <span className="text-gray-500 font-bold">{cat.usage}</span>
                                   </div>
-                                  <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                                      <motion.div initial={{ width: 0 }} animate={{ width: `${cat.val}%` }} className="h-full" style={{ backgroundColor: cat.color }} />
+                                  <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                      <motion.div initial={{ width: 0 }} animate={{ width: `${cat.val}%` }} className="h-full shadow-[0_0_8px_currentColor]" style={{ backgroundColor: cat.color, color: cat.color }} />
                                   </div>
                               </div>
                           ))}
                       </div>
                   </div>
                   
-                  <div className="flex-1 bg-[#050505] border border-white/5 rounded-3xl p-4 shadow-xl relative overflow-hidden flex flex-col">
-                      <div className="flex items-center gap-3 mb-4 shrink-0 px-1">
-                          <Activity size={16} className="text-[#22d3ee] animate-pulse" />
-                          <span className="text-[11px] font-black font-mono text-white uppercase tracking-widest">Logic Flow Dynamics</span>
+                  <div className="flex-1 bg-[#050505] border border-white/5 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col">
+                      <div className="flex items-center gap-3 mb-6 shrink-0 px-1">
+                          <GitBranch size={16} className="text-[#22d3ee]" />
+                          <span className="text-[11px] font-black font-mono text-white uppercase tracking-widest">Lattice Synchronization</span>
                       </div>
-                      <div className="flex-1 bg-black rounded-2xl border border-white/5 relative overflow-hidden shadow-inner">
-                          <ResponsiveContainer width="100%" height="100%">
-                              <ScatterChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}>
-                                  <XAxis type="number" dataKey="x" hide domain={[0, 100]} />
-                                  <YAxis type="number" dataKey="y" hide domain={[0, 100]} />
-                                  <Scatter name="Nodes" data={Array.from({length: 30}, () => ({x: Math.random()*100, y: Math.random()*100}))}>
-                                      {Array.from({length: 30}).map((_, i) => <Cell key={i} fill={i % 4 === 0 ? accent : '#1a1a1a'} opacity={0.4} />)}
-                                  </Scatter>
-                              </ScatterChart>
-                          </ResponsiveContainer>
-                      </div>
-                  </div>
-              </div>
-          </div>
-
-          <div className="pt-16 border-t border-white/5">
-              <div className="w-full bg-[#010101] flex flex-col relative overflow-hidden font-sans border border-white/10 rounded-[5rem] shadow-[0_0_200px_rgba(0,0,0,1)] group/voicestudio h-[1200px]">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(241,194,27,0.02)_0%,transparent_90%)] pointer-events-none" />
-                  <NeuralReasoningCanvas isThinking={voice.isActive && !!voice.partialTranscript} userActive={!!userFreqs && userFreqs.some(v => v > 50)} agentActive={!!agentFreqs && agentFreqs.some(v => v > 50)} />
-                  <div className="h-20 flex justify-between items-center px-16 bg-[#080808]/95 backdrop-blur-3xl border-b border-white/5 z-30 shrink-0 relative">
-                      <div className="flex items-center gap-8">
-                          <div className="p-4 bg-[#22d3ee]/5 border border-[#22d3ee]/20 rounded-[1.2rem]">
-                            <Radio size={22} className={voice.isActive ? 'text-[#22d3ee] animate-pulse' : 'text-gray-700'} />
+                      <div className="flex-1 flex flex-col justify-center gap-8">
+                          <div className="flex items-center justify-between px-2">
+                             <div className="flex flex-col gap-1">
+                                <span className="text-[9px] font-mono text-gray-500 uppercase">Sector Alignment</span>
+                                <span className="text-xl font-black font-mono text-white tracking-tighter">98.4%</span>
+                             </div>
+                             <ShieldCheck size={32} className="text-[#10b981] opacity-40" />
                           </div>
-                          <div className="flex flex-col">
-                              <span className="text-sm font-black font-mono uppercase tracking-[0.6em] text-white leading-none">Voice Core Protocol</span>
-                              <div className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.3em] mt-2">
-                                {voice.isActive ? 'UPLINK_STABLE // 16-BIT_PCM' : 'STANDBY // AWAITING_HANDSHAKE'}
+                          <div className="h-px w-full bg-white/5" />
+                          <div className="grid grid-cols-2 gap-4">
+                              <div className="bg-black border border-white/5 p-4 rounded-2xl">
+                                 <span className="text-[7px] text-gray-600 uppercase font-mono block mb-1">Peer Nodes</span>
+                                 <span className="text-sm font-bold text-[#22d3ee]">1,240_ACTIVE</span>
+                              </div>
+                              <div className="bg-black border border-white/5 p-4 rounded-2xl">
+                                 <span className="text-[7px] text-gray-600 uppercase font-mono block mb-1">Latency</span>
+                                 <span className="text-sm font-bold text-[#9d4edd]">4.2ms_STABLE</span>
                               </div>
                           </div>
                       </div>
-                      <div className="flex items-center gap-6">
-                           <div className="flex items-center gap-5 bg-black/70 border border-white/5 px-6 py-3 rounded-2xl shadow-inner">
-                               <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Active Node</span>
-                               <div className="h-4 w-px bg-white/10" />
-                               <select value={voice.voiceName} onChange={(e) => setVoiceState({ voiceName: e.target.value })} disabled={voice.isActive} className="bg-transparent text-xs font-black font-mono text-[#f1c21b] outline-none uppercase cursor-pointer transition-colors hover:text-white">
-                                    {Object.keys(HIVE_AGENTS).map(name => (<option key={name} value={name} className="bg-[#0a0a0a]">{name}</option>))}
-                                </select>
-                           </div>
-                      </div>
-                  </div>
-                  <div className="h-[750px] flex items-center justify-center gap-40 p-16 relative overflow-hidden shrink-0">
-                     <motion.div initial={{ opacity: 0, x: -50 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col items-center gap-12">
-                        <div className="flex items-center gap-4 px-8 py-2.5 rounded-full bg-white/5 border border-white/10 shadow-lg opacity-60">
-                            <Target size={18} className="text-[#22d3ee]" />
-                            <span className="text-[11px] font-black text-[#22d3ee] uppercase tracking-[0.5em]">Operator_Enclave</span>
-                        </div>
-                        <CognitiveLattice image={user.avatar} freqs={userFreqs} color="#22d3ee" isAgent={false} />
-                     </motion.div>
-                     <div className="flex flex-col items-center gap-12 relative pt-8">
-                        <button onClick={toggleVoiceSession} disabled={voice.isConnecting} className={`w-36 h-36 rounded-full flex items-center justify-center transition-all duration-700 relative z-10 overflow-hidden border-4 ${voice.isActive ? 'bg-red-950/80 border-red-500/40 shadow-[0_0_120px_rgba(239,68,68,0.3)] rotate-90 scale-105' : 'bg-[#0a0a0a] border-[#f1c21b]/20 shadow-[0_0_80px_rgba(241,194,27,0.15)] hover:border-[#f1c21b]/50 hover:scale-105 active:scale-95'}`}>
-                            <div className="relative z-20">
-                                {voice.isConnecting ? <Loader2 className="animate-spin text-[#f1c21b] w-12 h-12" /> : voice.isActive ? <Power className="text-red-500 w-12 h-12" /> : <Mic className="text-[#f1c21b] w-12 h-12" />}
-                            </div>
-                        </button>
-                        <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.8em]">{voice.isActive ? 'SEVER_UPLINK' : 'ENGAGE_LATTICE'}</span>
-                     </div>
-                     <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} className="flex flex-col items-center gap-12">
-                        <div className="flex items-center gap-4 px-8 py-2.5 rounded-full bg-white/5 border border-white/10 shadow-lg opacity-60">
-                            <BotIcon size={18} className="text-[#f1c21b]" />
-                            <span className="text-[11px] font-black text-[#f1c21b] uppercase tracking-[0.5em]">Lattice_AI_Core</span>
-                        </div>
-                        <CognitiveLattice image={agentAvatar} freqs={agentFreqs} color="#f1c21b" isAgent={true} isThinking={voice.isActive && !!voice.partialTranscript} />
-                     </motion.div>
-                  </div>
-                  <div className="flex-1 border-t border-white/10 bg-[#050505]/98 backdrop-blur-3xl p-16 flex flex-col min-h-0 relative">
-                      <div className="flex items-center justify-between mb-12 border-b border-white/5 pb-10 shrink-0">
-                        <div className="flex items-center gap-8">
-                            <div className="p-4 bg-[#f1c21b]/10 border border-[#f1c21b]/30 rounded-[1.5rem] relative">
-                                <Binary size={24} className="text-[#f1c21b]" />
-                            </div>
-                            <span className="text-lg font-black uppercase tracking-[0.5em] text-white">Synaptic Ledger</span>
-                        </div>
-                        <button onClick={() => setShowDialogueStream(!showDialogueStream)} className="text-gray-700 hover:text-white transition-all p-3 bg-white/5 rounded-2xl border border-white/10">
-                            <ChevronDown size={22} className={showDialogueStream ? '' : 'rotate-180'} />
-                        </button>
-                      </div>
-                      <div className="flex-1 overflow-y-auto custom-scrollbar font-mono text-base pr-10" ref={voiceScrollRef}>
-                          <AnimatePresence initial={false}>
-                              {showDialogueStream && voice.transcripts.map((t, i) => {
-                                  const isUser = (t.role || '').toLowerCase() === 'user';
-                                  const currentAvatar = isUser ? user.avatar : agentAvatar;
-                                  return (
-                                      <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} key={i} className={`mb-12 flex gap-12 p-12 rounded-[4rem] border transition-all duration-1000 ${isUser ? 'bg-[#22d3ee]/5 border-[#22d3ee]/20 flex-row-reverse text-[#22d3ee]' : 'bg-[#f1c21b]/5 border-[#f1c21b]/20 text-[#f1c21b]'}`}>
-                                          <div className={`w-20 h-20 rounded-[2rem] border-2 flex items-center justify-center shrink-0 overflow-hidden bg-[#0a0a0a] ${isUser ? 'border-[#22d3ee]/50' : 'border-[#f1c21b]/50'}`}>
-                                              {currentAvatar ? <img src={currentAvatar} className="w-full h-full object-cover" alt="Node" /> : isUser ? <User size={36} /> : <BotIcon size={36} />}
-                                          </div>
-                                          <div className={`flex-1 ${isUser ? 'text-right' : 'text-left'}`}>
-                                              <p className="text-gray-100 font-medium text-2xl">{(t.text || '').toString()}</p>
-                                              <span className="mt-8 block text-[11px] font-mono tracking-widest opacity-25">{new Date(t.timestamp).toLocaleTimeString()}</span>
-                                          </div>
-                                      </motion.div>
-                                  );
-                              })}
-                          </AnimatePresence>
-                      </div>
-                  </div>
-                  <div className="h-16 bg-[#050505] border-t border-white/5 px-16 flex items-center justify-between text-[11px] font-mono text-gray-700 shrink-0 relative z-[60]">
-                    <div className="flex gap-16 items-center">
-                        <div className="flex items-center gap-6 text-emerald-900 font-bold uppercase tracking-[0.3em]"><ShieldCheck size={20} /> Handshake_Secure</div>
-                        <div className="flex items-center gap-6 uppercase tracking-[0.5em]"><GitBranch size={20} className="text-[#f1c21b]" /> Kernel: EXECUTIVE</div>
-                    </div>
-                    <span className="font-black text-gray-500 uppercase tracking-widest text-xs">SYSTEM_CORE</span>
                   </div>
               </div>
           </div>
