@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { neuralVault } from '../services/persistenceService';
 import { 
@@ -14,22 +13,23 @@ import {
     Layers, Cpu, Zap, Radio, Globe, Terminal, History, GitBranch,
     ChevronRight, ChevronDown, Package, AlertCircle, Command,
     Filter, LayoutGrid, Boxes, Brain, Tag, Archive, Plus, Info, Target, GitCommit, FileJson, Bookmark, Maximize,
-    SignalHigh, SignalMedium, SignalLow, Microscope
+    SignalHigh, SignalMedium, SignalLow, Microscope, FolderTree, FolderOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StoredArtifact, KnowledgeNode, NeuralLattice } from '../types';
+/* Fix: Cannot find name 'AppMode'. Added to the existing import list from '../types' */
+import { StoredArtifact, KnowledgeNode, NeuralLattice, AppMode } from '../types';
 import KnowledgeGraph from './KnowledgeGraph';
 import PowerXRay from './PowerXRay';
 import { audio } from '../services/audioService';
 
 const MemoryCore: React.FC = () => {
-    const { openHoloProjector, addLog, setProcessState } = useAppStore();
+    const { openHoloProjector, addLog, setProcessState, memory, setMemoryState, metaventions } = useAppStore();
     
     const [artifacts, setArtifacts] = useState<StoredArtifact[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'XRAY' | 'VISION'>('GRAPH');
+    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'XRAY' | 'VISION' | 'VAULT'>('GRAPH');
     
     // Semantic State
     const [semanticResults, setSemanticResults] = useState<{id: string, score: number}[] | null>(null);
@@ -155,6 +155,68 @@ const MemoryCore: React.FC = () => {
         return <SignalLow size={12} className="text-[#f59e0b]" />;
     };
 
+    const VaultModeView = () => {
+        const manifest = memory.driveManifest;
+        if (!manifest || !manifest.taxonomy) {
+            return (
+                <div className="h-full flex flex-col items-center justify-center opacity-20 text-center p-20 gap-8">
+                    <FolderTree size={120} className="text-gray-500" />
+                    <div className="space-y-2">
+                        <p className="text-xl font-mono uppercase tracking-[0.5em]">No Global Taxonomy</p>
+                        <p className="text-xs font-mono uppercase tracking-widest max-w-sm">Generate a PARA manifest in the Process Visualizer to enable autonomous drive organization.</p>
+                    </div>
+                    <button 
+                        onClick={() => { setProcessState({ workflowType: 'DRIVE_ORGANIZATION', activeTab: 'architect' }); useAppStore.getState().setMode(AppMode.PROCESS_MAP); }}
+                        className="px-6 py-3 bg-[#9d4edd] text-black rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:scale-105 transition-all"
+                    >
+                        Go to Architect
+                    </button>
+                </div>
+            );
+        }
+
+        return (
+            <div className="h-full flex flex-col p-10 bg-black/40 overflow-y-auto custom-scrollbar">
+                <div className="flex items-center gap-6 mb-12 border-b border-white/5 pb-8">
+                    <div className="p-4 bg-[#10b981]/10 rounded-2xl border border-[#10b981]/30">
+                        <Archive size={32} className="text-[#10b981]" />
+                    </div>
+                    <div>
+                        <h2 className="text-3xl font-black text-white uppercase font-mono tracking-tighter">Autonomous PARA Vault</h2>
+                        <span className="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Logic Handover Stable // Sync Source: {manifest.title}</span>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {manifest.taxonomy.root?.map((folder: any, i: number) => (
+                        <div key={i} className="p-6 bg-[#0a0a0a] border border-white/5 rounded-3xl group hover:border-[#10b981]/30 transition-all shadow-xl">
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="p-3 bg-white/5 rounded-xl text-gray-600 group-hover:text-[#10b981] transition-colors">
+                                    <FolderOpen size={20} />
+                                </div>
+                                <span className="text-xs font-black text-white uppercase tracking-widest">{folder.folder}</span>
+                            </div>
+                            
+                            <div className="space-y-2">
+                                {/* Simulated file placement based on AI match */}
+                                {artifacts.slice(0, 3 + i).map((art, j) => (
+                                    <div key={j} className="flex items-center gap-3 p-2 bg-black/60 rounded-lg border border-white/5 text-[10px] font-mono text-gray-500 hover:text-white hover:bg-white/5 cursor-pointer">
+                                        <FileText size={10} className="text-gray-700" />
+                                        <span className="truncate flex-1">{art.name}</span>
+                                        <span className="text-[7px] bg-[#10b981]/10 text-[#10b981] px-1 rounded uppercase">Matched</span>
+                                    </div>
+                                ))}
+                                <div className="p-2 border border-dashed border-white/5 rounded-lg text-center opacity-20">
+                                    <span className="text-[8px] font-mono uppercase">Buffer Area</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    };
+
     return (
         <div className="flex h-full w-full font-sans bg-[#030303] border border-[#1f1f1f] rounded-xl overflow-hidden relative">
             
@@ -248,6 +310,7 @@ const MemoryCore: React.FC = () => {
                         {[
                             { id: 'GRAPH', icon: BrainCircuit, label: 'Lattice' }, 
                             { id: 'GRID', icon: LayoutGrid, label: 'Matrix' }, 
+                            { id: 'VAULT', icon: FolderTree, label: 'Vault' },
                             { id: 'VISION', icon: Microscope, label: 'Vision' },
                             { id: 'XRAY', icon: Activity, label: 'X-Ray' }
                         ].map(btn => (
@@ -277,6 +340,11 @@ const MemoryCore: React.FC = () => {
                                         audio.playClick();
                                     }} 
                                 />
+                            </motion.div>
+                        )}
+                        {viewMode === 'VAULT' && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+                                <VaultModeView />
                             </motion.div>
                         )}
                         {(viewMode === 'GRID' || viewMode === 'VISION') && (
@@ -409,7 +477,7 @@ const MemoryCore: React.FC = () => {
 const QuoteIcon = ({ size, className }: { size?: number, className?: string }) => (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
         <path d="M3 21c3 0 7-1 7-8V5c0-1.25-.75-2-2-2H5c-1.25 0-2 .75-2 2v3c0 1.25.75 2 2 2h3c0 1.5-1 2.5-2 3.5-.5.5-1 1.5-1 2.5z" />
-        <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.75-2-2-2h-3c-1.25 0-2 .75-2 2v3c0 1.25.75 2 2 2h3c0 1.5-1 2.5-2 3.5-.5.5-1 1.5-1 2.5z" />
+        <path d="M15 21c3 0 7-1 7-8V5c0-1.25-.75-2-2-2H5c-1.25 0-2 .75-2 2v3c0 1.25.75 2 2 2h3c0 1.5-1 2.5-2 3.5-.5.5-1 1.5-1 2.5z" />
     </svg>
 );
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
 import { 
@@ -82,7 +81,7 @@ const RealWorldIntelFeed = () => {
                         <div className="mt-2 flex items-center justify-between">
                             <div className="flex items-center gap-1.5">
                                 <Shield size={8} className={op.risk === 'HIGH' ? 'text-red-500' : 'text-gray-600'} />
-                                <span className="text-[7px] font-mono text-gray-700 uppercase">Risk: {op.risk}</span>
+                                <span className="text-[7px] font-mono text-gray-600 uppercase">Risk: {op.risk}</span>
                             </div>
                             <span className="text-[7px] font-black text-[#9d4edd] uppercase tracking-tighter">Verified_L0</span>
                         </div>
@@ -494,7 +493,10 @@ const CompactMetric = ({ title, value, detail, icon: Icon, color, data, trend }:
                 </div>
                 <span className="text-[9px] font-black font-mono text-gray-500 uppercase tracking-widest">{title}</span>
             </div>
-            <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-700 uppercase">{detail}</div>
+            <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-600 uppercase">
+                {trend === 'up' ? <TrendingUp size={10} className="text-[#10b981]" /> : <TrendingDown size={10} className="text-[#ef4444]" />}
+                {detail}
+            </div>
         </div>
         <div className="flex items-end justify-between">
             <div className="text-2xl font-black font-mono text-white tracking-tighter leading-none">{value}</div>
@@ -661,10 +663,10 @@ const Dashboard: React.FC = () => {
           <div className="grid grid-cols-12 gap-6 pt-4">
               <div className="col-span-3 space-y-6 flex flex-col h-[1000px]">
                   <div className="grid grid-cols-2 gap-3 shrink-0">
-                      <CompactMetric title="CPU" value={`${telemetry.cpu.toFixed(1)}%`} detail="12c_Sync" icon={CpuIcon} color={accent} data={cpuHistory} />
-                      <CompactMetric title="NET" value={`${telemetry.net.toFixed(1)}GB`} detail="Secure" icon={Network} color={accent} data={netHistory} />
-                      <CompactMetric title="MEM" value={`${telemetry.mem.toFixed(0)}%`} detail="Lattice" icon={Database} color={accent} data={memHistory} />
-                      <CompactMetric title="INTEGRITY" value={`${telemetry.load.toFixed(1)}`} detail="Auth_OK" icon={Shield} color="#10b981" data={loadHistory} />
+                      <CompactMetric title="CPU" value={`${telemetry.cpu.toFixed(1)}%`} detail="12c_Sync" icon={CpuIcon} color={accent} data={cpuHistory} trend={telemetry.cpu > 50 ? 'up' : 'down'} />
+                      <CompactMetric title="NET" value={`${telemetry.net.toFixed(1)}GB`} detail="Secure" icon={Network} color={accent} data={netHistory} trend="up" />
+                      <CompactMetric title="MEM" value={`${telemetry.mem.toFixed(0)}%`} detail="Lattice" icon={Database} color={accent} data={memHistory} trend="down" />
+                      <CompactMetric title="INTEGRITY" value={`${telemetry.load.toFixed(1)}`} detail="Auth_OK" icon={Shield} color="#10b981" data={loadHistory} trend="up" />
                   </div>
                   
                   <div className="shrink-0">
@@ -826,7 +828,7 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="pt-16 border-t border-white/5">
-              <div className="w-full bg-[#010101] flex flex-col relative overflow-hidden font-sans border border-white/10 rounded-[5rem] shadow-[0_0_200px_rgba(0,0,0,1)] group/voicestudio h-[2000px]">
+              <div className="w-full bg-[#010101] flex flex-col relative overflow-hidden font-sans border border-white/10 rounded-[5rem] shadow-[0_0_200px_rgba(0,0,0,1)] group/voicestudio h-[1200px]">
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(241,194,27,0.02)_0%,transparent_90%)] pointer-events-none" />
                   <NeuralReasoningCanvas isThinking={voice.isActive && !!voice.partialTranscript} userActive={!!userFreqs && userFreqs.some(v => v > 50)} agentActive={!!agentFreqs && agentFreqs.some(v => v > 50)} />
                   <div className="h-20 flex justify-between items-center px-16 bg-[#080808]/95 backdrop-blur-3xl border-b border-white/5 z-30 shrink-0 relative">
