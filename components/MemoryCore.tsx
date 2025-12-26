@@ -13,148 +13,21 @@ import {
     Layers, Cpu, Zap, Radio, Globe, Terminal, History, GitBranch,
     ChevronRight, ChevronDown, Package, AlertCircle, Command,
     Filter, LayoutGrid, Boxes, Brain, Tag, Archive, Plus, Info, Target, GitCommit, FileJson, Bookmark, Maximize,
-    SignalHigh, SignalMedium, SignalLow, Microscope, FolderTree, FolderOpen, AlertTriangle,
-    RefreshCw, MoveRight, ArrowRight
+    SignalHigh, SignalMedium, SignalLow, Microscope
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { StoredArtifact, KnowledgeNode, NeuralLattice, AppMode } from '../types';
+import { StoredArtifact, KnowledgeNode, NeuralLattice } from '../types';
 import KnowledgeGraph from './KnowledgeGraph';
-import PowerXRay from './PowerXRay';
 import { audio } from '../services/audioService';
 
-const PARA_CATEGORIES = [
-    { id: 'PROJECTS', label: 'Projects', color: '#9d4edd', desc: 'Active endeavors with a deadline.' },
-    { id: 'AREAS', label: 'Areas', color: '#22d3ee', desc: 'Long-term responsibilities.' },
-    { id: 'RESOURCES', label: 'Resources', color: '#f59e0b', desc: 'Topics of ongoing interest.' },
-    { id: 'ARCHIVES', label: 'Archives', color: '#6b7280', desc: 'Completed or inactive items.' }
-];
-
-const PARAHub = ({ artifacts }: { artifacts: StoredArtifact[] }) => {
-    const { addLog } = useAppStore();
-    const [selectedArtId, setSelectedArtId] = useState<string | null>(null);
-    const [isMoving, setIsMoving] = useState(false);
-
-    const handleMove = async (folder: string) => {
-        setIsMoving(true);
-        audio.playClick();
-        addLog('SYSTEM', `VAULT_MOVE: Migrating artifact to [${folder}] sector...`);
-        await new Promise(r => setTimeout(r, 800));
-        addLog('SUCCESS', `VAULT_MOVE: Object stabilized in ${folder}.`);
-        audio.playSuccess();
-        setIsMoving(false);
-        setSelectedArtId(null);
-    };
-
-    return (
-        <div className="h-full flex flex-col p-10 bg-black/40 overflow-hidden relative">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(157,78,221,0.02)_0%,transparent_70%)] pointer-events-none" />
-            
-            <div className="flex justify-between items-end mb-12 border-b border-white/5 pb-10 relative z-10">
-                <div className="flex items-center gap-7">
-                    <div className="p-5 bg-[#9d4edd]/10 rounded-[2rem] border border-[#9d4edd]/30 shadow-[0_0_40px_rgba(157,78,221,0.15)]">
-                        <FolderTree size={40} className="text-[#9d4edd]" />
-                    </div>
-                    <div>
-                        <h2 className="text-4xl font-black text-white uppercase font-mono tracking-tighter">PARA Migration Hub</h2>
-                        <div className="flex items-center gap-4 mt-2">
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck size={14} className="text-[#10b981]" />
-                                <span className="text-[10px] text-[#10b981] font-mono uppercase tracking-widest font-black">Semantic Sorting Active</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="flex-1 flex gap-10 overflow-hidden relative z-10">
-                {/* Artifact Queue */}
-                <div className="w-1/3 flex flex-col bg-[#050505] border border-[#1f1f1f] rounded-[2.5rem] overflow-hidden shadow-2xl">
-                    <div className="p-6 border-b border-white/5 bg-white/[0.02] flex justify-between items-center">
-                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Unsorted Objects</span>
-                        <span className="text-[10px] font-mono text-[#9d4edd] font-black">{artifacts.length}</span>
-                    </div>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">
-                        {artifacts.map(art => (
-                            <div 
-                                key={art.id} 
-                                onClick={() => setSelectedArtId(art.id)}
-                                className={`p-4 rounded-2xl border transition-all cursor-pointer group flex items-center justify-between
-                                    ${selectedArtId === art.id ? 'bg-[#9d4edd]/10 border-[#9d4edd] shadow-xl' : 'bg-black border-white/5 hover:border-white/20'}
-                                `}
-                            >
-                                <div className="flex items-center gap-4 truncate">
-                                    <div className={`p-2 rounded-lg ${selectedArtId === art.id ? 'bg-[#9d4edd] text-black' : 'bg-[#111] text-gray-700 group-hover:text-gray-300'}`}>
-                                        <FileIcon size={14} />
-                                    </div>
-                                    <div className="truncate">
-                                        <div className={`text-[11px] font-black uppercase truncate ${selectedArtId === art.id ? 'text-white' : 'text-gray-400'}`}>{art.name}</div>
-                                        <div className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">{art.analysis?.classification || 'RAW_BUFFER'}</div>
-                                    </div>
-                                </div>
-                                {selectedArtId === art.id && <motion.div layoutId="pointer" className="text-[#9d4edd]"><MoveRight size={14} /></motion.div>}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Categories Grid */}
-                <div className="flex-1 grid grid-cols-2 gap-6 overflow-y-auto custom-scrollbar pr-2">
-                    {PARA_CATEGORIES.map((cat, i) => (
-                        <div 
-                            key={cat.id} 
-                            onClick={() => selectedArtId && handleMove(cat.id)}
-                            className={`p-8 bg-[#0a0a0a] border rounded-[3rem] transition-all duration-500 flex flex-col justify-between group
-                                ${selectedArtId ? 'border-[#9d4edd]/30 cursor-pointer hover:border-[#9d4edd] hover:bg-[#9d4edd]/5' : 'border-white/5 opacity-50'}
-                            `}
-                        >
-                            <div className="flex justify-between items-start">
-                                <div className="flex items-center gap-5">
-                                    <div className="p-4 rounded-2xl bg-white/5 text-gray-600 group-hover:text-white transition-all shadow-inner" style={{ color: cat.color }}>
-                                        <Archive size={28} />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-black text-white uppercase font-mono tracking-widest">{cat.label}</h3>
-                                        <p className="text-[10px] text-gray-600 font-mono mt-1 uppercase tracking-widest">{cat.desc}</p>
-                                    </div>
-                                </div>
-                                <div className="text-[10px] font-mono text-gray-800">SECTOR_0{i+1}</div>
-                            </div>
-                            
-                            <div className="mt-10 pt-6 border-t border-white/5 flex justify-between items-center">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-800 animate-pulse" />
-                                    <span className="text-[9px] font-mono text-gray-700 uppercase tracking-widest">Awaiting Relocation</span>
-                                </div>
-                                <button className="p-2.5 bg-white/5 rounded-xl text-gray-700 group-hover:text-white group-hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100"><ArrowRight size={18}/></button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            <AnimatePresence>
-                {isMoving && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[100] bg-black/80 backdrop-blur-md flex flex-col items-center justify-center gap-8">
-                        <div className="relative">
-                            <Loader2 size={80} className="text-[#9d4edd] animate-spin" />
-                            <div className="absolute inset-0 bg-[#9d4edd]/20 blur-3xl animate-pulse" />
-                        </div>
-                        <p className="text-xl font-mono uppercase tracking-[0.8em] text-white">Re-structuring Lattice...</p>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
-};
-
 const MemoryCore: React.FC = () => {
-    const { openHoloProjector, addLog, setProcessState, memory, setMemoryState } = useAppStore();
+    const { openHoloProjector, addLog, setProcessState } = useAppStore();
     
     const [artifacts, setArtifacts] = useState<StoredArtifact[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'XRAY' | 'PARA'>('GRID');
+    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'XRAY'>('GRID');
     
     // Semantic State
     const [semanticResults, setSemanticResults] = useState<{id: string, score: number}[] | null>(null);
@@ -215,6 +88,17 @@ const MemoryCore: React.FC = () => {
         }
     };
 
+    const filteredArtifacts = useMemo(() => {
+        if (!semanticResults) return artifacts;
+        return artifacts
+            .filter(a => semanticResults.some(r => r.id === a.id))
+            .sort((a, b) => {
+                const scoreA = semanticResults.find(r => r.id === a.id)?.score || 0;
+                const scoreB = semanticResults.find(r => r.id === b.id)?.score || 0;
+                return scoreB - scoreA;
+            });
+    }, [artifacts, semanticResults]);
+
     return (
         <div className="flex h-full w-full font-sans bg-[#030303] border border-[#1f1f1f] rounded-xl overflow-hidden relative">
             {/* Sidebar: Vault Index */}
@@ -249,7 +133,6 @@ const MemoryCore: React.FC = () => {
                         {[
                             { id: 'GRID', icon: LayoutGrid, label: 'Matrix' },
                             { id: 'GRAPH', icon: BrainCircuit, label: 'Lattice' },
-                            { id: 'PARA', icon: FolderTree, label: 'PARA Hub' },
                             { id: 'XRAY', icon: Activity, label: 'X-Ray' }
                         ].map(btn => (
                             <button key={btn.id} onClick={() => { setViewMode(btn.id as any); audio.playClick(); }} className={`px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest flex items-center gap-2 transition-all ${viewMode === btn.id ? 'bg-[#1f1f1f] text-white border border-white/5' : 'text-gray-600 hover:text-gray-300'}`}>
@@ -265,17 +148,13 @@ const MemoryCore: React.FC = () => {
 
                 <div className="flex-1 overflow-hidden relative">
                     <AnimatePresence mode="wait">
-                        {viewMode === 'PARA' ? (
-                            <motion.div key="para" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
-                                <PARAHub artifacts={artifacts} />
-                            </motion.div>
-                        ) : viewMode === 'GRAPH' ? (
+                        {viewMode === 'GRAPH' ? (
                             <motion.div key="graph" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
                                 <KnowledgeGraph nodes={artifacts.map(a => ({ id: a.id, label: a.name, type: 'CONCEPT', strength: 80, connections: [] }))} onNodeClick={(n) => setSelectedArtifact(artifacts.find(a => a.id === n.id) || null)} />
                             </motion.div>
                         ) : viewMode === 'GRID' ? (
                             <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 grid grid-cols-2 md:grid-cols-4 gap-6 overflow-y-auto h-full custom-scrollbar">
-                                {artifacts.map(art => (
+                                {filteredArtifacts.map(art => (
                                     <div key={art.id} onClick={() => setSelectedArtifact(art)} className={`p-6 bg-[#0a0a0a] border rounded-2xl transition-all cursor-pointer group shadow-2xl relative overflow-hidden ${selectedArtifact?.id === art.id ? 'border-[#9d4edd]' : 'border-[#222] hover:border-white/20'}`}>
                                         <div className="aspect-square bg-black rounded-xl flex items-center justify-center text-gray-700 group-hover:text-[#9d4edd] transition-colors mb-4 shadow-inner border border-white/5"><FileIcon size={32} /></div>
                                         <div className="text-[10px] font-black text-white uppercase truncate font-mono mb-1">{art.name}</div>
@@ -284,7 +163,7 @@ const MemoryCore: React.FC = () => {
                                 ))}
                             </motion.div>
                         ) : (
-                            <motion.div key="xray" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full"><PowerXRay availableSources={artifacts} /></motion.div>
+                            <div className="h-full flex items-center justify-center text-gray-700 font-mono text-sm opacity-20 uppercase tracking-[0.4em]">X-Ray Mode Standby</div>
                         )}
                     </AnimatePresence>
                 </div>
