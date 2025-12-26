@@ -1,4 +1,3 @@
-
 export type Result<T, E = Error> = 
   | { ok: true; value: T } 
   | { ok: false; error: E };
@@ -282,6 +281,8 @@ export interface AtomicTask {
     instruction: string;
     weight: number;
     status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+    complexity?: 'LOW' | 'MED' | 'HIGH';
+    logs?: { timestamp: number; message: string }[];
 }
 
 export interface SwarmResult {
@@ -340,12 +341,13 @@ export interface AutonomousAgent {
     role: string;
     context: OperationalContext;
     status: 'ACTIVE' | 'IDLE' | 'THINKING' | 'SLEEPING';
-    memoryBuffer: string[];
+    memoryBuffer: { timestamp: number; role: 'USER' | 'AI' | 'SYSTEM'; text: string }[];
     capabilities: string[];
     lastInstruction?: string;
-    energyLevel: number; // 0-100
+    energyLevel: number; 
     currentMindset: MentalState;
     tasks: AtomicTask[];
+    avatarUrl?: string;
 }
 
 export enum TemporalEra {
