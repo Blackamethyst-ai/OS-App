@@ -32,8 +32,8 @@ const CapabilityChip: React.FC<{ text: string; color: string }> = ({ text, color
     </div>
 );
 
-// Bio-Resonance Meter (Energy level)
-const BioResonanceMeter = ({ level, isActive }: { level: number, isActive: boolean }) => {
+// Bio-Resonance Meter (Energy level indicator)
+const BioResonanceMeter: React.FC<{ level: number, isActive: boolean }> = ({ level, isActive }) => {
     const color = level > 70 ? '#10b981' : level > 30 ? '#f59e0b' : '#ef4444';
     return (
         <div className="flex flex-col gap-1.5">
@@ -43,22 +43,23 @@ const BioResonanceMeter = ({ level, isActive }: { level: number, isActive: boole
             </div>
             <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5 relative">
                 <motion.div 
+                    initial={false}
                     animate={{ 
                         width: `${level}%`,
                         backgroundColor: color,
                         opacity: isActive ? [0.6, 1, 0.6] : 1
                     }}
-                    transition={isActive ? { duration: 1, repeat: Infinity } : {}}
-                    className="h-full rounded-full transition-all duration-1000 shadow-[0_0_10px_currentColor]"
+                    transition={isActive ? { duration: 1, repeat: Infinity } : { duration: 1 }}
+                    className="h-full rounded-full transition-all shadow-[0_0_10px_currentColor]"
                 />
             </div>
         </div>
     );
 };
 
-const AgentSettingsModal = ({ agent, onClose }: { agent: AutonomousAgent, onClose: () => void }) => {
+const AgentSettingsModal: React.FC<{ agent: AutonomousAgent, onClose: () => void }> = ({ agent, onClose }) => {
     const { updateAgent, addLog } = useAppStore();
-    const [mindset, setMindset] = useState(agent.currentMindset);
+    const [mindset, setMindset] = useState<MentalState>(agent.currentMindset);
 
     const handleSave = () => {
         updateAgent(agent.id, { currentMindset: mindset });
@@ -320,10 +321,9 @@ const AgentControlCenter: React.FC = () => {
                                 </div>
                                 
                                 <div className="flex flex-wrap gap-1.5 mb-6 opacity-60 group-hover:opacity-100 transition-opacity">
-                                    {agent.capabilities.slice(0, 3).map((cap: string) => (
+                                    {agent.capabilities.map((cap: string) => (
                                         <CapabilityChip key={cap} text={cap} color={selectedAgentId === agent.id ? '#9d4edd' : '#666'} />
                                     ))}
-                                    {agent.capabilities.length > 3 && <span className="text-[7px] text-gray-700 font-mono">+{agent.capabilities.length - 3}</span>}
                                 </div>
 
                                 <BioResonanceMeter level={agent.energyLevel} isActive={agent.status === 'THINKING'} />
@@ -612,7 +612,7 @@ const AgentControlCenter: React.FC = () => {
                 <div className="flex items-center gap-14 shrink-0">
                     <span className="uppercase tracking-[0.8em] opacity-40 leading-none hidden xl:block text-[10px]">Sovereign Swarm Architecture v9.4 // Multi-Agent Orchestration Hub</span>
                     <div className="h-8 w-px bg-white/10 hidden xl:block" />
-                    <span className="font-black text-gray-400 uppercase tracking-[0.4em] none text-[11px]">KERNEL_AGENTS_CORE</span>
+                    <span className="font-black text-gray-400 uppercase tracking-[0.4em] leading-none text-[11px]">KERNEL_AGENTS_CORE</span>
                 </div>
             </div>
 

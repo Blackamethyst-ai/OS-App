@@ -195,7 +195,7 @@ ${result.output}
                     <button 
                         onClick={runArchitecture}
                         disabled={isPlanning || isSwarming || !goal?.trim()}
-                        className="w-full py-4 bg-[#9d4edd] text-black font-black font-mono text-xs uppercase tracking-[0.2em] rounded-xl hover:bg-[#b06bf7] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-[0_0_30px_rgba(157,78,221,0.3)] group"
+                        className="w-full py-4 bg-[#9d4edd] text-black font-black font-mono text-xs uppercase tracking-[0.2em] rounded-xl hover:bg-[#b06bf7] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-[0_0_40px_rgba(157,78,221,0.3)] group"
                     >
                         {isPlanning ? <Loader2 className="w-4 h-4 animate-spin"/> : <GitBranch className="w-4 h-4 group-hover:scale-110 transition-transform"/>}
                         {isPlanning ? 'DECOMPOSING...' : 'INITIALIZE SWARM'}

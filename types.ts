@@ -344,10 +344,10 @@ export interface AutonomousAgent {
     memoryBuffer: { timestamp: number; role: 'USER' | 'AI' | 'SYSTEM'; text: string }[];
     capabilities: string[];
     lastInstruction?: string;
-    energyLevel: number; 
     currentMindset: MentalState;
-    tasks: AtomicTask[];
+    energyLevel: number;
     avatarUrl?: string;
+    tasks: AtomicTask[];
 }
 
 export enum TemporalEra {

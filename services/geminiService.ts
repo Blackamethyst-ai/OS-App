@@ -159,6 +159,18 @@ export async function getLiveSupplyChainData(component: string) {
     return JSON.parse(response.text || '{}');
 }
 
+/**
+ * Generates a tactical hardware deployment manifest for DePIN orchestration.
+ */
+export async function generateHardwareDeploymentManifest(spec: any, bom: any[]) {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Hardware Spec: ${JSON.stringify(spec)}. BOM: ${JSON.stringify(bom)}. Generate a tactical provisioning manifest for DePIN deployment. Output as Markdown.`,
+    });
+    return response.text || "Failed to generate manifest.";
+}
+
 export async function analyzeCrossSectorImpact(hardwareSpec: any, treasuryState: any) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -318,7 +330,7 @@ export async function generateHypotheses(facts: string[]): Promise<ScienceHypoth
 }
 
 /**
- * Fixed: Use 'contents' and 'embeddings' per user requirement.
+ * generateEmbedding for vector search.
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
     try {
@@ -443,7 +455,7 @@ class LiveSession {
     }
 
     /**
-     * Connect to Live API. Fixed functionResponses structure to be an object per guidelines.
+     * Connect to Live API.
      */
     async connect(agentName: string, config: any) {
         const ai = getAI();
@@ -455,13 +467,12 @@ class LiveSession {
                     if (message.toolCall) {
                         for (const fc of message.toolCall.functionCalls) {
                             const result = await this.onToolCall(fc.name, fc.args);
-                            // Correct SDK pattern: sendToolResponse with object-based functionResponses
                             sessionPromise.then(s => s.sendToolResponse({ 
-                                functionResponses: { 
+                                functionResponses: [{ 
                                     id: fc.id, 
                                     name: fc.name, 
                                     response: { result } 
-                                } 
+                                }] 
                             }));
                         }
                     }
@@ -617,20 +628,7 @@ export async function synthesizeResearchReport() { return ""; }
 export async function generateAutopoieticFramework() { return {}; }
 export async function generateSystemArchitecture(p: string, t: string) { return { nodes: [], edges: [] }; }
 export async function calculateEntropy() { return 0; }
-
-/**
- * decomposeNode returns expected optimization properties.
- */
-export async function decomposeNode(label: string, neighbors: string) {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Decompose system node: ${label}. Neighbors: ${neighbors}. Output JSON {nodes: [{id, label, subtext, iconName, color}], edges: [{id, source, target}], optimizations: [string]}.`,
-        config: { responseMimeType: 'application/json' }
-    });
-    return JSON.parse(response.text || '{"nodes": [], "edges": [], "optimizations": []}');
-}
-
+export async function decomposeNode(l: string, n: string) { return { nodes: [], edges: [], optimizations: [] }; }
 export async function generateInfrastructureCode(s: string, p: string) { return ""; }
 export async function generateSingleNode(d: string) { return { label: d, subtext: "" }; }
 export async function calculateOptimalLayout(n: any[], e: any[]) { return {}; }
@@ -640,32 +638,3 @@ export async function decomposeTaskToSubtasks(t: string, d: string) { return [];
 export async function searchGroundedIntel(q: string) { return ""; }
 export async function convergeStrategicLattices(n: any[], g: string) { return { nodes: [], coherence_index: 0.9, unified_goal: g }; }
 export async function transformArtifact(c: any, t: any, i: string) { return c; }
-
-export async function generateHardwareDeploymentManifest(spec: any, components: any[]): Promise<string> {
-    const ai = getAI();
-    const prompt = `
-        ROLE: Senior Hardware Infrastructure Architect.
-        TASK: Forge a production-ready Deployment Manifest for the following hardware design.
-        
-        SPECIFICATIONS:
-        - Temporal Era: ${spec.era}
-        - Target Clock: ${spec.clockSpeed}GHz
-        - Operating Voltage: ${spec.voltage}v
-        - BOM: ${JSON.stringify(components)}
-        
-        REQUIREMENT:
-        Provide a detailed structured Markdown report that includes:
-        1. Provisioning Logic: Specific cloud-init or Bare-metal bootstrap procedures.
-        2. Network Topology: DePIN integration path (Akash L3 / Render GPU / Helium Mesh).
-        3. Physical Infrastructure: Mechanical requirements, MTBF estimations, and specific IC sourcing.
-        4. Performance Envelope: Thresholds for frequency modulation and thermal mitigation.
-        5. ROI Synthesis: Precise yield projections based on current DePIN protocol rewards.
-    `;
-
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
-        contents: prompt
-    });
-
-    return response.text || "Manifest generation failed.";
-}

@@ -8,6 +8,58 @@ import {
     OperationalContext, AutonomousAgent
 } from './types';
 
+// Initial agents for the store
+const INITIAL_AGENTS: AutonomousAgent[] = [
+    {
+        id: 'puck',
+        name: 'Puck',
+        role: 'Generative Architect',
+        context: OperationalContext.STRATEGY_SYNTHESIS,
+        status: 'IDLE',
+        memoryBuffer: [],
+        capabilities: ['Strategic Synthesis', 'Visual Perception', 'Navigation Control'],
+        currentMindset: { skepticism: 10, excitement: 90, alignment: 70 },
+        energyLevel: 100,
+        tasks: []
+    },
+    {
+        id: 'charon',
+        name: 'Charon',
+        role: 'Logical Auditor',
+        context: OperationalContext.SYSTEM_MONITORING,
+        status: 'IDLE',
+        memoryBuffer: [],
+        capabilities: ['Error Detection', 'Security Auditing', 'Process Validation'],
+        currentMindset: { skepticism: 90, excitement: 20, alignment: 90 },
+        energyLevel: 100,
+        tasks: []
+    },
+    {
+        id: 'fenrir',
+        name: 'Fenrir',
+        role: 'Execution Controller',
+        context: OperationalContext.CODE_GENERATION,
+        status: 'IDLE',
+        memoryBuffer: [],
+        capabilities: ['Coding', 'Refactoring', 'Unit Testing'],
+        currentMindset: { skepticism: 40, excitement: 60, alignment: 80 },
+        energyLevel: 100,
+        tasks: []
+    },
+    {
+        id: 'aris',
+        name: 'Aris',
+        role: 'Data Sentinel',
+        context: OperationalContext.DATA_ANALYSIS,
+        status: 'IDLE',
+        memoryBuffer: [],
+        capabilities: ['Indexing', 'Pattern Recognition', 'Vector Search'],
+        currentMindset: { skepticism: 30, excitement: 50, alignment: 85 },
+        energyLevel: 100,
+        tasks: []
+    }
+];
+
 interface AppState {
     mode: AppMode;
     theme: AppTheme;
@@ -220,8 +272,6 @@ interface AppState {
     removeResearchTask: (id: string) => void;
     cancelResearchTask: (id: string) => void;
     setBicameralState: (update: any) => void;
-    setAgentState: (update: any) => void;
-    updateAgent: (id: string, update: any) => void;
     setCollabState: (update: any) => void;
     addSwarmEvent: (event: any) => void;
     openContextMenu: (x: number, y: number, type: string, content: any) => void;
@@ -241,6 +291,8 @@ interface AppState {
     setMetaventionsState: (update: any) => void;
     pushToInvestmentQueue: (metavention: any) => void;
     commitInvestment: (id: string, amount: number) => void;
+    setAgentState: (update: any) => void;
+    updateAgent: (id: string, update: Partial<AutonomousAgent>) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -414,44 +466,7 @@ export const useAppStore = create<AppState>((set) => ({
         error: null
     },
     agents: {
-        activeAgents: [
-            { 
-                id: 'agent-1', name: 'Charon', role: 'Logical Auditor', 
-                context: OperationalContext.SYSTEM_MONITORING, status: 'IDLE', 
-                memoryBuffer: [{ timestamp: Date.now(), role: 'SYSTEM', text: 'Kernel Monitoring Initialized.' }], 
-                capabilities: ['Scanning', 'Diagnostics', 'Error Filtering'], 
-                energyLevel: 94, 
-                currentMindset: { skepticism: 90, excitement: 20, alignment: 80 }, 
-                tasks: [] 
-            },
-            { 
-                id: 'agent-2', name: 'Puck', role: 'Generative Architect', 
-                context: OperationalContext.STRATEGY_SYNTHESIS, status: 'IDLE', 
-                memoryBuffer: [{ timestamp: Date.now(), role: 'SYSTEM', text: 'Synthesis Pipeline Ready.' }], 
-                capabilities: ['Synthesis', 'Modeling', 'Visionary Leap'], 
-                energyLevel: 88, 
-                currentMindset: { skepticism: 10, excitement: 95, alignment: 60 }, 
-                tasks: [] 
-            },
-            { 
-                id: 'agent-3', name: 'Fenrir', role: 'Execution Controller', 
-                context: OperationalContext.CODE_GENERATION, status: 'IDLE', 
-                memoryBuffer: [{ timestamp: Date.now(), role: 'SYSTEM', text: 'Execution Buffer Online.' }], 
-                capabilities: ['Coding', 'Optimization', 'Security Patching'], 
-                energyLevel: 72, 
-                currentMindset: { skepticism: 40, excitement: 50, alignment: 90 }, 
-                tasks: [] 
-            },
-            { 
-                id: 'agent-4', name: 'Aris', role: 'Data Sentinel', 
-                context: OperationalContext.DATA_ANALYSIS, status: 'IDLE', 
-                memoryBuffer: [{ timestamp: Date.now(), role: 'SYSTEM', text: 'Data Indexing Activated.' }], 
-                capabilities: ['Indexing', 'Search', 'Pattern Matching'], 
-                energyLevel: 91, 
-                currentMindset: { skepticism: 30, excitement: 60, alignment: 85 }, 
-                tasks: [] 
-            }
-        ],
+        activeAgents: INITIAL_AGENTS,
         isDispatching: false
     },
     collaboration: {
@@ -592,15 +607,6 @@ export const useAppStore = create<AppState>((set) => ({
     setBicameralState: (update) => set((state) => ({ 
         bicameral: { ...state.bicameral, ...(typeof update === 'function' ? update(state.bicameral) : update) } 
     })),
-    setAgentState: (update) => set((state) => ({ 
-        agents: { ...state.agents, ...(typeof update === 'function' ? update(state.agents) : update) } 
-    })),
-    updateAgent: (id, update) => set((state) => ({
-        agents: {
-            ...state.agents,
-            activeAgents: state.agents.activeAgents.map(a => a.id === id ? { ...a, ...update } : a)
-        }
-    })),
     setCollabState: (update) => set((state) => ({ 
         collaboration: { ...state.collaboration, ...(typeof update === 'function' ? update(state.collaboration) : update) } 
     })),
@@ -664,6 +670,15 @@ export const useAppStore = create<AppState>((set) => ({
         metaventions: {
             ...state.metaventions,
             strategyLog: [...state.metaventions.strategyLog, `Invested $${amount.toLocaleString()} into [${id}]`]
+        }
+    })),
+    setAgentState: (update) => set((state) => ({ 
+        agents: { ...state.agents, ...(typeof update === 'function' ? update(state.agents) : update) } 
+    })),
+    updateAgent: (id, update) => set((state) => ({
+        agents: {
+            ...state.agents,
+            activeAgents: state.agents.activeAgents.map(a => a.id === id ? { ...a, ...update } : a)
         }
     })),
 }));
