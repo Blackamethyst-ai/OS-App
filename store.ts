@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { 
     AppMode, AppTheme, UserProfile, FileData, Task, 
@@ -61,7 +60,7 @@ interface AppState {
     };
     dashboard: {
         isGenerating: boolean;
-        identityUrl: string | null;
+        identityUrl: null | string;
         referenceImage: FileData | null;
         activeThemeColor: string;
     };
@@ -416,10 +415,42 @@ export const useAppStore = create<AppState>((set) => ({
     },
     agents: {
         activeAgents: [
-            { id: 'agent-1', name: 'Charon', role: 'Logical Auditor', context: OperationalContext.SYSTEM_MONITORING, status: 'IDLE', memoryBuffer: [], capabilities: ['Scanning', 'Diagnostics', 'Error Filtering'], energyLevel: 94, currentMindset: { skepticism: 90, excitement: 20, alignment: 80 }, tasks: [] },
-            { id: 'agent-2', name: 'Puck', role: 'Generative Architect', context: OperationalContext.STRATEGY_SYNTHESIS, status: 'IDLE', memoryBuffer: [], capabilities: ['Synthesis', 'Modeling', 'Visionary Leap'], energyLevel: 88, currentMindset: { skepticism: 10, excitement: 95, alignment: 60 }, tasks: [] },
-            { id: 'agent-3', name: 'Fenrir', role: 'Execution Controller', context: OperationalContext.CODE_GENERATION, status: 'IDLE', memoryBuffer: [], capabilities: ['Coding', 'Optimization', 'Security Patching'], energyLevel: 72, currentMindset: { skepticism: 40, excitement: 50, alignment: 90 }, tasks: [] },
-            { id: 'agent-4', name: 'Aris', role: 'Data Sentinel', context: OperationalContext.DATA_ANALYSIS, status: 'IDLE', memoryBuffer: [], capabilities: ['Indexing', 'Search', 'Pattern Matching'], energyLevel: 91, currentMindset: { skepticism: 30, excitement: 60, alignment: 85 }, tasks: [] }
+            { 
+                id: 'agent-1', name: 'Charon', role: 'Logical Auditor', 
+                context: OperationalContext.SYSTEM_MONITORING, status: 'IDLE', 
+                memoryBuffer: [{ timestamp: Date.now(), role: 'SYSTEM', text: 'Kernel Monitoring Initialized.' }], 
+                capabilities: ['Scanning', 'Diagnostics', 'Error Filtering'], 
+                energyLevel: 94, 
+                currentMindset: { skepticism: 90, excitement: 20, alignment: 80 }, 
+                tasks: [] 
+            },
+            { 
+                id: 'agent-2', name: 'Puck', role: 'Generative Architect', 
+                context: OperationalContext.STRATEGY_SYNTHESIS, status: 'IDLE', 
+                memoryBuffer: [{ timestamp: Date.now(), role: 'SYSTEM', text: 'Synthesis Pipeline Ready.' }], 
+                capabilities: ['Synthesis', 'Modeling', 'Visionary Leap'], 
+                energyLevel: 88, 
+                currentMindset: { skepticism: 10, excitement: 95, alignment: 60 }, 
+                tasks: [] 
+            },
+            { 
+                id: 'agent-3', name: 'Fenrir', role: 'Execution Controller', 
+                context: OperationalContext.CODE_GENERATION, status: 'IDLE', 
+                memoryBuffer: [{ timestamp: Date.now(), role: 'SYSTEM', text: 'Execution Buffer Online.' }], 
+                capabilities: ['Coding', 'Optimization', 'Security Patching'], 
+                energyLevel: 72, 
+                currentMindset: { skepticism: 40, excitement: 50, alignment: 90 }, 
+                tasks: [] 
+            },
+            { 
+                id: 'agent-4', name: 'Aris', role: 'Data Sentinel', 
+                context: OperationalContext.DATA_ANALYSIS, status: 'IDLE', 
+                memoryBuffer: [{ timestamp: Date.now(), role: 'SYSTEM', text: 'Data Indexing Activated.' }], 
+                capabilities: ['Indexing', 'Search', 'Pattern Matching'], 
+                energyLevel: 91, 
+                currentMindset: { skepticism: 30, excitement: 60, alignment: 85 }, 
+                tasks: [] 
+            }
         ],
         isDispatching: false
     },
