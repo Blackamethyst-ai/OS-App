@@ -137,7 +137,7 @@ interface AppState {
         };
         pendingAIAddition: any | null;
         pendingAction: string | null;
-        governance: string;
+        governance: 'Metaventions Protocol v1';
         coherenceScore: number;
     };
     imageGen: {
