@@ -11,7 +11,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { AutonomousAgent, OperationalContext, AtomicTask, MentalState } from '../types';
 import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
-import { retryGeminiRequest, generateAvatar } from '../services/geminiService';
+import { retryGeminiRequest, promptSelectKey } from '../services/geminiService';
 import { audio } from '../services/audioService';
 
 const CONTEXT_CONFIG: Record<OperationalContext, { label: string, icon: any, color: string, desc: string }> = {
@@ -108,23 +108,6 @@ const AgentSettingsModal: React.FC<{ agent: AutonomousAgent, onClose: () => void
                     ))}
                 </div>
 
-                <div className="mt-12 p-8 bg-black/60 border border-white/5 rounded-[2.5rem] relative overflow-hidden group shadow-inner">
-                    <div className="absolute top-3 right-5 text-[8px] font-black text-gray-700 uppercase tracking-widest">Resonance_Simulation</div>
-                    <div className="flex justify-center items-center gap-12 h-28 relative z-10">
-                        <motion.div 
-                           animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5], rotate: [0, 10, -10, 0] }}
-                           transition={{ duration: 3 / (mindset.excitement / 25 || 1), repeat: Infinity }}
-                           className="w-20 h-20 rounded-full border-2 border-dashed border-[#9d4edd]/40 flex items-center justify-center"
-                        >
-                            <div className="w-10 h-10 rounded-full bg-[#22d3ee] shadow-[0_0_30px_#22d3ee]" style={{ opacity: 0.3 + (mindset.alignment / 150) }} />
-                        </motion.div>
-                        <div className="flex flex-col gap-2">
-                             <div className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Logic Variance</div>
-                             <div className="text-2xl font-black font-mono text-white tracking-tighter">{(mindset.skepticism * 0.42).toFixed(2)}σ</div>
-                        </div>
-                    </div>
-                </div>
-
                 <button onClick={handleSave} className="w-full py-6 mt-10 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black uppercase text-xs tracking-[0.5em] rounded-2xl shadow-[0_20px_50px_rgba(157,78,221,0.4)] transition-all active:scale-95">Apply Synaptic Drift</button>
             </motion.div>
         </motion.div>
@@ -136,7 +119,6 @@ const AgentControlCenter: React.FC = () => {
     const [selectedAgentId, setSelectedAgentId] = useState<string | null>(agents.activeAgents[0]?.id || null);
     const [input, setInput] = useState('');
     const [showSettings, setShowSettings] = useState(false);
-    const [isProbing, setIsProbing] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const activeAgent = agents.activeAgents.find(a => a.id === selectedAgentId);
@@ -145,22 +127,11 @@ const AgentControlCenter: React.FC = () => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }, [activeAgent?.memoryBuffer]);
 
-    useEffect(() => {
-        agents.activeAgents.forEach(async agent => {
-            if (!agent.avatarUrl) {
-                try {
-                    const url = await generateAvatar(agent.role, agent.name);
-                    updateAgent(agent.id, { avatarUrl: url });
-                } catch (e) { console.warn("Avatar init fail", e); }
-            }
-        });
-    }, []);
-
-    const handleIntentDispatch = async (forcedQuery?: string) => {
-        const query = forcedQuery || input;
-        if (!query.trim() || !activeAgent) return;
+    const handleIntentDispatch = async () => {
+        if (!input.trim() || !activeAgent) return;
         
-        if (!forcedQuery) setInput('');
+        const query = input;
+        setInput('');
         setAgentState({ isDispatching: true });
         
         updateAgent(activeAgent.id, { 
@@ -169,6 +140,7 @@ const AgentControlCenter: React.FC = () => {
         });
 
         try {
+            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setAgentState({ isDispatching: false }); return; }
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
@@ -233,26 +205,11 @@ const AgentControlCenter: React.FC = () => {
         }
     };
 
-    const handleProactiveProbe = async () => {
-        if (isProbing || !activeAgent) return;
-        setIsProbing(true);
-        addLog('SYSTEM', `PROBE: ${activeAgent.name} initiating recursive state analysis...`);
-        audio.playClick();
-        
-        try {
-            await handleIntentDispatch(`Analyze recent interactions and current system context. Proactively identify one high-value improvement or structural refinement. Formulate it as a task.`);
-            addLog('SUCCESS', `PROBE: ${activeAgent.name} synchronized a proactive task.`);
-        } finally {
-            setIsProbing(false);
-        }
-    };
-
     const toggleAgentStatus = (id: string) => {
         const agent = agents.activeAgents.find(a => a.id === id);
         if (!agent) return;
         const nextStatus = agent.status === 'SLEEPING' ? 'IDLE' : 'SLEEPING';
         updateAgent(id, { status: nextStatus });
-        addLog('SYSTEM', `AGENT_STATE: ${agent.name} is now ${nextStatus}.`);
         audio.playClick();
     };
 
@@ -281,7 +238,7 @@ const AgentControlCenter: React.FC = () => {
             </div>
 
             <div className="flex-1 flex overflow-hidden">
-                {/* Synaptic Directory */}
+                {/* Directory Sidebar */}
                 <div className="w-[420px] border-r border-[#1f1f1f] bg-[#050505] flex flex-col shrink-0">
                     <div className="p-8 border-b border-[#1f1f1f] bg-white/[0.01] flex justify-between items-center shrink-0">
                         <div className="flex items-center gap-4">
@@ -333,7 +290,7 @@ const AgentControlCenter: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Cognitive Viewport Detail */}
+                {/* Detail Viewport */}
                 <div className="flex-1 bg-black flex flex-col relative overflow-hidden">
                     <AnimatePresence mode="wait">
                         {activeAgent ? (
@@ -345,9 +302,8 @@ const AgentControlCenter: React.FC = () => {
                                 transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
                                 className="flex-1 flex flex-col overflow-hidden"
                             >
-                                {/* Agent Header Info */}
                                 <div className="p-10 border-b border-white/5 bg-[#0a0a0a]/50 backdrop-blur-xl flex justify-between items-center shrink-0 relative overflow-hidden">
-                                    <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12 group-hover:scale-110 transition-transform duration-[20s]"><Brain size={180} /></div>
+                                    <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12 transition-transform duration-[20s]"><Brain size={180} /></div>
                                     <div className="flex items-center gap-10 relative z-10">
                                         <div className="flex items-center gap-6">
                                             <div className="p-4 rounded-[2rem] bg-white/5 border border-white/10 shadow-inner group/icon-header" style={{ color: CONTEXT_CONFIG[activeAgent.context].color }}>
@@ -361,29 +317,18 @@ const AgentControlCenter: React.FC = () => {
                                                         <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">{activeAgent.status} // LATENT_BUFFER_ACK</span>
                                                     </div>
                                                     <div className="h-3 w-px bg-white/10" />
-                                                    <span className="text-[10px] font-mono text-[#9d4edd] uppercase font-black tracking-widest">Priority: HIGH</span>
+                                                    <span className="text-[10px] font-mono text-[#9d4edd] uppercase font-black tracking-widest">Focus: {CONTEXT_CONFIG[activeAgent.context].label}</span>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <div className="flex gap-4 relative z-10">
-                                        <button 
-                                           onClick={handleProactiveProbe}
-                                           disabled={isProbing || activeAgent.status === 'THINKING'}
-                                           className="p-4 bg-[#111] hover:bg-[#22d3ee]/10 border border-white/5 rounded-2xl text-gray-600 hover:text-[#22d3ee] transition-all shadow-xl active:scale-90 group/probe"
-                                           title="Proactive Probe Analysis"
-                                        >
-                                            {isProbing ? <Loader2 size={24} className="animate-spin" /> : <Microscope size={24} className="group-hover/probe:scale-110 transition-transform" />}
-                                        </button>
-                                        <button onClick={() => { setShowSettings(true); audio.playClick(); }} className="p-4 bg-[#111] hover:bg-[#9d4edd]/10 border border-white/5 rounded-2xl text-gray-600 hover:text-[#9d4edd] transition-all shadow-xl active:scale-90" title="Neural Calibration">
-                                            <Settings size={24} />
-                                        </button>
-                                    </div>
+                                    <button onClick={() => { setShowSettings(true); audio.playClick(); }} className="p-4 bg-[#111] hover:bg-[#9d4edd]/10 border border-white/5 rounded-2xl text-gray-600 hover:text-[#9d4edd] transition-all shadow-xl active:scale-90 relative z-10">
+                                        <Settings size={24} />
+                                    </button>
                                 </div>
 
-                                {/* Main Interaction Zone */}
                                 <div className="flex-1 flex overflow-hidden">
-                                    {/* Synaptic Playback (Memory Buffer) */}
+                                    {/* Memory Playback */}
                                     <div className="flex-1 overflow-y-auto custom-scrollbar p-12 space-y-12" ref={scrollRef}>
                                         <div className="max-w-4xl mx-auto space-y-12 pb-24">
                                             <AnimatePresence initial={false}>
@@ -391,8 +336,8 @@ const AgentControlCenter: React.FC = () => {
                                                     <div className="h-full flex flex-col items-center justify-center opacity-10 py-32 text-center gap-12 grayscale">
                                                         <Radio size={120} className="text-gray-500 animate-pulse" />
                                                         <div className="space-y-4">
-                                                            <p className="text-3xl font-mono uppercase tracking-[0.8em]">Memory Void</p>
-                                                            <p className="text-xs text-gray-600 uppercase tracking-widest">No recent neural transmissions logged in current buffer</p>
+                                                            <p className="text-3xl font-mono uppercase tracking-[0.8em]">Acoustic Cache Null</p>
+                                                            <p className="text-xs text-gray-600 uppercase tracking-widest">Initiate handshake to establish persistent memory trace</p>
                                                         </div>
                                                     </div>
                                                 ) : (
@@ -406,8 +351,6 @@ const AgentControlCenter: React.FC = () => {
                                                             <div className={`max-w-[85%] p-10 rounded-[3rem] border shadow-[0_40px_100px_rgba(0,0,0,0.6)] relative overflow-hidden group
                                                                 ${msg.role === 'USER' 
                                                                     ? 'bg-[#0a0a0a] border-white/5 text-gray-300 rounded-tr-none' 
-                                                                    : msg.role === 'SYSTEM'
-                                                                    ? 'bg-[#0a110a]/50 border-emerald-500/20 text-emerald-400 font-bold italic rounded-2xl text-center px-12 py-6'
                                                                     : 'bg-[#080808] border-[#9d4edd]/20 text-white rounded-tl-none border-l-[6px] border-l-[#9d4edd]'}
                                                             `}>
                                                                 <div className="absolute top-4 right-6 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -429,26 +372,24 @@ const AgentControlCenter: React.FC = () => {
                                                         <div className="absolute inset-0 blur-xl bg-[#9d4edd]/30" />
                                                     </div>
                                                     <div className="flex flex-col">
-                                                        <span className="text-[12px] font-black font-mono uppercase tracking-[0.4em]">Neural Resonance active...</span>
-                                                        <span className="text-[9px] text-gray-600 font-mono uppercase tracking-widest mt-1">Cross-vectorizing structural intent</span>
+                                                        <span className="text-[12px] font-black font-mono uppercase tracking-[0.4em]">Reasoning...</span>
+                                                        <span className="text-[9px] text-gray-600 font-mono uppercase tracking-widest mt-1">Cross-referencing global operational context</span>
                                                     </div>
                                                 </div>
                                             )}
                                         </div>
                                     </div>
 
-                                    {/* Agent Swarm Ledger (Global/Local Tasks) */}
+                                    {/* Task Ledger (Automatic Tracking) */}
                                     <div className="w-[500px] border-l border-[#1f1f1f] bg-[#050505] flex flex-col shrink-0 shadow-[inset_20px_0_40px_rgba(0,0,0,0.5)] relative">
-                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(157,78,221,0.05)_0%,transparent_70%)] pointer-events-none" />
-                                        
                                         <div className="p-10 border-b border-[#1f1f1f] flex items-center justify-between bg-white/[0.01] shrink-0">
                                             <div className="flex items-center gap-5">
                                                 <div className="p-3 bg-[#22d3ee]/10 rounded-2xl text-[#22d3ee] border border-[#22d3ee]/30 shadow-inner">
                                                     <ListChecks size={24} />
                                                 </div>
                                                 <div>
-                                                    <h2 className="text-[14px] font-black text-white uppercase tracking-[0.4em]">Global Ledger</h2>
-                                                    <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest">{activeAgent.tasks.filter(t => t.status !== 'COMPLETED').length} Vectors Queued</span>
+                                                    <h2 className="text-[14px] font-black text-white uppercase tracking-[0.4em]">Autonomous Ledger</h2>
+                                                    <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest">{activeAgent.tasks.filter(t => t.status !== 'COMPLETED').length} Vectors Active</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -478,7 +419,7 @@ const AgentControlCenter: React.FC = () => {
                                                             
                                                             <div className="grid grid-cols-2 gap-4 mb-6">
                                                                 <div className="flex flex-col gap-1">
-                                                                    <span className="text-[8px] text-gray-700 font-mono uppercase tracking-widest">Weight</span>
+                                                                    <span className="text-[8px] text-gray-700 font-mono uppercase tracking-widest">Weighting</span>
                                                                     <div className="flex gap-1">
                                                                         {Array.from({ length: 5 }).map((_, j) => (
                                                                             <div key={j} className={`w-2.5 h-1 rounded-full ${j < task.weight ? 'bg-[#9d4edd]' : 'bg-gray-900'}`} />
@@ -494,7 +435,7 @@ const AgentControlCenter: React.FC = () => {
                                                             <div className="pt-6 border-t border-white/5 flex justify-between items-center">
                                                                 <div className="flex items-center gap-3">
                                                                     <Target size={16} className="text-gray-700" />
-                                                                    <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">IMPACT_FACTOR: {Math.round(task.weight * 15.5)}%</span>
+                                                                    <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">IMPACT: {Math.round(task.weight * 15.5)}%</span>
                                                                 </div>
                                                                 {task.status !== 'COMPLETED' && (
                                                                     <button 
@@ -522,8 +463,8 @@ const AgentControlCenter: React.FC = () => {
 
                                         <div className="p-12 border-t border-[#1f1f1f] bg-black shrink-0 space-y-10">
                                             <div className="flex justify-between items-center text-[11px] font-black font-mono text-gray-600 uppercase tracking-widest px-1">
-                                                <span>Global Cognitive Context</span>
-                                                <span className="text-[#22d3ee] animate-pulse">LATTICE_SYNC_OK</span>
+                                                <span>Synaptic Feedback Matrix</span>
+                                                <span className="text-[#22d3ee] animate-pulse">LATTICE_OK</span>
                                             </div>
                                             <div className="grid grid-cols-3 gap-6">
                                                 <div className="p-6 bg-white/[0.02] border border-white/5 rounded-[1.8rem] flex flex-col gap-1 shadow-inner group/stat hover:border-[#ef4444]/40 transition-all text-center">
@@ -543,19 +484,16 @@ const AgentControlCenter: React.FC = () => {
                                     </div>
                                 </div>
 
-                                {/* Terminal Command Matrix */}
+                                {/* Terminal Command Pad */}
                                 <div className="p-12 border-t border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur-3xl shrink-0 relative">
-                                    <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
                                     <div className="max-w-4xl mx-auto relative group">
                                         <div className="absolute -top-16 left-0 right-0 flex justify-between px-10">
-                                            <div className="flex items-center gap-5">
-                                                <div className="flex items-center gap-3">
-                                                    <Activity size={16} className="text-[#9d4edd] animate-pulse" />
-                                                    <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em]">Synaptic_Feed_Active</span>
-                                                </div>
+                                            <div className="flex items-center gap-3">
+                                                <Activity size={16} className="text-[#9d4edd] animate-pulse" />
+                                                <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em]">Direct_Handshake_Live</span>
                                             </div>
                                             <div className="flex items-center gap-4">
-                                                <span className="text-[10px] font-mono text-gray-700 uppercase tracking-widest">Handshake: SECURE_V4</span>
+                                                <span className="text-[10px] font-mono text-gray-700 uppercase tracking-widest">Clearance: LVL_{activeAgent.energyLevel > 50 ? '5' : '2'}</span>
                                                 <div className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_15px_#10b981]" />
                                             </div>
                                         </div>
@@ -570,7 +508,7 @@ const AgentControlCenter: React.FC = () => {
                                                 value={input}
                                                 onChange={e => setInput(e.target.value)}
                                                 disabled={activeAgent.status === 'THINKING' || activeAgent.status === 'SLEEPING'}
-                                                placeholder={activeAgent.status === 'SLEEPING' ? "NODE_OFFLINE: Reactivate node to dispatch..." : `Dispatch operational directive to ${activeAgent.name}...`}
+                                                placeholder={activeAgent.status === 'SLEEPING' ? "NODE_OFFLINE: Reactivate to establish uplink..." : `Input operational directive for ${activeAgent.name}...`}
                                                 className="flex-1 bg-transparent border-none outline-none text-lg font-mono text-white placeholder:text-gray-800 uppercase tracking-widest"
                                             />
                                             <button 
@@ -586,34 +524,10 @@ const AgentControlCenter: React.FC = () => {
                         ) : (
                             <div className="flex-1 flex flex-col items-center justify-center opacity-10 gap-16 py-32 grayscale">
                                 <Bot size={220} className="animate-pulse" />
-                                <p className="text-4xl font-mono uppercase tracking-[2em] text-center pl-8">Lattice Standby</p>
-                                <div className="flex gap-12">
-                                    <div className="flex items-center gap-3"><Terminal size={14} /><span className="text-[10px] font-mono uppercase tracking-widest">Protocol: READY</span></div>
-                                    <div className="flex items-center gap-3"><Radio size={14} /><span className="text-[10px] font-mono uppercase tracking-widest">Signal: STABLE</span></div>
-                                </div>
+                                <p className="text-4xl font-mono uppercase tracking-[2em] text-center pl-8">Swarm Standby</p>
                             </div>
                         )}
                     </AnimatePresence>
-                </div>
-            </div>
-
-            {/* Tactical Hud Footer */}
-            <div className="h-14 bg-[#0a0a0a] border-t border-[#1f1f1f] px-12 flex items-center justify-between text-[11px] font-mono text-gray-600 shrink-0 relative z-[60]">
-                <div className="flex gap-20 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
-                    <div className="flex items-center gap-5 text-emerald-500 font-bold uppercase tracking-[0.3em]">
-                        <ShieldCheck size={20} className="shadow-[0_0_15px_#10b981]" /> Swarm_Integrity_Locked
-                    </div>
-                    <div className="flex items-center gap-5 uppercase tracking-[0.5em]">
-                        <Binary size={20} className="text-[#9d4edd]" /> logic_bus_throughput: 12.4 ghz
-                    </div>
-                    <div className="flex items-center gap-5 uppercase tracking-[0.5em]">
-                        <Globe size={20} className="text-[#22d3ee]" /> Node_Origin: Distributed_Lattice
-                    </div>
-                </div>
-                <div className="flex items-center gap-14 shrink-0">
-                    <span className="uppercase tracking-[0.8em] opacity-40 leading-none hidden xl:block text-[10px]">Sovereign Swarm Architecture v9.4 // Multi-Agent Orchestration Hub</span>
-                    <div className="h-8 w-px bg-white/10 hidden xl:block" />
-                    <span className="font-black text-gray-400 uppercase tracking-[0.4em] leading-none text-[11px]">KERNEL_AGENTS_CORE</span>
                 </div>
             </div>
 
