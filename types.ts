@@ -344,6 +344,8 @@ export interface AutonomousAgent {
     capabilities: string[];
     lastInstruction?: string;
     energyLevel: number; // 0-100
+    currentMindset: MentalState;
+    tasks: AtomicTask[];
 }
 
 export enum TemporalEra {

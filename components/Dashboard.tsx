@@ -21,7 +21,7 @@ import {
     Compass, GitBranch, LayoutGrid, Monitor, ShieldAlert, Cpu as CpuIcon,
     Box, Diamond, Hexagon, Component, Share2, Binary, Fingerprint, Lock,
     ChevronUp, Volume2, Timer, History, Languages, Hash, Activity as PulseIcon,
-    TrendingUp, TrendingDown, DollarSign
+    TrendingUp, TrendingDown, DollarSign, BrainCircuit, Headphones
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, ScatterChart, Scatter, ZAxis, Cell } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -308,7 +308,7 @@ const Dashboard: React.FC = () => {
                   </div>
               </div>
 
-              {/* Middle Column: Hub Visualizer */}
+              {/* Middle Column: Hub Visualizer & Full Voice Mode */}
               <div className="col-span-6 flex flex-col gap-6 h-[900px]">
                   <div className="flex-1 bg-[#020202] border border-white/5 rounded-3xl relative overflow-hidden group shadow-2xl flex flex-col transition-all">
                       <div className="flex-1 flex items-center justify-center p-8 relative overflow-hidden group/viewport">
@@ -359,23 +359,63 @@ const Dashboard: React.FC = () => {
                       </div>
                   </div>
 
-                  <div className="h-44 bg-[#050505] border border-white/5 rounded-3xl p-5 flex flex-col gap-4 shadow-xl relative overflow-hidden group/log">
-                      <div className="flex items-center justify-between px-1 border-b border-white/5 pb-3 shrink-0">
-                          <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.3em]">Handover Ledger</span>
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981] animate-pulse" />
-                      </div>
-                      <div className="flex-1 overflow-y-auto custom-scrollbar space-y-2 font-mono text-[9px] pr-3">
-                          {system.logs.slice(-15).reverse().map((log: any, i: number) => (
-                              <div key={i} className="flex gap-3 items-start border-l border-white/5 pl-3 py-1">
-                                  <span className="text-[#9d4edd]/50 font-black shrink-0">>></span>
-                                  <span className={cn(
-                                      "flex-1 break-all tracking-tight",
-                                      log.level === 'ERROR' ? 'text-red-900' : 'text-gray-500 hover:text-gray-300 transition-colors'
-                                  )}>
-                                      {(log.message || "").toString()}
-                                  </span>
+                  {/* Restored Full Voice Mode (Neural Uplink) Section */}
+                  <div className="h-56 bg-[#0a0a0a] border border-[#9d4edd]/20 rounded-3xl p-6 flex flex-col gap-4 shadow-xl relative overflow-hidden group/voice-hub transition-all hover:border-[#9d4edd]/40">
+                      <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover/voice-hub:opacity-[0.06] transition-opacity rotate-12"><Headphones size={120} /></div>
+                      
+                      <div className="flex items-center justify-between relative z-10">
+                          <div className="flex items-center gap-4">
+                              <div className="p-2.5 bg-[#9d4edd]/10 rounded-2xl border border-[#9d4edd]/30 text-[#9d4edd] shadow-inner">
+                                  <Radio size={20} className={voice.isActive ? 'animate-pulse' : ''} />
                               </div>
-                          ))}
+                              <div className="flex flex-col">
+                                  <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Neural Uplink</span>
+                                  <div className="flex items-center gap-2 mt-1">
+                                      <div className={`w-1.5 h-1.5 rounded-full ${voice.isActive ? 'bg-[#10b981] animate-pulse' : 'bg-gray-800'}`} />
+                                      <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Voice Engine: Zephyr-v8.1</span>
+                                  </div>
+                              </div>
+                          </div>
+                          <button 
+                            onClick={() => { setMode(AppMode.VOICE_MODE); audio.playTransition(); }}
+                            className="p-2 bg-white/5 border border-white/10 rounded-xl text-gray-500 hover:text-[#9d4edd] hover:border-[#9d4edd]/30 transition-all"
+                            title="Expand Immersive View"
+                          >
+                            <Maximize2 size={16} />
+                          </button>
+                      </div>
+
+                      <div className="flex-1 flex gap-6 items-center px-2 relative z-10">
+                          <div className="flex-1 space-y-4">
+                              <div className="flex justify-between items-end text-[9px] font-mono text-gray-500 uppercase tracking-widest">
+                                  <span>Cognitive Load</span>
+                                  <span className="text-white">Low_Latency</span>
+                              </div>
+                              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                                  <motion.div 
+                                    animate={{ width: voice.isActive ? '64%' : '0%' }}
+                                    className="h-full bg-gradient-to-r from-[#9d4edd] to-[#22d3ee] shadow-[0_0_10px_#9d4edd]"
+                                  />
+                              </div>
+                              <p className="text-[10px] text-gray-500 font-mono italic leading-relaxed line-clamp-1">
+                                {voice.isActive ? "Uplink stable. Direct the architect verbally for topological synthesis." : "Standby. Engage neural link to initialize acoustic context protocols."}
+                              </p>
+                          </div>
+                          
+                          <button 
+                            onClick={() => { setVoiceState({ isActive: !voice.isActive }); audio.playClick(); }}
+                            className={`w-24 h-24 rounded-full flex flex-col items-center justify-center gap-2 transition-all duration-700 active:scale-95 shadow-2xl relative overflow-hidden
+                                ${voice.isActive 
+                                    ? 'bg-red-500 shadow-red-500/20 text-white' 
+                                    : 'bg-[#9d4edd] shadow-[#9d4edd]/20 text-black hover:bg-[#b06bf7]'}
+                            `}
+                          >
+                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_0%,transparent_70%)] pointer-events-none" />
+                              <Mic size={28} className={voice.isActive ? 'animate-pulse' : ''} />
+                              <span className="text-[8px] font-black font-mono uppercase tracking-widest">
+                                {voice.isActive ? 'Sever' : 'Engage'}
+                              </span>
+                          </button>
                       </div>
                   </div>
               </div>

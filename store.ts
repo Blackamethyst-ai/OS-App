@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { 
     AppMode, AppTheme, UserProfile, FileData, Task, 
@@ -5,7 +6,7 @@ import {
     SwarmResult, SwarmStatus, SearchResultItem, Message, 
     PeerPresence, SwarmEvent, TaskPriority, TaskStatus, 
     AspectRatio, ImageSize, StoredArtifact, MetaventionsState,
-    OperationalContext
+    OperationalContext, AutonomousAgent
 } from './types';
 
 interface AppState {
@@ -167,7 +168,7 @@ interface AppState {
         error: string | null;
     };
     agents: {
-        activeAgents: any[];
+        activeAgents: AutonomousAgent[];
         isDispatching: boolean;
     };
     collaboration: {
@@ -299,7 +300,6 @@ export const useAppStore = create<AppState>((set) => ({
         isAnalyzing: false
     },
     dashboard: {
-        // Fix: Removed 'boolean =' as it is a type usage in a value position
         isGenerating: false,
         identityUrl: null,
         referenceImage: null,
@@ -416,10 +416,10 @@ export const useAppStore = create<AppState>((set) => ({
     },
     agents: {
         activeAgents: [
-            { id: 'agent-1', name: 'Charon', role: 'Logical Auditor', context: OperationalContext.SYSTEM_MONITORING, status: 'IDLE', memoryBuffer: [], capabilities: ['Scanning', 'Diagnostics'], energyLevel: 94 },
-            { id: 'agent-2', name: 'Puck', role: 'Generative Architect', context: OperationalContext.STRATEGY_SYNTHESIS, status: 'IDLE', memoryBuffer: [], capabilities: ['Synthesis', 'Modeling'], energyLevel: 88 },
-            { id: 'agent-3', name: 'Fenrir', role: 'Execution Controller', context: OperationalContext.CODE_GENERATION, status: 'IDLE', memoryBuffer: [], capabilities: ['Coding', 'Optimization'], energyLevel: 72 },
-            { id: 'agent-4', name: 'Aris', role: 'Data Sentinel', context: OperationalContext.DATA_ANALYSIS, status: 'IDLE', memoryBuffer: [], capabilities: ['Indexing', 'Search'], energyLevel: 91 }
+            { id: 'agent-1', name: 'Charon', role: 'Logical Auditor', context: OperationalContext.SYSTEM_MONITORING, status: 'IDLE', memoryBuffer: [], capabilities: ['Scanning', 'Diagnostics', 'Error Filtering'], energyLevel: 94, currentMindset: { skepticism: 90, excitement: 20, alignment: 80 }, tasks: [] },
+            { id: 'agent-2', name: 'Puck', role: 'Generative Architect', context: OperationalContext.STRATEGY_SYNTHESIS, status: 'IDLE', memoryBuffer: [], capabilities: ['Synthesis', 'Modeling', 'Visionary Leap'], energyLevel: 88, currentMindset: { skepticism: 10, excitement: 95, alignment: 60 }, tasks: [] },
+            { id: 'agent-3', name: 'Fenrir', role: 'Execution Controller', context: OperationalContext.CODE_GENERATION, status: 'IDLE', memoryBuffer: [], capabilities: ['Coding', 'Optimization', 'Security Patching'], energyLevel: 72, currentMindset: { skepticism: 40, excitement: 50, alignment: 90 }, tasks: [] },
+            { id: 'agent-4', name: 'Aris', role: 'Data Sentinel', context: OperationalContext.DATA_ANALYSIS, status: 'IDLE', memoryBuffer: [], capabilities: ['Indexing', 'Search', 'Pattern Matching'], energyLevel: 91, currentMindset: { skepticism: 30, excitement: 60, alignment: 85 }, tasks: [] }
         ],
         isDispatching: false
     },
