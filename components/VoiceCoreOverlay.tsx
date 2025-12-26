@@ -48,7 +48,7 @@ const VoiceCoreOverlay = () => {
 
   return (
     <motion.div
-      drag
+      drag={true}
       dragMomentum={false}
       initial={{ opacity: 0, x: -100 }}
       animate={{ opacity: 1, x: 0 }}
