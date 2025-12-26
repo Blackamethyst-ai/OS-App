@@ -14,7 +14,7 @@ import {
     Radio, Binary, Server, Network, Fan, Settings, Terminal,
     PackageCheck, Lightbulb, Workflow, Target, MoveUpRight,
     Wrench, FastForward, Power, BarChart, FlaskConical, ShieldCheck, Box, Package,
-    Clock, DollarSign, TrendingUp, BarChart3
+    Clock, DollarSign, TrendingUp, BarChart3, Move
 } from 'lucide-react';
 import { TemporalEra, FileData, AppMode, ImageSize, AspectRatio } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -22,6 +22,70 @@ import { useVoiceExpose } from '../hooks/useVoiceExpose';
 import { audio } from '../services/audioService';
 
 // --- TACTICAL HUD SUB-COMPONENTS ---
+
+const ComputeFluxOverlay = ({ active, speed }: { active: boolean, speed: number }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas || !active) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let frame = 0;
+        const particles: any[] = [];
+        
+        const render = () => {
+            frame++;
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Spawn particles along random logic paths
+            if (frame % Math.max(1, Math.floor(10 / speed)) === 0) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * speed * 2,
+                    vy: (Math.random() - 0.5) * speed * 2,
+                    life: 1.0,
+                    color: Math.random() > 0.5 ? '#22d3ee' : '#f59e0b'
+                });
+            }
+
+            particles.forEach((p, i) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.01;
+
+                if (p.life <= 0) {
+                    particles.splice(i, 1);
+                    return;
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(p.x, p.y);
+                ctx.lineTo(p.x - p.vx * 5, p.y - p.vy * 5);
+                ctx.strokeStyle = p.color;
+                ctx.globalAlpha = p.life * 0.4;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 1, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.life;
+                ctx.fill();
+            });
+
+            requestAnimationFrame(render);
+        };
+        const handle = requestAnimationFrame(render);
+        return () => cancelAnimationFrame(handle);
+    }, [active, speed]);
+
+    return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-30" />;
+};
 
 const NeuralThermalGrid: React.FC<{ stressLevel: number }> = ({ stressLevel }) => {
     const [points, setPoints] = useState(() => Array.from({ length: 100 }, (_, i) => ({
@@ -143,6 +207,7 @@ const HardwareEngine: React.FC = () => {
     const [fanSpeed, setFanSpeed] = useState(2200);
     const [timing, setTiming] = useState(14); // CL Timing
     const [viewMode, setViewMode] = useState<'2D' | '3D' | 'SCHEMATIC' | 'XRAY'>('2D');
+    const [showComputeFlux, setShowComputeFlux] = useState(true);
     
     const [isForgingManifest, setIsForgingManifest] = useState(false);
     const [isometricImage, setIsometricImage] = useState<string | null>(null);
@@ -321,6 +386,13 @@ const HardwareEngine: React.FC = () => {
 
                 <div className="flex items-center gap-10">
                     <button 
+                        onClick={() => setShowComputeFlux(!showComputeFlux)}
+                        className={`p-2.5 rounded-xl transition-all border ${showComputeFlux ? 'bg-[#22d3ee]/20 border-[#22d3ee]/50 text-[#22d3ee]' : 'bg-white/5 border-white/10 text-gray-500'}`}
+                        title="Toggle Compute Flux Overlay"
+                    >
+                        <Zap size={18} className={showComputeFlux ? 'animate-pulse' : ''} />
+                    </button>
+                    <button 
                         onClick={handleForgeManifest} 
                         disabled={isForgingManifest || !schematicImage}
                         className="px-6 py-2.5 bg-[#10b981] hover:bg-[#34d399] text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-[0_15px_30px_rgba(16,185,129,0.2)] active:scale-95 disabled:opacity-20"
@@ -394,7 +466,7 @@ const HardwareEngine: React.FC = () => {
                                 </div>
                             ) : (
                                 <div className="flex-1 flex flex-col gap-6">
-                                    <div className="flex justify-between items-center z-20">
+                                    <div className="flex justify-between items-center z-40">
                                         <div className="flex bg-[#0a0a0a] p-1.5 rounded-2xl border border-white/10 shadow-2xl">
                                             {[
                                                 { id: '2D', icon: Layers, label: 'Lattice Map' },
@@ -420,9 +492,11 @@ const HardwareEngine: React.FC = () => {
                                     <div className="flex-1 relative rounded-[3rem] border border-white/5 bg-[#050505] overflow-hidden shadow-2xl flex items-center justify-center group/viewport">
                                         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
                                         
+                                        <ComputeFluxOverlay active={showComputeFlux} speed={clockSpeed / 2} />
+
                                         <AnimatePresence mode="wait">
                                             {viewMode === '2D' && (
-                                                <motion.div key="2d" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full p-20 flex items-center justify-center">
+                                                <motion.div key="2d" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full p-20 flex items-center justify-center relative">
                                                     <img src={`data:${schematicImage.inlineData.mimeType};base64,${schematicImage.inlineData.data}`} className="max-w-full max-h-full object-contain rounded-xl shadow-[0_40px_100px_rgba(0,0,0,1)] border border-white/5 opacity-80 group-hover/viewport:opacity-100 transition-opacity duration-700" alt="2D Schematic" />
                                                     <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 1000 1000">
                                                         {analysis?.components?.map((c: any, i: number) => {
@@ -486,7 +560,6 @@ const HardwareEngine: React.FC = () => {
                                                                 </div>
                                                                 <div className="bg-[#10b981]/5 border border-[#10b981]/20 p-6 rounded-2xl space-y-3">
                                                                     <div className="flex items-center gap-3 text-[#10b981]">
-                                                                        {/* Fix: Cannot find name 'CheckCircle'. Did you mean 'CheckCircle2'? */}
                                                                         <CheckCircle2 size={14} />
                                                                         <span className="text-[10px] font-black uppercase tracking-widest">Routing Verified</span>
                                                                     </div>
@@ -508,9 +581,12 @@ const HardwareEngine: React.FC = () => {
                 {/* Right Tactical Sidebar */}
                 <div className="w-[420px] border-l border-[#1f1f1f] bg-[#050505] flex flex-col shrink-0 z-30 shadow-2xl relative">
                     <div className="p-8 border-b border-white/5 bg-white/[0.01]">
-                        <div className="flex items-center gap-4 mb-8">
-                            <SlidersHorizontal size={18} className="text-[#22d3ee]" />
-                            <h2 className="text-xs font-black text-white uppercase tracking-[0.3em]">Performance Overdrive</h2>
+                        <div className="flex justify-between items-center mb-8">
+                            <div className="flex items-center gap-4">
+                                <SlidersHorizontal size={18} className="text-[#22d3ee]" />
+                                <h2 className="text-xs font-black text-white uppercase tracking-[0.3em]">Performance Overdrive</h2>
+                            </div>
+                            <span className="text-[8px] font-mono text-gray-600">v9.2_SYNC</span>
                         </div>
                         
                         <div className="space-y-4">
@@ -567,10 +643,6 @@ const HardwareEngine: React.FC = () => {
                                         className="h-full bg-[#10b981] shadow-[0_0_10px_#10b981]" 
                                     />
                                 </div>
-                                <div className="flex items-center gap-3 text-[9px] font-mono text-gray-500 uppercase relative z-10 group/tip">
-                                    <TrendingUp size={12} className="text-[#22d3ee]" />
-                                    <span>High ROI strategy detected for {currentEra} nodes.</span>
-                                </div>
                             </div>
                         </div>
 
@@ -620,12 +692,6 @@ const HardwareEngine: React.FC = () => {
                                                 <button onClick={() => fetchSupplyChain(item.name)} className="p-1.5 hover:bg-[#22d3ee]/20 text-gray-600 hover:text-[#22d3ee] rounded-lg transition-all"><Globe size={14}/></button>
                                             </div>
                                         ))}
-                                        {bom.length === 0 && (
-                                            <div className="py-10 text-center opacity-10 flex flex-col items-center gap-3 grayscale">
-                                                <Scan size={32} />
-                                                <span className="text-[10px] font-mono uppercase">Lattice Void</span>
-                                            </div>
-                                        )}
                                     </div>
                                 )}
                             </AnimatePresence>
@@ -633,7 +699,7 @@ const HardwareEngine: React.FC = () => {
                     </div>
 
                     <div className="p-10 border-t border-white/5 bg-black shrink-0 space-y-6">
-                        <div className="flex justify-between items-center text-[11px] font-black font-mono text-gray-600 uppercase tracking-widest">
+                        <div className="flex justify-between items-center text-[11px] font-black font-mono text-gray-600 mb-4 uppercase tracking-[0.2em]">
                             <span>Sovereign Power Draw</span>
                             <span className="text-[#22d3ee] animate-pulse">Sync_OK</span>
                         </div>

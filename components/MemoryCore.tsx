@@ -7,11 +7,12 @@ import { useAppStore } from '../store';
 import { 
     File as FileIcon, Loader2, Search, 
     Database, X, Upload, Activity, FileText, BrainCircuit,
-    LayoutGrid, Boxes, Info, Trash2
+    LayoutGrid, Boxes, Info, Trash2, Radar, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoredArtifact } from '../types';
 import KnowledgeGraph from './KnowledgeGraph';
+import PowerXRay from './PowerXRay';
 import { audio } from '../services/audioService';
 
 const MemoryCore: React.FC = () => {
@@ -21,7 +22,7 @@ const MemoryCore: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH'>('GRID');
+    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'XRAY'>('GRID');
     
     const [semanticResults, setSemanticResults] = useState<{id: string, score: number}[] | null>(null);
     const [selectedArtifact, setSelectedArtifact] = useState<StoredArtifact | null>(null);
@@ -121,6 +122,7 @@ const MemoryCore: React.FC = () => {
 
     return (
         <div className="flex h-full w-full font-sans bg-[#030303] border border-[#1f1f1f] rounded-[2rem] overflow-hidden relative">
+            {/* Sidebar: Vault Index */}
             <div className="w-80 border-r border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur flex flex-col shrink-0">
                 <div className="p-6 border-b border-[#1f1f1f] flex items-center justify-between bg-white/[0.01]">
                     <div className="flex items-center gap-3">
@@ -160,15 +162,23 @@ const MemoryCore: React.FC = () => {
                             </div>
                         </button>
                     ))}
+                    {filteredArtifacts.length === 0 && !isLoading && (
+                        <div className="py-20 text-center opacity-20 flex flex-col items-center gap-4">
+                            <Search size={32} />
+                            <span className="text-[10px] font-mono uppercase">No semantic matches</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
+            {/* Stage */}
             <div className="flex-1 flex flex-col relative bg-black/40">
                 <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/80 backdrop-blur flex items-center justify-between px-8 shrink-0 z-20">
                     <div className="flex bg-[#111] p-1.5 rounded-xl border border-[#333] shadow-inner">
                         {[
                             { id: 'GRID', icon: LayoutGrid, label: 'Matrix' },
-                            { id: 'GRAPH', icon: BrainCircuit, label: 'Lattice' }
+                            { id: 'GRAPH', icon: BrainCircuit, label: 'Lattice' },
+                            { id: 'XRAY', icon: Radar, label: 'Power X-Ray' }
                         ].map(btn => (
                             <button 
                                 key={btn.id} 
@@ -180,6 +190,9 @@ const MemoryCore: React.FC = () => {
                         ))}
                     </div>
                     <div className="flex items-center gap-6">
+                        <div className="flex items-center gap-3 text-gray-500 text-[10px] font-mono uppercase">
+                            <Database size={14} /> Artifacts: {artifacts.length}
+                        </div>
                         <label className="flex items-center gap-3 px-6 py-2.5 bg-[#9d4edd] text-black border border-transparent rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer shadow-[0_10px_40px_rgba(157,78,221,0.3)] hover:scale-105 active:scale-95 transition-all">
                             <Upload size={16} /> Secure Ingest
                             <input type="file" multiple className="hidden" onChange={handleFileUpload} />
@@ -193,6 +206,10 @@ const MemoryCore: React.FC = () => {
                             <motion.div key="graph" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
                                 <KnowledgeGraph nodes={graphNodes} onNodeClick={(n) => setSelectedArtifact(artifacts.find(a => a.id === n.id) || null)} />
                             </motion.div>
+                        ) : viewMode === 'XRAY' ? (
+                            <motion.div key="xray" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+                                <PowerXRay availableSources={artifacts} />
+                            </motion.div>
                         ) : (
                             <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 overflow-y-auto h-full custom-scrollbar">
                                 {filteredArtifacts.map(art => (
@@ -204,10 +221,13 @@ const MemoryCore: React.FC = () => {
                                     >
                                         <div className="aspect-square bg-black rounded-3xl flex items-center justify-center text-gray-700 group-hover:text-[#9d4edd] transition-all mb-6 shadow-inner border border-white/5 relative overflow-hidden">
                                             <FileIcon size={48} className="group-hover:scale-110 transition-transform duration-700" />
+                                            {art.type.includes('image') && (
+                                                <div className="absolute inset-0 bg-gradient-to-tr from-[#d946ef]/10 to-transparent opacity-20" />
+                                            )}
                                         </div>
                                         <div className="text-xs font-black text-white uppercase truncate font-mono mb-2 tracking-tight">{art.name}</div>
                                         <div className="flex justify-between items-center">
-                                            <span className="text-[8px] text-gray-600 font-mono uppercase tracking-widest">{art.analysis?.classification || 'UNCLASSIFIED'}</span>
+                                            <span className="text-[8px] text-gray-600 font-mono uppercase tracking-widest">{(art.analysis?.classification || 'UNCLASSIFIED').substring(0, 12)}</span>
                                             <span className="text-[8px] text-gray-800 font-mono">ID_{art.id.substring(0,6)}</span>
                                         </div>
                                     </motion.div>
@@ -224,8 +244,9 @@ const MemoryCore: React.FC = () => {
                 </div>
             </div>
 
+            {/* Inspector Sidepanel */}
             <AnimatePresence>
-                {selectedArtifact && (
+                {selectedArtifact && viewMode !== 'XRAY' && (
                     <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} className="fixed top-0 right-0 bottom-0 w-[480px] bg-[#0a0a0a]/98 backdrop-blur-3xl border-l border-white/10 z-[300] shadow-[0_0_100px_rgba(0,0,0,1)] flex flex-col p-10 gap-10">
                         <div className="flex justify-between items-start shrink-0">
                             <div className="space-y-1">
@@ -246,7 +267,23 @@ const MemoryCore: React.FC = () => {
                                     <Info size={14} className="text-[#9d4edd]" /> Intelligence Synthesis
                                 </div>
                                 <div className="p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] text-[13px] font-mono text-gray-300 leading-relaxed italic border-l-4 border-l-[#9d4edd] shadow-2xl">
-                                    "{selectedArtifact.analysis?.summary || 'Structural integrity scan pending.'}"
+                                    "{selectedArtifact.analysis?.summary || 'Structural integrity scan pending. No latent intelligence mapped in current buffer.'}"
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3 text-[10px] font-black text-gray-400 uppercase tracking-widest px-2">
+                                    <Activity size={14} className="text-[#22d3ee]" /> Technical Metadata
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="p-5 bg-black rounded-2xl border border-white/5">
+                                        <div className="text-[8px] text-gray-600 uppercase mb-2">Classification</div>
+                                        <div className="text-[11px] font-bold text-white uppercase">{selectedArtifact.analysis?.classification || 'RAW_BUFFER'}</div>
+                                    </div>
+                                    <div className="p-5 bg-black rounded-2xl border border-white/5">
+                                        <div className="text-[8px] text-gray-600 uppercase mb-2">Entropy Score</div>
+                                        <div className="text-[11px] font-bold text-white uppercase">{selectedArtifact.analysis?.ambiguityScore || 0}%</div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -259,7 +296,7 @@ const MemoryCore: React.FC = () => {
                                 <BrainCircuit size={18} /> Materialize Projection
                             </button>
                             <button 
-                                onClick={async () => { if (confirm('Initiate sector purge?')) { await neuralVault.deleteArtifact(selectedArtifact.id); setSelectedArtifact(null); loadArtifacts(); audio.playError(); } }} 
+                                onClick={async () => { if (confirm('Initiate sector purge for this artifact?')) { await neuralVault.deleteArtifact(selectedArtifact.id); setSelectedArtifact(null); loadArtifacts(); audio.playError(); } }} 
                                 className="w-full py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-600 hover:text-red-500 hover:border-red-500/30 transition-all flex items-center justify-center gap-2"
                             >
                                 <Trash2 size={16} /> Execute Purge
