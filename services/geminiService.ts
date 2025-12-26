@@ -72,6 +72,23 @@ export const AGENT_DNA_BUILDER = [
 
 // --- CORE OS FUNCTIONS ---
 
+/**
+ * generateEmbedding for vector search using text-embedding-004.
+ */
+export async function generateEmbedding(text: string): Promise<number[]> {
+    try {
+        const ai = getAI();
+        const result = await ai.models.embedContent({
+            model: 'text-embedding-004',
+            contents: [{ parts: [{ text }] }]
+        });
+        return (result as any).embeddings[0].values;
+    } catch (e) {
+        console.error("Embedding failed", e);
+        return [];
+    }
+}
+
 export async function interpretIntent(input: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -327,23 +344,6 @@ export async function generateHypotheses(facts: string[]): Promise<ScienceHypoth
         config: { responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
-}
-
-/**
- * generateEmbedding for vector search.
- */
-export async function generateEmbedding(text: string): Promise<number[]> {
-    try {
-        const ai = getAI();
-        const result = await ai.models.embedContent({
-            model: 'text-embedding-004',
-            contents: [{ parts: [{ text }] }]
-        });
-        return (result as any).embeddings[0].values;
-    } catch (e) {
-        console.error("Embedding failed", e);
-        return [];
-    }
 }
 
 export async function compressKnowledge(nodes: KnowledgeNode[]) {

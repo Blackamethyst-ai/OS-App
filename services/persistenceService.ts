@@ -5,14 +5,13 @@ import { cosineSimilarity } from '../utils/vector';
 // --- SCHEMA DEFINITION ---
 
 interface NeuralVaultSchema extends DBSchema {
-  // 1. Artifacts: Raw files and their AI analysis
   artifacts: {
-    key: string; // uuid
+    key: string; 
     value: {
       id: string;
       name: string;
       type: string;
-      data: Blob; // The raw file data
+      data: Blob;
       analysis: ArtifactAnalysis | null;
       timestamp: number;
       tags: string[];
@@ -20,21 +19,19 @@ interface NeuralVaultSchema extends DBSchema {
     indexes: { 'by-date': number };
   };
 
-  // 2. Snapshots: Complete state dumps for Time Travel
   snapshots: {
-    key: number; // timestamp
+    key: number; 
     value: {
       timestamp: number;
       mode: AppMode;
-      state: any; // e.g., ProcessState, HardwareState
-      label: string; // "Auto-Save" or "Manual Checkpoint"
+      state: any;
+      label: string;
     };
     indexes: { 'by-mode': string };
   };
 
-  // 3. Echoes: Chat histories
   echoes: {
-    key: string; // threadId
+    key: string; 
     value: {
       id: string;
       mode: AppMode;
@@ -45,9 +42,8 @@ interface NeuralVaultSchema extends DBSchema {
     indexes: { 'by-mode': string };
   };
 
-  // 4. VectorIndex: High-dimensional embeddings for semantic search
   vectors: {
-    key: string; // chunkId or artifactId
+    key: string; 
     value: {
       id: string;
       embedding: number[];
@@ -55,20 +51,16 @@ interface NeuralVaultSchema extends DBSchema {
     };
   };
 
-  // 5. User Profile: Stores identity settings
   profile: {
-      key: string; // "current_user"
+      key: string; 
       value: UserProfile;
   };
 
-  // 6. Knowledge Layers: Dynamic contextual protocols
   knowledge_layers: {
-      key: string; // layerId
+      key: string; 
       value: KnowledgeLayer;
   };
 }
-
-// --- SERVICE IMPLEMENTATION ---
 
 class NeuralVaultService {
   private dbName = 'structura_neural_vault_v1';
@@ -82,35 +74,24 @@ class NeuralVaultService {
   private async initDB() {
     return openDB<NeuralVaultSchema>(this.dbName, 3, {
       upgrade(db, oldVersion, newVersion, transaction) {
-        // Artifacts Store
         if (!db.objectStoreNames.contains('artifacts')) {
           const store = db.createObjectStore('artifacts', { keyPath: 'id' });
           store.createIndex('by-date', 'timestamp');
         }
-
-        // Snapshots Store
         if (!db.objectStoreNames.contains('snapshots')) {
           const store = db.createObjectStore('snapshots', { keyPath: 'timestamp' });
           store.createIndex('by-mode', 'mode');
         }
-
-        // Echoes Store
         if (!db.objectStoreNames.contains('echoes')) {
           const store = db.createObjectStore('echoes', { keyPath: 'id' });
           store.createIndex('by-mode', 'mode');
         }
-        
-        // Vector Store
         if (!db.objectStoreNames.contains('vectors')) {
             db.createObjectStore('vectors', { keyPath: 'id' });
         }
-
-        // Profile Store
         if (!db.objectStoreNames.contains('profile')) {
             db.createObjectStore('profile');
         }
-
-        // Knowledge Layers Store (New in V3)
         if (!db.objectStoreNames.contains('knowledge_layers')) {
             db.createObjectStore('knowledge_layers', { keyPath: 'id' });
         }
@@ -118,12 +99,9 @@ class NeuralVaultService {
     });
   }
 
-  // --- VECTOR METHODS ---
-
   async saveVector(id: string, embedding: number[], metadata?: any) {
       const db = await this.db;
       await db.put('vectors', { id, embedding, metadata });
-      console.log(`[NeuralVault] Vector Indexed: ${id.substring(0,8)}`);
   }
 
   async searchVectors(queryEmbedding: number[], limit: number = 5): Promise<{id: string, score: number}[]> {
@@ -135,19 +113,14 @@ class NeuralVaultService {
           score: cosineSimilarity(queryEmbedding, v.embedding)
       }));
 
-      // Sort by descending similarity score
       return scoredResults
           .sort((a, b) => b.score - a.score)
           .slice(0, limit);
   }
 
-  // --- ARTIFACT METHODS ---
-
   async saveArtifact(file: File, analysis: ArtifactAnalysis | null): Promise<string> {
     const id = crypto.randomUUID();
     const db = await this.db;
-    
-    // Convert File to Blob for storage
     const blob = new Blob([file], { type: file.type });
 
     await db.put('artifacts', {
@@ -159,8 +132,6 @@ class NeuralVaultService {
       timestamp: Date.now(),
       tags: analysis?.classification ? [analysis.classification] : []
     });
-
-    console.log(`[NeuralVault] Artifact Secured: ${file.name}`);
     return id;
   }
 
@@ -169,51 +140,17 @@ class NeuralVaultService {
     return db.getAllFromIndex('artifacts', 'by-date');
   }
 
-  async getArtifactById(id: string) {
-    const db = await this.db;
-    return db.get('artifacts', id);
-  }
-
-  async updateArtifactTags(id: string, tags: string[]) {
-      const db = await this.db;
-      const artifact = await db.get('artifacts', id);
-      if (artifact) {
-          artifact.tags = [...new Set([...artifact.tags, ...tags])];
-          await db.put('artifacts', artifact);
-      }
-  }
-
-  async renameArtifact(id: string, newName: string) {
-      const db = await this.db;
-      const artifact = await db.get('artifacts', id);
-      if (artifact) {
-          artifact.name = newName;
-          await db.put('artifacts', artifact);
-      }
-  }
-
   async deleteArtifact(id: string) {
       const db = await this.db;
       await db.delete('artifacts', id);
-      await db.delete('vectors', id); // Clean up vector as well
+      await db.delete('vectors', id);
   }
-
-  // --- SNAPSHOT METHODS (Time Travel) ---
 
   async createCheckpoint(mode: AppMode, state: any, label: string = "Manual Save") {
     const db = await this.db;
     const timestamp = Date.now();
-    
     const cleanState = JSON.parse(JSON.stringify(state)); 
-
-    await db.put('snapshots', {
-      timestamp,
-      mode,
-      state: cleanState,
-      label
-    });
-    
-    console.log(`[NeuralVault] Snapshot Created: [${mode}] ${label}`);
+    await db.put('snapshots', { timestamp, mode, state: cleanState, label });
   }
 
   async getHistory(mode: AppMode) {
@@ -221,37 +158,9 @@ class NeuralVaultService {
     return db.getAllFromIndex('snapshots', 'by-mode', mode);
   }
 
-  async restoreSnapshot(timestamp: number) {
-      const db = await this.db;
-      return db.get('snapshots', timestamp);
-  }
-
-  // --- ECHO METHODS (Chat Persistence) ---
-
-  async saveThread(id: string, mode: AppMode, messages: Message[], title?: string) {
-      const db = await this.db;
-      const existing = await db.get('echoes', id);
-      
-      await db.put('echoes', {
-          id,
-          mode,
-          title: title || existing?.title || `Session ${new Date().toLocaleTimeString()}`,
-          messages,
-          lastUpdated: Date.now()
-      });
-  }
-
-  async getThreads(mode: AppMode) {
-      const db = await this.db;
-      return db.getAllFromIndex('echoes', 'by-mode', mode);
-  }
-
-  // --- USER PROFILE METHODS ---
-
   async saveProfile(profile: UserProfile) {
       const db = await this.db;
       await db.put('profile', profile, 'current_user');
-      console.log('[NeuralVault] User Profile Updated');
   }
 
   async getProfile(): Promise<UserProfile | undefined> {
@@ -259,33 +168,15 @@ class NeuralVaultService {
       return db.get('profile', 'current_user');
   }
 
-  // --- KNOWLEDGE LAYER METHODS (React 19 Optimized) ---
-
-  getKnowledgeLayers(): Promise<KnowledgeLayer[]> {
-      if (!this.layersPromise) {
-          this.layersPromise = this.db.then(db => db.getAll('knowledge_layers'));
-      }
-      return this.layersPromise;
+  async getKnowledgeLayers(): Promise<KnowledgeLayer[]> {
+      const db = await this.db;
+      return db.getAll('knowledge_layers');
   }
 
   async saveKnowledgeLayer(layer: KnowledgeLayer) {
       const db = await this.db;
       await db.put('knowledge_layers', layer);
-      this.layersPromise = null; // Invalidate cache
-      console.log(`[NeuralVault] Knowledge Layer Secured: ${layer.label}`);
-  }
-
-  // --- SYSTEM METHODS ---
-
-  async getStorageUsage() {
-      if (navigator.storage && navigator.storage.estimate) {
-          const estimate = await navigator.storage.estimate();
-          return {
-              used: (estimate.usage || 0) / 1024 / 1024, // MB
-              quota: (estimate.quota || 0) / 1024 / 1024 // MB
-          };
-      }
-      return null;
+      this.layersPromise = null;
   }
 
   async wipeSystem() {
@@ -296,8 +187,6 @@ class NeuralVaultService {
       await db.clear('profile');
       await db.clear('knowledge_layers');
       await db.clear('vectors');
-      this.layersPromise = null;
-      console.warn('[NeuralVault] SYSTEM WIPE COMPLETE. AMNESIA INDUCED.');
   }
 }
 

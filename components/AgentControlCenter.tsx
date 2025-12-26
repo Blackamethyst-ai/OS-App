@@ -22,26 +22,24 @@ const CONTEXT_CONFIG: Record<OperationalContext, { label: string, icon: any, col
     [OperationalContext.GENERAL_PURPOSE]: { label: 'Synthetic Mind', icon: Globe, color: '#ffffff', desc: 'Autonomous general intelligence buffer.' }
 };
 
-// Senior Architect Component: Capability Chip
 const CapabilityChip: React.FC<{ text: string; color: string }> = ({ text, color }) => (
     <div 
-        className="px-2 py-0.5 rounded-full border text-[7px] font-black uppercase tracking-widest whitespace-nowrap shadow-inner"
+        className="px-2.5 py-1 rounded-lg border text-[8px] font-black uppercase tracking-widest whitespace-nowrap shadow-inner transition-all hover:scale-105"
         style={{ borderColor: `${color}40`, backgroundColor: `${color}10`, color }}
     >
         {text}
     </div>
 );
 
-// Bio-Resonance Meter (Energy level indicator)
 const BioResonanceMeter: React.FC<{ level: number, isActive: boolean }> = ({ level, isActive }) => {
     const color = level > 70 ? '#10b981' : level > 30 ? '#f59e0b' : '#ef4444';
     return (
-        <div className="flex flex-col gap-1.5">
-            <div className="flex justify-between items-end">
-                <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Bio-Resonance</span>
-                <span className="text-[10px] font-black font-mono" style={{ color }}>{level}%</span>
+        <div className="flex flex-col gap-2">
+            <div className="flex justify-between items-end px-1">
+                <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Bio-Resonance // Energy</span>
+                <span className="text-[11px] font-black font-mono" style={{ color }}>{level}%</span>
             </div>
-            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5 relative">
+            <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 p-0.5 relative shadow-inner">
                 <motion.div 
                     initial={false}
                     animate={{ 
@@ -50,7 +48,7 @@ const BioResonanceMeter: React.FC<{ level: number, isActive: boolean }> = ({ lev
                         opacity: isActive ? [0.6, 1, 0.6] : 1
                     }}
                     transition={isActive ? { duration: 1, repeat: Infinity } : { duration: 1 }}
-                    className="h-full rounded-full transition-all shadow-[0_0_10px_currentColor]"
+                    className="h-full rounded-full transition-all shadow-[0_0_15px_currentColor]"
                 />
             </div>
         </div>
@@ -70,30 +68,35 @@ const AgentSettingsModal: React.FC<{ agent: AutonomousAgent, onClose: () => void
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[500] bg-black/80 backdrop-blur-md flex items-center justify-center p-6">
-            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#0a0a0a] border border-[#333] rounded-[2.5rem] p-10 w-full max-w-lg shadow-[0_0_100px_rgba(157,78,221,0.2)]">
-                <div className="flex justify-between items-center mb-8">
-                    <div className="flex items-center gap-4">
-                        <div className="p-3 bg-[#9d4edd]/10 rounded-2xl border border-[#9d4edd]/30 text-[#9d4edd]">
-                            <Sliders size={20} />
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#0a0a0a] border border-[#333] rounded-[3rem] p-12 w-full max-w-xl shadow-[0_0_150px_rgba(0,0,0,1)] relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-12 opacity-[0.03] rotate-12"><Brain size={200} /></div>
+                
+                <div className="flex justify-between items-center mb-10 relative z-10">
+                    <div className="flex items-center gap-6">
+                        <div className="p-4 bg-[#9d4edd]/10 rounded-[1.5rem] border border-[#9d4edd]/30 text-[#9d4edd] shadow-2xl">
+                            <Sliders size={28} />
                         </div>
-                        <h2 className="text-xl font-black text-white uppercase tracking-widest">{agent.name} Calibration</h2>
+                        <div className="space-y-1">
+                            <h2 className="text-2xl font-black text-white uppercase tracking-[0.2em]">{agent.name} Calibration</h2>
+                            <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest">Autonomous Personality Matrix v4.2</p>
+                        </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-colors"><X size={20}/></button>
+                    <button onClick={onClose} className="p-3 hover:bg-white/5 rounded-2xl transition-all"><X size={24} className="text-gray-500" /></button>
                 </div>
 
-                <div className="space-y-8">
+                <div className="space-y-10 relative z-10 px-4">
                     {[
                         { id: 'skepticism', label: 'Logical Skepticism', color: '#ef4444' },
                         { id: 'excitement', label: 'Neural Excitement', color: '#f59e0b' },
                         { id: 'alignment', label: 'System Alignment', color: '#22d3ee' }
                     ].map(param => (
-                        <div key={param.id} className="space-y-3">
+                        <div key={param.id} className="space-y-4">
                             <div className="flex justify-between items-end">
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{param.label}</span>
+                                <span className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em]">{param.label}</span>
                                 <span className="text-sm font-black font-mono" style={{ color: param.color }}>{(mindset as any)[param.id]}%</span>
                             </div>
-                            <div className="relative h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
-                                <motion.div animate={{ width: `${(mindset as any)[param.id]}%` }} className="h-full" style={{ backgroundColor: param.color }} />
+                            <div className="relative h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                                <motion.div animate={{ width: `${(mindset as any)[param.id]}%` }} className="h-full" style={{ backgroundColor: param.color, boxShadow: `0 0 15px ${param.color}60` }} />
                                 <input 
                                     type="range" min="0" max="100" 
                                     value={(mindset as any)[param.id]} 
@@ -105,25 +108,24 @@ const AgentSettingsModal: React.FC<{ agent: AutonomousAgent, onClose: () => void
                     ))}
                 </div>
 
-                {/* Resonance Simulator Preview */}
-                <div className="mt-12 p-6 bg-black border border-white/5 rounded-[1.5rem] relative overflow-hidden group">
-                    <div className="absolute top-2 right-4 text-[7px] font-black text-gray-700 uppercase">Resonance_Sim</div>
-                    <div className="flex justify-center items-center gap-10 h-24 relative z-10">
+                <div className="mt-12 p-8 bg-black/60 border border-white/5 rounded-[2.5rem] relative overflow-hidden group shadow-inner">
+                    <div className="absolute top-3 right-5 text-[8px] font-black text-gray-700 uppercase tracking-widest">Resonance_Simulation</div>
+                    <div className="flex justify-center items-center gap-12 h-28 relative z-10">
                         <motion.div 
-                           animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5] }}
-                           transition={{ duration: 2 / (mindset.excitement / 20 || 1), repeat: Infinity }}
-                           className="w-16 h-16 rounded-full border-4 border-dashed border-[#9d4edd] flex items-center justify-center"
+                           animate={{ scale: [1, 1.1, 1], opacity: [0.5, 1, 0.5], rotate: [0, 10, -10, 0] }}
+                           transition={{ duration: 3 / (mindset.excitement / 25 || 1), repeat: Infinity }}
+                           className="w-20 h-20 rounded-full border-2 border-dashed border-[#9d4edd]/40 flex items-center justify-center"
                         >
-                            <div className="w-8 h-8 rounded-full bg-[#22d3ee] shadow-[0_0_20px_#22d3ee]" style={{ opacity: mindset.alignment / 100 }} />
+                            <div className="w-10 h-10 rounded-full bg-[#22d3ee] shadow-[0_0_30px_#22d3ee]" style={{ opacity: 0.3 + (mindset.alignment / 150) }} />
                         </motion.div>
                         <div className="flex flex-col gap-2">
-                             <div className="text-[9px] font-mono text-gray-500 uppercase">Logic Divergence</div>
-                             <div className="text-lg font-black font-mono text-white">{(mindset.skepticism * 0.42).toFixed(2)}σ</div>
+                             <div className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Logic Variance</div>
+                             <div className="text-2xl font-black font-mono text-white tracking-tighter">{(mindset.skepticism * 0.42).toFixed(2)}σ</div>
                         </div>
                     </div>
                 </div>
 
-                <button onClick={handleSave} className="w-full py-5 mt-8 bg-[#9d4edd] text-black font-black uppercase text-xs tracking-[0.4em] rounded-[1.5rem] shadow-2xl hover:bg-[#b06bf7] active:scale-95 transition-all">Apply Synaptic Drift</button>
+                <button onClick={handleSave} className="w-full py-6 mt-10 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black uppercase text-xs tracking-[0.5em] rounded-2xl shadow-[0_20px_50px_rgba(157,78,221,0.4)] transition-all active:scale-95">Apply Synaptic Drift</button>
             </motion.div>
         </motion.div>
     );
@@ -143,7 +145,6 @@ const AgentControlCenter: React.FC = () => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }, [activeAgent?.memoryBuffer]);
 
-    // Async initialization of avatars
     useEffect(() => {
         agents.activeAgents.forEach(async agent => {
             if (!agent.avatarUrl) {
@@ -257,9 +258,9 @@ const AgentControlCenter: React.FC = () => {
 
     return (
         <div className="h-full w-full bg-[#030303] flex flex-col border border-[#1f1f1f] rounded-[3.5rem] overflow-hidden shadow-2xl relative font-sans">
-            <div className="h-20 border-b border-[#1f1f1f] bg-[#0a0a0a]/95 backdrop-blur z-20 flex items-center justify-between px-10 shrink-0 relative overflow-hidden">
+            <div className="h-20 border-b border-[#1f1f1f] bg-[#0a0a0a]/95 backdrop-blur z-20 flex items-center justify-between px-12 shrink-0 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/50 to-transparent" />
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-8">
                     <div className="p-3 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-2xl shadow-[0_0_20px_rgba(157,78,221,0.2)]">
                         <Bot className="w-7 h-7 text-[#9d4edd]" />
                     </div>
@@ -271,7 +272,7 @@ const AgentControlCenter: React.FC = () => {
                 <div className="flex items-center gap-10">
                     <div className="flex items-center gap-4 bg-white/5 px-6 py-2.5 rounded-2xl border border-white/5 shadow-inner">
                         <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Nodes_Active</span>
-                        <span className="text-lg font-black font-mono text-[#9d4edd]">{agents.activeAgents.filter(a => a.status !== 'SLEEPING').length}</span>
+                        <span className="text-xl font-black font-mono text-[#9d4edd]">{agents.activeAgents.filter(a => a.status !== 'SLEEPING').length}</span>
                     </div>
                     <button className="p-3.5 bg-white/5 border border-white/10 hover:border-[#9d4edd] rounded-2xl text-gray-500 hover:text-white transition-all shadow-xl group active:scale-95">
                         <RefreshCw size={22} className="group-active:rotate-180 transition-transform duration-700" />
@@ -293,9 +294,9 @@ const AgentControlCenter: React.FC = () => {
                             <motion.div 
                                 key={agent.id}
                                 layout
-                                onClick={() => setSelectedAgentId(agent.id)}
+                                onClick={() => { setSelectedAgentId(agent.id); audio.playClick(); }}
                                 className={`p-6 rounded-[2.5rem] border cursor-pointer transition-all duration-700 relative group overflow-hidden
-                                    ${selectedAgentId === agent.id ? 'bg-[#0a0a0a] border-[#9d4edd] shadow-2xl scale-[1.02] z-10' : 'bg-transparent border-transparent hover:bg-white/[0.01] opacity-50 hover:opacity-100'}
+                                    ${selectedAgentId === agent.id ? 'bg-[#0a0a0a] border-[#9d4edd] shadow-[0_40px_80px_rgba(0,0,0,0.8)] scale-[1.02] z-10' : 'bg-transparent border-transparent hover:bg-white/[0.01] opacity-50 hover:opacity-100'}
                                 `}
                             >
                                 <div className="flex justify-between items-start mb-6 relative z-10">
@@ -320,7 +321,7 @@ const AgentControlCenter: React.FC = () => {
                                     </button>
                                 </div>
                                 
-                                <div className="flex flex-wrap gap-1.5 mb-6 opacity-60 group-hover:opacity-100 transition-opacity">
+                                <div className="flex flex-wrap gap-1.5 mb-8 opacity-60 group-hover:opacity-100 transition-opacity">
                                     {agent.capabilities.map((cap: string) => (
                                         <CapabilityChip key={cap} text={cap} color={selectedAgentId === agent.id ? '#9d4edd' : '#666'} />
                                     ))}
@@ -374,7 +375,7 @@ const AgentControlCenter: React.FC = () => {
                                         >
                                             {isProbing ? <Loader2 size={24} className="animate-spin" /> : <Microscope size={24} className="group-hover/probe:scale-110 transition-transform" />}
                                         </button>
-                                        <button onClick={() => setShowSettings(true)} className="p-4 bg-[#111] hover:bg-[#9d4edd]/10 border border-white/5 rounded-2xl text-gray-600 hover:text-[#9d4edd] transition-all shadow-xl active:scale-90" title="Neural Calibration">
+                                        <button onClick={() => { setShowSettings(true); audio.playClick(); }} className="p-4 bg-[#111] hover:bg-[#9d4edd]/10 border border-white/5 rounded-2xl text-gray-600 hover:text-[#9d4edd] transition-all shadow-xl active:scale-90" title="Neural Calibration">
                                             <Settings size={24} />
                                         </button>
                                     </div>
