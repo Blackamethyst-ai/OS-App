@@ -65,14 +65,13 @@ interface NeuralVaultSchema extends DBSchema {
 class NeuralVaultService {
   private dbName = 'structura_neural_vault_v1';
   private db: Promise<IDBPDatabase<NeuralVaultSchema>>;
-  private layersPromise: Promise<KnowledgeLayer[]> | null = null;
 
   constructor() {
     this.db = this.initDB();
   }
 
   private async initDB() {
-    return openDB<NeuralVaultSchema>(this.dbName, 3, {
+    return openDB<NeuralVaultSchema>(this.dbName, 4, {
       upgrade(db, oldVersion, newVersion, transaction) {
         if (!db.objectStoreNames.contains('artifacts')) {
           const store = db.createObjectStore('artifacts', { keyPath: 'id' });
@@ -176,7 +175,6 @@ class NeuralVaultService {
   async saveKnowledgeLayer(layer: KnowledgeLayer) {
       const db = await this.db;
       await db.put('knowledge_layers', layer);
-      this.layersPromise = null;
   }
 
   async wipeSystem() {

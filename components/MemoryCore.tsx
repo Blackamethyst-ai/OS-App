@@ -56,6 +56,12 @@ const MemoryCore: React.FC = () => {
                 return; 
             }
             const queryVector = await generateEmbedding(searchQuery);
+            if (queryVector.length === 0) {
+                addLog('ERROR', 'VECTOR_CORE: Failed to generate search embedding.');
+                setIsSearching(false);
+                return;
+            }
+            
             const results = await neuralVault.searchVectors(queryVector, 15);
             const highConfidence = results.filter(r => r.score > 0.35);
             setSemanticResults(highConfidence);
@@ -84,12 +90,16 @@ const MemoryCore: React.FC = () => {
                     const analysis = analysisRes.ok ? analysisRes.value : null;
                     const id = await neuralVault.saveArtifact(file, analysis);
                     
+                    // Generate and store embedding for semantic search
                     const textForVector = analysis?.summary || file.name;
                     const embedding = await generateEmbedding(textForVector);
                     if (embedding.length > 0) {
-                        await neuralVault.saveVector(id, embedding);
+                        await neuralVault.saveVector(id, embedding, { name: file.name });
                     }
-                } catch (err: any) { console.error("Index fail:", err); }
+                } catch (err: any) { 
+                    console.error("Index fail:", err);
+                    addLog('ERROR', `INGEST_FAIL: Vector indexing failed for ${file.name}`);
+                }
             }
             setIsIndexing(false);
             loadArtifacts();
@@ -136,32 +146,46 @@ const MemoryCore: React.FC = () => {
                         <input 
                             value={searchQuery} 
                             onChange={e => setSearchQuery(e.target.value)} 
-                            placeholder="Semantic Search..." 
+                            placeholder="Semantic Vector Search..." 
                             className="w-full bg-[#050505] border border-[#333] pl-4 pr-10 py-3 text-[11px] font-mono text-white focus:border-[#9d4edd] outline-none rounded-xl shadow-inner transition-all" 
                         />
                         <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors">
                             {isSearching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
                         </button>
                     </form>
+                    {semanticResults && (
+                        <button 
+                            onClick={() => { setSearchQuery(''); setSemanticResults(null); }}
+                            className="mt-2 text-[9px] font-mono text-[#9d4edd] hover:underline uppercase tracking-widest"
+                        >
+                            Reset Search
+                        </button>
+                    )}
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-                    {filteredArtifacts.map(art => (
-                        <button 
-                            key={art.id} 
-                            onClick={() => { setSelectedArtifact(art); audio.playClick(); }} 
-                            className={`w-full text-left p-4 rounded-2xl border transition-all flex flex-col gap-2 ${selectedArtifact?.id === art.id ? 'border-[#9d4edd] bg-[#9d4edd]/10' : 'border-transparent hover:bg-white/5'}`}
-                        >
-                            <div className="text-[11px] font-bold text-gray-200 truncate uppercase tracking-tight">{art.name}</div>
-                            <div className="flex items-center justify-between">
-                                <span className="text-[9px] text-gray-600 font-mono uppercase">{(art.analysis?.classification || 'RAW').substring(0, 15)}</span>
-                                {semanticResults && (
-                                    <span className="text-[8px] text-[#10b981] font-bold">
-                                        {Math.round((semanticResults.find(r => r.id === art.id)?.score || 0) * 100)}%
-                                    </span>
-                                )}
-                            </div>
-                        </button>
-                    ))}
+                    {filteredArtifacts.map(art => {
+                        const semResult = semanticResults?.find(r => r.id === art.id);
+                        return (
+                            <button 
+                                key={art.id} 
+                                onClick={() => { setSelectedArtifact(art); audio.playClick(); }} 
+                                className={`w-full text-left p-4 rounded-2xl border transition-all flex flex-col gap-2 ${selectedArtifact?.id === art.id ? 'border-[#9d4edd] bg-[#9d4edd]/10' : 'border-transparent hover:bg-white/5'}`}
+                            >
+                                <div className="text-[11px] font-bold text-gray-200 truncate uppercase tracking-tight">{art.name}</div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[9px] text-gray-600 font-mono uppercase">{(art.analysis?.classification || 'RAW').substring(0, 15)}</span>
+                                    {semResult && (
+                                        <div className="flex items-center gap-1.5">
+                                            <Zap size={8} className="text-[#10b981]" />
+                                            <span className="text-[8px] text-[#10b981] font-bold">
+                                                {Math.round(semResult.score * 100)}%
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </button>
+                        );
+                    })}
                     {filteredArtifacts.length === 0 && !isLoading && (
                         <div className="py-20 text-center opacity-20 flex flex-col items-center gap-4">
                             <Search size={32} />

@@ -10,6 +10,25 @@ import {
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 /**
+ * generateEmbedding for vector search using text-embedding-004.
+ */
+export async function generateEmbedding(text: string): Promise<number[]> {
+    try {
+        const ai = getAI();
+        const result = await ai.models.embedContent({
+            model: 'text-embedding-004',
+            contents: [{ parts: [{ text }] }]
+        });
+        // result.embeddings might be nested depending on version
+        const embedding = (result as any).embeddings?.[0]?.values || (result as any).embedding?.values || [];
+        return embedding;
+    } catch (e) {
+        console.error("Embedding generation failed:", e);
+        return [];
+    }
+}
+
+/**
  * Global utility for selecting an API key if missing.
  */
 export async function promptSelectKey() {
@@ -71,23 +90,6 @@ export const AGENT_DNA_BUILDER = [
 ];
 
 // --- CORE OS FUNCTIONS ---
-
-/**
- * generateEmbedding for vector search using text-embedding-004.
- */
-export async function generateEmbedding(text: string): Promise<number[]> {
-    try {
-        const ai = getAI();
-        const result = await ai.models.embedContent({
-            model: 'text-embedding-004',
-            contents: [{ parts: [{ text }] }]
-        });
-        return (result as any).embeddings[0].values;
-    } catch (e) {
-        console.error("Embedding failed", e);
-        return [];
-    }
-}
 
 export async function interpretIntent(input: string) {
     const ai = getAI();
@@ -176,9 +178,6 @@ export async function getLiveSupplyChainData(component: string) {
     return JSON.parse(response.text || '{}');
 }
 
-/**
- * Generates a tactical hardware deployment manifest for DePIN orchestration.
- */
 export async function generateHardwareDeploymentManifest(spec: any, bom: any[]) {
     const ai = getAI();
     const response = await ai.models.generateContent({
