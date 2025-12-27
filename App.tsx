@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAppStore } from './store';
 import { useSystemMind } from './stores/useSystemMind'; 
@@ -219,45 +218,33 @@ const App: React.FC = () => {
         {isHelpOpen && <HelpCenter onClose={() => setHelpOpen(false)} />}
       </AnimatePresence>
 
-      {/* --- REDESIGNED CONTROL CENTER HEADER (FIXED HEIGHT 72px) --- */}
-      <header className="flex-shrink-0 h-[72px] border-b z-[100] px-8 flex items-center justify-between backdrop-blur-3xl bg-[#030303]/90 border-white/5 shadow-2xl">
+      {/* --- THINNED CONTROL CENTER HEADER (FIXED HEIGHT 60px) --- */}
+      <header className="flex-shrink-0 h-[60px] border-b z-[100] px-4 flex items-center justify-between backdrop-blur-3xl bg-[#030303]/90 border-white/5 shadow-2xl">
         
         {/* Left: Branding & Multi-Line Status Bar */}
-        <div className="flex items-center gap-10">
+        <div className="flex items-center gap-6">
             <div className="flex flex-col cursor-pointer group" onClick={() => switchPath('/dashboard')}>
-                <div className="flex flex-col gap-0 mb-1 opacity-50 group-hover:opacity-100 transition-opacity">
-                    <div className="flex items-center gap-1.5">
-                        <div className="w-1 h-1 rounded-full bg-[#10b981] animate-pulse" />
-                        <span className="text-[7px] font-black font-mono text-gray-400 uppercase tracking-[0.3em]">Sovereign_Alpha_Online</span>
-                    </div>
-                    <span className="text-[6px] font-mono text-gray-600 uppercase tracking-[0.1em] mt-0.5">
-                        Architected Intelligence — Sovereign Thinking // v1.0
-                    </span>
-                </div>
-                <MetaventionsLogo size={32} showText={true} />
+                <MetaventionsLogo size={24} showText={true} />
             </div>
 
-            <div className="h-10 w-px bg-white/5" />
+            <div className="h-6 w-px bg-white/5" />
 
-            {/* High-Density Navigation Tabs (Auto-Adjusting Space) */}
-            <nav className="flex items-center gap-2 xl:gap-4 overflow-x-auto no-scrollbar max-w-[900px]">
+            {/* High-Density Navigation Tabs */}
+            <nav className="flex items-center gap-1 xl:gap-2 overflow-x-auto no-scrollbar max-w-[850px]">
                 {NAV_CONFIG.map(item => (
                     <button 
                         key={item.id} 
                         onClick={() => switchPath(item.path)} 
-                        className="relative py-6 px-1.5 xl:px-2.5 group flex-shrink-0"
+                        className="relative py-4 px-1.5 group flex-shrink-0"
                     >
-                        <span className={`text-[8.5px] xl:text-[9.5px] font-[900] uppercase tracking-[0.15em] font-mono transition-all duration-500 ${mode === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-200'}`}>
+                        <span className={`text-[8px] xl:text-[8.5px] font-[900] uppercase tracking-[0.12em] font-mono transition-all duration-500 ${mode === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-200'}`}>
                             {item.label}
                         </span>
                         {mode === item.id && (
                             <motion.div 
                                 layoutId="activeTabGlow"
-                                className="absolute bottom-4 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-[#00f2ff] shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+                                className="absolute bottom-2 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-[#00f2ff] shadow-[0_0_10px_rgba(34,211,238,0.5)]"
                             />
-                        )}
-                        {mode !== item.id && (
-                            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 w-0 h-[1px] bg-white/20 group-hover:w-full transition-all duration-300" />
                         )}
                     </button>
                 ))}
@@ -265,34 +252,31 @@ const App: React.FC = () => {
         </div>
 
         {/* Right: Functional Control Stack */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3">
             <GlobalSearchBar />
             
-            <div className="h-6 w-px bg-white/5" />
+            <div className="h-5 w-px bg-white/5" />
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1">
                 <ThemeSwitcher />
                 <button 
                     onClick={() => toggleProfile(true)}
-                    className="p-2 text-gray-500 hover:text-[#9d4edd] transition-colors rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10"
-                    title="Architect Core"
+                    className="p-1.5 text-gray-500 hover:text-[#9d4edd] transition-colors rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10"
                 >
-                    <User size={16} />
+                    <User size={14} />
                 </button>
             </div>
 
-            {/* D-Ecosystem Call to Action */}
-            <button className="relative group/eco px-6 py-2.5 bg-black border border-white/10 hover:border-white/40 rounded-lg transition-all duration-500 shadow-2xl overflow-hidden active:scale-95">
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover/eco:opacity-100 transition-opacity" />
-                <span className="relative z-10 text-[9px] font-black font-mono text-white tracking-[0.25em] uppercase flex items-center gap-2.5">
-                    The D-Ecosystem
-                    <ExternalLink size={10} className="text-gray-600 group-hover/eco:text-white transition-colors" />
+            <button className="relative group/eco px-4 py-1.5 bg-black border border-white/10 hover:border-white/30 rounded-lg transition-all duration-500 shadow-2xl overflow-hidden active:scale-95">
+                <span className="relative z-10 text-[8px] font-black font-mono text-white tracking-[0.2em] uppercase flex items-center gap-2">
+                    THE D-ECOSYSTEM
+                    <ExternalLink size={8} className="text-gray-600 group-hover:text-white" />
                 </span>
             </button>
         </div>
       </header>
 
-      <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-0' : 'pb-12 overflow-y-auto custom-scrollbar'}`}>
+      <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-0' : 'pb-4 overflow-y-auto custom-scrollbar'}`}>
         <SynapticRouter />
       </div>
     </div>
