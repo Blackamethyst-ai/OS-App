@@ -16,6 +16,7 @@
           --obsidian: #05070D;
           --amethyst: #7B2CFF;
           --cyan: #18E6FF;
+          --magenta: #FF3DF2;
 
           /* --- SEMANTIC MAPPING (Default: Light Mode) --- */
           --bg-app: var(--fog-white);
@@ -25,6 +26,7 @@
           --text-primary: var(--midnight-navy);
           --text-muted: #666666;
           --border-main: rgba(11, 16, 32, 0.08);
+          --logo-glow: rgba(11, 16, 32, 0.1);
        }
 
        [data-theme='dark'], .dark {
@@ -36,6 +38,7 @@
           --text-primary: #ffffff;
           --text-muted: #a3a3a3;
           --border-main: rgba(255, 255, 255, 0.1);
+          --logo-glow: rgba(255, 255, 255, 0.2);
        }
 
        body { 
@@ -50,6 +53,20 @@
 
        .font-mono { font-family: 'Fira Code', monospace; }
        
+       /* Global legibility enhancement for primary text */
+       .text-primary-shield {
+          color: var(--text-primary);
+          text-shadow: 0 0 1px var(--bg-app), 0 0 2px var(--bg-app);
+       }
+
+       /* Sovereign Spectrum Text Glow */
+       .text-glow-spectrum {
+          background: linear-gradient(to right, var(--amethyst), var(--cyan));
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          filter: drop-shadow(0 0 8px rgba(24, 230, 255, 0.3));
+       }
+
        /* Custom Scrollbar */
        .custom-scrollbar::-webkit-scrollbar {
           width: 6px;

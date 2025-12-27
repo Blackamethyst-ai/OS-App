@@ -11,17 +11,7 @@ const AppFooter: React.FC = () => {
                 <div className="flex justify-between items-start">
                     {/* Left: Branding & Metadata */}
                     <div className="space-y-4">
-                        <div className="flex items-center gap-4">
-                            <MetaventionsLogo size={28} />
-                            <div className="flex items-baseline gap-2">
-                                <span className="text-xl font-black font-sans tracking-tight text-[var(--text-primary)] uppercase leading-none">
-                                    Metaventions
-                                </span>
-                                <span className="text-xl font-black font-sans text-[#18E6FF] uppercase leading-none drop-shadow-[0_0_10px_rgba(24,230,255,0.4)]">
-                                    AI
-                                </span>
-                            </div>
-                        </div>
+                        <MetaventionsLogo size={28} showText={true} />
                         <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-[0.3em] flex items-center gap-2">
                             <span>© 2025 METAVENTIONS AI</span>
                             <span className="opacity-30">//</span>
