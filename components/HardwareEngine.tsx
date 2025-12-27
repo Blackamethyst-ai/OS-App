@@ -147,7 +147,7 @@ const MOCK_GPUS = [
 ];
 
 const HardwareEngine: React.FC = () => {
-    const { hardware, setHardwareState, addLog, openHoloProjector, metaventions } = useAppStore();
+    const { hardware, setHardwareState, addLog, metaventions } = useAppStore();
     const { currentEra, schematicImage, analysis, bom, isLoading, xrayImage, finTelemetry } = hardware;
     
     const [clockSpeed, setClockSpeed] = useState(3.4);
@@ -176,7 +176,7 @@ const HardwareEngine: React.FC = () => {
 
     useEffect(() => {
         setSelectedGpu(filteredGpus[0] || MOCK_GPUS[0]);
-    }, [currentEra]);
+    }, [currentEra, filteredGpus]);
 
     const stressLevel = useMemo(() => {
         const base = (clockSpeed - 1) * 20;
@@ -207,7 +207,7 @@ const HardwareEngine: React.FC = () => {
             } catch (e) { console.error(e); } finally { setIsAnalyzingFinImpact(false); }
         }, 3000);
         return () => clearTimeout(timer);
-    }, [clockSpeed, voltage, fanSpeed, schematicImage, selectedGpu, viewMode, currentEra]);
+    }, [clockSpeed, voltage, fanSpeed, schematicImage, selectedGpu, viewMode, currentEra, metaventions, powerDraw, setHardwareState]);
 
     useVoiceExpose('hardware-fabricator', { era: currentEra, stressLevel, powerDraw, mtbf, clocks: `${clockSpeed}GHz`, activeGpu: selectedGpu?.model });
 
@@ -310,7 +310,7 @@ const HardwareEngine: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex-1 grid grid-cols-3 gap-6 overflow-y-auto custom-scrollbar pr-2 pb-10">
+                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 overflow-y-auto custom-scrollbar pr-2 pb-10">
                                     {filteredGpus.filter(g => g.model.toLowerCase().includes(gpuSearchQuery.toLowerCase())).map(gpu => (
                                         <motion.div 
                                             key={gpu.id}
@@ -321,8 +321,10 @@ const HardwareEngine: React.FC = () => {
                                             <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover/gpu:opacity-[0.06] transition-opacity rotate-12"><Cpu size={80} /></div>
                                             <div className="flex justify-between items-start mb-6 relative z-10">
                                                 <div className="p-2.5 bg-white/5 rounded-xl text-gray-600 group-hover/gpu:text-[#22d3ee] transition-all"><Box size={20} /></div>
-                                                {/* Repositioned Badge: Inline to avoid clipping */}
-                                                <div className={`px-2.5 py-1 rounded-lg text-[8px] font-black font-mono uppercase tracking-widest border ${gpu.stock === 'IN_STOCK' ? 'text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30' : 'text-red-500 bg-red-500/10 border-red-500/30'}`}>{gpu.stock.replace('_', ' ')}</div>
+                                                {/* FIXED: Stock badge moved to non-clipping position */}
+                                                <div className={`px-2.5 py-1 rounded-lg text-[8px] font-black font-mono uppercase tracking-widest border ${gpu.stock === 'IN_STOCK' ? 'text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30' : 'text-red-500 bg-red-500/10 border-red-500/30'}`}>
+                                                    {gpu.stock.replace('_', ' ')}
+                                                </div>
                                             </div>
                                             <h3 className="text-lg font-black text-white uppercase font-mono tracking-tighter mb-1 relative z-10">{gpu.model}</h3>
                                             <p className="text-[8px] text-gray-600 font-mono uppercase tracking-widest mb-6 relative z-10">Mfr: {gpu.manufacturer} // {gpu.arch}</p>
@@ -388,7 +390,7 @@ const HardwareEngine: React.FC = () => {
                             <div className="h-full flex flex-col gap-6">
                                 <div className="grid grid-cols-4 gap-4 shrink-0">
                                     {[
-                                        { label: 'Node Load', val: '84.2%', icon: Activity, color: '#22d3ee' },
+                                        { label: 'Node Load', val: '84.2%', icon: Activity, color: eraColor },
                                         { label: 'Efficiency', val: '1.22 P/W', icon: Zap, color: '#f59e0b' },
                                         { label: 'MTBF Rate', val: '50k hr', icon: Clock, color: '#10b981' },
                                         { label: 'Satellite Uplink', val: '4.8 Gb/s', icon: Radio, color: '#9d4edd' }
@@ -423,7 +425,7 @@ const HardwareEngine: React.FC = () => {
                                                     <div className="space-y-2">
                                                         <h3 className="text-lg font-black font-mono text-white uppercase tracking-widest">Buffer_Empty_Signal</h3>
                                                         <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest max-w-xs leading-relaxed">
-                                                            Active {viewMode} scan requires primary silicon signature. Ingest blueprint to initialize forensic trace.
+                                                            Active {viewMode} scan requires primary {currentEra} signature. Ingest blueprint to initialize forensic trace.
                                                         </p>
                                                     </div>
                                                 </div>
@@ -465,7 +467,7 @@ const HardwareEngine: React.FC = () => {
                                                 {viewMode === '2D' && (
                                                     <motion.div key="2d" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full p-16 flex items-center justify-center relative">
                                                         {schematicImage ? (
-                                                            <img src={`data:${schematicImage.inlineData.mimeType};base64,${schematicImage.inlineData.data}`} className="max-w-full max-h-full object-contain rounded-xl shadow-[0_30px_80px_rgba(0,0,0,1)] border border-white/5 opacity-80 group-hover/viewport:opacity-100 transition-opacity duration-700" alt="2D Schematic" />
+                                                            <img src={`data:${schematicImage.inlineData.mimeType};base64,${schematicImage.inlineData.data}`} className="max-w-full max-h-full object-contain rounded-3xl shadow-[0_30px_80px_rgba(0,0,0,1)] border border-white/5 opacity-80 group-hover/viewport:opacity-100 transition-opacity duration-700" alt="2D Schematic" />
                                                         ) : (
                                                             <div className="text-gray-800 font-mono text-xl uppercase tracking-widest animate-pulse">Awaiting Signal...</div>
                                                         )}
@@ -580,7 +582,7 @@ const HardwareEngine: React.FC = () => {
                                                                     <div className="space-y-4">
                                                                         <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1 flex items-center gap-2"><Microscope size={14} className="text-emerald-500" /> Structural Briefing</h3>
                                                                         <div className="p-8 bg-black/60 border border-white/5 rounded-[2.5rem] text-[13px] font-mono text-gray-300 leading-relaxed italic border-l-4 border-l-emerald-500 shadow-2xl shadow-emerald-500/5">
-                                                                            "{analysis?.summary || "Vector alignment confirmed. Logic bus shows minimal impedance. Structural integrity verified for high-frequency propagation."}"
+                                                                            "{analysis?.summary || "Vector alignment confirmed. Logic bus shows minimal occupancy. Structural integrity verified for high-frequency propagation."}"
                                                                         </div>
                                                                     </div>
                                                                     
@@ -616,15 +618,15 @@ const HardwareEngine: React.FC = () => {
                 {/* Right Tactical Control Sidebar */}
                 <div className="w-[380px] border-l border-[#1f1f1f] bg-[#050505] flex flex-col shrink-0 z-30 shadow-2xl relative">
                     <div className="p-6 border-b border-white/5 bg-white/[0.01]">
-                        <div className="flex justify-between items-center mb-6">
+                        <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3"><SlidersHorizontal size={16} className="text-[#22d3ee]" /><h2 className="text-[10px] font-black text-white uppercase tracking-widest">Performance Tuning</h2></div>
                             <span className="text-[7px] font-mono text-gray-700">v9.2_SYNC</span>
                         </div>
                         <div className="space-y-3">
-                            <PerformanceMixer label="Core Clock" value={clockSpeed} unit="GHz" min={1.2} max={6.4} color="#22d3ee" onValueChange={setClockSpeed} />
+                            <PerformanceMixer label="Core Clock" value={clockSpeed} unit="GHz" min={1.2} max={6.4} color={eraColor} onValueChange={setClockSpeed} />
                             <PerformanceMixer label="Voltage Offset" value={voltage} unit="v" min={0.7} max={1.65} color="#ef4444" onValueChange={setVoltage} />
                             <PerformanceMixer label="Memory Timing" value={timing} unit="cl" min={10} max={30} color="#f59e0b" onValueChange={setTiming} />
-                            <PerformanceMixer label="Cooling Intensity" value={fanSpeed} unit=" RPM" min={0} max={6000} color="#9d4edd" onValueChange={setValue => setFanSpeed(setValue)} />
+                            <PerformanceMixer label="Cooling Intensity" value={fanSpeed} unit=" RPM" min={0} max={6000} color="#9d4edd" onValueChange={(val: number) => setFanSpeed(val)} />
                         </div>
                     </div>
 

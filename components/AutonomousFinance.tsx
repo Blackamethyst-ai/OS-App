@@ -85,7 +85,7 @@ const FinanceMetric = ({ label, value, trend, icon: Icon, color }: any) => (
                 <Icon size={18} style={{ color: trend > 0 ? '#10b981' : color }} />
             </div>
             <div className={`flex items-center gap-1 text-[10px] font-black font-mono ${trend > 0 ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
-                {trend > 0 ? <TrendingUp size(10) /> : <TrendingDown size(10) />}
+                {trend > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                 {Math.abs(trend)}%
             </div>
         </div>
@@ -150,7 +150,7 @@ const InvestmentConfirmationModal = ({ op, onConfirm, onCancel }: { op: any, onC
                         ) : (
                             <motion.div key="s2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8 flex flex-col items-center py-10">
                                 <div className="relative">
-                                    <Fingerprint size(80) className="text-[#10b981] animate-pulse" />
+                                    <Fingerprint size={80} className="text-[#10b981] animate-pulse" />
                                     <div className="absolute inset-0 blur-2xl bg-[#10b981]/20 animate-pulse" />
                                 </div>
                                 <div className="text-center space-y-2">
@@ -279,7 +279,7 @@ const AutonomousFinance: React.FC = () => {
                         </div>
                     </div>
                     <button onClick={fetchLiveOpportunities} disabled={isSearching} className="p-3 bg-[#10b981] text-black rounded-2xl transition-all shadow-[0_10px_30px_#10b98144] active:scale-95 group">
-                        {isSearching ? <Loader2 className="animate-spin" size(20) /> : <RefreshCw size(20) className="group-hover:rotate-180 transition-transform duration-700" />}
+                        {isSearching ? <Loader2 className="animate-spin" size={20} /> : <RefreshCw size={20} className="group-hover:rotate-180 transition-transform duration-700" />}
                     </button>
                 </div>
             </div>
@@ -302,7 +302,7 @@ const AutonomousFinance: React.FC = () => {
                                     <div className="col-span-8 bg-[#050505] border border-white/5 rounded-[3rem] p-10 shadow-2xl relative overflow-hidden group">
                                         <div className="flex justify-between items-center mb-10 relative z-10">
                                             <div className="flex items-center gap-4">
-                                                <ChartIcon size(20) className="text-[#10b981]" />
+                                                <ChartIcon size={20} className="text-[#10b981]" />
                                                 <span className="text-xs font-black font-mono text-white uppercase tracking-widest">Yield Velocity Profile</span>
                                             </div>
                                             <div className="flex gap-8">
@@ -329,7 +329,7 @@ const AutonomousFinance: React.FC = () => {
                                     </div>
 
                                     <div className="col-span-4 bg-[#0a0a0a] border border-white/5 rounded-[3rem] p-10 flex flex-col justify-between relative overflow-hidden group shadow-2xl">
-                                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity rotate-12"><Fingerprint size(120) /></div>
+                                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity rotate-12"><Fingerprint size={120} /></div>
                                         <div className="relative z-10">
                                             <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest block mb-4">Neural Compliance Score</span>
                                             <div className="text-5xl font-black font-mono text-white tracking-tighter">98.4%</div>
@@ -355,7 +355,7 @@ const AutonomousFinance: React.FC = () => {
                                     </div>
                                     <div className="flex gap-4">
                                         <div className="px-5 py-2.5 bg-[#10b981]/10 border border-[#10b981]/30 rounded-xl text-[10px] font-black text-[#10b981] uppercase tracking-widest flex items-center gap-3">
-                                            <PlayCircle size(16) /> Auto-Harvest: ACTIVE
+                                            <PlayCircle size={16} /> Auto-Harvest: ACTIVE
                                         </div>
                                     </div>
                                 </div>
@@ -367,9 +367,9 @@ const AutonomousFinance: React.FC = () => {
                                         { id: 3, name: 'Neural Bandwidth Delta', source: 'Bittensor Uplink', yield: '+22.8%', risk: 'High', status: 'Volatile', color: '#ef4444' }
                                     ].map(farm => (
                                         <div key={farm.id} className="p-8 bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] relative overflow-hidden group hover:border-white/20 transition-all shadow-2xl">
-                                            <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity"><Flame size(120) /></div>
+                                            <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity"><Flame size={120} /></div>
                                             <div className="flex justify-between items-start mb-6">
-                                                <div className="p-3 bg-white/5 rounded-2xl text-gray-400 group-hover:text-white transition-colors"><PieChart size(24) /></div>
+                                                <div className="p-3 bg-white/5 rounded-2xl text-gray-400 group-hover:text-white transition-colors"><PieChart size={24} /></div>
                                                 <div className="text-right">
                                                     <div className="text-2xl font-black font-mono text-white tracking-tighter">{farm.yield}</div>
                                                     <span className="text-[7px] text-gray-600 uppercase font-mono tracking-widest">CURRENT_APY</span>
@@ -377,9 +377,9 @@ const AutonomousFinance: React.FC = () => {
                                             </div>
                                             <h4 className="text-sm font-black text-white uppercase tracking-widest mb-2 truncate">{farm.name}</h4>
                                             <div className="flex items-center gap-3 text-[9px] font-mono text-gray-500 uppercase tracking-tighter mb-8">
-                                                <div className="flex items-center gap-1.5"><Globe size(10) /> {farm.source}</div>
+                                                <div className="flex items-center gap-1.5"><Globe size={10} /> {farm.source}</div>
                                                 <div className="h-3 w-px bg-white/5" />
-                                                <div className="flex items-center gap-1.5" style={{ color: farm.color }}><Shield size(10) /> {farm.risk} Risk</div>
+                                                <div className="flex items-center gap-1.5" style={{ color: farm.color }}><Shield size={10} /> {farm.risk} Risk</div>
                                             </div>
                                             <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
                                                 <motion.div initial={{ width: 0 }} animate={{ width: '64%' }} className="h-full bg-current" style={{ color: farm.color }} />
@@ -394,14 +394,14 @@ const AutonomousFinance: React.FC = () => {
 
                                 <div className="bg-[#050505] border border-white/5 rounded-[3rem] p-10 shadow-inner">
                                     <div className="flex items-center gap-4 mb-8">
-                                        <History size(18) className="text-gray-500" />
+                                        <History size={18} className="text-gray-500" />
                                         <span className="text-[11px] font-black text-white uppercase tracking-[0.4em]">Resource Rebalancing Ledger</span>
                                     </div>
                                     <div className="space-y-4">
                                         {[1,2,3].map(i => (
                                             <div key={i} className="flex items-center justify-between p-4 bg-white/[0.01] rounded-2xl border border-white/5 group hover:bg-white/[0.03] transition-all">
                                                 <div className="flex items-center gap-6">
-                                                    <div className="p-2 bg-[#22d3ee]/10 text-[#22d3ee] rounded-lg"><ArrowLeftRight size(14) /></div>
+                                                    <div className="p-2 bg-[#22d3ee]/10 text-[#22d3ee] rounded-lg"><ArrowLeftRight size={14} /></div>
                                                     <div>
                                                         <div className="text-[10px] font-bold text-gray-300 uppercase font-mono">{"Migrated Capital L0 -> L2"}</div>
                                                         <p className="text-[8px] text-gray-600 font-mono uppercase tracking-widest">Optimizing for Compute Alpha yield increase.</p>
@@ -424,7 +424,7 @@ const AutonomousFinance: React.FC = () => {
                             <div className="h-16 border-b border-white/5 bg-white/[0.01] flex items-center px-12 justify-between shrink-0">
                                 <div className="flex items-center gap-4">
                                     <div className="p-2 bg-[#9d4edd]/10 rounded-xl text-[#9d4edd] border border-[#9d4edd]/30">
-                                        <GitMerge size(16) />
+                                        <GitMerge size={16} />
                                     </div>
                                     <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.5em]">Investment Handover Queue</span>
                                 </div>
@@ -442,7 +442,7 @@ const AutonomousFinance: React.FC = () => {
                                         transition={{ delay: i * 0.08 }}
                                         className="p-10 bg-[#050505] border border-white/5 rounded-[3rem] group/card hover:border-[#9d4edd]/40 transition-all duration-700 shadow-2xl relative overflow-hidden flex flex-col"
                                     >
-                                        <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover/card:opacity-[0.08] transition-opacity rotate-12"><Zap size(100) className="text-[#9d4edd]" /></div>
+                                        <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover/card:opacity-[0.08] transition-opacity rotate-12"><Zap size={100} className="text-[#9d4edd]" /></div>
                                         <div className="flex justify-between items-start mb-8 relative z-10">
                                             <div className="flex-1">
                                                 <h4 className="text-xl font-black text-white uppercase font-mono tracking-tighter mb-3 group-hover/card:text-[#9d4edd] transition-colors">{op.title}</h4>
@@ -477,7 +477,7 @@ const AutonomousFinance: React.FC = () => {
                                                 className="flex-1 py-5 bg-[#10b981] text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-xl hover:bg-[#15d694] active:scale-95 transition-all flex items-center justify-center gap-3"
                                             >
                                                 Authorize Disbursement
-                                                <ArrowRight size(14)/>
+                                                <ArrowRight size={14}/>
                                             </button>
                                         </div>
                                     </motion.div>
@@ -492,7 +492,7 @@ const AutonomousFinance: React.FC = () => {
                     <div className="p-10 border-b border-white/5 bg-white/[0.01]">
                         <div className="flex items-center justify-between mb-12">
                             <div className="flex items-center gap-4">
-                                <Binary size(20) className="text-[#10b981]" />
+                                <Binary size={20} className="text-[#10b981]" />
                                 <h2 className="text-[11px] font-black text-white uppercase tracking-[0.4em]">Resource Flow</h2>
                             </div>
                             <span className="text-[7px] font-mono text-gray-700">v9.5_STABLE</span>
@@ -521,9 +521,9 @@ const AutonomousFinance: React.FC = () => {
                     </div>
                     <div className="flex-1 p-10 space-y-10 overflow-y-auto custom-scrollbar">
                         <div className="p-8 bg-[#0a100a] border border-[#10b981]/20 rounded-[2.5rem] relative overflow-hidden group shadow-2xl transition-all hover:border-[#10b981]/40">
-                             <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-[0.02] transition-opacity rotate-12"><Shield size(80) className="text-[#10b981]" /></div>
+                             <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-[0.02] transition-opacity rotate-12"><Shield size={80} className="text-[#10b981]" /></div>
                              <div className="flex items-center gap-4 mb-6">
-                                 <ShieldCheck size(20) className="text-[#10b981]" />
+                                 <ShieldCheck size={20} className="text-[#10b981]" />
                                  <span className="text-[11px] font-black text-white uppercase tracking-[0.3em]">Sovereign Audit</span>
                              </div>
                              <p className="text-[11px] text-gray-500 font-mono leading-relaxed italic">"Treasury architecture verified via multi-sig enclave L0. All disbursements ground via Bridge protocols and reality oracles."</p>
@@ -538,7 +538,7 @@ const AutonomousFinance: React.FC = () => {
 
                         <div className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] space-y-6">
                             <div className="flex items-center gap-4">
-                                <History size(18) className="text-gray-700" />
+                                <History size={18} className="text-gray-700" />
                                 <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">Handover Status</span>
                             </div>
                             <div className="space-y-4">
@@ -566,13 +566,13 @@ const AutonomousFinance: React.FC = () => {
             <div className="h-12 bg-[#0a0a0a] border-t border-[#1f331f] px-12 flex items-center justify-between text-[9px] font-mono text-gray-600 shrink-0 relative z-[60]">
                 <div className="flex gap-12 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
                     <div className="flex items-center gap-4 text-emerald-500 font-bold uppercase tracking-[0.2em]">
-                        <Lock size(16) className="shadow-[0_0_15px_#10b981]" /> Financial_Vault_Secured
+                        <Lock size={16} className="shadow-[0_0_15px_#10b981]" /> Financial_Vault_Secured
                     </div>
                     <div className="flex items-center gap-4 uppercase tracking-[0.3em]">
-                        <Activity size(16) className="text-[#22d3ee]" /> Market_Grounding: ACTIVE
+                        <Activity size={16} className="text-[#22d3ee]" /> Market_Grounding: ACTIVE
                     </div>
                     <div className="flex items-center gap-4 uppercase tracking-[0.3em]">
-                        <Globe size(16) className="text-[#f59e0b]" /> Global_Oracles: SYNCHRONIZED
+                        <Globe size={16} className="text-[#f59e0b]" /> Global_Oracles: SYNCHRONIZED
                     </div>
                 </div>
                 <div className="flex items-center gap-10 shrink-0">

@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { generateCode, promptSelectKey, validateSyntax } from '../services/geminiService';
 import { audio } from '../services/audioService'; 
@@ -76,6 +76,9 @@ const CodeStudio: React.FC = () => {
       audio.playClick();
   };
 
+  // Fixed: codeLines now uses correctly imported useMemo
+  const codeLines = useMemo(() => codeStudio.generatedCode?.split('\n') || [], [codeStudio.generatedCode]);
+
   return (
     <div className="flex flex-col h-full rounded-3xl border border-[#1f1f1f] bg-[#030303] shadow-2xl overflow-hidden font-sans relative">
       {/* Sector Header */}
@@ -149,9 +152,12 @@ const CodeStudio: React.FC = () => {
                                       </div>
                                   </div>
                               ) : codeStudio.generatedCode ? (
-                                  <div className="relative">
-                                      <div className="absolute -left-12 top-0 bottom-0 w-px bg-white/5 hidden md:block" />
-                                      <pre className="font-mono text-[13px] text-gray-300 leading-relaxed whitespace-pre-wrap selection:bg-[#9d4edd]/30">
+                                  <div className="relative flex">
+                                      {/* Mock Line Numbers */}
+                                      <div className="w-10 shrink-0 text-right pr-4 border-r border-white/5 text-[10px] font-mono text-gray-700 select-none space-y-[1.4em] pt-[0.2em]">
+                                          {codeLines.map((_, i) => <div key={i}>{i + 1}</div>)}
+                                      </div>
+                                      <pre className="flex-1 pl-6 font-mono text-[13px] text-gray-300 leading-[1.4em] whitespace-pre-wrap selection:bg-[#9d4edd]/30">
                                           <code dangerouslySetInnerHTML={{ __html: highlightCode(codeStudio.generatedCode, codeStudio.language) }} />
                                       </pre>
                                   </div>
