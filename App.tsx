@@ -29,15 +29,14 @@ import { useDaemonSwarm } from './hooks/useDaemonSwarm';
 import { useVoiceControl } from './hooks/useVoiceControl'; 
 import { useResearchAgent } from './hooks/useResearchAgent'; 
 import { 
-    LayoutGrid, Image, Settings, Activity, BookOpen, Mic, Cpu, 
-    Code, HardDrive, GitMerge, Target, X, User, Bot, ExternalLink, Moon, DollarSign
+    Target, X, User, ExternalLink, Activity
 } from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
 import { collabService } from './services/collabService';
 import { audio } from './services/audioService'; 
 import { AnimatePresence, motion } from 'framer-motion';
 
-// --- NAVIGATION CONFIGURATION (Full Operational Suite) ---
+// --- NAVIGATION CONFIGURATION (Restored Suite) ---
 const NAV_CONFIG = [
   { id: AppMode.DASHBOARD, label: 'HOME', path: '/dashboard' },
   { id: AppMode.BIBLIOMORPHIC, label: 'VISION', path: '/bibliomorphic' },
@@ -50,7 +49,6 @@ const NAV_CONFIG = [
   { id: AppMode.HARDWARE_ENGINEER, label: 'HARDWARE', path: '/hardware' },
   { id: AppMode.VOICE_MODE, label: 'VOICE', path: '/voice' },
   { id: AppMode.SYNTHESIS_BRIDGE, label: 'BRIDGE', path: '/bridge' },
-  { id: AppMode.BICAMERAL, label: 'SWARM', path: '/swarm' },
 ];
 
 const FocusOverlay = () => {
@@ -97,7 +95,7 @@ const FocusOverlay = () => {
 
 const App: React.FC = () => {
   const { 
-      mode, user, theme, voice, toggleProfile, toggleCommandPalette, 
+      mode, theme, voice, toggleProfile, toggleCommandPalette, 
       setSearchState, setVoiceState, addLog, 
       isHelpOpen, setHelpOpen, 
       isScrubberOpen, setScrubberOpen, 
@@ -218,32 +216,35 @@ const App: React.FC = () => {
         {isHelpOpen && <HelpCenter onClose={() => setHelpOpen(false)} />}
       </AnimatePresence>
 
-      {/* --- MINIMIZED HEADER (FIXED HEIGHT 48px) --- */}
-      <header className="flex-shrink-0 h-[48px] border-b z-[100] px-3 flex items-center justify-between backdrop-blur-3xl bg-[#030303]/90 border-white/5 shadow-2xl">
+      {/* --- RESTORED HEADER (64px) --- */}
+      <header className="flex-shrink-0 h-[64px] border-b z-[100] px-8 flex items-center justify-between backdrop-blur-3xl bg-[#030303]/90 border-white/5 shadow-2xl relative">
         
-        {/* Left: Branding & Multi-Line Status Bar */}
-        <div className="flex items-center gap-3">
-            <div className="flex flex-col cursor-pointer group" onClick={() => switchPath('/dashboard')}>
-                <MetaventionsLogo size={18} showText={true} />
+        {/* TOP HIGHLIGHT BAR (Purple/Cyan Gradient) */}
+        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-transparent opacity-80" />
+
+        {/* Left Side: Logo and Navigation Tabs */}
+        <div className="flex items-center gap-10 h-full">
+            <div className="flex items-center gap-6 cursor-pointer group" onClick={() => switchPath('/dashboard')}>
+                <MetaventionsLogo size={28} showText={true} />
             </div>
 
-            <div className="h-5 w-px bg-white/5" />
+            <div className="h-8 w-px bg-white/10" />
 
-            {/* High-Density Navigation Tabs */}
-            <nav className="flex items-center gap-0.5 xl:gap-1 overflow-x-auto no-scrollbar max-w-[900px]">
+            {/* FULL NAVIGATION MENU (Restored) */}
+            <nav className="flex items-center gap-1 xl:gap-2 overflow-x-auto no-scrollbar max-w-[900px] h-full">
                 {NAV_CONFIG.map(item => (
                     <button 
                         key={item.id} 
                         onClick={() => switchPath(item.path)} 
-                        className="relative py-2.5 px-1.5 group flex-shrink-0"
+                        className="relative h-full px-3.5 group flex-shrink-0 flex items-center"
                     >
-                        <span className={`text-[7.5px] xl:text-[8px] font-[900] uppercase tracking-[0.1em] font-mono transition-all duration-500 ${mode === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-200'}`}>
+                        <span className={`text-[10px] xl:text-[11px] font-[900] uppercase tracking-[0.2em] font-mono transition-all duration-500 ${mode === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-200'}`}>
                             {item.label}
                         </span>
                         {mode === item.id && (
                             <motion.div 
                                 layoutId="activeTabGlow"
-                                className="absolute bottom-0 left-0 right-0 h-[1.5px] rounded-full bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-[#00f2ff] shadow-[0_0_8px_rgba(34,211,238,0.5)]"
+                                className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-[#00f2ff] shadow-[0_0_12px_rgba(34,211,238,0.6)]"
                             />
                         )}
                     </button>
@@ -251,32 +252,39 @@ const App: React.FC = () => {
             </nav>
         </div>
 
-        {/* Right: Functional Control Stack */}
-        <div className="flex items-center gap-2">
-            <GlobalSearchBar />
+        {/* Right Side: Functional Control Stack and D-ECOSYSTEM */}
+        <div className="flex items-center gap-8 h-full">
+            <div className="flex items-center h-full pt-1">
+                <GlobalSearchBar />
+            </div>
             
-            <div className="h-4 w-px bg-white/5" />
+            <div className="h-8 w-px bg-white/10" />
 
-            <div className="flex items-center gap-0.5">
+            <div className="flex items-center gap-1">
                 <ThemeSwitcher />
                 <button 
                     onClick={() => toggleProfile(true)}
-                    className="p-1 text-gray-500 hover:text-[#9d4edd] transition-colors rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10"
+                    className="p-2.5 text-gray-500 hover:text-[#9d4edd] transition-all rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10"
                 >
-                    <User size={12} />
+                    <User size={18} />
                 </button>
             </div>
 
-            <button className="relative group/eco px-3 py-1 bg-black border border-white/10 hover:border-white/30 rounded-lg transition-all duration-500 shadow-2xl overflow-hidden active:scale-95">
-                <span className="relative z-10 text-[7px] font-black font-mono text-white tracking-[0.1em] uppercase flex items-center gap-2">
+            {/* D-ECOSYSTEM BUTTON (Restored) */}
+            <button 
+                onClick={() => toggleCommandPalette()}
+                className="relative group/eco px-6 py-2.5 bg-[#0a0a0a] border border-white/10 hover:border-[#22d3ee]/40 rounded-xl transition-all duration-500 shadow-2xl overflow-hidden active:scale-95"
+            >
+                <span className="relative z-10 text-[9px] font-black font-mono text-white tracking-[0.2em] uppercase flex items-center gap-3">
                     D-ECOSYSTEM
-                    <ExternalLink size={8} className="text-gray-600 group-hover:text-white" />
+                    <ExternalLink size={12} className="text-gray-600 group-hover:text-[#22d3ee]" />
                 </span>
+                <div className="absolute inset-0 bg-gradient-to-r from-[#9d4edd]/5 to-[#22d3ee]/5 opacity-0 group-hover/eco:opacity-100 transition-opacity" />
             </button>
         </div>
       </header>
 
-      {/* --- CONTENT CONTAINER WITH MINIMAL PADDING --- */}
+      {/* --- CONTENT CONTAINER --- */}
       <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-0' : 'pb-1 overflow-y-auto custom-scrollbar'}`}>
         <SynapticRouter />
       </div>

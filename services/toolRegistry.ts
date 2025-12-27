@@ -7,7 +7,7 @@ import { generateStructuredWorkflow, searchGroundedIntel, convergeStrategicLatti
  * Maps MCP Manifest Identifiers to actual executable code.
  */
 export const OS_TOOLS = {
-    // 1. ARCHITECTURAL PROTOCOLS
+    // 1. ARCHITECTURAL PROTOCOLS (Enhanced with RAG-Anything Multi-modal Logic)
     architect_generate_process: async (args: { 
         description: string; 
         type: 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE' | 'AGENTIC_ORCHESTRATION' | 'CONVERGENT_SYNTHESIS';
@@ -15,15 +15,14 @@ export const OS_TOOLS = {
         dna_profile?: Partial<MentalState>;
     }): Promise<ToolResult> => {
         const { setProcessState, addLog } = useAppStore.getState();
-        console.log(`[Architect] Designing ${args.type}: ${args.description}`);
         
-        addLog('SYSTEM', `ARCHITECT: Synthesizing ${args.type} topology with DNA bias [S:${args.dna_profile?.skepticism || 'MED'}]...`);
+        addLog('SYSTEM', `ARCHITECT: Synthesizing ${args.type} topology with Multi-modal Parsing protocols...`);
         
         try {
             const domainContext = args.type === 'DRIVE_ORGANIZATION' 
-                ? "Generate a high-fidelity PARA drive structure. Include naming conventions (ISO 8601), strict directory depths (max 3), and specific folder mappings for Projects, Areas, Resources, and Archives. Prioritize deduplication." 
+                ? "Generate a high-fidelity PARA structure. Include Multi-modal Parsing stages: 1. Hierarchical Text Extraction, 2. Image Captioning/OCR, 3. Table Content Parsing, 4. Equation Recognition. Map these to root directories." 
                 : args.type === 'SYSTEM_ARCHITECTURE'
-                ? "Generate a cloud-native architecture. Include zero-trust layers, mTLS handshake nodes, and asynchronous message queue clusters."
+                ? "Generate a cloud architecture with a dedicated Deep Ingestion Layer. Stages: Structured Content Listing -> Recursive Knowledge Grounding -> Hybrid Retrieval Bridge (Vector + Graph)."
                 : "Focus on swarm consensus and autonomous agentic delegation.";
 
             const fullPrompt = `${args.description} | DOMAIN_GUIDANCE: ${domainContext} | DIRECTIVE: ${args.custom_directive || 'Standard Optimization'}`;
@@ -35,7 +34,7 @@ export const OS_TOOLS = {
             
             setProcessState({ 
                 generatedWorkflow: workflow, 
-                activeTab: args.type === 'DRIVE_ORGANIZATION' ? 'vault' : 'workflow',
+                activeTab: 'workflow',
                 workflowType: args.type,
                 coherenceScore: workflow.coherenceScore || 85
             });
@@ -44,7 +43,7 @@ export const OS_TOOLS = {
                 toolName: 'architect_generate_process',
                 status: 'SUCCESS',
                 data: { 
-                    message: `Lattice for ${args.type} crystallized. Transitioning to specialized sector.`,
+                    message: `Lattice for ${args.type} crystallized. Multi-modal parsing nodes verified.`,
                     coherence: workflow.coherenceScore,
                     sectors: workflow.taxonomy?.root?.length || 0
                 },
@@ -127,6 +126,7 @@ export const OS_TOOLS = {
     // 5. TASK MANAGEMENT
     update_task_priority: async (args: { taskId: string, priority: TaskPriority }): Promise<ToolResult> => {
         const { updateTask, addLog } = useAppStore.getState();
+        // Fix: Use 'args.taskId' instead of undefined 'task.id'
         updateTask(args.taskId, { priority: args.priority });
         addLog('SUCCESS', `TASK_UPDATE: Prioritized task ${args.taskId} to ${args.priority}`);
         return {

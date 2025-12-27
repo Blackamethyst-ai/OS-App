@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TugOfWarChart } from './Visualizations/TugOfWarChart';
 import { AgentGraveyard } from './Visualizations/AgentGraveyard';
 import { SwarmStatus, AgentDNA } from '../types';
+// Fixed: Added missing import for audio service
+import { audio } from '../services/audioService';
 
 const BicameralEngine: React.FC = () => {
     const { bicameral, setBicameralState, addLog } = useAppStore();
@@ -27,11 +29,16 @@ const BicameralEngine: React.FC = () => {
             const hasKey = await window.aistudio?.hasSelectedApiKey();
             if (!hasKey) { await promptSelectKey(); return; }
 
+            // Fix: Use the imported audio service for UI feedback
+            audio.playClick();
             setBicameralState({ isPlanning: true, plan: [], ledger: [], error: null });
             
             // Combine goal with custom directive for decomposition
             const fullGoal = `${goal}${customDirective ? `\n\nDIRECTIVE: ${customDirective}` : ''}\nAGENT_WEIGHTS: ${JSON.stringify(agentWeights)}`;
             const tasks = await generateDecompositionMap(fullGoal);
+            
+            if (!tasks || tasks.length === 0) throw new Error("Decomposition returned null logic.");
+
             const initialTasks = tasks.map(t => ({ ...t, status: 'PENDING' as const }));
             setBicameralState({ 
                 plan: initialTasks, 
@@ -43,19 +50,23 @@ const BicameralEngine: React.FC = () => {
             
             setBicameralState({ isSwarming: true });
             
+            // Process tasks sequentially in the swarm
             for (let i = 0; i < initialTasks.length; i++) {
                 const task = initialTasks[i];
+                
+                // Set current task to in-progress
                 setBicameralState(prev => ({
                     plan: prev.plan.map(t => t.id === task.id ? { ...t, status: 'IN_PROGRESS' } : t)
                 }));
 
-                const result = await consensusEngine(task, (statusUpdate: SwarmStatus) => {
-                    setBicameralState(prev => ({ 
-                        swarmStatus: { ...statusUpdate, activeDNA: selectedDNA.id, consensusProgress: (statusUpdate.currentGap / statusUpdate.targetGap) * 100 } 
-                    }));
-                });
-                
-                const consensusContent = `
+                try {
+                    const result = await consensusEngine(task, (statusUpdate: SwarmStatus) => {
+                        setBicameralState(prev => ({ 
+                            swarmStatus: { ...statusUpdate, activeDNA: selectedDNA.id, consensusProgress: (statusUpdate.currentGap / statusUpdate.targetGap) * 100 } 
+                        }));
+                    });
+                    
+                    const consensusContent = `
 # BICAMERAL CONSENSUS [BUILD: ${selectedDNA.label}]
 **Task ID:** ${task.id}
 **DNA Logic:** ${selectedDNA.description}
@@ -64,65 +75,77 @@ const BicameralEngine: React.FC = () => {
 ${customDirective ? `**Custom Directive:** ${customDirective}` : ''}
 ---
 ${result.output}
-                `.trim();
+                    `.trim();
 
-                const blob = new Blob([consensusContent], { type: 'text/markdown' });
-                const file = new File([blob], `CONSENSUS_${task.id}.md`, { type: 'text/markdown' });
-                
-                await neuralVault.saveArtifact(file, {
-                    classification: 'CONSENSUS_LEDGER',
-                    ambiguityScore: 100 - result.confidence,
-                    entities: ['Bicameral Swarm', selectedDNA.label],
-                    summary: `Swarm build ${selectedDNA.label} consensus for: ${task.description}`
-                });
+                    const blob = new Blob([consensusContent], { type: 'text/markdown' });
+                    const file = new File([blob], `CONSENSUS_${task.id}.md`, { type: 'text/markdown' });
+                    
+                    await neuralVault.saveArtifact(file, {
+                        classification: 'CONSENSUS_LEDGER',
+                        ambiguityScore: 100 - result.confidence,
+                        entities: ['Bicameral Swarm', selectedDNA.label],
+                        summary: `Swarm build ${selectedDNA.label} consensus for: ${task.description}`
+                    });
 
-                setBicameralState(prev => ({ 
-                    plan: prev.plan.map(t => t.id === task.id ? { ...t, status: 'COMPLETED' } : t),
-                    ledger: [...prev.ledger, result]
-                }));
-                
-                addLog('SUCCESS', `SWARM: Consensus Reached (+${result.voteLedger.count - result.voteLedger.runnerUpCount}).`);
+                    setBicameralState(prev => ({ 
+                        plan: prev.plan.map(t => t.id === task.id ? { ...t, status: 'COMPLETED' } : t),
+                        ledger: [...prev.ledger, result]
+                    }));
+                    
+                    addLog('SUCCESS', `SWARM: Consensus Reached (+${result.voteLedger.count - result.voteLedger.runnerUpCount}).`);
+                } catch (taskErr) {
+                    console.error("Task Swarm Fail", taskErr);
+                    setBicameralState(prev => ({ 
+                        plan: prev.plan.map(t => t.id === task.id ? { ...t, status: 'FAILED' } : t)
+                    }));
+                }
             }
             
             setBicameralState({ isSwarming: false });
+            // Fix: Trigger success audio after sequence completion
+            audio.playSuccess();
 
         } catch (err: any) {
-            setBicameralState({ isPlanning: false, isSwarming: false });
+            setBicameralState({ isPlanning: false, isSwarming: false, error: err.message });
             addLog('ERROR', `BICAMERAL: ${err.message}`);
+            // Fix: Trigger error audio on exception
+            audio.playError();
         }
     };
 
     return (
-        <div className="h-full w-full bg-[#030303] flex font-sans overflow-hidden border border-[#1f1f1f] rounded-xl shadow-2xl relative">
+        <div className="h-full w-full bg-[#030303] flex font-sans overflow-hidden border border-[#1f1f1f] rounded-[2.5rem] shadow-2xl relative">
             <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.02)_1px,transparent_1px)] bg-[size:30px_30px] pointer-events-none"></div>
 
             {/* LEFT: ARCHITECT & DNA BUILDER */}
-            <div className="w-1/3 border-r border-[#1f1f1f] flex flex-col bg-[#050505] relative z-10 shadow-2xl">
-                <div className="p-6 border-b border-[#1f1f1f] bg-[#0a0a0a]">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <BrainCircuit className="w-5 h-5 text-[#9d4edd]" />
-                            <h2 className="text-sm font-bold text-white font-mono uppercase tracking-widest">Architect Core</h2>
+            <div className="w-[380px] border-r border-[#1f1f1f] flex flex-col bg-[#050505] relative z-10 shadow-2xl shrink-0">
+                <div className="p-8 border-b border-[#1f1f1f] bg-[#0a0a0a]">
+                    <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-2.5 bg-[#9d4edd]/10 rounded-xl border border-[#9d4edd]/40">
+                                <BrainCircuit className="w-5 h-5 text-[#9d4edd]" />
+                            </div>
+                            <h2 className="text-xs font-black text-white font-mono uppercase tracking-[0.3em]">Architect Core</h2>
                         </div>
-                        <button onClick={() => setShowControls(!showControls)} className={`p-1.5 rounded transition-colors ${showControls ? 'bg-[#9d4edd] text-black' : 'hover:bg-white/5 text-gray-500'}`}>
-                            <Settings2 size={16} />
+                        <button onClick={() => setShowControls(!showControls)} className={`p-2 rounded-lg transition-all ${showControls ? 'bg-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/20' : 'hover:bg-white/5 text-gray-600'}`}>
+                            <Settings2 size={18} />
                         </button>
                     </div>
                     
                     <AnimatePresence>
                         {showControls && (
-                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mb-6 space-y-6 overflow-hidden border-b border-white/5 pb-6">
-                                <div className="space-y-3">
+                            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="mb-8 space-y-8 overflow-hidden border-b border-white/5 pb-8">
+                                <div className="space-y-4">
                                     <div className="flex justify-between items-end">
                                         <div>
                                             <div className="text-[10px] font-black text-gray-200 uppercase tracking-widest">Logic Skepticism</div>
-                                            <div className="text-[8px] text-gray-600 font-mono">Critical filtering of results</div>
+                                            <div className="text-[8px] text-gray-600 font-mono">Critical filtering intensity</div>
                                         </div>
                                         <span className="text-xs font-black font-mono text-[#ef4444]">{agentWeights.skepticism}%</span>
                                     </div>
-                                    <input type="range" className="w-full h-1 bg-[#222] rounded appearance-none accent-[#ef4444]" value={agentWeights.skepticism} onChange={e => setAgentWeights({...agentWeights, skepticism: parseInt(e.target.value)})} />
+                                    <input type="range" className="w-full h-1 bg-[#1a1a1a] rounded-full appearance-none accent-[#ef4444]" value={agentWeights.skepticism} onChange={e => setAgentWeights({...agentWeights, skepticism: parseInt(e.target.value)})} />
                                 </div>
-                                <div className="space-y-3">
+                                <div className="space-y-4">
                                     <div className="flex justify-between items-end">
                                         <div>
                                             <div className="text-[10px] font-black text-gray-200 uppercase tracking-widest">Neural Excitement</div>
@@ -130,161 +153,166 @@ ${result.output}
                                         </div>
                                         <span className="text-xs font-black font-mono text-[#f59e0b]">{agentWeights.excitement}%</span>
                                     </div>
-                                    <input type="range" className="w-full h-1 bg-[#222] rounded appearance-none accent-[#f59e0b]" value={agentWeights.excitement} onChange={e => setAgentWeights({...agentWeights, excitement: parseInt(e.target.value)})} />
-                                </div>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-end">
-                                        <div>
-                                            <div className="text-[10px] font-black text-gray-200 uppercase tracking-widest">OS Alignment</div>
-                                            <div className="text-[8px] text-gray-600 font-mono">Core directive adherence</div>
-                                        </div>
-                                        <span className="text-xs font-black font-mono text-[#22d3ee]">{agentWeights.alignment}%</span>
-                                    </div>
-                                    <input type="range" className="w-full h-1 bg-[#222] rounded appearance-none accent-[#22d3ee]" value={agentWeights.alignment} onChange={e => setAgentWeights({...agentWeights, alignment: parseInt(e.target.value)})} />
+                                    <input type="range" className="w-full h-1 bg-[#1a1a1a] rounded-full appearance-none accent-[#f59e0b]" value={agentWeights.excitement} onChange={e => setAgentWeights({...agentWeights, excitement: parseInt(e.target.value)})} />
                                 </div>
                                 <div className="space-y-2">
-                                    <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase"><span>Active Overlay Directive</span> <Target size={10} className="text-[#9d4edd]" /></div>
+                                    <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase tracking-widest px-1"><span>Active Directive Overlay</span> <Target size(10) className="text-[#9d4edd]" /></div>
                                     <input 
                                         type="text" 
                                         value={customDirective}
                                         onChange={e => setCustomDirective(e.target.value)}
                                         placeholder="Inject logic anchor for swarm..."
-                                        className="w-full bg-black border border-[#333] px-3 py-2 rounded text-[10px] font-mono text-white outline-none focus:border-[#9d4edd] transition-colors"
+                                        className="w-full bg-black border border-[#333] px-4 py-2.5 rounded-xl text-[10px] font-mono text-white outline-none focus:border-[#9d4edd] transition-colors"
                                     />
                                 </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
 
-                    <div className="mb-6">
-                        <label className="text-[9px] font-mono text-gray-500 uppercase tracking-widest block mb-3 font-bold flex items-center gap-2">
-                            <Dna size={12} className="text-[#9d4edd]" /> Neural DNA Template
+                    <div className="mb-8">
+                        <label className="text-[9px] font-mono text-gray-500 uppercase tracking-widest block mb-4 font-black flex items-center gap-2">
+                            <Dna size={14} className="text-[#9d4edd]" /> Swarm DNA Profile
                         </label>
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-3">
                             {AGENT_DNA_BUILDER.map(dna => (
                                 <button
                                     key={dna.id}
                                     onClick={() => setSelectedDNA(dna)}
                                     disabled={isSwarming}
-                                    className={`p-3 border rounded-xl transition-all text-left flex flex-col gap-1 relative overflow-hidden group
-                                        ${selectedDNA.id === dna.id ? 'bg-[#111] border-[var(--color)] shadow-[inset_0_0_10px_rgba(0,0,0,0.5)]' : 'bg-black border-[#222] opacity-40 hover:opacity-100'}
+                                    className={`p-4 border rounded-2xl transition-all text-left flex flex-col gap-1 relative overflow-hidden group
+                                        ${selectedDNA.id === dna.id ? 'bg-[#111] border-[var(--color)] shadow-2xl' : 'bg-black border-[#222] opacity-30 hover:opacity-100'}
                                     `}
                                     style={{ '--color': dna.color } as any}
                                 >
                                     <div className="flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: dna.color }} />
-                                        <span className={`text-[10px] font-bold font-mono uppercase ${selectedDNA.id === dna.id ? 'text-white' : 'text-gray-500'}`}>{dna.label}</span>
+                                        <div className="w-2 h-2 rounded-full" style={{ backgroundColor: dna.color }} />
+                                        <span className={`text-[10px] font-black font-mono uppercase ${selectedDNA.id === dna.id ? 'text-white' : 'text-gray-500'}`}>{dna.label}</span>
                                     </div>
-                                    <span className="text-[8px] text-gray-600 font-mono leading-tight">{dna.role}</span>
+                                    <span className="text-[8px] text-gray-600 font-mono leading-tight tracking-tighter uppercase">{dna.role}</span>
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-1.5 mb-4">
-                        <label className="text-[9px] font-mono text-gray-500 uppercase tracking-widest font-bold">Goal Manifest</label>
+                    <div className="flex flex-col gap-2 mb-6">
+                        <label className="text-[9px] font-mono text-gray-500 uppercase tracking-widest font-black px-1">Goal Manifest</label>
                         <textarea 
                             value={goal || ''}
                             onChange={e => setBicameralState({ goal: e.target.value })}
                             disabled={isSwarming}
-                            placeholder="Identify core mission objective..."
-                            className="w-full bg-[#050505] border border-[#222] p-4 rounded-xl text-xs font-mono text-white outline-none h-24 resize-none focus:border-[#9d4edd] transition-all shadow-inner placeholder:text-gray-800"
+                            placeholder="Specify primary system goal..."
+                            className="w-full bg-[#050505] border border-[#222] p-5 rounded-[1.5rem] text-xs font-mono text-white outline-none h-28 resize-none focus:border-[#9d4edd] transition-all shadow-inner placeholder:text-gray-800"
                         />
                     </div>
                     
                     <button 
                         onClick={runArchitecture}
                         disabled={isPlanning || isSwarming || !goal?.trim()}
-                        className="w-full py-4 bg-[#9d4edd] text-black font-black font-mono text-xs uppercase tracking-[0.2em] rounded-xl hover:bg-[#b06bf7] transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-[0_0_40px_rgba(157,78,221,0.3)] group"
+                        className="w-full py-5 bg-[#9d4edd] text-black font-black font-mono text-[11px] uppercase tracking-[0.4em] rounded-2xl hover:bg-[#b06bf7] transition-all flex items-center justify-center gap-4 disabled:opacity-50 shadow-[0_20px_60px_rgba(157,78,221,0.4)] active:scale-95 group"
                     >
-                        {isPlanning ? <Loader2 className="w-4 h-4 animate-spin"/> : <GitBranch className="w-4 h-4 group-hover:scale-110 transition-transform"/>}
-                        {isPlanning ? 'DECOMPOSING...' : 'INITIALIZE SWARM'}
+                        {isPlanning || isSwarming ? <Loader2 className="w-5 h-5 animate-spin"/> : <GitBranch className="w-5 h-5 group-hover:scale-110 transition-transform"/>}
+                        {isPlanning ? 'DECOMPOSING...' : isSwarming ? 'SWARM_LIVE' : 'INITIALIZE CONSENSUS'}
                     </button>
                 </div>
                 
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-2 bg-[#030303]">
-                    <div className="flex items-center gap-2 px-2 py-1 text-[8px] font-mono text-gray-600 uppercase tracking-widest border-b border-white/5 mb-3">
-                        <Layers size={10} /> Atomic Task Queue
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-3 bg-[#030303]">
+                    <div className="flex items-center justify-between px-2 mb-4">
+                        <div className="flex items-center gap-3 text-[10px] font-black font-mono text-gray-500 uppercase tracking-widest">
+                            <Layers size={14} /> Neural Queue
+                        </div>
+                        {isSwarming && (
+                             <div className="flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_10px_#10b981]" />
+                                <span className="text-[8px] font-mono text-[#10b981] font-black uppercase">Simulating</span>
+                            </div>
+                        )}
                     </div>
                     {plan.map((task, i) => (
-                        <div key={task.id} className={`p-3 border rounded-xl flex flex-col gap-1 transition-all ${task.status === 'COMPLETED' ? 'border-[#42be65] bg-[#42be65]/5 shadow-[inset_0_0_10px_rgba(66,190,101,0.05)]' : task.status === 'IN_PROGRESS' ? 'border-[#3b82f6] bg-[#3b82f6]/10 animate-pulse' : 'border-[#222] bg-[#111]'}`}>
-                            <div className="flex justify-between items-center text-[9px] font-mono">
-                                <span className={task.status === 'IN_PROGRESS' ? 'text-[#3b82f6]' : 'text-gray-600'}>ATOM_{String(i).padStart(3,'0')}</span>
-                                {task.status === 'COMPLETED' ? <CheckCircle2 className="w-3 h-3 text-[#42be65]" /> : task.status === 'IN_PROGRESS' ? <Activity className="w-3 h-3 text-[#3b82f6]" /> : null}
+                        <motion.div 
+                            key={task.id} 
+                            initial={{ opacity: 0, x: -10 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className={`p-4 border rounded-2xl flex flex-col gap-2 transition-all duration-700 ${task.status === 'COMPLETED' ? 'border-[#42be65]/40 bg-[#42be65]/5 opacity-60' : task.status === 'IN_PROGRESS' ? 'border-[#9d4edd] bg-[#9d4edd]/5 shadow-[0_0_20px_rgba(157,78,221,0.1)]' : 'border-white/5 bg-[#0a0a0a]'}`}
+                        >
+                            <div className="flex justify-between items-center text-[9px] font-mono font-black">
+                                <span className={task.status === 'IN_PROGRESS' ? 'text-[#9d4edd]' : 'text-gray-700'}>NODE_PROTOCOL_{String(i).padStart(3,'0')}</span>
+                                {task.status === 'COMPLETED' ? <CheckCircle2 className="w-4 h-4 text-[#42be65]" /> : task.status === 'IN_PROGRESS' ? <Activity className="w-4 h-4 text-[#9d4edd] animate-pulse" /> : <GitCommit size={14} className="text-gray-800" />}
                             </div>
-                            <div className="text-xs text-gray-300 font-mono truncate">{task.description}</div>
-                        </div>
+                            <div className="text-[11px] text-gray-300 font-mono leading-relaxed truncate">{task.description}</div>
+                        </motion.div>
                     ))}
                     {plan.length === 0 && !isPlanning && (
-                        <div className="h-full flex flex-col items-center justify-center opacity-10 py-12">
-                            <GitCommit size={32} />
-                            <p className="text-[10px] font-mono uppercase mt-2">Queue Empty</p>
+                        <div className="h-full flex flex-col items-center justify-center opacity-10 py-32 grayscale">
+                            <GitCommit size={64} className="mb-8" />
+                            <p className="text-sm font-mono uppercase tracking-[1em]">Queue Empty</p>
                         </div>
                     )}
                 </div>
             </div>
 
             {/* RIGHT: THE SWARM VISUALIZER */}
-            <div className="flex-1 bg-black relative flex flex-col items-center justify-center p-12 overflow-hidden">
-                <div className="absolute inset-0 opacity-5 pointer-events-none flex items-center justify-center">
-                    <Dna className="w-[800px] h-[800px] text-[#9d4edd] animate-[spin_60s_linear_infinite]" />
+            <div className="flex-1 bg-black relative flex flex-col items-center justify-center p-20 overflow-hidden">
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none flex items-center justify-center">
+                    <Dna className="w-[900px] h-[900px] text-[#9d4edd] animate-[spin_100s_linear_infinite]" />
                 </div>
                 
                 {activeTask ? (
-                    <div className="w-full max-w-2xl space-y-8 z-10">
-                        <div className="text-center space-y-4">
-                            <motion.div initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="inline-flex items-center gap-3 px-4 py-1 bg-[#111] border border-[#333] rounded-full">
-                                <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: selectedDNA.color }} />
-                                <span className="text-[10px] font-mono font-black uppercase tracking-[0.2em]" style={{ color: selectedDNA.color }}>{selectedDNA.label} Build Active</span>
+                    <div className="w-full max-w-3xl space-y-12 z-10">
+                        <div className="text-center space-y-6">
+                            <motion.div initial={{ y: -15, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className="inline-flex items-center gap-5 px-6 py-2 bg-[#0a0a0a] border border-white/10 rounded-full shadow-2xl">
+                                <div className="w-2.5 h-2.5 rounded-full animate-pulse shadow-[0_0_15px_currentColor]" style={{ backgroundColor: selectedDNA.color, color: selectedDNA.color }} />
+                                <span className="text-[11px] font-mono font-black uppercase tracking-[0.4em]" style={{ color: selectedDNA.color }}>{selectedDNA.label} Build Active</span>
                             </motion.div>
                             <motion.h1 
                                 key={activeTask.id}
-                                initial={{ opacity: 0, scale: 0.95 }}
+                                initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="text-xl font-bold text-white font-mono leading-relaxed drop-shadow-lg"
+                                className="text-2xl font-black text-white font-mono leading-relaxed drop-shadow-[0_10px_30px_rgba(0,0,0,1)]"
                             >
                                 "{activeTask.description}"
                             </motion.h1>
                             
-                            {/* Consensus Progress Bar */}
-                            <div className="w-full bg-[#111] h-1.5 rounded-full overflow-hidden border border-white/5 max-w-sm mx-auto">
-                                <motion.div 
-                                    className="h-full bg-gradient-to-r from-[#9d4edd] to-[#22d3ee] shadow-[0_0_10px_#9d4edd]"
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${swarmStatus.consensusProgress || 0}%` }}
-                                />
+                            <div className="space-y-4">
+                                <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden border border-white/5 max-w-md mx-auto p-0.5 shadow-inner">
+                                    <motion.div 
+                                        className="h-full bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-[#10b981] shadow-[0_0_20px_#9d4edd]"
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${swarmStatus.consensusProgress || 0}%` }}
+                                        transition={{ duration: 0.8 }}
+                                    />
+                                </div>
+                                <div className="text-[9px] font-black font-mono text-gray-600 uppercase tracking-[0.6em]">Consensus Convergent Node v9.4</div>
                             </div>
-                            <div className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">Agreement Matrix Convergence</div>
                         </div>
 
-                        <div className="grid grid-cols-12 gap-4">
+                        <div className="grid grid-cols-12 gap-8 h-48">
                             <div className="col-span-4"><AgentGraveyard killedCount={swarmStatus.killedAgents} /></div>
                             <div className="col-span-8"><TugOfWarChart votes={swarmStatus.votes} confidenceGap={swarmStatus.targetGap} /></div>
                         </div>
 
-                        <div className="bg-[#050505] border border-[#1f1f1f] rounded-xl p-4 font-mono text-[10px] text-[#42be65] shadow-inner relative overflow-hidden h-32 backdrop-blur-sm group">
-                            <div className="absolute top-2 right-4 flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#42be65] animate-pulse shadow-[0_0_5px_#42be65]" />
-                                <span className="text-[8px] text-gray-600">ENCLAVE_0xAF3_LIVE</span>
+                        <div className="bg-[#050505] border border-white/5 rounded-[2.5rem] p-8 font-mono text-[11px] text-[#42be65] shadow-[inset_0_0_50px_rgba(0,0,0,1)] relative overflow-hidden h-44 backdrop-blur-xl group">
+                            <div className="absolute top-4 right-8 flex items-center gap-3">
+                                <div className="w-2 h-2 rounded-full bg-[#42be65] animate-pulse shadow-[0_0_10px_#42be65]" />
+                                <span className="text-[9px] font-black text-gray-700 uppercase tracking-widest">Enclave_Live_Feed</span>
                             </div>
-                            <div className="overflow-y-auto h-full custom-scrollbar space-y-1 pr-4">
-                                <div>{'>'} UPLINK_STABLE :: AUTH_ACK</div>
-                                <div>{'>'} DNA_VARIANT={selectedDNA.id}</div>
-                                <div>{'>'} WEIGHTS :: S={agentWeights.skepticism} E={agentWeights.excitement} A={agentWeights.alignment}</div>
-                                <div>{'>'} CURRENT_LEADER_MARGIN={swarmStatus.currentGap}</div>
-                                <div>{'>'} TOTAL_AGENTS_SPAWNED={swarmStatus.totalAttempts}</div>
-                                {swarmStatus.killedAgents > 0 && <div className="text-red-500 font-bold">{' > '} TERMINATION_PROTOCOL_ACTIVE :: {swarmStatus.killedAgents} VOIDED</div>}
-                                {swarmStatus.consensusProgress === 100 && <div className="text-[#22d3ee] font-black">{' > '} CONSENSUS_LOCKED :: EXPORTING_LEDGER</div>}
+                            <div className="overflow-y-auto h-full custom-scrollbar space-y-1.5 pr-6">
+                                <div className="opacity-40">[{new Date().toLocaleTimeString()}] UPLINK_STABLE // AUTH_ACK_L0</div>
+                                <div className="flex gap-4"><span className="text-gray-600 shrink-0">{">"} DNA_VARIANT:</span> <span className="text-white font-bold">{selectedDNA.id}</span></div>
+                                <div className="flex gap-4"><span className="text-gray-600 shrink-0">{">"} WEIGHTS:</span> <span className="text-white font-bold tracking-widest">S:{agentWeights.skepticism} E:{agentWeights.excitement} A:{agentWeights.alignment}</span></div>
+                                <div className="flex gap-4"><span className="text-gray-600 shrink-0">{">"} MARGIN_THRESHOLD:</span> <span className="text-[#10b981] font-black">+{swarmStatus.currentGap}</span></div>
+                                <div className="flex gap-4"><span className="text-gray-600 shrink-0">{">"} SPAWNED_NODES:</span> <span className="text-white">{swarmStatus.totalAttempts}</span></div>
+                                {swarmStatus.killedAgents > 0 && <div className="text-red-500 font-black animate-pulse">{" > "} CRITICAL_PURGE :: {swarmStatus.killedAgents} AGENTS_VOIDED_FOR_DRIFT</div>}
+                                {swarmStatus.consensusProgress === 100 && <div className="text-[#22d3ee] font-black bg-[#22d3ee]/10 px-2 py-0.5 rounded w-fit">{" > "} CONSENSUS_LOCKED_STABLE // ARCHIVING_LEDGER...</div>}
                             </div>
                         </div>
                     </div>
                 ) : (
-                    <div className="text-center space-y-4 opacity-30 group cursor-default">
+                    <div className="text-center space-y-10 opacity-10 group cursor-default">
                         <div className="relative">
-                            <div className="absolute inset-0 bg-[#9d4edd]/20 blur-[60px] animate-pulse"></div>
-                            <Zap className="w-16 h-16 text-gray-500 mx-auto transition-transform group-hover:scale-110 relative z-10" />
+                            <div className="absolute inset-0 bg-[#9d4edd]/20 blur-[120px] animate-pulse"></div>
+                            <Zap size={120} className="text-gray-500 mx-auto transition-transform group-hover:scale-125 duration-1000 relative z-10" />
                         </div>
-                        <p className="font-mono text-sm uppercase tracking-[0.4em]">Bicameral Enclave Standing By</p>
+                        <p className="font-mono text-2xl uppercase tracking-[1.2em] text-white">Bicameral Core Standby</p>
                     </div>
                 )}
             </div>

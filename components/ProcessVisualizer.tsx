@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -14,7 +15,7 @@ import {
     FolderTree, Folder, HardDrive, Share2, Target, GitBranch, GitCommit, Layout, Hammer, Network, Shield,
     Merge, FolderOpen, List, ChevronDown, Binary, Radio, FileJson, Clock, Lock, Download,
     SearchCode, BarChart4, Cloud, Image as ImageIcon, CheckCircle2, FileTerminal, FileCode,
-    ArrowUpRight, AlertTriangle, Fingerprint, Search
+    ArrowUpRight, AlertTriangle, Fingerprint, Search, FileSignature, Sigma, Table as TableIcon
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useAppStore } from '../store';
@@ -108,7 +109,6 @@ const CinematicEdge = ({ id, sourceX, sourceY, targetX, targetY, style, markerEn
     );
 };
 
-// --- MFR: Formal Model Sub-component ---
 const FormalModelViewer = ({ model }: { model: any }) => {
     if (!model) return null;
     return (
@@ -295,8 +295,8 @@ const ProcessVisualizerContent = () => {
                     )}
 
                     {activeTab === 'workflow' && (
-                        <motion.div key="workflow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full overflow-y-auto custom-scrollbar p-20">
-                            <div className="max-w-5xl mx-auto space-y-12">
+                        <motion.div key="workflow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full overflow-y-auto custom-scrollbar p-16 flex gap-12">
+                            <div className="flex-1 space-y-12">
                                 {processData.generatedWorkflow?.formalModel && (
                                     <div className="bg-[#0a1a0a] border border-[#10b981]/30 rounded-[2.5rem] p-10 relative overflow-hidden group shadow-2xl">
                                         <div className="absolute top-0 right-0 p-10 opacity-10 rotate-12 group-hover:rotate-6 transition-transform"><CheckCircle2 size={100} className="text-[#10b981]" /></div>
@@ -313,9 +313,17 @@ const ProcessVisualizerContent = () => {
                                 )}
                                 
                                 <div className="space-y-4">
-                                    <div className="flex items-center gap-3 px-2 mb-2">
-                                        <GitCommit size={14} className="text-[#9d4edd]" />
-                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Operational Sequence Protocols</span>
+                                    <div className="flex items-center justify-between px-2 mb-2">
+                                        <div className="flex items-center gap-3">
+                                            <GitCommit size={14} className="text-[#9d4edd]" />
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Operational Sequence Protocols</span>
+                                        </div>
+                                        {processData.coherenceScore && (
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-mono text-gray-600 uppercase tracking-widest">Coherence Index</span>
+                                                <span className="text-xs font-black font-mono text-[#9d4edd]">{processData.coherenceScore}%</span>
+                                            </div>
+                                        )}
                                     </div>
                                     {processData.generatedWorkflow?.protocols?.map((p: any, i: number) => (
                                         <motion.div 
@@ -342,6 +350,54 @@ const ProcessVisualizerContent = () => {
                                             </button>
                                         </motion.div>
                                     ))}
+                                </div>
+                            </div>
+
+                            {/* Sidepanel: Retrieved Information Stack (RAG-Anything Style) */}
+                            <div className="w-80 flex flex-col gap-6 shrink-0">
+                                <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group">
+                                    <div className="flex items-center gap-3 mb-6 relative z-10">
+                                        <Boxes size={18} className="text-[#22d3ee] animate-pulse" />
+                                        <span className="text-[10px] font-black text-white uppercase tracking-[0.4em]">Retrieved Info</span>
+                                    </div>
+                                    <div className="flex flex-col-reverse gap-2 max-h-[400px] overflow-y-auto custom-scrollbar px-2 pb-2">
+                                        {[...Array(6)].map((_, i) => (
+                                            <motion.div 
+                                                key={i}
+                                                initial={{ scale: 0.8, opacity: 0 }}
+                                                animate={{ scale: 1, opacity: 1 - (i * 0.1) }}
+                                                transition={{ delay: i * 0.1 }}
+                                                className="h-10 bg-[#111] border border-white/5 rounded-lg flex items-center px-4 gap-3 group/box hover:bg-[#22d3ee]/10 hover:border-[#22d3ee]/30 transition-all cursor-pointer"
+                                            >
+                                                <div className="w-2 h-2 rounded-sm bg-[#22d3ee] shadow-[0_0_8px_#22d3ee] group-hover/box:scale-110 transition-transform" />
+                                                <div className="text-[8px] font-mono text-gray-500 group-hover/box:text-white uppercase tracking-tighter truncate">
+                                                    FRAG_L0_NODE_{42 - i} // PARSED
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-8 pt-6 border-t border-white/5 text-center">
+                                        <p className="text-[9px] font-mono text-gray-600 uppercase tracking-widest leading-relaxed">
+                                            Grounding data stacked via Hybrid Retrieval Bridge.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] p-8 shadow-2xl flex flex-col justify-between h-64 relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity rotate-12"><Activity size={100} /></div>
+                                    <div>
+                                        <div className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] mb-4">Lattice Status</div>
+                                        <div className="text-3xl font-black font-mono text-[#10b981] tracking-tighter">SECURED</div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                            <motion.div animate={{ width: '92%' }} className="h-full bg-[#10b981]" />
+                                        </div>
+                                        <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase tracking-widest">
+                                            <span>mTLS Bridge</span>
+                                            <span>92%</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>

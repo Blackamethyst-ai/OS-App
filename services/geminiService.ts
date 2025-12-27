@@ -187,9 +187,19 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
                             }
                         }
                     },
-                    constraints: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Invariants that must remain true (e.g. mTLS, depth < 3)." }
+                    constraints: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Invariants that must never be violated (e.g. mTLS, depth < 3)." }
                 },
                 required: ['entities', 'worldState', 'actions', 'constraints']
+            },
+            parsingModalities: {
+                type: Type.OBJECT,
+                description: "Analysis of the multi-modal ingestion pipeline.",
+                properties: {
+                    textHierarchy: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Hierarchical text fragments extracted." },
+                    tablesIdentified: { type: Type.NUMBER, description: "Number of data tables parsed." },
+                    equationsDetected: { type: Type.NUMBER, description: "Number of mathematical equations recognized." },
+                    metadataExtracted: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Relevant metadata keys identified." }
+                }
             },
             internalPlanningMonologue: { type: Type.STRING, description: "Hidden-step reasoning ensuring the plan honors the formal model." },
             protocols: {
@@ -613,7 +623,6 @@ export async function analyzePowerDynamics(target: string, internalContext: stri
     return JSON.parse(response.text || '{}');
 }
 
-// ... existing logic mock functions ...
 export async function analyzeBookDNA() { return {}; }
 export async function simulateExperiment() { return {}; }
 export async function generateTheory() { return ""; }
