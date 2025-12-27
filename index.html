@@ -7,10 +7,26 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@xyflow/react/dist/style.css" rel="stylesheet" />
-    <!-- Added Mermaid JS for Diagram Rendering -->
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
     <style>
-       body { font-family: 'Inter', sans-serif; background-color: #030303; color: white; margin: 0; padding: 0; }
+       :root {
+          --bg-main: #020203;
+          --bg-header: #030303;
+          --bg-side: #050505;
+          --bg-panel: #0a0a0a;
+          --text-main: #e5e5e5;
+          --text-muted: #a3a3a3;
+          --border-main: rgba(255, 255, 255, 0.08);
+       }
+
+       body { 
+          font-family: 'Inter', sans-serif; 
+          background-color: var(--bg-main); 
+          color: var(--text-main); 
+          margin: 0; 
+          padding: 0; 
+          transition: background-color 0.7s ease, color 0.7s ease;
+       }
        .font-mono { font-family: 'Fira Code', monospace; }
        
        /* Custom Scrollbar */
@@ -19,14 +35,24 @@
           height: 6px;
        }
        .custom-scrollbar::-webkit-scrollbar-track {
-          background: #0a0a0a;
+          background: transparent;
        }
        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: #333;
+          background: var(--border-main);
           border-radius: 3px;
        }
        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: #9d4edd;
+       }
+
+       .perspective-2000 { perspective: 2000px; }
+       .perspective-1000 { perspective: 1000px; }
+
+       /* standard glassy container */
+       .glass-panel {
+          background: var(--bg-panel);
+          backdrop-filter: blur(16px);
+          border: 1px solid var(--border-main);
        }
     </style>
   <link rel="stylesheet" href="/index.css">

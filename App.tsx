@@ -36,7 +36,6 @@ import { collabService } from './services/collabService';
 import { audio } from './services/audioService'; 
 import { AnimatePresence, motion } from 'framer-motion';
 
-// --- NAVIGATION CONFIGURATION (Prestigious Suite) ---
 const NAV_CONFIG = [
   { id: AppMode.DASHBOARD, label: 'CORE', path: '/dashboard' },
   { id: AppMode.BIBLIOMORPHIC, label: 'VISION', path: '/bibliomorphic' },
@@ -139,36 +138,63 @@ const App: React.FC = () => {
 
   useEffect(() => { setSector(mode); }, [mode, setSector]);
 
-  useEffect(() => {
-      const handleGlobalKeyDown = (e: KeyboardEvent) => {
-          if ((e.metaKey || e.ctrlKey) && e.key === 'k') { 
-              e.preventDefault(); toggleCommandPalette(); audio.playClick(); 
-          }
-          if ((e.metaKey || e.ctrlKey) && e.key === 's') { 
-              e.preventDefault(); setSearchState({ isOpen: true }); audio.playClick(); 
-          }
-          if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'v') { 
-              e.preventDefault(); setVoiceState({ isActive: !voice.isActive }); audio.playClick(); 
-          }
-          if (e.key === 'F1') {
-              e.preventDefault(); setHelpOpen(!isHelpOpen); audio.playClick();
-          }
-      };
-      window.addEventListener('keydown', handleGlobalKeyDown);
-      return () => window.removeEventListener('keydown', handleGlobalKeyDown);
-  }, [voice.isActive, isHelpOpen, toggleCommandPalette, setSearchState, setVoiceState, setHelpOpen]);
-
-  const switchPath = (path: string) => {
-      window.location.hash = path;
-      audio.playTransition();
-  };
-
   const themeVars = useMemo(() => {
       switch (theme) {
-          case AppTheme.LIGHT: return { '--bg-main': '#f5f5f5', '--text-main': '#171717', '--border-main': '#e5e5e5' };
-          case AppTheme.AMBER: return { '--bg-main': '#0a0500', '--text-main': '#f59e0b', '--border-main': '#451a03' };
-          case AppTheme.MIDNIGHT: return { '--bg-main': '#020617', '--text-main': '#e2e8f0', '--border-main': '#1e293b' };
-          default: return { '--bg-main': '#020203', '--text-main': '#e5e5e5', '--border-main': '#1f1f1f', '--accent-gold': '#f1c21b', '--accent-purple': '#7b2cbf' };
+          case AppTheme.LIGHT: return { 
+              '--bg-main': '#fcfcfd', 
+              '--bg-header': '#ffffff',
+              '--bg-panel': 'rgba(255, 255, 255, 0.95)',
+              '--bg-side': '#f8f9fb',
+              '--bg-card-top': 'rgba(255, 255, 255, 0.8)', 
+              '--bg-card-bottom': 'rgba(240, 240, 245, 0.5)', 
+              '--text-main': '#121212', 
+              '--text-muted': '#666666',
+              '--border-main': 'rgba(0, 0, 0, 0.08)'
+          };
+          case AppTheme.AMBER: return { 
+              '--bg-main': '#0a0500', 
+              '--bg-header': '#0a0500',
+              '--bg-panel': '#0d0700',
+              '--bg-side': '#0d0700',
+              '--bg-card-top': 'rgba(25, 12, 0, 0.8)', 
+              '--bg-card-bottom': 'rgba(15, 8, 0, 0.5)', 
+              '--text-main': '#f59e0b', 
+              '--text-muted': '#78350f',
+              '--border-main': 'rgba(245, 158, 11, 0.15)'
+          };
+          case AppTheme.MIDNIGHT: return { 
+              '--bg-main': '#020617', 
+              '--bg-header': '#020617',
+              '--bg-panel': '#030a21',
+              '--bg-side': '#030a21',
+              '--bg-card-top': 'rgba(15, 23, 42, 0.8)', 
+              '--bg-card-bottom': 'rgba(7, 10, 20, 0.5)', 
+              '--text-main': '#e2e8f0', 
+              '--text-muted': '#64748b',
+              '--border-main': 'rgba(59, 130, 246, 0.15)'
+          };
+          case AppTheme.NEON_CYBER: return { 
+              '--bg-main': '#010101', 
+              '--bg-header': '#010101',
+              '--bg-panel': '#050505',
+              '--bg-side': '#050505',
+              '--bg-card-top': 'rgba(13, 0, 26, 0.8)', 
+              '--bg-card-bottom': 'rgba(0, 5, 15, 0.5)', 
+              '--text-main': '#22d3ee', 
+              '--text-muted': '#d946ef',
+              '--border-main': 'rgba(217, 70, 239, 0.25)'
+          };
+          default: return { 
+              '--bg-main': '#020203', 
+              '--bg-header': '#030303',
+              '--bg-panel': '#050505',
+              '--bg-side': '#080808',
+              '--bg-card-top': 'rgba(12, 12, 16, 0.8)', 
+              '--bg-card-bottom': 'rgba(8, 8, 10, 0.5)', 
+              '--text-main': '#e5e5e5', 
+              '--text-muted': '#a3a3a3',
+              '--border-main': 'rgba(255, 255, 255, 0.08)'
+          };
       }
   }, [theme]);
 
@@ -177,12 +203,13 @@ const App: React.FC = () => {
   , [mode]);
 
   return (
-    <div className="h-screen w-screen font-sans overflow-hidden flex flex-col transition-all duration-500 ease-in-out relative" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', ...themeVars as any }}>
+    <div 
+        className="h-screen w-screen font-sans overflow-hidden flex flex-col transition-all duration-700 ease-in-out relative" 
+        style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', ...themeVars as any }}
+    >
       <Starfield mode={mode} />
       
-      {/* PRESTIGE OVERLAY: Subtle Abberation and Noise */}
-      <div className="absolute inset-0 pointer-events-none z-[200] opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
-      <div className="absolute inset-0 pointer-events-none z-[200] bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)]"></div>
+      <div className="absolute inset-0 pointer-events-none z-[200] opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
 
       <GlobalStatusBar />
 
@@ -192,12 +219,7 @@ const App: React.FC = () => {
       <CommandPalette /> 
       <PeerMeshOverlay />
       <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} /> 
-      <TimeTravelScrubber 
-        mode={mode} 
-        onRestore={() => addLog('INFO', 'Timeline resync successful.')} 
-        isOpen={isScrubberOpen}
-        onClose={() => setScrubberOpen(false)}
-      />
+      <TimeTravelScrubber mode={mode} onRestore={() => addLog('INFO', 'Timeline resync successful.')} isOpen={isScrubberOpen} onClose={() => setScrubberOpen(false)} />
       <OverlayOS /> 
       <HoloProjector /> 
       <ResearchTray /> 
@@ -207,88 +229,54 @@ const App: React.FC = () => {
         {!isHUDClosed && <AgenticHUD />}
       </AnimatePresence>
       
-      {isHUDClosed && (
-          <button 
-            onClick={() => setHUDClosed(false)}
-            className="fixed bottom-12 right-6 p-2 bg-[#f1c21b]/20 border border-[#f1c21b]/40 rounded-full text-[#f1c21b] hover:bg-[#f1c21b] hover:text-black transition-all z-50 pointer-events-auto shadow-[0_0_20px_rgba(241,194,27,0.3)]"
-          >
-              <Activity size={16} />
-          </button>
-      )}
-
       <AnimatePresence>
         {isHelpOpen && <HelpCenter onClose={() => setHelpOpen(false)} />}
       </AnimatePresence>
 
-      {/* --- RESTORED HEADER (64px) --- */}
-      <header className="flex-shrink-0 h-[64px] border-b z-[100] px-8 flex items-center justify-between backdrop-blur-3xl bg-[#030303]/90 border-white/5 shadow-2xl relative">
-        
-        {/* TOP HIGHLIGHT BAR (Purple/Gold Gradient) */}
-        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#7b2cbf] via-[#f1c21b] to-[#7b2cbf] opacity-60 blur-[1px]" />
+      <header className="flex-shrink-0 h-[64px] border-b z-[100] px-8 flex items-center justify-between backdrop-blur-3xl bg-[var(--bg-header)] border-[var(--border-main)] shadow-xl relative transition-colors duration-500">
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#7b2cbf] via-[#f1c21b] to-[#7b2cbf] opacity-40" />
 
-        {/* Left Side: Logo and Navigation Tabs */}
         <div className="flex items-center gap-10 h-full">
-            <div className="flex items-center gap-6 cursor-pointer group" onClick={() => switchPath('/dashboard')}>
+            <div className="flex items-center gap-6 cursor-pointer group" onClick={() => window.location.hash = '/dashboard'}>
                 <MetaventionsLogo size={28} showText={true} />
             </div>
-
-            <div className="h-6 w-px bg-white/5" />
-
-            {/* FULL NAVIGATION MENU (Restored) */}
-            <nav className="flex items-center gap-1 xl:gap-2 overflow-x-auto no-scrollbar max-w-[900px] h-full">
+            <div className="h-6 w-px bg-[var(--border-main)]" />
+            <nav className="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-[900px] h-full">
                 {NAV_CONFIG.map(item => (
                     <button 
                         key={item.id} 
-                        onClick={() => switchPath(item.path)} 
-                        className="relative h-full px-3.5 group flex-shrink-0 flex items-center"
+                        onClick={() => window.location.hash = item.path} 
+                        className="relative h-full px-3 group flex-shrink-0 flex items-center"
                     >
-                        <span className={`text-[10px] xl:text-[10.5px] font-[900] uppercase tracking-[0.25em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b]' : 'text-gray-500 group-hover:text-gray-200'}`}>
+                        <span className={`text-[10px] font-black uppercase tracking-[0.25em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-main)]'}`}>
                             {item.label}
                         </span>
                         {mode === item.id && (
-                            <motion.div 
-                                layoutId="activeTabGlow"
-                                className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-[#7b2cbf] via-[#f1c21b] to-[#7b2cbf] shadow-[0_0_12px_rgba(241,194,27,0.6)]"
-                            />
+                            <motion.div layoutId="activeTabGlow" className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-[#7b2cbf] via-[#f1c21b] to-[#7b2cbf] shadow-[0_0_12px_rgba(241,194,27,0.6)]" />
                         )}
                     </button>
                 ))}
             </nav>
         </div>
 
-        {/* Right Side: Functional Control Stack and D-ECOSYSTEM */}
         <div className="flex items-center gap-6 h-full">
-            <div className="flex items-center h-full pt-1">
-                <GlobalSearchBar />
-            </div>
-            
-            <div className="h-6 w-px bg-white/5" />
-
+            <GlobalSearchBar />
+            <div className="h-6 w-px bg-[var(--border-main)]" />
             <div className="flex items-center gap-1">
                 <ThemeSwitcher />
-                <button 
-                    onClick={() => toggleProfile(true)}
-                    className="p-2.5 text-gray-500 hover:text-[#f1c21b] transition-all rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10"
-                >
+                <button onClick={() => toggleProfile(true)} className="p-2.5 text-[var(--text-muted)] hover:text-[#f1c21b] transition-all rounded-xl hover:bg-black/5 border border-transparent hover:border-[var(--border-main)]">
                     <User size={18} />
                 </button>
             </div>
-
-            {/* D-ECOSYSTEM BUTTON (Award Edition) */}
-            <button 
-                onClick={() => toggleCommandPalette()}
-                className="relative group/eco px-5 py-2 bg-[#0a0a0a] border border-white/10 hover:border-[#f1c21b]/40 rounded-xl transition-all duration-500 shadow-2xl overflow-hidden active:scale-95"
-            >
-                <span className="relative z-10 text-[9px] font-black font-mono text-white tracking-[0.3em] uppercase flex items-center gap-3 text-[#f1c21b]">
+            <button onClick={() => toggleCommandPalette()} className="relative group/eco px-5 py-2 bg-[var(--bg-main)] border border-[var(--border-main)] hover:border-[#f1c21b]/40 rounded-xl transition-all duration-500 shadow-lg overflow-hidden active:scale-95">
+                <span className="relative z-10 text-[9px] font-black font-mono tracking-[0.3em] uppercase flex items-center gap-3 text-[#f1c21b]">
                     D-ECOSYSTEM
-                    <ExternalLink size={11} className="text-gray-600 group-hover:text-[#f1c21b] transition-colors" />
+                    <ExternalLink size={11} className="text-[var(--text-muted)] group-hover:text-[#f1c21b] transition-colors" />
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-[#7b2cbf]/10 to-[#f1c21b]/10 opacity-0 group-hover/eco:opacity-100 transition-opacity" />
             </button>
         </div>
       </header>
 
-      {/* --- CONTENT CONTAINER --- */}
       <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-0' : 'pb-1 overflow-y-auto custom-scrollbar'}`}>
         <SynapticRouter />
       </div>
