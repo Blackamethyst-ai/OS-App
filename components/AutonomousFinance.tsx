@@ -477,7 +477,7 @@ const AutonomousFinance: React.FC = () => {
                                                 className="flex-1 py-5 bg-[#10b981] text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] shadow-xl hover:bg-[#15d694] active:scale-95 transition-all flex items-center justify-center gap-3"
                                             >
                                                 Authorize Disbursement
-                                                <ArrowRight size={14}/>
+                                                <ArrowRight size={14} />
                                             </button>
                                         </div>
                                     </motion.div>

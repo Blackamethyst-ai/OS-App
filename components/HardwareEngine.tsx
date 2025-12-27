@@ -386,7 +386,6 @@ const HardwareEngine: React.FC = () => {
                                     )}
                                 </AnimatePresence>
                             </motion.div>
-                        /* Fix: Remove redundant viewMode comparison after it's been narrowed by the previous ternary branch */
                         ) : !schematicImage ? (
                             <div className="h-full flex flex-col gap-6">
                                 <div className="grid grid-cols-4 gap-4 shrink-0">

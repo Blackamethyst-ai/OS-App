@@ -498,7 +498,7 @@ const Dashboard: React.FC = () => {
                                 { label: 'Sync', icon: HardDrive, action: () => handleQuickForge('DRIVE'), color: '#22d3ee' },
                                 { label: 'Forge', icon: Server, action: () => handleQuickForge('ARCH'), color: '#9d4edd' }
                              ].map((btn) => (
-                                 <button key={btn.label} onClick={btn.action} className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black font-mono uppercase tracking-widest text-gray-500 hover:text-white transition-all flex items-center gap-3 active:scale-95 shadow-lg">
+                                 <button key={btn.label} onClick={btn.action} className="px-5 py-2 bg-white/5 border border-white/10 hover:border-white/20 rounded-xl text-[9px] font-black font-mono uppercase tracking-widest text-gray-500 hover:text-white transition-all flex items-center gap-3 active:scale-95 shadow-lg">
                                      <btn.icon size={11} style={{ color: btn.color }} /> {btn.label}
                                  </button>
                              ))}
@@ -543,7 +543,7 @@ const Dashboard: React.FC = () => {
                           <DollarSign size={16} className="text-[#22d3ee]" />
                           <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Capital Pulse</span>
                       </div>
-                      <div className="space-y-3 relative z-10 flex-1 flex flex-col justify-center px-1">
+                      <div className="space-y-3 relative z-10 flex-1 flex flex-col justify-center px-2">
                           {[
                               { label: 'Compute Arb', val: 94, color: '#9d4edd', usage: '+$1.2k/hr' },
                               { label: 'Network Stake', val: 82, color: '#22d3ee', usage: '+$420/day' },
