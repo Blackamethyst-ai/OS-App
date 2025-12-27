@@ -1,10 +1,9 @@
-
 import React, { useEffect, useState, Suspense, lazy, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Copy, Eye, Wand2, Terminal, Code, X, Search, Activity, 
-    Layers, ArrowUpRight, Hash, Database, GitBranch, Loader2 
+    Layers, ArrowUpRight, Hash, Database, GitBranch, Loader2, Scan 
 } from 'lucide-react';
 import { performGlobalSearch } from '../services/geminiService';
 import { AppMode } from '../types';
@@ -127,6 +126,18 @@ const SynapticRouter: React.FC = () => {
                   });
                 }
                 break;
+            case 'DEEP_SCAN':
+                if (targetContent && contextType === 'IMAGE') {
+                  addLog('SYSTEM', 'DIAGNOSTIC: Initializing Deep Sector Scan...');
+                  openHoloProjector({
+                      id: `scan-${Date.now()}`,
+                      type: 'IMAGE',
+                      title: 'Sovereign Diagnostic Scan',
+                      content: targetContent
+                  });
+                  // Note: In a real app, we might automatically trigger the analysis in HoloProjector
+                }
+                break;
             case 'COPY':
                 if (targetContent) {
                     navigator.clipboard.writeText(targetContent);
@@ -215,6 +226,16 @@ const SynapticRouter: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex flex-col gap-0.5">
+                            {contextMenu.contextType === 'IMAGE' && (
+                                <MenuItem icon={Scan} label="DEEP_SCAN DIAGNOSTIC" onClick={() => handleAction('DEEP_SCAN')} />
+                            )}
+                            <MenuItem icon={Eye} label="Holo Project" onClick={() => handleAction('HOLO_VIEW')} />
+                            <MenuItem icon={Copy} label="Buffer Copy" onClick={() => handleAction('COPY')} />
+                            <MenuItem icon={Search} label="Grounding Search" onClick={() => handleAction('SEARCH')} />
+                            {contextMenu.contextType === 'CODE' && (
+                                <MenuItem icon={Terminal} label="Forge in Studio" onClick={() => handleAction('JUMP_CODE')} />
+                            )}
+                            <div className="h-px bg-[#222] my-1" />
                             <MenuItem icon={ArrowUpRight} label="Dashboard" onClick={() => window.location.hash = '/dashboard'} />
                             <MenuItem icon={Activity} label="Diagnostics" onClick={() => window.location.hash = '/memory'} />
                             <MenuItem icon={Terminal} label="Terminal" onClick={() => toggleTerminal(true)} />
