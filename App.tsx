@@ -36,17 +36,17 @@ import { collabService } from './services/collabService';
 import { audio } from './services/audioService'; 
 import { AnimatePresence, motion } from 'framer-motion';
 
-// --- NAVIGATION CONFIGURATION (Restored Suite) ---
+// --- NAVIGATION CONFIGURATION (Prestigious Suite) ---
 const NAV_CONFIG = [
-  { id: AppMode.DASHBOARD, label: 'HOME', path: '/dashboard' },
+  { id: AppMode.DASHBOARD, label: 'CORE', path: '/dashboard' },
   { id: AppMode.BIBLIOMORPHIC, label: 'VISION', path: '/bibliomorphic' },
-  { id: AppMode.PROCESS_MAP, label: 'PROCESS', path: '/process' },
+  { id: AppMode.PROCESS_MAP, label: 'LOGIC', path: '/process' },
   { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance' },
-  { id: AppMode.CODE_STUDIO, label: 'CODE', path: '/code' },
-  { id: AppMode.AGENT_CONTROL, label: 'AGENTS', path: '/agents' },
+  { id: AppMode.CODE_STUDIO, label: 'FORGE', path: '/code' },
+  { id: AppMode.AGENT_CONTROL, label: 'SWARM', path: '/agents' },
   { id: AppMode.MEMORY_CORE, label: 'VAULT', path: '/memory' },
   { id: AppMode.IMAGE_GEN, label: 'STUDIO', path: '/assets' },
-  { id: AppMode.HARDWARE_ENGINEER, label: 'HARDWARE', path: '/hardware' },
+  { id: AppMode.HARDWARE_ENGINEER, label: 'LATTICE', path: '/hardware' },
   { id: AppMode.VOICE_MODE, label: 'VOICE', path: '/voice' },
   { id: AppMode.SYNTHESIS_BRIDGE, label: 'BRIDGE', path: '/bridge' },
 ];
@@ -168,7 +168,7 @@ const App: React.FC = () => {
           case AppTheme.LIGHT: return { '--bg-main': '#f5f5f5', '--text-main': '#171717', '--border-main': '#e5e5e5' };
           case AppTheme.AMBER: return { '--bg-main': '#0a0500', '--text-main': '#f59e0b', '--border-main': '#451a03' };
           case AppTheme.MIDNIGHT: return { '--bg-main': '#020617', '--text-main': '#e2e8f0', '--border-main': '#1e293b' };
-          default: return { '--bg-main': '#030303', '--text-main': '#e5e5e5', '--border-main': '#1f1f1f' };
+          default: return { '--bg-main': '#020203', '--text-main': '#e5e5e5', '--border-main': '#1f1f1f', '--accent-gold': '#f1c21b', '--accent-purple': '#7b2cbf' };
       }
   }, [theme]);
 
@@ -180,6 +180,10 @@ const App: React.FC = () => {
     <div className="h-screen w-screen font-sans overflow-hidden flex flex-col transition-all duration-500 ease-in-out relative" style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', ...themeVars as any }}>
       <Starfield mode={mode} />
       
+      {/* PRESTIGE OVERLAY: Subtle Abberation and Noise */}
+      <div className="absolute inset-0 pointer-events-none z-[200] opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
+      <div className="absolute inset-0 pointer-events-none z-[200] bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)]"></div>
+
       <GlobalStatusBar />
 
       <FocusOverlay />
@@ -206,7 +210,7 @@ const App: React.FC = () => {
       {isHUDClosed && (
           <button 
             onClick={() => setHUDClosed(false)}
-            className="fixed bottom-12 right-6 p-2 bg-[#9d4edd]/20 border border-[#9d4edd]/40 rounded-full text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black transition-all z-50 pointer-events-auto"
+            className="fixed bottom-12 right-6 p-2 bg-[#f1c21b]/20 border border-[#f1c21b]/40 rounded-full text-[#f1c21b] hover:bg-[#f1c21b] hover:text-black transition-all z-50 pointer-events-auto shadow-[0_0_20px_rgba(241,194,27,0.3)]"
           >
               <Activity size={16} />
           </button>
@@ -219,8 +223,8 @@ const App: React.FC = () => {
       {/* --- RESTORED HEADER (64px) --- */}
       <header className="flex-shrink-0 h-[64px] border-b z-[100] px-8 flex items-center justify-between backdrop-blur-3xl bg-[#030303]/90 border-white/5 shadow-2xl relative">
         
-        {/* TOP HIGHLIGHT BAR (Purple/Cyan Gradient) */}
-        <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-transparent opacity-80" />
+        {/* TOP HIGHLIGHT BAR (Purple/Gold Gradient) */}
+        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#7b2cbf] via-[#f1c21b] to-[#7b2cbf] opacity-60 blur-[1px]" />
 
         {/* Left Side: Logo and Navigation Tabs */}
         <div className="flex items-center gap-10 h-full">
@@ -228,7 +232,7 @@ const App: React.FC = () => {
                 <MetaventionsLogo size={28} showText={true} />
             </div>
 
-            <div className="h-8 w-px bg-white/10" />
+            <div className="h-6 w-px bg-white/5" />
 
             {/* FULL NAVIGATION MENU (Restored) */}
             <nav className="flex items-center gap-1 xl:gap-2 overflow-x-auto no-scrollbar max-w-[900px] h-full">
@@ -236,15 +240,15 @@ const App: React.FC = () => {
                     <button 
                         key={item.id} 
                         onClick={() => switchPath(item.path)} 
-                        className="relative h-full px-4 group flex-shrink-0 flex items-center"
+                        className="relative h-full px-3.5 group flex-shrink-0 flex items-center"
                     >
-                        <span className={`text-[10px] xl:text-[11px] font-[900] uppercase tracking-[0.2em] font-mono transition-all duration-500 ${mode === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-200'}`}>
+                        <span className={`text-[10px] xl:text-[10.5px] font-[900] uppercase tracking-[0.25em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b]' : 'text-gray-500 group-hover:text-gray-200'}`}>
                             {item.label}
                         </span>
                         {mode === item.id && (
                             <motion.div 
                                 layoutId="activeTabGlow"
-                                className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-[#00f2ff] shadow-[0_0_12px_rgba(34,211,238,0.6)]"
+                                className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-[#7b2cbf] via-[#f1c21b] to-[#7b2cbf] shadow-[0_0_12px_rgba(241,194,27,0.6)]"
                             />
                         )}
                     </button>
@@ -253,33 +257,33 @@ const App: React.FC = () => {
         </div>
 
         {/* Right Side: Functional Control Stack and D-ECOSYSTEM */}
-        <div className="flex items-center gap-8 h-full">
+        <div className="flex items-center gap-6 h-full">
             <div className="flex items-center h-full pt-1">
                 <GlobalSearchBar />
             </div>
             
-            <div className="h-8 w-px bg-white/10" />
+            <div className="h-6 w-px bg-white/5" />
 
             <div className="flex items-center gap-1">
                 <ThemeSwitcher />
                 <button 
                     onClick={() => toggleProfile(true)}
-                    className="p-2.5 text-gray-500 hover:text-[#9d4edd] transition-all rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10"
+                    className="p-2.5 text-gray-500 hover:text-[#f1c21b] transition-all rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10"
                 >
                     <User size={18} />
                 </button>
             </div>
 
-            {/* D-ECOSYSTEM BUTTON (Restored) */}
+            {/* D-ECOSYSTEM BUTTON (Award Edition) */}
             <button 
                 onClick={() => toggleCommandPalette()}
-                className="relative group/eco px-6 py-2.5 bg-[#0a0a0a] border border-white/10 hover:border-[#22d3ee]/40 rounded-xl transition-all duration-500 shadow-2xl overflow-hidden active:scale-95"
+                className="relative group/eco px-5 py-2 bg-[#0a0a0a] border border-white/10 hover:border-[#f1c21b]/40 rounded-xl transition-all duration-500 shadow-2xl overflow-hidden active:scale-95"
             >
-                <span className="relative z-10 text-[9px] font-black font-mono text-white tracking-[0.2em] uppercase flex items-center gap-3">
+                <span className="relative z-10 text-[9px] font-black font-mono text-white tracking-[0.3em] uppercase flex items-center gap-3 text-[#f1c21b]">
                     D-ECOSYSTEM
-                    <ExternalLink size={12} className="text-gray-600 group-hover:text-[#22d3ee]" />
+                    <ExternalLink size={11} className="text-gray-600 group-hover:text-[#f1c21b] transition-colors" />
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-[#9d4edd]/5 to-[#22d3ee]/5 opacity-0 group-hover/eco:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-gradient-to-r from-[#7b2cbf]/10 to-[#f1c21b]/10 opacity-0 group-hover/eco:opacity-100 transition-opacity" />
             </button>
         </div>
       </header>

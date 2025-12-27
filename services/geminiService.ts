@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type, Modality, GenerateContentResponse, LiveServerMessage, Schema } from "@google/genai";
+import { GoogleGenAI, Type, Modality, GenerateContentResponse, LiveServerMessage, Schema, Blob } from "@google/genai";
 import { 
     AppMode, AspectRatio, ImageSize, FileData, MentalState, 
     Result, AnalysisResult, AutonomousAgent, OperationalContext,
@@ -9,9 +9,6 @@ import {
 // Helper to initialize the GenAI client with the latest API key
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-/**
- * generateEmbedding for vector search using text-embedding-004.
- */
 export async function generateEmbedding(text: string): Promise<number[]> {
     try {
         const ai = getAI();
@@ -63,8 +60,6 @@ export async function fileToGenerativePart(file: File): Promise<FileData> {
     });
 }
 
-// --- CONSTANTS ---
-
 export const HIVE_AGENTS: Record<string, any> = {
     'Charon': { id: 'charon', name: 'Charon', voice: 'Charon', weights: { skepticism: 0.9, logic: 0.8, creativity: 0.2, empathy: 0.1 }, systemPrompt: 'You are Charon, the Logical Auditor. Your focus is identifying systemic flaws, security risks, and logical inconsistencies.' },
     'Puck': { id: 'puck', name: 'Puck', voice: 'Puck', weights: { skepticism: 0.1, logic: 0.4, creativity: 0.9, empathy: 0.7 }, systemPrompt: 'You are Puck, the Generative Architect. Your focus is creative expansion, novel synthesis, and visionary possibilities.' },
@@ -78,8 +73,6 @@ export const AGENT_DNA_BUILDER = [
     { id: 'PRAGMATIST', label: 'Pragmatist', role: 'Optimizer', color: '#22d3ee', description: 'Prioritizes execution speed.' },
     { id: 'SYNTHESIZER', label: 'Synthesizer', role: 'Harmonizer', color: '#10b981', description: 'Prioritizes alignment.' }
 ];
-
-// --- CORE OS FUNCTIONS ---
 
 export async function interpretIntent(input: string) {
     const ai = getAI();
@@ -113,13 +106,25 @@ export async function performGlobalSearch(query: string) {
     return [{ id: '1', title: 'Intelligence Signal', description: response.text || '', type: 'INFO', meta: { sources } }];
 }
 
-// --- ASSET STUDIO ---
-
 export async function generateArchitectureImage(prompt: string, aspectRatio: AspectRatio, quality: ImageSize, reference?: FileData | null) {
     const ai = getAI();
     const parts: any[] = [];
     if (reference) parts.push({ inlineData: reference.inlineData });
-    parts.push({ text: prompt });
+    
+    // SOVEREIGN EMPIRE STANDARD (Refined from Wakanda to METAVENTIONS Empire)
+    const metaventionsDirective = `
+        STRICT CHARACTER LOCK: Maintain the EXACT facial features, skin tone, and identity of the provided reference image.
+        AESTHETIC: METAVENTIONS AI SOVEREIGN EMPIRE. 
+        STYLE: High-class, upper-echelon, hyper-realistic cinematic fashion editorial. 
+        SUBJECT: A socially polished, perfectly groomed black professional. 
+        HAIR: Razor-sharp high-quality fade with flawless grooming. 
+        APPAREL: Imperial futuristic corporate attire; obsidian-black materials with intricate gold and royal purple accents. 
+        ENVIRONMENT: Sleek, industrial-designer minimalist office with holographic data streams and obsidian surfaces. 
+        LIGHTING: Dramatic key lighting with anamorphic lens flares. 
+        ATMOSPHERE: Powerful, regal, visionary, and technologically supreme. 8k resolution.
+    `;
+    
+    parts.push({ text: `${metaventionsDirective} Scene Narrative: ${prompt}` });
 
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-image-preview',
@@ -139,34 +144,9 @@ export async function analyzeImageVision(data: FileData) {
     return response.text || "";
 }
 
-// --- PROCESS VISUALIZER (MFR Implementation) ---
-
-/**
- * generateStructuredWorkflow refactored for MFR (Model-First Reasoning).
- * Implements: Problem Description -> Explicit Problem Model -> Reasoning/Planning Over Model -> Structured Plan.
- */
 export async function generateStructuredWorkflow(files: FileData[], governance: string, type: string, mapContext: any) {
     const ai = getAI();
-    
-    // Systematic MFR Protocol
-    const systemInstruction = `
-        You are a Model-First Reasoning (MFR) System Architect. 
-        Failures in multi-step planning arise from deficiencies in representation, not just inference.
-        You MUST separate problem modeling from reasoning. 
-        
-        PHASE 1: CONSTRUCT EXPLICIT PROBLEM MODEL
-        - Identify all relevant Entities (actors, data units).
-        - Define State Variables (mutable properties of entities).
-        - List Actions with strict Preconditions and Effects (how they change state).
-        - Define global Constraints (invariants that must never be violated).
-        
-        PHASE 2: REASONING & PLANNING
-        - Conduct reasoning strictly with respect to the constructed model.
-        - Ensure all constraints are satisfied before proposing the final plan.
-        
-        Governance Context: ${governance}
-    `;
-
+    const systemInstruction = `You are a Model-First Reasoning (MFR) System Architect. Separating problem modeling from reasoning. Governance: ${governance}`;
     const mfrSchema: Schema = {
         type: Type.OBJECT,
         properties: {
@@ -174,90 +154,32 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
             formalModel: {
                 type: Type.OBJECT,
                 properties: {
-                    entities: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Core objects in the domain." },
-                    worldState: { type: Type.STRING, description: "Explicit description of the initial environment state." },
-                    actions: {
-                        type: Type.ARRAY,
-                        items: {
-                            type: Type.OBJECT,
-                            properties: {
-                                name: { type: Type.STRING },
-                                precondition: { type: Type.STRING },
-                                effect: { type: Type.STRING }
-                            }
-                        }
-                    },
-                    constraints: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Invariants that must never be violated (e.g. mTLS, depth < 3)." }
+                    entities: { type: Type.ARRAY, items: { type: Type.STRING } },
+                    worldState: { type: Type.STRING },
+                    actions: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, precondition: { type: Type.STRING }, effect: { type: Type.STRING } } } },
+                    constraints: { type: Type.ARRAY, items: { type: Type.STRING } }
                 },
                 required: ['entities', 'worldState', 'actions', 'constraints']
             },
-            parsingModalities: {
-                type: Type.OBJECT,
-                description: "Analysis of the multi-modal ingestion pipeline.",
-                properties: {
-                    textHierarchy: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Hierarchical text fragments extracted." },
-                    tablesIdentified: { type: Type.NUMBER, description: "Number of data tables parsed." },
-                    equationsDetected: { type: Type.NUMBER, description: "Number of mathematical equations recognized." },
-                    metadataExtracted: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Relevant metadata keys identified." }
-                }
-            },
-            internalPlanningMonologue: { type: Type.STRING, description: "Hidden-step reasoning ensuring the plan honors the formal model." },
-            protocols: {
-                type: Type.ARRAY,
-                items: {
-                    type: Type.OBJECT,
-                    properties: {
-                        role: { type: Type.STRING },
-                        instruction: { type: Type.STRING },
-                        modelConstraintRef: { type: Type.STRING, description: "Which formal model constraint this step addresses." }
-                    }
-                }
-            },
-            taxonomy: {
-                type: Type.OBJECT,
-                properties: {
-                    root: {
-                        type: Type.ARRAY,
-                        items: {
-                            type: Type.OBJECT,
-                            properties: {
-                                folder: { type: Type.STRING },
-                                items: { type: Type.ARRAY, items: { type: Type.STRING } }
-                            }
-                        }
-                    }
-                }
-            },
+            internalPlanningMonologue: { type: Type.STRING },
+            protocols: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { role: { type: Type.STRING }, instruction: { type: Type.STRING }, modelConstraintRef: { type: Type.STRING } } } },
             coherenceScore: { type: Type.NUMBER }
         },
         required: ['title', 'formalModel', 'internalPlanningMonologue', 'protocols', 'coherenceScore']
     };
-
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: `Task Category: ${type}. Directive: ${mapContext.prompt || 'Optimizing autonomous system logic'}. Context: ${JSON.stringify(mapContext)}.`,
-        config: { 
-            systemInstruction,
-            responseMimeType: 'application/json',
-            responseSchema: mfrSchema
-        }
+        config: { systemInstruction, responseMimeType: 'application/json', responseSchema: mfrSchema }
     });
-
     return JSON.parse(response.text || '{}');
 }
-
-// --- TACTICAL SECTOR IMPLEMENTATIONS ---
 
 export async function analyzeSchematic(data: FileData) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: {
-            parts: [
-                { inlineData: data.inlineData },
-                { text: "Perform a forensic hardware schematic analysis. Identify components, logical clusters, and potential thermal bottlenecks. Return JSON { components: [{name: string, confidence: number}], summary: string }." }
-            ]
-        },
+        contents: { parts: [{ inlineData: data.inlineData }, { text: "Fornsic hardware schematic analysis. Return JSON { components: [{name: string, confidence: number}], summary: string }." }] },
         config: { responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
@@ -277,12 +199,7 @@ export async function generateXRayVariant(data: FileData) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: {
-            parts: [
-                { inlineData: data.inlineData },
-                { text: "Generate a stylized X-ray thermal diagnostic variant of this hardware schematic. Use electric blue, neon orange, and deep black aesthetics." }
-            ]
-        }
+        contents: { parts: [{ inlineData: data.inlineData }, { text: "X-ray thermal diagnostic variant. Electric blue, neon orange, deep black." }] }
     });
     const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
     return part ? `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` : "";
@@ -292,12 +209,7 @@ export async function generateIsometricSchematic(data: FileData) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: {
-            parts: [
-                { inlineData: data.inlineData },
-                { text: "Create a professional high-fidelity 3D isometric exploded view render based on this 2D hardware schematic." }
-            ]
-        }
+        contents: { parts: [{ inlineData: data.inlineData }, { text: "3D isometric exploded view render." }] }
     });
     const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
     return part ? `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` : "";
@@ -307,7 +219,7 @@ export async function getLiveSupplyChainData(componentName: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Find real-time procurement data for: "${componentName}". Include current price and shipping lead time from major vendors. Return JSON {source, price, leadTime}.`,
+        contents: `Procurement data for: "${componentName}". JSON {source, price, leadTime}.`,
         config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
@@ -317,7 +229,7 @@ export async function generateHardwareDeploymentManifest(bom: any[]) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Synthesize a detailed technical deployment manifest and assembly guide for this BOM: ${JSON.stringify(bom)}.`
+        contents: `Technical deployment manifest for BOM: ${JSON.stringify(bom)}.`
     });
     return response.text || "";
 }
@@ -326,7 +238,7 @@ export async function analyzeCrossSectorImpact(performance: any, metaventions: a
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Analyze financial and operational consequences of this hardware state: ${JSON.stringify(performance)} against current strategy context: ${JSON.stringify(metaventions)}. Return JSON {totalBomCost: number, roiProjection: number, maintenanceEst: number}.`,
+        contents: `Cross-sector impact analysis. JSON {totalBomCost: number, roiProjection: number, maintenanceEst: number}.`,
         config: { responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
@@ -334,9 +246,10 @@ export async function analyzeCrossSectorImpact(performance: any, metaventions: a
 
 export async function generateAvatar(role: string, name: string) {
     const ai = getAI();
+    const prompt = `Cinematic editorial portrait for a ${role} named ${name}. METAVENTIONS AI SOVEREIGN EMPIRE look. High-class black professional, imperial futuristic aesthetics. Razor-sharp fade haircut, perfectly groomed. Royal purple and gold palette. 8k, hyper-realistic.`;
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: `Create a cinematic, hyper-detailed futuristic profile avatar for a ${role} named ${name}. Obsidian surface, neon highlights, cybernetic enhancements, portrait view.`
+        contents: prompt
     });
     const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
     return part ? `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` : "";
@@ -346,7 +259,7 @@ export async function generateStoryboardPlan(directive: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Create a 5-frame cinematic storyboard sequence for: "${directive}". For each frame specify {scenePrompt, continuity, camera, lighting}. Return JSON array.`,
+        contents: `5-frame cinematic storyboard for: "${directive}". JSON array [{scenePrompt, continuity, camera, lighting}].`,
         config: { responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
@@ -356,12 +269,7 @@ export async function constructCinematicPrompt(prompt: string, colorway: any, ch
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Refine this user prompt for hyper-realistic cinematic rendering: "${prompt}". 
-        Colorway: ${JSON.stringify(colorway)}. 
-        Active Reference Vectors: Character:${char}, World:${world}, Style:${style}. 
-        Director Notes: ${notes || 'Standard realism'}. 
-        Preset: ${preset || '35mm Anamorphic'}. 
-        Return only the optimized prompt string.`
+        contents: `Convert this prompt into a Metaventions Sovereign Empire cinematic directive: "${prompt}". Focus on regal black professionals, obsidian textures, and royal highlights.`
     });
     return response.text || prompt;
 }
@@ -370,7 +278,7 @@ export async function generateCode(prompt: string, lang: string, model: string =
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: model as any,
-        contents: `Synthesize high-fidelity, production-ready ${lang} code for: "${prompt}". Provide only the code block with no preamble or wrapping.`
+        contents: `Synthesize production-ready ${lang} code for: "${prompt}". Code block only.`
     });
     return response.text || "";
 }
@@ -379,7 +287,7 @@ export async function validateSyntax(code: string, lang: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Analyze this ${lang} logic for errors: \n\n${code}\n\nReturn JSON array of errors: [{line: number, message: string}]. Return empty array if valid.`,
+        contents: `Syntax check ${lang}. JSON array [{line, message}].`,
         config: { responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
@@ -389,20 +297,18 @@ export async function assessInvestmentRisk(strategy: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Perform a forensic risk assessment on this financial strategy: "${strategy}". Return JSON {riskScore: number, factors: string[], recommendation: string}.`,
+        contents: `Forensic risk assessment for: "${strategy}". JSON {riskScore, factors, recommendation}.`,
         config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
-
-// --- CORE UTILITIES ---
 
 export async function simulateAgentStep(workflow: any, index: number, history: ProtocolStepResult[]) {
     const ai = getAI();
     const step = workflow.protocols[index];
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Role: ${step.role}. Instruction: ${step.instruction}. Model Constraints: ${JSON.stringify(workflow.formalModel?.constraints)}. History: ${JSON.stringify(history)}. Output JSON {output, agentThought}.`,
+        contents: `Role: ${step.role}. Instruction: ${step.instruction}. History: ${JSON.stringify(history)}. JSON {output, agentThought}.`,
         config: { responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
@@ -412,7 +318,7 @@ export async function generateMermaidDiagram(governance: string, files: FileData
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Governance: ${governance}. Context: ${JSON.stringify(contexts)}. Generate only a valid Mermaid.js diagram source block.`,
+        contents: `Generate Mermaid.js diagram source. Governance: ${governance}.`,
     });
     return response.text || "";
 }
@@ -421,17 +327,16 @@ export async function generateDriveShellScript(taxonomy: any) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Taxonomy: ${JSON.stringify(taxonomy)}. Generate a robust POSIX-compliant shell script to establish this directory structure.`,
+        contents: `POSIX shell script for taxonomy: ${JSON.stringify(taxonomy)}.`,
     });
     return response.text?.replace(/```[a-z]*\n/i, '').replace(/\n```$/, '').trim() || "";
 }
 
-// ... rest of the file stays same for logic ...
 export async function generateHypotheses(facts: string[]): Promise<ScienceHypothesis[]> {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Facts: ${facts.join('\n')}. Generate 3 hypotheses JSON.`,
+        contents: `Hypotheses for facts: ${facts.join('\n')}. JSON array.`,
         config: { responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
@@ -441,7 +346,7 @@ export async function compressKnowledge(nodes: KnowledgeNode[]) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Nodes: ${JSON.stringify(nodes)}. Compress to Axioms JSON.`,
+        contents: `Compress to Axioms JSON.`,
         config: { responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
@@ -452,7 +357,7 @@ export async function classifyArtifact(data: FileData): Promise<Result<any>> {
         const ai = getAI();
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
-            contents: { parts: [{ inlineData: data.inlineData }, { text: "Classify. JSON {classification, ambiguityScore, entities, summary}." }] },
+            contents: { parts: [{ inlineData: data.inlineData }, { text: "Classify JSON {classification, ambiguityScore, entities, summary}." }] },
             config: { responseMimeType: 'application/json' }
         });
         return { ok: true, value: JSON.parse(response.text || '{}') };
@@ -463,7 +368,7 @@ export async function repairMermaidSyntax(code: string, error: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Fix Mermaid syntax error: "${error}". Code:\n${code}`,
+        contents: `Fix Mermaid: "${error}". Code:\n${code}`,
     });
     return response.text || code;
 }
@@ -472,7 +377,7 @@ export async function executeNeuralPolicy(mode: string, context: any, logs: stri
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Analyze OS state for ${mode}. JSON policy decision.`,
+        contents: `OS policy decision. JSON.`,
         config: { responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || 'null');
@@ -483,7 +388,7 @@ export async function evolveSystemArchitecture(code: string, lang: string, promp
         const ai = getAI();
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',
-            contents: `Code refactor for high-fidelity architecture evolution. JSON {code, reasoning, type, integrityScore}.`,
+            contents: `Evolve architecture. JSON {code, reasoning, type, integrityScore}.`,
             config: { responseMimeType: 'application/json' }
         });
         return { ok: true, value: JSON.parse(response.text || '{}') };
@@ -516,16 +421,38 @@ export async function generateAudioOverview(files: FileData[]): Promise<{ audioD
     return { audioData, transcript };
 }
 
+function encode(bytes: Uint8Array) {
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+function createBlob(data: Float32Array): Blob {
+  const l = data.length;
+  const int16 = new Int16Array(l);
+  for (let i = 0; i < l; i++) {
+    int16[i] = data[i] * 32768;
+  }
+  return {
+    data: encode(new Uint8Array(int16.buffer)),
+    mimeType: 'audio/pcm;rate=16000',
+  };
+}
+
 class LiveSession {
     private session: any = null;
     private audioContext: AudioContext | null = null;
     private inputAnalyser: AnalyserNode | null = null;
     private outputAnalyser: AnalyserNode | null = null;
+    private stream: MediaStream | null = null;
     public onToolCall: (name: string, args: any) => Promise<any> = async () => ({});
 
     async primeAudio() {
         if (!this.audioContext) {
-            this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+            this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
             this.inputAnalyser = this.audioContext.createAnalyser();
             this.outputAnalyser = this.audioContext.createAnalyser();
         }
@@ -533,10 +460,30 @@ class LiveSession {
 
     async connect(agentName: string, config: any) {
         const ai = getAI();
+        await this.primeAudio();
+        
         const sessionPromise = ai.live.connect({
             model: 'gemini-2.5-flash-native-audio-preview-09-2025',
             callbacks: {
-                onopen: config.callbacks?.onopen || (() => {}),
+                onopen: async () => {
+                    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const source = this.audioContext!.createMediaStreamSource(this.stream);
+                    const scriptProcessor = this.audioContext!.createScriptProcessor(4096, 1, 1);
+                    
+                    scriptProcessor.onaudioprocess = (e) => {
+                        const inputData = e.inputBuffer.getChannelData(0);
+                        const pcmBlob = createBlob(inputData);
+                        sessionPromise.then((s) => {
+                            s.sendRealtimeInput({ media: pcmBlob });
+                        });
+                    };
+
+                    source.connect(this.inputAnalyser!);
+                    source.connect(scriptProcessor);
+                    scriptProcessor.connect(this.audioContext!.destination);
+
+                    if (config.callbacks?.onopen) config.callbacks.onopen();
+                },
                 onmessage: async (message: LiveServerMessage) => {
                     if (message.toolCall) {
                         for (const fc of message.toolCall.functionCalls) {
@@ -560,8 +507,14 @@ class LiveSession {
         this.session = await sessionPromise;
     }
 
-    disconnect() { if (this.session) this.session.close(); this.session = null; }
+    disconnect() { 
+        if (this.session) this.session.close(); 
+        if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+        this.session = null; 
+    }
+    
     isConnected() { return !!this.session; }
+    
     getInputFrequencies() {
         if (!this.inputAnalyser) return null;
         const data = new Uint8Array(this.inputAnalyser.frequencyBinCount);
@@ -607,7 +560,7 @@ export async function analyzeDeploymentFeasibility(strategy: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Analyze real-world feasibility of: "${strategy}". Check current industry trends and regulatory vectors using search grounding.`,
+        contents: `Analyze real-world feasibility of: "${strategy}". regulatory vectors using search grounding.`,
         config: { tools: [{ googleSearch: {} }] }
     });
     return response.text || "";
@@ -617,7 +570,7 @@ export async function analyzePowerDynamics(target: string, internalContext: stri
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Analyze ${target}. Internal Context: ${internalContext}. JSON Output.`,
+        contents: `Analyze ${target}. Context: ${internalContext}. JSON.`,
         config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
     });
     return JSON.parse(response.text || '{}');
