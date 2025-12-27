@@ -21,9 +21,10 @@ import {
     Compass, GitBranch, LayoutGrid, Monitor, ShieldAlert, Cpu as CpuIcon,
     Box, Diamond, Hexagon, Component, Share2, Binary, Fingerprint, Lock,
     ChevronUp, Volume2, Timer, History, Languages, Hash, Activity as PulseIcon,
-    TrendingUp, TrendingDown, DollarSign, BrainCircuit, Headphones
+    TrendingUp, TrendingDown, DollarSign, BrainCircuit, Headphones, Users as UsersIcon,
+    Flame, Gauge, Link, Signal
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip, RadarChart, PolarGrid, PolarAngleAxis, Radar as RechartRadar, BarChart as ReBarChart, Bar } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
@@ -69,7 +70,7 @@ const RealWorldIntelFeed = () => {
                 </button>
             </div>
             
-            <div className="space-y-2 overflow-y-auto custom-scrollbar pr-1 flex-1 relative z-10">
+            <div className="space-y-2 overflow-y-auto custom-scrollbar pr-1 flex-1 relative z-10 max-h-[500px]">
                 {marketData.opportunities.map((op, i) => (
                     <div key={i} className="p-2.5 bg-[#0a0a0a] border border-white/5 rounded-xl hover:border-[#f59e0b]/30 transition-all group/op">
                         <div className="flex justify-between items-start mb-1">
@@ -91,6 +92,104 @@ const RealWorldIntelFeed = () => {
                         <span className="text-[9px] font-mono uppercase">Signal Void</span>
                     </div>
                 )}
+            </div>
+        </div>
+    );
+};
+
+const NeuralResonance = () => {
+    const data = [
+        { name: 'Vision', val: 74 },
+        { name: 'Code', val: 88 },
+        { name: 'Finance', val: 92 },
+        { name: 'Hardware', val: 56 },
+        { name: 'Voice', val: 81 },
+    ];
+
+    return (
+        <div className="bg-[#050505] border border-white/5 rounded-2xl p-4 flex flex-col gap-4 h-full relative overflow-hidden group shadow-inner">
+            <div className="flex items-center justify-between relative z-10 px-1 shrink-0">
+                <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-[#22d3ee]/5 rounded-lg border border-[#22d3ee]/10 text-[#22d3ee]">
+                        <Signal size={14} />
+                    </div>
+                    <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.2em]">Resonance Map</span>
+                </div>
+            </div>
+            
+            <div className="flex-1 min-h-0 relative">
+                <ResponsiveContainer width="100%" height="100%">
+                    <ReBarChart data={data} layout="vertical" margin={{ left: -20, right: 20 }}>
+                        <XAxis type="number" hide domain={[0, 100]} />
+                        <YAxis dataKey="name" type="category" tick={{ fill: '#444', fontSize: 8, fontFamily: 'Fira Code' }} width={60} />
+                        <Bar dataKey="val" fill="#22d3ee" radius={[0, 4, 4, 0]} barSize={8} background={{ fill: '#111', radius: 4 }} />
+                    </ReBarChart>
+                </ResponsiveContainer>
+            </div>
+            
+            <div className="px-1 py-2 border-t border-white/5 mt-auto">
+                <div className="flex justify-between items-center text-[7.5px] font-mono text-gray-500 uppercase tracking-widest">
+                    <span>Average Coherence</span>
+                    <span className="text-white font-black">78.2%</span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+const SwarmSynchrony = () => {
+    const data = [
+        { subject: 'Puck', A: 85, fullMark: 100 },
+        { subject: 'Charon', A: 72, fullMark: 100 },
+        { subject: 'Fenrir', A: 90, fullMark: 100 },
+        { subject: 'Aris', A: 65, fullMark: 100 },
+    ];
+
+    const synergy = Math.round(data.reduce((acc, curr) => acc + curr.A, 0) / data.length);
+
+    return (
+        <div className="bg-[#050505] border border-white/5 rounded-2xl p-4 flex flex-col gap-4 h-full relative overflow-hidden group shadow-inner">
+            <div className="flex items-center justify-between relative z-10 px-1 shrink-0">
+                <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-[#9d4edd]/5 rounded-lg border border-[#9d4edd]/10 text-[#9d4edd]">
+                        <UsersIcon size={14} />
+                    </div>
+                    <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.2em]">Swarm Synchrony</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                    <span className="text-[9px] font-black font-mono text-[#10b981]">{synergy}%</span>
+                </div>
+            </div>
+
+            <div className="flex-1 relative flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart cx="50%" cy="50%" outerRadius="60%" data={data}>
+                        <PolarGrid stroke="#222" />
+                        <PolarAngleAxis dataKey="subject" tick={{ fill: '#444', fontSize: 8, fontFamily: 'Fira Code' }} />
+                        <RechartRadar
+                            name="Synergy"
+                            dataKey="A"
+                            stroke="#9d4edd"
+                            fill="#9d4edd"
+                            fillOpacity={0.15}
+                        />
+                    </RadarChart>
+                </ResponsiveContainer>
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-16 h-16 rounded-full border border-white/5 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+                        <Flame size={16} className="text-[#f59e0b] animate-pulse" />
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 mt-auto">
+                {data.map((d, i) => (
+                    <div key={i} className="bg-white/[0.01] border border-white/5 rounded-lg p-1.5 flex items-center justify-between">
+                        <span className="text-[7px] font-black font-mono text-gray-500 uppercase">{d.subject}</span>
+                        <span className="text-[8px] font-black font-mono text-white">{d.A}%</span>
+                    </div>
+                ))}
             </div>
         </div>
     );
@@ -160,8 +259,8 @@ const Dashboard: React.FC = () => {
     try {
       if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setDashboardState({ isGenerating: false }); return; }
       
-      // Updated prompt for cinematic, realistic production-grade holographic quality
-      const prompt = `Hyper-realistic 8k cinematic production still of an advanced volumetric 3D command interface, sophisticated industrial UI design, anamorphic lens flares, optical refraction physics, deep obsidian surfaces with detailed brushed metal textures, realistic data visualizations, no cartoonish elements, production grade OS aesthetic.`;
+      // Updated prompt for cinematic, realistic production-grade holographic quality - Maxing for Ultra-Wide Cinema
+      const prompt = `Extreme wide shot hyper-realistic 8k cinematic production still of an advanced volumetric 3D command interface, sophisticated futuristic industrial UI design, anamorphic lens flares, optical refraction physics, deep obsidian surfaces with detailed brushed metal textures, realistic data stream visualizations, no cartoonish elements, production grade OS aesthetic, movie-grade VFX rendering.`;
       
       const url = await generateArchitectureImage(prompt, AspectRatio.RATIO_16_9, ImageSize.SIZE_4K, dashboard.referenceImage);
       setDashboardState({ identityUrl: url });
@@ -207,11 +306,11 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="w-full text-gray-200 font-sans relative h-full transition-colors duration-[2000ms] overflow-y-auto custom-scrollbar bg-[#020202]">
-      <div className="relative z-10 max-w-[1920px] mx-auto p-2 space-y-4 pb-32">
+      <div className="relative z-10 max-w-[2000px] mx-auto p-2 space-y-4 pb-32">
           
           <div className="grid grid-cols-12 gap-3 pt-1">
-              {/* Left Column: Telemetry & Intel (Thin) */}
-              <div className="col-span-2 space-y-4 flex flex-col h-[650px]">
+              {/* Left Column: Telemetry & Intel (Thin) - Now 900px Tall */}
+              <div className="col-span-2 space-y-4 flex flex-col h-[900px]">
                   <div className="grid grid-cols-1 gap-2 shrink-0">
                       <CompactMetric title="CPU" value={`${telemetry.cpu.toFixed(1)}%`} detail="12c_Sync" icon={CpuIcon} color={accent} data={cpuHistory} trend={telemetry.cpu > 50 ? 'up' : 'down'} />
                       <CompactMetric title="NET" value={`${telemetry.net.toFixed(1)}GB`} detail="Secure" icon={Network} color={accent} data={netHistory} trend="up" />
@@ -219,13 +318,13 @@ const Dashboard: React.FC = () => {
                       <CompactMetric title="INTEGRITY" value={`${telemetry.load.toFixed(1)}`} detail="Auth_OK" icon={Shield} color="#10b981" data={loadHistory} trend="up" />
                   </div>
                   
-                  <div className="flex-1">
+                  <div className="flex-1 min-h-0">
                     <RealWorldIntelFeed />
                   </div>
               </div>
 
-              {/* Middle Column: Hub Visualizer (Banner Format - Very Wide and Longer) */}
-              <div className="col-span-8 flex flex-col gap-4 h-[650px]">
+              {/* Middle Column: Hub Visualizer (Horizontally Ultra-Wide and Vertically Longer) - Now 900px Tall */}
+              <div className="col-span-7 flex flex-col gap-4 h-[900px]">
                   <div className="flex-1 bg-[#020202] border border-white/5 rounded-3xl relative overflow-hidden group shadow-2xl flex flex-col transition-all">
                       <div className="flex-1 flex items-center justify-center relative overflow-hidden group/viewport">
                           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_60%,rgba(0,0,0,0.9)_100%)] z-10 pointer-events-none" />
@@ -276,7 +375,7 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   {/* Neural Uplink (Voice Control Quick Access) */}
-                  <div className="h-32 bg-[#0a0a0a] border border-[#9d4edd]/20 rounded-3xl p-5 flex flex-col gap-3 shadow-xl relative overflow-hidden group/voice-hub transition-all hover:border-[#9d4edd]/40">
+                  <div className="h-32 bg-[#0a0a0a] border border-[#9d4edd]/20 rounded-3xl p-5 flex flex-col gap-3 shadow-xl relative overflow-hidden group/voice-hub transition-all hover:border-[#9d4edd]/40 shrink-0">
                       <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover/voice-hub:opacity-0.06 transition-opacity rotate-12"><Headphones size={80} /></div>
                       
                       <div className="flex items-center justify-between relative z-10">
@@ -316,9 +415,9 @@ const Dashboard: React.FC = () => {
                   </div>
               </div>
 
-              {/* Right Column: Assets & Yield (Thin) */}
-              <div className="col-span-2 space-y-4 flex flex-col h-[650px]">
-                  <div className="bg-[#050505] border border-white/5 rounded-3xl p-3 flex flex-col gap-3 shadow-xl group/ref relative overflow-hidden h-[140px]">
+              {/* Right Column: Multi-Metric Cluster - Now 900px Tall */}
+              <div className="col-span-3 space-y-4 flex flex-col h-[900px]">
+                  <div className="bg-[#050505] border border-white/5 rounded-3xl p-3 flex flex-col gap-3 shadow-xl group/ref relative overflow-hidden h-[160px] shrink-0">
                       <div className="flex items-center gap-2 relative z-10">
                           <Target size={12} className="text-[#9d4edd]" />
                           <span className="text-[9px] font-black font-mono text-white uppercase tracking-widest">Style Matrix</span>
@@ -345,7 +444,18 @@ const Dashboard: React.FC = () => {
                       </div>
                   </div>
 
-                  <div className="bg-[#050505] border border-white/5 rounded-2xl p-4 flex flex-col gap-4 relative overflow-hidden flex-1 shadow-inner">
+                  {/* Neural Resonance Tracker */}
+                  <div className="flex-1 min-h-0">
+                      <NeuralResonance />
+                  </div>
+
+                  {/* Swarm Synchrony Panel */}
+                  <div className="flex-1 min-h-0">
+                      <SwarmSynchrony />
+                  </div>
+
+                  {/* Capital Pulse Tracker */}
+                  <div className="bg-[#050505] border border-white/5 rounded-2xl p-4 flex flex-col gap-4 relative overflow-hidden h-[240px] shadow-inner shrink-0">
                       <div className="flex items-center justify-between relative z-10 px-1">
                           <div className="flex items-center gap-2">
                               <div className="p-1.5 rounded-lg bg-[#22d3ee]/5 text-[#22d3ee] border border-[#22d3ee]/10">
@@ -376,8 +486,8 @@ const Dashboard: React.FC = () => {
               </div>
           </div>
 
-          {/* Expanded Hero Visualization Section at the Bottom - Spaced out for clarity */}
-          <div className="w-full h-[1100px] shrink-0 mt-20 pb-20">
+          {/* Expanded Sovereign Ecosystem - Massive bottom margin to prevent panel overlap */}
+          <div className="w-full h-[1100px] shrink-0 mt-80 pb-20">
               <DEcosystem />
           </div>
       </div>
