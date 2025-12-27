@@ -17,7 +17,7 @@ import {
     Binary, Fingerprint, 
     TrendingUp, TrendingDown, DollarSign, Headphones, Users as UsersIcon,
     Flame, Signal, UserCircle, MicOff, Mic, Settings2, Zap,
-    Database, LineChart as ChartIcon, Scan
+    Database, LineChart as ChartIcon, Scan, Hexagon, Crown, Lock
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, BarChart as ReBarChart, Bar } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -121,22 +121,22 @@ const SovereignBanner = () => {
 
     return (
         <div 
-            className="w-full bg-[#050506] border border-white/10 rounded-[3rem] p-1 shadow-[0_0_100px_rgba(0,0,0,1)] mb-4 relative overflow-hidden group"
+            className="w-full bg-gradient-to-br from-[#050506]/60 to-black/40 border border-[#f1c21b]/10 backdrop-blur-3xl rounded-[3rem] p-1 shadow-[0_0_100px_rgba(0,0,0,0.8)] mb-4 relative overflow-hidden group"
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0c051a] to-black opacity-80" />
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#f1c21b]/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#0c051a]/20 to-black/20 opacity-80" />
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#f1c21b]/20 to-transparent" />
             
             <div className="relative z-10 flex items-center gap-12 p-8">
                 <div className="flex flex-col items-center gap-4 shrink-0">
                     <div className="relative w-44 h-44 flex items-center justify-center">
                         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />
                         <div className={cn(
-                            "w-32 h-32 rounded-full border-2 p-1.5 bg-[#080808] flex items-center justify-center relative transition-all duration-1000 z-10",
-                            voice.isActive ? "border-[#f1c21b] shadow-[0_0_40px_rgba(241,194,27,0.3)] scale-105" : "border-white/10 group-hover:border-[#f1c21b]/50"
+                            "w-32 h-32 rounded-full border-2 p-1.5 bg-black/40 backdrop-blur-xl flex items-center justify-center relative transition-all duration-1000 z-10 shadow-[0_0_50px_rgba(0,0,0,0.8)]",
+                            voice.isActive ? "border-[#f1c21b] shadow-[0_0_40px_rgba(241,194,27,0.3)] scale-105" : "border-white/5 group-hover:border-[#f1c21b]/50"
                         )}>
-                            <div className="w-full h-full rounded-full overflow-hidden bg-black flex items-center justify-center relative">
+                            <div className="w-full h-full rounded-full overflow-hidden bg-black flex items-center justify-center relative border border-white/5">
                                 {user.avatar ? (
                                     <img src={user.avatar} className="w-full h-full object-cover grayscale-[5%] group-hover:grayscale-0 transition-all duration-700" alt="Architect" />
                                 ) : (
@@ -155,7 +155,7 @@ const SovereignBanner = () => {
                                     initial={{ opacity: 0, y: 10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: 10 }}
-                                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md border border-white/10 px-4 py-1 rounded-full shadow-2xl z-20"
+                                    className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md border border-[#f1c21b]/20 px-4 py-1 rounded-full shadow-2xl z-20"
                                 >
                                     <span className="text-[8px] font-black font-mono text-[#f1c21b] uppercase tracking-[0.4em] whitespace-nowrap">Node: ARCHITECT_01</span>
                                 </motion.div>
@@ -182,14 +182,14 @@ const SovereignBanner = () => {
                         <div className="h-px flex-1 bg-white/5" />
                     </div>
                     <div className="flex items-center gap-4 mb-3">
-                        <div className="flex items-center gap-2 px-3 py-1 bg-emerald-500/5 border border-emerald-500/20 rounded-full">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
-                            <span className="text-[9px] font-black font-mono text-[#10b981] uppercase tracking-widest">Protocol Active</span>
+                        <div className="flex items-center gap-2 px-3 py-1 bg-[#f1c21b]/5 border border-[#f1c21b]/20 rounded-full shadow-inner">
+                            <Crown size={10} className="text-[#f1c21b]" />
+                            <span className="text-[9px] font-black font-mono text-[#f1c21b] uppercase tracking-widest leading-none">Protocol Sovereign</span>
                         </div>
                         <div className="h-4 w-px bg-white/5" />
                         <span className="text-[9px] font-mono text-gray-600 uppercase tracking-[0.2em]">Auth_Status: Secured</span>
                     </div>
-                    <h1 className="text-7xl font-black text-white uppercase tracking-[-0.04em] font-mono leading-none flex items-baseline gap-4">
+                    <h1 className="text-7xl font-black text-white uppercase tracking-[-0.04em] font-mono leading-none flex items-baseline gap-4 drop-shadow-[0_10px_20px_rgba(0,0,0,1)]">
                         Metaventions <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-[#f1c21b]">AI</span>
                     </h1>
                     <p className="text-[12px] text-gray-400 font-mono uppercase tracking-[0.2em] mt-6 max-w-2xl leading-relaxed italic opacity-60">
@@ -214,11 +214,11 @@ const SovereignBanner = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
-                        <button className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-gray-500 hover:text-white transition-all shadow-xl">
+                        <button className="p-2.5 bg-white/5 border border-white/10 rounded-xl text-gray-500 hover:text-white transition-all shadow-xl hover:border-[#f1c21b]/30">
                             <Settings2 size={16} />
                         </button>
-                        <button className="flex items-center gap-3 px-6 py-2.5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black font-mono uppercase tracking-widest text-gray-400 hover:text-white hover:border-white/30 transition-all active:scale-95">
-                            <Binary size={14} className="text-[#f1c21b]" /> Protocols
+                        <button className="flex items-center gap-3 px-6 py-2.5 bg-black/40 border border-[#f1c21b]/20 backdrop-blur-md rounded-2xl text-[10px] font-black font-mono uppercase tracking-widest text-[#f1c21b] hover:text-white hover:bg-[#f1c21b] hover:border-[#f1c21b] transition-all active:scale-95 shadow-2xl">
+                            <Binary size={14} /> Protocols
                         </button>
                     </div>
                 </div>
@@ -248,7 +248,7 @@ const RealWorldIntelFeed = () => {
     };
 
     return (
-        <div className="bg-[#0a0a0c] border border-white/5 rounded-2xl p-4 flex flex-col gap-3 h-full relative overflow-hidden group shadow-inner">
+        <div className="bg-gradient-to-b from-[#0a0a0c]/60 to-black/40 border border-white/5 backdrop-blur-xl rounded-2xl p-4 flex flex-col gap-3 h-full relative overflow-hidden group shadow-inner">
             <div className="flex items-center justify-between relative z-10 px-1 shrink-0">
                 <div className="flex items-center gap-2">
                     <div className="p-1.5 bg-[#f1c21b]/5 rounded-lg border border-[#f1c21b]/10 text-[#f1c21b]">
@@ -262,7 +262,7 @@ const RealWorldIntelFeed = () => {
             </div>
             <div className="space-y-2 overflow-y-auto custom-scrollbar pr-1 flex-1 relative z-10 max-h-[500px]">
                 {marketData.opportunities.map((op, i) => (
-                    <div key={i} className="p-2.5 bg-black border border-white/5 rounded-xl hover:border-[#f1c21b]/30 transition-all group/op shadow-md">
+                    <div key={i} className="p-2.5 bg-black/40 backdrop-blur-md border border-white/5 rounded-xl hover:border-[#f1c21b]/30 transition-all group/op shadow-md">
                         <div className="flex justify-between items-start mb-1">
                             <span className="text-[9px] font-black text-gray-300 uppercase truncate pr-3">{op.title}</span>
                             <span className="text-[8px] font-black font-mono text-[#10b981]">{op.yield}</span>
@@ -276,7 +276,7 @@ const RealWorldIntelFeed = () => {
 };
 
 const CompactMetric = ({ title, value, detail, icon: Icon, color, data, trend }: any) => (
-    <div className="bg-[#0a0a0c] border border-white/5 rounded-xl p-3 relative overflow-hidden group shadow-xl h-24 flex flex-col justify-between transition-all hover:border-white/10">
+    <div className="bg-gradient-to-br from-[#0a0a0c]/80 to-black/20 border border-white/5 backdrop-blur-md rounded-xl p-3 relative overflow-hidden group shadow-xl h-24 flex flex-col justify-between transition-all hover:border-white/10">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--accent)] to-transparent opacity-30" style={{ '--accent': color } as any}></div>
         <div className="flex justify-between items-start relative z-10">
             <div className="flex items-center gap-2">
@@ -336,8 +336,8 @@ const Dashboard: React.FC = () => {
     audio.playClick();
     try {
       if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setDashboardState({ isGenerating: false }); return; }
-      const prompt = `Imperial close-up portrait of a high-echelon black sovereign professional. Masterpiece realistic cinematic style. sociale-polished grooming, high-quality fade haircut. Obsidian-silk apparel with deep gold filigree. Majestic visionary look.`;
-      const url = await generateArchitectureImage(prompt, AspectRatio.RATIO_16_9, ImageSize.SIZE_4K, dashboard.referenceImage);
+      const prompt = `Hyper-realistic close-up portrait of the man from the reference. He is portrayed as a high-echelon sovereign leader. Strictly maintain facial structure, skin tone, and thin mustache/goatee. He is wearing the premium black faux-leather mandarin collar jacket. He is standing in a minimalist obsidian executive vault with floating translucent data grids. masterpiece 8k cinematography.`;
+      const url = await generateArchitectureImage(prompt, AspectRatio.RATIO_1_1, ImageSize.SIZE_4K, dashboard.referenceImage);
       setDashboardState({ identityUrl: url });
       addLog('SUCCESS', 'IDENTITY_SYNC: Sovereign Empire biometric profile confirmed.');
       audio.playSuccess();
@@ -389,18 +389,21 @@ const Dashboard: React.FC = () => {
                   </div>
               </div>
 
-              {/* MAIN EMPIRE VIEWPORT (Expanded col-span-8) */}
+              {/* MAIN EMPIRE VIEWPORT */}
               <div className="col-span-8 flex flex-col gap-4 h-[880px]">
-                  <div className="flex-1 bg-[#050507] border border-white/5 rounded-[4rem] relative overflow-hidden group shadow-[0_0_150px_rgba(0,0,0,1)] flex flex-col transition-all border-b-[#f1c21b]/20">
-                      <div className="flex items-center justify-between relative z-10 px-12 py-8 shrink-0">
+                  <div className="flex-1 bg-gradient-to-br from-[#050507]/60 to-black/40 border border-[#f1c21b]/20 backdrop-blur-3xl rounded-[4rem] relative overflow-hidden group shadow-[0_0_150px_rgba(0,0,0,1)] flex flex-col transition-all">
+                      {/* Beveled Edge Overlay */}
+                      <div className="absolute inset-0 border-[4px] border-white/5 pointer-events-none z-20 opacity-40 rounded-[4rem]" />
+                      
+                      <div className="flex items-center justify-between relative z-30 px-12 py-8 shrink-0">
                           <div className="flex items-center gap-4">
                               <div className="p-2 bg-[#f1c21b]/10 rounded-full border border-[#f1c21b]/20">
-                                <UserCircle size={24} className="text-[#f1c21b]" />
+                                <Hexagon size={24} className="text-[#f1c21b]" />
                               </div>
                               <span className="text-[12px] font-black font-mono text-white uppercase tracking-[0.4em]">Sovereign Imperial Viewport</span>
                           </div>
                           <div className="flex items-center gap-3">
-                               <div className="px-6 py-2 bg-black/60 backdrop-blur-3xl rounded-full border border-white/10 text-[9px] font-mono text-[#f1c21b] uppercase flex items-center gap-3 shadow-2xl">
+                               <div className="px-6 py-2 bg-black/60 backdrop-blur-3xl rounded-full border border-[#f1c21b]/30 text-[9px] font-mono text-[#f1c21b] uppercase flex items-center gap-3 shadow-[0_0_30px_rgba(241,194,27,0.2)]">
                                     <Scan size={14} className="animate-pulse" />
                                     Right-Click for Diagnostic Scan
                                </div>
@@ -409,7 +412,7 @@ const Dashboard: React.FC = () => {
                       <div 
                         ref={viewportRef}
                         onContextMenu={handleViewportContextMenu}
-                        className="flex-1 flex items-center justify-center relative overflow-hidden group/viewport cursor-crosshair"
+                        className="flex-1 flex items-center justify-center relative overflow-hidden group/viewport cursor-crosshair z-10"
                       >
                           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_50%,rgba(0,0,0,1)_100%)] z-10 pointer-events-none" />
                           {dashboard.identityUrl ? (
@@ -420,13 +423,6 @@ const Dashboard: React.FC = () => {
                                     alt="Sovereign Leader" 
                                   />
                                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30 opacity-70" />
-                                  
-                                  {/* Procedural Data Overlays */}
-                                  <div className="absolute top-1/2 left-10 -translate-y-1/2 flex flex-col gap-8 opacity-0 group-hover/viewport:opacity-60 transition-all duration-700 delay-300">
-                                     {[1,2,3].map(i => (
-                                        <div key={i} className="w-12 h-0.5 bg-[#f1c21b]/40 rounded-full" />
-                                     ))}
-                                  </div>
                               </motion.div>
                           ) : (
                               <div className="flex flex-col items-center gap-8 opacity-10 group-hover/viewport:opacity-25 transition-all duration-1000 text-center select-none">
@@ -435,13 +431,13 @@ const Dashboard: React.FC = () => {
                               </div>
                           )}
                       </div>
-                      <div className="h-24 border-t border-white/5 bg-[#08080a]/95 backdrop-blur-3xl flex items-center justify-between px-12 shrink-0">
+                      <div className="h-24 border-t border-[#f1c21b]/10 bg-black/40 backdrop-blur-3xl flex items-center justify-between px-12 shrink-0 z-30">
                          <div className="flex gap-4">
                              {[
                                 { label: 'PARA Sync', icon: HardDrive, action: () => handleQuickForge('DRIVE'), color: '#22d3ee' },
                                 { label: 'Imperial Forge', icon: Server, action: () => handleQuickForge('ARCH'), color: '#7b2cbf' }
                              ].map((btn) => (
-                                 <button key={btn.label} onClick={btn.action} className="px-8 py-3 bg-white/5 border border-white/10 hover:border-[#f1c21b]/30 rounded-2xl text-[11px] font-black font-mono uppercase tracking-widest text-gray-500 hover:text-white transition-all flex items-center gap-4 active:scale-95 shadow-xl">
+                                 <button key={btn.label} onClick={btn.action} className="px-8 py-3 bg-black/40 backdrop-blur-md border border-white/10 hover:border-[#f1c21b]/50 rounded-2xl text-[11px] font-black font-mono uppercase tracking-widest text-gray-500 hover:text-white transition-all flex items-center gap-4 active:scale-95 shadow-xl">
                                      <btn.icon size={16} style={{ color: btn.color }} /> {btn.label}
                                  </button>
                              ))}
@@ -455,38 +451,52 @@ const Dashboard: React.FC = () => {
 
               {/* Technical Topology & Reference Cluster (Right) */}
               <div className="col-span-2 space-y-4 flex flex-col h-[880px]">
-                  <div className="bg-[#0a0a0c] border border-white/5 rounded-[3rem] p-6 flex flex-col gap-3 shadow-xl group/ref relative overflow-hidden h-[340px] shrink-0">
+                  <div className="bg-gradient-to-b from-[#0a0a0c]/80 to-black/40 border border-[#f1c21b]/10 backdrop-blur-xl rounded-[3rem] p-6 flex flex-col gap-3 shadow-xl group/ref relative overflow-hidden h-[340px] shrink-0">
+                      <div className="absolute inset-0 bg-gradient-to-b from-[#f1c21b]/5 to-transparent pointer-events-none" />
                       <div className="flex items-center justify-between relative z-10 px-1">
                           <div className="flex items-center gap-3">
-                            <ChartIcon size={16} className="text-[#7b2cbf]" />
+                            <ChartIcon size={16} className="text-[#f1c21b]" />
                             <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Neural Topology</span>
                           </div>
+                          <span className="text-[8px] font-mono text-gray-700">LVL_0xV1</span>
                       </div>
-                      <div className="flex-1 relative rounded-[1.5rem] bg-black/40 overflow-hidden border border-white/5 p-2 flex items-center justify-center shadow-inner">
-                          <div className="w-full h-full opacity-60 group-hover/ref:opacity-100 transition-opacity">
+                      <div className="flex-1 relative rounded-[1.5rem] bg-black/40 border border-white/5 p-2 flex items-center justify-center shadow-inner">
+                          <div className="w-full h-full opacity-80 group-hover/ref:opacity-100 transition-opacity">
                              <ResponsiveContainer width="100%" height="100%">
                                 <RadarChart cx="50%" cy="50%" outerRadius="60%" data={[
-                                    { s: 'Logic', A: 92 }, { s: 'Ethos', A: 78 }, { s: 'Synthesis', A: 85 }, { s: 'Stability', A: 94 }, { s: 'Velocity', A: 88 }
+                                    { s: 'Logic', A: 94 }, { s: 'Ethos', A: 82 }, { s: 'Synthesis', A: 88 }, { s: 'Stability', A: 96 }, { s: 'Velocity', A: 91 }
                                 ]}>
-                                    <PolarGrid stroke="#333" />
-                                    <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
-                                    <RechartRadar dataKey="A" stroke="#f1c21b" strokeWidth={2} fill="#f1c21b" fillOpacity={0.15} />
+                                    <PolarGrid stroke="#222" />
+                                    <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold', fontFamily: 'Fira Code' }} />
+                                    <RechartRadar dataKey="A" stroke="#f1c21b" strokeWidth={2} fill="#f1c21b" fillOpacity={0.15} isAnimationActive={false} />
                                 </RadarChart>
                              </ResponsiveContainer>
                           </div>
                       </div>
+                      <div className="flex justify-between items-center px-1 text-[7px] font-mono text-gray-600 uppercase tracking-widest relative z-10">
+                          <span>Handshake: Nominal</span>
+                          <span className="text-[#10b981]">Aligned</span>
+                      </div>
                   </div>
                   
-                  <div className="bg-[#0a0a0c] border border-white/5 rounded-[2.5rem] p-4 flex flex-col gap-3 shadow-xl group/style relative overflow-hidden h-[240px] shrink-0">
-                      <div className="flex items-center gap-3 relative z-10 px-1">
-                          <Target size={14} className="text-[#f1c21b]" />
-                          <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Imperial Seed</span>
+                  <div className="bg-gradient-to-b from-[#0a0a0c]/80 to-black/40 border border-[#f1c21b]/10 backdrop-blur-xl rounded-[2.5rem] p-4 flex flex-col gap-3 shadow-xl group/style relative overflow-hidden h-[240px] shrink-0">
+                      <div className="flex items-center justify-between relative z-10 px-1">
+                          <div className="flex items-center gap-3">
+                             <Fingerprint size={14} className="text-[#f1c21b]" />
+                             <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Imperial Seed</span>
+                          </div>
+                          <Lock size={10} className="text-gray-700" />
                       </div>
-                      <div className="flex-1 relative rounded-[1.5rem] border border-dashed border-white/10 bg-black flex items-center justify-center overflow-hidden shadow-inner group/anchor">
+                      <div className="flex-1 relative rounded-[1.5rem] border border-[#f1c21b]/20 bg-black/40 flex items-center justify-center overflow-hidden shadow-2xl group/anchor">
                           {dashboard.referenceImage ? (
                                 <div className="relative w-full h-full group/preview">
-                                    <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover grayscale-[40%] group-hover/preview:grayscale-0 transition-all duration-1000" alt="Anchor Face" />
-                                    <div className="absolute inset-0 border-[4px] border-[#f1c21b]/20 opacity-0 group-hover/preview:opacity-100 transition-opacity pointer-events-none" />
+                                    <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover grayscale-[20%] group-hover/preview:grayscale-0 transition-all duration-1000" alt="Anchor Face" />
+                                    <div className="absolute inset-0 border-[2px] border-[#f1c21b]/30 opacity-40 pointer-events-none" />
+                                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-t from-black/60 to-transparent" />
+                                    <div className="absolute bottom-3 left-3 flex flex-col gap-1">
+                                        <span className="text-[8px] font-black font-mono text-[#f1c21b] uppercase tracking-widest leading-none">Biometric Anchor</span>
+                                        <span className="text-[6px] font-mono text-gray-400 uppercase tracking-widest">ID_AUTH_LATTICE_OK</span>
+                                    </div>
                                     <button onClick={() => setDashboardState({ referenceImage: null })} className="absolute top-2 right-2 p-2 bg-red-900/60 text-red-500 rounded-xl opacity-0 group-hover/preview:opacity-100 transition-opacity backdrop-blur-md border border-red-500/30"><Trash2 size={14}/></button>
                                 </div>
                           ) : (
@@ -499,7 +509,7 @@ const Dashboard: React.FC = () => {
                       </div>
                   </div>
 
-                  <div className="bg-[#0a0a0c] border border-white/5 rounded-[3rem] p-8 flex flex-col gap-6 relative overflow-hidden flex-1 shadow-inner min-h-0">
+                  <div className="bg-gradient-to-br from-[#0a0a0c]/60 to-black/40 border border-white/5 backdrop-blur-xl rounded-[3rem] p-8 flex flex-col gap-6 relative overflow-hidden flex-1 shadow-inner min-h-0">
                       <div className="flex items-center gap-3">
                           <DollarSign size={16} className="text-[#10b981]" />
                           <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Capital Velocity</span>
@@ -508,7 +518,7 @@ const Dashboard: React.FC = () => {
                           {[
                               { label: 'Neural Mining', val: 94, color: '#f1c21b', usage: '+$4.2k/hr' },
                               { label: 'Imperial Staking', val: 82, color: '#22d3ee', usage: '+$1.8k/day' },
-                              { label: 'Lattice Liquidity', val: 71, color: '#7b2cbf', usage: '+$12k/wk' },
+                              { label: 'Lattice Liquidity', val: 71, color: '#9d4edd', usage: '+$12k/wk' },
                               { label: 'Strategic Ops', val: 99, color: '#10b981', usage: '$420k CAP' }
                           ].map((cat) => (
                               <div key={cat.label} className="space-y-2 group/pulse">
