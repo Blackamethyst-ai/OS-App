@@ -6,7 +6,110 @@ import {
     VoteLedger, AtomicTask, ProtocolStepResult, StoredArtifact
 } from '../types';
 
-// Helper to initialize the GenAI client with the latest API key
+/**
+ * LIVE SESSION CLASS
+ * Handles low-latency neural uplink via the Gemini Live API.
+ */
+class LiveSession {
+    private session: any = null;
+    private audioContext: AudioContext | null = null;
+    private inputAnalyser: AnalyserNode | null = null;
+    private outputAnalyser: AnalyserNode | null = null;
+    private stream: MediaStream | null = null;
+    public onToolCall: (name: string, args: any) => Promise<any> = async () => ({});
+
+    async primeAudio() {
+        if (!this.audioContext) {
+            const AudioCtx = (window.AudioContext || (window as any).webkitAudioContext);
+            if (!AudioCtx) {
+                console.error("AudioContext not supported in this environment.");
+                return;
+            }
+            try {
+                // Modern browsers support the options object
+                this.audioContext = new AudioCtx({ sampleRate: 16000 });
+            } catch (e) {
+                // Fallback for environments throwing "Illegal constructor" with options
+                this.audioContext = new AudioCtx();
+            }
+            this.inputAnalyser = this.audioContext.createAnalyser();
+            this.outputAnalyser = this.audioContext.createAnalyser();
+        }
+    }
+
+    async connect(agentName: string, config: any) {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        await this.primeAudio();
+        
+        const sessionPromise = ai.live.connect({
+            model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+            callbacks: {
+                onopen: async () => {
+                    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                    const source = this.audioContext!.createMediaStreamSource(this.stream);
+                    const scriptProcessor = this.audioContext!.createScriptProcessor(4096, 1, 1);
+                    
+                    scriptProcessor.onaudioprocess = (e) => {
+                        const inputData = e.inputBuffer.getChannelData(0);
+                        const pcmBlob = createBlob(inputData);
+                        sessionPromise.then((s) => {
+                            s.sendRealtimeInput({ media: pcmBlob });
+                        });
+                    };
+
+                    source.connect(this.inputAnalyser!);
+                    source.connect(scriptProcessor);
+                    scriptProcessor.connect(this.audioContext!.destination);
+
+                    if (config.callbacks?.onopen) config.callbacks.onopen();
+                },
+                onmessage: async (message: LiveServerMessage) => {
+                    if (message.toolCall) {
+                        for (const fc of message.toolCall.functionCalls) {
+                            const result = await this.onToolCall(fc.name, fc.args);
+                            sessionPromise.then(s => s.sendToolResponse({ 
+                                functionResponses: [{ id: fc.id, name: fc.name, response: { result } }] 
+                            }));
+                        }
+                    }
+                    if (config.callbacks?.onmessage) await config.callbacks.onmessage(message);
+                },
+                onerror: config.callbacks?.onerror || (() => {}),
+                onclose: config.callbacks?.onclose || (() => {}),
+            },
+            config: {
+                ...config,
+                responseModalities: [Modality.AUDIO],
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: agentName } } },
+            }
+        });
+        this.session = await sessionPromise;
+    }
+
+    disconnect() { 
+        if (this.session) this.session.close(); 
+        if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+        this.session = null; 
+    }
+    
+    isConnected() { return !!this.session; }
+    
+    getInputFrequencies() {
+        if (!this.inputAnalyser) return null;
+        const data = new Uint8Array(this.inputAnalyser.frequencyBinCount);
+        this.inputAnalyser.getByteFrequencyData(data);
+        return data;
+    }
+    getOutputFrequencies() {
+        if (!this.outputAnalyser) return null;
+        const data = new Uint8Array(this.outputAnalyser.frequencyBinCount);
+        this.outputAnalyser.getByteFrequencyData(data);
+        return data;
+    }
+}
+
+export const liveSession = new LiveSession();
+
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export async function generateEmbedding(text: string): Promise<number[]> {
@@ -111,20 +214,20 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
     const parts: any[] = [];
     if (reference) parts.push({ inlineData: reference.inlineData });
     
-    // SOVEREIGN EMPIRE STANDARD (Refined from Wakanda to METAVENTIONS Empire)
+    // SOVEREIGN EMPIRE STANDARD - Biometric Identity Anchor + Cinematic Theme Integration
     const metaventionsDirective = `
-        STRICT CHARACTER LOCK: Maintain the EXACT facial features, skin tone, and identity of the provided reference image.
-        AESTHETIC: METAVENTIONS AI SOVEREIGN EMPIRE. 
-        STYLE: High-class, upper-echelon, hyper-realistic cinematic fashion editorial. 
-        SUBJECT: A socially polished, perfectly groomed black professional. 
-        HAIR: Razor-sharp high-quality fade with flawless grooming. 
-        APPAREL: Imperial futuristic corporate attire; obsidian-black materials with intricate gold and royal purple accents. 
-        ENVIRONMENT: Sleek, industrial-designer minimalist office with holographic data streams and obsidian surfaces. 
-        LIGHTING: Dramatic key lighting with anamorphic lens flares. 
-        ATMOSPHERE: Powerful, regal, visionary, and technologically supreme. 8k resolution.
+        BIOMETRIC IDENTITY ANCHOR: You MUST lock the facial geometry, skin tone, mustache/goatee structure, and precise identity of the man from the reference image. 
+        
+        THEME: METAVENTIONS AI SOVEREIGN COMMAND CENTER. 
+        ENVIRONMENT: A sprawling, high-fidelity futuristic laboratory with obsidian stone textures, translucent floating holographic data lattices, and ambient violet/cyan energy glows. 
+        CHARACTER INTEGRATION: Place the anchored identity into this environment. He should be portrayed as the Sovereign Architect, working with complex AI systems. 
+        APPAREL: The signature premium black faux-leather bomber jacket with a mandarin collar over a crisp white t-shirt. 
+        CINEMATOGRAPHY: High-end 8k digital cinema, anamorphic lens flares, master-class three-point studio lighting with rectangular softbox catchlights in the pupils. 
+        DETAIL: Sharp focal plane on the eyes, visible skin pores, macro-texture on the jacket grain. 
+        ATMOSPHERE: Visionary authority, Technological supremacy, Upper-echelon futurism.
     `;
     
-    parts.push({ text: `${metaventionsDirective} Scene Narrative: ${prompt}` });
+    parts.push({ text: `${metaventionsDirective} Scene Composition: ${prompt}` });
 
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-image-preview',
@@ -442,95 +545,6 @@ function createBlob(data: Float32Array): Blob {
   };
 }
 
-class LiveSession {
-    private session: any = null;
-    private audioContext: AudioContext | null = null;
-    private inputAnalyser: AnalyserNode | null = null;
-    private outputAnalyser: AnalyserNode | null = null;
-    private stream: MediaStream | null = null;
-    public onToolCall: (name: string, args: any) => Promise<any> = async () => ({});
-
-    async primeAudio() {
-        if (!this.audioContext) {
-            this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-            this.inputAnalyser = this.audioContext.createAnalyser();
-            this.outputAnalyser = this.audioContext.createAnalyser();
-        }
-    }
-
-    async connect(agentName: string, config: any) {
-        const ai = getAI();
-        await this.primeAudio();
-        
-        const sessionPromise = ai.live.connect({
-            model: 'gemini-2.5-flash-native-audio-preview-09-2025',
-            callbacks: {
-                onopen: async () => {
-                    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    const source = this.audioContext!.createMediaStreamSource(this.stream);
-                    const scriptProcessor = this.audioContext!.createScriptProcessor(4096, 1, 1);
-                    
-                    scriptProcessor.onaudioprocess = (e) => {
-                        const inputData = e.inputBuffer.getChannelData(0);
-                        const pcmBlob = createBlob(inputData);
-                        sessionPromise.then((s) => {
-                            s.sendRealtimeInput({ media: pcmBlob });
-                        });
-                    };
-
-                    source.connect(this.inputAnalyser!);
-                    source.connect(scriptProcessor);
-                    scriptProcessor.connect(this.audioContext!.destination);
-
-                    if (config.callbacks?.onopen) config.callbacks.onopen();
-                },
-                onmessage: async (message: LiveServerMessage) => {
-                    if (message.toolCall) {
-                        for (const fc of message.toolCall.functionCalls) {
-                            const result = await this.onToolCall(fc.name, fc.args);
-                            sessionPromise.then(s => s.sendToolResponse({ 
-                                functionResponses: [{ id: fc.id, name: fc.name, response: { result } }] 
-                            }));
-                        }
-                    }
-                    if (config.callbacks?.onmessage) await config.callbacks.onmessage(message);
-                },
-                onerror: config.callbacks?.onerror || (() => {}),
-                onclose: config.callbacks?.onclose || (() => {}),
-            },
-            config: {
-                ...config,
-                responseModalities: [Modality.AUDIO],
-                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: agentName } } },
-            }
-        });
-        this.session = await sessionPromise;
-    }
-
-    disconnect() { 
-        if (this.session) this.session.close(); 
-        if (this.stream) this.stream.getTracks().forEach(t => t.stop());
-        this.session = null; 
-    }
-    
-    isConnected() { return !!this.session; }
-    
-    getInputFrequencies() {
-        if (!this.inputAnalyser) return null;
-        const data = new Uint8Array(this.inputAnalyser.frequencyBinCount);
-        this.inputAnalyser.getByteFrequencyData(data);
-        return data;
-    }
-    getOutputFrequencies() {
-        if (!this.outputAnalyser) return null;
-        const data = new Uint8Array(this.outputAnalyser.frequencyBinCount);
-        this.outputAnalyser.getByteFrequencyData(data);
-        return data;
-    }
-}
-
-export const liveSession = new LiveSession();
-
 export function constructHiveContext(agentId: string, shared: string, mentalState: MentalState) {
     const agent = HIVE_AGENTS[agentId] || HIVE_AGENTS['Puck'];
     return `${agent.systemPrompt}\n${shared}\nDNA_STATE: S:${mentalState.skepticism} E:${mentalState.excitement} A:${mentalState.alignment}`;
@@ -576,6 +590,38 @@ export async function analyzePowerDynamics(target: string, internalContext: stri
     return JSON.parse(response.text || '{}');
 }
 
+/**
+ * Decomposes a high-level task into atomic sub-tasks for processing.
+ */
+export async function decomposeTaskToSubtasks(title: string, description: string): Promise<string[]> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Task: ${title}\nDescription: ${description}\n\nDecompose this task into 3-5 logical sub-tasks. Return a JSON array of strings.`,
+        config: {
+            responseMimeType: 'application/json',
+            responseSchema: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING }
+            }
+        }
+    });
+    return JSON.parse(response.text || '[]');
+}
+
+/**
+ * Performs a grounded search via Google Search and returns synthesized text results.
+ */
+export async function searchGroundedIntel(query: string): Promise<string> {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: query,
+        config: { tools: [{ googleSearch: {} }] }
+    });
+    return response.text || "No intelligence signals detected.";
+}
+
 export async function analyzeBookDNA() { return {}; }
 export async function simulateExperiment() { return {}; }
 export async function generateTheory() { return ""; }
@@ -601,7 +647,5 @@ export async function generateSingleNode(d: string) { return { label: d, subtext
 export async function calculateOptimalLayout(n: any[], e: any[]) { return {}; }
 export async function generateSwarmArchitecture(p: string) { return { nodes: [], edges: [] }; }
 export async function generateProcessFromContext(a: any[], t: string, p: string) { return { title: "", nodes: [], edges: [] }; }
-export async function decomposeTaskToSubtasks(t: string, d: string) { return []; }
-export async function searchGroundedIntel(q: string) { return ""; }
 export async function convergeStrategicLattices(n: any[], g: string) { return { nodes: [], coherence_index: 0.9, unified_goal: g }; }
 export async function transformArtifact(c: any, t: any, i: string) { return c; }

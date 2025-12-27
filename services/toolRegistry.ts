@@ -126,7 +126,6 @@ export const OS_TOOLS = {
     // 5. TASK MANAGEMENT
     update_task_priority: async (args: { taskId: string, priority: TaskPriority }): Promise<ToolResult> => {
         const { updateTask, addLog } = useAppStore.getState();
-        // Fix: Use 'args.taskId' instead of undefined 'task.id'
         updateTask(args.taskId, { priority: args.priority });
         addLog('SUCCESS', `TASK_UPDATE: Prioritized task ${args.taskId} to ${args.priority}`);
         return {
@@ -147,6 +146,24 @@ export const OS_TOOLS = {
             return { toolName: 'system_navigate', status: 'SUCCESS', data: { message: `Redirected to ${args.target} sector.` }, uiHint: 'NAV' };
         }
         return { toolName: 'system_navigate', status: 'ERROR', data: { error: `Sector ${args.target} not found.` } };
+    },
+
+    // 7. SEARCH INTELLIGENCE
+    search_intel: async (args: { query: string }): Promise<ToolResult> => {
+        const { addLog } = useAppStore.getState();
+        addLog('SYSTEM', `SEARCH_INTEL: Grounding intelligence for "${args.query}"...`);
+        
+        try {
+            const result = await searchGroundedIntel(args.query);
+            return {
+                toolName: 'search_intel',
+                status: 'SUCCESS',
+                data: { message: result },
+                uiHint: 'MESSAGE'
+            };
+        } catch (error: any) {
+            return { toolName: 'search_intel', status: 'ERROR', data: { error: error.message } };
+        }
     }
 };
 
