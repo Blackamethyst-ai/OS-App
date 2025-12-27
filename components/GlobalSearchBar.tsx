@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { performGlobalSearch, promptSelectKey } from '../services/geminiService';
@@ -71,8 +70,8 @@ const GlobalSearchBar: React.FC = () => {
   };
 
   return (
-    <div ref={containerRef} className="relative z-50">
-        <form onSubmit={handleSearch} className="flex items-center w-72">
+    <div ref={containerRef} className="relative z-50 flex items-center h-full">
+        <form onSubmit={handleSearch} className="flex items-center w-80">
             <div className="relative w-full group">
                 <input
                     ref={inputRef}
@@ -80,38 +79,38 @@ const GlobalSearchBar: React.FC = () => {
                     value={search.query || ''}
                     onChange={(e) => setSearchState({ query: e.target.value })}
                     onFocus={() => setSearchState({ isOpen: true })}
-                    className="w-full bg-[#0a0a0a] border border-[#333] rounded-full px-10 py-1.5 text-xs font-mono text-white focus:border-[#9d4edd] outline-none transition-all shadow-inner"
+                    className="w-full bg-[#0a0a0a] border border-[#333] rounded-full px-12 py-2 text-[11px] font-mono text-white focus:border-[#9d4edd] outline-none transition-all shadow-inner"
                     placeholder="Search systems..."
                 />
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2">
-                    {search.isSearching ? <Loader2 className="w-3.5 h-3.5 text-[#9d4edd] animate-spin" /> : <Search className="w-3.5 h-3.5 text-gray-500" />}
+                <div className="absolute left-4 top-1/2 -translate-y-1/2">
+                    {search.isSearching ? <Loader2 className="w-4 h-4 text-[#9d4edd] animate-spin" /> : <Search className="w-4 h-4 text-gray-500" />}
                 </div>
             </div>
         </form>
 
         <AnimatePresence>
             {search.isOpen && (
-                <MotionDiv initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full right-0 mt-2 w-96 bg-[#0a0a0a]/95 backdrop-blur-xl border border-[#333] rounded-lg shadow-2xl overflow-hidden">
-                    <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
+                <MotionDiv initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }} className="absolute top-full right-0 mt-4 w-96 bg-[#0a0a0a]/95 backdrop-blur-2xl border border-[#333] rounded-2xl shadow-2xl overflow-hidden">
+                    <div className="max-h-[400px] overflow-y-auto custom-scrollbar">
                          {search.results.length > 0 ? (
                              search.results.map((item: any) => (
-                                 <button key={item.id} onClick={() => handleResultClick(item)} className="w-full text-left p-3 hover:bg-[#1f1f1f] border-b border-[#1f1f1f] flex items-start gap-3">
+                                 <button key={item.id} onClick={() => handleResultClick(item)} className="w-full text-left p-4 hover:bg-[#1f1f1f] border-b border-[#1f1f1f] flex items-start gap-4">
                                      <div className="flex-1 min-w-0">
-                                         <div className="flex items-center justify-between mb-0.5"><span className="text-[11px] font-bold text-gray-200 truncate">{item.title}</span></div>
-                                         <p className="text-[9px] text-gray-500 font-mono line-clamp-1">{item.description}</p>
+                                         <div className="flex items-center justify-between mb-1"><span className="text-xs font-bold text-gray-200 truncate">{item.title}</span></div>
+                                         <p className="text-[10px] text-gray-500 font-mono line-clamp-1">{item.description}</p>
                                      </div>
-                                     <ArrowRight className="w-3 h-3 text-gray-600" />
+                                     <ArrowRight className="w-4 h-4 text-gray-600" />
                                  </button>
                              ))
                          ) : search.history.length > 0 && !search.query ? (
                              <div>
-                                 <div className="px-3 py-2 border-b border-[#1f1f1f] text-[9px] font-mono text-gray-500 uppercase tracking-widest">Recent Queries</div>
+                                 <div className="px-4 py-3 border-b border-[#1f1f1f] text-[10px] font-mono text-gray-500 uppercase tracking-widest bg-white/5">Recent Queries</div>
                                  {search.history.map((hist: string, i: number) => (
-                                     <button key={i} onClick={() => { setSearchState({ query: hist }); handleSearch(); }} className="w-full text-left px-3 py-2 hover:bg-[#1f1f1f] text-[10px] font-mono text-gray-400 flex items-center gap-2"><History size={10} className="text-gray-600"/>{hist}</button>
+                                     <button key={i} onClick={() => { setSearchState({ query: hist }); handleSearch(); }} className="w-full text-left px-4 py-3 hover:bg-[#1f1f1f] text-[11px] font-mono text-gray-400 flex items-center gap-3 transition-colors border-b border-[#1f1f1f] last:border-0"><History size(12) className="text-gray-600"/>{hist}</button>
                                  ))}
                              </div>
                          ) : (
-                             <div className="p-8 text-center text-[10px] text-gray-500 font-mono">No results found.</div>
+                             <div className="p-12 text-center text-xs text-gray-500 font-mono opacity-50">No results identified in current sector</div>
                          )}
                     </div>
                 </MotionDiv>

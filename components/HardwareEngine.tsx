@@ -26,7 +26,7 @@ import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianG
 
 // --- TACTICAL HUD SUB-COMPONENTS ---
 
-const ComputeFluxOverlay = ({ active, speed }: { active: boolean, speed: number }) => {
+const ComputeFluxOverlay = ({ active, speed, color = '#22d3ee' }: { active: boolean, speed: number, color?: string }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -51,7 +51,7 @@ const ComputeFluxOverlay = ({ active, speed }: { active: boolean, speed: number 
                     vx: (Math.random() - 0.5) * speed * 2,
                     vy: (Math.random() - 0.5) * speed * 2,
                     life: 1.0,
-                    color: Math.random() > 0.5 ? '#22d3ee' : '#f59e0b'
+                    pColor: Math.random() > 0.5 ? color : '#f59e0b'
                 });
             }
 
@@ -63,13 +63,13 @@ const ComputeFluxOverlay = ({ active, speed }: { active: boolean, speed: number 
                 ctx.beginPath();
                 ctx.moveTo(p.x, p.y);
                 ctx.lineTo(p.x - p.vx * 5, p.y - p.vy * 5);
-                ctx.strokeStyle = p.color;
+                ctx.strokeStyle = p.pColor;
                 ctx.globalAlpha = p.life * 0.4;
                 ctx.lineWidth = 1;
                 ctx.stroke();
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, 1, 0, Math.PI * 2);
-                ctx.fillStyle = p.color;
+                ctx.fillStyle = p.pColor;
                 ctx.globalAlpha = p.life;
                 ctx.fill();
             });
@@ -77,7 +77,7 @@ const ComputeFluxOverlay = ({ active, speed }: { active: boolean, speed: number 
         };
         const handle = requestAnimationFrame(render);
         return () => cancelAnimationFrame(handle);
-    }, [active, speed]);
+    }, [active, speed, color]);
 
     return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-30" />;
 };
@@ -139,9 +139,11 @@ const PerformanceMixer = ({ label, value, unit, min, max, onValueChange, color }
 );
 
 const MOCK_GPUS = [
-    { id: 'gpu-h100', model: 'Tensor Core H100', manufacturer: 'NVIDIA', arch: 'Hopper', price: 32500, trend: +2.4, stock: 'IN_STOCK', mtbf: 45, specs: { vram: '80GB HBM3', tdp: '700W', cores: '16896 CUDA' }, bom: ['HBM3 Memory Module', 'SXM5 Mezzanine Interface', 'Integrated Heat Sink', 'Tensor Cores Layer'] },
-    { id: 'gpu-a100', model: 'Ampere A100', manufacturer: 'NVIDIA', arch: 'Ampere', price: 12400, trend: -1.2, stock: 'LOW_STOCK', mtbf: 50, specs: { vram: '80GB HBM2e', tdp: '400W', cores: '6912 CUDA' }, bom: ['HBM2e Memory', 'SXM4 Interface', 'Vapor Chamber', 'Silicon Interposer'] },
-    { id: 'gpu-q1', model: 'Q-Tensor X1', manufacturer: 'Quantum Logic', arch: 'Sovereign-Q', price: 85000, trend: +12.4, stock: 'LIMITED', mtbf: 12, specs: { vram: '128QB Quantum VRAM', tdp: '1200W', cores: '512 Qubits' }, bom: ['Dilution Refrigerator Pipe', 'Superconducting Interconnect', 'Qubit Control Die', 'Vacuum Chamber Seal'] }
+    { id: 'gpu-h100', era: 'SILICON', model: 'Tensor Core H100', manufacturer: 'NVIDIA', arch: 'Hopper', price: 32500, trend: +2.4, stock: 'IN_STOCK', mtbf: 45, specs: { vram: '80GB HBM3', tdp: '700W', cores: '16896 CUDA' }, bom: ['HBM3 Memory Module', 'SXM5 Mezzanine Interface', 'Integrated Heat Sink', 'Tensor Cores Layer'] },
+    { id: 'gpu-a100', era: 'SILICON', model: 'Ampere A100', manufacturer: 'NVIDIA', arch: 'Ampere', price: 12400, trend: -1.2, stock: 'LOW_STOCK', mtbf: 50, specs: { vram: '80GB HBM2e', tdp: '400W', cores: '6912 CUDA' }, bom: ['HBM2e Memory', 'SXM4 Interface', 'Vapor Chamber', 'Silicon Interposer'] },
+    { id: 'gpu-q1', era: 'QUANTUM', model: 'Q-Tensor X1', manufacturer: 'Quantum Logic', arch: 'Sovereign-Q', price: 85000, trend: +12.4, stock: 'LIMITED', mtbf: 12, specs: { vram: '128QB Quantum VRAM', tdp: '1200W', cores: '512 Qubits' }, bom: ['Dilution Refrigerator Pipe', 'Superconducting Interconnect', 'Qubit Control Die', 'Vacuum Chamber Seal'] },
+    { id: 'gpu-q2', era: 'QUANTUM', model: 'IonStream Z', manufacturer: 'Rigetti Labs', arch: 'Lattice-7', price: 145000, trend: +4.2, stock: 'IN_STOCK', mtbf: 18, specs: { vram: '256QB Cryo-Memory', tdp: '850W', cores: '1024 Qubits' }, bom: ['Iontrap Vacuum Stage', 'Microwave Oscillator', 'Gold plated chassis', 'Cryogenic Pump'] },
+    { id: 'gpu-b1', era: 'BIOMIMETIC', model: 'Neural Vine v4', manufacturer: 'Synapse Corp', arch: 'Bio-Lattice', price: 54000, trend: +1.1, stock: 'LIMITED', mtbf: 85, specs: { vram: 'Organic Wetware 1TB', tdp: '150W', cores: '12B Synapses' }, bom: ['Myelin Sheath Plate', 'Electrolyte Pump', 'Neuron Array Patch', 'Vascular Cooling Mesh'] }
 ];
 
 const HardwareEngine: React.FC = () => {
@@ -155,12 +157,26 @@ const HardwareEngine: React.FC = () => {
     const [viewMode, setViewMode] = useState<'2D' | '3D' | 'SCHEMATIC' | 'XRAY' | 'QUANTUM'>('QUANTUM');
     const [showComputeFlux, setShowComputeFlux] = useState(true);
     
-    const [selectedGpu, setSelectedGpu] = useState(MOCK_GPUS[0]);
+    const eraColor = useMemo(() => {
+        if (currentEra === 'QUANTUM') return '#9d4edd';
+        if (currentEra === 'BIOMIMETIC') return '#10b981';
+        return '#22d3ee';
+    }, [currentEra]);
+
+    const filteredGpus = useMemo(() => {
+        return MOCK_GPUS.filter(g => g.era === currentEra);
+    }, [currentEra]);
+
+    const [selectedGpu, setSelectedGpu] = useState(filteredGpus[0] || MOCK_GPUS[0]);
     const [gpuSearchQuery, setGpuSearchQuery] = useState('');
     const [isometricImage, setIsometricImage] = useState<string | null>(null);
     const [liveSupplyData, setLiveSupplyData] = useState<any>(null);
     const [isFetchingSupply, setIsFetchingSupply] = useState(false);
     const [isAnalyzingFinImpact, setIsAnalyzingFinImpact] = useState(false);
+
+    useEffect(() => {
+        setSelectedGpu(filteredGpus[0] || MOCK_GPUS[0]);
+    }, [currentEra]);
 
     const stressLevel = useMemo(() => {
         const base = (clockSpeed - 1) * 20;
@@ -191,7 +207,7 @@ const HardwareEngine: React.FC = () => {
             } catch (e) { console.error(e); } finally { setIsAnalyzingFinImpact(false); }
         }, 3000);
         return () => clearTimeout(timer);
-    }, [clockSpeed, voltage, fanSpeed, schematicImage, selectedGpu, viewMode]);
+    }, [clockSpeed, voltage, fanSpeed, schematicImage, selectedGpu, viewMode, currentEra]);
 
     useVoiceExpose('hardware-fabricator', { era: currentEra, stressLevel, powerDraw, mtbf, clocks: `${clockSpeed}GHz`, activeGpu: selectedGpu?.model });
 
@@ -230,14 +246,14 @@ const HardwareEngine: React.FC = () => {
     };
 
     return (
-        <div className="h-full w-full bg-[#020202] text-white flex flex-col relative border border-[#1f1f1f] rounded-[2.5rem] overflow-hidden shadow-2xl font-sans group/hw">
+        <div className="h-full w-full bg-[#020202] text-white flex flex-col relative border border-[#1f1f1f] rounded-[3rem] overflow-hidden shadow-2xl font-sans group/hw">
             {/* Header */}
             <div className="h-16 border-b border-white/5 bg-[#0a0a0a]/95 backdrop-blur-3xl flex items-center justify-between px-8 z-50 shrink-0 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#22d3ee]/40 to-transparent" />
                 <div className="flex items-center gap-8">
                     <div className="flex items-center gap-4">
-                        <div className="p-2.5 bg-[#22d3ee]/10 border border-[#22d3ee]/40 rounded-xl shadow-[0_0_20px_rgba(34,211,238,0.15)]">
-                            <Cpu className="w-5 h-5 text-[#22d3ee]" />
+                        <div className="p-2.5 rounded-xl border transition-all duration-700 shadow-2xl" style={{ backgroundColor: `${eraColor}15`, borderColor: `${eraColor}40`, color: eraColor }}>
+                            <Cpu className="w-5 h-5" />
                         </div>
                         <div>
                             <h1 className="text-sm font-black font-mono text-white uppercase tracking-[0.4em] leading-none">Hardware Core</h1>
@@ -247,7 +263,7 @@ const HardwareEngine: React.FC = () => {
                     <div className="h-8 w-px bg-white/5" />
                     <div className="flex gap-1.5 bg-black/60 p-1 rounded-xl border border-white/5">
                         {Object.values(TemporalEra).map(era => (
-                            <button key={era} onClick={() => { setHardwareState({ currentEra: era }); audio.playClick(); }} className={`px-4 py-1.5 rounded-lg text-[8px] font-black font-mono uppercase tracking-widest transition-all ${currentEra === era ? 'bg-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20' : 'text-gray-500 hover:text-white'}`}>{era}</button>
+                            <button key={era} onClick={() => { setHardwareState({ currentEra: era }); audio.playClick(); }} className={`px-4 py-1.5 rounded-lg text-[8px] font-black font-mono uppercase tracking-widest transition-all ${currentEra === era ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}>{era}</button>
                         ))}
                     </div>
                 </div>
@@ -277,7 +293,7 @@ const HardwareEngine: React.FC = () => {
                             <motion.div key="quantum-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="h-full flex flex-col gap-8 overflow-hidden">
                                 <div className="flex justify-between items-end shrink-0">
                                     <div className="space-y-3">
-                                        <h2 className="text-3xl font-black font-mono text-white uppercase tracking-tighter">Quantum Node Procurement</h2>
+                                        <h2 className="text-3xl font-black font-mono text-white uppercase tracking-tighter">{currentEra} Node Procurement</h2>
                                         <div className="flex items-center gap-5">
                                             <div className="flex items-center bg-[#0a0a0a] border border-white/10 rounded-xl px-4 py-2 w-80 focus-within:border-[#22d3ee] transition-all">
                                                 <Search size={14} className="text-gray-600 mr-3" />
@@ -295,33 +311,34 @@ const HardwareEngine: React.FC = () => {
                                 </div>
 
                                 <div className="flex-1 grid grid-cols-3 gap-6 overflow-y-auto custom-scrollbar pr-2 pb-10">
-                                    {MOCK_GPUS.filter(g => g.model.toLowerCase().includes(gpuSearchQuery.toLowerCase())).map(gpu => (
+                                    {filteredGpus.filter(g => g.model.toLowerCase().includes(gpuSearchQuery.toLowerCase())).map(gpu => (
                                         <motion.div 
                                             key={gpu.id}
                                             onClick={() => setSelectedGpu(gpu)}
                                             whileHover={{ scale: 1.02 }}
-                                            className={`p-5 bg-[#0a0a0a] border rounded-[2rem] cursor-pointer transition-all relative overflow-hidden group/gpu ${selectedGpu?.id === gpu.id ? 'border-[#22d3ee] shadow-[0_0_50px_rgba(34,211,238,0.1)]' : 'border-white/5 hover:border-white/20'}`}
+                                            className={`p-6 bg-[#0a0a0a] border rounded-[2.5rem] cursor-pointer transition-all relative overflow-hidden group/gpu ${selectedGpu?.id === gpu.id ? 'border-[#22d3ee] shadow-[0_0_50px_rgba(34,211,238,0.1)]' : 'border-white/5 hover:border-white/20'}`}
                                         >
                                             <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover/gpu:opacity-[0.06] transition-opacity rotate-12"><Cpu size={80} /></div>
-                                            <div className="flex justify-between items-start mb-4">
+                                            <div className="flex justify-between items-start mb-6 relative z-10">
                                                 <div className="p-2.5 bg-white/5 rounded-xl text-gray-600 group-hover/gpu:text-[#22d3ee] transition-all"><Box size={20} /></div>
-                                                <div className={`px-2 py-0.5 rounded-full text-[7px] font-black font-mono uppercase tracking-widest ${gpu.stock === 'IN_STOCK' ? 'text-[#10b981] bg-[#10b981]/10 border border-[#10b981]/30' : 'text-red-500 bg-red-500/10 border border-red-500/30'}`}>{gpu.stock}</div>
+                                                {/* Repositioned Badge: Inline to avoid clipping */}
+                                                <div className={`px-2.5 py-1 rounded-lg text-[8px] font-black font-mono uppercase tracking-widest border ${gpu.stock === 'IN_STOCK' ? 'text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30' : 'text-red-500 bg-red-500/10 border-red-500/30'}`}>{gpu.stock.replace('_', ' ')}</div>
                                             </div>
-                                            <h3 className="text-lg font-black text-white uppercase font-mono tracking-tighter mb-1">{gpu.model}</h3>
-                                            <p className="text-[8px] text-gray-600 font-mono uppercase tracking-widest mb-4">Mfr: {gpu.manufacturer} // {gpu.arch}</p>
-                                            <div className="flex justify-between items-end border-t border-white/5 pt-4">
+                                            <h3 className="text-lg font-black text-white uppercase font-mono tracking-tighter mb-1 relative z-10">{gpu.model}</h3>
+                                            <p className="text-[8px] text-gray-600 font-mono uppercase tracking-widest mb-6 relative z-10">Mfr: {gpu.manufacturer} // {gpu.arch}</p>
+                                            <div className="flex justify-between items-end border-t border-white/5 pt-6 relative z-10">
                                                 <div>
-                                                    <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest block mb-0.5">Value</span>
+                                                    <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest block mb-1">Value</span>
                                                     <span className="text-xl font-black font-mono text-[#10b981] tracking-tighter">${gpu.price.toLocaleString()}</span>
                                                 </div>
                                                 <div className="text-right">
-                                                    <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest block mb-0.5">MTBF</span>
+                                                    <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest block mb-1">MTBF</span>
                                                     <span className="text-xs font-bold font-mono text-white">{gpu.mtbf}k hrs</span>
                                                 </div>
                                             </div>
                                         </motion.div>
                                     ))}
-                                    <div className="aspect-square rounded-[2rem] border border-dashed border-white/5 flex flex-col items-center justify-center gap-4 group hover:border-[#9d4edd]/40 transition-all cursor-pointer bg-white/[0.01]">
+                                    <div className="aspect-square rounded-[2.5rem] border border-dashed border-white/5 flex flex-col items-center justify-center gap-4 group hover:border-[#9d4edd]/40 transition-all cursor-pointer bg-white/[0.01]">
                                         <Microscope size={40} className="text-gray-700 group-hover:text-[#9d4edd] group-hover:scale-110 transition-all" />
                                         <p className="text-[9px] font-black font-mono text-gray-700 uppercase tracking-widest group-hover:text-white">Initialize Custom Dye Scan</p>
                                     </div>
@@ -339,10 +356,10 @@ const HardwareEngine: React.FC = () => {
                                                     {selectedGpu.bom.map((item, i) => (
                                                         <div key={i} className="p-3.5 bg-black border border-white/5 rounded-xl flex items-center justify-between group/bom-item hover:border-[#22d3ee]/40 transition-all">
                                                             <div className="flex items-center gap-3">
-                                                                <div className="w-1 h-1 rounded-full bg-[#22d3ee] opacity-40 group-hover/bom-item:opacity-100" />
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-[#22d3ee] opacity-40 group-hover/bom-item:opacity-100" />
                                                                 <span className="text-[9px] font-black text-gray-300 uppercase truncate max-w-[180px]">{item}</span>
                                                             </div>
-                                                            <button onClick={() => fetchSupplyChain(item)} className="p-1 hover:bg-[#22d3ee]/20 text-gray-700 hover:text-[#22d3ee] rounded-lg transition-all"><ExternalLink size={10}/></button>
+                                                            <button onClick={() => fetchSupplyChain(item)} className="p-1.5 hover:bg-[#22d3ee]/20 text-gray-700 hover:text-[#22d3ee] rounded-lg transition-all"><ExternalLink size={10}/></button>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -354,20 +371,20 @@ const HardwareEngine: React.FC = () => {
                                                         <TrendingUp size={14} className="text-[#10b981]" />
                                                         <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Yield Variance Model</span>
                                                     </div>
-                                                    <button onClick={() => fetchSupplyChain(selectedGpu.model)} className="px-5 py-2 bg-[#22d3ee] text-black rounded-xl text-[8px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-105 active:scale-95 transition-all">Procure Node</button>
+                                                    <button onClick={() => fetchSupplyChain(selectedGpu.model)} className="px-6 py-2.5 bg-[#10b981] text-black rounded-xl text-[9px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-105 active:scale-95 transition-all">Procure Node</button>
                                                 </div>
-                                                <div className="flex-1 bg-black rounded-[2rem] border border-white/5 p-4 shadow-inner relative overflow-hidden">
+                                                <div className="flex-1 bg-black rounded-[2.5rem] border border-white/5 p-6 shadow-inner relative overflow-hidden">
                                                     <AreaChart data={Array.from({length: 20}, (_, i) => ({ t: i, v: 30000 + Math.random() * 5000 }))} width={600} height={200}>
-                                                        <Area type="monotone" dataKey="v" stroke="#22d3ee" fill="rgba(34,211,238,0.1)" strokeWidth={2} />
+                                                        <Area type="monotone" dataKey="v" stroke="#10b981" fill="rgba(16,185,129,0.08)" strokeWidth={2} />
                                                     </AreaChart>
-                                                    <div className="absolute top-3 right-5 text-[7px] font-mono text-gray-700 uppercase tracking-[0.4em]">Price_Index_L0</div>
+                                                    <div className="absolute top-4 right-8 text-[7px] font-mono text-gray-700 uppercase tracking-[0.4em]">Node_Health_Profile_L0</div>
                                                 </div>
                                             </div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
                             </motion.div>
-                        ) : !schematicImage ? (
+                        ) : !schematicImage && viewMode !== 'QUANTUM' ? (
                             <div className="h-full flex flex-col gap-6">
                                 <div className="grid grid-cols-4 gap-4 shrink-0">
                                     {[
@@ -394,6 +411,25 @@ const HardwareEngine: React.FC = () => {
                                         </div>
                                         <input type="file" className="hidden" onChange={handleUpload} accept="image/*" />
                                     </label>
+                                    
+                                    {/* High Fidelity Fallback UI for Thermal/Logic even without image */}
+                                    <AnimatePresence>
+                                        {(viewMode === 'XRAY' || viewMode === 'SCHEMATIC') && (
+                                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center p-12 pointer-events-none">
+                                                <div className="flex flex-col items-center gap-6 text-center">
+                                                    <div className="p-4 bg-[#ef4444]/10 rounded-full text-[#ef4444] border border-[#ef4444]/30 animate-pulse">
+                                                        <AlertTriangle size={32} />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <h3 className="text-lg font-black font-mono text-white uppercase tracking-widest">Buffer_Empty_Signal</h3>
+                                                        <p className="text-[10px] font-mono text-gray-400 uppercase tracking-widest max-w-xs leading-relaxed">
+                                                            Active {viewMode} scan requires primary silicon signature. Ingest blueprint to initialize forensic trace.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             </div>
                         ) : (
@@ -423,19 +459,30 @@ const HardwareEngine: React.FC = () => {
                                         </div>
                                         <div className="flex-1 relative rounded-[3rem] border border-white/5 bg-[#050505] overflow-hidden shadow-2xl flex items-center justify-center group/viewport">
                                             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
-                                            <ComputeFluxOverlay active={showComputeFlux} speed={clockSpeed / 2} />
+                                            <ComputeFluxOverlay active={showComputeFlux} speed={clockSpeed / 2} color={eraColor} />
                                             
                                             <AnimatePresence mode="wait">
                                                 {viewMode === '2D' && (
                                                     <motion.div key="2d" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full p-16 flex items-center justify-center relative">
-                                                        <img src={`data:${schematicImage.inlineData.mimeType};base64,${schematicImage.inlineData.data}`} className="max-w-full max-h-full object-contain rounded-xl shadow-[0_30px_80px_rgba(0,0,0,1)] border border-white/5 opacity-80 group-hover/viewport:opacity-100 transition-opacity duration-700" alt="2D Schematic" />
+                                                        {schematicImage ? (
+                                                            <img src={`data:${schematicImage.inlineData.mimeType};base64,${schematicImage.inlineData.data}`} className="max-w-full max-h-full object-contain rounded-xl shadow-[0_30px_80px_rgba(0,0,0,1)] border border-white/5 opacity-80 group-hover/viewport:opacity-100 transition-opacity duration-700" alt="2D Schematic" />
+                                                        ) : (
+                                                            <div className="text-gray-800 font-mono text-xl uppercase tracking-widest animate-pulse">Awaiting Signal...</div>
+                                                        )}
                                                     </motion.div>
                                                 )}
 
                                                 {viewMode === 'XRAY' && (
                                                     <motion.div key="xray" initial={{ opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} className="w-full h-full p-10 flex gap-8 overflow-hidden">
                                                         <div className="flex-1 relative border border-white/5 rounded-3xl bg-black overflow-hidden flex items-center justify-center shadow-inner group/xray-img">
-                                                            {xrayImage && <img src={xrayImage} className="max-w-full max-h-full object-contain mix-blend-screen animate-pulse" style={{ filter: `hue-rotate(${stressLevel}deg) contrast(1.5)` }} alt="X-Ray View" />}
+                                                            {xrayImage ? (
+                                                                <img src={xrayImage} className="max-w-full max-h-full object-contain mix-blend-screen animate-pulse" style={{ filter: `hue-rotate(${stressLevel}deg) contrast(1.5)` }} alt="X-Ray View" />
+                                                            ) : (
+                                                                <div className="w-full h-full flex flex-col items-center justify-center opacity-10">
+                                                                    <Monitor size={120} />
+                                                                    <span className="text-lg font-mono mt-8">Thermal Buffer Empty</span>
+                                                                </div>
+                                                            )}
                                                             
                                                             {/* Forensic Overlay */}
                                                             <div className="absolute inset-0 p-8 pointer-events-none">
@@ -474,7 +521,14 @@ const HardwareEngine: React.FC = () => {
 
                                                 {viewMode === '3D' && (
                                                     <motion.div key="3d" initial={{ opacity: 0, rotateY: 45 }} animate={{ opacity: 1, rotateY: 0 }} className="w-full h-full p-16 flex items-center justify-center perspective-1000">
-                                                        {isometricImage ? <motion.img src={isometricImage} animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }} className="max-w-full max-h-full object-contain rounded-3xl drop-shadow-[0_40px_100px_rgba(34,211,238,0.15)]" alt="3D Render" /> : <div className="text-gray-700 font-mono text-[10px] uppercase">Synthesizing Model...</div>}
+                                                        {isometricImage ? (
+                                                            <motion.img src={isometricImage} animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }} className="max-w-full max-h-full object-contain rounded-3xl drop-shadow-[0_40px_100px_rgba(34,211,238,0.15)]" alt="3D Render" />
+                                                        ) : (
+                                                            <div className="flex flex-col items-center gap-6 opacity-20">
+                                                                <Box size={100} />
+                                                                <div className="text-gray-400 font-mono text-[10px] uppercase tracking-[0.5em]">Synthesizing 3D Model...</div>
+                                                            </div>
+                                                        )}
                                                     </motion.div>
                                                 )}
 
@@ -516,7 +570,9 @@ const HardwareEngine: React.FC = () => {
                                                                                 </div>
                                                                                 <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#22d3ee]/20 to-transparent opacity-0 group-hover/comp:opacity-100 transition-opacity" />
                                                                             </motion.div>
-                                                                        ))}
+                                                                        )) || (
+                                                                            <div className="col-span-2 py-20 text-center text-gray-800 font-mono uppercase tracking-[0.4em]">Empty_Catalog_Buffer</div>
+                                                                        )}
                                                                     </div>
                                                                 </div>
                                                                 
@@ -568,7 +624,7 @@ const HardwareEngine: React.FC = () => {
                             <PerformanceMixer label="Core Clock" value={clockSpeed} unit="GHz" min={1.2} max={6.4} color="#22d3ee" onValueChange={setClockSpeed} />
                             <PerformanceMixer label="Voltage Offset" value={voltage} unit="v" min={0.7} max={1.65} color="#ef4444" onValueChange={setVoltage} />
                             <PerformanceMixer label="Memory Timing" value={timing} unit="cl" min={10} max={30} color="#f59e0b" onValueChange={setTiming} />
-                            <PerformanceMixer label="Cooling Intensity" value={fanSpeed} unit=" RPM" min={0} max={6000} color="#9d4edd" onValueChange={setFanSpeed} />
+                            <PerformanceMixer label="Cooling Intensity" value={fanSpeed} unit=" RPM" min={0} max={6000} color="#9d4edd" onValueChange={setValue => setFanSpeed(setValue)} />
                         </div>
                     </div>
 
