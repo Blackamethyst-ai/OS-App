@@ -8,7 +8,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TugOfWarChart } from './Visualizations/TugOfWarChart';
 import { AgentGraveyard } from './Visualizations/AgentGraveyard';
 import { SwarmStatus, AgentDNA } from '../types';
-// Fixed: Added missing import for audio service
 import { audio } from '../services/audioService';
 
 const BicameralEngine: React.FC = () => {
@@ -29,7 +28,6 @@ const BicameralEngine: React.FC = () => {
             const hasKey = await window.aistudio?.hasSelectedApiKey();
             if (!hasKey) { await promptSelectKey(); return; }
 
-            // Fix: Use the imported audio service for UI feedback
             audio.playClick();
             setBicameralState({ isPlanning: true, plan: [], ledger: [], error: null });
             
@@ -102,13 +100,11 @@ ${result.output}
             }
             
             setBicameralState({ isSwarming: false });
-            // Fix: Trigger success audio after sequence completion
             audio.playSuccess();
 
         } catch (err: any) {
             setBicameralState({ isPlanning: false, isSwarming: false, error: err.message });
             addLog('ERROR', `BICAMERAL: ${err.message}`);
-            // Fix: Trigger error audio on exception
             audio.playError();
         }
     };
@@ -156,7 +152,7 @@ ${result.output}
                                     <input type="range" className="w-full h-1 bg-[#1a1a1a] rounded-full appearance-none accent-[#f59e0b]" value={agentWeights.excitement} onChange={e => setAgentWeights({...agentWeights, excitement: parseInt(e.target.value)})} />
                                 </div>
                                 <div className="space-y-2">
-                                    <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase tracking-widest px-1"><span>Active Directive Overlay</span> <Target size(10) className="text-[#9d4edd]" /></div>
+                                    <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase tracking-widest px-1"><span>Active Directive Overlay</span> <Target size={10} className="text-[#9d4edd]" /></div>
                                     <input 
                                         type="text" 
                                         value={customDirective}

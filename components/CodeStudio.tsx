@@ -153,7 +153,7 @@ const CodeStudio: React.FC = () => {
                                   </div>
                               ) : codeStudio.generatedCode ? (
                                   <div className="relative flex">
-                                      {/* Mock Line Numbers */}
+                                      {/* Line Numbers */}
                                       <div className="w-10 shrink-0 text-right pr-4 border-r border-white/5 text-[10px] font-mono text-gray-700 select-none space-y-[1.4em] pt-[0.2em]">
                                           {codeLines.map((_, i) => <div key={i}>{i + 1}</div>)}
                                       </div>
