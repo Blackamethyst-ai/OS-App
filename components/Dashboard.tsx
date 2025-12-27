@@ -23,84 +23,12 @@ import {
     ChevronUp, Volume2, Timer, History, Languages, Hash, Activity as PulseIcon,
     TrendingUp, TrendingDown, DollarSign, BrainCircuit, Headphones
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, ScatterChart, Scatter, ZAxis, Cell } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import MetaventionsLogo from './MetaventionsLogo';
-
-// --- REAL-TIME NEURAL PULSE COMPONENT ---
-const NeuralMomentumPulse = ({ entropy }: { entropy: number }) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-
-    useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        let frame = 0;
-        const render = () => {
-            frame++;
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-            const scale = 1 + (entropy / 200);
-            const radius = 80 * scale;
-
-            // Concentric Energy Rings
-            for (let i = 0; i < 3; i++) {
-                const ringRad = radius + Math.sin(frame * 0.05 + i) * 10;
-                ctx.beginPath();
-                ctx.arc(cx, cy, ringRad, 0, Math.PI * 2);
-                ctx.strokeStyle = `rgba(157, 126, 221, ${0.1 / (i + 1)})`;
-                ctx.lineWidth = 1;
-                ctx.stroke();
-            }
-
-            // Neural Fibers
-            const fiberCount = 12;
-            for (let i = 0; i < fiberCount; i++) {
-                const angle = (i / fiberCount) * Math.PI * 2 + frame * 0.01;
-                const tx = cx + Math.cos(angle) * (radius + 20);
-                const ty = cy + Math.sin(angle) * (radius + 20);
-                
-                ctx.beginPath();
-                ctx.moveTo(cx, cy);
-                ctx.quadraticCurveTo(
-                    cx + Math.cos(angle + 0.5) * radius,
-                    cy + Math.sin(angle + 0.5) * radius,
-                    tx, ty
-                );
-                ctx.strokeStyle = `rgba(157, 126, 221, ${0.05})`;
-                ctx.stroke();
-            }
-
-            requestAnimationFrame(render);
-        };
-        const handle = requestAnimationFrame(render);
-        return () => cancelAnimationFrame(handle);
-    }, [entropy]);
-
-    return (
-        <div className="w-full h-full relative flex items-center justify-center">
-            <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
-            <motion.div 
-                animate={{ scale: [1, 1.05, 1], opacity: [0.5, 1, 0.5] }}
-                transition={{ duration: 3, repeat: Infinity }}
-                className="relative z-10 w-32 h-32 rounded-full bg-gradient-to-br from-[#9d4edd]/20 to-transparent border border-[#9d4edd]/30 backdrop-blur-3xl flex items-center justify-center"
-            >
-                <div className="text-center">
-                    <span className="text-[10px] font-mono text-[#9d4edd] block uppercase tracking-[0.3em] mb-1">Coherence</span>
-                    <span className="text-3xl font-black font-mono text-white tracking-tighter">{100 - Math.round(entropy)}%</span>
-                </div>
-            </motion.div>
-        </div>
-    );
-};
+import DEcosystem from './DEcosystem';
 
 const RealWorldIntelFeed = () => {
     const { marketData, addLog } = useAppStore();
@@ -282,9 +210,10 @@ const Dashboard: React.FC = () => {
   return (
     <div className="w-full text-gray-200 font-sans relative h-full transition-colors duration-[2000ms] overflow-y-auto custom-scrollbar bg-[#020202]">
       <div className="relative z-10 max-w-[1920px] mx-auto p-6 space-y-6 pb-32">
+          
           <div className="grid grid-cols-12 gap-6 pt-4">
               {/* Left Column: Telemetry & Intel */}
-              <div className="col-span-3 space-y-6 flex flex-col h-[900px]">
+              <div className="col-span-3 space-y-6 flex flex-col h-[520px]">
                   <div className="grid grid-cols-2 gap-3 shrink-0">
                       <CompactMetric title="CPU" value={`${telemetry.cpu.toFixed(1)}%`} detail="12c_Sync" icon={CpuIcon} color={accent} data={cpuHistory} trend={telemetry.cpu > 50 ? 'up' : 'down'} />
                       <CompactMetric title="NET" value={`${telemetry.net.toFixed(1)}GB`} detail="Secure" icon={Network} color={accent} data={netHistory} trend="up" />
@@ -292,24 +221,13 @@ const Dashboard: React.FC = () => {
                       <CompactMetric title="INTEGRITY" value={`${telemetry.load.toFixed(1)}`} detail="Auth_OK" icon={Shield} color="#10b981" data={loadHistory} trend="up" />
                   </div>
                   
-                  <div className="shrink-0">
+                  <div className="flex-1">
                     <RealWorldIntelFeed />
-                  </div>
-
-                  <div className="flex-1 bg-[#050505] border border-white/5 rounded-2xl p-6 relative overflow-hidden group shadow-2xl">
-                      <div className="flex justify-between items-center mb-4 relative z-10">
-                          <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.4em]">Sovereign Pulse</span>
-                          <div className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] animate-pulse shadow-[0_0_8px_#9d4edd]" />
-                      </div>
-                      <NeuralMomentumPulse entropy={telemetry.cpu} />
-                      <div className="absolute bottom-4 left-6 right-6 text-[8px] font-mono text-gray-700 uppercase tracking-widest text-center border-t border-white/5 pt-4">
-                        Cognitive Mesh Analysis Active
-                      </div>
                   </div>
               </div>
 
               {/* Middle Column: Hub Visualizer & Full Voice Mode */}
-              <div className="col-span-6 flex flex-col gap-6 h-[900px]">
+              <div className="col-span-6 flex flex-col gap-6 h-[520px]">
                   <div className="flex-1 bg-[#020202] border border-white/5 rounded-3xl relative overflow-hidden group shadow-2xl flex flex-col transition-all">
                       <div className="flex-1 flex items-center justify-center p-8 relative overflow-hidden group/viewport">
                           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_40%,rgba(0,0,0,0.8)_100%)] z-10 pointer-events-none" />
@@ -340,7 +258,7 @@ const Dashboard: React.FC = () => {
                                  <button 
                                     key={btn.label}
                                     onClick={() => { btn.action(); audio.playClick(); }} 
-                                    className="px-5 py-2.5 bg-white/5 border border-white/5 hover:border-white/10 rounded-xl text-[10px] font-black font-mono uppercase tracking-widest text-gray-500 hover:text-white transition-all flex items-center gap-2 active:scale-95"
+                                    className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black font-mono uppercase tracking-widest text-gray-500 hover:text-white transition-all flex items-center gap-2 active:scale-95"
                                  >
                                      <btn.icon size={12} style={{ color: btn.color }} /> 
                                      {btn.label}
@@ -359,9 +277,9 @@ const Dashboard: React.FC = () => {
                       </div>
                   </div>
 
-                  {/* Restored Full Voice Mode (Neural Uplink) Section */}
-                  <div className="h-56 bg-[#0a0a0a] border border-[#9d4edd]/20 rounded-3xl p-6 flex flex-col gap-4 shadow-xl relative overflow-hidden group/voice-hub transition-all hover:border-[#9d4edd]/40">
-                      <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover/voice-hub:opacity-[0.06] transition-opacity rotate-12"><Headphones size={120} /></div>
+                  {/* Neural Uplink (Voice Control Quick Access) */}
+                  <div className="h-44 bg-[#0a0a0a] border border-[#9d4edd]/20 rounded-3xl p-6 flex flex-col gap-4 shadow-xl relative overflow-hidden group/voice-hub transition-all hover:border-[#9d4edd]/40">
+                      <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover/voice-hub:opacity-0.06 transition-opacity rotate-12"><Headphones size={120} /></div>
                       
                       <div className="flex items-center justify-between relative z-10">
                           <div className="flex items-center gap-4">
@@ -372,62 +290,42 @@ const Dashboard: React.FC = () => {
                                   <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Neural Uplink</span>
                                   <div className="flex items-center gap-2 mt-1">
                                       <div className={`w-1.5 h-1.5 rounded-full ${voice.isActive ? 'bg-[#10b981] animate-pulse' : 'bg-gray-800'}`} />
-                                      <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Voice Engine: Zephyr-v8.1</span>
+                                      <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Zephyr-v8.1</span>
                                   </div>
                               </div>
                           </div>
                           <button 
                             onClick={() => { setMode(AppMode.VOICE_MODE); audio.playTransition(); }}
                             className="p-2 bg-white/5 border border-white/10 rounded-xl text-gray-500 hover:text-[#9d4edd] hover:border-[#9d4edd]/30 transition-all"
-                            title="Expand Immersive View"
                           >
                             <Maximize2 size={16} />
                           </button>
                       </div>
 
                       <div className="flex-1 flex gap-6 items-center px-2 relative z-10">
-                          <div className="flex-1 space-y-4">
-                              <div className="flex justify-between items-end text-[9px] font-mono text-gray-500 uppercase tracking-widest">
-                                  <span>Cognitive Load</span>
-                                  <span className="text-white">Low_Latency</span>
-                              </div>
-                              <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                                  <motion.div 
-                                    animate={{ width: voice.isActive ? '64%' : '0%' }}
-                                    className="h-full bg-gradient-to-r from-[#9d4edd] to-[#22d3ee] shadow-[0_0_10px_#9d4edd]"
-                                  />
-                              </div>
-                              <p className="text-[10px] text-gray-500 font-mono italic leading-relaxed line-clamp-1">
+                          <p className="flex-1 text-[11px] text-gray-500 font-mono italic leading-relaxed line-clamp-2">
                                 {voice.isActive ? "Uplink stable. Direct the architect verbally for topological synthesis." : "Standby. Engage neural link to initialize acoustic context protocols."}
-                              </p>
-                          </div>
-                          
+                          </p>
                           <button 
                             onClick={() => { setVoiceState({ isActive: !voice.isActive }); audio.playClick(); }}
-                            className={`w-24 h-24 rounded-full flex flex-col items-center justify-center gap-2 transition-all duration-700 active:scale-95 shadow-2xl relative overflow-hidden
-                                ${voice.isActive 
-                                    ? 'bg-red-500 shadow-red-500/20 text-white' 
-                                    : 'bg-[#9d4edd] shadow-[#9d4edd]/20 text-black hover:bg-[#b06bf7]'}
+                            className={`px-8 py-3 rounded-xl font-black font-mono uppercase text-[10px] tracking-widest transition-all
+                                ${voice.isActive ? 'bg-red-500 text-white shadow-red-500/20' : 'bg-[#9d4edd] text-black hover:bg-[#b06bf7] shadow-[#9d4edd]/20'}
                             `}
                           >
-                              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.2)_0%,transparent_70%)] pointer-events-none" />
-                              <Mic size={28} className={voice.isActive ? 'animate-pulse' : ''} />
-                              <span className="text-[8px] font-black font-mono uppercase tracking-widest">
-                                {voice.isActive ? 'Sever' : 'Engage'}
-                              </span>
+                              {voice.isActive ? 'Sever' : 'Engage'}
                           </button>
                       </div>
                   </div>
               </div>
 
               {/* Right Column: Assets & Yield */}
-              <div className="col-span-3 space-y-6 flex flex-col h-[900px]">
-                  <div className="bg-[#050505] border border-white/5 rounded-3xl p-4 flex flex-col gap-4 shadow-xl group/ref relative overflow-hidden h-[180px]">
+              <div className="col-span-3 space-y-6 flex flex-col h-[520px]">
+                  <div className="bg-[#050505] border border-white/5 rounded-3xl p-4 flex flex-col gap-4 shadow-xl group/ref relative overflow-hidden h-[160px]">
                       <div className="flex items-center gap-2 relative z-10">
                           <Target size={14} className="text-[#9d4edd]" />
                           <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Style Matrix</span>
                       </div>
-                      <div className="flex-1 relative rounded-2xl border border-dashed border-white/5 bg-black flex items-center justify-center overflow-hidden shadow-inner">
+                      <div className="flex-1 relative rounded-2xl border border-dashed border-white/5 bg-black flex items-center justify-center overflow-hidden">
                           {dashboard.referenceImage ? (
                                 <div className="relative w-full h-full group/preview">
                                     <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover grayscale-[60%] group-hover/preview:grayscale-0 transition-all duration-1000" alt="Ref" />
@@ -449,7 +347,7 @@ const Dashboard: React.FC = () => {
                       </div>
                   </div>
 
-                  <div className="bg-[#050505] border border-white/5 rounded-2xl p-5 flex flex-col gap-5 relative overflow-hidden h-[240px] shadow-inner">
+                  <div className="bg-[#050505] border border-white/5 rounded-2xl p-5 flex flex-col gap-5 relative overflow-hidden flex-1 shadow-inner">
                       <div className="flex items-center justify-between relative z-10 px-1">
                           <div className="flex items-center gap-3">
                               <div className="p-2 rounded-xl bg-[#22d3ee]/5 text-[#22d3ee] border border-[#22d3ee]/10">
@@ -478,34 +376,12 @@ const Dashboard: React.FC = () => {
                           ))}
                       </div>
                   </div>
-                  
-                  <div className="flex-1 bg-[#050505] border border-white/5 rounded-3xl p-6 shadow-xl relative overflow-hidden flex flex-col">
-                      <div className="flex items-center gap-3 mb-6 shrink-0 px-1">
-                          <GitBranch size={16} className="text-[#22d3ee]" />
-                          <span className="text-[11px] font-black font-mono text-white uppercase tracking-widest">Lattice Synchronization</span>
-                      </div>
-                      <div className="flex-1 flex flex-col justify-center gap-8">
-                          <div className="flex items-center justify-between px-2">
-                             <div className="flex flex-col gap-1">
-                                <span className="text-[9px] font-mono text-gray-500 uppercase">Sector Alignment</span>
-                                <span className="text-xl font-black font-mono text-white tracking-tighter">98.4%</span>
-                             </div>
-                             <ShieldCheck size={32} className="text-[#10b981] opacity-40" />
-                          </div>
-                          <div className="h-px w-full bg-white/5" />
-                          <div className="grid grid-cols-2 gap-4">
-                              <div className="bg-black border border-white/5 p-4 rounded-2xl">
-                                 <span className="text-[7px] text-gray-600 uppercase font-mono block mb-1">Peer Nodes</span>
-                                 <span className="text-sm font-bold text-[#22d3ee]">1,240_ACTIVE</span>
-                              </div>
-                              <div className="bg-black border border-white/5 p-4 rounded-2xl">
-                                 <span className="text-[7px] text-gray-600 uppercase font-mono block mb-1">Latency</span>
-                                 <span className="text-sm font-bold text-[#9d4edd]">4.2ms_STABLE</span>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
               </div>
+          </div>
+
+          {/* Expanded Hero Visualization Section at the Bottom - NOW 1100PX FOR MASSIVE DEPTH */}
+          <div className="w-full h-[1100px] shrink-0 mt-12 pb-20">
+              <DEcosystem />
           </div>
       </div>
     </div>
