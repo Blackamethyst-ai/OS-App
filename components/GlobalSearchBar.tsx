@@ -106,7 +106,7 @@ const GlobalSearchBar: React.FC = () => {
                              <div>
                                  <div className="px-4 py-3 border-b border-[#1f1f1f] text-[10px] font-mono text-gray-500 uppercase tracking-widest bg-white/5">Recent Queries</div>
                                  {search.history.map((hist: string, i: number) => (
-                                     <button key={i} onClick={() => { setSearchState({ query: hist }); handleSearch(); }} className="w-full text-left px-4 py-3 hover:bg-[#1f1f1f] text-[11px] font-mono text-gray-400 flex items-center gap-3 transition-colors border-b border-[#1f1f1f] last:border-0"><History size(12) className="text-gray-600"/>{hist}</button>
+                                     <button key={i} onClick={() => { setSearchState({ query: hist }); handleSearch(); }} className="w-full text-left px-4 py-3 hover:bg-[#1f1f1f] text-[11px] font-mono text-gray-400 flex items-center gap-3 transition-colors border-b border-[#1f1f1f] last:border-0"><History size={12} className="text-gray-600"/>{hist}</button>
                                  ))}
                              </div>
                          ) : (
