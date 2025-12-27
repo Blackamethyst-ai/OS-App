@@ -42,7 +42,7 @@ const LayerControlMesh = () => {
                             flex items-center justify-center w-7 h-7 rounded-md border transition-all duration-300
                             ${isActive 
                                 ? 'bg-white/10 border-[var(--layer-color)] text-white shadow-sm' 
-                                : 'bg-transparent border-transparent text-[var(--text-muted)] hover:text-[var(--text-main)]'}
+                                : 'bg-transparent border-transparent text-[var(--text-muted)] hover:text-[var(--text-primary)]'}
                         `}
                         style={{ '--layer-color': layer.color } as React.CSSProperties}
                         title={layer.label}
@@ -135,7 +135,7 @@ const GlobalStatusBar: React.FC = () => {
                                 onChange={e => setInput(e.target.value)}
                                 disabled={agentState.isThinking}
                                 placeholder={agentState.isThinking ? "PROCESSING..." : "INPUT INTENT..."}
-                                className="flex-1 bg-transparent border-none outline-none text-[10px] font-mono text-[var(--text-main)] placeholder:text-[var(--text-muted)] uppercase tracking-widest"
+                                className="flex-1 bg-transparent border-none outline-none text-[10px] font-mono text-[var(--text-primary)] placeholder:text-[var(--text-muted)] uppercase tracking-widest"
                             />
                             {input && !agentState.isThinking && (
                                 <button type="submit" className="text-[#9d4edd]"><ArrowRight size={14} /></button>
@@ -146,7 +146,7 @@ const GlobalStatusBar: React.FC = () => {
                     <div className="flex items-center gap-3 pl-4 border-l border-[var(--border-main)] shrink-0 relative z-10">
                         <button 
                             onClick={() => setCollabState({ isOverlayOpen: !collaboration.isOverlayOpen })}
-                            className={`flex items-center gap-2 px-2 py-1 rounded-lg border transition-all ${collaboration.isOverlayOpen ? 'bg-[#22d3ee] text-black border-[#22d3ee]' : 'bg-black/5 border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5'}`}
+                            className={`flex items-center gap-2 px-2 py-1 rounded-lg border transition-all ${collaboration.isOverlayOpen ? 'bg-[#22d3ee] text-black border-[#22d3ee]' : 'bg-black/5 border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'}`}
                         >
                             <Users size={12} />
                             <span className="text-[8px] font-black font-mono uppercase tracking-widest">{peerCount}P</span>
@@ -157,17 +157,17 @@ const GlobalStatusBar: React.FC = () => {
                         </Suspense>
 
                         <div className="flex items-center gap-1.5">
-                            <button onClick={() => setScrubberOpen(!isScrubberOpen)} className={`p-1.5 rounded-lg transition-all ${isScrubberOpen ? 'bg-[#9d4edd] text-black' : 'bg-black/5 text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5'}`}>
+                            <button onClick={() => setScrubberOpen(!isScrubberOpen)} className={`p-1.5 rounded-lg transition-all ${isScrubberOpen ? 'bg-[#9d4edd] text-black' : 'bg-black/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'}`}>
                                 <History size={14} />
                             </button>
-                            <button onClick={() => setDiagnosticsOpen(!isDiagnosticsOpen)} className={`p-1.5 rounded-lg transition-all ${isDiagnosticsOpen ? 'bg-[#22d3ee] text-black' : errorCount > 0 ? 'bg-red-500/20 text-red-500' : 'bg-black/5 text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-white/5'}`}>
+                            <button onClick={() => setDiagnosticsOpen(!isDiagnosticsOpen)} className={`p-1.5 rounded-lg transition-all ${isDiagnosticsOpen ? 'bg-[#22d3ee] text-black' : errorCount > 0 ? 'bg-red-500/20 text-red-500' : 'bg-black/5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'}`}>
                                 <Activity size={14} />
                             </button>
                         </div>
 
                         <div className="text-right pl-3 border-l border-[var(--border-main)] min-w-[60px]">
                             <div className="text-[6px] text-[var(--text-muted)] font-mono uppercase tracking-widest">Uptime</div>
-                            <div className="text-[9px] font-mono font-bold text-[var(--text-main)]">{formatUptime(kernel.uptime)}</div>
+                            <div className="text-[9px] font-mono font-bold text-[var(--text-primary)]">{formatUptime(kernel.uptime)}</div>
                         </div>
                     </div>
                 </div>

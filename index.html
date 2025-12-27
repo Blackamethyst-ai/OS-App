@@ -10,23 +10,44 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
     <style>
        :root {
-          --bg-main: #020203;
+          /* --- REFERENCE PALETTE (From Marketing Site) --- */
+          --fog-white: #F5F7FA;
+          --midnight-navy: #0B1020;
+          --obsidian: #05070D;
+          --amethyst: #7B2CFF;
+          --cyan: #18E6FF;
+
+          /* --- SEMANTIC MAPPING (Default: Light Mode) --- */
+          --bg-app: var(--fog-white);
+          --bg-header: #ffffff;
+          --bg-side: #f8f9fb;
+          --bg-panel: rgba(255, 255, 255, 0.95);
+          --text-primary: var(--midnight-navy);
+          --text-muted: #666666;
+          --border-main: rgba(11, 16, 32, 0.08);
+       }
+
+       [data-theme='dark'], .dark {
+          /* --- DARK MODE OVERRIDES --- */
+          --bg-app: var(--obsidian);
           --bg-header: #030303;
-          --bg-side: #050505;
+          --bg-side: #080808;
           --bg-panel: #0a0a0a;
-          --text-main: #e5e5e5;
+          --text-primary: #ffffff;
           --text-muted: #a3a3a3;
-          --border-main: rgba(255, 255, 255, 0.08);
+          --border-main: rgba(255, 255, 255, 0.1);
        }
 
        body { 
           font-family: 'Inter', sans-serif; 
-          background-color: var(--bg-main); 
-          color: var(--text-main); 
+          background-color: var(--bg-app); 
+          color: var(--text-primary); 
           margin: 0; 
           padding: 0; 
-          transition: background-color 0.7s ease, color 0.7s ease;
+          transition: background-color 0.5s ease, color 0.5s ease;
+          -webkit-font-smoothing: antialiased;
        }
+
        .font-mono { font-family: 'Fira Code', monospace; }
        
        /* Custom Scrollbar */
@@ -42,7 +63,14 @@
           border-radius: 3px;
        }
        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #9d4edd;
+          background: var(--amethyst);
+       }
+
+       .grid-bg-light {
+          background-image: 
+              linear-gradient(var(--border-main) 1px, transparent 1px),
+              linear-gradient(90deg, var(--border-main) 1px, transparent 1px);
+          background-size: 80px 80px;
        }
 
        .perspective-2000 { perspective: 2000px; }
@@ -55,7 +83,6 @@
           border: 1px solid var(--border-main);
        }
     </style>
-  <link rel="stylesheet" href="/index.css">
 <script type="importmap">
 {
   "imports": {
