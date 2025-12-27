@@ -17,7 +17,7 @@ import {
     Binary, Fingerprint, 
     TrendingUp, TrendingDown, DollarSign, Headphones, Users as UsersIcon,
     Flame, Signal, UserCircle, MicOff, Mic, Settings2, Zap,
-    Database
+    Database, LineChart as ChartIcon
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, BarChart as ReBarChart, Bar } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -473,6 +473,12 @@ const Dashboard: React.FC = () => {
               {/* Hub Visualizer */}
               <div className="col-span-7 flex flex-col gap-4 h-[880px]">
                   <div className="flex-1 bg-[#020202] border border-white/5 rounded-[3rem] relative overflow-hidden group shadow-2xl flex flex-col transition-all">
+                      <div className="flex-1 flex items-center justify-between relative z-10 px-8 py-4 shrink-0">
+                          <div className="flex items-center gap-4">
+                              <ChartIcon size={20} className="text-[#9d4edd]" />
+                              <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.3em]">Neural Topology Projection</span>
+                          </div>
+                      </div>
                       <div className="flex-1 flex items-center justify-center relative overflow-hidden group/viewport">
                           <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,0)_60%,rgba(0,0,0,0.9)_100%)] z-10 pointer-events-none" />
                           {dashboard.identityUrl ? (
@@ -492,7 +498,7 @@ const Dashboard: React.FC = () => {
                                 { label: 'Sync', icon: HardDrive, action: () => handleQuickForge('DRIVE'), color: '#22d3ee' },
                                 { label: 'Forge', icon: Server, action: () => handleQuickForge('ARCH'), color: '#9d4edd' }
                              ].map((btn) => (
-                                 <button key={btn.label} onClick={btn.action} className="px-5 py-2 bg-white/5 border border-white/10 hover:border-white/20 rounded-xl text-[9px] font-black font-mono uppercase tracking-widest text-gray-500 hover:text-white transition-all flex items-center gap-3 active:scale-95 shadow-lg">
+                                 <button key={btn.label} onClick={btn.action} className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black font-mono uppercase tracking-widest text-gray-500 hover:text-white transition-all flex items-center gap-3 active:scale-95 shadow-lg">
                                      <btn.icon size={11} style={{ color: btn.color }} /> {btn.label}
                                  </button>
                              ))}
@@ -535,7 +541,7 @@ const Dashboard: React.FC = () => {
                   <div className="bg-[#050505] border border-white/5 rounded-[2.5rem] p-6 flex flex-col gap-6 relative overflow-hidden h-[240px] shadow-inner shrink-0">
                       <div className="flex items-center gap-3">
                           <DollarSign size={16} className="text-[#22d3ee]" />
-                          <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.3em]">Capital Pulse</span>
+                          <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Capital Pulse</span>
                       </div>
                       <div className="space-y-3 relative z-10 flex-1 flex flex-col justify-center px-1">
                           {[
@@ -546,8 +552,8 @@ const Dashboard: React.FC = () => {
                           ].map((cat) => (
                               <div key={cat.label} className="space-y-1.5 group/pulse">
                                   <div className="flex justify-between items-center text-[8px] font-mono text-gray-500 uppercase tracking-widest">
-                                      <span className="group-hover/pulse:text-white transition-colors font-black">{cat.label}</span>
-                                      <span className="text-gray-500 font-bold">{cat.usage}</span>
+                                      <span className="group-hover/pulse:text-white transition-colors font-black truncate max-w-[120px]">{cat.label}</span>
+                                      <span className="text-gray-500 font-bold whitespace-nowrap">{cat.usage}</span>
                                   </div>
                                   <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
                                       <motion.div initial={{ width: 0 }} animate={{ width: `${cat.val}%` }} className="h-full shadow-[0_0_10px_currentColor]" style={{ backgroundColor: cat.color, color: cat.color }} />

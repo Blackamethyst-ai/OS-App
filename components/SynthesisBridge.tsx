@@ -361,7 +361,7 @@ const SynthesisBridge: React.FC = () => {
                                             <p className="text-[12px] text-gray-500 font-mono max-w-lg uppercase leading-relaxed tracking-widest opacity-60">Synthesizing {activeLayer.name} metadata into autonomous physical displacement sequence L0.</p>
                                         </div>
                                         <button onClick={generateHack} disabled={isGenerating} className="px-20 py-8 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black text-sm uppercase tracking-[0.6em] rounded-[3rem] transition-all shadow-[0_50px_100px_rgba(157,78,221,0.4)] flex items-center gap-6 disabled:opacity-50 active:scale-95 group/main">
-                                            {isGenerating ? <Loader2 className="w-7 h-7 animate-spin" /> : <Zap size={28} className="group-hover/main:scale-125 transition-transform" />}
+                                            {isGenerating ? <Loader2 size={28} className="animate-spin" /> : <Zap size={28} className="group-hover/main:scale-125 transition-transform" />}
                                             {isGenerating ? 'SIMULATING_VECTORS' : 'Execute Metavention'}
                                         </button>
                                     </motion.div>
@@ -417,7 +417,7 @@ const SynthesisBridge: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-10 shrink-0">
-                    <span className="uppercase tracking-[0.6em] opacity-40 leading-none hidden lg:block text-[9px]">Strategic Handover Protocol v3.1-LATTICE // Real-Time Displacement Bridge</span>
+                    <span className="uppercase tracking-[0.6em] opacity-40 leading-none hidden lg:block text-[8px]">Strategic Handover Protocol v3.1-LATTICE // Real-Time Displacement Bridge</span>
                     <div className="h-6 w-px bg-white/10 hidden lg:block" />
                     <span className="font-black text-gray-400 uppercase tracking-[0.3em] leading-none text-[10px]">SOVEREIGN_OS_CORE</span>
                 </div>

@@ -236,7 +236,7 @@ const App: React.FC = () => {
                     <button 
                         key={item.id} 
                         onClick={() => switchPath(item.path)} 
-                        className="relative h-full px-3.5 group flex-shrink-0 flex items-center"
+                        className="relative h-full px-3 group flex-shrink-0 flex items-center"
                     >
                         <span className={`text-[10px] xl:text-[11px] font-[900] uppercase tracking-[0.2em] font-mono transition-all duration-500 ${mode === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-200'}`}>
                             {item.label}
