@@ -15,13 +15,14 @@ import {
     PackageCheck, Lightbulb, Workflow, Target, MoveUpRight,
     Wrench, FastForward, Power, BarChart, FlaskConical, ShieldCheck, Box, Package,
     Clock, DollarSign, TrendingUp, BarChart3, Move, Search, TrendingDown, LayoutGrid,
-    ShoppingBag, History, Microscope, ExternalLink
+    ShoppingBag, History, Microscope, ExternalLink, Gauge, Waves, Fingerprint,
+    GitBranch, GitCommit
 } from 'lucide-react';
 import { TemporalEra, FileData, AppMode, ImageSize, AspectRatio } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVoiceExpose } from '../hooks/useVoiceExpose';
 import { audio } from '../services/audioService';
-import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid, LineChart, Line } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
 
 // --- TACTICAL HUD SUB-COMPONENTS ---
 
@@ -137,32 +138,6 @@ const PerformanceMixer = ({ label, value, unit, min, max, onValueChange, color }
     </div>
 );
 
-const GPULibraryCard = ({ gpu, onSelect, active }: any) => (
-    <motion.div 
-        onClick={() => onSelect(gpu)}
-        whileHover={{ scale: 1.02 }}
-        className={`p-5 bg-[#0a0a0a] border rounded-[2rem] cursor-pointer transition-all relative overflow-hidden group/gpu ${active ? 'border-[#22d3ee] shadow-[0_0_50px_rgba(34,211,238,0.1)]' : 'border-white/5 hover:border-white/20'}`}
-    >
-        <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover/gpu:opacity-[0.06] transition-opacity rotate-12"><Cpu size={80} /></div>
-        <div className="flex justify-between items-start mb-4">
-            <div className="p-2.5 bg-white/5 rounded-xl text-gray-600 group-hover/gpu:text-[#22d3ee] transition-all"><Box size={20} /></div>
-            <div className={`px-2 py-0.5 rounded-full text-[7px] font-black font-mono uppercase tracking-widest ${gpu.stock === 'IN_STOCK' ? 'text-[#10b981] bg-[#10b981]/10 border border-[#10b981]/30' : 'text-red-500 bg-red-500/10 border border-red-500/30'}`}>{gpu.stock}</div>
-        </div>
-        <h3 className="text-lg font-black text-white uppercase font-mono tracking-tighter mb-1">{gpu.model}</h3>
-        <p className="text-[8px] text-gray-600 font-mono uppercase tracking-widest mb-4">Mfr: {gpu.manufacturer} // {gpu.arch}</p>
-        <div className="flex justify-between items-end border-t border-white/5 pt-4">
-            <div>
-                <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest block mb-0.5">Value</span>
-                <span className="text-xl font-black font-mono text-[#10b981] tracking-tighter">${gpu.price.toLocaleString()}</span>
-            </div>
-            <div className="text-right">
-                <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest block mb-0.5">MTBF</span>
-                <span className="text-xs font-bold font-mono text-white">{gpu.mtbf}k hrs</span>
-            </div>
-        </div>
-    </motion.div>
-);
-
 const MOCK_GPUS = [
     { id: 'gpu-h100', model: 'Tensor Core H100', manufacturer: 'NVIDIA', arch: 'Hopper', price: 32500, trend: +2.4, stock: 'IN_STOCK', mtbf: 45, specs: { vram: '80GB HBM3', tdp: '700W', cores: '16896 CUDA' }, bom: ['HBM3 Memory Module', 'SXM5 Mezzanine Interface', 'Integrated Heat Sink', 'Tensor Cores Layer'] },
     { id: 'gpu-a100', model: 'Ampere A100', manufacturer: 'NVIDIA', arch: 'Ampere', price: 12400, trend: -1.2, stock: 'LOW_STOCK', mtbf: 50, specs: { vram: '80GB HBM2e', tdp: '400W', cores: '6912 CUDA' }, bom: ['HBM2e Memory', 'SXM4 Interface', 'Vapor Chamber', 'Silicon Interposer'] },
@@ -173,11 +148,6 @@ const HardwareEngine: React.FC = () => {
     const { hardware, setHardwareState, addLog, openHoloProjector, metaventions } = useAppStore();
     const { currentEra, schematicImage, analysis, bom, isLoading, xrayImage, finTelemetry } = hardware;
     
-    const chartData = useMemo(() => Array.from({ length: 20 }, (_, i) => ({
-        time: i,
-        yield: 30000 + Math.random() * 5000 + (i * 200)
-    })), []);
-
     const [clockSpeed, setClockSpeed] = useState(3.4);
     const [voltage, setVoltage] = useState(1.2);
     const [fanSpeed, setFanSpeed] = useState(2200);
@@ -187,7 +157,6 @@ const HardwareEngine: React.FC = () => {
     
     const [selectedGpu, setSelectedGpu] = useState(MOCK_GPUS[0]);
     const [gpuSearchQuery, setGpuSearchQuery] = useState('');
-    const [isForgingManifest, setIsForgingManifest] = useState(false);
     const [isometricImage, setIsometricImage] = useState<string | null>(null);
     const [liveSupplyData, setLiveSupplyData] = useState<any>(null);
     const [isFetchingSupply, setIsFetchingSupply] = useState(false);
@@ -219,7 +188,6 @@ const HardwareEngine: React.FC = () => {
                     { strategyLibrary: metaventions.strategyLibrary.length, activeLayerId: metaventions.activeLayerId }
                 );
                 setHardwareState({ finTelemetry: { totalBomCost: impact.totalBomCost, roiProjection: impact.roiProjection, maintenanceEst: impact.maintenanceEst }});
-                addLog('INFO', `FIN_SYNC: Calibrated performance vs. treasury drift.`);
             } catch (e) { console.error(e); } finally { setIsAnalyzingFinImpact(false); }
         }, 3000);
         return () => clearTimeout(timer);
@@ -328,7 +296,30 @@ const HardwareEngine: React.FC = () => {
 
                                 <div className="flex-1 grid grid-cols-3 gap-6 overflow-y-auto custom-scrollbar pr-2 pb-10">
                                     {MOCK_GPUS.filter(g => g.model.toLowerCase().includes(gpuSearchQuery.toLowerCase())).map(gpu => (
-                                        <GPULibraryCard key={gpu.id} gpu={gpu} onSelect={setSelectedGpu} active={selectedGpu?.id === gpu.id} />
+                                        <motion.div 
+                                            key={gpu.id}
+                                            onClick={() => setSelectedGpu(gpu)}
+                                            whileHover={{ scale: 1.02 }}
+                                            className={`p-5 bg-[#0a0a0a] border rounded-[2rem] cursor-pointer transition-all relative overflow-hidden group/gpu ${selectedGpu?.id === gpu.id ? 'border-[#22d3ee] shadow-[0_0_50px_rgba(34,211,238,0.1)]' : 'border-white/5 hover:border-white/20'}`}
+                                        >
+                                            <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover/gpu:opacity-[0.06] transition-opacity rotate-12"><Cpu size={80} /></div>
+                                            <div className="flex justify-between items-start mb-4">
+                                                <div className="p-2.5 bg-white/5 rounded-xl text-gray-600 group-hover/gpu:text-[#22d3ee] transition-all"><Box size={20} /></div>
+                                                <div className={`px-2 py-0.5 rounded-full text-[7px] font-black font-mono uppercase tracking-widest ${gpu.stock === 'IN_STOCK' ? 'text-[#10b981] bg-[#10b981]/10 border border-[#10b981]/30' : 'text-red-500 bg-red-500/10 border border-red-500/30'}`}>{gpu.stock}</div>
+                                            </div>
+                                            <h3 className="text-lg font-black text-white uppercase font-mono tracking-tighter mb-1">{gpu.model}</h3>
+                                            <p className="text-[8px] text-gray-600 font-mono uppercase tracking-widest mb-4">Mfr: {gpu.manufacturer} // {gpu.arch}</p>
+                                            <div className="flex justify-between items-end border-t border-white/5 pt-4">
+                                                <div>
+                                                    <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest block mb-0.5">Value</span>
+                                                    <span className="text-xl font-black font-mono text-[#10b981] tracking-tighter">${gpu.price.toLocaleString()}</span>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest block mb-0.5">MTBF</span>
+                                                    <span className="text-xs font-bold font-mono text-white">{gpu.mtbf}k hrs</span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
                                     ))}
                                     <div className="aspect-square rounded-[2rem] border border-dashed border-white/5 flex flex-col items-center justify-center gap-4 group hover:border-[#9d4edd]/40 transition-all cursor-pointer bg-white/[0.01]">
                                         <Microscope size={40} className="text-gray-700 group-hover:text-[#9d4edd] group-hover:scale-110 transition-all" />
@@ -363,26 +354,12 @@ const HardwareEngine: React.FC = () => {
                                                         <TrendingUp size={14} className="text-[#10b981]" />
                                                         <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Yield Variance Model</span>
                                                     </div>
-                                                    <div className="flex items-center gap-6">
-                                                        <div className="text-right">
-                                                            <span className="text-[7px] text-gray-600 uppercase font-mono block mb-0.5">Price Delta</span>
-                                                            <span className={`text-xs font-black font-mono ${selectedGpu.trend > 0 ? 'text-[#10b981]' : 'text-red-500'}`}>{selectedGpu.trend > 0 ? '+' : ''}{selectedGpu.trend}%</span>
-                                                        </div>
-                                                        <button onClick={() => fetchSupplyChain(selectedGpu.model)} className="px-5 py-2 bg-[#22d3ee] text-black rounded-xl text-[8px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-105 active:scale-95 transition-all">Procure Node</button>
-                                                    </div>
+                                                    <button onClick={() => fetchSupplyChain(selectedGpu.model)} className="px-5 py-2 bg-[#22d3ee] text-black rounded-xl text-[8px] font-black uppercase tracking-[0.2em] shadow-xl hover:scale-105 active:scale-95 transition-all">Procure Node</button>
                                                 </div>
                                                 <div className="flex-1 bg-black rounded-[2rem] border border-white/5 p-4 shadow-inner relative overflow-hidden">
-                                                    <ResponsiveContainer width="100%" height="100%">
-                                                        <AreaChart data={chartData}>
-                                                            <defs>
-                                                                <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-                                                                    <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.2}/>
-                                                                    <stop offset="95%" stopColor="#22d3ee" stopOpacity={0}/>
-                                                                </linearGradient>
-                                                            </defs>
-                                                            <Area type="monotone" dataKey="yield" stroke="#22d3ee" fill="url(#priceGradient)" strokeWidth={2} isAnimationActive={false} />
-                                                        </AreaChart>
-                                                    </ResponsiveContainer>
+                                                    <AreaChart data={Array.from({length: 20}, (_, i) => ({ t: i, v: 30000 + Math.random() * 5000 }))} width={600} height={200}>
+                                                        <Area type="monotone" dataKey="v" stroke="#22d3ee" fill="rgba(34,211,238,0.1)" strokeWidth={2} />
+                                                    </AreaChart>
                                                     <div className="absolute top-3 right-5 text-[7px] font-mono text-gray-700 uppercase tracking-[0.4em]">Price_Index_L0</div>
                                                 </div>
                                             </div>
@@ -447,41 +424,125 @@ const HardwareEngine: React.FC = () => {
                                         <div className="flex-1 relative rounded-[3rem] border border-white/5 bg-[#050505] overflow-hidden shadow-2xl flex items-center justify-center group/viewport">
                                             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none opacity-20" />
                                             <ComputeFluxOverlay active={showComputeFlux} speed={clockSpeed / 2} />
+                                            
                                             <AnimatePresence mode="wait">
                                                 {viewMode === '2D' && (
                                                     <motion.div key="2d" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full p-16 flex items-center justify-center relative">
                                                         <img src={`data:${schematicImage.inlineData.mimeType};base64,${schematicImage.inlineData.data}`} className="max-w-full max-h-full object-contain rounded-xl shadow-[0_30px_80px_rgba(0,0,0,1)] border border-white/5 opacity-80 group-hover/viewport:opacity-100 transition-opacity duration-700" alt="2D Schematic" />
                                                     </motion.div>
                                                 )}
+
                                                 {viewMode === 'XRAY' && (
-                                                    <motion.div key="xray" initial={{ opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} className="w-full h-full p-16 flex items-center justify-center bg-black">
-                                                        {xrayImage && <img src={xrayImage} className="max-w-full max-h-full object-contain mix-blend-screen animate-pulse" style={{ filter: `hue-rotate(${stressLevel}deg)` }} alt="X-Ray View" />}
+                                                    <motion.div key="xray" initial={{ opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} className="w-full h-full p-10 flex gap-8 overflow-hidden">
+                                                        <div className="flex-1 relative border border-white/5 rounded-3xl bg-black overflow-hidden flex items-center justify-center shadow-inner group/xray-img">
+                                                            {xrayImage && <img src={xrayImage} className="max-w-full max-h-full object-contain mix-blend-screen animate-pulse" style={{ filter: `hue-rotate(${stressLevel}deg) contrast(1.5)` }} alt="X-Ray View" />}
+                                                            
+                                                            {/* Forensic Overlay */}
+                                                            <div className="absolute inset-0 p-8 pointer-events-none">
+                                                                <div className="flex flex-col gap-4">
+                                                                    <div className="px-4 py-2 bg-red-500/20 border border-red-500/40 rounded-full text-red-500 text-[9px] font-black uppercase tracking-widest w-fit flex items-center gap-2">
+                                                                        <AlertTriangle size={12} className="animate-pulse" />
+                                                                        Thermal Anomaly Detected
+                                                                    </div>
+                                                                    <div className="p-4 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl w-64 space-y-3 pointer-events-auto">
+                                                                        <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase tracking-widest"><span>Hotspot_01</span><span>{Math.round(40 + stressLevel * 0.6)}°C</span></div>
+                                                                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden"><motion.div animate={{ width: `${Math.min(100, 40 + stressLevel)}%` }} className="h-full bg-orange-500" /></div>
+                                                                        <p className="text-[9px] font-mono text-gray-400 italic">Component L3-Cache showing significant thermal saturation.</p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="w-[300px] flex flex-col gap-5 overflow-y-auto custom-scrollbar">
+                                                            <div className="p-5 bg-black border border-white/5 rounded-2xl space-y-4">
+                                                                <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center gap-2"><Thermometer size={14} className="text-orange-500" /> Forensic Scan</h4>
+                                                                <div className="space-y-4">
+                                                                    <div className="flex justify-between items-end"><span className="text-[9px] font-mono text-gray-600 uppercase">Entropy Delta</span><span className="text-xs font-black font-mono text-orange-400">+{ (stressLevel/10).toFixed(1) }%</span></div>
+                                                                    <div className="flex justify-between items-end"><span className="text-[9px] font-mono text-gray-600 uppercase">Cortex Temp</span><span className="text-xs font-black font-mono text-white">{Math.round(35 + stressLevel * 0.5)}°C</span></div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex-1 bg-[#100a05] border border-orange-500/20 rounded-2xl p-6 relative overflow-hidden group/audit">
+                                                                <div className="absolute top-0 right-0 p-4 opacity-[0.05] group-hover/audit:opacity-10 transition-opacity"><Fingerprint size={80} className="text-orange-500" /></div>
+                                                                <h4 className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-4">Neural Auditor</h4>
+                                                                <p className="text-[11px] font-mono text-orange-200/70 leading-relaxed italic border-l-2 border-orange-500/40 pl-4">
+                                                                    "Current voltage offset of {voltage}V creates localized ion migration in block L4. Recommended fan ramp to {Math.round(fanSpeed * 1.2)} RPM to stabilize leakage."
+                                                                </p>
+                                                            </div>
+                                                        </div>
                                                     </motion.div>
                                                 )}
+
                                                 {viewMode === '3D' && (
                                                     <motion.div key="3d" initial={{ opacity: 0, rotateY: 45 }} animate={{ opacity: 1, rotateY: 0 }} className="w-full h-full p-16 flex items-center justify-center perspective-1000">
                                                         {isometricImage ? <motion.img src={isometricImage} animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }} className="max-w-full max-h-full object-contain rounded-3xl drop-shadow-[0_40px_100px_rgba(34,211,238,0.15)]" alt="3D Render" /> : <div className="text-gray-700 font-mono text-[10px] uppercase">Synthesizing Model...</div>}
                                                     </motion.div>
                                                 )}
+
                                                 {viewMode === 'SCHEMATIC' && (
                                                     <motion.div key="schem" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full p-10 overflow-y-auto custom-scrollbar">
-                                                        <div className="max-w-3xl mx-auto space-y-10">
-                                                            <div className="flex items-center gap-5 border-b border-white/10 pb-6"><Binary className="text-[#10b981]" size={28} /><h2 className="text-xl font-black uppercase tracking-widest text-white">Logic Trace Archive</h2></div>
-                                                            <div className="grid grid-cols-2 gap-10">
-                                                                <div className="space-y-6">
-                                                                    <h3 className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Detected Nodes</h3>
-                                                                    <div className="space-y-3">
+                                                        <div className="max-w-6xl mx-auto space-y-10">
+                                                            <div className="flex items-center justify-between border-b border-white/10 pb-6 shrink-0">
+                                                                <div className="flex items-center gap-5">
+                                                                    <div className="p-3 bg-emerald-500/10 rounded-2xl border border-emerald-500/30 text-emerald-500"><Binary size={28} /></div>
+                                                                    <div>
+                                                                        <h2 className="text-xl font-black uppercase tracking-widest text-white">Logic Trace Archive</h2>
+                                                                        <p className="text-[9px] font-mono text-gray-500 uppercase tracking-widest mt-1">Sovereign Hardware Architecture v9.2_SYNC</p>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex gap-4">
+                                                                    <div className="px-4 py-2 bg-black border border-white/5 rounded-xl text-[10px] font-black font-mono text-emerald-500 flex items-center gap-3"><ShieldCheck size={14}/> Integrity: Valid</div>
+                                                                    <div className="px-4 py-2 bg-black border border-white/5 rounded-xl text-[10px] font-black font-mono text-cyan-400 flex items-center gap-3"><Cpu size={14}/> Nodes: {analysis?.components?.length || 0}</div>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <div className="grid grid-cols-12 gap-10">
+                                                                <div className="col-span-7 space-y-6">
+                                                                    <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1 flex items-center gap-2"><Target size={14} className="text-[#22d3ee]" /> Detected Hardware Vectors</h3>
+                                                                    <div className="grid grid-cols-2 gap-4">
                                                                         {analysis?.components?.map((c: any, i: number) => (
-                                                                            <div key={i} className="flex justify-between items-center p-4 bg-white/5 rounded-xl border border-white/5 hover:border-[#22d3ee]/40 transition-all cursor-default group/comp">
-                                                                                <span className="text-[10px] font-bold uppercase text-gray-300 group-hover/comp:text-white">{c.name}</span>
-                                                                                <span className="text-[9px] text-[#10b981] font-mono font-black">[{c.confidence.toFixed(2)}]</span>
-                                                                            </div>
+                                                                            <motion.div 
+                                                                                key={i} 
+                                                                                whileHover={{ scale: 1.02 }}
+                                                                                onClick={() => fetchSupplyChain(c.name)}
+                                                                                className="p-5 bg-black border border-white/5 rounded-[1.8rem] hover:border-[#22d3ee]/40 transition-all cursor-pointer group/comp relative overflow-hidden"
+                                                                            >
+                                                                                <div className="flex justify-between items-start mb-4 relative z-10">
+                                                                                    <div className="p-2.5 bg-white/5 rounded-xl text-gray-600 group-hover/comp:text-[#22d3ee] transition-all"><Box size={18} /></div>
+                                                                                    <span className="text-[9px] text-[#10b981] font-mono font-black">CONF: {(c.confidence * 100).toFixed(0)}%</span>
+                                                                                </div>
+                                                                                <div className="text-[11px] font-black text-white uppercase group-hover/comp:text-[#22d3ee] transition-colors mb-2">{c.name}</div>
+                                                                                <div className="flex items-center gap-2 text-[8px] font-mono text-gray-600 group-hover/comp:text-gray-400">
+                                                                                    <Search size={10}/> Ground_Search
+                                                                                </div>
+                                                                                <div className="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[#22d3ee]/20 to-transparent opacity-0 group-hover/comp:opacity-100 transition-opacity" />
+                                                                            </motion.div>
                                                                         ))}
                                                                     </div>
                                                                 </div>
-                                                                <div className="space-y-6">
-                                                                    <h3 className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Structural Briefing</h3>
-                                                                    <div className="p-6 bg-black border border-white/10 rounded-2xl text-[11px] font-mono text-gray-400 leading-relaxed italic border-l-4 border-l-[#10b981] shadow-inner">"Vector alignment confirmed. Logic bus shows minimal impedance. Structural integrity verified for high-frequency propagation."</div>
+                                                                
+                                                                <div className="col-span-5 space-y-8">
+                                                                    <div className="space-y-4">
+                                                                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1 flex items-center gap-2"><Microscope size={14} className="text-emerald-500" /> Structural Briefing</h3>
+                                                                        <div className="p-8 bg-black/60 border border-white/5 rounded-[2.5rem] text-[13px] font-mono text-gray-300 leading-relaxed italic border-l-4 border-l-emerald-500 shadow-2xl shadow-emerald-500/5">
+                                                                            "{analysis?.summary || "Vector alignment confirmed. Logic bus shows minimal impedance. Structural integrity verified for high-frequency propagation."}"
+                                                                        </div>
+                                                                    </div>
+                                                                    
+                                                                    <div className="space-y-4">
+                                                                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-1 flex items-center gap-2"><GitBranch size={14} className="text-orange-400" /> Logic Flow Simulation</h3>
+                                                                        <div className="p-6 bg-black border border-white/5 rounded-3xl space-y-6">
+                                                                            {[
+                                                                                { label: 'Signal Noise', val: 12, color: '#f59e0b' },
+                                                                                { label: 'Clock Skew', val: 4, color: '#ef4444' },
+                                                                                { label: 'Lattice Drift', val: 2, color: '#22d3ee' }
+                                                                            ].map(stat => (
+                                                                                <div key={stat.label} className="space-y-2">
+                                                                                    <div className="flex justify-between text-[8px] font-mono text-gray-600 uppercase"><span>{stat.label}</span><span>{stat.val} ps</span></div>
+                                                                                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden border border-white/5"><motion.div animate={{ width: `${stat.val * 5}%` }} className="h-full" style={{ backgroundColor: stat.color }} /></div>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
