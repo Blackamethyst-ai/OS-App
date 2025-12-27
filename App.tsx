@@ -3,6 +3,7 @@ import { useAppStore } from './store';
 import { useSystemMind } from './stores/useSystemMind'; 
 import { AppMode, AppTheme } from './types';
 import Starfield from './components/Starfield';
+import BackgroundEffect from './components/BackgroundEffect';
 
 import CommandPalette from './components/CommandPalette';
 import GlobalSearchBar from './components/GlobalSearchBar';
@@ -23,6 +24,7 @@ import AgenticHUD from './components/AgenticHUD';
 import GlobalStatusBar from './components/GlobalStatusBar';
 import PeerMeshOverlay from './components/PeerMeshOverlay';
 import MetaventionsLogo from './components/MetaventionsLogo';
+import AppFooter from './components/AppFooter';
 
 import { useAutoSave } from './hooks/useAutoSave'; 
 import { useDaemonSwarm } from './hooks/useDaemonSwarm'; 
@@ -138,62 +140,70 @@ const App: React.FC = () => {
 
   useEffect(() => { setSector(mode); }, [mode, setSector]);
 
+  // UseMemo to inject marketing site variables and handle smart inversion
   const themeVars = useMemo(() => {
+      const isDark = theme !== AppTheme.LIGHT;
+      
+      // Inject theme attribute for CSS rules
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      if (isDark) document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
+
       switch (theme) {
           case AppTheme.LIGHT: return { 
-              '--bg-main': '#fcfcfd', 
+              '--bg-app': '#F5F7FA', 
               '--bg-header': '#ffffff',
               '--bg-panel': 'rgba(255, 255, 255, 0.95)',
               '--bg-side': '#f8f9fb',
               '--bg-card-top': 'rgba(255, 255, 255, 0.8)', 
               '--bg-card-bottom': 'rgba(240, 240, 245, 0.5)', 
-              '--text-main': '#121212', 
+              '--text-primary': '#0B1020', 
               '--text-muted': '#666666',
-              '--border-main': 'rgba(0, 0, 0, 0.08)'
+              '--border-main': 'rgba(11, 16, 32, 0.08)'
           };
           case AppTheme.AMBER: return { 
-              '--bg-main': '#0a0500', 
+              '--bg-app': '#0a0500', 
               '--bg-header': '#0a0500',
               '--bg-panel': '#0d0700',
               '--bg-side': '#0d0700',
               '--bg-card-top': 'rgba(25, 12, 0, 0.8)', 
               '--bg-card-bottom': 'rgba(15, 8, 0, 0.5)', 
-              '--text-main': '#f59e0b', 
+              '--text-primary': '#f59e0b', 
               '--text-muted': '#78350f',
               '--border-main': 'rgba(245, 158, 11, 0.15)'
           };
           case AppTheme.MIDNIGHT: return { 
-              '--bg-main': '#020617', 
+              '--bg-app': '#020617', 
               '--bg-header': '#020617',
               '--bg-panel': '#030a21',
               '--bg-side': '#030a21',
               '--bg-card-top': 'rgba(15, 23, 42, 0.8)', 
               '--bg-card-bottom': 'rgba(7, 10, 20, 0.5)', 
-              '--text-main': '#e2e8f0', 
+              '--text-primary': '#e2e8f0', 
               '--text-muted': '#64748b',
               '--border-main': 'rgba(59, 130, 246, 0.15)'
           };
           case AppTheme.NEON_CYBER: return { 
-              '--bg-main': '#010101', 
+              '--bg-app': '#010101', 
               '--bg-header': '#010101',
               '--bg-panel': '#050505',
               '--bg-side': '#050505',
               '--bg-card-top': 'rgba(13, 0, 26, 0.8)', 
               '--bg-card-bottom': 'rgba(0, 5, 15, 0.5)', 
-              '--text-main': '#22d3ee', 
+              '--text-primary': '#22d3ee', 
               '--text-muted': '#d946ef',
               '--border-main': 'rgba(217, 70, 239, 0.25)'
           };
           default: return { 
-              '--bg-main': '#020203', 
+              '--bg-app': '#05070D', 
               '--bg-header': '#030303',
-              '--bg-panel': '#050505',
+              '--bg-panel': '#0a0a0a',
               '--bg-side': '#080808',
               '--bg-card-top': 'rgba(12, 12, 16, 0.8)', 
               '--bg-card-bottom': 'rgba(8, 8, 10, 0.5)', 
-              '--text-main': '#e5e5e5', 
+              '--text-primary': '#ffffff', 
               '--text-muted': '#a3a3a3',
-              '--border-main': 'rgba(255, 255, 255, 0.08)'
+              '--border-main': 'rgba(255, 255, 255, 0.1)'
           };
       }
   }, [theme]);
@@ -205,9 +215,10 @@ const App: React.FC = () => {
   return (
     <div 
         className="h-screen w-screen font-sans overflow-hidden flex flex-col transition-all duration-700 ease-in-out relative" 
-        style={{ backgroundColor: 'var(--bg-main)', color: 'var(--text-main)', ...themeVars as any }}
+        style={{ backgroundColor: 'var(--bg-app)', color: 'var(--text-primary)', ...themeVars as any }}
     >
       <Starfield mode={mode} />
+      <BackgroundEffect isDarkMode={theme !== AppTheme.LIGHT} />
       
       <div className="absolute inset-0 pointer-events-none z-[200] opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
 
@@ -248,7 +259,7 @@ const App: React.FC = () => {
                         onClick={() => window.location.hash = item.path} 
                         className="relative h-full px-3 group flex-shrink-0 flex items-center"
                     >
-                        <span className={`text-[10px] font-black uppercase tracking-[0.25em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-main)]'}`}>
+                        <span className={`text-[10px] font-black uppercase tracking-[0.25em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'}`}>
                             {item.label}
                         </span>
                         {mode === item.id && (
@@ -268,7 +279,7 @@ const App: React.FC = () => {
                     <User size={18} />
                 </button>
             </div>
-            <button onClick={() => toggleCommandPalette()} className="relative group/eco px-5 py-2 bg-[var(--bg-main)] border border-[var(--border-main)] hover:border-[#f1c21b]/40 rounded-xl transition-all duration-500 shadow-lg overflow-hidden active:scale-95">
+            <button onClick={() => toggleCommandPalette()} className="relative group/eco px-5 py-2 bg-[var(--bg-app)] border border-[var(--border-main)] hover:border-[#f1c21b]/40 rounded-xl transition-all duration-500 shadow-lg overflow-hidden active:scale-95">
                 <span className="relative z-10 text-[9px] font-black font-mono tracking-[0.3em] uppercase flex items-center gap-3 text-[#f1c21b]">
                     D-ECOSYSTEM
                     <ExternalLink size={11} className="text-[var(--text-muted)] group-hover:text-[#f1c21b] transition-colors" />
@@ -280,6 +291,8 @@ const App: React.FC = () => {
       <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-0' : 'pb-1 overflow-y-auto custom-scrollbar'}`}>
         <SynapticRouter />
       </div>
+
+      <AppFooter />
     </div>
   );
 };
