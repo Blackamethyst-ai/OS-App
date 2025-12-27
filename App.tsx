@@ -218,32 +218,32 @@ const App: React.FC = () => {
         {isHelpOpen && <HelpCenter onClose={() => setHelpOpen(false)} />}
       </AnimatePresence>
 
-      {/* --- THINNED CONTROL CENTER HEADER (FIXED HEIGHT 60px) --- */}
-      <header className="flex-shrink-0 h-[60px] border-b z-[100] px-4 flex items-center justify-between backdrop-blur-3xl bg-[#030303]/90 border-white/5 shadow-2xl">
+      {/* --- MINIMIZED HEADER (FIXED HEIGHT 48px) --- */}
+      <header className="flex-shrink-0 h-[48px] border-b z-[100] px-3 flex items-center justify-between backdrop-blur-3xl bg-[#030303]/90 border-white/5 shadow-2xl">
         
         {/* Left: Branding & Multi-Line Status Bar */}
-        <div className="flex items-center gap-6">
+        <div className="flex items-center gap-3">
             <div className="flex flex-col cursor-pointer group" onClick={() => switchPath('/dashboard')}>
-                <MetaventionsLogo size={24} showText={true} />
+                <MetaventionsLogo size={18} showText={true} />
             </div>
 
-            <div className="h-6 w-px bg-white/5" />
+            <div className="h-5 w-px bg-white/5" />
 
             {/* High-Density Navigation Tabs */}
-            <nav className="flex items-center gap-1 xl:gap-2 overflow-x-auto no-scrollbar max-w-[850px]">
+            <nav className="flex items-center gap-0.5 xl:gap-1 overflow-x-auto no-scrollbar max-w-[900px]">
                 {NAV_CONFIG.map(item => (
                     <button 
                         key={item.id} 
                         onClick={() => switchPath(item.path)} 
-                        className="relative py-4 px-1.5 group flex-shrink-0"
+                        className="relative py-2.5 px-1.5 group flex-shrink-0"
                     >
-                        <span className={`text-[8px] xl:text-[8.5px] font-[900] uppercase tracking-[0.12em] font-mono transition-all duration-500 ${mode === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-200'}`}>
+                        <span className={`text-[7.5px] xl:text-[8px] font-[900] uppercase tracking-[0.1em] font-mono transition-all duration-500 ${mode === item.id ? 'text-white' : 'text-gray-500 group-hover:text-gray-200'}`}>
                             {item.label}
                         </span>
                         {mode === item.id && (
                             <motion.div 
                                 layoutId="activeTabGlow"
-                                className="absolute bottom-2 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-[#00f2ff] shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+                                className="absolute bottom-0 left-0 right-0 h-[1.5px] rounded-full bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-[#00f2ff] shadow-[0_0_8px_rgba(34,211,238,0.5)]"
                             />
                         )}
                     </button>
@@ -252,31 +252,32 @@ const App: React.FC = () => {
         </div>
 
         {/* Right: Functional Control Stack */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
             <GlobalSearchBar />
             
-            <div className="h-5 w-px bg-white/5" />
+            <div className="h-4 w-px bg-white/5" />
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
                 <ThemeSwitcher />
                 <button 
                     onClick={() => toggleProfile(true)}
-                    className="p-1.5 text-gray-500 hover:text-[#9d4edd] transition-colors rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10"
+                    className="p-1 text-gray-500 hover:text-[#9d4edd] transition-colors rounded-lg hover:bg-white/5 border border-transparent hover:border-white/10"
                 >
-                    <User size={14} />
+                    <User size={12} />
                 </button>
             </div>
 
-            <button className="relative group/eco px-4 py-1.5 bg-black border border-white/10 hover:border-white/30 rounded-lg transition-all duration-500 shadow-2xl overflow-hidden active:scale-95">
-                <span className="relative z-10 text-[8px] font-black font-mono text-white tracking-[0.2em] uppercase flex items-center gap-2">
-                    THE D-ECOSYSTEM
+            <button className="relative group/eco px-3 py-1 bg-black border border-white/10 hover:border-white/30 rounded-lg transition-all duration-500 shadow-2xl overflow-hidden active:scale-95">
+                <span className="relative z-10 text-[7px] font-black font-mono text-white tracking-[0.1em] uppercase flex items-center gap-2">
+                    D-ECOSYSTEM
                     <ExternalLink size={8} className="text-gray-600 group-hover:text-white" />
                 </span>
             </button>
         </div>
       </header>
 
-      <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-0' : 'pb-4 overflow-y-auto custom-scrollbar'}`}>
+      {/* --- CONTENT CONTAINER WITH MINIMAL PADDING --- */}
+      <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-0' : 'pb-1 overflow-y-auto custom-scrollbar'}`}>
         <SynapticRouter />
       </div>
     </div>
