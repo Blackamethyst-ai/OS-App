@@ -39,16 +39,16 @@ import { audio } from './services/audioService';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const NAV_CONFIG = [
-  { id: AppMode.DASHBOARD, label: 'CORE', path: '/dashboard' },
-  { id: AppMode.BIBLIOMORPHIC, label: 'VISION', path: '/bibliomorphic' },
-  { id: AppMode.PROCESS_MAP, label: 'LOGIC', path: '/process' },
-  { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance' },
-  { id: AppMode.CODE_STUDIO, label: 'FORGE', path: '/code' },
-  { id: AppMode.AGENT_CONTROL, label: 'SWARM', path: '/agents' },
-  { id: AppMode.MEMORY_CORE, label: 'VAULT', path: '/memory' },
-  { id: AppMode.IMAGE_GEN, label: 'STUDIO', path: '/assets' },
-  { id: AppMode.HARDWARE_ENGINEER, label: 'LATTICE', path: '/hardware' },
-  { id: AppMode.VOICE_MODE, label: 'VOICE', path: '/voice' },
+  { id: AppMode.DASHBOARD, label: 'HUB', path: '/dashboard' },
+  { id: AppMode.BIBLIOMORPHIC, label: 'LAB', path: '/bibliomorphic' },
+  { id: AppMode.PROCESS_MAP, label: 'MAPPER', path: '/process' },
+  { id: AppMode.AUTONOMOUS_FINANCE, label: 'FINANCE', path: '/finance' },
+  { id: AppMode.CODE_STUDIO, label: 'STUDIO', path: '/code' },
+  { id: AppMode.AGENT_CONTROL, label: 'ORCHESTRATOR', path: '/agents' },
+  { id: AppMode.MEMORY_CORE, label: 'ARCHIVE', path: '/memory' },
+  { id: AppMode.IMAGE_GEN, label: 'ASSETS', path: '/assets' },
+  { id: AppMode.HARDWARE_ENGINEER, label: 'INFRASTRUCTURE', path: '/hardware' },
+  { id: AppMode.VOICE_MODE, label: 'COMMMS', path: '/voice' },
   { id: AppMode.SYNTHESIS_BRIDGE, label: 'BRIDGE', path: '/bridge' },
 ];
 
@@ -140,11 +140,9 @@ const App: React.FC = () => {
 
   useEffect(() => { setSector(mode); }, [mode, setSector]);
 
-  // UseMemo to inject marketing site variables and handle smart inversion
   const themeVars = useMemo(() => {
       const isDark = theme !== AppTheme.LIGHT;
       
-      // Inject theme attribute for CSS rules
       document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
       if (isDark) document.documentElement.classList.add('dark');
       else document.documentElement.classList.remove('dark');
@@ -244,22 +242,22 @@ const App: React.FC = () => {
         {isHelpOpen && <HelpCenter onClose={() => setHelpOpen(false)} />}
       </AnimatePresence>
 
-      <header className="flex-shrink-0 h-[64px] border-b z-[100] px-8 flex items-center justify-between backdrop-blur-3xl bg-[var(--bg-header)] border-[var(--border-main)] shadow-xl relative transition-colors duration-500">
+      <header className="flex-shrink-0 h-[56px] border-b z-[100] px-6 flex items-center justify-between backdrop-blur-3xl bg-[var(--bg-header)] border-[var(--border-main)] shadow-xl relative transition-colors duration-500">
         <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#7b2cbf] via-[#f1c21b] to-[#7b2cbf] opacity-40" />
 
-        <div className="flex items-center gap-10 h-full">
-            <div className="flex items-center gap-6 cursor-pointer group" onClick={() => window.location.hash = '/dashboard'}>
-                <MetaventionsLogo size={28} showText={true} />
+        <div className="flex items-center gap-8 h-full">
+            <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.location.hash = '/dashboard'}>
+                <MetaventionsLogo size={24} showText={true} />
             </div>
-            <div className="h-6 w-px bg-[var(--border-main)]" />
-            <nav className="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-[900px] h-full">
+            <div className="h-4 w-px bg-[var(--border-main)]" />
+            <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-[800px] h-full">
                 {NAV_CONFIG.map(item => (
                     <button 
                         key={item.id} 
                         onClick={() => window.location.hash = item.path} 
-                        className="relative h-full px-3 group flex-shrink-0 flex items-center"
+                        className="relative h-full px-2.5 group flex-shrink-0 flex items-center"
                     >
-                        <span className={`text-[10px] font-black uppercase tracking-[0.25em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'}`}>
+                        <span className={`text-[9px] font-black uppercase tracking-[0.2em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'}`}>
                             {item.label}
                         </span>
                         {mode === item.id && (
@@ -270,19 +268,19 @@ const App: React.FC = () => {
             </nav>
         </div>
 
-        <div className="flex items-center gap-6 h-full">
+        <div className="flex items-center gap-4 h-full">
             <GlobalSearchBar />
-            <div className="h-6 w-px bg-[var(--border-main)]" />
+            <div className="h-4 w-px bg-[var(--border-main)]" />
             <div className="flex items-center gap-1">
                 <ThemeSwitcher />
-                <button onClick={() => toggleProfile(true)} className="p-2.5 text-[var(--text-muted)] hover:text-[#f1c21b] transition-all rounded-xl hover:bg-black/5 border border-transparent hover:border-[var(--border-main)]">
-                    <User size={18} />
+                <button onClick={() => toggleProfile(true)} className="p-2 text-[var(--text-muted)] hover:text-[#f1c21b] transition-all rounded-lg hover:bg-black/5">
+                    <User size={16} />
                 </button>
             </div>
-            <button onClick={() => toggleCommandPalette()} className="relative group/eco px-5 py-2 bg-[var(--bg-app)] border border-[var(--border-main)] hover:border-[#f1c21b]/40 rounded-xl transition-all duration-500 shadow-lg overflow-hidden active:scale-95">
-                <span className="relative z-10 text-[9px] font-black font-mono tracking-[0.3em] uppercase flex items-center gap-3 text-[#f1c21b]">
-                    D-ECOSYSTEM
-                    <ExternalLink size={11} className="text-[var(--text-muted)] group-hover:text-[#f1c21b] transition-colors" />
+            <button onClick={() => toggleCommandPalette()} className="relative group/eco px-4 py-1.5 bg-[var(--bg-app)] border border-[var(--border-main)] hover:border-[#f1c21b]/40 rounded-lg transition-all duration-500 shadow-lg overflow-hidden active:scale-95">
+                <span className="relative z-10 text-[8px] font-black font-mono tracking-[0.2em] uppercase flex items-center gap-2 text-[#f1c21b]">
+                    SYSTEMS
+                    <ExternalLink size={10} className="text-[var(--text-muted)] group-hover:text-[#f1c21b] transition-colors" />
                 </span>
             </button>
         </div>
