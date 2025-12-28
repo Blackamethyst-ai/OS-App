@@ -18,7 +18,7 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
         status: 'IDLE',
         memoryBuffer: [],
         capabilities: ['Strategic Synthesis', 'Visual Perception', 'Navigation Control'],
-        currentMindset: { skepticism: 10, excitement: 90, alignment: 70 },
+        currentMindset: { skepticism: 10, excitement: 95, alignment: 75 },
         energyLevel: 100,
         tasks: []
     },
@@ -30,7 +30,7 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
         status: 'IDLE',
         memoryBuffer: [],
         capabilities: ['Error Detection', 'Security Auditing', 'Process Validation'],
-        currentMindset: { skepticism: 90, excitement: 20, alignment: 90 },
+        currentMindset: { skepticism: 95, excitement: 15, alignment: 90 },
         energyLevel: 100,
         tasks: []
     },
@@ -42,19 +42,7 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
         status: 'IDLE',
         memoryBuffer: [],
         capabilities: ['Coding', 'Refactoring', 'Unit Testing'],
-        currentMindset: { skepticism: 40, excitement: 60, alignment: 80 },
-        energyLevel: 100,
-        tasks: []
-    },
-    {
-        id: 'aris',
-        name: 'Aris',
-        role: 'Data Sentinel',
-        context: OperationalContext.DATA_ANALYSIS,
-        status: 'IDLE',
-        memoryBuffer: [],
-        capabilities: ['Indexing', 'Pattern Recognition', 'Vector Search'],
-        currentMindset: { skepticism: 30, excitement: 50, alignment: 85 },
+        currentMindset: { skepticism: 35, excitement: 65, alignment: 85 },
         energyLevel: 100,
         tasks: []
     }
@@ -131,13 +119,14 @@ interface AppState {
         runtimeResults: Record<number, any>;
         activeStepIndex: number | null;
         isSimulating: boolean;
+        activeTab: string;
         workflowType: 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE' | 'AGENTIC_ORCHESTRATION' | 'CONVERGENT_SYNTHESIS';
         livingMapContext: {
             sources: any[];
         };
         pendingAIAddition: any | null;
         pendingAction: string | null;
-        governance: 'Metaventions Protocol v1';
+        governance: 'Metaventions Protocol v9.5-ZENITH';
         coherenceScore: number;
     };
     imageGen: {
@@ -307,11 +296,11 @@ export const useAppStore = create<AppState>((set) => ({
     authenticated: false,
     isProfileOpen: false,
     isCommandPaletteOpen: false,
-    operationalContext: 'SYSTEM_STABLE',
+    operationalContext: 'SYSTEM_STABLE_ZENITH',
     kernel: {
         uptime: 0,
-        entropy: 12,
-        integrity: 98
+        entropy: 8,
+        integrity: 99
     },
     system: {
         isTerminalOpen: false,
@@ -339,8 +328,8 @@ export const useAppStore = create<AppState>((set) => ({
         partialTranscript: null,
         mentalState: {
             skepticism: 50,
-            excitement: 50,
-            alignment: 50
+            excitement: 85,
+            alignment: 90
         },
         agentAvatars: {}
     },
@@ -354,10 +343,10 @@ export const useAppStore = create<AppState>((set) => ({
         isGenerating: false,
         identityUrl: null,
         referenceImage: null,
-        activeThemeColor: '#7B2CFF'
+        activeThemeColor: '#18E6FF'
     },
     knowledge: {
-        activeLayers: ['BUILDER_PROTOCOL', 'CRYPTO_CONTEXT']
+        activeLayers: ['BUILDER_PROTOCOL', 'CRYPTO_CONTEXT', 'STRATEGIC_FUTURISM']
     },
     process: {
         nodes: [],
@@ -371,14 +360,15 @@ export const useAppStore = create<AppState>((set) => ({
         runtimeResults: {},
         activeStepIndex: null,
         isSimulating: false,
+        activeTab: 'living_map',
         workflowType: 'SYSTEM_ARCHITECTURE',
         livingMapContext: {
             sources: []
         },
         pendingAIAddition: null,
         pendingAction: null,
-        governance: 'Metaventions Protocol v1',
-        coherenceScore: 92
+        governance: 'Metaventions Protocol v9.5-ZENITH',
+        coherenceScore: 94
     },
     imageGen: {
         prompt: '',
@@ -415,7 +405,7 @@ export const useAppStore = create<AppState>((set) => ({
         componentQuery: '',
         filters: {
             minPrice: 0,
-            maxPrice: 5000000,
+            maxPrice: 10000000,
             shape: true,
             showOutOfStock: false
         },
@@ -496,8 +486,8 @@ export const useAppStore = create<AppState>((set) => ({
                 status: 'STABLE',
                 level: 1,
                 metrics: [
-                    { label: 'Nodes', value: '1,240', trend: 'up' },
-                    { label: 'Uptime', value: '99.98%', trend: 'stable' }
+                    { label: 'Nodes', value: '1,420', trend: 'up' },
+                    { label: 'Uptime', value: '99.99%', trend: 'stable' }
                 ]
             },
             {
@@ -508,8 +498,8 @@ export const useAppStore = create<AppState>((set) => ({
                 status: 'OPTIMIZED',
                 level: 2,
                 metrics: [
-                    { label: 'Coherence', value: '94.2%', trend: 'up' },
-                    { label: 'Latency', value: '4ms', trend: 'down' }
+                    { label: 'Coherence', value: '96.4%', trend: 'up' },
+                    { label: 'Latency', value: '3ms', trend: 'down' }
                 ]
             }
         ],
