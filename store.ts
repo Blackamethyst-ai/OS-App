@@ -354,7 +354,7 @@ export const useAppStore = create<AppState>((set) => ({
         isGenerating: false,
         identityUrl: null,
         referenceImage: null,
-        activeThemeColor: '#9d4edd'
+        activeThemeColor: '#7B2CFF'
     },
     knowledge: {
         activeLayers: ['BUILDER_PROTOCOL', 'CRYPTO_CONTEXT']
@@ -378,7 +378,7 @@ export const useAppStore = create<AppState>((set) => ({
         pendingAIAddition: null,
         pendingAction: null,
         governance: 'Metaventions Protocol v1',
-        coherenceScore: 85
+        coherenceScore: 92
     },
     imageGen: {
         prompt: '',
@@ -476,8 +476,7 @@ export const useAppStore = create<AppState>((set) => ({
     },
     contextMenu: {
         isOpen: false,
-        x: 0,
-        y: 0,
+        x: 0, y: 0,
         contextType: 'GENERAL',
         targetContent: null
     },
