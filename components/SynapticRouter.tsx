@@ -135,7 +135,6 @@ const SynapticRouter: React.FC = () => {
                       title: 'Sovereign Diagnostic Scan',
                       content: targetContent
                   });
-                  // Note: In a real app, we might automatically trigger the analysis in HoloProjector
                 }
                 break;
             case 'COPY':
@@ -232,7 +231,6 @@ const SynapticRouter: React.FC = () => {
                             <MenuItem icon={Eye} label="Holo Project" onClick={() => handleAction('HOLO_VIEW')} />
                             <MenuItem icon={Copy} label="Buffer Copy" onClick={() => handleAction('COPY')} />
                             <MenuItem icon={Search} label="Grounding Search" onClick={() => handleAction('SEARCH')} />
-                            {/* FIX: Access contextType via contextMenu.contextType to avoid undefined error */}
                             {contextMenu.contextType === 'CODE' && (
                                 <MenuItem icon={Terminal} label="Forge in Studio" onClick={() => handleAction('JUMP_CODE')} />
                             )}
