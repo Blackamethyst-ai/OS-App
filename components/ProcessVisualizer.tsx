@@ -325,7 +325,6 @@ const ProcessVisualizerContent = () => {
                             {/* Sidebar Analytics */}
                             <div className="w-[440px] flex flex-col gap-12 shrink-0">
                                 <div className="glass-card rounded-[4rem] p-12 shadow-2xl relative overflow-hidden group border-2 border-white/5 brand-inner-glow bg-black/40">
-                                    {/* Added Brain to the named imports list at the top */}
                                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.1] transition-opacity duration-1000 rotate-12"><Brain size={120} className="text-[var(--cyan)]" /></div>
                                     <div className="flex items-center gap-6 mb-10 relative z-10">
                                         <div className="p-3 bg-[var(--cyan)]/10 rounded-xl border border-[var(--cyan)]/30 text-[var(--cyan)]">

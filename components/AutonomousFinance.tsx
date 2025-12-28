@@ -221,13 +221,12 @@ const AutonomousFinance: React.FC = () => {
                                     <FinanceMetric label="Resource Flux" value="4.8 TB/s" trend={-2.4} icon={Activity} color="#f59e0b" />
                                     <FinanceMetric label="Trust Index" value="99.98" trend={0.01} icon={ShieldCheck} color="#10b981" />
                                 </div>
-                                {/* Rest of content using theme vars... */}
                                 <div className="col-span-12 bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[3rem] p-10 shadow-2xl relative overflow-hidden">
                                     <div className="flex items-center gap-4 mb-8">
                                         <ChartIcon size={20} className="text-[#10b981]" />
                                         <span className="text-xs font-black font-mono text-[var(--text-main)] uppercase tracking-widest">Global Resource Handover Queue</span>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-8">
+                                    <div className="grid grid-cols-2 gap-8 pb-12">
                                         {marketData.opportunities.map(op => (
                                             <div key={op.id} className="p-8 bg-black/5 border border-[var(--border-main)] rounded-[2rem] hover:border-[#10b981]/30 transition-all">
                                                 <h4 className="text-sm font-black text-[var(--text-main)] uppercase mb-4">{op.title}</h4>

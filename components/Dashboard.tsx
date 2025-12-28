@@ -371,7 +371,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="w-full font-sans relative h-full transition-colors duration-[2000ms] overflow-y-auto custom-scrollbar bg-transparent" style={{ color: 'var(--text-primary)' }}>
-      <div className="relative z-10 max-w-[2400px] mx-auto p-4 space-y-6 pb-32">
+      <div className="relative z-10 max-w-[2400px] mx-auto p-4 space-y-6 pb-10">
           
           <SovereignBanner />
 
@@ -536,7 +536,7 @@ const Dashboard: React.FC = () => {
               </div>
           </div>
 
-          <div className="w-full h-[1100px] shrink-0 mt-60 pb-20">
+          <div className="w-full h-[1100px] shrink-0 mt-32 pb-10">
               <DEcosystem />
           </div>
       </div>

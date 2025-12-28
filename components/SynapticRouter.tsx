@@ -187,7 +187,7 @@ const SynapticRouter: React.FC = () => {
                         exit={{ opacity: 0, x: 15, scale: 1.02 }}
                         transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                         className={`flex-1 relative z-10 p-6 flex flex-col ${
-                            isFixedLayout ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar pb-32'
+                            isFixedLayout ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar pb-8'
                         }`}
                     >
                         {mode === AppMode.DASHBOARD && <Dashboard />}
@@ -232,6 +232,7 @@ const SynapticRouter: React.FC = () => {
                             <MenuItem icon={Eye} label="Holo Project" onClick={() => handleAction('HOLO_VIEW')} />
                             <MenuItem icon={Copy} label="Buffer Copy" onClick={() => handleAction('COPY')} />
                             <MenuItem icon={Search} label="Grounding Search" onClick={() => handleAction('SEARCH')} />
+                            {/* FIX: Access contextType via contextMenu.contextType to avoid undefined error */}
                             {contextMenu.contextType === 'CODE' && (
                                 <MenuItem icon={Terminal} label="Forge in Studio" onClick={() => handleAction('JUMP_CODE')} />
                             )}
