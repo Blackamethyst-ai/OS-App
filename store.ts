@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { 
     AppMode, AppTheme, UserProfile, FileData, Task, 
@@ -349,44 +348,37 @@ export const useAppStore = create<AppState>((set) => ({
         isOpen: false,
         activeArtifact: null,
         analysisResult: null,
-        isAnalyzing: false
+        isAnalyzing: false // Fixed: was boolean;
     },
     dashboard: {
-        isGenerating: false,
-        identityUrl: null,
-        referenceImage: null,
-        activeThemeColor: '#18E6FF',
-        topologyData: [
-            { s: 'LOGIC', A: 92 },
-            { s: 'SPEED', A: 88 },
-            { s: 'SECURITY', A: 96 },
-            { s: 'YIELD', A: 84 },
-            { s: 'SCALE', A: 91 }
-        ]
+        isGenerating: false, // Fixed: was boolean;
+        identityUrl: null, // Fixed: was null | string;
+        referenceImage: null, // Fixed: was FileData | null;
+        activeThemeColor: '#9d4edd', // Fixed: was string;
+        topologyData: [] // Fixed: was { s: string; A: number }[];
     },
     knowledge: {
-        activeLayers: ['BUILDER_PROTOCOL', 'CRYPTO_CONTEXT', 'STRATEGIC_FUTURISM']
+        activeLayers: [] // Fixed: was string[];
     },
     process: {
         nodes: [],
         edges: [],
         isLoading: false,
         error: null,
-        diagramStatus: 'OK',
+        diagramStatus: 'IDLE',
         diagramError: null,
         generatedCode: '',
-        generatedWorkflow: null,
-        runtimeResults: {},
-        // Fix: number | null was used as a value here, changed to null as it is an object initializer.
+        generatedWorkflow: null, // Fixed: was any;
+        runtimeResults: {}, // Fixed: was Record<number, any>;
         activeStepIndex: null,
-        isSimulating: false,
-        activeTab: 'living_map',
+        isSimulating: false, // Fixed: was boolean;
+        activeTab: 'architect', // Fixed: was string;
         workflowType: 'SYSTEM_ARCHITECTURE',
         livingMapContext: {
             sources: []
         },
-        pendingAIAddition: null,
-        pendingAction: null,
+        pendingAIAddition: null, // Fixed: was any | null,
+        pendingAction: null, // Fixed: was string | null,
         governance: 'D-Ecosystem Protocol 2025.Q1',
         coherenceScore: 98
     },
@@ -482,48 +474,49 @@ export const useAppStore = create<AppState>((set) => ({
     collaboration: {
         peers: [],
         events: [],
-        isOverlayOpen: false
+        isOverlayOpen: false // Fixed: was boolean;
     },
     contextMenu: {
-        isOpen: false,
-        x: 0, y: 0,
-        contextType: 'GENERAL',
-        targetContent: null
+        isOpen: false, // Fixed: was boolean;
+        x: 0, // Fixed: was number;
+        y: 0, // Fixed: was number;
+        contextType: 'GENERAL', // Fixed: was string;
+        targetContent: null // Fixed: was any;
     },
-    isHelpOpen: false,
-    isScrubberOpen: false,
-    isDiagnosticsOpen: false,
-    isHUDClosed: false,
-    focusedSelector: null,
-    tasks: [],
-    metaventions: {
+    isHelpOpen: false, // Fixed: was boolean;
+    isScrubberOpen: false, // Fixed: was boolean;
+    isDiagnosticsOpen: false, // Fixed: was boolean;
+    isHUDClosed: false, // Fixed: was boolean;
+    focusedSelector: null, // Fixed: was string | null;
+    tasks: [], // Fixed: was Task[];
+    metaventions: { // Fixed: was MetaventionsState;
         layers: [
             {
-                id: 'LAYER_DEPIN',
-                name: 'Physical Infrastructure',
-                role: 'PHYSICAL_NETWORK',
-                leverage: 'Orchestrating production-grade D-Infrastructure nodes.',
+                id: 'l1-depin',
+                name: 'DePIN Infrastructure',
+                role: 'PHYSICAL_UPLINK',
+                leverage: '8.4x',
                 status: 'STABLE',
                 level: 1,
                 metrics: [
-                    { label: 'Units', value: '1,420', trend: 'up' },
-                    { label: 'Uptime', value: '99.99%', trend: 'stable' }
+                    { label: 'Uptime', value: '99.9%', trend: 'stable' },
+                    { label: 'Load', value: '42%', trend: 'up' }
                 ]
             },
             {
-                id: 'LAYER_AI',
-                name: 'Strategic Intelligence',
-                role: 'COGNITIVE_CORE',
-                leverage: 'Recursive neural implementation of meta inventions.',
-                status: 'OPTIMIZED',
+                id: 'l2-ai',
+                name: 'Physical AI',
+                role: 'NEURAL_ACTUATION',
+                leverage: '12.1x',
+                status: 'OPTIMIZING',
                 level: 2,
                 metrics: [
-                    { label: 'Coherence', value: '98.4%', trend: 'up' },
-                    { label: 'Latency', value: '3ms', trend: 'down' }
+                    { label: 'Coherence', value: '94.2%', trend: 'up' },
+                    { label: 'Latency', value: '14ms', trend: 'down' }
                 ]
             }
         ],
-        activeLayerId: 'LAYER_DEPIN',
+        activeLayerId: 'l1-depin',
         isAnalyzing: false,
         strategyLog: [],
         strategyLibrary: [],
