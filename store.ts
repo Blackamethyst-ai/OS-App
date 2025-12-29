@@ -527,7 +527,24 @@ export const useAppStore = create<AppState>((set) => ({
         activeLayerId: 'LAYER_DEPIN',
         isAnalyzing: false,
         strategyLog: [],
-        strategyLibrary: [],
+        strategyLibrary: [
+            {
+                id: 'PARA_DRIVE_SYSTEM',
+                title: 'PARA+ Drive Architecture',
+                context: 'D-System File Management',
+                logic: 'Recursive multi-modal indexing with adaptive TTL for Projects and Areas.',
+                physicalImpact: '40% reduction in data retrieval latency.',
+                timestamp: Date.now()
+            },
+            {
+                id: 'AUTOPOIETIC_ARCH_OS',
+                title: 'Autopoietic Cloud Ingestion',
+                context: 'Infrastructure Strategy',
+                logic: 'Self-correcting data pipelines using schema-evolution daemons.',
+                physicalImpact: 'Zero-entropy processing for unstructured data streams.',
+                timestamp: Date.now()
+            }
+        ],
         wallets: [],
         economicProtocols: []
     },

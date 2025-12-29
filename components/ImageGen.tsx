@@ -529,7 +529,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                       <Icon size={12} /> {label} Vector
                   </span>
                   <label className="p-1 cursor-pointer hover:text-white text-gray-600 transition-colors">
-                      <Plus size={14}/>
+                      <Plus size={14} />
                       <input type="file" multiple className="hidden" onChange={(e) => handleRefUpload(e, type)} />
                   </label>
               </div>
@@ -573,7 +573,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                         <Aperture className="w-5 h-5 text-[#9d4edd]" />
                     </div>
                     <div>
-                        <h1 className="text-lg font-black font-mono uppercase tracking-[0.4em] text-white leading-none">Cinema Engine</h1>
+                        <h1 className="text-lg font-black font-mono uppercase tracking-[0.4em] text-white leading-none uppercase">V8.1 - THE D-Ecosystem</h1>
                         <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-2 block">Prime Production // v8.1-ZENITH</span>
                     </div>
                 </div>
@@ -859,7 +859,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     <div className="flex items-center justify-between shrink-0">
                                         <div className="flex flex-col">
                                             <span className="text-[11px] font-black text-[#9d4edd] font-mono uppercase tracking-[0.4em]">Director's Script</span>
-                                            <span className="text-[7px] text-gray-600 font-mono uppercase mt-0.5 tracking-widest">Active Sequence Buffer</span>
+                                            <span className="text-[7px] text-gray-600 font-mono uppercase mt-0.5 tracking-widest uppercase">V8.1 - THE D-Ecosystem</span>
                                         </div>
                                         <div className="p-2.5 bg-[#9d4edd]/10 rounded-xl border border-[#9d4edd]/30 text-[#9d4edd] shadow-inner">
                                             <Clapperboard size={18} />
@@ -1006,7 +1006,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     </div>
                                     <div>
                                         <h2 className="text-base font-black font-mono text-white uppercase tracking-[0.5em]">Temporal Loom</h2>
-                                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-1">High-Motion Synthesis Core</p>
+                                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-1 uppercase">V8.1 - THE D-Ecosystem</p>
                                     </div>
                                 </div>
                                 
@@ -1176,7 +1176,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             <div className="text-center space-y-8 max-w-5xl overflow-y-auto max-h-[300px] custom-scrollbar px-4">
                                                 <div className="flex justify-center items-center gap-8 shrink-0">
                                                     <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent opacity-40" />
-                                                    <span className="text-[12px] font-black text-[#9d4edd] uppercase tracking-[1em] whitespace-nowrap">Lattice Screening Synthesis</span>
+                                                    <span className="text-[12px] font-black text-[#9d4edd] uppercase tracking-[1em] whitespace-nowrap uppercase">V8.1 - THE D-Ecosystem</span>
                                                     <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent opacity-40" />
                                                 </div>
                                                 <p className="text-4xl font-mono text-white leading-relaxed italic font-medium selection:bg-[#9d4edd]/40 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,1)] pb-4">
@@ -1281,7 +1281,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                 </div>
             </div>
             <div className="flex items-center gap-8 shrink-0">
-                <span className="uppercase tracking-[0.5em] opacity-40 leading-none hidden lg:block">Cinema Architecture Division v8.1 // Final Render Protocol</span>
+                <span className="uppercase tracking-[0.5em] opacity-40 leading-none hidden lg:block uppercase">V8.1 - THE D-Ecosystem // Final Render Protocol</span>
                 <div className="h-4 w-px bg-white/10 hidden lg:block" />
                 <span className="font-black text-gray-400 uppercase tracking-widest leading-none">Metaventions_OS</span>
             </div>

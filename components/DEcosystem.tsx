@@ -91,7 +91,6 @@ const DEcosystem: React.FC = () => {
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const dpr = window.devicePixelRatio || 1;
-      // Center based on the actual physical canvas pixels divided by DPR
       const centerX = (canvas.width / dpr) / 2;
       const centerY = (canvas.height / dpr) / 2;
       const time = performance.now() / 1000;
@@ -234,7 +233,6 @@ const DEcosystem: React.FC = () => {
         const context = canvasRef.current.getContext('2d');
         if (context) {
             context.scale(dpr, dpr);
-            // Ensure particles that are in transit don't "jump" too wildly
             particles.forEach(p => {
                 p.x = Math.max(0, Math.min(width, p.x));
                 p.y = Math.max(0, Math.min(height, p.y));
@@ -261,7 +259,7 @@ const DEcosystem: React.FC = () => {
       
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
-      {/* NEURAL CORE - LOCKED TO CENTER */}
+      {/* NEURAL CORE - ALWAYS CENTERED IN THE CIRCLE */}
       <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
         <motion.div 
             animate={{ scale: [1, 1.03, 1] }}

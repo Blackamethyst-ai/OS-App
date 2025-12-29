@@ -42,6 +42,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 const NAV_CONFIG = [
   { id: AppMode.METAVENTIONS_HUB, label: 'HUB', path: '/metaventions-hub' },
+  { id: AppMode.DASHBOARD, label: 'DASHBOARD', path: '/dashboard' },
   { id: AppMode.BIBLIOMORPHIC, label: 'LAB', path: '/bibliomorphic' },
   { id: AppMode.PROCESS_MAP, label: 'MAPPER', path: '/process' },
   { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance' },
@@ -89,6 +90,7 @@ const FocusOverlay = () => {
                 className="absolute border-2 border-[#9d4edd] rounded"
                 style={{ left: bounds.left - 4, top: bounds.top - 4, width: bounds.width + 8, height: bounds.height + 8 }}
             >
+                {/* Fixed: corrected size prop syntax from size(10) to size={10} */}
                 <div className="absolute -top-8 left-0 bg-[#9d4edd] text-black text-[10px] font-black font-mono px-2 py-0.5 rounded flex items-center gap-2 pointer-events-auto cursor-pointer" onClick={() => setFocusedSelector(null)}>
                     <Target size={12}/> CONTEXT_FOCUS_L0 <X size={10} />
                 </div>
@@ -233,7 +235,7 @@ const App: React.FC = () => {
   }, [theme]);
 
   const isFixedLayout = useMemo(() => 
-    mode === AppMode.METAVENTIONS_HUB || mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.SYNTHESIS_BRIDGE || mode === AppMode.VOICE_MODE || mode === AppMode.AUTONOMOUS_FINANCE
+    mode === AppMode.METAVENTIONS_HUB || mode === AppMode.DASHBOARD || mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.SYNTHESIS_BRIDGE || mode === AppMode.VOICE_MODE || mode === AppMode.AUTONOMOUS_FINANCE
   , [mode]);
 
   return (

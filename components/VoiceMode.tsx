@@ -133,7 +133,7 @@ const NodePersona = ({ image, freqs, color, label, isAgent, isThinking }: any) =
                 >
                     <div className="w-full h-full rounded-full overflow-hidden border border-white/5 relative">
                         {image ? (
-                            <img src={image} className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-1000" alt={label} />
+                            <img src={image} className="w-full h-full object-cover grayscale-[20%] group-hover/persona:grayscale-0 transition-all duration-1000" alt={label} />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center bg-[#050505] text-gray-800">
                                 {isAgent ? <BrainCircuit size={40} /> : <User size={40} />}
@@ -279,8 +279,8 @@ const VoiceMode: React.FC = () => {
                         <h1 className="text-xs font-black font-mono uppercase tracking-[0.4em] text-white leading-none">Voice Core</h1>
                         <div className={cn("w-1.5 h-1.5 rounded-full transition-all shadow-[0_0_10px_currentColor]", voice.isActive ? "bg-[#10b981] animate-pulse" : "bg-gray-800")} />
                     </div>
-                    <div className="text-[7px] font-mono text-gray-600 uppercase tracking-widest leading-none">
-                        {voice.isConnecting ? 'Initializing Neural Tunnel...' : voice.isActive ? 'Handshake Finalized' : 'Hub Standby'}
+                    <div className="text-[7px] font-mono text-gray-600 uppercase tracking-widest leading-none uppercase">
+                        {voice.isConnecting ? 'Initializing Neural Tunnel...' : voice.isActive ? 'Handshake Finalized' : 'V1.0 - THE D-Ecosystem'}
                     </div>
                 </div>
               </div>
@@ -463,7 +463,7 @@ const VoiceMode: React.FC = () => {
               {voice.transcripts.length === 0 && !voice.partialTranscript && (
                   <div className="h-full flex flex-col items-center justify-center opacity-10 gap-4 py-10 grayscale scale-110">
                       <AudioWaveform size={48} className="animate-pulse" />
-                      <span className="text-[10px] uppercase tracking-[0.6em]">Listening for cognitive harmonics</span>
+                      <span className="text-[10px] uppercase tracking-[0.6em] uppercase">V1.0 - THE D-Ecosystem</span>
                   </div>
               )}
           </div>

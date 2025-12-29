@@ -144,7 +144,7 @@ class LiveSession {
                         for (const fc of message.toolCall.functionCalls) {
                             const result = await this.onToolCall(fc.name, fc.args);
                             sessionPromise.then(s => s.sendToolResponse({ 
-                                functionResponses: [{ id: fc.id, name: fc.name, response: { result } }] 
+                                functionResponses: { id: fc.id, name: fc.name, response: { result } } 
                             }));
                         }
                     }

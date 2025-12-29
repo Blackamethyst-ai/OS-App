@@ -1,9 +1,56 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { ShieldCheck } from 'lucide-react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ShieldCheck, Save, Loader2, Sparkles } from 'lucide-react';
+import { useAppStore } from '../store';
+import { neuralVault } from '../services/persistenceService';
+import { AppMode } from '../types';
+import { audio } from '../services/audioService';
 import MetaventionsLogo from './MetaventionsLogo';
 
 const AppFooter: React.FC = () => {
+    const { mode, addLog } = useAppStore();
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleManualSnapshot = async () => {
+        setIsSaving(true);
+        audio.playClick();
+        addLog('SYSTEM', 'SNAPSHOT: Initializing high-priority state persistence...');
+        
+        try {
+            const store = useAppStore.getState();
+            let stateToSave = null;
+            
+            // Map current mode to store sector
+            switch(mode) {
+                case AppMode.PROCESS_MAP: stateToSave = store.process; break;
+                case AppMode.CODE_STUDIO: stateToSave = store.codeStudio; break;
+                case AppMode.HARDWARE_ENGINEER: stateToSave = store.hardware; break;
+                case AppMode.IMAGE_GEN: stateToSave = store.imageGen; break;
+                case AppMode.BIBLIOMORPHIC: stateToSave = store.bibliomorphic; break;
+                case AppMode.DASHBOARD: stateToSave = store.dashboard; break;
+                case AppMode.METAVENTIONS_HUB: stateToSave = store.metaventions; break;
+                case AppMode.AUTONOMOUS_FINANCE: stateToSave = store.metaventions; break;
+                case AppMode.AGENT_CONTROL: stateToSave = store.agents; break;
+                case AppMode.SYNTHESIS_BRIDGE: stateToSave = store.metaventions; break;
+                case AppMode.MEMORY_CORE: stateToSave = store.memory; break;
+                case AppMode.VOICE_MODE: stateToSave = store.voice; break;
+                case AppMode.BICAMERAL: stateToSave = store.bicameral; break;
+                default: break;
+            }
+
+            if (stateToSave) {
+                await neuralVault.createCheckpoint(mode, stateToSave, "Emergency Manual Sync");
+                addLog('SUCCESS', 'SNAPSHOT: Local state crystallized to Neural Vault.');
+                audio.playSuccess();
+            }
+        } catch (e) {
+            addLog('ERROR', 'SNAPSHOT: Persistence failure.');
+            audio.playError();
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     return (
         <footer className="w-full bg-[var(--bg-header)] border-t border-[var(--border-main)] py-6 px-16 shrink-0 relative z-[60] transition-colors duration-1000 brand-inner-glow overflow-hidden backdrop-blur-3xl">
             {/* Meditative, rhythmic footer glow */}
@@ -31,10 +78,27 @@ const AppFooter: React.FC = () => {
                         <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-[0.4em] flex items-center gap-6">
                             <span className="text-[var(--stellar-white)] font-black">© 2025 METAVENTIONS AI</span>
                             <span className="opacity-20 hidden lg:block">//</span>
-                            <span className="hidden lg:block">Sovereign Architecture OS</span>
+                            <span className="hidden lg:block">Architecture OS</span>
                             <span className="opacity-20 hidden lg:block">//</span>
-                            <span className="hidden lg:block">v9.5-ZENITH</span>
+                            <span className="hidden lg:block text-[#9d4edd] font-black uppercase">V9.5 - THE D-Ecosystem</span>
                         </div>
+                    </div>
+
+                    <div className="flex-1 flex justify-center px-20">
+                         <button 
+                            onClick={handleManualSnapshot}
+                            disabled={isSaving}
+                            className={`flex items-center gap-3 px-6 py-2 rounded-full border transition-all relative overflow-hidden group/snap
+                                ${isSaving 
+                                    ? 'bg-[#10b981] border-[#10b981] text-black shadow-[0_0_20px_#10b981]' 
+                                    : 'bg-white/5 border-white/10 text-gray-500 hover:text-[#10b981] hover:border-[#10b981]/50'
+                                }`}
+                         >
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover/snap:translate-x-[100%] transition-transform duration-1000" />
+                            {isSaving ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} className="group-hover/snap:scale-125 transition-transform" />}
+                            <span className="text-[9px] font-black font-mono uppercase tracking-[0.3em]">Snapshot Sync</span>
+                            {isSaving && <Sparkles size={10} className="animate-pulse" />}
+                         </button>
                     </div>
 
                     <nav className="flex items-center gap-12">
@@ -61,7 +125,6 @@ const AppFooter: React.FC = () => {
                 <div className="relative pt-4 flex justify-between items-center border-t border-white/5">
                     <div className="flex items-center gap-4 text-[8px] font-mono text-gray-700 uppercase tracking-[0.4em]">
                         <div className="flex items-center gap-2">
-                            {/* Fixed missing import: ShieldCheck from lucide-react */}
                             <ShieldCheck size={10} className="text-[#10b981]" />
                             <span>Secure_Handshake_L0</span>
                         </div>
