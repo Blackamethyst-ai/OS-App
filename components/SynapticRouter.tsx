@@ -35,10 +35,10 @@ const SynapticRouter: React.FC = () => {
 
     useEffect(() => {
         const handleRouting = () => {
-            const hash = window.location.hash || '#/dashboard';
+            const hash = window.location.hash || '#/metaventions-hub';
             const [fullPath, queryStr] = hash.replace('#', '').split('?');
             const parts = fullPath.split('/').filter(Boolean);
-            const mainPath = parts[0] || 'dashboard';
+            const mainPath = parts[0] || 'metaventions-hub';
             const subPath = parts[1] || '';
             const params = new URLSearchParams(queryStr);
 
@@ -230,7 +230,7 @@ const SynapticRouter: React.FC = () => {
                                 <GitBranch className="w-3 h-3 text-[#9d4edd]" />
                             </div>
                             <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-600 uppercase truncate">
-                                <Hash className="w-2.5 h-2.5" /> {routeInfo.path.toUpperCase() || 'DASHBOARD'}
+                                <Hash className="w-2.5 h-2.5" /> {routeInfo.path.toUpperCase() || 'METAVENTIONS_HUB'}
                             </div>
                         </div>
                         <div className="flex flex-col gap-0.5">
@@ -244,7 +244,7 @@ const SynapticRouter: React.FC = () => {
                                 <MenuItem icon={Terminal} label="Forge in Studio" onClick={() => handleAction('JUMP_CODE')} />
                             )}
                             <div className="h-px bg-[#222] my-1" />
-                            <MenuItem icon={ArrowUpRight} label="Dashboard" onClick={() => window.location.hash = '/dashboard'} />
+                            <MenuItem icon={ArrowUpRight} label="Hub" onClick={() => window.location.hash = '/metaventions-hub'} />
                             <MenuItem icon={Activity} label="Diagnostics" onClick={() => window.location.hash = '/memory'} />
                             <MenuItem icon={Terminal} label="Terminal" onClick={() => toggleTerminal(true)} />
                         </div>

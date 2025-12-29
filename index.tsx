@@ -1,4 +1,4 @@
-import React, { ReactNode, ErrorInfo } from 'react';
+import React, { Component, ReactNode, ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw, Terminal } from 'lucide-react';
@@ -12,22 +12,29 @@ interface ErrorBoundaryState {
   error: Error | null;
 }
 
-// Root Error Boundary for Sovereign OS Crash Handling
+/**
+ * Root Error Boundary for Sovereign OS Crash Handling.
+ * Handles critical application failures with a specialized system diagnostic UI.
+ */
+// Fix: Use React.Component specifically to ensure property inheritance resolution for props and state
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Initialize state as a class property for robust TypeScript support
+  public state: ErrorBoundaryState = { hasError: false, error: null };
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  public static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("CRITICAL KERNEL PANIC:", error, errorInfo);
   }
 
   render() {
+    // Fix: Access state properties from the class component instance
     if (this.state.hasError) {
       return (
         <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#030303] text-white font-mono p-12 overflow-hidden relative">
@@ -71,7 +78,8 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       );
     }
 
-    return (this.props as any).children;
+    // Fix: Directly returning this.props.children avoids potential property existence resolution errors
+    return this.props.children;
   }
 }
 

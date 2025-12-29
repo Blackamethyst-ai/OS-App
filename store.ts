@@ -293,7 +293,7 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set) => ({
-    mode: AppMode.DASHBOARD,
+    mode: AppMode.METAVENTIONS_HUB,
     theme: AppTheme.DARK,
     user: {
         displayName: 'Operator_Core',
