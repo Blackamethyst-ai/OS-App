@@ -35,7 +35,8 @@ export const useAutoSave = () => {
     useEffect(() => {
         const interval = setInterval(() => {
             const now = Date.now();
-            if (now - lastSave.current > 60000) {
+            // Trigger save every 60s if focused
+            if (now - lastSave.current > 60000 && document.visibilityState === 'visible') {
                 const state = useAppStore.getState();
                 saveCheckpoint(state, 'Auto-Save');
             }

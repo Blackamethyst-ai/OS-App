@@ -133,7 +133,10 @@ class NeuralVaultService {
   async saveArtifact(file: File | Blob, analysis: ArtifactAnalysis | null): Promise<string> {
     const id = crypto.randomUUID();
     const db = await this.db;
-    const name = file instanceof File ? file.name : `Artifact_${id.slice(0,8)}`;
+    
+    // Fixed: Narrowing issue by explicitly using a local variable for the check
+    const isFile = file instanceof File;
+    const name = isFile ? (file as File).name : `Artifact_${id.slice(0,8)}`;
     
     // Explicitly treat as Blob to unify property access across branches
     const blobRef = file as Blob;
@@ -145,7 +148,8 @@ class NeuralVaultService {
       data: blobRef,
       analysis,
       timestamp: Date.now(),
-      tags: analysis?.entities || []
+      // Force tags to be an array to prevent .map failures in UI components
+      tags: Array.isArray(analysis?.entities) ? analysis.entities : []
     });
     return id;
   }
