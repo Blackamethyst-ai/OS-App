@@ -14,7 +14,7 @@ import {
     TrendingUp, TrendingDown, Zap,
     Bot, Globe, User, Hexagon,
     Mic, MicOff, ShieldCheck, DollarSign,
-    LineChart as ChartIcon
+    LineChart as ChartIcon, Terminal, GripHorizontal, Waves
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
@@ -46,7 +46,7 @@ const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) 
 );
 
 /**
- * CapitalVelocity: Strategic financial flow visualization with real-time glow.
+ * CapitalVelocity: Strategic financial flow visualization with real-time glow and percentage mapping.
  */
 const CapitalVelocity = () => (
     <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/cap shrink-0">
@@ -140,6 +140,82 @@ const SwarmBox = () => {
                 <div className="flex justify-between items-center text-[7px] font-mono text-gray-600 uppercase tracking-widest">
                     <span>SYNC_STABLE</span>
                     <span className="text-[#10b981] font-black">ACK_OK</span>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+/**
+ * IntegratedVoiceModule: A dedicated container replicating the Voice Core structure.
+ */
+const IntegratedVoiceModule = ({ voice, handleUplink, canvasRef }: any) => {
+    return (
+        <div className="bg-[#0a0a0a]/90 border border-white/10 backdrop-blur-3xl rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/voice-node">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(157,78,221,0.03)_0%,transparent_70%)] pointer-events-none" />
+            
+            <div className="flex items-center justify-between relative z-10">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-2xl text-[#9d4edd] shadow-xl">
+                        <Radio size={20} className={voice.isActive ? 'animate-pulse' : ''} />
+                    </div>
+                    <div>
+                        <span className="text-xs font-black font-mono text-white uppercase tracking-[0.3em]">Voice Core Node</span>
+                        <div className="flex items-center gap-2 mt-1">
+                            <div className={cn("w-1.5 h-1.5 rounded-full", voice.isActive ? "bg-[#10b981] animate-pulse" : "bg-gray-800")} />
+                            <span className="text-[7px] text-gray-500 font-mono uppercase tracking-widest">{voice.isActive ? 'Handshake Stable' : 'Standby'}</span>
+                        </div>
+                    </div>
+                </div>
+                <button 
+                    onClick={handleUplink}
+                    className={cn(
+                        "px-6 py-2.5 rounded-2xl text-[9px] font-black font-mono uppercase tracking-[0.2em] transition-all flex items-center gap-3 border shadow-xl active:scale-95",
+                        voice.isActive 
+                            ? "bg-red-500/10 border-red-500/40 text-red-500" 
+                            : "bg-[#9d4edd] border-[#9d4edd] text-black hover:bg-[#b06bf7]"
+                    )}
+                >
+                    {voice.isActive ? <MicOff size={14} /> : <Mic size={14} />}
+                    {voice.isActive ? 'Sever Link' : 'Initialize Comms'}
+                </button>
+            </div>
+
+            <div className="grid grid-cols-12 gap-6 items-center relative z-10">
+                <div className="col-span-3 flex justify-center">
+                    <div className="relative w-24 h-24 flex items-center justify-center">
+                        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
+                        <div className={cn(
+                            "w-16 h-16 rounded-full border p-1 glass-action flex items-center justify-center relative transition-all duration-1000 z-10 shadow-2xl",
+                            voice.isActive ? "border-[#9d4edd] scale-105" : "border-white/10"
+                        )}>
+                            <div className="w-full h-full rounded-full overflow-hidden bg-black/40 flex items-center justify-center border border-white/5 shadow-inner">
+                                <Zap size={22} className={voice.isActive ? "text-[#9d4edd]" : "text-gray-800"} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div className="col-span-9 flex flex-col gap-4">
+                    <div className="flex-1 bg-black/40 border border-white/5 rounded-2xl p-4 font-mono text-[10px] text-gray-400 overflow-y-auto custom-scrollbar h-24 shadow-inner">
+                        {voice.transcripts.length > 0 ? (
+                            voice.transcripts.slice(-3).map((t, i) => (
+                                <div key={i} className={cn("mb-2 opacity-60 group-hover/voice-node:opacity-100 transition-opacity", t.role === 'user' ? 'text-[#22d3ee]' : 'text-[#9d4edd]')}>
+                                    <span className="font-black uppercase mr-2">[{t.role === 'user' ? 'OP' : 'AI'}]</span>
+                                    <span className="italic">"{t.text.substring(0, 80)}..."</span>
+                                </div>
+                            ))
+                        ) : (
+                            <div className="h-full flex flex-col items-center justify-center opacity-10 gap-2">
+                                <Waves size={24} />
+                                <span className="text-[8px] uppercase tracking-widest">Listening for cognitive harmonics</span>
+                            </div>
+                        )}
+                        {voice.partialTranscript && (
+                            <div className="text-white/40 animate-pulse italic">
+                                [{voice.partialTranscript.role === 'user' ? 'OP' : 'AI'}] "{voice.partialTranscript.text.substring(0, 40)}..."
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
@@ -315,9 +391,22 @@ const MetaventionsHub: React.FC = () => {
       <div className="flex-1 overflow-y-auto custom-scrollbar p-8 relative bg-transparent">
           <div className="grid grid-cols-12 gap-6 items-start max-w-[2400px] mx-auto">
               
-              {/* Left Column: Core Metrics & Visualizations */}
+              {/* Left Column: Metrics -> Capital Velocity -> Network Topology */}
               <div className="col-span-3 space-y-6">
-                  {/* 1. Network Topology Radar (Uses Store Data) */}
+                  {/* 1. Core Metrics Matrix */}
+                  <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden">
+                      <div className="grid grid-cols-2 gap-4">
+                          <CompactMetric title="CPU LOAD" value={`${telemetry.cpu}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
+                          <CompactMetric title="BANDWIDTH" value={`${telemetry.net}GB/s`} detail="PEAK" icon={Radio} color="var(--amethyst)" trend="up" />
+                          <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
+                          <CompactMetric title="LATENCY" value="2.4ms" detail="OPTIMAL" icon={Zap} color="#f59e0b" trend="up" />
+                      </div>
+                  </div>
+
+                  {/* 2. Capital Velocity Section */}
+                  <CapitalVelocity />
+
+                  {/* 3. Network Topology Radar (Moved to Bottom) */}
                   <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[2.5rem] p-8 h-72 relative overflow-hidden shadow-2xl group/topology">
                       <div className="flex items-center gap-3 mb-6 relative z-10">
                         <ChartIcon size={14} className="text-[#f1c21b]" />
@@ -335,135 +424,93 @@ const MetaventionsHub: React.FC = () => {
                       </div>
                       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
                   </div>
-
-                  {/* 2. Compacted Core Metrics Matrix */}
-                  <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden">
-                      <div className="grid grid-cols-2 gap-4">
-                          <CompactMetric title="CPU LOAD" value={`${telemetry.cpu}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
-                          <CompactMetric title="BANDWIDTH" value={`${telemetry.net}GB/s`} detail="PEAK" icon={Radio} color="var(--amethyst)" trend="up" />
-                          <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
-                          <CompactMetric title="LATENCY" value="2.4ms" detail="OPTIMAL" icon={Zap} color="#f59e0b" trend="up" />
-                      </div>
-                  </div>
-
-                  {/* 3. Capital Velocity Section */}
-                  <CapitalVelocity />
               </div>
 
               {/* Center Column: Strategic Operations Center (Primary Display) */}
-              <div className="col-span-6 bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[3rem] p-0 shadow-2xl relative overflow-hidden flex flex-col min-h-[850px] group/soc">
-                  <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 shrink-0 z-20 relative">
-                      <div className="flex items-center gap-4">
-                          <Target size={18} className="text-[#9d4edd] animate-pulse" />
-                          <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Strategic Operations Center</span>
+              <div className="col-span-6 flex flex-col gap-6 min-h-[850px]">
+                  <div className="flex-1 bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[3rem] p-0 shadow-2xl relative overflow-hidden flex flex-col group/soc">
+                      <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 shrink-0 z-20 relative">
+                          <div className="flex items-center gap-4">
+                              <Target size={18} className="text-[#9d4edd] animate-pulse" />
+                              <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Strategic Operations Center</span>
+                          </div>
+                          <div className="flex items-center gap-3 px-4 py-1 bg-black/40 rounded-full border border-white/5">
+                              <div className="w-1 h-1 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
+                              <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Link Stable</span>
+                          </div>
                       </div>
-                      <div className="flex items-center gap-3 px-4 py-1 bg-black/40 rounded-full border border-white/5">
-                          <div className="w-1 h-1 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
-                          <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Link Stable</span>
-                      </div>
-                  </div>
-                  
-                  <div 
-                    onClick={() => toggleProfile(true)}
-                    className="flex-1 relative overflow-hidden bg-black/40 group/view cursor-pointer"
-                  >
-                      <AnimatePresence mode="wait">
-                          {isSyncing ? (
-                              <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/60 backdrop-blur-3xl">
-                                  <div className="relative">
-                                      <Loader2 size={60} className="text-[#9d4edd] animate-spin mb-6" />
-                                      <div className="absolute inset-0 blur-3xl bg-[#9d4edd]/20 animate-pulse" />
-                                  </div>
-                                  <span className="text-[12px] font-black font-mono text-white uppercase tracking-[0.8em]">Establishing Viewport...</span>
-                              </motion.div>
-                          ) : mainImageUrl ? (
-                              <motion.img 
-                                key="image"
-                                initial={{ opacity: 0, scale: 1.05 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                src={mainImageUrl} 
-                                className="w-full h-full object-cover grayscale-[30%] opacity-80 transition-all duration-[30s] group-hover/view:scale-110 group-hover/view:grayscale-0 group-hover/view:opacity-100" 
-                              />
-                          ) : (
-                              <motion.div 
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="h-full flex flex-col items-center justify-center text-center p-12 gap-6 opacity-20 group-hover/view:opacity-40 transition-opacity duration-1000"
-                              >
-                                  <div className="relative">
-                                      <Hexagon size={100} className="text-gray-500 animate-[spin_20s_linear_infinite]" />
-                                      <div className="absolute inset-0 flex items-center justify-center">
-                                          <Target size={32} className="text-[#9d4edd]" />
+                      
+                      <div 
+                        onClick={() => toggleProfile(true)}
+                        className="flex-1 relative overflow-hidden bg-black/40 group/view cursor-pointer"
+                      >
+                          <AnimatePresence mode="wait">
+                              {isSyncing ? (
+                                  <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/60 backdrop-blur-3xl">
+                                      <div className="relative">
+                                          <Loader2 size={60} className="text-[#9d4edd] animate-spin mb-6" />
+                                          <div className="absolute inset-0 blur-3xl bg-[#9d4edd]/20 animate-pulse" />
                                       </div>
-                                  </div>
-                                  <div className="space-y-2">
-                                      <h3 className="text-xl font-black text-white uppercase tracking-[0.6em]">Viewport Standby</h3>
-                                      <p className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.2em] max-w-sm mx-auto">Manual protocol required for holographic uplink.</p>
-                                  </div>
-                              </motion.div>
-                          )}
-                      </AnimatePresence>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                                      <span className="text-[12px] font-black font-mono text-white uppercase tracking-[0.8em]">Establishing Viewport...</span>
+                                  </motion.div>
+                              ) : mainImageUrl ? (
+                                  <motion.img 
+                                    key="image"
+                                    initial={{ opacity: 0, scale: 1.05 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    src={mainImageUrl} 
+                                    className="w-full h-full object-cover grayscale-[30%] opacity-80 transition-all duration-[30s] group-hover/view:scale-110 group-hover/view:grayscale-0 group-hover/view:opacity-100" 
+                                  />
+                              ) : (
+                                  <motion.div 
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="h-full flex flex-col items-center justify-center text-center p-12 gap-6 opacity-20 group-hover/view:opacity-40 transition-opacity duration-1000"
+                                  >
+                                      <div className="relative">
+                                          <Hexagon size={100} className="text-gray-500 animate-[spin_20s_linear_infinite]" />
+                                          <div className="absolute inset-0 flex items-center justify-center">
+                                              <Target size={32} className="text-[#9d4edd]" />
+                                          </div>
+                                      </div>
+                                      <div className="space-y-2">
+                                          <h3 className="text-xl font-black text-white uppercase tracking-[0.6em]">Viewport Standby</h3>
+                                          <p className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.2em] max-w-sm mx-auto">Manual protocol required for holographic uplink.</p>
+                                      </div>
+                                  </motion.div>
+                              )}
+                          </AnimatePresence>
+                          <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                      </div>
+
+                      <div className="h-24 bg-black/60 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-10 shrink-0 z-20 relative">
+                         <div className="flex items-center gap-12">
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Neural Coherence</span>
+                                <span className="text-lg font-black font-mono text-white tracking-tighter">0xV_ZENITH</span>
+                            </div>
+                            <div className="h-10 w-px bg-white/5" />
+                            <div className="flex flex-col">
+                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Auth Protocol</span>
+                                <span className="text-base font-black font-mono text-[#10b981] tracking-tighter">SECURE_L0</span>
+                            </div>
+                         </div>
+
+                         <div className="flex flex-col items-end gap-3">
+                            <button 
+                                onClick={handleGlobalSync} 
+                                disabled={isSyncing}
+                                className="px-8 py-3 bg-[#f1c21b] hover:bg-[#ffdf6b] text-black rounded-2xl text-[9px] font-black uppercase tracking-[0.4em] transition-all active:scale-95 shadow-xl flex items-center gap-4 group"
+                            >
+                                {isSyncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />}
+                                Establish View
+                            </button>
+                         </div>
+                      </div>
                   </div>
 
-                  <div className="h-32 bg-black/60 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-10 shrink-0 z-20 relative">
-                     <div className="flex items-center gap-12">
-                        <div className="flex flex-col">
-                            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Neural Coherence</span>
-                            <span className="text-lg font-black font-mono text-white tracking-tighter">0xV_ZENITH</span>
-                        </div>
-                        <div className="h-10 w-px bg-white/5" />
-                        <div className="flex flex-col">
-                            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Auth Protocol</span>
-                            <span className="text-base font-black font-mono text-[#10b981] tracking-tighter">SECURE_L0</span>
-                        </div>
-                        
-                        {/* Integrated Voice Core Module */}
-                        <div className="h-10 w-px bg-white/5" />
-                        <div className="flex items-center gap-6">
-                            <div className="relative w-14 h-14 flex items-center justify-center shrink-0">
-                                <canvas ref={voiceCanvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
-                                <div className={cn(
-                                    "w-9 h-9 rounded-full border p-1 glass-action flex items-center justify-center relative transition-all duration-700 z-10",
-                                    voice.isActive ? "border-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.3)] scale-105" : "border-white/10"
-                                )}>
-                                    <div className="w-full h-full rounded-full overflow-hidden bg-black/20 flex items-center justify-center">
-                                        <Radio size={14} className={voice.isActive ? "text-[#9d4edd] animate-pulse" : "text-gray-700"} />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex flex-col gap-1.5">
-                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Comms Voice Core</span>
-                                <button 
-                                    onClick={handleUplink}
-                                    className={cn(
-                                        "px-5 py-1.5 rounded-xl text-[8px] font-black font-mono uppercase tracking-widest transition-all flex items-center gap-2 border glass-action active:scale-95",
-                                        voice.isActive 
-                                            ? "bg-red-500/10 border-red-500/20 text-red-400" 
-                                            : "text-[#9d4edd] border-[#9d4edd]/30 hover:border-[#9d4edd] hover:text-white"
-                                    )}
-                                >
-                                    {voice.isActive ? <MicOff size={10} /> : <Mic size={10} />}
-                                    {voice.isActive ? 'Sever Link' : 'Establish Comms'}
-                                </button>
-                            </div>
-                        </div>
-                     </div>
-
-                     <div className="flex flex-col items-end gap-3">
-                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest max-w-[280px] text-right leading-relaxed italic">
-                            High-fidelity orchestration of strategic implementation protocols and agentic workflows.
-                        </p>
-                        <button 
-                            onClick={handleGlobalSync} 
-                            disabled={isSyncing}
-                            className="px-8 py-3 bg-[#f1c21b] hover:bg-[#ffdf6b] text-black rounded-2xl text-[9px] font-black uppercase tracking-[0.4em] transition-all active:scale-95 shadow-xl flex items-center gap-4 group"
-                        >
-                            {isSyncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />}
-                            Establish View
-                        </button>
-                     </div>
-                  </div>
+                  {/* Integrated Voice Core Module (Filling the Gap) */}
+                  <IntegratedVoiceModule voice={voice} handleUplink={handleUplink} canvasRef={voiceCanvasRef} />
               </div>
 
               {/* Right Column: Identity, Swarm & Velocity */}

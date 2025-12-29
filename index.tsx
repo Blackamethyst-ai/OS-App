@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+import React, { ReactNode, ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw, Terminal } from 'lucide-react';
@@ -16,14 +16,10 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS Crash Handling.
  * Handles critical application failures with a specialized system diagnostic UI.
  */
-// Fix: Use React.Component specifically to ensure property inheritance resolution for props and state
+// Fix: Explicitly extend React.Component to ensure props and state are correctly inherited and recognized by TypeScript
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Initialize state as a class property for robust TypeScript support
+  // Initialize state as a class field for robust TypeScript recognition
   public state: ErrorBoundaryState = { hasError: false, error: null };
-
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-  }
 
   public static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
@@ -34,8 +30,11 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   render() {
-    // Fix: Access state properties from the class component instance
-    if (this.state.hasError) {
+    const { hasError, error } = this.state;
+    // Fix: Access props correctly from the component instance 'this' context
+    const { children } = this.props;
+
+    if (hasError) {
       return (
         <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#030303] text-white font-mono p-12 overflow-hidden relative">
             <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.05)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
@@ -57,7 +56,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                 <div className="p-4 bg-red-500/5 rounded border border-red-500/10 mb-8 w-full overflow-hidden">
                     <p className="text-[10px] text-red-400 font-bold uppercase mb-2">Error Diagnostic:</p>
                     <p className="text-xs text-gray-400 leading-relaxed font-mono break-all">
-                        {this.state.error?.message || "An unexpected neural desync occurred in the Sovereign Core."}
+                        {error?.message || "An unexpected neural desync occurred in the Sovereign Core."}
                     </p>
                 </div>
 
@@ -78,8 +77,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       );
     }
 
-    // Fix: Directly returning this.props.children avoids potential property existence resolution errors
-    return this.props.children;
+    return children;
   }
 }
 
