@@ -93,6 +93,7 @@ interface AppState {
     };
     visualCortex: {
         isAnalyzing: boolean;
+        isProbing: boolean;
         lastResult: any | null;
         dropActive: boolean;
     };
@@ -341,6 +342,7 @@ export const useAppStore = create<AppState>((set) => ({
     },
     visualCortex: {
         isAnalyzing: false,
+        isProbing: false,
         lastResult: null,
         dropActive: false
     },
@@ -484,8 +486,7 @@ export const useAppStore = create<AppState>((set) => ({
     },
     contextMenu: {
         isOpen: false,
-        x: 0,
-        y: 0,
+        x: 0, y: 0,
         contextType: 'GENERAL',
         targetContent: null
     },

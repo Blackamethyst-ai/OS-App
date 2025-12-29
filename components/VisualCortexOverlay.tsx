@@ -1,15 +1,17 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store';
-import { Eye, Loader2, Zap, Scan, ShieldCheck, Activity, Target } from 'lucide-react';
+import { Eye, Loader2, Zap, Scan, ShieldCheck, Activity, Target, Monitor } from 'lucide-react';
 
 const VisualCortexOverlay: React.FC = () => {
     const { visualCortex } = useAppStore();
-    const { isAnalyzing, dropActive } = visualCortex;
+    const { isAnalyzing, dropActive, isProbing } = visualCortex;
+
+    const isActive = dropActive || isAnalyzing || isProbing;
 
     return (
         <AnimatePresence>
-            {(dropActive || isAnalyzing) && (
+            {isActive && (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -34,9 +36,9 @@ const VisualCortexOverlay: React.FC = () => {
                             </motion.div>
                             
                             <div className="absolute inset-0 flex items-center justify-center">
-                                {isAnalyzing ? (
+                                {isAnalyzing || isProbing ? (
                                     <div className="relative">
-                                        <Loader2 className="w-16 h-16 text-[#9d4edd] animate-spin" />
+                                        {isProbing ? <Monitor size={40} className="text-[#9d4edd] animate-pulse" /> : <Loader2 className="w-16 h-16 text-[#9d4edd] animate-spin" />}
                                         <div className="absolute inset-0 bg-[#9d4edd]/20 blur-2xl animate-pulse rounded-full" />
                                     </div>
                                 ) : (
@@ -53,14 +55,14 @@ const VisualCortexOverlay: React.FC = () => {
 
                         <div className="text-center space-y-4">
                             <h2 className="text-2xl font-black font-mono text-white uppercase tracking-[0.6em]">
-                                {isAnalyzing ? 'Decoding Optical Stream' : 'Oculus Protocol Active'}
+                                {isProbing ? 'Initializing Retinal Probe' : isAnalyzing ? 'Decoding Optical Stream' : 'Oculus Protocol Active'}
                             </h2>
                             <div className="flex items-center justify-center gap-8">
                                 <div className="flex items-center gap-2">
                                     <Target size={12} className="text-[#22d3ee]" />
-                                    <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Targeting: Multi-Modal</span>
+                                    <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Targeting: {isProbing ? 'External Display' : 'Multi-Modal'}</span>
                                 </div>
-                                <div className="h-4 w-px bg-white/10" />
+                                <div className="h-4 w-px bg-white/5" />
                                 <div className="flex items-center gap-2">
                                     <ShieldCheck size={12} className="text-[#10b981]" />
                                     <span className="text-[10px] font-mono text-gray-400 uppercase tracking-widest">Enclave Encrypted</span>
@@ -68,7 +70,7 @@ const VisualCortexOverlay: React.FC = () => {
                             </div>
                         </div>
 
-                        {isAnalyzing && (
+                        {(isAnalyzing || isProbing) && (
                             <motion.div 
                                 initial={{ width: 0 }}
                                 animate={{ width: 300 }}
