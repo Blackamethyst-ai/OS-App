@@ -316,7 +316,7 @@ const Dashboard: React.FC = () => {
                          <ResponsiveContainer width="100%" height="100%">
                             <RadarChart data={dashboard.topologyData}>
                                 <PolarGrid stroke="#333" />
-                                <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontBold: 'bold' }} />
+                                <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                 <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
                             </RadarChart>
