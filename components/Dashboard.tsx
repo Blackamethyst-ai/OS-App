@@ -1,13 +1,11 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
 import { 
     generateArchitectureImage, 
     promptSelectKey, 
     fileToGenerativePart,
-    analyzeImageVision,
-    generateStructuredWorkflow,
-    liveSession,
-    fetchMarketIntelligence,
+    liveSession
 } from '../services/geminiService';
 import { AspectRatio, ImageSize, AppMode } from '../types';
 import { 
@@ -17,9 +15,9 @@ import {
     Binary, Fingerprint, 
     TrendingUp, TrendingDown, DollarSign, Headphones, Users as UsersIcon,
     Flame, Signal, UserCircle, MicOff, Mic, Settings2, Zap,
-    Database, LineChart as ChartIcon, Scan, Hexagon, Crown, Lock, ShieldCheck
+    Database, LineChart as ChartIcon, Scan, Hexagon, Crown, Lock, ShieldCheck, Download
 } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, BarChart as ReBarChart, Bar } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
@@ -29,7 +27,6 @@ import ContextVelocityChart from './ContextVelocityChart';
 const ExecutiveBanner = () => {
     const { user, voice, setVoiceState, addLog } = useAppStore();
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [isHovered, setIsHovered] = useState(false);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -211,7 +208,10 @@ const MetricCard = ({ title, value, detail, icon: Icon, color, data, trend }: an
 );
 
 const Dashboard: React.FC = () => {
-  const { dashboard, setDashboardState, addLog, setMode, voice, setVoiceState, openContextMenu } = useAppStore();
+  const { 
+    dashboard, setDashboardState, user, addLog, setMode, 
+    voice, setVoiceState, kernel, openHoloProjector 
+  } = useAppStore();
 
   const [telemetry, setTelemetry] = useState({ cpu: 12.5, net: 0.8, mem: 58, health: 98 });
   const [cpuHist, setCpuHist] = useState(Array.from({length: 20}, () => ({ value: 10 + Math.random() * 5 })));
@@ -224,9 +224,20 @@ const Dashboard: React.FC = () => {
               setCpuHist(h => [...h, { value: newCpu }].slice(-20));
               return { ...prev, cpu: newCpu };
           });
+          
+          // Reactive Topology Updates
+          setDashboardState({
+              topologyData: [
+                  { s: 'LOGIC', A: Math.round(kernel.integrity) },
+                  { s: 'SPEED', A: 88 + Math.random() * 5 },
+                  { s: 'SECURITY', A: 96 },
+                  { s: 'YIELD', A: 84 + Math.random() * 2 },
+                  { s: 'SCALE', A: 91 }
+              ]
+          });
       }, 5000);
       return () => clearInterval(interval);
-  }, []);
+  }, [kernel.integrity]);
 
   const handleIdentitySync = async () => {
     setDashboardState({ isGenerating: true });
@@ -243,6 +254,25 @@ const Dashboard: React.FC = () => {
     } finally {
         setDashboardState({ isGenerating: false });
     }
+  };
+
+  const handleAnchorSwap = async (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files?.[0]) {
+          const file = e.target.files[0];
+          const part = await fileToGenerativePart(file);
+          setDashboardState({ referenceImage: part });
+          addLog('SYSTEM', `ANCHOR_LOAD: Source file [${file.name}] staged.`);
+          audio.playSuccess();
+      }
+  };
+
+  const downloadIdentity = () => {
+      if (!dashboard.identityUrl) return;
+      const link = document.createElement('a');
+      link.href = dashboard.identityUrl;
+      link.download = `Sovereign_Identity_${Date.now()}.png`;
+      link.click();
+      audio.playSuccess();
   };
 
   return (
@@ -278,9 +308,27 @@ const Dashboard: React.FC = () => {
                       </div>
                       <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black/40">
                           {dashboard.identityUrl ? (
-                              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full">
-                                  <img src={dashboard.identityUrl} className="w-full h-full object-cover grayscale-[10%] group-hover:grayscale-0 transition-all duration-[20s]" alt="Executive" />
+                              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full relative group/hero">
+                                  <img src={dashboard.identityUrl} className="w-full h-full object-cover grayscale-[10%] group-hover/hero:grayscale-0 transition-all duration-[20s]" alt="Executive" />
                                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                                  
+                                  {/* Maximizer & Download Overlay */}
+                                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm z-30">
+                                      <div className="flex gap-4">
+                                          <button 
+                                              onClick={() => openHoloProjector({ id: 'identity', title: 'Sovereign Identity', type: 'IMAGE', content: dashboard.identityUrl })}
+                                              className="p-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-all shadow-2xl scale-90 hover:scale-100"
+                                          >
+                                              <Maximize2 size={24} />
+                                          </button>
+                                          <button 
+                                              onClick={downloadIdentity}
+                                              className="p-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-all shadow-2xl scale-90 hover:scale-100"
+                                          >
+                                              <Download size={24} />
+                                          </button>
+                                      </div>
+                                  </div>
                               </motion.div>
                           ) : (
                               <div className="flex flex-col items-center gap-4 opacity-10 group-hover:opacity-30 transition-all text-center">
@@ -311,9 +359,7 @@ const Dashboard: React.FC = () => {
                       </div>
                       <div className="flex-1 h-36">
                          <ResponsiveContainer width="100%" height="100%">
-                            <RadarChart data={[
-                                { s: 'LOGIC', A: 92 }, { s: 'SPEED', A: 88 }, { s: 'SECURITY', A: 96 }, { s: 'YIELD', A: 84 }, { s: 'SCALE', A: 91 }
-                            ]}>
+                            <RadarChart data={dashboard.topologyData}>
                                 <PolarGrid stroke="#222" />
                                 <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontBold: 'bold' }} />
                                 <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.1} isAnimationActive={false} />
@@ -323,18 +369,29 @@ const Dashboard: React.FC = () => {
                   </div>
                   
                   <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-xl p-4 h-[200px] shadow-lg flex flex-col gap-3">
-                      <div className="flex items-center gap-2 mb-1">
-                         <Fingerprint size={14} className="text-[#f1c21b]" />
-                         <span className="text-[9px] font-black font-mono text-white uppercase tracking-widest">Biometric Anchor</span>
+                      <div className="flex items-center justify-between mb-1">
+                         <div className="flex items-center gap-2">
+                             <Fingerprint size={14} className="text-[#f1c21b]" />
+                             <span className="text-[9px] font-black font-mono text-white uppercase tracking-widest">Biometric Anchor</span>
+                         </div>
+                         <label className="cursor-pointer p-1 hover:bg-white/5 rounded-md transition-colors group/label">
+                            <Upload size={12} className="text-gray-600 group-hover/label:text-[#f1c21b]" />
+                            <input type="file" className="hidden" onChange={handleAnchorSwap} accept="image/*" />
+                         </label>
                       </div>
                       <div className="flex-1 bg-black/40 rounded-lg border border-white/5 flex items-center justify-center overflow-hidden relative group/anchor">
                           {dashboard.referenceImage ? (
-                                <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover" alt="Anchor" />
+                                <>
+                                    <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover" alt="Anchor" />
+                                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/anchor:opacity-100 transition-opacity flex items-center justify-center">
+                                        <label className="cursor-pointer px-4 py-2 bg-white/10 backdrop-blur-md rounded-lg border border-white/20 text-[8px] font-bold uppercase tracking-widest text-white">Swap Key</label>
+                                    </div>
+                                </>
                           ) : (
                                 <label className="flex flex-col items-center gap-2 cursor-pointer p-4 group/label">
                                     <Upload size={20} className="text-gray-700 group-hover/label:text-[#f1c21b] transition-colors" />
                                     <span className="text-[8px] font-black text-gray-700 uppercase">Load Image Key</span>
-                                    <input type="file" className="hidden" onChange={async (e) => { if (e.target.files?.[0]) { setDashboardState({ referenceImage: await fileToGenerativePart(e.target.files[0]) }); audio.playSuccess(); } }} />
+                                    <input type="file" className="hidden" onChange={handleAnchorSwap} />
                                 </label>
                           )}
                       </div>

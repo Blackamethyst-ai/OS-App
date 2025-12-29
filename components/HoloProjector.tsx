@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -6,13 +7,14 @@ import { promptSelectKey, transformArtifact, retryGeminiRequest } from '../servi
 import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
 
 const HoloProjector: React.FC = () => {
-    const { holo, closeHoloProjector, setHoloAnalysis, setHoloAnalyzing, openHoloProjector } = useAppStore();
+    const { holo, closeHoloProjector, setHoloAnalysis, setHoloAnalyzing, openHoloProjector, addLog } = useAppStore();
     const [isTransforming, setIsTransforming] = useState(false);
 
     const handleAnalyze = async () => {
         if (!holo.activeArtifact) return;
         setHoloAnalyzing(true);
         setHoloAnalysis(null);
+        addLog('SYSTEM', 'HOLO_SCAN: Dispatching multi-modal diagnostic...');
 
         try {
             const hasKey = await window.aistudio?.hasSelectedApiKey();
@@ -25,14 +27,11 @@ const HoloProjector: React.FC = () => {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
             let prompt = "Analyze this artifact in detail. Identify key features, potential optimizations, and hidden patterns. Keep it technical and concise.";
-            // Use gemini-3-flash-preview for standard text analysis tasks.
             let model = 'gemini-3-flash-preview';
             let content: any = null;
 
             if (holo.activeArtifact.type === 'IMAGE') {
-                // Use gemini-3-flash-preview for multi-modal analysis.
                 model = 'gemini-3-flash-preview';
-                // Assuming content is base64 data url
                 const base64Data = (holo.activeArtifact.content as string).split(',')[1];
                 content = {
                     inlineData: { mimeType: 'image/png', data: base64Data }
@@ -57,6 +56,14 @@ const HoloProjector: React.FC = () => {
         }
     };
 
+    const saveAsset = () => {
+        if (!holo.activeArtifact?.content) return;
+        const link = document.createElement('a');
+        link.href = holo.activeArtifact.content as string;
+        link.download = `Sovereign_Asset_${Date.now()}.png`;
+        link.click();
+    };
+
     const handleTransform = async (instruction: string) => {
         if (!holo.activeArtifact) return;
         setIsTransforming(true);
@@ -71,7 +78,6 @@ const HoloProjector: React.FC = () => {
                 instruction
             );
 
-            // Update content in place
             openHoloProjector({
                 ...holo.activeArtifact,
                 content: transformed
@@ -103,10 +109,8 @@ const HoloProjector: React.FC = () => {
                     onClick={(e) => e.stopPropagation()}
                     className="relative w-[90vw] h-[85vh] bg-[#050505] border border-[#333] rounded-xl overflow-hidden flex flex-col shadow-[0_0_100px_rgba(157,78,221,0.15)] group"
                 >
-                    {/* Holo Grid Overlay */}
                     <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(157,78,221,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
                     
-                    {/* Header */}
                     <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 flex items-center justify-between px-6 z-10 shrink-0">
                         <div className="flex items-center gap-4">
                             <div className="p-2 bg-[#9d4edd]/10 border border-[#9d4edd] rounded">
@@ -119,25 +123,29 @@ const HoloProjector: React.FC = () => {
                                 <p className="text-[10px] text-gray-500 font-mono">Holo-Projection // {holo.activeArtifact.type}</p>
                             </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
                             <button onClick={handleAnalyze} disabled={holo.isAnalyzing} className="flex items-center gap-2 px-4 py-2 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[10px] font-mono uppercase tracking-wider transition-all disabled:opacity-50">
                                 {holo.isAnalyzing ? <Loader2 className="w-3 h-3 animate-spin"/> : <BrainCircuit className="w-3 h-3" />}
                                 Deep Scan
                             </button>
+                            {holo.activeArtifact.type === 'IMAGE' && (
+                                <button onClick={saveAsset} className="flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-white/10 border border-[#333] rounded text-[10px] font-mono uppercase tracking-wider transition-all">
+                                    <Download size={14} />
+                                    Save Asset
+                                </button>
+                            )}
                             <button onClick={closeHoloProjector} className="p-2 text-gray-500 hover:text-white transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
                     </div>
 
-                    {/* Main Content Area */}
                     <div className="flex-1 flex overflow-hidden relative z-10">
-                        {/* Artifact View */}
                         <div className="flex-1 flex items-center justify-center p-8 bg-black/50 relative overflow-auto custom-scrollbar flex-col">
                             {holo.activeArtifact.type === 'IMAGE' && (
                                 <img 
                                     src={holo.activeArtifact.content as string} 
-                                    className="max-w-full max-h-full object-contain border border-[#333] shadow-2xl" 
+                                    className="max-w-full max-h-full object-contain border border-[#333] shadow-2xl rounded-lg" 
                                     alt="Holo Artifact" 
                                 />
                             )}
@@ -167,22 +175,21 @@ const HoloProjector: React.FC = () => {
                             )}
                         </div>
 
-                        {/* Analysis Sidebar */}
                         <AnimatePresence>
                             {holo.analysisResult && (
                                 <motion.div
                                     initial={{ width: 0, opacity: 0 }}
-                                    animate={{ width: 350, opacity: 1 }}
+                                    animate={{ width: 380, opacity: 1 }}
                                     exit={{ width: 0, opacity: 0 }}
                                     className="border-l border-[#1f1f1f] bg-[#0a0a0a] flex flex-col shrink-0"
                                 >
                                     <div className="h-10 border-b border-[#1f1f1f] flex items-center justify-between px-4 bg-[#111]">
                                         <span className="text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider flex items-center gap-2">
-                                            <Terminal className="w-3 h-3" /> Analysis Result
+                                            <Terminal className="w-3 h-3" /> Diagnostic Result
                                         </span>
-                                        <button onClick={() => setHoloAnalysis(null)} className="text-gray-500 hover:text-white"><X className="w-3 h-3"/></button>
+                                        <button onClick={() => setHoloAnalysis(null)} className="text-gray-500 hover:text-white transition-colors"><X className="w-3 h-3"/></button>
                                     </div>
-                                    <div className="flex-1 p-4 overflow-y-auto custom-scrollbar text-xs font-mono text-gray-400 leading-relaxed whitespace-pre-wrap">
+                                    <div className="flex-1 p-6 overflow-y-auto custom-scrollbar text-[11px] font-mono text-gray-400 leading-relaxed whitespace-pre-wrap border-l-4 border-l-[#9d4edd]/20">
                                         {holo.analysisResult}
                                     </div>
                                 </motion.div>
@@ -190,7 +197,6 @@ const HoloProjector: React.FC = () => {
                         </AnimatePresence>
                     </div>
 
-                    {/* Active Workbench Toolbar */}
                     {(holo.activeArtifact.type === 'CODE' || holo.activeArtifact.type === 'TEXT') && (
                         <div className="h-12 border-t border-[#1f1f1f] bg-[#0a0a0a] flex items-center justify-center gap-4 px-4 relative z-20">
                             <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest absolute left-4">Transformation Matrix</span>
@@ -222,14 +228,6 @@ const HoloProjector: React.FC = () => {
                                     </button>
                                 </>
                             )}
-                        </div>
-                    )}
-
-                    {/* Footer / Decorative (If not showing toolbar) */}
-                    {holo.activeArtifact.type === 'IMAGE' && (
-                        <div className="h-8 border-t border-[#1f1f1f] bg-[#050505] flex items-center justify-between px-4 text-[9px] font-mono text-gray-600">
-                            <span>SOVEREIGN ARCHITECTURE v3.0</span>
-                            <span>SECURE VIEWPORT</span>
                         </div>
                     )}
                 </motion.div>
