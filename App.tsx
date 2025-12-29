@@ -50,6 +50,7 @@ const NAV_CONFIG = [
   { id: AppMode.HARDWARE_ENGINEER, label: 'INFRASTRUCTURE', path: '/hardware' },
   { id: AppMode.VOICE_MODE, label: 'COMMS', path: '/voice' },
   { id: AppMode.SYNTHESIS_BRIDGE, label: 'IMPLEMENTATION', path: '/bridge' },
+  { id: 'NEXUS' as any, label: 'NEXUS', path: '/nexus' },
 ];
 
 const FocusOverlay = () => {
@@ -250,7 +251,7 @@ const App: React.FC = () => {
                 <MetaventionsLogo size={24} showText={true} />
             </div>
             <div className="h-4 w-px bg-[var(--border-main)]" />
-            <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-[900px] h-full">
+            <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-[1000px] h-full">
                 {NAV_CONFIG.map(item => (
                     <button 
                         key={item.id} 

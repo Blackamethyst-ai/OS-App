@@ -21,6 +21,7 @@ const VoiceMode = lazy(() => import('./VoiceMode'));
 const CodeStudio = lazy(() => import('./CodeStudio'));
 const AgentControlCenter = lazy(() => import('./AgentControlCenter'));
 const AutonomousFinance = lazy(() => import('./AutonomousFinance'));
+const NexusAPIExplorer = lazy(() => import('./NexusAPIExplorer'));
 
 const SynapticRouter: React.FC = () => {
     const { 
@@ -42,7 +43,7 @@ const SynapticRouter: React.FC = () => {
 
             setRouteInfo({ path: mainPath, sub: subPath, params });
 
-            const routeMap: Record<string, AppMode> = {
+            const routeMap: Record<string, any> = {
                 'dashboard': AppMode.DASHBOARD,
                 'bridge': AppMode.SYNTHESIS_BRIDGE,
                 'bibliomorphic': AppMode.BIBLIOMORPHIC,
@@ -54,6 +55,7 @@ const SynapticRouter: React.FC = () => {
                 'voice': AppMode.VOICE_MODE,
                 'agents': AppMode.AGENT_CONTROL,
                 'finance': AppMode.AUTONOMOUS_FINANCE,
+                'nexus': 'NEXUS'
             };
 
             const targetMode = routeMap[mainPath];
@@ -165,14 +167,17 @@ const SynapticRouter: React.FC = () => {
     };
 
     const isFixedLayout = useMemo(() => 
-        mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.AUTONOMOUS_FINANCE
+        mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.AUTONOMOUS_FINANCE || (mode as any) === 'NEXUS'
     , [mode]);
 
     return (
         <div className="flex-1 relative overflow-hidden flex flex-col">
             <Suspense fallback={
                 <div className="h-full w-full flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm">
-                    <Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" />
+                    <div className="relative">
+                        <Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" />
+                        <div className="absolute inset-0 blur-xl bg-[#9d4edd]/20 animate-pulse" />
+                    </div>
                     <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em] animate-pulse">
                         Synchronizing Sector Topology...
                     </span>
@@ -200,6 +205,7 @@ const SynapticRouter: React.FC = () => {
                         {mode === AppMode.CODE_STUDIO && <CodeStudio />}
                         {mode === AppMode.AGENT_CONTROL && <AgentControlCenter />}
                         {mode === AppMode.AUTONOMOUS_FINANCE && <AutonomousFinance />}
+                        {(mode as any) === 'NEXUS' && <NexusAPIExplorer />}
                     </motion.main>
                 </AnimatePresence>
             </Suspense>

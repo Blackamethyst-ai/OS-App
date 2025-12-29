@@ -24,6 +24,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import DEcosystem from './DEcosystem';
+import ContextVelocityChart from './ContextVelocityChart';
 
 const ExecutiveBanner = () => {
     const { user, voice, setVoiceState, addLog } = useAppStore();
@@ -182,58 +183,6 @@ const ExecutiveBanner = () => {
     );
 };
 
-const MarketIntelligenceFeed = () => {
-    const { marketData, addLog } = useAppStore();
-    const [isSyncing, setIsSyncing] = useState(false);
-
-    const syncIntel = async () => {
-        setIsSyncing(true);
-        audio.playClick();
-        addLog('SYSTEM', 'SYNC_START: Processing global market vectors...');
-        try {
-            const intel = await fetchMarketIntelligence();
-            useAppStore.setState(s => ({ marketData: { ...s.marketData, opportunities: intel, lastSync: Date.now() } }));
-            addLog('SUCCESS', 'SYNC_COMPLETE: Intelligence signals localized.');
-            audio.playSuccess();
-        } catch (e) {
-            addLog('ERROR', 'SYNC_FAIL: Intelligence bridge timeout.');
-        } finally {
-            setIsSyncing(false);
-        }
-    };
-
-    return (
-        <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] backdrop-blur-xl rounded-xl p-4 flex flex-col gap-3 h-full relative overflow-hidden shadow-lg">
-            <div className="flex items-center justify-between px-1 shrink-0">
-                <div className="flex items-center gap-2">
-                    <Globe size={12} className="text-[#f1c21b]" />
-                    <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Market Intelligence</span>
-                </div>
-                <button onClick={syncIntel} disabled={isSyncing} className="p-1 hover:bg-white/5 rounded-md text-gray-500 transition-all">
-                    {isSyncing ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
-                </button>
-            </div>
-            <div className="space-y-2 overflow-y-auto custom-scrollbar flex-1 pr-1">
-                {marketData.opportunities.map((op, i) => (
-                    <div key={i} className="p-3 bg-black/20 border border-white/5 rounded-lg hover:border-[#f1c21b]/20 transition-all shadow-md">
-                        <div className="flex justify-between items-start mb-1">
-                            <span className="text-[9px] font-black text-gray-400 uppercase truncate pr-3">{op.title}</span>
-                            <span className="text-[9px] font-black font-mono text-[#10b981]">{op.yield}</span>
-                        </div>
-                        <p className="text-[8px] font-mono text-gray-600 uppercase leading-relaxed line-clamp-2">"{op.logic}"</p>
-                    </div>
-                ))}
-                {marketData.opportunities.length === 0 && !isSyncing && (
-                    <div className="py-12 text-center opacity-10 flex flex-col items-center gap-3">
-                        <ChartIcon size={24} />
-                        <span className="text-[8px] font-mono uppercase tracking-widest">Waiting for Sync</span>
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-};
-
 const MetricCard = ({ title, value, detail, icon: Icon, color, data, trend }: any) => (
     <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] backdrop-blur-md rounded-xl p-4 h-28 flex flex-col justify-between transition-all hover:border-white/10 group shadow-lg">
         <div className="flex justify-between items-start">
@@ -262,7 +211,7 @@ const MetricCard = ({ title, value, detail, icon: Icon, color, data, trend }: an
 );
 
 const Dashboard: React.FC = () => {
-  const { dashboard, setDashboardState, user, addLog, setMode, setProcessState, voice, setVoiceState, openContextMenu } = useAppStore();
+  const { dashboard, setDashboardState, addLog, setMode, voice, setVoiceState, openContextMenu } = useAppStore();
 
   const [telemetry, setTelemetry] = useState({ cpu: 12.5, net: 0.8, mem: 58, health: 98 });
   const [cpuHist, setCpuHist] = useState(Array.from({length: 20}, () => ({ value: 10 + Math.random() * 5 })));
@@ -311,7 +260,7 @@ const Dashboard: React.FC = () => {
                       <MetricCard title="INFRASTRUCTURE" value="NOMINAL" detail="Verified" icon={Shield} color="#10b981" data={[{value:98},{value:99},{value:98}]} trend="up" />
                   </div>
                   <div className="h-[420px]">
-                    <MarketIntelligenceFeed />
+                    <ContextVelocityChart onDrillDown={(p) => addLog('INFO', `TELEMETRY_FOCUS: Latency ${p.latency}ms / Throughput ${p.throughput}pps`)} />
                   </div>
               </div>
 
