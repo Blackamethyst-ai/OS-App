@@ -16,7 +16,10 @@ import { promptSelectKey } from '../services/geminiService';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 
-// Added React.FC type for AutonomicTask to ensure compatibility with React props
+/**
+ * AutonomicTask Component
+ * Visualizes background system processes for the active agent node.
+ */
 const AutonomicTask: React.FC<{ label: string, progress: number, color: string }> = ({ label, progress, color }) => (
     <div className="space-y-2">
         <div className="flex justify-between items-center text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest">
@@ -37,7 +40,10 @@ const AutonomicTask: React.FC<{ label: string, progress: number, color: string }
     </div>
 );
 
-// Added React.FC type for SwarmNodeCard to fix 'key' property error in list mapping
+/**
+ * SwarmNodeCard Component
+ * Represents a single agent node in the swarm with energy and status monitoring.
+ */
 const SwarmNodeCard: React.FC<{ agent: AutonomousAgent, isActive: boolean, onClick: () => void }> = ({ agent, isActive, onClick }) => {
     const isSleeping = agent.status === 'SLEEPING';
     const accent = agent.id === 'charon' ? '#10b981' : agent.id === 'puck' ? '#9d4edd' : '#22d3ee';
@@ -100,33 +106,74 @@ const AgentControlCenter: React.FC = () => {
 
     const activeAgent = agents.activeAgents.find(a => a.id === selectedAgentId);
 
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
+        }
+    }, [activeAgent?.memoryBuffer.length]);
+
     const handleIntentDispatch = async () => {
         if (!input.trim() || !activeAgent) return;
         const query = input;
         setInput('');
         setAgentState({ isDispatching: true });
+        
+        // Optimistically add user message to buffer
         updateAgent(activeAgent.id, { 
             status: 'THINKING', 
             memoryBuffer: [...activeAgent.memoryBuffer, { timestamp: Date.now(), role: 'USER', text: query }] 
         });
 
+        audio.playClick();
+
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setAgentState({ isDispatching: false }); return; }
+            if (!(await window.aistudio?.hasSelectedApiKey())) { 
+                await promptSelectKey(); 
+                setAgentState({ isDispatching: false }); 
+                return; 
+            }
+            
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const response = await ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
-                contents: `Directive: "${query}"`,
-                config: { responseMimeType: 'application/json' }
+                contents: `User Directive: "${query}"`,
+                config: { 
+                    systemInstruction: `You are ${activeAgent.name}, role: ${activeAgent.role}. Respond to the user's directive within the context of ${activeAgent.context}. Maintain a technical, agentic, and professional tone. Output should be concise as it appears in a high-fidelity terminal buffer.`,
+                    responseMimeType: 'application/json',
+                    responseSchema: {
+                        type: 'OBJECT',
+                        properties: {
+                            responseText: { type: 'STRING' },
+                            energyDelta: { type: 'NUMBER', description: "Amount of energy consumed by this reasoning task (1-5)" }
+                        },
+                        required: ['responseText', 'energyDelta']
+                    }
+                }
             });
+
             const result = JSON.parse(response.text || '{}');
+            
             updateAgent(activeAgent.id, { 
                 status: 'ACTIVE', 
-                energyLevel: Math.max(10, activeAgent.energyLevel - 2), 
-                memoryBuffer: [...activeAgent.memoryBuffer, { timestamp: Date.now(), role: 'AI', text: result.responseText || "Directive crystallized." }] 
+                energyLevel: Math.max(0, activeAgent.energyLevel - (result.energyDelta || 2)), 
+                memoryBuffer: [...activeAgent.memoryBuffer, { 
+                    timestamp: Date.now(), 
+                    role: 'AI', 
+                    text: result.responseText || "Directive processed. Logic stabilized." 
+                }] 
             });
+            
             audio.playSuccess();
         } catch (e: any) {
-            updateAgent(activeAgent.id, { status: 'IDLE' });
+            console.error("Agent Dispatch Error:", e);
+            updateAgent(activeAgent.id, { 
+                status: 'IDLE',
+                memoryBuffer: [...activeAgent.memoryBuffer, { 
+                    timestamp: Date.now(), 
+                    role: 'SYSTEM', 
+                    text: `ERROR: Cognitive link interrupted. Reason: ${e.message}` 
+                }]
+            });
             audio.playError();
         } finally {
             setAgentState({ isDispatching: false });
@@ -135,7 +182,7 @@ const AgentControlCenter: React.FC = () => {
 
     return (
         <div className="h-full w-full bg-[#020204] flex flex-col font-sans overflow-hidden transition-colors duration-500">
-            {/* Top Bar Navigation */}
+            {/* Tactical Header */}
             <div className="h-14 border-b border-white/5 bg-black/40 flex items-center justify-between px-6 shrink-0 z-30">
                 <div className="flex items-center gap-4">
                     <div className="p-2 bg-[#9d4edd]/10 border border-[#9d4edd]/20 rounded-lg">
@@ -151,14 +198,14 @@ const AgentControlCenter: React.FC = () => {
                         <span className="text-[8px] font-black text-[#10b981] uppercase tracking-widest">Swarm Sync</span>
                         <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
                     </div>
-                    <button className="p-2 text-gray-600 hover:text-white transition-colors border border-white/5 rounded-lg bg-white/5">
-                        <RefreshCw size={14} />
+                    <button className="p-2 text-gray-600 hover:text-white transition-colors border border-white/5 rounded-lg bg-white/5 group">
+                        <RefreshCw size={14} className="group-active:rotate-180 transition-transform duration-500" />
                     </button>
                 </div>
             </div>
 
             <div className="flex-1 flex overflow-hidden">
-                {/* Left: Active Swarm Nodes */}
+                {/* Left Flank: Active Swarm Nodes */}
                 <div className="w-[300px] border-r border-white/5 bg-black/20 flex flex-col shrink-0">
                     <div className="p-5 border-b border-white/5 bg-white/[0.01]">
                         <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
@@ -171,16 +218,16 @@ const AgentControlCenter: React.FC = () => {
                                 key={agent.id} 
                                 agent={agent} 
                                 isActive={selectedAgentId === agent.id} 
-                                onClick={() => setSelectedAgentId(agent.id)} 
+                                onClick={() => { setSelectedAgentId(agent.id); audio.playClick(); }} 
                             />
                         ))}
-                        <button className="w-full py-3 border border-dashed border-white/10 rounded-xl text-[8px] font-black uppercase text-gray-600 hover:text-white hover:border-white/20 transition-all">
-                            Register New Agent
+                        <button className="w-full py-4 border border-dashed border-white/10 rounded-xl text-[8px] font-black uppercase text-gray-600 hover:text-white hover:border-white/20 transition-all flex items-center justify-center gap-2">
+                            <Plus size={12} /> Register New Agent
                         </button>
                     </div>
                 </div>
 
-                {/* Center: Nexus Mind View */}
+                {/* The Nexus: Synthetic Mind workspace */}
                 <div className="flex-1 flex flex-col relative bg-[#010102]">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.02)_0%,transparent_80%)] pointer-events-none" />
                     
@@ -196,7 +243,7 @@ const AgentControlCenter: React.FC = () => {
                                 </div>
                                 <div className="text-right">
                                     <span className="text-[7px] font-mono text-gray-700 uppercase tracking-widest block">Uplink Hash</span>
-                                    <span className="text-[10px] font-black font-mono text-[#9d4edd] uppercase">ALPHA</span>
+                                    <span className="text-[10px] font-black font-mono text-[#9d4edd] uppercase">ALPHA_V8</span>
                                 </div>
                             </div>
 
@@ -219,13 +266,18 @@ const AgentControlCenter: React.FC = () => {
                                                 className={cn("flex", msg.role === 'USER' ? "justify-end" : "justify-start")}
                                             >
                                                 <div className={cn(
-                                                    "max-w-[80%] p-5 rounded-2xl border text-[11px] font-mono leading-relaxed",
+                                                    "max-w-[80%] p-5 rounded-2xl border text-[11px] font-mono leading-relaxed shadow-2xl relative",
                                                     msg.role === 'USER' 
                                                         ? "bg-white/[0.02] border-white/10 text-gray-500" 
-                                                        : "bg-[#0a0a0a] border-[#9d4edd]/30 text-white border-l-4 border-l-[#9d4edd] shadow-2xl"
+                                                        : msg.role === 'SYSTEM'
+                                                        ? "bg-red-500/5 border-red-500/20 text-red-400 font-bold"
+                                                        : "bg-[#0a0a0a] border-[#9d4edd]/30 text-white border-l-4 border-l-[#9d4edd]"
                                                 )}>
                                                     <span className="text-[7px] font-black uppercase text-gray-700 block mb-2">{msg.role} // TERMINAL_OUTPUT</span>
                                                     {msg.text}
+                                                    <div className="text-[6px] text-gray-800 absolute bottom-2 right-4 font-mono">
+                                                        {new Date(msg.timestamp).toLocaleTimeString()}
+                                                    </div>
                                                 </div>
                                             </motion.div>
                                         ))
@@ -233,7 +285,7 @@ const AgentControlCenter: React.FC = () => {
                                 </AnimatePresence>
                             </div>
 
-                            {/* Center Fixed Input Terminal */}
+                            {/* Strategic Directive Input */}
                             <div className="p-8 border-t border-white/5 bg-black/60 relative z-20">
                                 <div className="max-w-3xl mx-auto">
                                     <div className="text-[7px] font-black text-gray-600 uppercase tracking-[0.5em] mb-3 px-4 flex items-center gap-2">
@@ -248,7 +300,8 @@ const AgentControlCenter: React.FC = () => {
                                             <input 
                                                 value={input}
                                                 onChange={e => setInput(e.target.value)}
-                                                placeholder="Input strategic directive..."
+                                                disabled={agents.isDispatching}
+                                                placeholder={agents.isDispatching ? "Synthesizing response..." : "Input strategic directive..."}
                                                 className="flex-1 bg-transparent border-none outline-none text-xs font-mono text-white placeholder:text-gray-800 uppercase tracking-widest py-3"
                                             />
                                             <button 
@@ -270,7 +323,7 @@ const AgentControlCenter: React.FC = () => {
                     )}
                 </div>
 
-                {/* Right: Logic Diagnostics */}
+                {/* Right Flank: Logic Diagnostics */}
                 <div className="w-[340px] border-l border-white/5 bg-black/20 flex flex-col shrink-0">
                     <div className="p-5 border-b border-white/5 bg-white/[0.01] flex items-center gap-3">
                         <Activity className="w-4 h-4 text-[#9d4edd]" />
@@ -282,8 +335,8 @@ const AgentControlCenter: React.FC = () => {
                         <div className="space-y-4">
                             <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">Core Capabilities</span>
                             <div className="flex flex-wrap gap-2">
-                                {activeAgent?.capabilities.map(cap => (
-                                    <div key={cap} className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-[#9d4edd] uppercase tracking-widest transition-all hover:bg-white/10 hover:border-[#9d4edd]/30">
+                                {(activeAgent?.capabilities || ['GENERAL_PURPOSE', 'LOGIC_SYNTHESIS']).map(cap => (
+                                    <div key={cap} className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-[#9d4edd] uppercase tracking-widest transition-all hover:bg-white/10 hover:border-[#9d4edd]/30 cursor-default">
                                         {cap}
                                     </div>
                                 ))}
@@ -300,29 +353,35 @@ const AgentControlCenter: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Mindset Radar Placeholder / Static Visualization */}
+                        {/* Stability Vector Projection */}
                         <div className="space-y-4 pt-10">
                             <div className="flex justify-between items-center text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">
                                 <span>Stability Vector</span>
                                 <GitBranch size={12} />
                             </div>
-                            <div className="aspect-square w-full rounded-[2rem] border border-white/5 bg-black/40 relative overflow-hidden flex items-center justify-center p-8 group">
+                            <div className="aspect-square w-full rounded-[2rem] border border-white/5 bg-black/40 relative overflow-hidden flex items-center justify-center p-8 group shadow-inner">
                                 <Waypoints size={80} className="text-[#9d4edd] opacity-20 group-hover:scale-110 transition-transform duration-1000" />
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.05)_0%,transparent_70%)]" />
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="w-24 h-24 rounded-full border border-dashed border-[#9d4edd]/30 animate-[spin_20s_linear_infinite]" />
+                                    <div className="w-24 h-24 rounded-full border border-dashed border-[#9d4edd]/30 animate-[spin_30s_linear_infinite]" />
+                                    <div className="w-12 h-12 rounded-full border border-dotted border-[#22d3ee]/20 animate-[spin_15s_linear_infinite_reverse] absolute" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
+                    {/* Sector Awareness Metric */}
                     <div className="p-5 border-t border-white/5 bg-black/60 shrink-0">
                         <div className="flex justify-between items-center text-[8px] font-mono text-gray-600 uppercase mb-3 px-1">
                             <span>Sector Awareness</span>
                             <span className="text-[#10b981]">94%</span>
                         </div>
-                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                            <motion.div animate={{ width: '94%' }} className="h-full bg-[#10b981] shadow-[0_0_10px_#10b981]" />
+                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden p-px">
+                            <motion.div 
+                                initial={{ width: 0 }}
+                                animate={{ width: '94%' }} 
+                                className="h-full bg-[#10b981] shadow-[0_0_10px_#10b981]" 
+                            />
                         </div>
                     </div>
                 </div>
