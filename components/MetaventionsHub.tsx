@@ -13,9 +13,8 @@ import {
     Radio, Fingerprint, 
     TrendingUp, TrendingDown, Zap,
     Bot, Globe, User, Hexagon,
-    Mic, MicOff, ShieldCheck
+    Mic, MicOff, ShieldCheck, DollarSign
 } from 'lucide-react';
-import { ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
@@ -45,7 +44,47 @@ const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) 
 );
 
 /**
- * SwarmBox: The tactical hive container, adjusted for high-density placement.
+ * CapitalVelocity: Strategic financial flow visualization.
+ */
+const CapitalVelocity = () => (
+    <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/cap shrink-0">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.02)_0%,transparent_70%)] pointer-events-none" />
+        
+        <div className="flex items-center gap-4 relative z-10">
+            <div className="p-2 bg-[#10b981]/10 rounded-xl text-[#10b981] border border-[#10b981]/20">
+                <DollarSign size={16} />
+            </div>
+            <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Capital Velocity</span>
+        </div>
+
+        <div className="space-y-6 relative z-10">
+            {[
+                { label: 'Compute Units', val: 92, color: '#f1c21b' },
+                { label: 'Treasury Flow', val: 78, color: '#22d3ee' },
+                { label: 'System Reach', val: 84, color: '#10b981' }
+            ].map((cat) => (
+                <div key={cat.label} className="space-y-2.5">
+                    <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-widest font-black">
+                        <span className="text-gray-500">{cat.label}</span>
+                        <span className="text-white">{cat.val}%</span>
+                    </div>
+                    <div className="h-1 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 p-px shadow-inner">
+                        <motion.div 
+                            initial={{ width: 0 }} 
+                            animate={{ width: `${cat.val}%` }} 
+                            transition={{ duration: 1.5, ease: "circOut" }}
+                            className="h-full rounded-full" 
+                            style={{ backgroundColor: cat.color, boxShadow: `0 0 10px ${cat.color}40` }} 
+                        />
+                    </div>
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
+/**
+ * SwarmBox: The tactical hive container.
  */
 const SwarmBox = () => {
     const { agents } = useAppStore();
@@ -266,7 +305,7 @@ const MetaventionsHub: React.FC = () => {
           <div className="grid grid-cols-12 gap-8 min-h-0 items-start">
               
               {/* Strategic Operations Center (Primary Display) */}
-              <div className="col-span-9 bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[3rem] p-0 shadow-2xl relative overflow-hidden flex flex-col min-h-[900px] group/soc">
+              <div className="col-span-9 bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[3rem] p-0 shadow-2xl relative overflow-hidden flex flex-col min-h-[1000px] group/soc">
                   <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 shrink-0 z-20 relative">
                       <div className="flex items-center gap-4">
                           <Target size={18} className="text-[#9d4edd] animate-pulse" />
@@ -400,6 +439,9 @@ const MetaventionsHub: React.FC = () => {
                       </div>
                   </div>
 
+                  {/* Capital Velocity Section */}
+                  <CapitalVelocity />
+
                   {/* Swarm Matrix Sector */}
                   <SwarmBox />
                   
@@ -446,16 +488,17 @@ const MetaventionsHub: React.FC = () => {
 
           {/* D-Ecosystem (Large Global View at bottom) */}
           <div className="w-full h-[850px] mt-20 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
-              <div className="absolute top-12 left-16 z-20 flex flex-col gap-4 pointer-events-none">
+              {/* Refined Ecosystem Header HUD - Scales Down to Prevent Overlap */}
+              <div className="absolute top-12 left-16 z-20 flex flex-col gap-3 pointer-events-none">
                   <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">
                       The D-Ecosystem
                   </h2>
-                  <div className="space-y-3">
-                      <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-6 py-3 rounded-full border border-white/10 shadow-2xl w-fit">
-                          <div className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_10px_#10b981]" />
-                          <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.3em]">Autonomous_Swarm_Lattice // Active</span>
+                  <div className="space-y-2">
+                      <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-6 py-2.5 rounded-full border border-white/10 shadow-2xl w-fit">
+                          <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
+                          <span className="text-[9px] font-black font-mono text-white uppercase tracking-[0.3em]">Autonomous_Swarm_Lattice // Active</span>
                       </div>
-                      <span className="text-[8px] text-gray-500 font-mono uppercase tracking-[0.4em] block pl-6">Active Global Node Synchronization</span>
+                      <span className="text-[7px] text-gray-500 font-mono uppercase tracking-[0.4em] block pl-6">Active Global Node Synchronization</span>
                   </div>
               </div>
               <DEcosystem />
