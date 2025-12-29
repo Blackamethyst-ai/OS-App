@@ -135,14 +135,14 @@ class NeuralVaultService {
     const db = await this.db;
     const name = file instanceof File ? file.name : `Artifact_${id.slice(0,8)}`;
     
-    // Explicitly cast to prevent narrowing errors on unreachable branches in stricter environments
-    const blobData = file as Blob;
+    // Explicitly treat as Blob to unify property access across branches
+    const blobRef = file as Blob;
 
     await db.put('artifacts', {
       id,
       name,
-      type: blobData.type,
-      data: blobData,
+      type: blobRef.type,
+      data: blobRef,
       analysis,
       timestamp: Date.now(),
       tags: analysis?.entities || []

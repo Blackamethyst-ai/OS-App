@@ -91,7 +91,7 @@ const FocusOverlay = () => {
                 style={{ left: bounds.left - 4, top: bounds.top - 4, width: bounds.width + 8, height: bounds.height + 8 }}
             >
                 <div className="absolute -top-8 left-0 bg-[#9d4edd] text-black text-[10px] font-black font-mono px-2 py-0.5 rounded flex items-center gap-2 pointer-events-auto cursor-pointer" onClick={() => setFocusedSelector(null)}>
-                    <Target size={12}/> CONTEXT_FOCUS_L0 <X size={10} />
+                    <Target size={12}/> CONTEXT_FOCUS_L0 <X size(10) />
                 </div>
             </motion.div>
         </motion.div>
@@ -106,7 +106,8 @@ const App: React.FC = () => {
       isScrubberOpen, setScrubberOpen, 
       isDiagnosticsOpen, setDiagnosticsOpen, 
       isHUDClosed, setHUDClosed,
-      setProcessState, setCodeStudioState, setHardwareState, setImageGenState, setBibliomorphicState, setDashboardState, setMetaventionsState, setAgentState
+      setProcessState, setCodeStudioState, setHardwareState, setImageGenState, setBibliomorphicState, setDashboardState, setMetaventionsState, setAgentState,
+      setMemoryState, setBicameralState
   } = useAppStore();
   
   const { setSector } = useSystemMind(); 
@@ -158,6 +159,9 @@ const App: React.FC = () => {
         case AppMode.AUTONOMOUS_FINANCE: setMetaventionsState(state); break;
         case AppMode.AGENT_CONTROL: setAgentState(state); break;
         case AppMode.SYNTHESIS_BRIDGE: setMetaventionsState(state); break;
+        case AppMode.MEMORY_CORE: setMemoryState(state); break;
+        case AppMode.VOICE_MODE: setVoiceState(state); break;
+        case AppMode.BICAMERAL: setBicameralState(state); break;
     }
     addLog('INFO', 'Timeline resync successful.');
     audio.playSuccess();

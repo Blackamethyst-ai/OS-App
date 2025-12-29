@@ -7,7 +7,7 @@ import { useAppStore } from '../store';
 import { 
     File as FileIcon, Loader2, Search, 
     Database, X, Upload, Activity, FileText, BrainCircuit,
-    LayoutGrid, Boxes, Info, Trash2, Radar, Zap
+    LayoutGrid, Boxes, Info, Trash2, Radar, Zap, Code
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoredArtifact } from '../types';
@@ -32,9 +32,32 @@ const MemoryCore: React.FC = () => {
 
     const loadArtifacts = async () => {
         setIsLoading(true);
-        const items = await neuralVault.getArtifacts();
-        setArtifacts(items as StoredArtifact[]);
-        setIsLoading(false);
+        try {
+            const files = await neuralVault.getArtifacts();
+            const tools = await neuralVault.getDynamicTools();
+            
+            const toolArtifacts = tools.map(t => ({
+                id: t.id,
+                name: `[TOOL] ${t.id}`,
+                type: 'TOOL_MANIFEST',
+                data: new Blob([t.code], { type: 'application/javascript' }),
+                timestamp: t.timestamp,
+                analysis: {
+                    summary: `Self-forged autonomous tool: ${t.id}`,
+                    entities: ['Dynamic Capability', 'Autonomic Forge'],
+                    ambiguityScore: 0,
+                    classification: 'TOOL_MANIFEST'
+                },
+                tags: ['DYNAMIC_TOOL']
+            }));
+
+            const combined = [...files, ...toolArtifacts].sort((a, b) => b.timestamp - a.timestamp);
+            setArtifacts(combined as any);
+        } catch (e) {
+            console.error("Memory Sync Failed", e);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const handleVectorSearch = async (e: React.FormEvent) => {
@@ -124,7 +147,7 @@ const MemoryCore: React.FC = () => {
             type: 'CONCEPT' as const,
             strength: a.analysis?.ambiguityScore ? 100 - a.analysis.ambiguityScore : 70,
             connections: a.tags?.map(t => t) || [],
-            color: a.type.includes('image') ? '#d946ef' : '#9d4edd',
+            color: a.type === 'TOOL_MANIFEST' ? '#10b981' : a.type.includes('image') ? '#d946ef' : '#9d4edd',
             data: a.analysis
         }));
     }, [filteredArtifacts]);
@@ -229,7 +252,7 @@ const MemoryCore: React.FC = () => {
                                         className={`p-8 bg-transparent crystalline rounded-[3rem] transition-all cursor-pointer group shadow-2xl relative overflow-hidden ${selectedArtifact?.id === art.id ? 'border-white/40 ring-4 ring-white/5' : 'border-white/10 hover:border-white/30'}`}
                                     >
                                         <div className="aspect-square glass-action rounded-[2.5rem] flex items-center justify-center text-gray-600 group-hover:text-white transition-all mb-8 shadow-inner relative overflow-hidden">
-                                            <FileIcon size={64} className="group-hover:scale-110 transition-transform duration-1000" />
+                                            {art.type === 'TOOL_MANIFEST' ? <Code size={64} className="text-[#10b981]" /> : <FileIcon size={64} className="group-hover:scale-110 transition-transform duration-1000" />}
                                         </div>
                                         <div className="text-sm font-black text-white uppercase truncate font-mono mb-2 tracking-tight">{art.name}</div>
                                         <div className="flex justify-between items-center border-t border-white/5 pt-4">
@@ -262,7 +285,7 @@ const MemoryCore: React.FC = () => {
                         
                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-12 pr-4">
                             <div className="aspect-video glass-action rounded-[3rem] flex items-center justify-center shadow-2xl group/prev relative overflow-hidden text-gray-700">
-                                <FileText size={100} className="group-hover:scale-110 group-hover:text-white transition-all duration-1000" />
+                                {selectedArtifact.type === 'TOOL_MANIFEST' ? <Code size={100} className="text-[#10b981]" /> : <FileText size={100} className="group-hover:scale-110 group-hover:text-white transition-all duration-1000" />}
                             </div>
 
                             <div className="space-y-6">
@@ -284,7 +307,7 @@ const MemoryCore: React.FC = () => {
                         </div>
 
                         <div className="flex flex-col gap-5 shrink-0 pt-10 border-t border-white/5">
-                            <button onClick={() => openHoloProjector({ id: selectedArtifact.id, title: selectedArtifact.name, type: 'TEXT', content: selectedArtifact.analysis?.summary || selectedArtifact.name })} className="w-full py-6 bg-[#9d4edd] text-black rounded-[2rem] text-[12px] font-black uppercase tracking-[0.5em] shadow-[0_20px_50px_rgba(157,78,221,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5">
+                            <button onClick={() => openHoloProjector({ id: selectedArtifact.id, title: selectedArtifact.name, type: selectedArtifact.type === 'TOOL_MANIFEST' ? 'CODE' : 'TEXT', content: selectedArtifact.analysis?.summary || selectedArtifact.name })} className="w-full py-6 bg-[#9d4edd] text-black rounded-[2rem] text-[12px] font-black uppercase tracking-[0.5em] shadow-[0_20px_50px_rgba(157,78,221,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5">
                                 <BrainCircuit size={22} /> Project Manifest
                             </button>
                             <button onClick={async () => { if (confirm('Irreversible purge?')) { await neuralVault.deleteArtifact(selectedArtifact.id); setSelectedArtifact(null); loadArtifacts(); audio.playError(); } }} className="w-full py-5 bg-transparent border border-white/10 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-gray-600 hover:text-red-500 hover:border-red-500/30 transition-all flex items-center justify-center gap-3">
