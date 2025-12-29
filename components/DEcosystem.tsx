@@ -249,20 +249,6 @@ const DEcosystem: React.FC = () => {
   return (
     <div ref={containerRef} className="w-full h-full relative bg-[#010103] rounded-[4rem] overflow-hidden border border-white/10 shadow-[0_0_200px_rgba(0,0,0,1)]">
       
-      {/* Top HUD Layer - Fixed tracking overlap */}
-      <div className="absolute top-14 left-14 z-30 pointer-events-none flex flex-col gap-6">
-        <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.4em] drop-shadow-2xl whitespace-nowrap">
-            Sovereign Ecosystem
-        </h2>
-        <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-6 py-3.5 rounded-2xl border border-white/10 shadow-2xl w-fit">
-            <div className="w-3 h-3 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_15px_#10b981]" />
-            <div className="flex flex-col">
-                <span className="text-[11px] font-black font-mono text-white/90 uppercase tracking-[0.4em]">Autonomous_Swarm_Lattice</span>
-                <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest mt-0.5">Active Global Synchronization</span>
-            </div>
-        </div>
-      </div>
-
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
       {/* NEURAL CORE - PERFECTLY CENTERED */}
@@ -298,30 +284,6 @@ const DEcosystem: React.FC = () => {
       {/* Background Matrix Grid */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.06] bg-[linear-gradient(rgba(255,255,255,1)_1.5px,transparent_1.5px),linear-gradient(90deg,rgba(255,255,255,1)_1.5px,transparent_1.5px)] bg-[size:100px_100px]"></div>
 
-      {/* Bottom Telemetry HUD */}
-      <div className="absolute bottom-14 left-14 right-14 flex items-center justify-between z-30">
-        <div className="flex items-center gap-20 text-[12px] font-black font-mono text-gray-500 uppercase tracking-[0.7em]">
-            <div className="flex flex-col gap-2">
-                <span className="opacity-40 text-[9px]">Lattice_Node_State</span>
-                <span className="text-gray-200 font-black">1,240_AUTH_OK</span>
-            </div>
-            <div className="h-10 w-px bg-white/10" />
-            <div className="flex flex-col gap-2">
-                <span className="opacity-40 text-[9px]">Resonance_Calibration</span>
-                <span className="text-cyan-400 font-black">OPTIMAL_ZENITH</span>
-            </div>
-        </div>
-        
-        <div className="bg-[#0a0a0a]/80 border border-white/10 px-10 py-6 rounded-[2.5rem] flex items-center gap-12 backdrop-blur-3xl shadow-2xl">
-            <div className="flex flex-col items-end">
-                <span className="text-[10px] font-black font-mono text-gray-500 uppercase tracking-[0.25em] mb-1.5">Aggregate_Load</span>
-                <span className="text-base font-black font-mono text-white tracking-tighter">4.82_ZETTA/H</span>
-            </div>
-            <div className="w-14 h-14 rounded-2xl border border-[#ef4444]/40 flex items-center justify-center p-2 bg-[#ef4444]/5 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
-                <Activity size={26} className="text-[#ef4444] animate-pulse" />
-            </div>
-        </div>
-      </div>
     </div>
   );
 };
