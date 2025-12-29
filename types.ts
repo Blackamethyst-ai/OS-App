@@ -55,6 +55,7 @@ export interface SwarmStatus {
 
 export enum AppMode {
     DASHBOARD = 'DASHBOARD',
+    METAVENTIONS_HUB = 'METAVENTIONS_HUB',
     BIBLIOMORPHIC = 'BIBLIOMORPHIC',
     PROCESS_MAP = 'PROCESS_MAP',
     MEMORY_CORE = 'MEMORY_CORE',

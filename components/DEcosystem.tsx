@@ -17,15 +17,7 @@ const SECTORS = [
   { id: 'agents', label: 'AGENTS', load: 35.4, color: '#ef4444', angle: 155 },
 ];
 
-const COLORS = {
-  void: '#010103',
-  amethyst: '#A855F7',
-  cyan: '#00f2ff',
-  hot: '#ffffff',
-  glowAlpha: 'rgba(168, 85, 247, 0.15)'
-};
-
-const PARTICLE_COUNT = 1200; // Increased for higher visual fidelity
+const PARTICLE_COUNT = 1200;
 
 class Particle {
   x: number = 0;
@@ -111,7 +103,6 @@ const DEcosystem: React.FC = () => {
         };
       });
 
-      // 1. Draw Lattice Connectors (New Prestigious Visual)
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineWidth = 0.5;
       nodes.forEach((n1, i) => {
@@ -131,7 +122,6 @@ const DEcosystem: React.FC = () => {
           });
       });
 
-      // 2. Draw Particles
       for (let i = 0; i < particles.length; i++) {
         const p = particles[i];
         const node = nodes.find(n => n.id === p.targetSectorId);
@@ -184,7 +174,6 @@ const DEcosystem: React.FC = () => {
         }
       }
 
-      // 3. Draw Nodes (Sector Anchors)
       ctx.globalCompositeOperation = 'source-over';
       nodes.forEach(n => {
         const beat = 1 + Math.sin(time * 4) * 0.15;
@@ -260,14 +249,17 @@ const DEcosystem: React.FC = () => {
   return (
     <div ref={containerRef} className="w-full h-full relative bg-[#010103] rounded-[4rem] overflow-hidden border border-white/10 shadow-[0_0_200px_rgba(0,0,0,1)]">
       
-      {/* Top HUD Layer */}
-      <div className="absolute top-14 left-14 z-30 pointer-events-none">
-        <h2 className="text-white text-lg font-black font-mono uppercase tracking-[1em] mb-4 drop-shadow-2xl">
+      {/* Top HUD Layer - Fixed tracking overlap */}
+      <div className="absolute top-14 left-14 z-30 pointer-events-none flex flex-col gap-6">
+        <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.4em] drop-shadow-2xl whitespace-nowrap">
             Sovereign Ecosystem
         </h2>
-        <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-5 py-3 rounded-2xl border border-white/10 shadow-2xl">
+        <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-6 py-3.5 rounded-2xl border border-white/10 shadow-2xl w-fit">
             <div className="w-3 h-3 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_15px_#10b981]" />
-            <span className="text-[11px] font-black font-mono text-white/80 uppercase tracking-[0.4em]">Autonomous_Swarm_Lattice // ACTIVE</span>
+            <div className="flex flex-col">
+                <span className="text-[11px] font-black font-mono text-white/90 uppercase tracking-[0.4em]">Autonomous_Swarm_Lattice</span>
+                <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest mt-0.5">Active Global Synchronization</span>
+            </div>
         </div>
       </div>
 
