@@ -1,84 +1,105 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
     Search, Globe, Loader2, Sparkles, Code, GitBranch, 
     ChevronRight, Zap, ExternalLink, Box, Database, 
-    Layers, Cpu, BookOpen, ShieldCheck, Terminal, Trash2, X, Activity
+    Layers, Cpu, BookOpen, ShieldCheck, Terminal, Trash2, X, Activity,
+    Filter, Share2, PlayCircle, Fingerprint, Waypoints, Gauge,
+    Cloud, BrainCircuit, HardDrive, LayoutGrid, Network,
+    Info, Bot
 } from 'lucide-react';
 import { GOOGLE_APIS, GoogleApiDefinition } from '../data/googleApis';
 import { useAppStore } from '../store';
 import { retryGeminiRequest, promptSelectKey } from '../services/geminiService';
+import { dynamicRegistry } from '../services/DynamicToolRegistry';
 import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
+import { audio } from '../services/audioService';
+import { cn } from '../utils/cn';
+import { OperationalContext } from '../types';
+
+const CATEGORIES = ['ALL', 'CLOUD', 'AI', 'WORKSPACE', 'DATA', 'CORE'];
+
+const SchematicNode = ({ label, color, icon: Icon }: any) => (
+    <div className="flex flex-col items-center gap-2">
+        <div className={cn(
+            "w-12 h-12 rounded-xl border flex items-center justify-center shadow-2xl relative group",
+            "bg-black/60 border-white/10"
+        )} style={{ color }}>
+            <Icon size={20} className="group-hover:scale-110 transition-transform" />
+            <div className="absolute -inset-1 rounded-xl blur-lg opacity-20 bg-current pointer-events-none" />
+        </div>
+        <span className="text-[7px] font-black font-mono uppercase tracking-widest text-gray-500">{label}</span>
+    </div>
+);
 
 const NexusAPIExplorer: React.FC = () => {
-    const { addLog, setProcessState } = useAppStore();
+    const { addLog, setProcessState, addAgent } = useAppStore();
     const [query, setQuery] = useState('');
+    const [activeCat, setActiveCat] = useState('ALL');
     const [selectedApi, setSelectedApi] = useState<GoogleApiDefinition | null>(null);
     const [isForging, setIsForging] = useState(false);
     const [isSearchingLive, setIsSearchingLive] = useState(false);
     const [generatedSchema, setGeneratedSchema] = useState<string | null>(null);
     const [liveSearchResults, setLiveSearchResults] = useState<any[]>([]);
+    const [isCommitting, setIsCommitting] = useState(false);
 
     const filtered = useMemo(() => {
-        return GOOGLE_APIS.filter(api => 
-            api.title.toLowerCase().includes(query.toLowerCase()) || 
-            api.description.toLowerCase().includes(query.toLowerCase())
-        );
-    }, [query]);
+        return GOOGLE_APIS.filter(api => {
+            const matchesQuery = api.title.toLowerCase().includes(query.toLowerCase()) || 
+                                 api.description.toLowerCase().includes(query.toLowerCase());
+            const matchesCat = activeCat === 'ALL' || api.category === activeCat;
+            return matchesQuery && matchesCat;
+        });
+    }, [query, activeCat]);
 
     const handleLiveSearch = async () => {
         if (!query.trim()) return;
         setIsSearchingLive(true);
-        addLog('SYSTEM', `NEXUS_QUERY: Grounding intelligence for "${query}" across Google Ecosystem...`);
+        audio.playClick();
+        addLog('SYSTEM', `NEXUS_QUERY: Scanning global service mesh for "${query}"...`);
         
         try {
-            const hasKey = await window.aistudio?.hasSelectedApiKey();
-            if (!hasKey) { await promptSelectKey(); setIsSearchingLive(false); return; }
-
+            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsSearchingLive(false); return; }
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
                 model: 'gemini-3-flash-preview',
-                contents: `Search for technical API or service details related to: "${query}". Identify endpoints, core functions, and technical value. Return JSON array [{title, description, category}].`,
-                config: { 
-                    responseMimeType: 'application/json',
-                    tools: [{ googleSearch: {} }]
-                }
+                contents: `Deep technical API search: "${query}". Identify endpoints and capabilities. Output JSON array [{title, description, category}].`,
+                config: { responseMimeType: 'application/json', tools: [{ googleSearch: {} }] }
             }));
 
             const results = JSON.parse(response.text || "[]");
             setLiveSearchResults(results);
-            addLog('SUCCESS', `NEXUS_QUERY: Captured ${results.length} live intelligence vectors.`);
+            addLog('SUCCESS', `NEXUS_QUERY: Detected ${results.length} unmapped service vectors.`);
+            audio.playSuccess();
         } catch (e: any) {
-            addLog('ERROR', `NEXUS_QUERY_FAIL: ${e.message}`);
+            addLog('ERROR', `NEXUS_QUERY_FAIL: Signal Dropout.`);
         } finally {
             setIsSearchingLive(false);
         }
     };
 
-    const forgeMcpTool = async () => {
+    const forgeCapability = async () => {
         if (!selectedApi) return;
         setIsForging(true);
         setGeneratedSchema(null);
-        addLog('SYSTEM', `NEXUS_FORGE: Synthesizing MCP manifest for ${selectedApi.title}...`);
+        audio.playClick();
+        addLog('SYSTEM', `NEXUS_FORGE: Fabricating autonomic tool manifest for [${selectedApi.title}]...`);
 
         try {
-            const hasKey = await window.aistudio?.hasSelectedApiKey();
-            if (!hasKey) { await promptSelectKey(); setIsForging(false); return; }
-
+            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsForging(false); return; }
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            
             const prompt = `
-                ROLE: System Integration Architect.
-                OBJECTIVE: Forge an MCP-compatible JSON Tool Definition for the following Google API.
+                ACT AS: Nexus Forge AI.
+                TARGET: ${selectedApi.title}
+                DATA: ${selectedApi.description}
+                TASK: Forge a JSON MCP Tool Manifest.
+                SCHEMATIC REQUIREMENTS:
+                1. 'name': technical_underscore_string
+                2. 'description': Concise functional summary
+                3. 'parameters': Standard Type.OBJECT schema including at least 3 realistic properties.
                 
-                API TITLE: ${selectedApi.title}
-                DESCRIPTION: ${selectedApi.description}
-                
-                REQUIREMENT:
-                Generate a standards-compliant JSON schema that the Google Gemini Live API can use as a "tool".
-                Include 'name', 'description', and 'parameters' (type: OBJECT).
-                The parameters should be realistic based on the API description.
-                
-                RETURN ONLY RAW JSON.
+                RETURN ONLY CLEAN JSON.
             `;
 
             const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
@@ -88,209 +109,310 @@ const NexusAPIExplorer: React.FC = () => {
             }));
 
             setGeneratedSchema(response.text || '{}');
-            addLog('SUCCESS', `NEXUS_FORGE: MCP definition finalized for ${selectedApi.title}.`);
+            addLog('SUCCESS', `NEXUS_FORGE: Manifest synthesized. Ready for kernel injection.`);
+            audio.playSuccess();
         } catch (e: any) {
-            addLog('ERROR', `NEXUS_FORGE_FAIL: ${e.message}`);
+            addLog('ERROR', `NEXUS_FORGE_FAIL: Integrity check failed.`);
         } finally {
             setIsForging(false);
         }
     };
 
-    const injectToMap = () => {
+    const handleCommitToOS = async () => {
         if (!selectedApi || !generatedSchema) return;
+        setIsCommitting(true);
+        audio.playClick();
         
         try {
-            const schema = JSON.parse(generatedSchema);
-            const schemaStr = String(JSON.stringify(schema) || '{}');
-            const newNode = {
-                id: `nexus-${Date.now()}`,
-                type: 'holographic',
-                position: { x: 800, y: 300 },
-                data: {
-                    label: selectedApi.title,
-                    subtext: 'MCP PLUGGED',
-                    iconName: selectedApi.category === 'AI' ? 'BrainCircuit' : 'Cpu',
-                    color: '#9d4edd',
-                    status: 'ACTIVE',
-                    description: `Autonomous integration for ${selectedApi.title}. Schema: ${schemaStr.substring(0, 50)}...`
-                }
+            const manifest = JSON.parse(generatedSchema);
+            const id = manifest.name || `nexus_tool_${Date.now()}`;
+            
+            const code = `
+                // Dynamic Nexus Executor for ${selectedApi.title}
+                os.log('SYSTEM', 'EXECUTING: ${id} protocol...');
+                // Integration Logic Mocked for [${selectedApi.title}]
+                return { status: 'OK', message: 'Nexus protocol executed successfully via Sovereign Swarm.', payload: args };
+            `;
+
+            await dynamicRegistry.registerDynamicTool(id, manifest, code);
+            
+            // Register a specialized autonomous agent for this forged capability
+            const newAgent = {
+                id: `node-${Date.now()}`,
+                name: selectedApi.title.split(' ')[0] + ' Bot',
+                role: 'Specialized Agent',
+                context: OperationalContext.GENERAL_PURPOSE,
+                status: 'IDLE' as const,
+                memoryBuffer: [],
+                capabilities: [id, 'Logical Synthesis'],
+                currentMindset: { skepticism: 10, excitement: 80, alignment: 90 },
+                energyLevel: 100,
+                tasks: []
             };
+            addAgent(newAgent);
 
             setProcessState((prev: any) => ({
-                pendingAIAddition: newNode 
+                pendingAIAddition: {
+                    id: `nexus-${Date.now()}`,
+                    type: 'holographic',
+                    position: { x: 900, y: 400 },
+                    data: {
+                        label: selectedApi.title,
+                        subtext: 'MCP_INJECTED',
+                        iconName: 'Zap',
+                        color: '#22d3ee',
+                        status: 'ACTIVE'
+                    }
+                }
             }));
 
-            addLog('SUCCESS', `LATTICE_SYNC: ${selectedApi.title} Crystallized as Nexus Node.`);
+            addLog('SUCCESS', `NEXUS_COMMIT: [${selectedApi.title}] crystallized as Autonomous Agent [${newAgent.name}].`);
+            audio.playSuccess();
             setSelectedApi(null);
             setGeneratedSchema(null);
         } catch (e) {
-            addLog('ERROR', 'INJECTION_FAIL: Manifest corruption.');
+            addLog('ERROR', 'COMMIT_FAIL: Register collision.');
+        } finally {
+            setIsCommitting(false);
         }
     };
 
     return (
-        <div className="h-full w-full flex gap-6 p-6 overflow-hidden bg-[#030303] border-t border-[#1f1f1f]">
-            {/* Left: Search & List */}
-            <div className="w-[400px] bg-[#0a0a0a] border border-[#1f1f1f] rounded-xl overflow-hidden flex flex-col shadow-2xl">
-                <div className="p-4 border-b border-[#1f1f1f] bg-[#111]">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-3">
-                            <div className="p-2 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded">
-                                <Globe className="w-4 h-4 text-[#9d4edd]" />
+        <div className="h-full w-full flex gap-8 p-10 overflow-hidden bg-transparent relative z-10 font-sans">
+            <div className="w-[450px] bg-black/40 border border-white/5 rounded-[3rem] overflow-hidden flex flex-col shadow-2xl relative">
+                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+                
+                <div className="p-8 border-b border-white/5 bg-white/[0.01] space-y-6">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-2xl shadow-xl">
+                                <Globe className="w-5 h-5 text-[#9d4edd]" />
                             </div>
-                            <h2 className="text-xs font-bold font-mono text-white uppercase tracking-widest">Nexus API Registry</h2>
+                            <div>
+                                <h2 className="text-sm font-black text-white uppercase tracking-[0.4em]">Nexus Matrix</h2>
+                                <p className="text-[8px] text-gray-500 font-mono uppercase tracking-widest mt-1">Registry Protocol v9.5</p>
+                            </div>
                         </div>
                         <button 
-                            onClick={handleLiveSearch} 
+                            onClick={handleLiveSearch}
                             disabled={isSearchingLive || !query.trim()}
-                            className="p-1.5 bg-[#22d3ee]/10 border border-[#22d3ee]/30 rounded text-[#22d3ee] hover:bg-[#22d3ee] hover:text-black transition-all disabled:opacity-30"
-                            title="Live Intelligence Search"
+                            className="p-2.5 bg-black border border-white/10 rounded-xl hover:border-[#22d3ee] transition-all text-gray-500 hover:text-[#22d3ee] disabled:opacity-20 active:scale-95 shadow-lg"
                         >
-                            {isSearchingLive ? <Loader2 size={14} className="animate-spin" /> : <Zap size={14} />}
+                            {isSearchingLive ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
                         </button>
                     </div>
+
                     <div className="relative group">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-[#22d3ee] transition-colors" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700 group-focus-within:text-[#9d4edd] transition-colors" />
                         <input 
                             value={query}
                             onChange={e => setQuery(e.target.value)}
-                            placeholder="Search Google Ecosystem..."
-                            className="w-full bg-[#050505] border border-[#333] pl-10 pr-4 py-2.5 text-xs font-mono text-white focus:border-[#22d3ee] outline-none rounded-lg"
+                            placeholder="Probe Global Endpoints..."
+                            className="w-full bg-black/60 border border-white/5 pl-12 pr-4 py-4 text-xs font-mono text-white focus:border-[#9d4edd] outline-none rounded-2xl shadow-inner transition-all placeholder:text-gray-800 uppercase"
                         />
+                    </div>
+
+                    <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2">
+                        {CATEGORIES.map(cat => (
+                            <button 
+                                key={cat} 
+                                onClick={() => setActiveCat(cat)}
+                                className={cn(
+                                    "px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border",
+                                    activeCat === cat ? "bg-[#9d4edd] text-black border-[#9d4edd] shadow-lg" : "bg-black/40 border-white/5 text-gray-600 hover:text-white"
+                                )}
+                            >
+                                {cat}
+                            </button>
+                        ))}
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
-                    {liveSearchResults.length > 0 && (
-                        <div className="mb-4 space-y-1">
-                            <div className="px-3 py-1 text-[8px] font-black text-[#22d3ee] uppercase tracking-widest bg-[#22d3ee]/5 border border-[#22d3ee]/20 rounded mb-2 flex items-center gap-2">
-                                <Activity size={10} className="animate-pulse" /> Live Search Signals
-                                <button onClick={() => setLiveSearchResults([])} className="ml-auto hover:text-white"><X size={10}/></button>
-                            </div>
-                            {liveSearchResults.map((api, i) => (
-                                <button
-                                    key={`live-${i}`}
-                                    onClick={() => { setSelectedApi(api); setGeneratedSchema(null); }}
-                                    className={`w-full text-left p-3 rounded-lg transition-all flex items-center justify-between group border border-dashed border-[#22d3ee]/30
-                                        ${selectedApi?.title === api.title ? 'bg-[#22d3ee]/10 border-[#22d3ee]' : 'hover:bg-[#22d3ee]/5'}
-                                    `}
-                                >
-                                    <div className="flex-1 min-w-0 pr-4">
-                                        <div className="text-[11px] font-bold text-cyan-200 group-hover:text-white transition-colors truncate">{api.title}</div>
-                                        <div className="text-[9px] text-gray-500 font-mono truncate">{api.description}</div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-3 bg-black/20">
+                    <AnimatePresence>
+                        {liveSearchResults.map((api, i) => (
+                            <motion.button
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                key={`live-${i}`}
+                                onClick={() => { setSelectedApi(api); setGeneratedSchema(null); audio.playClick(); }}
+                                className={cn(
+                                    "w-full text-left p-5 rounded-3xl transition-all flex items-center justify-between group border border-dashed relative overflow-hidden",
+                                    selectedApi?.title === api.title ? "bg-[#22d3ee]/10 border-[#22d3ee] shadow-xl" : "bg-[#22d3ee]/5 border-[#22d3ee]/30 hover:border-[#22d3ee]"
+                                )}
+                            >
+                                <div className="flex-1 min-w-0 pr-4 relative z-10">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <div className="w-1 h-1 rounded-full bg-[#22d3ee] animate-pulse" />
+                                        <span className="text-[11px] font-black text-white uppercase truncate">{api.title}</span>
                                     </div>
-                                    <Sparkles className="w-3 h-3 text-[#22d3ee]" />
-                                </button>
-                            ))}
-                        </div>
-                    )}
+                                    <div className="text-[8px] text-gray-500 font-mono truncate uppercase tracking-tighter opacity-60 group-hover:opacity-100">{api.description}</div>
+                                </div>
+                                <Sparkles size={14} className="text-[#22d3ee] shrink-0 animate-pulse" />
+                            </motion.button>
+                        ))}
+                    </AnimatePresence>
+
                     {filtered.map((api, i) => (
                         <button
                             key={i}
-                            onClick={() => { setSelectedApi(api); setGeneratedSchema(null); }}
-                            className={`w-full text-left p-3 rounded-lg transition-all flex items-center justify-between group
-                                ${selectedApi?.title === api.title ? 'bg-[#9d4edd]/10 border border-[#9d4edd]/30' : 'hover:bg-[#111] border border-transparent'}
-                            `}
+                            onClick={() => { setSelectedApi(api); setGeneratedSchema(null); audio.playClick(); }}
+                            className={cn(
+                                "w-full text-left p-5 rounded-3xl transition-all flex items-center justify-between group border relative overflow-hidden",
+                                selectedApi?.title === api.title ? "bg-[#9d4edd]/10 border-[#9d4edd] shadow-xl" : "bg-transparent border-transparent hover:bg-white/[0.03] hover:border-white/5"
+                            )}
                         >
-                            <div className="flex-1 min-w-0 pr-4">
-                                <div className="text-[11px] font-bold text-gray-200 group-hover:text-white transition-colors truncate">{api.title}</div>
-                                <div className="text-[9px] text-gray-600 font-mono truncate">{api.description}</div>
+                            <div className="flex-1 min-w-0 pr-4 relative z-10">
+                                <div className="text-[11px] font-black text-gray-200 group-hover:text-white transition-colors truncate uppercase tracking-tighter">{api.title}</div>
+                                <div className="text-[8px] text-gray-600 font-mono truncate uppercase mt-1 tracking-tighter">{api.description}</div>
                             </div>
-                            <ChevronRight className={`w-3 h-3 shrink-0 ${selectedApi?.title === api.title ? 'text-[#9d4edd]' : 'text-gray-700'}`} />
+                            <ChevronRight size={14} className={cn("shrink-0 transition-transform group-hover:translate-x-1", selectedApi?.title === api.title ? "text-[#9d4edd]" : "text-gray-800")} />
                         </button>
                     ))}
-                    {filtered.length === 0 && liveSearchResults.length === 0 && (
-                        <div className="p-8 text-center opacity-20">
-                            <X className="mx-auto mb-2" size={24} />
-                            <span className="text-[10px] font-mono uppercase">No endpoints found</span>
-                        </div>
-                    )}
                 </div>
                 
-                <div className="p-3 bg-[#080808] border-t border-[#1f1f1f] flex justify-between text-[8px] font-mono text-gray-600">
-                    <span>REGISTRY_COUNT: {GOOGLE_APIS.length + liveSearchResults.length}</span>
-                    <span>PROTOCOL: MCP_v1</span>
+                <div className="h-10 bg-black/80 border-t border-white/5 px-8 flex justify-between items-center text-[8px] font-mono text-gray-700 tracking-[0.2em] shrink-0 uppercase">
+                    <div className="flex gap-6">
+                        <span>Lattice_Endpoints: {GOOGLE_APIS.length + liveSearchResults.length}</span>
+                        <span className="text-[#10b981]">Auth: SECURE</span>
+                    </div>
+                    <span>Nexus_Core_v9.5</span>
                 </div>
             </div>
 
-            {/* Right: Preview & Forge */}
-            <div className="flex-1 bg-[#050505] border border-[#1f1f1f] rounded-xl flex flex-col relative overflow-hidden shadow-2xl">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(157,78,221,0.05)_0%,transparent_70%)] pointer-events-none"></div>
+            <div className="flex-1 bg-black/40 border border-white/5 rounded-[4rem] flex flex-col relative overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.8)] group/forge">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.03)_0%,transparent_80%)] pointer-events-none" />
                 
                 <AnimatePresence mode="wait">
                     {selectedApi ? (
                         <motion.div 
                             key={selectedApi.title}
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            className="h-full flex flex-col p-8 z-10"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.02 }}
+                            className="h-full flex flex-col p-12 z-10"
                         >
-                            <div className="flex justify-between items-start mb-8">
-                                <div>
-                                    <span className="text-[10px] font-black text-[#9d4edd] uppercase tracking-[0.4em] block mb-2">{selectedApi.category} PROTOCOL</span>
-                                    <h1 className="text-3xl font-black text-white font-mono tracking-tighter uppercase">{selectedApi.title}</h1>
+                            <div className="flex justify-between items-start mb-12">
+                                <div className="space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                                            <span className="text-[9px] font-black text-[#9d4edd] uppercase tracking-[0.3em]">{selectedApi.category} Protocol</span>
+                                        </div>
+                                        <div className="h-1 w-12 bg-white/5 rounded-full" />
+                                    </div>
+                                    <h1 className="text-4xl font-black text-white font-mono tracking-tighter uppercase leading-none">{selectedApi.title}</h1>
                                 </div>
-                                <button onClick={() => setSelectedApi(null)} className="p-2 text-gray-600 hover:text-white transition-colors bg-[#111] rounded-lg border border-[#222]"><X className="w-5 h-5" /></button>
+                                <button onClick={() => setSelectedApi(null)} className="p-3 bg-white/5 hover:bg-red-500/20 text-gray-500 hover:text-red-500 rounded-2xl transition-all border border-transparent hover:border-red-500/30"><X size={24} /></button>
                             </div>
 
-                            <div className="bg-[#0a0a0a] border border-[#222] p-6 rounded-2xl mb-8 shadow-inner">
-                                <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                    <Terminal className="w-3 h-3" /> Endpoint description
-                                </h3>
-                                <p className="text-sm text-gray-300 font-mono leading-relaxed">{selectedApi.description}</p>
+                            <div className="grid grid-cols-2 gap-10 mb-12">
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">
+                                        <Terminal size={14} className="text-[#9d4edd]" /> Capability Blueprint
+                                    </div>
+                                    <div className="p-8 bg-black/60 border border-white/5 rounded-[2.5rem] shadow-inner relative overflow-hidden group/summary">
+                                        <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover/summary:opacity-10 transition-opacity"><Info size={60} /></div>
+                                        <p className="text-sm text-gray-300 font-mono leading-relaxed italic border-l-4 border-[#9d4edd] pl-8">"{selectedApi.description}"</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="space-y-6">
+                                    <div className="flex items-center gap-3 text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">
+                                        <Waypoints size={14} className="text-[#22d3ee]" /> Integration Schematic
+                                    </div>
+                                    <div className="bg-black/40 border border-white/5 rounded-[2.5rem] p-8 flex items-center justify-around relative shadow-inner">
+                                        <SchematicNode label="Nexus" color="#9d4edd" icon={Globe} />
+                                        <div className="flex-1 px-4 flex flex-col items-center gap-2">
+                                            <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                                            <motion.div animate={{ x: [-20, 20] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} className="w-1.5 h-1.5 rounded-full bg-[#10b981] shadow-[0_0_10px_#10b981]" />
+                                        </div>
+                                        <SchematicNode label="Kernel" color="#22d3ee" icon={Cpu} />
+                                        <div className="flex-1 px-4 flex flex-col items-center gap-2">
+                                            <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                                            <motion.div animate={{ x: [20, -20] }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }} className="w-1.5 h-1.5 rounded-full bg-[#f1c21b] shadow-[0_0_10px_#f1c21b]" />
+                                        </div>
+                                        <SchematicNode label="Swarm" color="#10b981" icon={Bot} />
+                                    </div>
+                                </div>
                             </div>
 
                             <div className="flex-1 flex flex-col min-h-0">
-                                <div className="flex items-center justify-between mb-4">
-                                    <h3 className="text-[10px] font-bold text-[#22d3ee] uppercase tracking-widest flex items-center gap-2">
-                                        <Code className="w-4 h-4" /> MCP Manifest Generator
-                                    </h3>
+                                <div className="flex justify-between items-end mb-4 px-2">
+                                    <div className="flex items-center gap-3">
+                                        <Code size={18} className="text-[#22d3ee]" />
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">MCP Capability Manifest</span>
+                                    </div>
                                     {generatedSchema && (
-                                        <button onClick={injectToMap} className="text-[10px] font-bold text-[#42be65] font-mono hover:underline uppercase flex items-center gap-2 transition-all hover:scale-105">
-                                            <GitBranch className="w-3 h-3" /> Inject into Process Lattice
-                                        </button>
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+                                            <span className="text-[9px] font-mono text-[#10b981] font-bold uppercase">Ready for Injection</span>
+                                        </div>
                                     )}
                                 </div>
 
-                                <div className="flex-1 bg-black border border-[#1f1f1f] rounded-xl relative overflow-hidden group/code">
-                                    {isForging ? (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm z-20">
-                                            <Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" />
-                                            <p className="text-[10px] font-mono text-[#9d4edd] animate-pulse tracking-widest uppercase">Synthesizing Tool Metadata...</p>
-                                        </div>
-                                    ) : generatedSchema ? (
-                                        <pre className="p-6 font-mono text-[11px] text-gray-400 overflow-auto custom-scrollbar h-full selection:bg-[#9d4edd]/30">
-                                            {generatedSchema}
-                                        </pre>
-                                    ) : (
-                                        <div className="h-full flex flex-col items-center justify-center opacity-20 group-hover/code:opacity-40 transition-opacity">
-                                            <Zap className="w-16 h-16 text-gray-400 mb-4" />
-                                            <p className="text-xs font-mono uppercase tracking-[0.2em]">Ready for spectral synthesis</p>
-                                        </div>
-                                    )}
+                                <div className="flex-1 bg-black border border-white/5 rounded-[2.5rem] relative overflow-hidden group/code shadow-inner">
+                                    <AnimatePresence mode="wait">
+                                        {isForging ? (
+                                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-3xl z-20">
+                                                <div className="relative mb-6">
+                                                    <Loader2 size={40} className="text-[#9d4edd] animate-spin" />
+                                                    <div className="absolute inset-0 blur-2xl bg-[#9d4edd]/30 animate-pulse" />
+                                                </div>
+                                                <p className="text-[11px] font-mono text-white animate-pulse tracking-[0.8em] uppercase">Synthesizing Protocol Logic...</p>
+                                            </motion.div>
+                                        ) : generatedSchema ? (
+                                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full">
+                                                <pre className="p-10 font-mono text-[11px] text-gray-400 overflow-auto custom-scrollbar h-full selection:bg-[#9d4edd]/40 leading-relaxed">
+                                                    {generatedSchema}
+                                                </pre>
+                                            </motion.div>
+                                        ) : (
+                                            <div className="h-full flex flex-col items-center justify-center opacity-10 group-hover/code:opacity-20 transition-all duration-1000">
+                                                <Zap className="w-24 h-24 text-white mb-6" />
+                                                <p className="text-xl font-mono uppercase tracking-[1em]">Awaiting Synthesis</p>
+                                            </div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             </div>
 
-                            {!generatedSchema && (
-                                <button 
-                                    onClick={forgeMcpTool} 
-                                    disabled={isForging}
-                                    className="w-full py-5 mt-8 bg-[#9d4edd] text-black font-black font-mono text-xs uppercase tracking-[0.3em] rounded-xl hover:bg-[#b06bf7] transition-all shadow-[0_0_40px_rgba(157,78,221,0.3)] flex items-center justify-center gap-4 active:scale-95"
-                                >
-                                    {isForging ? <Loader2 className="w-4 h-4 animate-spin"/> : <Sparkles className="w-4 h-4"/>}
-                                    Forge MCP Tool definition
-                                </button>
-                            )}
+                            <div className="mt-12 flex gap-6 shrink-0">
+                                {!generatedSchema ? (
+                                    <button 
+                                        onClick={forgeCapability} 
+                                        disabled={isForging}
+                                        className="flex-1 py-6 bg-[#9d4edd] text-black font-black font-mono text-[11px] uppercase tracking-[0.5em] rounded-[2rem] hover:bg-[#b06bf7] transition-all shadow-[0_30px_80px_rgba(157,78,221,0.4)] flex items-center justify-center gap-5 active:scale-95 disabled:opacity-50"
+                                    >
+                                        <Sparkles size={20} /> Forge Protocol
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button 
+                                            onClick={forgeCapability}
+                                            className="px-10 py-6 bg-white/5 border border-white/10 hover:border-white/30 text-gray-500 hover:text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all"
+                                        >
+                                            Re-Forge
+                                        </button>
+                                        <button 
+                                            onClick={handleCommitToOS}
+                                            disabled={isCommitting}
+                                            className="flex-1 py-6 bg-[#10b981] text-black font-black font-mono text-[11px] uppercase tracking-[0.5em] rounded-[2rem] shadow-[0_30px_80px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5"
+                                        >
+                                            {isCommitting ? <Loader2 size={20} className="animate-spin" /> : <PlayCircle size={22} />}
+                                            Commit to OS Swarm
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </motion.div>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-center p-20 opacity-30">
-                            <div className="w-32 h-32 rounded-full border-2 border-dashed border-gray-700 flex items-center justify-center mb-8 relative">
-                                <Layers className="w-12 h-12 text-gray-600" />
-                                <div className="absolute inset-0 rounded-full border border-[#9d4edd]/20 animate-ping"></div>
+                        <div className="flex-1 flex flex-col items-center justify-center text-center p-20 opacity-10 group-hover/forge:opacity-20 transition-all duration-1000">
+                            <div className="relative mb-12">
+                                <Waypoints size={180} className="text-white animate-pulse" />
+                                <div className="absolute inset-0 blur-[100px] bg-white/5" />
                             </div>
-                            <h2 className="text-xl font-bold font-mono text-white mb-2 uppercase tracking-widest">Select Nexus Target</h2>
-                            <p className="text-xs text-gray-500 font-mono max-w-sm">Choose a Google API from the registry or use Live Search to forge a spectral tool manifest for autonomic integration.</p>
+                            <h2 className="text-3xl font-black font-mono text-white mb-4 uppercase tracking-[0.8em]">Nexus Hub</h2>
+                            <p className="text-xs font-mono text-gray-500 max-w-sm mx-auto uppercase tracking-widest leading-loose">Initialize endpoint selection to bridge global service intelligence into the Sovereign core.</p>
                         </div>
                     )}
                 </AnimatePresence>
