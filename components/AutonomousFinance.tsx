@@ -206,7 +206,7 @@ const AutonomousFinance: React.FC = () => {
                             <h1 className="text-xl font-black font-mono text-[var(--text-primary)] uppercase tracking-[0.5em] leading-none">Financial Core</h1>
                             <span className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-3 block flex items-center gap-2">
                                 <ShieldCheck size={12} className="text-[#10b981]" /> 
-                                Autonomous Treasury Protocol // v9.5-ZENITH
+                                Autonomous Treasury Protocol // V9.5 - THE D-Ecosystem
                             </span>
                         </div>
                     </div>
@@ -349,7 +349,6 @@ const AutonomousFinance: React.FC = () => {
                                 </div>
                             </motion.div>
                         )}
-                        {/* Other sectors omitted for brevity as they haven't changed since the requested restoration */}
                     </AnimatePresence>
                 </div>
             </div>

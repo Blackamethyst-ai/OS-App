@@ -20,8 +20,8 @@
           /* --- REFINED GLASS MAPPING --- */
           --bg-app: var(--void-black);
           --bg-header: rgba(5, 5, 10, 0.15);
-          --bg-panel: rgba(255, 255, 255, 0.02);
-          --bg-card: rgba(255, 255, 255, 0.01);
+          --bg-panel: rgba(255, 255, 255, 0.01);
+          --bg-card: rgba(255, 255, 255, 0.005);
           --text-primary: var(--stellar-white);
           --text-secondary: #94A3B8;
           --text-muted: #64748b;
@@ -43,31 +43,37 @@
        .font-mono { font-family: 'Fira Code', monospace; }
        
        .crystalline {
-          background: var(--bg-card-top) !important;
-          backdrop-filter: blur(60px) saturate(280%) brightness(1.05) contrast(1.1) !important;
-          -webkit-backdrop-filter: blur(60px) saturate(280%) brightness(1.05) contrast(1.1) !important;
-          border: 0.5px solid rgba(255, 255, 255, 0.1);
+          background: rgba(255, 255, 255, 0.008) !important;
+          backdrop-filter: blur(40px) saturate(200%) brightness(1.1) !important;
+          -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.1) !important;
+          border: 0.5px solid rgba(255, 255, 255, 0.06);
           box-shadow: 
-            inset 0 1px 0 rgba(255, 255, 255, 0.15),
-            inset 1px 0 0 rgba(255, 255, 255, 0.08),
-            0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            inset 0 1px 0 rgba(255, 255, 255, 0.05),
+            0 15px 35px -5px rgba(0, 0, 0, 0.5);
           transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
        }
 
+       .invisible-glass {
+          background: rgba(255, 255, 255, 0.002) !important;
+          backdrop-filter: blur(25px) !important;
+          -webkit-backdrop-filter: blur(25px) !important;
+          border: 0.5px solid rgba(255, 255, 255, 0.03);
+       }
+
        .glass-drawer-edge {
-          border-left: 1px solid rgba(255, 255, 255, 0.4);
-          box-shadow: inset 10px 0 30px -10px rgba(255, 255, 255, 0.03);
+          border-left: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: inset 10px 0 30px -10px rgba(255, 255, 255, 0.01);
        }
 
        .glass-action {
-          background: rgba(255, 255, 255, 0.03);
+          background: rgba(255, 255, 255, 0.02);
           backdrop-filter: blur(20px) saturate(200%);
-          border: 0.5px solid rgba(255, 255, 255, 0.12);
+          border: 0.5px solid rgba(255, 255, 255, 0.08);
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
        }
        .glass-action:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: rgba(255, 255, 255, 0.3);
+          background: rgba(255, 255, 255, 0.05);
+          border-color: rgba(255, 255, 255, 0.2);
           transform: translateY(-1px);
        }
 
