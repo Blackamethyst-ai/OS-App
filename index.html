@@ -19,13 +19,13 @@
 
           /* --- REFINED GLASS MAPPING --- */
           --bg-app: var(--void-black);
-          --bg-header: rgba(5, 5, 10, 0.4);
+          --bg-header: rgba(5, 5, 10, 0.3);
           --bg-panel: rgba(255, 255, 255, 0.03);
           --bg-card: rgba(255, 255, 255, 0.02);
           --text-primary: var(--stellar-white);
           --text-secondary: #94A3B8;
           --text-muted: #64748b;
-          --border-main: rgba(255, 255, 255, 0.08);
+          --border-main: rgba(255, 255, 255, 0.1);
           --logo-glow: rgba(123, 44, 255, 0.5);
        }
 
@@ -43,27 +43,28 @@
        .font-mono { font-family: 'Fira Code', monospace; }
        
        /* THE TRUE CRYSTALLINE FEATURE: High-Index Flint Glass */
+       /* Moving from dark opacity to light-refraction tints */
        .crystalline {
           background: rgba(255, 255, 255, 0.035);
-          backdrop-filter: blur(45px) saturate(240%);
-          -webkit-backdrop-filter: blur(45px) saturate(240%);
+          backdrop-filter: blur(50px) saturate(250%);
+          -webkit-backdrop-filter: blur(50px) saturate(250%);
           border: 1px solid rgba(255, 255, 255, 0.12);
           box-shadow: 
-            inset 0 1px 1px rgba(255, 255, 255, 0.1),
-            0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            inset 0 1px 1px rgba(255, 255, 255, 0.15),
+            0 25px 50px -12px rgba(0, 0, 0, 0.8);
        }
 
-       /* TRANSPARENT GLASS ACTION BUTTONS */
+       /* LIGHTER ACTION BUTTONS (The "Swap Key" Look) */
        .glass-action {
-          background: rgba(255, 255, 255, 0.05);
-          backdrop-filter: blur(20px) saturate(180%);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.06);
+          backdrop-filter: blur(20px) saturate(200%);
+          border: 1px solid rgba(255, 255, 255, 0.25);
           box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.05);
           transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
        }
        .glass-action:hover {
-          background: rgba(255, 255, 255, 0.12);
-          border-color: rgba(255, 255, 255, 0.4);
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.5);
           transform: translateY(-1px);
        }
 
@@ -78,9 +79,9 @@
           background: linear-gradient(
             45deg,
             transparent 45%,
-            rgba(255, 255, 255, 0.08) 48%,
+            rgba(255, 255, 255, 0.05) 48%,
             rgba(255, 255, 255, 0.15) 50%,
-            rgba(255, 255, 255, 0.08) 52%,
+            rgba(255, 255, 255, 0.05) 52%,
             transparent 55%
           );
           animation: shimmer 12s infinite linear;
