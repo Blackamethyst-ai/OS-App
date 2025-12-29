@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { 
     AppMode, AppTheme, UserProfile, FileData, Task, 
@@ -102,6 +103,7 @@ interface AppState {
         identityUrl: null | string;
         referenceImage: FileData | null;
         activeThemeColor: string;
+        topologyData: { s: string; A: number }[];
     };
     knowledge: {
         activeLayers: string[];
@@ -342,7 +344,14 @@ export const useAppStore = create<AppState>((set) => ({
         isGenerating: false,
         identityUrl: null,
         referenceImage: null,
-        activeThemeColor: '#18E6FF'
+        activeThemeColor: '#18E6FF',
+        topologyData: [
+            { s: 'LOGIC', A: 92 },
+            { s: 'SPEED', A: 88 },
+            { s: 'SECURITY', A: 96 },
+            { s: 'YIELD', A: 84 },
+            { s: 'SCALE', A: 91 }
+        ]
     },
     knowledge: {
         activeLayers: ['BUILDER_PROTOCOL', 'CRYPTO_CONTEXT', 'STRATEGIC_FUTURISM']
@@ -638,15 +647,15 @@ export const useAppStore = create<AppState>((set) => ({
     setMetaventionsState: (update) => set((state) => ({ 
         metaventions: { ...state.metaventions, ...(typeof update === 'function' ? update(state.metaventions) : update) } 
     })),
-    pushToInvestmentQueue: (implementation: any) => set((state) => ({
+    pushToInvestmentQueue: (metavention: any) => set((state) => ({
         marketData: {
             ...state.marketData,
             opportunities: [{
                 id: `implement-${Date.now()}`,
-                title: implementation.title,
-                yield: `${implementation.viability}%`,
-                risk: implementation.riskVector === 'LOW' ? 'LOW' : 'HIGH',
-                logic: implementation.logic
+                title: metavention.title,
+                yield: `${metavention.viability}%`,
+                risk: metavention.riskVector === 'LOW' ? 'LOW' : 'HIGH',
+                logic: metavention.logic
             }, ...state.marketData.opportunities].slice(0, 10)
         }
     })),
