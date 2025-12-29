@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -6,138 +6,136 @@ import {
     Microscope, Sparkles, RefreshCw, Radar, HardDrive, Dna, 
     Binary, Save, Globe, ShieldCheck, DollarSign, Search, 
     ChevronRight, CheckCircle2, Layers, Landmark, ShieldAlert,
-    Shield, GitCommit, Radio, Gauge, Waves, Fingerprint, PlayCircle
+    Shield, GitCommit, Radio, Gauge, Waves, Fingerprint, PlayCircle,
+    Terminal, ArrowUpRight, Compass, ListChecks, Network, 
+    Database, Server, Layout, FileSearch, Workflow, AlertTriangle,
+    Eye, Maximize2, Info
 } from 'lucide-react';
-import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
-import { retryGeminiRequest, promptSelectKey, analyzeDeploymentFeasibility } from '../services/geminiService';
+import { retryGeminiRequest, promptSelectKey } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
 import { AppMode } from '../types';
+import { useAgentRuntime } from '../hooks/useAgentRuntime';
+import { cn } from '../utils/cn';
 
-const DeploymentFeasibility = ({ strategy }: { strategy: string | null }) => {
-    const [feasibility, setFeasibility] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false);
+// --- SUB-COMPONENTS ---
 
-    const checkFeasibility = async () => {
-        if (!strategy) return;
-        setLoading(true);
+const ImpactProjection = ({ viability, risk }: { viability: number, risk: string }) => {
+    const sectors = [
+        { label: 'Structural Coherence', val: viability, color: '#9d4edd' },
+        { label: 'Operational Velocity', val: Math.min(100, viability + 10), color: '#22d3ee' },
+        { label: 'Security Buffer', val: risk === 'LOW' ? 95 : 40, color: '#10b981' }
+    ];
+
+    return (
+        <div className="grid grid-cols-3 gap-4">
+            {sectors.map((s, i) => (
+                <div key={i} className="p-4 bg-black/40 border border-white/5 rounded-2xl flex flex-col gap-2">
+                    <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest">{s.label}</span>
+                    <div className="flex items-center gap-3">
+                        <span className="text-lg font-black font-mono text-white">{s.val}%</span>
+                        <div className="flex-1 h-1 bg-white/5 rounded-full overflow-hidden">
+                            <motion.div 
+                                initial={{ width: 0 }} 
+                                animate={{ width: `${s.val}%` }} 
+                                className="h-full" 
+                                style={{ backgroundColor: s.color }} 
+                            />
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+const YieldProbeCLI = () => {
+    const { addLog } = useAppStore();
+    const { execute, state: agentState } = useAgentRuntime();
+    const [probeQuery, setProbeQuery] = useState('');
+    const [probeResult, setProbeResult] = useState<string | null>(null);
+
+    const handleProbe = async () => {
+        if (!probeQuery.trim() || agentState.isThinking) return;
+        addLog('SYSTEM', `META_TOOLING: Dispatching probe for "${probeQuery}"...`);
+        setProbeResult(null);
         audio.playClick();
+        
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
-            const summary = await analyzeDeploymentFeasibility(strategy);
-            setFeasibility(summary);
+            const response = await execute(probeQuery);
+            setProbeResult(response || "No data captured.");
             audio.playSuccess();
         } catch (e) {
-            setFeasibility("Data retrieval error during feasibility grounding.");
-        } finally {
-            setLoading(false);
+            audio.playError();
         }
     };
 
-    if (!strategy) return null;
-
     return (
-        <div className="mt-4 bg-[var(--bg-card-top)] rounded-2xl p-6 border border-white/5 relative overflow-hidden group shadow-lg">
-            <div className="flex justify-between items-center mb-5">
-                <div className="flex items-center gap-4">
-                    <div className="p-2.5 bg-[var(--cyan)]/10 rounded-xl text-[var(--cyan)] border border-[var(--cyan)]/30">
-                        <Globe size={20} />
+        <div className="h-full grid grid-cols-12 gap-8 p-10">
+            <div className="col-span-5 bg-[#0a0a0a] border border-[#333] rounded-[2.5rem] p-8 flex flex-col relative overflow-hidden group shadow-2xl">
+                <div className="absolute inset-0 bg-gradient-to-b from-[#f1c21b]/5 to-transparent pointer-events-none" />
+                <div className="flex items-center gap-4 mb-8">
+                    <div className="p-3 bg-[#f1c21b]/10 rounded-2xl border border-[#f1c21b]/40 text-[#f1c21b] shadow-xl">
+                        <Terminal size={22} />
                     </div>
                     <div>
-                        <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.3em]">Deployment Feasibility Audit</span>
-                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-1">Grounding: Production Environment 2025.Q1</p>
+                        <span className="text-sm font-black font-mono text-white uppercase tracking-[0.4em]">Yield Hunter CLI</span>
+                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-1">Real-time Meta-Tooling Protocol</p>
                     </div>
                 </div>
-                <button 
-                    onClick={checkFeasibility} 
-                    disabled={loading}
-                    className="px-5 py-2 bg-black/40 hover:bg-[var(--cyan)] hover:text-black border border-white/10 rounded-xl text-[9px] font-black uppercase transition-all flex items-center gap-2.5 active:scale-95 group/btn shadow-xl"
-                >
-                    {loading ? <Loader2 size={12} className="animate-spin" /> : <Search size={12} />}
-                    Run Audit
-                </button>
-            </div>
-            
-            <AnimatePresence mode="wait">
-                {feasibility ? (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                        <div className="p-5 bg-black/60 border border-white/5 rounded-2xl text-[12px] font-mono text-gray-300 leading-relaxed italic border-l-4 border-l-[var(--cyan)] shadow-inner">
-                            "{feasibility}"
-                        </div>
-                        <div className="flex items-center justify-between px-2">
-                            <div className="flex items-center gap-2 text-[8px] font-black font-mono text-gray-600 uppercase tracking-widest">
-                                <ShieldCheck size={12} className="text-[#10b981]" />
-                                Validated via D-Ecosystem Grounds
-                            </div>
-                        </div>
-                    </motion.div>
-                ) : (
-                    <div className="py-10 text-center opacity-10 group-hover:opacity-25 transition-all duration-1000">
-                        <Radar size={40} className="mx-auto mb-3 animate-pulse text-[var(--cyan)]" />
-                        <span className="text-[10px] font-black font-mono uppercase tracking-[0.8em] text-white">Awaiting Implementation Pulse</span>
+                <div className="flex-1 flex flex-col gap-6 min-h-0">
+                    <div className="flex-1 bg-black/60 rounded-3xl border border-white/5 p-6 font-mono text-[11px] text-gray-400 overflow-y-auto custom-scrollbar shadow-inner">
+                        <div className="mb-3 text-[#f1c21b] opacity-60 font-black tracking-widest uppercase">// INITIALIZING META_TOOLING HANDSHAKE...</div>
+                        <div className="mb-4 text-[#f1c21b] opacity-40 font-mono text-[9px]">// REGISTERING AUTONOMIC CAPABILITIES...</div>
+                        {agentState.isThinking && <div className="flex items-center gap-3 text-[#f1c21b] animate-pulse py-2"><Loader2 size={12} className="animate-spin" /><span>FORGING_TOOL_CHAIN...</span></div>}
+                        {probeResult && <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-white whitespace-pre-wrap leading-relaxed mt-4 p-4 bg-white/5 rounded-2xl border border-white/5">{probeResult}</motion.div>}
                     </div>
-                )}
-            </AnimatePresence>
+                    <div className="relative group/input">
+                        <input value={probeQuery} onChange={(e) => setProbeQuery(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleProbe()} placeholder="E.g. 'Uniswap APY' or 'Qubic Difficulty'..." className="w-full bg-black border border-[#222] rounded-2xl py-5 pl-8 pr-16 text-xs font-mono text-white focus:outline-none focus:border-[#f1c21b] transition-all shadow-inner group-hover/input:border-[#333]" />
+                        <button onClick={handleProbe} disabled={agentState.isThinking} className="absolute right-3 top-1/2 -translate-y-1/2 p-3 bg-[#f1c21b] text-black rounded-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 shadow-xl"><ArrowUpRight size={18} /></button>
+                    </div>
+                </div>
+            </div>
+            <div className="col-span-7 bg-[#0a0a0a] border border-[#333] rounded-[2.5rem] p-12 flex flex-col relative overflow-hidden shadow-2xl">
+                <div className="flex justify-between items-center mb-8 relative z-10">
+                    <div className="flex items-center gap-5">
+                        <div className="p-3 bg-[#10b981]/10 border border-[#10b981]/40 rounded-2xl text-[#10b981]">
+                            <Activity size={22} />
+                        </div>
+                        <div>
+                            <span className="text-base font-black font-mono text-white uppercase tracking-[0.4em]">Intelligence Delta</span>
+                            <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-2">Active Grounding Telemetry</p>
+                        </div>
+                    </div>
+                    <div className="px-6 py-2 bg-[#10b981]/10 text-[#10b981] rounded-full border border-[#10b981]/30 text-[10px] font-black uppercase tracking-widest shadow-xl animate-pulse">Sync Active</div>
+                </div>
+                <div className="flex-1 bg-black/40 rounded-[3rem] border border-white/5 relative overflow-hidden flex flex-col items-center justify-center group shadow-inner">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.03)_0%,transparent_70%)]" />
+                    <Compass size={120} className="text-gray-800 animate-[spin_20s_linear_infinite] group-hover:scale-110 transition-transform duration-1000" />
+                    <p className="mt-8 text-[11px] font-mono text-gray-600 uppercase tracking-[1em]">Awaiting Search Vector</p>
+                </div>
+            </div>
         </div>
     );
 };
 
-const InfrastructureEfficiencyGraph = ({ active }: { active: boolean }) => {
-    const [data, setData] = useState(Array.from({ length: 40 }, (_, i) => ({
-        time: i,
-        displacement: 15 + Math.random() * 10,
-        entropy: 35 + Math.random() * 15
-    })));
-
-    useEffect(() => {
-        if (!active) return;
-        const interval = setInterval(() => {
-            setData(prev => {
-                const last = prev[prev.length - 1];
-                return [...prev.slice(1), { 
-                    time: last.time + 1, 
-                    displacement: Math.max(5, last.displacement + Math.random() * 12 - 5),
-                    entropy: Math.max(10, 40 + Math.sin(last.time * 0.2) * 20)
-                }];
-            });
-        }, 1200);
-        return () => clearInterval(interval);
-    }, [active]);
-
-    return (
-        <div className="h-40 w-full mt-4 bg-[var(--bg-card-top)] rounded-2xl p-5 overflow-hidden relative border border-white/5 shadow-xl">
-            <div className="absolute top-5 left-6 text-[9px] font-black font-mono text-gray-600 uppercase tracking-widest flex items-center gap-2.5">
-                <Activity size={14} className="text-[var(--amethyst)] animate-pulse" /> Infrastructure Efficiency Delta
-            </div>
-            <div className="absolute top-5 right-6 flex gap-6 text-[8px] font-mono text-gray-700 uppercase tracking-widest">
-                <span className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-[var(--amethyst)]" /> Production Logic</span>
-                <span className="flex items-center gap-2"><div className="w-2 h-0.5 bg-[#ef4444] border-t border-dashed" /> System Drift</span>
-            </div>
-            <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={data}>
-                    <Area type="monotone" dataKey="displacement" stroke="var(--amethyst)" fill="var(--amethyst)" fillOpacity={0.08} strokeWidth={2} isAnimationActive={false} />
-                    <Area type="monotone" dataKey="entropy" stroke="#ef4444" fill="transparent" strokeWidth={1} strokeDasharray="5 5" isAnimationActive={false} opacity={0.3} />
-                </AreaChart>
-            </ResponsiveContainer>
-        </div>
-    );
-};
-
-const SynthesisBridge: React.FC = () => {
-    const { metaventions, setMetaventionsState, addLog, knowledge, toggleKnowledgeLayer, setMode, pushToInvestmentQueue } = useAppStore();
-    const { layers, activeLayerId } = metaventions;
-    const activeLayer = layers.find(l => l.id === activeLayerId);
+const StrategicBridge = () => {
+    const { metaventions, addLog, knowledge, toggleKnowledgeLayer, pushToInvestmentQueue } = useAppStore();
     const activeKnowledgeLayerIds = knowledge.activeLayers || [];
-
     const [isGenerating, setIsGenerating] = useState(false);
+    const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM'>('DRIVE');
     const [currentImplementation, setCurrentImplementation] = useState<any | null>(null);
 
     const generateImplementation = async () => {
-        if (!activeLayer) return;
         setIsGenerating(true);
-        addLog('SYSTEM', `SYNC_INIT: Forging strategic implementation for "${activeLayer.name}"...`);
+        setCurrentImplementation(null);
+        addLog('SYSTEM', `SYNC_INIT: Forging structured process for ${processType === 'DRIVE' ? 'Drive Organization' : 'System Architecture'}...`);
+        audio.playClick();
+
         try {
+            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsGenerating(false); return; }
+            
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const activeKnowledge = activeKnowledgeLayerIds.map(id => KNOWLEDGE_LAYERS[id]?.label).join(', ');
             
@@ -148,192 +146,228 @@ const SynthesisBridge: React.FC = () => {
                     logic: { type: Type.STRING },
                     physicalImpact: { type: Type.STRING },
                     viability: { type: Type.NUMBER },
-                    riskVector: { type: Type.STRING }
+                    riskVector: { type: Type.STRING, enum: ['LOW', 'MEDIUM', 'HIGH'] },
+                    workflowSteps: {
+                        type: Type.ARRAY,
+                        items: {
+                            type: Type.OBJECT,
+                            properties: {
+                                phase: { type: Type.STRING },
+                                instruction: { type: Type.STRING },
+                                nodeRef: { type: Type.STRING }
+                            },
+                            required: ['phase', 'instruction', 'nodeRef']
+                        }
+                    }
                 },
-                required: ['title', 'logic', 'physicalImpact', 'viability', 'riskVector']
+                required: ['title', 'logic', 'physicalImpact', 'viability', 'riskVector', 'workflowSteps']
             };
+
+            const domainContext = processType === 'DRIVE' 
+                ? "Generate a high-fidelity PARA (Projects, Areas, Resources, Archives) drive organization workflow with naming conventions and archival triggers."
+                : "Generate a cloud-native systems architecture implementation process with ingestion, processing, and refractive storage layers.";
 
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
                 model: 'gemini-3-pro-preview',
-                contents: `Infrastructure Layer: ${activeLayer.name}. Strategic Context: ${activeKnowledge}. Directive: Synthesize an elite strategic implementation protocol to bridge digital capital to physical results within The D-Ecosystem. JSON Output.`,
+                contents: `Process Type: ${domainContext}. Contextual Overlays: ${activeKnowledge}. Output structured JSON blueprint.`,
                 config: { responseMimeType: 'application/json', responseSchema: schema }
             }));
 
-            const result = JSON.parse(response.text || '{}');
-            setCurrentImplementation(result);
-            addLog('SUCCESS', `SYNC_COMPLETE: Strategic protocol finalized.`);
+            const data = JSON.parse(response.text || '{}');
+            setCurrentImplementation(data);
+            addLog('SUCCESS', `SYNC_COMPLETE: ${data.title} crystallized.`);
             audio.playSuccess();
-        } catch (e) {
-            addLog('ERROR', 'SYNC_FAIL: Strategic synthesis interrupted.');
+        } catch (e: any) {
+            addLog('ERROR', `SYNC_FAIL: ${e.message}`);
+            audio.playError();
         } finally {
             setIsGenerating(false);
         }
     };
 
-    const handleHandoffToFinance = () => {
-        if (!currentImplementation) return;
-        pushToInvestmentQueue(currentImplementation);
-        addLog('SUCCESS', `TREASURY_SYNC: Capital allocation protocol staged for deployment.`);
-        audio.playSuccess();
-        if (confirm("Protocol staged for funding. Transition to Treasury control?")) {
-            setMode(AppMode.AUTONOMOUS_FINANCE);
-        }
-    };
-
     return (
-        <div className="h-full w-full bg-[var(--bg-main)] flex flex-col border border-[var(--border-main)] rounded-[2.5rem] overflow-hidden shadow-2xl relative font-sans transition-colors duration-500">
-            <div className="h-16 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur z-20 flex items-center justify-between px-10 shrink-0 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#18E6FF]/50 to-transparent" />
-                <div className="flex items-center gap-6">
-                    <div className="p-2.5 bg-[var(--amethyst)]/10 border border-[var(--amethyst)]/30 rounded-xl shadow-xl">
-                        <GitMerge className="w-5 h-5 text-[var(--amethyst)]" />
-                    </div>
-                    <div>
-                        <h1 className="text-sm font-black font-mono uppercase tracking-[0.4em] text-white leading-none">Implementation Bridge</h1>
-                        <span className="text-[8px] text-[var(--text-muted)] font-mono uppercase tracking-widest mt-1.5 block">D-System Handover Logic // v2025.Q1</span>
+        <div className="flex h-full gap-8 p-10 overflow-hidden">
+            {/* Control Sidebar */}
+            <div className="w-[340px] flex flex-col gap-6 shrink-0">
+                <div className="p-8 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+                    <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] block mb-6 px-1">Process Domain</span>
+                    <div className="space-y-3">
+                        <button 
+                            onClick={() => { setProcessType('DRIVE'); audio.playClick(); }}
+                            className={cn(
+                                "w-full p-5 rounded-2xl border text-left transition-all duration-500 flex items-center gap-4 relative overflow-hidden",
+                                processType === 'DRIVE' ? "bg-[#9d4edd]/10 border-[#9d4edd] shadow-xl" : "bg-transparent border-transparent text-gray-500 hover:border-white/10"
+                            )}
+                        >
+                            <HardDrive size={18} className={processType === 'DRIVE' ? "text-[#9d4edd]" : ""} />
+                            <div>
+                                <div className="text-[10px] font-black uppercase font-mono tracking-widest">Drive Org</div>
+                                <div className="text-[7px] opacity-40 uppercase tracking-tighter">PARA Taxonomy</div>
+                            </div>
+                        </button>
+                        <button 
+                            onClick={() => { setProcessType('SYSTEM'); audio.playClick(); }}
+                            className={cn(
+                                "w-full p-5 rounded-2xl border text-left transition-all duration-500 flex items-center gap-4 relative overflow-hidden",
+                                processType === 'SYSTEM' ? "bg-[#22d3ee]/10 border-[#22d3ee] shadow-xl" : "bg-transparent border-transparent text-gray-500 hover:border-white/10"
+                            )}
+                        >
+                            <Server size={18} className={processType === 'SYSTEM' ? "text-[#22d3ee]" : ""} />
+                            <div>
+                                <div className="text-[10px] font-black uppercase font-mono tracking-widest">System Arch</div>
+                                <div className="text-[7px] opacity-40 uppercase tracking-tighter">Cloud Topology</div>
+                            </div>
+                        </button>
                     </div>
                 </div>
-                <button onClick={() => { audio.playClick(); generateImplementation(); }} className="p-2.5 bg-white/5 border border-white/10 hover:border-[var(--amethyst)] rounded-xl text-gray-500 hover:text-white transition-all active:scale-95 group shadow-lg">
-                    <RefreshCw size={16} className="group-active:rotate-180 transition-transform duration-700" />
+
+                <div className="p-8 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2.5rem] shadow-2xl flex-1 overflow-y-auto custom-scrollbar">
+                    <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] block mb-6 px-1">Synthesis Overlays</span>
+                    <div className="space-y-2.5">
+                        {Object.values(KNOWLEDGE_LAYERS).map(l => (
+                            <button key={l.id} onClick={() => toggleKnowledgeLayer(l.id)} className={`w-full p-4 rounded-2xl border text-left transition-all duration-500 relative overflow-hidden group/btn ${activeKnowledgeLayerIds.includes(l.id) ? 'bg-white/5 border-[var(--color)] shadow-xl scale-[1.02]' : 'border-transparent text-gray-500 opacity-40 hover:opacity-100 hover:border-white/10'}`} style={{ '--color': l.color } as any}>
+                                <span className="text-[10px] font-black uppercase font-mono tracking-widest relative z-10">{l.label}</span>
+                                {activeKnowledgeLayerIds.includes(l.id) && <div className="absolute inset-0 bg-gradient-to-r from-[var(--color)] to-transparent opacity-[0.03]" style={{ '--color': l.color } as any} />}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <button 
+                    onClick={generateImplementation} 
+                    disabled={isGenerating}
+                    className="w-full py-6 bg-[#9d4edd] text-black rounded-[2rem] text-[11px] font-black uppercase tracking-[0.4em] shadow-[0_20px_50px_rgba(157,78,221,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4 group"
+                >
+                    {isGenerating ? <Loader2 size={18} className="animate-spin" /> : <GitMerge size={18} className="group-hover:rotate-180 transition-transform duration-700" />}
+                    Synthesize Process
                 </button>
             </div>
 
-            <div className="flex-1 flex overflow-hidden h-full">
-                <div className="w-[300px] border-r border-[var(--border-main)] bg-[var(--bg-side)] flex flex-col shrink-0 relative">
-                    <div className="p-5 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
-                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Strategic Context</span>
-                        <Fingerprint size={14} className="text-gray-800" />
-                    </div>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-8">
-                        <div className="space-y-2">
-                            {Object.values(KNOWLEDGE_LAYERS).map((layer) => {
-                                const isActive = activeKnowledgeLayerIds.includes(layer.id);
-                                return (
-                                    <button key={layer.id} onClick={() => { toggleKnowledgeLayer(layer.id); audio.playClick(); }}
-                                        className={`w-full p-4 rounded-2xl border transition-all duration-500 text-left relative overflow-hidden group
-                                            ${isActive ? 'bg-[var(--bg-panel)] border-[var(--color)] shadow-xl scale-[1.02]' : 'bg-transparent border-transparent opacity-40 hover:opacity-100'}
-                                        `}
-                                        style={{ '--color': layer.color } as any}
-                                    >
-                                        <div className="flex items-center gap-4 relative z-10">
-                                            <div className="p-1.5 rounded-lg bg-white/5" style={{ color: layer.color }}>
-                                                <Landmark size={16} />
-                                            </div>
-                                            <div className="text-[11px] font-black text-white uppercase font-mono truncate w-40">{layer.label}</div>
+            {/* Main Blueprint Display */}
+            <div className="flex-1 flex flex-col gap-8 overflow-y-auto custom-scrollbar pr-4">
+                <AnimatePresence mode="wait">
+                    {currentImplementation ? (
+                        <motion.div key="impl" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-8 pb-12">
+                            <div className="p-12 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[3.5rem] relative overflow-hidden shadow-2xl group/card">
+                                <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover/card:opacity-[0.05] transition-opacity rotate-12"><Sparkles size={180} /></div>
+                                <div className="flex justify-between items-start mb-10">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Protocol Blueprint // Locked</span>
                                         </div>
-                                    </button>
-                                );
-                            })}
-                        </div>
-
-                        <div className="pt-6 border-t border-white/10 space-y-4">
-                            <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest px-1">Infrastructure Hubs</div>
-                            <div className="space-y-2">
-                                {layers.map(layer => (
-                                    <div key={layer.id} onClick={() => { setMetaventionsState({ activeLayerId: layer.id }); audio.playClick(); }} 
-                                        className={`p-4 rounded-2xl border cursor-pointer transition-all duration-500 ${activeLayerId === layer.id ? 'bg-[var(--bg-panel)] border-[var(--amethyst)] shadow-xl' : 'bg-transparent border-transparent opacity-40 hover:opacity-100'}`}
-                                    >
-                                        <div className="flex justify-between items-start mb-1">
-                                            <div className="flex items-center gap-3">
-                                                {layer.status === 'OPTIMIZED' && <CheckCircle2 size={14} className="text-[#10b981]" />}
-                                                <span className={`text-[10px] font-black font-mono uppercase transition-colors ${activeLayerId === layer.id ? 'text-white' : 'text-gray-500'}`}>{layer.name}</span>
-                                            </div>
-                                        </div>
+                                        <h3 className="text-3xl font-black text-white uppercase font-mono tracking-tighter leading-tight">{currentImplementation.title}</h3>
                                     </div>
-                                ))}
+                                    <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-right">
+                                        <span className="text-[8px] font-mono text-gray-500 uppercase block mb-1">Risk Classification</span>
+                                        <span className={cn(
+                                            "text-lg font-black font-mono tracking-widest",
+                                            currentImplementation.riskVector === 'LOW' ? "text-[#10b981]" : "text-[#ef4444]"
+                                        )}>{currentImplementation.riskVector}</span>
+                                    </div>
+                                </div>
+
+                                <div className="p-10 bg-black/60 border border-white/5 rounded-[2.5rem] shadow-inner mb-10 group/logic">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <Microscope size={18} className="text-[#9d4edd]" />
+                                        <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.3em]">Operational Logic</span>
+                                    </div>
+                                    <p className="text-lg text-gray-300 font-mono leading-relaxed italic border-l-4 border-[#9d4edd] pl-10 group-hover/logic:text-white transition-colors duration-500">"{currentImplementation.logic}"</p>
+                                </div>
+
+                                <ImpactProjection viability={currentImplementation.viability} risk={currentImplementation.riskVector} />
+                                
+                                <div className="mt-12 space-y-6">
+                                    <div className="flex items-center gap-3 px-2">
+                                        <ListChecks size={18} className="text-[#10b981]" />
+                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Implementation Sequence</span>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-3">
+                                        {currentImplementation.workflowSteps.map((step: any, i: number) => (
+                                            <div key={i} className="flex items-center gap-6 p-6 bg-white/[0.01] border border-white/[0.03] rounded-[2rem] hover:bg-white/[0.04] transition-all group/step">
+                                                <div className="w-12 h-12 rounded-2xl bg-black border border-white/10 flex items-center justify-center font-mono font-black text-[#9d4edd] shrink-0 shadow-lg group-hover/step:bg-[#9d4edd] group-hover/step:text-black transition-all">
+                                                    {String(i + 1).padStart(2, '0')}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="text-[9px] font-black text-[#22d3ee] uppercase tracking-widest mb-1">{step.phase}</div>
+                                                    <p className="text-xs text-gray-400 font-mono leading-relaxed truncate">{step.instruction}</p>
+                                                </div>
+                                                <div className="text-[8px] font-mono text-gray-700 bg-black px-3 py-1.5 rounded-lg border border-white/5 opacity-0 group-hover/step:opacity-100 transition-opacity">
+                                                    REF: {step.nodeRef}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => { pushToInvestmentQueue(currentImplementation); addLog('SUCCESS', `PROTOCOL_DEPLOY: Authorized deployment of "${currentImplementation.title}"`); audio.playSuccess(); }} 
+                                className="w-full py-8 bg-[#10b981] text-black rounded-[2.5rem] text-[12px] font-black uppercase tracking-[0.5em] shadow-[0_30px_60px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5 group/commit"
+                            >
+                                <PlayCircle size={28} className="group-hover/commit:rotate-90 transition-transform duration-500" /> Commit Protocol Execution
+                            </button>
+                        </motion.div>
+                    ) : (
+                        <div className="flex-1 flex flex-col items-center justify-center opacity-10 text-center gap-10 py-40">
+                            <Workflow size={120} className="animate-pulse text-[#9d4edd]" />
+                            <div className="space-y-4">
+                                <h3 className="text-2xl font-black uppercase tracking-[1em]">Lattice Standby</h3>
+                                <p className="text-[10px] font-mono uppercase tracking-[0.5em] text-gray-500">Establishing multi-layer synthesis command channels</p>
                             </div>
                         </div>
+                    )}
+                </AnimatePresence>
+            </div>
+        </div>
+    );
+};
+
+const SynthesisBridge: React.FC = () => {
+    const [subTab, setSubTab] = useState<'BLUEPRINT' | 'PROBE'>('BLUEPRINT');
+
+    return (
+        <div className="h-full w-full bg-[var(--bg-app)] flex flex-col border border-[var(--border-main)] rounded-[3rem] overflow-hidden shadow-2xl relative font-sans transition-colors duration-500">
+            <div className="h-20 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl z-20 flex items-center justify-between px-12 shrink-0 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/50 to-transparent" />
+                <div className="flex items-center gap-8">
+                    <div className="p-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-2xl shadow-xl">
+                        <GitMerge className="w-6 h-6 text-[#9d4edd]" />
+                    </div>
+                    <div>
+                        <h1 className="text-lg font-black font-mono uppercase tracking-[0.5em] text-white leading-none">Synthesis Bridge</h1>
+                        <span className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-2 block">D-System Implementation Hub</span>
                     </div>
                 </div>
-
-                <div className="flex-1 bg-black/40 flex flex-col relative overflow-hidden h-full">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-10 flex flex-col items-center min-h-0">
-                        <div className="w-full max-w-[800px] flex flex-col h-full">
-                            <AnimatePresence mode="wait">
-                                {!activeLayer ? (
-                                    <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col items-center justify-center opacity-10 text-center gap-10">
-                                        <Activity size={100} className="text-gray-600 animate-pulse" />
-                                        <p className="font-mono text-2xl uppercase tracking-[1em] text-white">System_Offline</p>
-                                    </motion.div>
-                                ) : currentImplementation ? (
-                                    <motion.div key="result" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col gap-6">
-                                        <div className="bg-[var(--bg-card-top)] p-10 rounded-[3rem] relative overflow-hidden shadow-2xl group/result border border-white/5">
-                                            <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover/result:opacity-[0.08] transition-all duration-1000 rotate-12"><Sparkles size={160} className="text-[var(--amethyst)]" /></div>
-                                            <div className="flex items-center gap-4 mb-8">
-                                                <div className="px-5 py-1.5 bg-[var(--amethyst)]/10 border border-[var(--amethyst)]/40 rounded-full">
-                                                    <span className="text-[10px] font-black text-[var(--amethyst)] uppercase font-mono tracking-widest">Implementation Verified</span>
-                                                </div>
-                                            </div>
-                                            <h3 className="text-3xl font-black text-white uppercase font-mono tracking-tighter mb-6 leading-tight">{currentImplementation.title}</h3>
-                                            <p className="text-[15px] text-gray-300 font-mono leading-relaxed italic border-l-4 border-[var(--amethyst)] pl-8 mb-10 py-2 group-hover:text-white transition-colors duration-500">"{currentImplementation.logic}"</p>
-                                            
-                                            <div className="grid grid-cols-2 gap-6">
-                                                <div className="bg-black/60 p-6 rounded-[2rem] border border-white/5 shadow-inner group/viability relative overflow-hidden">
-                                                    <span className="text-[10px] text-gray-600 uppercase font-black block mb-4 tracking-widest">Protocol Confidence</span>
-                                                    <div className="flex items-center gap-6 relative z-10">
-                                                        <span className="text-4xl font-black text-[#10b981] font-mono tracking-tighter">{currentImplementation.viability}%</span>
-                                                        <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden p-px">
-                                                            <motion.div initial={{ width: 0 }} animate={{ width: `${currentImplementation.viability}%` }} transition={{ duration: 1.5 }} className="h-full bg-[#10b981] shadow-[0_0_15px_#10b981]" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div className="bg-black/60 p-6 rounded-[2rem] border border-white/5 shadow-inner group/risk relative overflow-hidden">
-                                                    <span className="text-[10px] text-gray-600 uppercase font-black block mb-4 tracking-widest">Deployment Risk</span>
-                                                    <div className="flex items-center gap-4 text-red-500 relative z-10">
-                                                        <ShieldAlert size={28} className="animate-pulse" />
-                                                        <span className="text-[11px] font-black font-mono uppercase tracking-widest truncate">{currentImplementation.riskVector}</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <DeploymentFeasibility strategy={currentImplementation.logic} />
-                                        <InfrastructureEfficiencyGraph active={true} />
-
-                                        <div className="mt-8 flex gap-6 pb-12">
-                                            <button onClick={handleHandoffToFinance} className="flex-1 py-6 bg-[#10b981] text-black text-[11px] font-black uppercase tracking-[0.4em] rounded-[1.8rem] transition-all flex items-center justify-center gap-5 shadow-xl active:scale-95 group/fin">
-                                                <DollarSign size={20} className="group-hover/fin:scale-125 transition-transform" /> Commit Strategic Capital
-                                            </button>
-                                            <button onClick={generateImplementation} className="px-12 py-6 bg-[var(--amethyst)] text-white font-black uppercase text-[11px] tracking-[0.4em] rounded-[1.8rem] hover:bg-[#8d3ee0] transition-all shadow-xl active:scale-95 group/refresh">
-                                                <RefreshCw size={20} className="group-hover/refresh:rotate-180 transition-transform duration-700" />
-                                            </button>
-                                        </div>
-                                    </motion.div>
-                                ) : (
-                                    <motion.div key="forge" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex-1 flex flex-col items-center justify-center gap-12 min-h-0 scale-90">
-                                        <div className="relative group cursor-pointer" onClick={generateImplementation}>
-                                            <div className="absolute inset-0 bg-[var(--amethyst)]/5 rounded-full blur-[80px] animate-pulse" />
-                                            <div className="w-[240px] h-[240px] rounded-full border border-dashed border-[var(--amethyst)]/30 flex items-center justify-center relative z-10 group-hover:rotate-45 transition-transform duration-[20s]">
-                                                <Zap size={80} className="text-[var(--amethyst)] group-hover:scale-110 transition-transform shadow-[0_0_60px_rgba(123,44,255,0.2)]" />
-                                            </div>
-                                            <div className="absolute inset-0 border border-white/5 rounded-full animate-[ping_15s_linear_infinite] opacity-10" />
-                                        </div>
-                                        <div className="text-center space-y-4">
-                                            <h2 className="text-2xl font-black text-white uppercase tracking-[0.6em]">Implementation Lab</h2>
-                                            <p className="text-[11px] text-gray-500 font-mono max-w-sm mx-auto uppercase tracking-widest opacity-60 leading-relaxed">Synthesizing {activeLayer.name} metadata into active strategic implementations for The D-Ecosystem.</p>
-                                        </div>
-                                        <button onClick={generateImplementation} disabled={isGenerating} className="px-20 py-6 bg-[var(--amethyst)] hover:bg-[#8d3ee0] text-white font-black text-[11px] uppercase tracking-[0.5em] rounded-2xl transition-all shadow-2xl flex items-center gap-6 active:scale-95 group/main">
-                                            {isGenerating ? <Loader2 size={20} className="animate-spin" /> : <PlayCircle size={20} className="group-hover/main:scale-125 transition-transform" />}
-                                            {isGenerating ? 'ANALYZING VECTORS...' : 'Initialize Implementation'}
-                                        </button>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                    </div>
+                <div className="flex items-center gap-1.5 bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner">
+                    <button onClick={() => { setSubTab('BLUEPRINT'); audio.playClick(); }} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${subTab === 'BLUEPRINT' ? 'bg-[#9d4edd] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}>Process Blueprint</button>
+                    <button onClick={() => { setSubTab('PROBE'); audio.playClick(); }} className={`px-8 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${subTab === 'PROBE' ? 'bg-[#f1c21b] text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}>Meta-Tooling</button>
                 </div>
             </div>
 
-            <div className="h-12 bg-black/80 border-t border-[var(--border-main)] px-10 flex items-center justify-between text-[10px] font-mono text-gray-700 shrink-0 relative z-[60] backdrop-blur-3xl">
+            <div className="flex-1 relative z-10 min-h-0 bg-transparent">
+                <AnimatePresence mode="wait">
+                    {subTab === 'BLUEPRINT' ? (
+                        <motion.div key="blueprint" initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 10 }} className="h-full">
+                            <StrategicBridge />
+                        </motion.div>
+                    ) : (
+                        <motion.div key="probe" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="h-full">
+                            <YieldProbeCLI />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+            
+            <div className="h-10 bg-black/80 border-t border-[var(--border-main)] px-12 flex items-center justify-between text-[9px] font-mono text-gray-700 shrink-0 relative z-[60] backdrop-blur-3xl">
                 <div className="flex gap-10 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
                     <div className="flex items-center gap-3 text-[#10b981] font-black uppercase tracking-widest">
-                        <CheckCircle2 size={16} /> Implementation_Stable
+                        <CheckCircle2 size={14} /> Bridge_Handshake_Stable
                     </div>
                     <div className="flex items-center gap-3 uppercase tracking-widest font-bold">
-                        <Binary size={16} className="text-[var(--amethyst)]" /> Protocol Release: 2025.Q1
+                        <Binary size={14} className="text-[#9d4edd]" /> Kernel v9.5-ZENITH
                     </div>
                 </div>
-                <div className="uppercase tracking-widest opacity-40 leading-none text-[8px] font-black">THE D-ECOSYSTEM IMPLEMENTATION BRIDGE</div>
+                <div className="uppercase tracking-widest opacity-40 leading-none text-[8px] font-black">THE D-ECOSYSTEM SYNTHESIS CORE</div>
             </div>
         </div>
     );

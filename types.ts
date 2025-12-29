@@ -169,6 +169,7 @@ export interface ArtifactAnalysis {
     entities: string[];
     summary: string;
     entropyRating?: number;
+    structural_intelligence?: string;
 }
 
 export interface KnowledgeNode {

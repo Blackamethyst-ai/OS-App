@@ -91,7 +91,7 @@ const FocusOverlay = () => {
                 style={{ left: bounds.left - 4, top: bounds.top - 4, width: bounds.width + 8, height: bounds.height + 8 }}
             >
                 <div className="absolute -top-8 left-0 bg-[#9d4edd] text-black text-[10px] font-black font-mono px-2 py-0.5 rounded flex items-center gap-2 pointer-events-auto cursor-pointer" onClick={() => setFocusedSelector(null)}>
-                    <Target size={12}/> CONTEXT_FOCUS_L0 <X size(10) />
+                    <Target size={12}/> CONTEXT_FOCUS_L0 <X size={10} />
                 </div>
             </motion.div>
         </motion.div>

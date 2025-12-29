@@ -150,7 +150,7 @@ export const OS_TOOLS = {
 
     // 7. SEARCH INTELLIGENCE
     search_intel: async (args: { query: string }): Promise<ToolResult> => {
-        const { addLog } = useAppStore();
+        const { addLog } = useAppStore.getState(); // FIX: Used getState() to avoid Error #321
         addLog('SYSTEM', `SEARCH_INTEL: Grounding intelligence for "${args.query}"...`);
         
         try {

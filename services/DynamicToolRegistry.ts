@@ -20,11 +20,25 @@ class DynamicToolRegistry {
         
         this.dynamicLogic = {};
         tools.forEach(tool => {
-            // Sandboxed execution of evolved logic
+            // Refined executor: Ensures no React hooks are mistakenly invoked in sandboxed logic
             this.dynamicLogic[tool.id] = async (args: any) => {
                 try {
-                    const fn = new Function('args', 'context', `return (async () => { ${tool.code} })();`);
-                    const result = await fn(args, { store: useAppStore.getState() });
+                    const state = useAppStore.getState();
+                    // Pass store methods as a clean context object to avoid hook detection
+                    const context = { 
+                        log: state.addLog,
+                        mode: state.mode,
+                        vault: neuralVault
+                    };
+                    
+                    const executor = new Function('args', 'os', `
+                        return (async () => { 
+                            ${tool.code} 
+                        })();
+                    `);
+                    
+                    const result = await executor(args, context);
+
                     return {
                         toolName: tool.id,
                         status: 'SUCCESS',
