@@ -10,22 +10,22 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
     <style>
        :root {
-          /* --- SOVEREIGN TWO-TONE PALETTE (Cyan/Purple/Blue/White) --- */
+          /* --- SOVEREIGN TWO-TONE PALETTE --- */
           --azure-blue: #3b82f6;
           --amethyst: #7B2CFF;
           --cyan: #18E6FF;
-          --void-black: #030305;
+          --void-black: #020204;
           --stellar-white: #FFFFFF;
 
-          /* --- SEMANTIC MAPPING --- */
+          /* --- REFINED GLASS MAPPING --- */
           --bg-app: var(--void-black);
-          --bg-header: rgba(3, 3, 5, 0.98);
-          --bg-panel: rgba(10, 10, 15, 0.95);
-          --bg-card: rgba(15, 15, 20, 0.85);
+          --bg-header: rgba(5, 5, 10, 0.4);
+          --bg-panel: rgba(255, 255, 255, 0.03);
+          --bg-card: rgba(255, 255, 255, 0.02);
           --text-primary: var(--stellar-white);
           --text-secondary: #94A3B8;
-          --text-muted: #475569;
-          --border-main: rgba(24, 230, 255, 0.15);
+          --text-muted: #64748b;
+          --border-main: rgba(255, 255, 255, 0.08);
           --logo-glow: rgba(123, 44, 255, 0.5);
        }
 
@@ -42,49 +42,67 @@
 
        .font-mono { font-family: 'Fira Code', monospace; }
        
-       /* LEGIBILITY SHIELD */
-       .text-shield {
-          text-shadow: 0 0 30px rgba(0,0,0,1), 0 0 10px rgba(0,0,0,0.8);
+       /* THE TRUE CRYSTALLINE FEATURE: High-Index Flint Glass */
+       .crystalline {
+          background: rgba(255, 255, 255, 0.035);
+          backdrop-filter: blur(45px) saturate(240%);
+          -webkit-backdrop-filter: blur(45px) saturate(240%);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          box-shadow: 
+            inset 0 1px 1px rgba(255, 255, 255, 0.1),
+            0 25px 50px -12px rgba(0, 0, 0, 0.7);
        }
 
-       /* SPECTRAL TEXT */
-       .text-glow-spectrum {
-          background: linear-gradient(135deg, var(--amethyst), var(--cyan));
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          filter: drop-shadow(0 0 15px rgba(24, 230, 255, 0.4));
+       /* TRANSPARENT GLASS ACTION BUTTONS */
+       .glass-action {
+          background: rgba(255, 255, 255, 0.05);
+          backdrop-filter: blur(20px) saturate(180%);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.05);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+       }
+       .glass-action:hover {
+          background: rgba(255, 255, 255, 0.12);
+          border-color: rgba(255, 255, 255, 0.4);
+          transform: translateY(-1px);
        }
 
-       .glass-card {
-          background: var(--bg-card);
-          backdrop-filter: blur(40px) saturate(200%);
-          border: 1px solid var(--border-main);
-          box-shadow: inset 0 0 50px rgba(24, 230, 255, 0.05), 0 30px 60px rgba(0,0,0,0.6);
+       /* SPECULAR SHIMMER */
+       .shimmer-edge::after {
+          content: "";
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: linear-gradient(
+            45deg,
+            transparent 45%,
+            rgba(255, 255, 255, 0.08) 48%,
+            rgba(255, 255, 255, 0.15) 50%,
+            rgba(255, 255, 255, 0.08) 52%,
+            transparent 55%
+          );
+          animation: shimmer 12s infinite linear;
+          pointer-events: none;
        }
 
-       /* BRAND INNER GLOW (Deeper, more technical) */
-       .brand-inner-glow {
-          box-shadow: inset 0 0 80px rgba(123, 44, 255, 0.12), inset 0 0 30px rgba(24, 230, 255, 0.08);
+       @keyframes shimmer {
+          0% { transform: translateX(-40%) translateY(-40%); }
+          100% { transform: translateX(40%) translateY(40%); }
        }
 
        .custom-scrollbar::-webkit-scrollbar {
-          width: 5px;
-          height: 5px;
+          width: 4px;
+          height: 4px;
        }
        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: var(--border-main);
+          background: rgba(255, 255, 255, 0.1);
           border-radius: 10px;
        }
        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
 
-       @keyframes slow-drift {
-          0% { transform: translate(0, 0) scale(1); }
-          50% { transform: translate(-1%, -1%) scale(1.02); }
-          100% { transform: translate(0, 0) scale(1); }
-       }
-       .animate-drift { animation: slow-drift 30s ease-in-out infinite; }
-       
        .no-scrollbar::-webkit-scrollbar { display: none; }
        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
@@ -115,7 +133,7 @@
   }
 }
 </script>
-</head>
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
