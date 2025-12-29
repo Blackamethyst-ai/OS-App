@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
 import { 
@@ -237,17 +236,17 @@ const Dashboard: React.FC = () => {
           });
       }, 5000);
       return () => clearInterval(interval);
-  }, [kernel.integrity]);
+  }, [kernel.integrity, setDashboardState]);
 
   const handleIdentitySync = async () => {
     setDashboardState({ isGenerating: true });
     audio.playClick();
     try {
       if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setDashboardState({ isGenerating: false }); return; }
-      const prompt = `Hyper-realistic close-up portrait of the operator from the reference. High-class black enterprise professional, sharp visual clarity, corporate office background.`;
-      const url = await generateArchitectureImage(prompt, AspectRatio.RATIO_1_1, ImageSize.SIZE_4K, dashboard.referenceImage);
+      const prompt = `Hyper-realistic wide cinematic shot of the operator. Immersive action scene in the Metaventions Sovereign command center. He is interacting with complex floating holographic structures. Volumetric cyan and violet light illuminating his face and jacket.`;
+      const url = await generateArchitectureImage(prompt, AspectRatio.RATIO_16_9, ImageSize.SIZE_4K, dashboard.referenceImage);
       setDashboardState({ identityUrl: url });
-      addLog('SUCCESS', 'IDENTITY_SYNC: Professional profile validated and updated.');
+      addLog('SUCCESS', 'IDENTITY_SYNC: Sovereign profile emerged and synchronized.');
       audio.playSuccess();
     } catch (e) {
         addLog('ERROR', 'SYNC_FAIL: Identity oracle unreachable.');
@@ -261,7 +260,7 @@ const Dashboard: React.FC = () => {
           const file = e.target.files[0];
           const part = await fileToGenerativePart(file);
           setDashboardState({ referenceImage: part });
-          addLog('SYSTEM', `ANCHOR_LOAD: Source file [${file.name}] staged.`);
+          addLog('SYSTEM', `ANCHOR_LOAD: New source vector [${file.name}] staged.`);
           audio.playSuccess();
       }
   };
@@ -270,7 +269,7 @@ const Dashboard: React.FC = () => {
       if (!dashboard.identityUrl) return;
       const link = document.createElement('a');
       link.href = dashboard.identityUrl;
-      link.download = `Sovereign_Identity_${Date.now()}.png`;
+      link.download = `Sovereign_Emergence_${Date.now()}.png`;
       link.click();
       audio.playSuccess();
   };
@@ -316,7 +315,7 @@ const Dashboard: React.FC = () => {
                                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-opacity bg-black/40 backdrop-blur-sm z-30">
                                       <div className="flex gap-4">
                                           <button 
-                                              onClick={() => openHoloProjector({ id: 'identity', title: 'Sovereign Identity', type: 'IMAGE', content: dashboard.identityUrl })}
+                                              onClick={() => openHoloProjector({ id: 'identity', title: 'Sovereign Emergence', type: 'IMAGE', content: dashboard.identityUrl })}
                                               className="p-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full text-white transition-all shadow-2xl scale-90 hover:scale-100"
                                           >
                                               <Maximize2 size={24} />
@@ -339,8 +338,8 @@ const Dashboard: React.FC = () => {
                       </div>
                       <div className="h-20 bg-black/30 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-8 shrink-0 z-20">
                          <div className="flex gap-3">
-                             <button onClick={() => setMode(AppMode.PROCESS_MAP)} className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-[#f1c21b]/40 transition-all">Topology Mapper</button>
-                             <button onClick={() => setMode(AppMode.CODE_STUDIO)} className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-[#f1c21b]/40 transition-all">Logic Studio</button>
+                             <button onClick={() => { setMode(AppMode.PROCESS_MAP); window.location.hash = '/process'; }} className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-[#f1c21b]/40 transition-all">Topology Mapper</button>
+                             <button onClick={() => { setMode(AppMode.CODE_STUDIO); window.location.hash = '/code'; }} className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest hover:border-[#f1c21b]/40 transition-all">Logic Studio</button>
                          </div>
                          <button onClick={handleIdentitySync} disabled={dashboard.isGenerating} className="px-8 py-3 bg-[#f1c21b] text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 hover:bg-yellow-400 active:scale-95 disabled:opacity-50">
                             {dashboard.isGenerating ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} 
@@ -362,6 +361,7 @@ const Dashboard: React.FC = () => {
                             <RadarChart data={dashboard.topologyData}>
                                 <PolarGrid stroke="#222" />
                                 <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontBold: 'bold' }} />
+                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                                 <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.1} isAnimationActive={false} />
                             </RadarChart>
                          </ResponsiveContainer>

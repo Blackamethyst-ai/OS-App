@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,20 +25,19 @@ const HoloProjector: React.FC = () => {
 
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
-            let prompt = "Analyze this artifact in detail. Identify key features, potential optimizations, and hidden patterns. Keep it technical and concise.";
+            let prompt = "Analyze this artifact in extreme technical detail. Identify key architectural features, potential optimizations, security vulnerabilities, and aesthetic patterns. Output a professional diagnostic report.";
             let model = 'gemini-3-flash-preview';
             let content: any = null;
 
             if (holo.activeArtifact.type === 'IMAGE') {
-                model = 'gemini-3-flash-preview';
                 const base64Data = (holo.activeArtifact.content as string).split(',')[1];
                 content = {
                     inlineData: { mimeType: 'image/png', data: base64Data }
                 };
             } else if (holo.activeArtifact.type === 'CODE') {
-                prompt = `Analyze this code snippet. Explain its function, time complexity, and suggest one improvement.\n\nCode:\n${holo.activeArtifact.content}`;
+                prompt = `Perform a forensic code review of this logic. Analyze time complexity, potential race conditions, and suggest structural refactors.\n\nCode:\n${holo.activeArtifact.content}`;
             } else {
-                prompt = `Analyze this text:\n\n${holo.activeArtifact.content}`;
+                prompt = `Perform a semantic analysis of this protocol text:\n\n${holo.activeArtifact.content}`;
             }
 
             const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
@@ -47,7 +45,7 @@ const HoloProjector: React.FC = () => {
                 contents: content ? { parts: [content, { text: prompt }] } : prompt
             }));
 
-            setHoloAnalysis(response.text || "Analysis complete. No output generated.");
+            setHoloAnalysis(response.text || "Analysis complete. Signal stabilized.");
 
         } catch (err: any) {
             setHoloAnalysis(`Error: ${err.message}`);
@@ -60,8 +58,9 @@ const HoloProjector: React.FC = () => {
         if (!holo.activeArtifact?.content) return;
         const link = document.createElement('a');
         link.href = holo.activeArtifact.content as string;
-        link.download = `Sovereign_Asset_${Date.now()}.png`;
+        link.download = `Sovereign_Asset_${Date.now()}.${holo.activeArtifact.type === 'IMAGE' ? 'png' : 'txt'}`;
         link.click();
+        addLog('SUCCESS', 'BUFFER: Local asset persistence synchronized.');
     };
 
     const handleTransform = async (instruction: string) => {
@@ -128,12 +127,10 @@ const HoloProjector: React.FC = () => {
                                 {holo.isAnalyzing ? <Loader2 className="w-3 h-3 animate-spin"/> : <BrainCircuit className="w-3 h-3" />}
                                 Deep Scan
                             </button>
-                            {holo.activeArtifact.type === 'IMAGE' && (
-                                <button onClick={saveAsset} className="flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-white/10 border border-[#333] rounded text-[10px] font-mono uppercase tracking-wider transition-all">
-                                    <Download size={14} />
-                                    Save Asset
-                                </button>
-                            )}
+                            <button onClick={saveAsset} className="flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-white/10 border border-[#333] rounded text-[10px] font-mono uppercase tracking-wider transition-all">
+                                <Download size={14} />
+                                Save Asset
+                            </button>
                             <button onClick={closeHoloProjector} className="p-2 text-gray-500 hover:text-white transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
