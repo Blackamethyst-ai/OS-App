@@ -1,7 +1,8 @@
 {
   "requestFramePermissions": [
     "microphone",
-    "camera"
+    "camera",
+    "geolocation"
   ],
   "name": "Metaventions AI V1",
   "description": "Architectural Intelligence OS for Strategic Metaventions."

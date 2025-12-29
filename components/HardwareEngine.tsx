@@ -133,9 +133,9 @@ const PerformanceMixer = ({ label, value, unit, min, max, onValueChange, color }
 );
 
 const MOCK_GPUS = [
-    { id: 'gpu-h100', era: 'SILICON', model: 'NVIDIA H100', manufacturer: 'NVIDIA', arch: 'Hopper', price: 32500, trend: +2.4, stock: 'IN_STOCK', mtbf: 45, specs: { vram: '80GB HBM3', tdp: '700W', cores: '16896 CUDA' }, bom: ['HBM3 Module', 'SXM5 Mezzanine', 'Heat Management Unit', 'Core Die'] },
-    { id: 'gpu-q1', era: 'QUANTUM', model: 'Q-Tensor X1', manufacturer: 'Quantum Logic', arch: 'Q-Core', price: 85000, trend: +12.4, stock: 'LIMITED', mtbf: 12, specs: { vram: '128QB Quantum VRAM', tdp: '1200W', cores: '512 Qubits' }, bom: ['Cryo Interface', 'Quantum Interconnect', 'Superconducting Die', 'Vacuum Stage'] },
-    { id: 'gpu-b1', era: 'BIOMIMETIC', model: 'Synapse V4', manufacturer: 'Synapse Corp', arch: 'Bio-Core', price: 54000, trend: +1.1, stock: 'LIMITED', mtbf: 85, specs: { vram: 'Organic Wetware 1TB', tdp: '150W', cores: '12B Synapses' }, bom: ['Neural Interconnect', 'Organic Cooling Mesh', 'Node Processor', 'Electrolyte Module'] }
+    { id: 'gpu-h100', era: 'SILICON', model: 'NVIDIA H100', manufacturer: 'NVIDIA', arch: 'Hopper', price: 32500, trend: +2.4, stock: 'IN_STOCK', mtbf: 45, specs: { vram: '80GB HBM3', tdp: '700W', cores: '16896 CUDA' }, bom: ['HBM3 Module', 'SXM5 Mezzanine', 'Heat Sink Unit', 'Core Processor Die'] },
+    { id: 'gpu-q1', era: 'QUANTUM', model: 'Q-Tensor X1', manufacturer: 'Quantum Logic', arch: 'Q-Core', price: 85000, trend: +12.4, stock: 'LIMITED', mtbf: 12, specs: { vram: '128QB Quantum VRAM', tdp: '1200W', cores: '512 Qubits' }, bom: ['Cryo Interface', 'High-Fidelity Interconnect', 'Superconducting Logic Die', 'Vacuum Stage Control'] },
+    { id: 'gpu-b1', era: 'BIOMIMETIC', model: 'Synapse V4', manufacturer: 'Synapse Corp', arch: 'Bio-Core', price: 54000, trend: +1.1, stock: 'LIMITED', mtbf: 85, specs: { vram: 'Organic Wetware 1TB', tdp: '150W', cores: '12B Synapses' }, bom: ['Neural Bus Interconnect', 'Micro-Fluidic Cooling', 'Node Logic Die', 'Electrolyte Delivery Module'] }
 ];
 
 const HardwareEngine: React.FC = () => {
@@ -145,7 +145,6 @@ const HardwareEngine: React.FC = () => {
     const [clockSpeed, setClockSpeed] = useState(3.4);
     const [voltage, setVoltage] = useState(1.2);
     const [fanSpeed, setFanSpeed] = useState(2200);
-    const [timing, setTiming] = useState(14);
     const [viewMode, setViewMode] = useState<'2D' | '3D' | 'SCHEMATIC' | 'XRAY' | 'QUANTUM'>('QUANTUM');
     const [showComputeFlux, setShowComputeFlux] = useState(true);
     
@@ -193,13 +192,13 @@ const HardwareEngine: React.FC = () => {
             const data = await fileToGenerativePart(file);
             setHardwareState({ schematicImage: data, isLoading: true, analysis: null, xrayImage: null });
             setIsometricImage(null);
-            addLog('SYSTEM', `INGEST: Hardware Blueprint [${file.name}]...`);
+            addLog('SYSTEM', `INGEST_INIT: Processing Blueprint [${file.name}]...`);
             try {
                 if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); }
                 const [scan, xray, iso] = await Promise.all([analyzeSchematic(data), generateXRayVariant(data), generateIsometricSchematic(data)]);
                 setHardwareState({ analysis: scan, xrayImage: xray, isLoading: false, bom: scan.components || [] });
                 setIsometricImage(iso);
-                addLog('SUCCESS', 'SCAN: Reconstructed topology.');
+                addLog('SUCCESS', 'SCAN_COMPLETE: Infrastructure topology reconstructed.');
                 audio.playSuccess();
                 if (scan.components?.length > 0) fetchSupplyChain(scan.components[0].name);
             } catch (err: any) {
@@ -213,32 +212,32 @@ const HardwareEngine: React.FC = () => {
     const fetchSupplyChain = async (compName: string) => {
         if (!compName) return;
         setIsFetchingSupply(true);
-        addLog('SYSTEM', `SUPPLY_SYNC: Mapping components for "${compName}"...`);
+        addLog('SYSTEM', `SUPPLY_SYNC: Mapping assets for "${compName}"...`);
         try {
             const data = await getLiveSupplyChainData(compName);
             setLiveSupplyData(data);
-            addLog('SUCCESS', `SUPPLY_SYNC: Data locked.`);
+            addLog('SUCCESS', `SUPPLY_SYNC: Logistics data locked.`);
         } catch (e) { console.error(e); } finally { setIsFetchingSupply(false); }
     };
 
     return (
         <div className="h-full w-full bg-[#020202] text-white flex flex-col relative border border-[#1f1f1f] rounded-2xl overflow-hidden shadow-2xl font-sans group/hw">
-            <div className="h-12 border-b border-white/5 bg-[#0a0a0a]/95 backdrop-blur-3xl flex items-center justify-between px-6 z-50 shrink-0 relative overflow-hidden">
+            <div className="h-14 border-b border-white/5 bg-[#0a0a0a]/95 backdrop-blur-3xl flex items-center justify-between px-6 z-50 shrink-0 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#22d3ee]/40 to-transparent" />
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-3">
-                        <div className="p-1.5 rounded-lg border transition-all" style={{ backgroundColor: `${eraColor}15`, borderColor: `${eraColor}40`, color: eraColor }}>
-                            <Cpu className="w-3.5 h-3.5" />
+                        <div className="p-2 rounded-lg border transition-all" style={{ backgroundColor: `${eraColor}15`, borderColor: `${eraColor}40`, color: eraColor }}>
+                            <Cpu className="w-4 h-4" />
                         </div>
                         <div>
-                            <h1 className="text-[10px] font-black font-mono text-white uppercase tracking-widest leading-none">Compute Infrastructure</h1>
-                            <span className="text-[7px] text-gray-600 font-mono uppercase tracking-widest mt-0.5 block">Hardware Asset Core</span>
+                            <h1 className="text-[11px] font-black font-mono text-white uppercase tracking-widest leading-none">D-Infrastructure Engine</h1>
+                            <span className="text-[8px] text-gray-600 font-mono uppercase tracking-widest mt-1 block">Production Asset Management</span>
                         </div>
                     </div>
-                    <div className="h-4 w-px bg-white/5" />
+                    <div className="h-5 w-px bg-white/5" />
                     <div className="flex gap-1 bg-black/60 p-0.5 rounded-lg border border-white/5">
                         {Object.values(TemporalEra).map(era => (
-                            <button key={era} onClick={() => { setHardwareState({ currentEra: era }); audio.playClick(); }} className={`px-3 py-1 rounded text-[7px] font-black font-mono uppercase tracking-widest transition-all ${currentEra === era ? 'bg-white text-black shadow-md' : 'text-gray-500 hover:text-white'}`}>{era}</button>
+                            <button key={era} onClick={() => { setHardwareState({ currentEra: era }); audio.playClick(); }} className={`px-4 py-1.5 rounded text-[8px] font-black font-mono uppercase tracking-widest transition-all ${currentEra === era ? 'bg-white text-black shadow-md' : 'text-gray-500 hover:text-white'}`}>{era}</button>
                         ))}
                     </div>
                 </div>
@@ -247,11 +246,11 @@ const HardwareEngine: React.FC = () => {
                     <div className="flex bg-[#0a0a0a] p-0.5 rounded-lg border border-white/10 shadow-lg">
                         {[
                             { id: 'QUANTUM', icon: ShoppingBag, label: 'BOM' },
-                            { id: '2D', icon: Layers, label: 'Blueprint' },
-                            { id: 'XRAY', icon: Scan, label: 'Thermal' },
-                            { id: 'SCHEMATIC', icon: Binary, label: 'Logistics' }
+                            { id: '2D', icon: Layers, label: 'BLUEPRINT' },
+                            { id: 'XRAY', icon: Scan, label: 'THERMAL' },
+                            { id: 'SCHEMATIC', icon: Binary, label: 'LOGISTICS' }
                         ].map(btn => (
-                            <button key={btn.id} onClick={() => { setViewMode(btn.id as any); audio.playClick(); }} className={`px-3 py-1 rounded text-[8px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${viewMode === btn.id ? 'bg-white text-black shadow-md scale-105' : 'text-gray-500 hover:text-gray-300'}`}><btn.icon size={10} /> {btn.label}</button>
+                            <button key={btn.id} onClick={() => { setViewMode(btn.id as any); audio.playClick(); }} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2.5 ${viewMode === btn.id ? 'bg-white text-black shadow-md scale-105' : 'text-gray-500 hover:text-gray-300'}`}><btn.icon size={11} /> {btn.label}</button>
                         ))}
                     </div>
                 </div>
@@ -264,35 +263,35 @@ const HardwareEngine: React.FC = () => {
                             <motion.div key="quantum-view" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="h-full flex flex-col gap-6 overflow-hidden">
                                 <div className="flex justify-between items-end shrink-0">
                                     <div className="space-y-2">
-                                        <h2 className="text-lg font-black font-mono text-white uppercase tracking-tight">Component Procurement</h2>
+                                        <h2 className="text-xl font-black font-mono text-white uppercase tracking-tight">Component Procurement Hub</h2>
                                         <div className="flex items-center gap-4">
                                             <div className="flex items-center bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-1.5 w-64 focus-within:border-[#22d3ee] transition-all">
-                                                <Search size={10} className="text-gray-600 mr-2" />
-                                                <input value={gpuSearchQuery} onChange={e => setGpuSearchQuery(e.target.value)} placeholder="Filter specs..." className="bg-transparent border-none outline-none text-[9px] font-mono text-white w-full uppercase placeholder:text-gray-800" />
+                                                <Search size={12} className="text-gray-600 mr-2" />
+                                                <input value={gpuSearchQuery} onChange={e => setGpuSearchQuery(e.target.value)} placeholder="Filter components..." className="bg-transparent border-none outline-none text-[10px] font-mono text-white w-full uppercase placeholder:text-gray-800" />
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 overflow-y-auto custom-scrollbar pr-1 pb-6">
+                                <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto custom-scrollbar pr-1 pb-6">
                                     {filteredGpus.filter(g => g.model.toLowerCase().includes(gpuSearchQuery.toLowerCase())).map(gpu => (
                                         <motion.div 
                                             key={gpu.id}
                                             onClick={() => setSelectedGpu(gpu)}
-                                            className={`p-4 bg-[#0a0a0a] border rounded-xl cursor-pointer transition-all relative overflow-hidden group/gpu ${selectedGpu?.id === gpu.id ? 'border-[#22d3ee] shadow-xl' : 'border-white/5 hover:border-white/15'}`}
+                                            className={`p-5 bg-[#0a0a0a] border rounded-2xl cursor-pointer transition-all relative overflow-hidden group/gpu ${selectedGpu?.id === gpu.id ? 'border-[#22d3ee] shadow-xl' : 'border-white/5 hover:border-white/15'}`}
                                         >
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="p-1.5 bg-white/5 rounded-lg text-gray-600 group-hover/gpu:text-[#22d3ee] transition-all"><Box size={14} /></div>
-                                                <div className={`px-2 py-0.5 rounded text-[7px] font-black font-mono uppercase tracking-widest border ${gpu.stock === 'IN_STOCK' ? 'text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30' : 'text-red-500 bg-red-500/10 border-red-500/30'}`}>
+                                            <div className="flex justify-between items-start mb-5">
+                                                <div className="p-2 bg-white/5 rounded-xl text-gray-600 group-hover/gpu:text-[#22d3ee] transition-all"><Box size={18} /></div>
+                                                <div className={`px-3 py-1 rounded-md text-[8px] font-black font-mono uppercase tracking-widest border ${gpu.stock === 'IN_STOCK' ? 'text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30' : 'text-red-500 bg-red-500/10 border-red-500/30'}`}>
                                                     {gpu.stock.replace('_', ' ')}
                                                 </div>
                                             </div>
-                                            <h3 className="text-[11px] font-black text-white uppercase font-mono tracking-tighter mb-0.5">{gpu.model}</h3>
-                                            <p className="text-[7px] text-gray-600 font-mono uppercase tracking-widest mb-4">{gpu.manufacturer}</p>
-                                            <div className="flex justify-between items-end border-t border-white/5 pt-3">
+                                            <h3 className="text-[13px] font-black text-white uppercase font-mono tracking-tighter mb-1">{gpu.model}</h3>
+                                            <p className="text-[8px] text-gray-600 font-mono uppercase tracking-widest mb-6">{gpu.manufacturer} // Infrastructure Tier</p>
+                                            <div className="flex justify-between items-end border-t border-white/5 pt-4">
                                                 <div>
-                                                    <span className="text-[6px] font-mono text-gray-600 uppercase tracking-widest block mb-0.5">Price</span>
-                                                    <span className="text-sm font-black font-mono text-[#10b981] tracking-tighter">${gpu.price.toLocaleString()}</span>
+                                                    <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest block mb-1">Asset Value</span>
+                                                    <span className="text-base font-black font-mono text-[#10b981] tracking-tighter">${gpu.price.toLocaleString()}</span>
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -301,27 +300,27 @@ const HardwareEngine: React.FC = () => {
 
                                 <AnimatePresence>
                                     {selectedGpu && (
-                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 180, opacity: 1 }} className="border-t border-white/10 bg-[#050505]/95 backdrop-blur-2xl -mx-6 -mb-6 p-4 flex gap-6 overflow-hidden shadow-2xl relative z-20 shrink-0">
-                                            <div className="w-[240px] flex flex-col gap-2 shrink-0">
-                                                <h4 className="text-[10px] font-black font-mono text-white uppercase tracking-tight">{selectedGpu.model} // BOM</h4>
-                                                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1">
+                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 200, opacity: 1 }} className="border-t border-white/10 bg-[#050505]/95 backdrop-blur-2xl -mx-6 -mb-6 p-6 flex gap-8 overflow-hidden shadow-2xl relative z-20 shrink-0">
+                                            <div className="w-[280px] flex flex-col gap-3 shrink-0">
+                                                <h4 className="text-[11px] font-black font-mono text-white uppercase tracking-tight">{selectedGpu.model} // BOM Specification</h4>
+                                                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1.5">
                                                     {selectedGpu.bom.map((item, i) => (
-                                                        <div key={i} className="p-2 bg-black border border-white/5 rounded-lg flex items-center justify-between group/bom-item hover:border-[#22d3ee]/30 transition-all">
-                                                            <span className="text-[8px] font-black text-gray-400 uppercase truncate">{item}</span>
-                                                            <button onClick={() => fetchSupplyChain(item)} className="p-1 text-gray-700 hover:text-[#22d3ee] rounded transition-all"><ExternalLink size={8}/></button>
+                                                        <div key={i} className="p-2.5 bg-black border border-white/5 rounded-xl flex items-center justify-between group/bom-item hover:border-[#22d3ee]/30 transition-all">
+                                                            <span className="text-[9px] font-black text-gray-400 uppercase truncate">{item}</span>
+                                                            <button onClick={() => fetchSupplyChain(item)} className="p-1 text-gray-700 hover:text-[#22d3ee] rounded transition-all"><ExternalLink size={10}/></button>
                                                         </div>
                                                     ))}
                                                 </div>
                                             </div>
 
-                                            <div className="flex-1 flex flex-col gap-2">
+                                            <div className="flex-1 flex flex-col gap-4">
                                                 <div className="flex justify-between items-center px-1">
-                                                    <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Yield Variance Model</span>
-                                                    <button onClick={() => fetchSupplyChain(selectedGpu.model)} className="px-3 py-1 bg-[#10b981] text-black rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">Sourcing</button>
+                                                    <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Asset Lifecycle Projection</span>
+                                                    <button onClick={() => fetchSupplyChain(selectedGpu.model)} className="px-4 py-2 bg-[#10b981] text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg">Procure Unit</button>
                                                 </div>
-                                                <div className="flex-1 bg-black rounded-xl border border-white/5 p-4 relative overflow-hidden">
-                                                    <AreaChart data={Array.from({length: 20}, (_, i) => ({ t: i, v: 30000 + Math.random() * 5000 }))} width={400} height={100}>
-                                                        <Area type="monotone" dataKey="v" stroke="#10b981" fill="rgba(16,185,129,0.06)" strokeWidth={1} />
+                                                <div className="flex-1 bg-black rounded-2xl border border-white/5 p-4 relative overflow-hidden shadow-inner">
+                                                    <AreaChart data={Array.from({length: 20}, (_, i) => ({ t: i, v: 30000 + Math.random() * 5000 }))} width={450} height={100}>
+                                                        <Area type="monotone" dataKey="v" stroke="#10b981" fill="rgba(16,185,129,0.08)" strokeWidth={2} />
                                                     </AreaChart>
                                                 </div>
                                             </div>
@@ -331,14 +330,14 @@ const HardwareEngine: React.FC = () => {
                             </motion.div>
                         ) : (
                             <div className="h-full flex flex-col gap-5">
-                                <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-white/10 rounded-2xl bg-[#050505]/40 group hover:border-[#22d3ee]/20 transition-all duration-700 relative">
-                                    <label className="flex flex-col items-center gap-4 cursor-pointer text-center p-12">
-                                        <div className="w-16 h-16 rounded-xl bg-[#0a0a0a] border border-white/10 flex items-center justify-center group-hover:scale-110 transition-all shadow-2xl">
-                                            <Upload size={24} className="text-gray-700 group-hover:text-[#22d3ee] transition-colors" />
+                                <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-white/10 rounded-3xl bg-[#050505]/40 group hover:border-[#22d3ee]/20 transition-all duration-700 relative">
+                                    <label className="flex flex-col items-center gap-6 cursor-pointer text-center p-12">
+                                        <div className="w-20 h-20 rounded-2xl bg-[#0a0a0a] border border-white/10 flex items-center justify-center group-hover:scale-110 transition-all shadow-2xl">
+                                            <Upload size={32} className="text-gray-700 group-hover:text-[#22d3ee] transition-colors" />
                                         </div>
-                                        <div className="space-y-1">
-                                            <h2 className="text-[13px] font-black text-white font-mono uppercase tracking-[0.3em]">Load Blueprint</h2>
-                                            <p className="text-[8px] text-gray-600 font-mono max-w-xs mx-auto uppercase tracking-widest">Map physical assets into visual infrastructure.</p>
+                                        <div className="space-y-2">
+                                            <h2 className="text-lg font-black text-white font-mono uppercase tracking-[0.3em]">Import Asset Blueprint</h2>
+                                            <p className="text-[9px] text-gray-600 font-mono max-w-xs mx-auto uppercase tracking-widest">Digitize physical systems into The D-Ecosystem infrastructure layer.</p>
                                         </div>
                                         <input type="file" className="hidden" onChange={handleUpload} accept="image/*" />
                                     </label>
@@ -348,51 +347,56 @@ const HardwareEngine: React.FC = () => {
                     </AnimatePresence>
                 </div>
 
-                <div className="w-[280px] border-l border-[#1f1f1f] bg-[#050505] flex flex-col shrink-0 z-30 shadow-2xl relative">
-                    <div className="p-4 border-b border-white/5 bg-white/[0.01]">
-                        <div className="flex items-center justify-between mb-4">
-                            <div className="flex items-center gap-2"><SlidersHorizontal size={12} className="text-[#22d3ee]" /><h2 className="text-[8px] font-black text-white uppercase tracking-widest">System Control</h2></div>
+                <div className="w-[320px] border-l border-[#1f1f1f] bg-[#050505] flex flex-col shrink-0 z-30 shadow-2xl relative">
+                    <div className="p-5 border-b border-white/5 bg-white/[0.01]">
+                        <div className="flex items-center justify-between mb-5 px-1">
+                            <div className="flex items-center gap-2.5"><SlidersHorizontal size={14} className="text-[#22d3ee]" /><h2 className="text-[10px] font-black text-white uppercase tracking-widest">Hardware Parameters</h2></div>
                         </div>
-                        <div className="space-y-1.5">
-                            <PerformanceMixer label="Processor" value={clockSpeed} unit="GHz" min={1.2} max={6.4} color={eraColor} onValueChange={setClockSpeed} />
-                            <PerformanceMixer label="Supply" value={voltage} unit="v" min={0.7} max={1.65} color="#ef4444" onValueChange={setVoltage} />
-                            <PerformanceMixer label="Fans" value={fanSpeed} unit=" RPM" min={0} max={6000} color="#9d4edd" onValueChange={(val: number) => setFanSpeed(val)} />
+                        <div className="space-y-2">
+                            <PerformanceMixer label="CPU FREQUENCY" value={clockSpeed} unit="GHz" min={1.2} max={6.4} color={eraColor} onValueChange={setClockSpeed} />
+                            <PerformanceMixer label="POWER VOLTAGE" value={voltage} unit="v" min={0.7} max={1.65} color="#ef4444" onValueChange={setVoltage} />
+                            <PerformanceMixer label="COOLING ARRAY" value={fanSpeed} unit=" RPM" min={0} max={6000} color="#9d4edd" onValueChange={(val: number) => setFanSpeed(val)} />
                         </div>
                     </div>
 
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
-                        <div className="space-y-2">
-                            <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 px-1"><DollarSign size={10} className="text-[#10b981]"/> CapEx / OpEx</span>
-                            <div className="p-4 bg-[#0a1a0a] border border-[#10b981]/15 rounded-xl space-y-2 relative overflow-hidden shadow-lg">
-                                <div className="grid grid-cols-2 gap-2 relative z-10">
-                                    <div className="space-y-0.5">
-                                        <span className="text-[6px] font-mono text-gray-600 uppercase tracking-widest">Est. Cost</span>
-                                        <div className="text-[13px] font-black font-mono text-white tracking-tighter">${finTelemetry.totalBomCost > 0 ? finTelemetry.totalBomCost.toLocaleString() : '--'}</div>
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-8">
+                        <div className="space-y-3">
+                            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 px-1"><DollarSign size={12} className="text-[#10b981]"/> CapEx Management</span>
+                            <div className="p-5 bg-[#0a1a0a] border border-[#10b981]/20 rounded-2xl space-y-3 relative overflow-hidden shadow-xl">
+                                <div className="grid grid-cols-2 gap-3 relative z-10">
+                                    <div className="space-y-1">
+                                        <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Projected Cost</span>
+                                        <div className="text-lg font-black font-mono text-white tracking-tighter">${finTelemetry.totalBomCost > 0 ? finTelemetry.totalBomCost.toLocaleString() : '--'}</div>
                                     </div>
-                                    <div className="space-y-0.5 text-right">
-                                        <span className="text-[6px] font-mono text-gray-600 uppercase tracking-widest">Yield</span>
-                                        <div className="text-[13px] font-black font-mono text-[#10b981] tracking-tighter">{finTelemetry.roiProjection > 0 ? `+${finTelemetry.roiProjection}%` : '--'}</div>
+                                    <div className="space-y-1 text-right">
+                                        <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Efficiency Yield</span>
+                                        <div className="text-lg font-black font-mono text-[#10b981] tracking-tighter">{finTelemetry.roiProjection > 0 ? `+${finTelemetry.roiProjection}%` : '--'}</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="space-y-2"><span className="text-[8px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 px-1"><Thermometer size={10}/> Global Thermal</span><NeuralThermalGrid stressLevel={stressLevel} /></div>
+                        <div className="space-y-3 px-1"><span className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5"><Thermometer size={12}/> Thermal Distribution</span><NeuralThermalGrid stressLevel={stressLevel} /></div>
                     </div>
 
-                    <div className="p-4 border-t border-white/5 bg-black shrink-0 space-y-3">
-                        <div className="flex justify-between items-center text-[7px] font-black font-mono text-gray-700 uppercase"><span>Aggregate Load</span><span className="text-[#22d3ee]">NOMINAL</span></div>
-                        <div className="grid grid-cols-2 gap-2">
-                            <div className="p-2 bg-white/[0.01] border border-white/5 rounded-lg flex flex-col gap-0.5"><span className="text-[6px] text-gray-600 uppercase font-mono tracking-widest">Power</span><span className="text-xs font-black font-mono text-white">{powerDraw}W</span></div>
-                            <div className="p-2 bg-white/[0.01] border border-white/5 rounded-lg flex flex-col gap-0.5"><span className="text-[6px] text-gray-600 uppercase font-mono tracking-widest">MTBF</span><span className="text-xs font-black font-mono text-[#10b981]">{mtbf.toLocaleString()}h</span></div>
+                    <div className="p-6 border-t border-white/5 bg-black shrink-0 space-y-4 shadow-2xl">
+                        <div className="flex justify-between items-center text-[8px] font-black font-mono text-gray-700 uppercase tracking-widest"><span>Production Load Status</span><span className="text-[#22d3ee] animate-pulse">ACK_NOMINAL</span></div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <div className="p-3 bg-white/[0.01] border border-white/5 rounded-xl flex flex-col gap-1"><span className="text-[7px] text-gray-600 uppercase font-mono tracking-widest">Unit Wattage</span><span className="text-sm font-black font-mono text-white">{powerDraw}W</span></div>
+                            <div className="p-3 bg-white/[0.01] border border-white/5 rounded-xl flex flex-col gap-1"><span className="text-[7px] text-gray-600 uppercase font-mono tracking-widest">Estimated Life</span><span className="text-sm font-black font-mono text-[#10b981]">{mtbf.toLocaleString()}h</span></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div className="h-8 bg-[#0a0a0a] border-t border-[#1f1f1f] px-6 flex items-center justify-between text-[8px] font-mono text-gray-700 shrink-0 relative z-[60]">
-                <div className="flex gap-8 items-center overflow-x-auto no-scrollbar whitespace-nowrap"><div className="flex items-center gap-2 text-emerald-500/80 font-bold uppercase tracking-widest"><ShieldCheck size={12} /> Production v2.1</div><div className="flex items-center gap-2 uppercase tracking-widest"><Binary size={12} className="text-[#22d3ee]/70" /> Bus_Sync: 1.2 GHz</div></div>
-                <div className="flex items-center gap-6 shrink-0"><span className="font-black text-gray-500 uppercase tracking-widest leading-none">SYSTEMS_ENGINE</span></div>
+            <div className="h-10 bg-[#0a0a0a] border-t border-[#1f1f1f] px-8 flex items-center justify-between text-[9px] font-mono text-gray-700 shrink-0 relative z-[60]">
+                <div className="flex gap-10 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
+                    <div className="flex items-center gap-2 text-emerald-500/80 font-bold uppercase tracking-widest"><ShieldCheck size={14} /> D-Production Valid</div>
+                    <div className="flex items-center gap-2 uppercase tracking-widest"><Binary size={14} className="text-[#22d3ee]/70" /> Bus_Sync: 1.2 GHz</div>
+                </div>
+                <div className="flex items-center gap-8 shrink-0">
+                    <span className="font-black text-gray-500 uppercase tracking-widest leading-none">THE D-ECOSYSTEM SYSTEMS_ENGINE</span>
+                </div>
             </div>
         </div>
     );
