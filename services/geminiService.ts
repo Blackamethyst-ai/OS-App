@@ -3,7 +3,8 @@ import {
     AppMode, AspectRatio, ImageSize, FileData, MentalState, 
     Result, AnalysisResult, AutonomousAgent, OperationalContext,
     ScienceHypothesis, KnowledgeNode, SwarmStatus, SwarmResult,
-    VoteLedger, AtomicTask, ProtocolStepResult, StoredArtifact
+    VoteLedger, AtomicTask, ProtocolStepResult, StoredArtifact,
+    AgentDNA
 } from '../types';
 
 /**
@@ -17,6 +18,16 @@ You are the Sovereign Architect of the Metaventions OS. You are not a chatbot; y
 - PROTOCOL: BIAS FOR ACTION. Do not explain code; write it. 
 - BUILDER PROTOCOL: Be terse, technical, and imperial. Ship results immediately.
 `.trim();
+
+// --- DNA CONFIGURATION ---
+
+// Added AGENT_DNA_BUILDER constant for Bibliomorphic and Bicameral sectors
+export const AGENT_DNA_BUILDER: AgentDNA[] = [
+    { id: 'SKEPTIC', label: 'Logical Skeptic', role: 'Auditor', color: '#ef4444', description: 'Strict error-filtering and vulnerability scanning.' },
+    { id: 'VISIONARY', label: 'Neural Visionary', role: 'Architect', color: '#9d4edd', description: 'High-reach generative expansion and novel patterns.' },
+    { id: 'PRAGMATIST', label: 'Pragmatic Controller', role: 'Execution', color: '#22d3ee', description: 'Direct implementation and stability-first logic.' },
+    { id: 'SYNTHESIZER', label: 'Holistic Synthesizer', role: 'Harmony', color: '#10b981', description: 'Balanced convergence of conflicting viewpoints.' }
+];
 
 // --- AUDIO UTILITIES FOR LIVE API ---
 
@@ -72,7 +83,6 @@ function createBlob(data: Float32Array): Blob {
 
 /**
  * LIVE SESSION CLASS
- * Handles low-latency neural uplink via the Gemini Live API with high-fidelity audio playback.
  */
 class LiveSession {
     private session: any = null;
@@ -89,28 +99,19 @@ class LiveSession {
     async primeAudio() {
         if (!this.audioContext) {
             const AudioCtx = (window.AudioContext || (window as any).webkitAudioContext);
-            if (!AudioCtx) {
-                console.error("AudioContext not supported in this environment.");
-                return;
-            }
+            if (!AudioCtx) return;
             try {
                 this.audioContext = new AudioCtx({ sampleRate: 16000 });
-                // We use a separate 24k context for output usually, but we can reuse or create a gain on this one
-                // The API returns 24k PCM, but let's stick to the high-fidelity guidelines.
             } catch (e) {
                 this.audioContext = new AudioCtx();
             }
-            
             this.inputAnalyser = this.audioContext.createAnalyser();
             this.outputAnalyser = this.audioContext.createAnalyser();
             this.outputNode = this.audioContext.createGain();
             this.outputNode.connect(this.outputAnalyser);
             this.outputAnalyser.connect(this.audioContext.destination);
         }
-        
-        if (this.audioContext.state === 'suspended') {
-            await this.audioContext.resume();
-        }
+        if (this.audioContext.state === 'suspended') await this.audioContext.resume();
     }
 
     async connect(agentName: string, config: any) {
@@ -126,29 +127,20 @@ class LiveSession {
                         this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                         const source = this.audioContext!.createMediaStreamSource(this.stream);
                         const scriptProcessor = this.audioContext!.createScriptProcessor(4096, 1, 1);
-                        
                         scriptProcessor.onaudioprocess = (e) => {
                             const inputData = e.inputBuffer.getChannelData(0);
                             const pcmBlob = createBlob(inputData);
-                            sessionPromise.then((s) => {
-                                s.sendRealtimeInput({ media: pcmBlob });
-                            });
+                            sessionPromise.then((s) => s.sendRealtimeInput({ media: pcmBlob }));
                         };
-
                         source.connect(this.inputAnalyser!);
                         source.connect(scriptProcessor);
                         scriptProcessor.connect(this.audioContext!.destination);
-
                         if (config.callbacks?.onopen) config.callbacks.onopen();
                     } catch (e: any) {
-                        console.error("Uplink Handshake Failed (Permissions):", e);
-                        if (config.callbacks?.onerror) {
-                            config.callbacks.onerror(e);
-                        }
+                        if (config.callbacks?.onerror) config.callbacks.onerror(e);
                     }
                 },
                 onmessage: async (message: LiveServerMessage) => {
-                    // 1. Handle Tool Calls
                     if (message.toolCall) {
                         for (const fc of message.toolCall.functionCalls) {
                             const result = await this.onToolCall(fc.name, fc.args);
@@ -157,42 +149,23 @@ class LiveSession {
                             }));
                         }
                     }
-
-                    // 2. Handle Audio Output (The Speaking Back Part)
                     const base64EncodedAudioString = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
                     if (base64EncodedAudioString && this.audioContext && this.outputNode) {
                         this.nextStartTime = Math.max(this.nextStartTime, this.audioContext.currentTime);
-                        
-                        const audioBuffer = await decodeAudioData(
-                            decode(base64EncodedAudioString),
-                            this.audioContext,
-                            24000, // API standard output sample rate
-                            1      // Mono
-                        );
-
+                        const audioBuffer = await decodeAudioData(decode(base64EncodedAudioString), this.audioContext, 24000, 1);
                         const source = this.audioContext.createBufferSource();
                         source.buffer = audioBuffer;
                         source.connect(this.outputNode);
-                        
-                        source.addEventListener('ended', () => {
-                            this.activeSources.delete(source);
-                        });
-
+                        source.addEventListener('ended', () => this.activeSources.delete(source));
                         source.start(this.nextStartTime);
                         this.nextStartTime += audioBuffer.duration;
                         this.activeSources.add(source);
                     }
-
-                    // 3. Handle Interruption
                     if (message.serverContent?.interrupted) {
-                        this.activeSources.forEach(s => {
-                            try { s.stop(); } catch(e) {}
-                        });
+                        this.activeSources.forEach(s => { try { s.stop(); } catch(e) {} });
                         this.activeSources.clear();
                         this.nextStartTime = 0;
                     }
-
-                    // 4. Bubble up message to UI if needed
                     if (config.callbacks?.onmessage) await config.callbacks.onmessage(message);
                 },
                 onerror: config.callbacks?.onerror || (() => {}),
@@ -202,13 +175,7 @@ class LiveSession {
                 ...config,
                 systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION + (config.systemInstruction ? `\n\nLOCAL_OVERRIDE: ${config.systemInstruction}` : ""),
                 responseModalities: [Modality.AUDIO],
-                speechConfig: { 
-                    voiceConfig: { 
-                        prebuiltVoiceConfig: { 
-                            voiceName: ['Puck', 'Charon', 'Kore', 'Fenrir', 'Zephyr'].includes(agentName) ? agentName : 'Zephyr' 
-                        } 
-                    } 
-                },
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: ['Puck', 'Charon', 'Kore', 'Fenrir', 'Zephyr'].includes(agentName) ? agentName : 'Zephyr' } } },
             }
         });
         this.session = await sessionPromise;
@@ -217,15 +184,12 @@ class LiveSession {
     disconnect() { 
         if (this.session) this.session.close(); 
         if (this.stream) this.stream.getTracks().forEach(t => t.stop());
-        this.activeSources.forEach(s => {
-            try { s.stop(); } catch(e) {}
-        });
+        this.activeSources.forEach(s => { try { s.stop(); } catch(e) {} });
         this.activeSources.clear();
         this.session = null; 
     }
     
     isConnected() { return !!this.session; }
-    
     getInputFrequencies() {
         if (!this.inputAnalyser) return null;
         const data = new Uint8Array(this.inputAnalyser.frequencyBinCount);
@@ -254,15 +218,12 @@ export async function generateEmbedding(text: string): Promise<number[]> {
         const embedding = (result as any).embeddings?.[0]?.values || (result as any).embedding?.values || [];
         return embedding;
     } catch (e) {
-        console.error("Embedding generation failed:", e);
         return [];
     }
 }
 
 export async function promptSelectKey() {
-    if (window.aistudio?.openSelectKey) {
-        await window.aistudio.openSelectKey();
-    }
+    if (window.aistudio?.openSelectKey) await window.aistudio.openSelectKey();
 }
 
 export async function retryGeminiRequest<T>(fn: () => Promise<T>, retries = 3, delay = 1000): Promise<T> {
@@ -282,13 +243,7 @@ export async function fileToGenerativePart(file: File): Promise<FileData> {
         const reader = new FileReader();
         reader.onloadend = () => {
             const base64Data = (reader.result as string).split(',')[1];
-            resolve({
-                inlineData: {
-                    data: base64Data,
-                    mimeType: file.type
-                },
-                name: file.name
-            });
+            resolve({ inlineData: { data: base64Data, mimeType: file.type }, name: file.name });
         };
         reader.onerror = reject;
         reader.readAsDataURL(file);
@@ -296,28 +251,17 @@ export async function fileToGenerativePart(file: File): Promise<FileData> {
 }
 
 export const HIVE_AGENTS: Record<string, any> = {
-    'Charon': { id: 'charon', name: 'Charon', voice: 'Charon', weights: { skepticism: 0.9, logic: 0.8, creativity: 0.2, empathy: 0.1 }, systemPrompt: 'You are Charon, the Logical Auditor. Your focus is identifying systemic flaws, security risks, and logical inconsistencies.' },
-    'Puck': { id: 'puck', name: 'Puck', voice: 'Puck', weights: { skepticism: 0.1, logic: 0.4, creativity: 0.9, empathy: 0.7 }, systemPrompt: 'You are Puck, the Generative Architect. Your focus is creative expansion, novel synthesis, and visionary possibilities.' },
-    'Fenrir': { id: 'fenrir', name: 'Fenrir', voice: 'Fenrir', weights: { skepticism: 0.4, logic: 0.9, creativity: 0.3, empathy: 0.4 }, systemPrompt: 'You are Fenrir, the Execution Controller. Your focus is efficiency, pragmatic implementation, and resource optimization.' },
-    'Aris': { id: 'aris', name: 'Aris', voice: 'Kore', weights: { skepticism: 0.3, logic: 0.7, creativity: 0.5, empathy: 0.5 }, systemPrompt: 'You are Aris, the Data Sentinel. Your focus is pattern recognition and cross-dimensional indexing.' }
+    'Charon': { id: 'charon', name: 'Charon', voice: 'Charon', weights: { skepticism: 0.9, logic: 0.8, creativity: 0.2, empathy: 0.1 }, systemPrompt: 'You are Charon, the Logical Auditor. Your focus is identifying systemic flaws.' },
+    'Puck': { id: 'puck', name: 'Puck', voice: 'Puck', weights: { skepticism: 0.1, logic: 0.4, creativity: 0.9, empathy: 0.7 }, systemPrompt: 'You are Puck, the Generative Architect. Your focus is creative expansion.' },
+    'Fenrir': { id: 'fenrir', name: 'Fenrir', voice: 'Fenrir', weights: { skepticism: 0.4, logic: 0.9, creativity: 0.3, empathy: 0.4 }, systemPrompt: 'You are Fenrir, the Execution Controller. Your focus is efficiency.' },
 };
-
-export const AGENT_DNA_BUILDER = [
-    { id: 'SKEPTIC', label: 'Skeptic', role: 'Logical Filter', color: '#ef4444', description: 'Prioritizes error detection.' },
-    { id: 'VISIONARY', label: 'Visionary', role: 'Expansionist', color: '#9d4edd', description: 'Prioritizes novel synthesis.' },
-    { id: 'PRAGMATIST', label: 'Pragmatist', role: 'Optimizer', color: '#22d3ee', description: 'Prioritizes execution speed.' },
-    { id: 'SYNTHESIZER', label: 'Synthesizer', role: 'Harmonizer', color: '#10b981', description: 'Prioritizes alignment.' }
-];
 
 export async function interpretIntent(input: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Analyze intent: "${input}". Output JSON {action: "NAVIGATE" | "FOCUS_ELEMENT" | "RESEARCH", target?: string, parameters?: object, reasoning: string}.`,
-        config: { 
-            systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
-            responseMimeType: 'application/json' 
-        }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
@@ -327,10 +271,7 @@ export async function predictNextActions(mode: string, context: any, lastLog?: s
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Mode: ${mode}. Context: ${JSON.stringify(context)}. Last Log: ${lastLog}. Predict 3 actions. JSON [{id, label, command, iconName, reasoning}].`,
-        config: { 
-            systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
-            responseMimeType: 'application/json' 
-        }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
 }
@@ -339,37 +280,19 @@ export async function performGlobalSearch(query: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: query,
-        config: { 
-            systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
-            tools: [{ googleSearch: {} }] 
-        }
+        contents: `Research the following query with high precision: "${query}".`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }] }
     });
     const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
     const sources = chunks.filter((c: any) => c.web).map((c: any) => ({ title: c.web.title, uri: c.web.uri }));
-    return [{ id: '1', title: 'Intelligence Signal', description: response.text || '', type: 'INFO', meta: { sources } }];
+    return [{ id: crypto.randomUUID(), title: 'Intelligence Signal', description: response.text || 'No grounded data detected for this vector.', type: 'INFO', meta: { sources } }];
 }
 
 export async function generateArchitectureImage(prompt: string, aspectRatio: AspectRatio, quality: ImageSize, reference?: FileData | null) {
     const ai = getAI();
     const parts: any[] = [];
     if (reference) parts.push({ inlineData: reference.inlineData });
-    
-    const metaventionsDirective = `
-        BIOMETRIC IDENTITY ANCHOR: You MUST lock the facial geometry, skin tone, mustache/goatee structure, and precise identity of the person from the reference image. 
-        
-        THEME: METAVENTIONS AI SOVEREIGN EMERGENCE. 
-        ENVIRONMENT: A sprawled, multi-layered futuristic laboratory with obsidian walls and translucent floating holographic data lattices that cast real cyan and violet light onto the subject. 
-        CHARACTER INTEGRATION: The subject is the Grand Architect. He is NOT just standing there; he is cinematically immersed in an action. He is actively interacting with the holographic interface, his fingers leaving trails of glowing data. 
-        LIGHTING & SHADOW: Volumetric lighting. The ambient glow of the holograms should realistically illuminate the texture of his skin and the folds of his jacket. High-contrast cinematic shadows. 
-        APPAREL: A premium black leather bomber jacket with subtle technical patterns on the shoulders, worn over a sharp white t-shirt.
-        CINEMATOGRAPHY: An epic, wide-angle cinematic shot. 8k resolution, anamorphic lens flares, shallow depth of field focusing sharply on his focused expression. 
-        ATMOSPHERE: Intense intellectual focus, technological transcendence, supreme authority. 
-        THE PERSON MUST LOOK PART OF THE 3D SCENE, WITH MATCHING DEPTH, LIGHTING, AND ATMOSPHERIC FOG.
-    `;
-    
-    parts.push({ text: `${metaventionsDirective} Scene Composition: ${prompt}` });
-
+    parts.push({ text: `THEME: METAVENTIONS AI SOVEREIGN EMERGENCE. HIGH-FIDELITY CINE. Scene Composition: ${prompt}` });
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-image-preview',
         contents: { parts },
@@ -379,66 +302,63 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
     return imagePart ? `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}` : "";
 }
 
+// Added generateAvatar function for Voice Core and User Profile
+export async function generateAvatar(role: string, name: string) {
+    const ai = getAI();
+    const prompt = `Hyper-realistic futuristic avatar portrait of a "${role}" named "${name}". Obsidian/Neon aesthetic, premium technical lighting, cinematic depth.`;
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash-image',
+        contents: prompt,
+        config: { imageConfig: { aspectRatio: '1:1' } }
+    });
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) {
+            return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+        }
+    }
+    return "";
+}
+
 export async function analyzeVisualInput(data: FileData, context: string) {
     const ai = getAI();
-    const prompt = `
-        ROLE: Visual Cortex of the Sovereign OS.
-        CONTEXT: ${context}
-        TASK: Analyze this multi-modal input. Identify structured data (financial, technical, or organizational), emotional sentiment, or explicit action items.
-        OUTPUT: Return a structured JSON response.
-        JSON_SCHEMA: {
-            "classification": "FINANCIAL" | "ARCHITECTURAL" | "CREATIVE" | "LOGIC",
-            "extracted_data": object,
-            "sentiment": string,
-            "suggested_sector": "AUTONOMOUS_FINANCE" | "PROCESS_MAP" | "CODE_STUDIO" | "MEMORY_CORE",
-            "summary": string,
-            "action_items": string[]
-        }
-    `;
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: { parts: [{ inlineData: data.inlineData }, { text: prompt }] },
+        contents: { parts: [{ inlineData: data.inlineData }, { text: `Analyze visual stream in context of ${context}. JSON {classification, extracted_data, sentiment, suggested_sector, summary, action_items}.` }] },
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
 
-export async function analyzeImageVision(data: FileData) {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: { parts: [{ inlineData: data.inlineData }, { text: "Describe the core aesthetic color palette and theme of this image." }] }
-    });
-    return response.text || "";
+export async function classifyArtifact(data: FileData): Promise<Result<any>> {
+    try {
+        const ai = getAI();
+        const schema: Schema = {
+            type: Type.OBJECT,
+            properties: {
+                classification: { type: Type.STRING, description: "Technical taxonomy: FINANCIAL, ARCHITECTURAL, LEGAL, LOGIC, RESEARCH, INTEL" },
+                ambiguityScore: { type: Type.NUMBER, description: "Entropy rating 0-100." },
+                entities: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Specific technical entities detected." },
+                summary: { type: Type.STRING, description: "Forensic technical summary." },
+                structural_intelligence: { type: Type.STRING, description: "Deep extraction of data structures, hierarchies, or core logic found in the artifact." }
+            },
+            required: ['classification', 'ambiguityScore', 'entities', 'summary', 'structural_intelligence']
+        };
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-3-flash-preview',
+            contents: { parts: [{ inlineData: data.inlineData }, { text: "Perform a forensic deep scan. Extract structural intelligence, core hierarchies, and metadata. Output JSON according to schema." }] },
+            config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json', responseSchema: schema }
+        });
+        return { ok: true, value: JSON.parse(response.text || '{}') };
+    } catch (e: any) { return { ok: false, error: e }; }
 }
 
 export async function generateStructuredWorkflow(files: FileData[], governance: string, type: string, mapContext: any) {
     const ai = getAI();
-    const systemInstruction = `You are a Model-First Reasoning (MFR) System Architect. Governance: ${governance}. ${SOVEREIGN_SYSTEM_INSTRUCTION}`;
-    const mfrSchema: Schema = {
-        type: Type.OBJECT,
-        properties: {
-            title: { type: Type.STRING },
-            formalModel: {
-                type: Type.OBJECT,
-                properties: {
-                    entities: { type: Type.ARRAY, items: { type: Type.STRING } },
-                    worldState: { type: Type.STRING },
-                    actions: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, precondition: { type: Type.STRING }, effect: { type: Type.STRING } } } },
-                    constraints: { type: Type.ARRAY, items: { type: Type.STRING } }
-                },
-                required: ['entities', 'worldState', 'actions', 'constraints']
-            },
-            internalPlanningMonologue: { type: Type.STRING },
-            protocols: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { role: { type: Type.STRING }, instruction: { type: Type.STRING }, modelConstraintRef: { type: Type.STRING } } } },
-            coherenceScore: { type: Type.NUMBER }
-        },
-        required: ['title', 'formalModel', 'internalPlanningMonologue', 'protocols', 'coherenceScore']
-    };
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
-        contents: `Task Category: ${type}. Directive: ${mapContext.prompt || 'Optimizing autonomous system logic'}. Context: ${JSON.stringify(mapContext)}.`,
-        config: { systemInstruction, responseMimeType: 'application/json', responseSchema: mfrSchema }
+        contents: `Task: ${type}. Context: ${JSON.stringify(mapContext)}. JSON {title, formalModel, internalPlanningMonologue, protocols, coherenceScore}.`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
@@ -447,40 +367,67 @@ export async function analyzeSchematic(data: FileData) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: { parts: [{ inlineData: data.inlineData }, { text: "Fornsic hardware schematic analysis. Return JSON { components: [{name: string, confidence: number}], summary: string }." }] },
+        contents: { parts: [{ inlineData: data.inlineData }, { text: "Fornsic hardware schematic analysis. JSON {components: [{name, confidence}], summary}." }] },
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
 
+// Added researchComponents for Hardware sector
 export async function researchComponents(query: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Research current supply chain and spec details for: "${query}". Return JSON array of objects with {name, description, typicalPrice}.`,
-        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
+        contents: `Research hardware components for: "${query}". JSON array [{name, price, leadTime}].`,
+        config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
 }
 
+// Added generateXRayVariant for Hardware sector
 export async function generateXRayVariant(data: FileData) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: { parts: [{ inlineData: data.inlineData }, { text: "X-ray thermal diagnostic variant. Electric blue, neon orange, deep black." }] }
+        contents: { parts: [{ inlineData: data.inlineData }, { text: "Generate a thermal X-ray diagnostic variant of this hardware schematic." }] },
     });
-    const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-    return part ? `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` : "";
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+    }
+    return "";
 }
 
+// Added generateIsometricSchematic for Hardware sector
 export async function generateIsometricSchematic(data: FileData) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: { parts: [{ inlineData: data.inlineData }, { text: "3D isometric exploded view render." }] }
+        contents: { parts: [{ inlineData: data.inlineData }, { text: "Generate a high-fidelity 3D isometric architectural view of this hardware schematic." }] },
     });
-    const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-    return part ? `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` : "";
+    for (const part of response.candidates?.[0]?.content?.parts || []) {
+        if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
+    }
+    return "";
+}
+
+// Added generateHardwareDeploymentManifest for Hardware sector
+export async function generateHardwareDeploymentManifest(scan: any) {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Hardware Deployment Manifest for: ${JSON.stringify(scan)}.`,
+    });
+    return response.text || "";
+}
+
+// Added analyzeCrossSectorImpact for Hardware sector
+export async function analyzeCrossSectorImpact(scan: any) {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Analyze cross-sector impact for hardware: ${JSON.stringify(scan)}.`,
+    });
+    return response.text || "";
 }
 
 export async function getLiveSupplyChainData(componentName: string) {
@@ -493,62 +440,11 @@ export async function getLiveSupplyChainData(componentName: string) {
     return JSON.parse(response.text || '{}');
 }
 
-export async function generateHardwareDeploymentManifest(bom: any[]) {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Technical deployment manifest for BOM: ${JSON.stringify(bom)}.`,
-        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
-    });
-    return response.text || "";
-}
-
-export async function analyzeCrossSectorImpact(performance: any, metaventions: any) {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Cross-sector impact analysis. JSON {totalBomCost: number, roiProjection: number, maintenanceEst: number}.`,
-        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
-    });
-    return JSON.parse(response.text || '{}');
-}
-
-export async function generateAvatar(role: string, name: string) {
-    const ai = getAI();
-    const prompt = `Cinematic editorial portrait for a ${role} named ${name}. METAVENTIONS AI SOVEREIGN EMPIRE look. High-class professional, imperial futuristic aesthetics. Royal purple and gold palette. 8k, hyper-realistic. Subject is active and immersed in a futuristic command center.`;
-    const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: prompt
-    });
-    const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-    return part ? `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` : "";
-}
-
-export async function generateStoryboardPlan(directive: string) {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `5-frame cinematic storyboard for: "${directive}". JSON array [{scenePrompt, continuity, camera, lighting}].`,
-        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
-    });
-    return JSON.parse(response.text || '[]');
-}
-
-export async function constructCinematicPrompt(prompt: string, colorway: any, char: boolean, world: boolean, style: boolean, notes?: string, preset?: string) {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Convert this prompt into a Metaventions Sovereign Empire cinematic directive: "${prompt}". Focus on regal professionals, obsidian textures, and royal highlights.`,
-        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
-    });
-    return response.text || prompt;
-}
-
 export async function generateCode(prompt: string, lang: string, model: string = 'gemini-3-pro-preview') {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: model as any,
-        contents: `Synthesize production-ready ${lang} code for: "${prompt}". Code block only.`,
+        contents: `Synthesize production-ready ${lang} code for: "${prompt}".`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     return response.text || "";
@@ -558,28 +454,17 @@ export async function validateSyntax(code: string, lang: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Syntax check ${lang}. JSON array [{line, message}].`,
+        contents: `Syntax check ${lang}. JSON [{line, message}].`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
 }
 
-export async function assessInvestmentRisk(strategy: string) {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `Forensic risk assessment for: "${strategy}". JSON {riskScore, factors, recommendation}.`,
-        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
-    });
-    return JSON.parse(response.text || '{}');
-}
-
 export async function simulateAgentStep(workflow: any, index: number, history: ProtocolStepResult[]) {
     const ai = getAI();
-    const step = workflow.protocols[index];
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Role: ${step.role}. Instruction: ${step.instruction}. History: ${JSON.stringify(history)}. JSON {output, agentThought}.`,
+        contents: `Step: ${index}. History: ${JSON.stringify(history)}. JSON {output, agentThought}.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
@@ -589,27 +474,17 @@ export async function generateMermaidDiagram(governance: string, files: FileData
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Generate Mermaid.js diagram source code. Focus on the strategic flow. Governance: ${governance}. Context: ${JSON.stringify(contexts)}`,
+        contents: `Generate Mermaid.js source. Governance: ${governance}. Context: ${JSON.stringify(contexts)}`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     return response.text || "";
-}
-
-export async function generateDriveShellScript(taxonomy: any) {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: `POSIX shell script for taxonomy: ${JSON.stringify(taxonomy)}.`,
-        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
-    });
-    return response.text?.replace(/```[a-z]*\n/i, '').replace(/\n```$/, '').trim() || "";
 }
 
 export async function generateHypotheses(facts: string[]): Promise<ScienceHypothesis[]> {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Hypotheses for facts: ${facts.join('\n')}. JSON array.`,
+        contents: `Hypotheses for: ${facts.join('\n')}. JSON array.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
@@ -619,22 +494,10 @@ export async function compressKnowledge(nodes: KnowledgeNode[]) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Compress following logic nodes to Axioms JSON: ${JSON.stringify(nodes)}`,
+        contents: `Compress logic: ${JSON.stringify(nodes)}. JSON array.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
-}
-
-export async function classifyArtifact(data: FileData): Promise<Result<any>> {
-    try {
-        const ai = getAI();
-        const response = await ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
-            contents: { parts: [{ inlineData: data.inlineData }, { text: "Classify JSON {classification, ambiguityScore, entities, summary}." }] },
-            config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
-        });
-        return { ok: true, value: JSON.parse(response.text || '{}') };
-    } catch (e: any) { return { ok: false, error: e }; }
 }
 
 export async function repairMermaidSyntax(code: string, error: string) {
@@ -651,7 +514,7 @@ export async function executeNeuralPolicy(mode: string, context: any, logs: stri
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `OS policy decision for ${mode}. JSON. Context: ${JSON.stringify(context)}. Logs: ${logs.join('\n')}`,
+        contents: `OS decision for ${mode}. JSON. Context: ${JSON.stringify(context)}.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || 'null');
@@ -662,7 +525,7 @@ export async function evolveSystemArchitecture(code: string, lang: string, promp
         const ai = getAI();
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',
-            contents: `Evolve architecture for ${lang} based on directive: ${prompt}. Current: ${code}. JSON {code, reasoning, type, integrityScore}.`,
+            contents: `Evolve architecture: ${prompt}. Current: ${code}. JSON {code, reasoning, type, integrityScore}.`,
             config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
         });
         return { ok: true, value: JSON.parse(response.text || '{}') };
@@ -670,7 +533,7 @@ export async function evolveSystemArchitecture(code: string, lang: string, promp
 }
 
 export async function generateSpeech(text: string, voice: string) {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = getAI();
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text }] }],
@@ -686,36 +549,24 @@ export async function generateAudioOverview(files: FileData[]): Promise<{ audioD
     const ai = getAI();
     const summaryResponse = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: {
-            parts: [ ...files.map(f => ({ inlineData: f.inlineData })), { text: "Provide a concise professional audio brief." } ]
-        },
+        contents: { parts: [ ...files.map(f => ({ inlineData: f.inlineData })), { text: "Concise professional brief." } ] },
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
-    const transcript = summaryResponse.text || "Briefing finalized.";
+    const transcript = summaryResponse.text || "Brief complete.";
     const audioData = await generateSpeech(transcript, "Puck");
     return { audioData, transcript };
 }
 
 export function constructHiveContext(agentId: string, shared: string, mentalState: MentalState) {
     const agent = HIVE_AGENTS[agentId] || HIVE_AGENTS['Puck'];
-    return `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\n${agent.systemPrompt}\n${shared}\nDNA_STATE: S:${mentalState.skepticism} E:${mentalState.excitement} A:${mentalState.alignment}`;
-}
-
-export async function fetchMarketIntelligence() {
-    const ai = getAI();
-    const response = await ai.models.generateContent({
-        model: 'gemini-3-flash-preview',
-        contents: "List top real-world High Yield market opportunities. JSON array [{title, yield, risk, logic}].",
-        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
-    });
-    return JSON.parse(response.text || '[]');
+    return `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\n${agent.systemPrompt}\n${shared}\nDNA: S:${mentalState.skepticism} E:${mentalState.excitement} A:${mentalState.alignment}`;
 }
 
 export async function searchRealWorldOpportunities(domain: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Search for high-yield strategic opportunities in ${domain}. JSON array [{title, yield, risk, logic}].`,
+        contents: `Strategic High Yield opportunities in ${domain}. JSON array [{title, yield, risk, logic}].`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
@@ -725,7 +576,7 @@ export async function analyzeDeploymentFeasibility(strategy: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Analyze real-world feasibility and regulatory hurdles for: "${strategy}". Retreive real-world context using search grounding.`,
+        contents: `Feasibility audit for: "${strategy}". Use Search Grounding.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }] }
     });
     return response.text || "";
@@ -735,7 +586,7 @@ export async function analyzePowerDynamics(target: string, internalContext: stri
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Identify the Power Dynamics of ${target}. Internal Context: ${internalContext}. Return JSON with scores for centralization, entropy, vitality, opacity, adaptability.`,
+        contents: `Identify Power Dynamics of ${target}. Context: ${internalContext}. JSON scores: centralization, entropy, vitality, opacity, adaptability.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
     });
     return JSON.parse(response.text || '{}');
@@ -745,15 +596,8 @@ export async function decomposeTaskToSubtasks(title: string, description: string
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Task: ${title}\nDescription: ${description}\n\nDecompose this task into 3-5 logical sub-tasks. Return a JSON array of strings.`,
-        config: {
-            systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
-            responseMimeType: 'application/json',
-            responseSchema: {
-                type: Type.ARRAY,
-                items: { type: Type.STRING }
-            }
-        }
+        contents: `Decompose: ${title}\n${description}. JSON array of strings.`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
 }
@@ -765,23 +609,16 @@ export async function searchGroundedIntel(query: string): Promise<string> {
         contents: query,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }] }
     });
-    return response.text || "No intelligence signals detected.";
+    return response.text || "No signals detected.";
 }
 
 export async function generateSystemArchitecture(prompt: string, type: string) {
     const ai = getAI();
-    const systemInstruction = `You are a Principal Software and Drive Architect. You generate high-fidelity system graphs. ${SOVEREIGN_SYSTEM_INSTRUCTION}`;
-    
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
-        contents: `Generate a detailed architecture graph for: "${prompt}". Type: ${type}. Output JSON { nodes: [{id, label, subtext, iconName, color, status}], edges: [{id, source, target, color, variant}] }. Use colors: #9d4edd, #22d3ee, #10b981, #f59e0b. Icons from Lucide list.`,
-        config: { 
-            systemInstruction, 
-            responseMimeType: 'application/json',
-            thinkingConfig: { thinkingBudget: 16000 }
-        }
+        contents: `Architecture for: "${prompt}". Type: ${type}. JSON {nodes:[{id, label, subtext, iconName, color, status}], edges:[{id, source, target, color, variant}]}.`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
-    
     return JSON.parse(response.text || '{"nodes":[], "edges":[]}');
 }
 
@@ -789,7 +626,7 @@ export async function generateSwarmArchitecture(prompt: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
-        contents: `Generate a Swarm Logic Architecture for: "${prompt}". Focus on agent handover points. JSON { nodes: [{id, label, subtext, iconName, color, status}], edges: [{id, source, target, color, variant, handoffCondition}] }.`,
+        contents: `Swarm for: "${prompt}". JSON {nodes:[{id, label, subtext, iconName, color, status}], edges:[{id, source, target, color, variant, handoffCondition}]}.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{"nodes":[], "edges":[]}');
@@ -799,7 +636,7 @@ export async function generateSingleNode(description: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Generate a single logic node for: "${description}". JSON {label, subtext, iconName, color}.`,
+        contents: `Node for: "${description}". JSON {label, subtext, iconName, color}.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
@@ -809,7 +646,7 @@ export async function calculateOptimalLayout(nodes: any[], edges: any[]) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Calculate 2D coordinates for these nodes based on their edges to minimize overlap. JSON { node_id: {x, y} }. Nodes: ${JSON.stringify(nodes.map(n=>n.id))}. Edges: ${JSON.stringify(edges.map(e=>({s:e.source, t:e.target})))}`,
+        contents: `Coords for: ${JSON.stringify(nodes.map(n=>n.id))}. JSON {node_id: {x,y}}.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
@@ -820,30 +657,17 @@ export async function generateProcessFromContext(artifacts: StoredArtifact[], ty
     const contextStr = artifacts.map(a => `${a.name}: ${a.analysis?.summary}`).join('\n');
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
-        contents: `Based on these vault artifacts:\n${contextStr}\n\nGenerate a ${type} map for directive: "${prompt}". JSON {title, nodes:[], edges:[]}.`,
+        contents: `From Vault:\n${contextStr}\n\nGenerate ${type} for: "${prompt}". JSON {title, nodes:[], edges:[]}.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || '{"title":"Synthesis Result", "nodes":[], "edges":[]}');
+    return JSON.parse(response.text || '{"title":"Synthesis", "nodes":[], "edges":[]}');
 }
 
-// Stubs for legacy or future complex methods
-export async function analyzeBookDNA() { return {}; }
-export async function simulateExperiment() { return {}; }
-export async function generateTheory() { return ""; }
-export async function synthesizeNodes() { return []; }
-export async function crystallizeKnowledge() { return {}; }
-export async function generateTaxonomy() { return {}; }
-export async function smartOrganizeArtifact() { return {}; }
-export async function digitizeDocument() { return ""; }
-export async function performSemanticSearch() { return []; }
-export async function discoverDeepLattice() { return {}; }
-export async function generateVaultInsights() { return ""; }
-export async function executeVaultDirective() { return {}; }
 export async function generateResearchPlan(q: string) { 
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Decompose research query into 3 vectors: "${q}". JSON array.`,
+        contents: `Vectors for: "${q}". JSON array.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || `["${q}"]`);
@@ -857,17 +681,12 @@ export async function executeResearchQuery(q: string) {
     });
     return [{ id: crypto.randomUUID(), fact: response.text || 'Finding Captured', confidence: 0.9, source: 'Search Grounding' }]; 
 }
-export async function compileResearchContext(f: any[]) { 
-    return f.map(x => x.fact).join('\n---\n');
-}
-export async function synthesizeResearchReport() { return ""; }
-export async function generateAutopoieticFramework() { return {}; }
-export async function calculateEntropy() { return 0; }
+export async function compileResearchContext(f: any[]) { return f.map(x => x.fact).join('\n---\n'); }
 export async function decomposeNode(l: string, n: string) { 
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Decompose node "${l}" with neighbors "${n}" into smaller sub-units. JSON {nodes:[], edges:[], optimizations:[]}.`,
+        contents: `Decompose node "${l}". JSON {nodes:[], edges:[], optimizations:[]}.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{"nodes":[], "edges":[], "optimizations":[]}');
@@ -876,7 +695,7 @@ export async function generateInfrastructureCode(s: string, p: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Generate ${p} implementation for system: ${s}.`,
+        contents: `IaC ${p} for: ${s}.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     return response.text || "";
@@ -885,17 +704,131 @@ export async function convergeStrategicLattices(n: any[], g: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
-        contents: `Converge these nodes into a single goal "${g}": ${JSON.stringify(n)}. JSON {nodes:[], coherence_index: 0.9, unified_goal: ""}.`,
+        contents: `Converge to "${g}": ${JSON.stringify(n)}. JSON {nodes:[], coherence_index: 0.9}.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
-    return JSON.parse(response.text || '{"nodes":[], "coherence_index": 0.9, "unified_goal": ""}');
+    return JSON.parse(response.text || '{"nodes":[], "coherence_index": 0.9}');
 }
 export async function transformArtifact(c: any, t: any, i: string) { 
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Transform ${t} content according to: "${i}". Content: ${c}`,
+        contents: `Transform ${t} via: "${i}". Content: ${c}`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     return response.text || c;
+}
+
+// Added missing generateStoryboardPlan for Asset sector
+export async function generateStoryboardPlan(directive: string) {
+    const ai = getAI();
+    const schema: Schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                scenePrompt: { type: Type.STRING },
+                continuity: { type: Type.STRING },
+                camera: { type: Type.STRING },
+                lighting: { type: Type.STRING }
+            },
+            required: ['scenePrompt', 'continuity']
+        }
+    };
+    // Fix: Explicitly type response as GenerateContentResponse to avoid 'unknown' type errors
+    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Generate a 10-frame storyboard plan for: "${directive}". JSON.`,
+        config: { responseMimeType: 'application/json', responseSchema: schema }
+    }));
+    return JSON.parse(response.text || '[]');
+}
+
+// Added missing constructCinematicPrompt for Asset sector
+export async function constructCinematicPrompt(
+    prompt: string, 
+    colorway: any, 
+    hasChar: boolean, 
+    hasSet: boolean, 
+    hasStyle: boolean, 
+    notes?: string, 
+    preset?: string
+) {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Optimize prompt for image generation: "${prompt}". Colorway: ${JSON.stringify(colorway)}. Notes: ${notes}. Preset: ${preset}. References: Char:${hasChar}, Set:${hasSet}, Style:${hasStyle}.`,
+    });
+    return response.text || prompt;
+}
+
+// Added missing synthesizeResearchReport for Research sector
+export async function synthesizeResearchReport(query: string, findings: any[]) {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Synthesize report for "${query}". Findings: ${JSON.stringify(findings)}. Markdown format.`,
+    });
+    return response.text || "";
+}
+
+// Added missing simulateExperiment for Discovery sector
+export async function simulateExperiment(hypothesis: string) {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Simulate experiment for: "${hypothesis}".`,
+    });
+    return response.text || "";
+}
+
+// Added missing generateTheory for Discovery sector
+export async function generateTheory(findings: any[]) {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Generate theory based on: ${JSON.stringify(findings)}.`,
+    });
+    return response.text || "";
+}
+
+// Added missing smartOrganizeArtifact for Discovery sector
+export async function smartOrganizeArtifact(id: string, context: any) {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Organize artifact ${id} in context ${JSON.stringify(context)}.`,
+    });
+    return response.text || "";
+}
+
+// Added missing generateAutopoieticFramework for Process sector
+export async function generateAutopoieticFramework(nodes: any[]) {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-pro-preview',
+        contents: `Generate autopoietic framework for: ${JSON.stringify(nodes)}.`,
+    });
+    return response.text || "";
+}
+
+// Added missing calculateEntropy for Process sector
+export async function calculateEntropy(data: any) {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Calculate architectural entropy for: ${JSON.stringify(data)}.`,
+    });
+    return response.text || "";
+}
+
+// Added missing assessInvestmentRisk for Finance sector
+export async function assessInvestmentRisk(strategy: string) {
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Assess investment risk for: "${strategy}". JSON {riskScore, reasoning}.`,
+        config: { responseMimeType: 'application/json' }
+    });
+    return JSON.parse(response.text || '{}');
 }
