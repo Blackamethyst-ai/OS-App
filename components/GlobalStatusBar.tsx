@@ -3,16 +3,17 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { neuralVault } from '../services/persistenceService';
-import { KnowledgeLayer } from '../types';
+import { KnowledgeLayer, AppMode } from '../types';
 import * as Icons from 'lucide-react';
 import { 
     Activity, Clock, Cpu, Shield, Zap, Hammer, Coins, 
     Telescope, History, AlertOctagon, BrainCircuit, 
     ArrowRight, Loader2, Terminal, HardDrive, Globe, Users,
-    Eye, Scan, Monitor
+    Eye, Scan, Monitor, Save
 } from 'lucide-react';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { useVisualCortex } from '../hooks/useVisualCortex';
+import { audio } from '../services/audioService';
 
 const LayerControlMesh = () => {
     const { toggleKnowledgeLayer, knowledge, addLog } = useAppStore();
@@ -59,7 +60,7 @@ const LayerControlMesh = () => {
 
 const GlobalStatusBar: React.FC = () => {
     const { 
-        kernel, knowledge, system,
+        kernel, knowledge, system, mode,
         isScrubberOpen, setScrubberOpen,
         isDiagnosticsOpen, setDiagnosticsOpen,
         collaboration, setCollabState,
@@ -70,6 +71,7 @@ const GlobalStatusBar: React.FC = () => {
     const [input, setInput] = useState('');
     const [driveHealth, setDriveHealth] = useState(99);
     const [isRevealed, setIsRevealed] = useState(false);
+    const [isSavingNow, setIsSavingNow] = useState(false);
     
     const errorCount = system.logs.filter((l: any) => l.level === 'ERROR').length;
     const peerCount = collaboration.peers.length;
@@ -88,6 +90,46 @@ const GlobalStatusBar: React.FC = () => {
         return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
     };
 
+    const handleManualSnapshot = async () => {
+        setIsSavingNow(true);
+        audio.playClick();
+        addLog('SYSTEM', 'SNAPSHOT: Initializing high-priority state persistence...');
+        
+        try {
+            const store = useAppStore.getState();
+            let stateToSave = null;
+            
+            // Map current mode to store sector
+            switch(mode) {
+                case AppMode.PROCESS_MAP: stateToSave = store.process; break;
+                case AppMode.CODE_STUDIO: stateToSave = store.codeStudio; break;
+                case AppMode.HARDWARE_ENGINEER: stateToSave = store.hardware; break;
+                case AppMode.IMAGE_GEN: stateToSave = store.imageGen; break;
+                case AppMode.BIBLIOMORPHIC: stateToSave = store.bibliomorphic; break;
+                case AppMode.DASHBOARD: stateToSave = store.dashboard; break;
+                case AppMode.METAVENTIONS_HUB: stateToSave = store.metaventions; break;
+                case AppMode.AUTONOMOUS_FINANCE: stateToSave = store.metaventions; break;
+                case AppMode.AGENT_CONTROL: stateToSave = store.agents; break;
+                case AppMode.SYNTHESIS_BRIDGE: stateToSave = store.metaventions; break;
+                case AppMode.MEMORY_CORE: stateToSave = store.memory; break;
+                case AppMode.VOICE_MODE: stateToSave = store.voice; break;
+                case AppMode.BICAMERAL: stateToSave = store.bicameral; break;
+                default: break;
+            }
+
+            if (stateToSave) {
+                await neuralVault.createCheckpoint(mode, stateToSave, "Emergency Manual Sync");
+                addLog('SUCCESS', 'SNAPSHOT: Local state crystallized to Neural Vault.');
+                audio.playSuccess();
+            }
+        } catch (e) {
+            addLog('ERROR', 'SNAPSHOT: Persistence failure.');
+            audio.playError();
+        } finally {
+            setIsSavingNow(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!input.trim() || agentState.isThinking) return;
@@ -102,7 +144,6 @@ const GlobalStatusBar: React.FC = () => {
             onMouseEnter={() => setIsRevealed(true)}
             onMouseLeave={() => setIsRevealed(false)}
         >
-            {/* The actual visible UI component */}
             <motion.div 
                 className="mx-6 pointer-events-auto"
                 initial={false}
@@ -149,7 +190,16 @@ const GlobalStatusBar: React.FC = () => {
 
                     <div className="flex items-center gap-5 pl-6 border-l border-[var(--border-main)] shrink-0 relative z-10">
                         
-                        {/* Oculus Probe Button */}
+                        <button 
+                            onClick={handleManualSnapshot}
+                            disabled={isSavingNow}
+                            className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${isSavingNow ? 'bg-[#10b981] text-black border-[#10b981]' : 'bg-black/10 border-[var(--border-main)] text-[var(--text-muted)] hover:text-[#10b981] hover:bg-[#10b981]/10'}`}
+                            title="Immediate System Snapshot"
+                        >
+                            {isSavingNow ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                            <span className="text-[10px] font-black font-mono uppercase tracking-widest">Snap</span>
+                        </button>
+
                         <button 
                             onClick={probeScreen}
                             className={`p-2 rounded-lg transition-all border ${isProbing ? 'bg-[#9d4edd] text-black border-[#9d4edd] shadow-lg shadow-[#9d4edd]/20 animate-pulse' : 'bg-black/10 border-[var(--border-main)] text-[var(--text-muted)] hover:text-[#9d4edd] hover:bg-white/5'}`}
