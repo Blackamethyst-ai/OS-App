@@ -60,6 +60,15 @@ interface NeuralVaultSchema extends DBSchema {
       key: string; 
       value: KnowledgeLayer;
   };
+
+  dynamic_tools: {
+      key: string;
+      value: {
+          id: string;
+          manifest: any;
+          timestamp: number;
+      };
+  };
 }
 
 class NeuralVaultService {
@@ -71,7 +80,7 @@ class NeuralVaultService {
   }
 
   private async initDB() {
-    return openDB<NeuralVaultSchema>(this.dbName, 4, {
+    return openDB<NeuralVaultSchema>(this.dbName, 5, {
       upgrade(db, oldVersion, newVersion, transaction) {
         if (!db.objectStoreNames.contains('artifacts')) {
           const store = db.createObjectStore('artifacts', { keyPath: 'id' });
@@ -93,6 +102,9 @@ class NeuralVaultService {
         }
         if (!db.objectStoreNames.contains('knowledge_layers')) {
             db.createObjectStore('knowledge_layers', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('dynamic_tools')) {
+            db.createObjectStore('dynamic_tools', { keyPath: 'id' });
         }
       },
     });
@@ -177,6 +189,16 @@ class NeuralVaultService {
       await db.put('knowledge_layers', layer);
   }
 
+  async saveDynamicTool(id: string, manifest: any) {
+      const db = await this.db;
+      await db.put('dynamic_tools', { id, manifest, timestamp: Date.now() });
+  }
+
+  async getDynamicTools() {
+      const db = await this.db;
+      return db.getAll('dynamic_tools');
+  }
+
   async wipeSystem() {
       const db = await this.db;
       await db.clear('artifacts');
@@ -185,6 +207,7 @@ class NeuralVaultService {
       await db.clear('profile');
       await db.clear('knowledge_layers');
       await db.clear('vectors');
+      await db.clear('dynamic_tools');
   }
 }
 
