@@ -11,17 +11,31 @@ export const useVisualCortex = () => {
     } = useAppStore();
     const { execute } = useAgentRuntime();
 
-    const processVisualInput = useCallback(async (file: File) => {
-        setVisualCortexState({ isAnalyzing: true, dropActive: false });
-        addLog('SYSTEM', `OCULUS_SCAN: Capturing optical data from [${file.name}]...`);
+    const processVisualInput = useCallback(async (file: File | Blob, name: string = 'Captured Stream') => {
+        setVisualCortexState({ isAnalyzing: true, dropActive: false, isProbing: false });
+        addLog('SYSTEM', `OCULUS_SCAN: Capturing optical data from [${name}]...`);
         audio.playClick();
 
         try {
             if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
-            const data = await fileToGenerativePart(file);
-            const result = await analyzeVisualInput(data, `Active Mode: ${mode}`);
             
-            setVisualCortexState({ lastResult: result, isAnalyzing: false });
+            let fileData;
+            if (file instanceof File) {
+                fileData = await fileToGenerativePart(file);
+            } else {
+                // Handle raw blobs (from screen capture)
+                const reader = new FileReader();
+                const base64Promise = new Promise<string>((resolve) => {
+                    reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+                    reader.readAsDataURL(file);
+                });
+                const base64Data = await base64Promise;
+                fileData = { inlineData: { data: base64Data, mimeType: file.type } };
+            }
+
+            const result = await analyzeVisualInput(fileData, `Active Mode: ${mode}`);
+            
+            setVisualCortexState({ lastResult: result, isAnalyzing: false, isProbing: false });
             addLog('SUCCESS', `OCULUS_SCAN: Analysis finalized. Sentiment: ${result.sentiment}`);
             audio.playSuccess();
 
@@ -40,11 +54,73 @@ export const useVisualCortex = () => {
             }
 
         } catch (err: any) {
-            setVisualCortexState({ isAnalyzing: false });
+            setVisualCortexState({ isAnalyzing: false, isProbing: false });
             addLog('ERROR', `OCULUS_FAIL: ${err.message}`);
             audio.playError();
         }
     }, [mode, addLog, setVisualCortexState, setMode, setCodeStudioState, pushToInvestmentQueue]);
+
+    const probeScreen = useCallback(async () => {
+        setVisualCortexState({ isProbing: true });
+        addLog('SYSTEM', 'OCULUS_PROBE: Requesting screen access for context synthesis...');
+        
+        try {
+            // Request display media
+            const stream = await navigator.mediaDevices.getDisplayMedia({ 
+                video: true,
+                audio: false 
+            } as any);
+            
+            const track = stream.getVideoTracks()[0];
+            const ImageCapture = (window as any).ImageCapture;
+
+            // Preferred method: ImageCapture API
+            if (ImageCapture) {
+                const imageCapture = new ImageCapture(track);
+                const bitmap = await imageCapture.grabFrame();
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = bitmap.width;
+                canvas.height = bitmap.height;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(bitmap, 0, 0);
+                
+                canvas.toBlob((blob) => {
+                    if (blob) processVisualInput(blob, 'Screen Probe Capture');
+                    stream.getTracks().forEach(t => t.stop());
+                }, 'image/jpeg', 0.95);
+            } else {
+                // Fallback: Using a temporary video element for frame extraction
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.muted = true;
+                video.play();
+
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        // Allow some time for the video to actually render a frame
+                        setTimeout(resolve, 500);
+                    };
+                });
+
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(video, 0, 0);
+                
+                canvas.toBlob((blob) => {
+                    if (blob) processVisualInput(blob, 'Screen Probe Capture');
+                    stream.getTracks().forEach(t => t.stop());
+                    video.srcObject = null;
+                }, 'image/jpeg', 0.95);
+            }
+
+        } catch (err: any) {
+            setVisualCortexState({ isProbing: false });
+            addLog('WARN', 'OCULUS_PROBE: Screen access denied or interrupted.');
+        }
+    }, [processVisualInput, setVisualCortexState, addLog]);
 
     useEffect(() => {
         const handleDragOver = (e: DragEvent) => {
@@ -78,5 +154,10 @@ export const useVisualCortex = () => {
         };
     }, [visualCortex.dropActive, setVisualCortexState, processVisualInput]);
 
-    return { isAnalyzing: visualCortex.isAnalyzing, dropActive: visualCortex.dropActive };
+    return { 
+        isAnalyzing: visualCortex.isAnalyzing, 
+        isProbing: visualCortex.isProbing, 
+        dropActive: visualCortex.dropActive,
+        probeScreen
+    };
 };

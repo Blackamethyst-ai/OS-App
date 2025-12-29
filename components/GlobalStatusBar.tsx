@@ -8,9 +8,11 @@ import * as Icons from 'lucide-react';
 import { 
     Activity, Clock, Cpu, Shield, Zap, Hammer, Coins, 
     Telescope, History, AlertOctagon, BrainCircuit, 
-    ArrowRight, Loader2, Terminal, HardDrive, Globe, Users
+    ArrowRight, Loader2, Terminal, HardDrive, Globe, Users,
+    Eye, Scan, Monitor
 } from 'lucide-react';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
+import { useVisualCortex } from '../hooks/useVisualCortex';
 
 const LayerControlMesh = () => {
     const { toggleKnowledgeLayer, knowledge, addLog } = useAppStore();
@@ -64,6 +66,7 @@ const GlobalStatusBar: React.FC = () => {
         addLog
     } = useAppStore();
     const { execute, state: agentState } = useAgentRuntime();
+    const { probeScreen, isProbing } = useVisualCortex();
     const [input, setInput] = useState('');
     const [driveHealth, setDriveHealth] = useState(99);
     const [isRevealed, setIsRevealed] = useState(false);
@@ -104,8 +107,8 @@ const GlobalStatusBar: React.FC = () => {
                 className="mx-6 pointer-events-auto"
                 initial={false}
                 animate={{ 
-                    y: isRevealed || agentState.isThinking ? 0 : 60,
-                    opacity: isRevealed || agentState.isThinking ? 1 : 0.4
+                    y: isRevealed || agentState.isThinking || isProbing ? 0 : 60,
+                    opacity: isRevealed || agentState.isThinking || isProbing ? 1 : 0.4
                 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 180 }}
             >
@@ -145,6 +148,16 @@ const GlobalStatusBar: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-5 pl-6 border-l border-[var(--border-main)] shrink-0 relative z-10">
+                        
+                        {/* Oculus Probe Button */}
+                        <button 
+                            onClick={probeScreen}
+                            className={`p-2 rounded-lg transition-all border ${isProbing ? 'bg-[#9d4edd] text-black border-[#9d4edd] shadow-lg shadow-[#9d4edd]/20 animate-pulse' : 'bg-black/10 border-[var(--border-main)] text-[var(--text-muted)] hover:text-[#9d4edd] hover:bg-white/5'}`}
+                            title="Oculus Screen Probe"
+                        >
+                            <Scan size={16} />
+                        </button>
+
                         <button 
                             onClick={() => setCollabState({ isOverlayOpen: !collaboration.isOverlayOpen })}
                             className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg border transition-all ${collaboration.isOverlayOpen ? 'bg-[#22d3ee] text-black border-[#22d3ee]' : 'bg-black/10 border-[var(--border-main)] text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/5'}`}
