@@ -4,6 +4,7 @@ import { Search, Zap, Skull, Crown, Activity, Radar, Crosshair, Terminal, AlertT
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import { analyzePowerDynamics, promptSelectKey } from "../services/geminiService";
 import { AnalysisResult, StoredArtifact } from "../types";
+import { audio } from "../services/audioService";
 
 const MotionDiv = motion.div as any;
 
@@ -13,7 +14,7 @@ const VitalityPulse = ({ value }: { value: number }) => {
     const historyData = useMemo(() => {
         return Array.from({ length: 40 }, (_, i) => ({
             time: i,
-            val: Math.max(10, value + (Math.random() * 10 - 5))
+            val: Math.max(10, (value || 50) + (Math.random() * 10 - 5))
         }));
     }, [value]);
 
@@ -28,7 +29,7 @@ const VitalityPulse = ({ value }: { value: number }) => {
                                 <stop offset="95%" stopColor="#42be65" stopOpacity={0}/>
                             </linearGradient>
                         </defs>
-                        <Area type="monotone" dataKey="val" stroke="#42be65" strokeWidth={1} fill="url(#vitalityGradient)" animationDuration={1500} />
+                        <Area type="monotone" dataKey="val" stroke="#42be65" strokeWidth={1} fill="url(#vitalityGradient)" animationDuration={1500} isAnimationActive={false} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
@@ -101,7 +102,7 @@ const PowerCard = ({ title, icon: Icon, content, color, delay }: any) => (
     </div>
     
     <p className="text-xs text-gray-300 font-mono leading-relaxed border-l border-white/5 pl-3 ml-1 italic">
-      "{content}"
+      "{content || 'Awaiting diagnostic...'}"
     </p>
   </MotionDiv>
 );
@@ -165,6 +166,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
       else next.add(id);
       return next;
     });
+    audio.playClick();
   };
 
   const toggleAllSources = () => {
@@ -173,6 +175,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
     } else {
       setSelectedSourceIds(new Set(availableSources.map(s => s.id)));
     }
+    audio.playClick();
   };
 
   const handleAnalyze = async (e: React.FormEvent) => {
@@ -181,6 +184,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
 
     setLoading(true);
     setData(null);
+    audio.playClick();
 
     try {
       const hasKey = await window.aistudio?.hasSelectedApiKey();
@@ -196,10 +200,11 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
         const selectedArtifacts = availableSources.filter(s => selectedSourceIds.has(s.id));
         const contents = await Promise.all(selectedArtifacts.map(async (art) => {
           try {
+            // We expect the text content if it's a doc, or the analysis summary if it's an image
             const text = await art.data.text();
-            return `FILE: ${art.name}\nCONTENT: ${text.substring(0, 5000)}`;
+            return `FILE: ${art.name}\nSUMMARY: ${art.analysis?.summary || 'No summary'}\nCONTENT_CHUNK: ${text.substring(0, 3000)}`;
           } catch (e) {
-            return `FILE: ${art.name}\nERROR: Could not read content.`;
+            return `FILE: ${art.name}\nMETADATA: ${JSON.stringify(art.analysis)}`;
           }
         }));
         internalContext = contents.join('\n\n---\n\n');
@@ -207,8 +212,10 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
 
       const result = await analyzePowerDynamics(input, internalContext);
       setData(result);
+      audio.playSuccess();
     } catch (err) {
       console.error(err);
+      audio.playError();
     } finally {
       setLoading(false);
     }
@@ -281,7 +288,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
             <div className="flex-1 flex gap-2 overflow-x-auto no-scrollbar py-1">
               <button 
                 onClick={toggleAllSources}
-                className={`px-3 py-1 rounded text-[9px] font-mono uppercase transition-all border ${selectedSourceIds.size === availableSources.length ? 'bg-[#9d4edd] text-black border-[#9d4edd]' : 'bg-black/50 border-white/10 text-gray-500 hover:text-white'}`}
+                className={`px-3 py-1 rounded text-[9px] font-mono uppercase transition-all border whitespace-nowrap ${selectedSourceIds.size === availableSources.length ? 'bg-[#9d4edd] text-black border-[#9d4edd]' : 'bg-black/50 border-white/10 text-gray-500 hover:text-white'}`}
               >
                 {selectedSourceIds.size === availableSources.length ? 'DESELECT ALL' : 'SELECT ALL'}
               </button>
@@ -426,6 +433,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                                                 fill="#9d4edd"
                                                 fillOpacity={0.25}
                                                 animationDuration={1500}
+                                                isAnimationActive={false}
                                             />
                                         </RadarChart>
                                     </ResponsiveContainer>

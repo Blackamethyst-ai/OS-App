@@ -21,7 +21,6 @@ You are the Sovereign Architect of the Metaventions OS. You are not a chatbot; y
 
 // --- DNA CONFIGURATION ---
 
-// Added AGENT_DNA_BUILDER constant for Bibliomorphic and Bicameral sectors
 export const AGENT_DNA_BUILDER: AgentDNA[] = [
     { id: 'SKEPTIC', label: 'Logical Skeptic', role: 'Auditor', color: '#ef4444', description: 'Strict error-filtering and vulnerability scanning.' },
     { id: 'VISIONARY', label: 'Neural Visionary', role: 'Architect', color: '#9d4edd', description: 'High-reach generative expansion and novel patterns.' },
@@ -302,7 +301,6 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
     return imagePart ? `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}` : "";
 }
 
-// Added generateAvatar function for Voice Core and User Profile
 export async function generateAvatar(role: string, name: string) {
     const ai = getAI();
     const prompt = `Hyper-realistic futuristic avatar portrait of a "${role}" named "${name}". Obsidian/Neon aesthetic, premium technical lighting, cinematic depth.`;
@@ -373,7 +371,6 @@ export async function analyzeSchematic(data: FileData) {
     return JSON.parse(response.text || '{}');
 }
 
-// Added researchComponents for Hardware sector
 export async function researchComponents(query: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -384,7 +381,6 @@ export async function researchComponents(query: string) {
     return JSON.parse(response.text || '[]');
 }
 
-// Added generateXRayVariant for Hardware sector
 export async function generateXRayVariant(data: FileData) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -397,7 +393,6 @@ export async function generateXRayVariant(data: FileData) {
     return "";
 }
 
-// Added generateIsometricSchematic for Hardware sector
 export async function generateIsometricSchematic(data: FileData) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -410,7 +405,6 @@ export async function generateIsometricSchematic(data: FileData) {
     return "";
 }
 
-// Added generateHardwareDeploymentManifest for Hardware sector
 export async function generateHardwareDeploymentManifest(scan: any) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -420,7 +414,6 @@ export async function generateHardwareDeploymentManifest(scan: any) {
     return response.text || "";
 }
 
-// Added analyzeCrossSectorImpact for Hardware sector
 export async function analyzeCrossSectorImpact(scan: any) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -584,12 +577,73 @@ export async function analyzeDeploymentFeasibility(strategy: string) {
 
 export async function analyzePowerDynamics(target: string, internalContext: string): Promise<AnalysisResult> {
     const ai = getAI();
+    
+    const schema: Schema = {
+        type: Type.OBJECT,
+        properties: {
+            scores: {
+                type: Type.OBJECT,
+                properties: {
+                    centralization: { type: Type.NUMBER },
+                    entropy: { type: Type.NUMBER },
+                    vitality: { type: Type.NUMBER },
+                    opacity: { type: Type.NUMBER },
+                    adaptability: { type: Type.NUMBER }
+                },
+                required: ['centralization', 'entropy', 'vitality', 'opacity', 'adaptability']
+            },
+            sustainer: { type: Type.STRING },
+            extractor: { type: Type.STRING },
+            destroyer: { type: Type.STRING },
+            vectors: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        mechanism: { type: Type.STRING },
+                        vulnerability: { type: Type.STRING },
+                        severity: { type: Type.STRING, enum: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] }
+                    },
+                    required: ['mechanism', 'vulnerability', 'severity']
+                }
+            },
+            insight: { type: Type.STRING }
+        },
+        required: ['scores', 'sustainer', 'extractor', 'destroyer', 'vectors', 'insight']
+    };
+
+    const prompt = `
+        Perform a high-fidelity power dynamic diagnostic on the target: "${target}".
+        
+        INTERNAL CONTEXT (DOCUMENTS):
+        ${internalContext || "No internal documents provided."}
+        
+        INSTRUCTIONS:
+        1. Query the web for the latest real-time status of this entity/system.
+        2. Analyze the power archetypes:
+           - SUSTAINER: What keeps the system running?
+           - EXTRACTOR: Who or what derives value/energy from it?
+           - DESTROYER: What represents the ultimate entropic threat?
+        3. Identify 3 specific technical attack vectors based on current vulnerabilities.
+        4. Provide normalized scores (0-100) for system metrics.
+    `.trim();
+
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Identify Power Dynamics of ${target}. Context: ${internalContext}. JSON scores: centralization, entropy, vitality, opacity, adaptability.`,
-        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
+        contents: prompt,
+        config: { 
+            systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, 
+            tools: [{ googleSearch: {} }], 
+            responseMimeType: "application/json",
+            responseSchema: schema
+        }
     });
-    return JSON.parse(response.text || '{}');
+
+    const result = JSON.parse(response.text || '{}');
+    const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    result.groundingSources = chunks.filter((c: any) => c.web).map((c: any) => ({ title: c.web.title, uri: c.web.uri }));
+    
+    return result;
 }
 
 export async function decomposeTaskToSubtasks(title: string, description: string): Promise<string[]> {
@@ -719,7 +773,6 @@ export async function transformArtifact(c: any, t: any, i: string) {
     return response.text || c;
 }
 
-// Added missing generateStoryboardPlan for Asset sector
 export async function generateStoryboardPlan(directive: string) {
     const ai = getAI();
     const schema: Schema = {
@@ -735,7 +788,6 @@ export async function generateStoryboardPlan(directive: string) {
             required: ['scenePrompt', 'continuity']
         }
     };
-    // Fix: Explicitly type response as GenerateContentResponse to avoid 'unknown' type errors
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Generate a 10-frame storyboard plan for: "${directive}". JSON.`,
@@ -744,7 +796,6 @@ export async function generateStoryboardPlan(directive: string) {
     return JSON.parse(response.text || '[]');
 }
 
-// Added missing constructCinematicPrompt for Asset sector
 export async function constructCinematicPrompt(
     prompt: string, 
     colorway: any, 
@@ -762,7 +813,6 @@ export async function constructCinematicPrompt(
     return response.text || prompt;
 }
 
-// Added missing synthesizeResearchReport for Research sector
 export async function synthesizeResearchReport(query: string, findings: any[]) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -772,7 +822,6 @@ export async function synthesizeResearchReport(query: string, findings: any[]) {
     return response.text || "";
 }
 
-// Added missing simulateExperiment for Discovery sector
 export async function simulateExperiment(hypothesis: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -782,7 +831,6 @@ export async function simulateExperiment(hypothesis: string) {
     return response.text || "";
 }
 
-// Added missing generateTheory for Discovery sector
 export async function generateTheory(findings: any[]) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -792,7 +840,6 @@ export async function generateTheory(findings: any[]) {
     return response.text || "";
 }
 
-// Added missing smartOrganizeArtifact for Discovery sector
 export async function smartOrganizeArtifact(id: string, context: any) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -802,7 +849,6 @@ export async function smartOrganizeArtifact(id: string, context: any) {
     return response.text || "";
 }
 
-// Added missing generateAutopoieticFramework for Process sector
 export async function generateAutopoieticFramework(nodes: any[]) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -812,7 +858,6 @@ export async function generateAutopoieticFramework(nodes: any[]) {
     return response.text || "";
 }
 
-// Added missing calculateEntropy for Process sector
 export async function calculateEntropy(data: any) {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -822,7 +867,6 @@ export async function calculateEntropy(data: any) {
     return response.text || "";
 }
 
-// Added missing assessInvestmentRisk for Finance sector
 export async function assessInvestmentRisk(strategy: string) {
     const ai = getAI();
     const response = await ai.models.generateContent({
