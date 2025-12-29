@@ -289,6 +289,7 @@ interface AppState {
     commitInvestment: (id: string, amount: number) => void;
     setAgentState: (update: any) => void;
     updateAgent: (id: string, update: Partial<AutonomousAgent>) => void;
+    addAgent: (agent: AutonomousAgent) => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -695,6 +696,12 @@ export const useAppStore = create<AppState>((set) => ({
         agents: {
             ...state.agents,
             activeAgents: state.agents.activeAgents.map(a => a.id === id ? { ...a, ...update } : a)
+        }
+    })),
+    addAgent: (agent) => set((state) => ({
+        agents: {
+            ...state.agents,
+            activeAgents: [...state.agents.activeAgents, agent]
         }
     })),
 }));
