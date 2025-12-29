@@ -13,9 +13,11 @@ import {
     Radio, Fingerprint, 
     TrendingUp, TrendingDown, Zap,
     Bot, Globe, User, Hexagon,
-    Mic, MicOff, ShieldCheck, DollarSign
+    Mic, MicOff, ShieldCheck, DollarSign,
+    LineChart as ChartIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import DEcosystem from './DEcosystem';
@@ -44,7 +46,7 @@ const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) 
 );
 
 /**
- * CapitalVelocity: Strategic financial flow visualization.
+ * CapitalVelocity: Strategic financial flow visualization with real-time glow.
  */
 const CapitalVelocity = () => (
     <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/cap shrink-0">
@@ -66,16 +68,24 @@ const CapitalVelocity = () => (
                 <div key={cat.label} className="space-y-2.5">
                     <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-widest font-black">
                         <span className="text-gray-500">{cat.label}</span>
-                        <span className="text-white">{cat.val}%</span>
+                        <motion.span 
+                            animate={{ opacity: [0.6, 1, 0.6] }}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className="text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                        >
+                            {cat.val}%
+                        </motion.span>
                     </div>
-                    <div className="h-1 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 p-px shadow-inner">
+                    <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 p-px shadow-inner">
                         <motion.div 
                             initial={{ width: 0 }} 
                             animate={{ width: `${cat.val}%` }} 
                             transition={{ duration: 1.5, ease: "circOut" }}
-                            className="h-full rounded-full" 
+                            className="h-full rounded-full relative" 
                             style={{ backgroundColor: cat.color, boxShadow: `0 0 10px ${cat.color}40` }} 
-                        />
+                        >
+                            <div className="absolute inset-0 bg-white/20 animate-pulse" />
+                        </motion.div>
                     </div>
                 </div>
             ))}
@@ -146,6 +156,7 @@ const MetaventionsHub: React.FC = () => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [telemetry] = useState({ cpu: 13.2, net: 0.8, trust: 99.4 });
   const voiceCanvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const canvas = voiceCanvasRef.current;
@@ -264,9 +275,9 @@ const MetaventionsHub: React.FC = () => {
   };
 
   return (
-    <div key={theme} className="h-full w-full flex flex-col font-sans bg-transparent overflow-hidden transition-colors duration-500">
+    <div key={theme} className="h-full w-full flex flex-col font-sans bg-transparent overflow-hidden transition-all duration-700 ease-in-out">
       
-      {/* 1. Header: Treasury Style Sovereign Banner */}
+      {/* Sector Header */}
       <div className="h-20 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl z-20 flex items-center justify-between px-10 shrink-0 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/50 to-transparent" />
           
@@ -295,24 +306,59 @@ const MetaventionsHub: React.FC = () => {
                   <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block">System Uptime</span>
                   <div className="flex items-center gap-3 mt-0.5">
                       <span className="text-2xl font-black font-mono text-white tracking-tighter">99.99%</span>
-                      <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_10px_#10b981]" />
+                      <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_100px_rgba(16,185,129,0.3)]" />
                   </div>
               </div>
           </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-10 relative bg-transparent">
-          <div className="grid grid-cols-12 gap-8 min-h-0 items-start">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-8 relative bg-transparent">
+          <div className="grid grid-cols-12 gap-6 items-start max-w-[2400px] mx-auto">
               
-              {/* Strategic Operations Center (Primary Display) */}
-              <div className="col-span-9 bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[3rem] p-0 shadow-2xl relative overflow-hidden flex flex-col min-h-[1000px] group/soc">
+              {/* Left Column: Core Metrics & Visualizations */}
+              <div className="col-span-3 space-y-6">
+                  {/* 1. Network Topology Radar (Uses Store Data) */}
+                  <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[2.5rem] p-8 h-72 relative overflow-hidden shadow-2xl group/topology">
+                      <div className="flex items-center gap-3 mb-6 relative z-10">
+                        <ChartIcon size={14} className="text-[#f1c21b]" />
+                        <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
+                      </div>
+                      <div className="flex-1 h-44 relative z-10">
+                         <ResponsiveContainer width="100%" height="100%">
+                            <RadarChart data={dashboard.topologyData}>
+                                <PolarGrid stroke="#333" />
+                                <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
+                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
+                            </RadarChart>
+                         </ResponsiveContainer>
+                      </div>
+                      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
+                  </div>
+
+                  {/* 2. Compacted Core Metrics Matrix */}
+                  <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden">
+                      <div className="grid grid-cols-2 gap-4">
+                          <CompactMetric title="CPU LOAD" value={`${telemetry.cpu}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
+                          <CompactMetric title="BANDWIDTH" value={`${telemetry.net}GB/s`} detail="PEAK" icon={Radio} color="var(--amethyst)" trend="up" />
+                          <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
+                          <CompactMetric title="LATENCY" value="2.4ms" detail="OPTIMAL" icon={Zap} color="#f59e0b" trend="up" />
+                      </div>
+                  </div>
+
+                  {/* 3. Capital Velocity Section */}
+                  <CapitalVelocity />
+              </div>
+
+              {/* Center Column: Strategic Operations Center (Primary Display) */}
+              <div className="col-span-6 bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[3rem] p-0 shadow-2xl relative overflow-hidden flex flex-col min-h-[850px] group/soc">
                   <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 shrink-0 z-20 relative">
                       <div className="flex items-center gap-4">
                           <Target size={18} className="text-[#9d4edd] animate-pulse" />
                           <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Strategic Operations Center</span>
                       </div>
                       <div className="flex items-center gap-3 px-4 py-1 bg-black/40 rounded-full border border-white/5">
-                          <div className="w-1 h-1 rounded-full bg-[#10b981] animate-pulse" />
+                          <div className="w-1 h-1 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
                           <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Link Stable</span>
                       </div>
                   </div>
@@ -358,20 +404,9 @@ const MetaventionsHub: React.FC = () => {
                           )}
                       </AnimatePresence>
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-                      
-                      <div className="absolute bottom-8 left-10 z-20 flex flex-col gap-3">
-                           <div className="text-[8px] font-black font-mono text-[#9d4edd] uppercase tracking-[0.5em] mb-1 px-1">Lattice_Operational_State</div>
-                           <div className="flex gap-2.5">
-                               {[1,2,3].map(i => (
-                                   <div key={i} className="w-10 h-10 bg-black/60 border border-white/10 rounded-xl backdrop-blur-3xl flex items-center justify-center text-gray-500 hover:text-white hover:border-[#9d4edd]/50 transition-all shadow-xl group/node cursor-pointer">
-                                       <Bot size={18} className="group-hover/node:scale-110 transition-transform" />
-                                   </div>
-                               ))}
-                           </div>
-                      </div>
                   </div>
 
-                  <div className="h-28 bg-black/60 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-10 shrink-0 z-20 relative">
+                  <div className="h-32 bg-black/60 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-10 shrink-0 z-20 relative">
                      <div className="flex items-center gap-12">
                         <div className="flex flex-col">
                             <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Neural Coherence</span>
@@ -415,37 +450,25 @@ const MetaventionsHub: React.FC = () => {
                         </div>
                      </div>
 
-                     <button 
-                        onClick={handleGlobalSync} 
-                        disabled={isSyncing}
-                        className="px-8 py-3 bg-[#f1c21b] hover:bg-[#ffdf6b] text-black rounded-2xl text-[9px] font-black uppercase tracking-[0.4em] transition-all active:scale-95 shadow-xl flex items-center gap-4 group"
-                     >
-                        {isSyncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />}
-                        Establish View
-                     </button>
+                     <div className="flex flex-col items-end gap-3">
+                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest max-w-[280px] text-right leading-relaxed italic">
+                            High-fidelity orchestration of strategic implementation protocols and agentic workflows.
+                        </p>
+                        <button 
+                            onClick={handleGlobalSync} 
+                            disabled={isSyncing}
+                            className="px-8 py-3 bg-[#f1c21b] hover:bg-[#ffdf6b] text-black rounded-2xl text-[9px] font-black uppercase tracking-[0.4em] transition-all active:scale-95 shadow-xl flex items-center gap-4 group"
+                        >
+                            {isSyncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />}
+                            Establish View
+                        </button>
+                     </div>
                   </div>
               </div>
 
-              {/* Sidebar Panel */}
-              <div className="col-span-3 space-y-8 flex flex-col">
-                  
-                  {/* COMPACTED CORE METRICS */}
-                  <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden shrink-0">
-                      <div className="grid grid-cols-2 gap-4">
-                          <CompactMetric title="CPU LOAD" value={`${telemetry.cpu}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
-                          <CompactMetric title="BANDWIDTH" value={`${telemetry.net}GB/s`} detail="PEAK" icon={Radio} color="var(--amethyst)" trend="up" />
-                          <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
-                          <CompactMetric title="LATENCY" value="2.4ms" detail="OPTIMAL" icon={Zap} color="#f59e0b" trend="up" />
-                      </div>
-                  </div>
-
-                  {/* Capital Velocity Section */}
-                  <CapitalVelocity />
-
-                  {/* Swarm Matrix Sector */}
-                  <SwarmBox />
-                  
-                  {/* Biometric Anchor */}
+              {/* Right Column: Identity, Swarm & Velocity */}
+              <div className="col-span-3 space-y-6">
+                  {/* 1. Biometric Anchor (Promoted to Top) */}
                   <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-5 relative overflow-hidden group/anchor shrink-0">
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
                       
@@ -460,12 +483,17 @@ const MetaventionsHub: React.FC = () => {
                          </label>
                       </div>
 
-                      <div className="aspect-video bg-black/60 rounded-3xl border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10">
+                      {/* Fully Clickable Anchor Frame */}
+                      <div 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="aspect-video bg-black/60 rounded-3xl border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer"
+                      >
+                          <input type="file" ref={fileInputRef} className="hidden" onChange={handleAnchorSwap} accept="image/*" />
                           {dashboard.referenceImage ? (
                                 <>
                                     <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover grayscale opacity-40 transition-all duration-1000 group-hover/v-anchor:opacity-90 group-hover/v-anchor:grayscale-0" alt="Anchor" />
                                     <div className="absolute inset-0 bg-white/5 opacity-0 group-hover/v-anchor:opacity-100 transition-all duration-700 flex items-center justify-center">
-                                        <label className="cursor-pointer px-8 py-2 bg-black/80 rounded-xl border border-white/10 text-[9px] font-black uppercase tracking-[0.4em] text-white backdrop-blur-3xl shadow-2xl active:scale-95">RE-CALIBRATE</label>
+                                        <div className="px-8 py-2 bg-black/80 rounded-xl border border-white/10 text-[9px] font-black uppercase tracking-[0.4em] text-white backdrop-blur-3xl shadow-2xl active:scale-95">RE-CALIBRATE</div>
                                     </div>
                                 </>
                           ) : (
@@ -473,22 +501,24 @@ const MetaventionsHub: React.FC = () => {
                                     <div className="w-14 h-14 rounded-full border border-dashed border-white/30 flex items-center justify-center">
                                         <Fingerprint size={24} />
                                     </div>
-                                    <span className="text-[9px] font-black uppercase tracking-[0.5em] font-mono">Awaiting identity</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.5em] font-mono">Load Identity Key</span>
                                 </div>
                           )}
                       </div>
                   </div>
 
-                  {/* Operational Velocity (Graph) */}
-                  <div className="flex-1 min-h-[300px]">
+                  {/* 2. Swarm Matrix Sector */}
+                  <SwarmBox />
+                  
+                  {/* 3. Operational Velocity (Graph) */}
+                  <div className="h-72">
                     <ContextVelocityChart onDrillDown={(p) => addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
                   </div>
               </div>
           </div>
 
           {/* D-Ecosystem (Large Global View at bottom) */}
-          <div className="w-full h-[850px] mt-20 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
-              {/* Refined Ecosystem Header HUD - Scales Down to Prevent Overlap */}
+          <div className="w-full h-[850px] mt-16 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
               <div className="absolute top-12 left-16 z-20 flex flex-col gap-3 pointer-events-none">
                   <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">
                       The D-Ecosystem

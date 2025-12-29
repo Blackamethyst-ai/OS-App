@@ -41,8 +41,7 @@ import { audio } from './services/audioService';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const NAV_CONFIG = [
-  { id: AppMode.METAVENTIONS_HUB, label: 'METAVENTIONS HUB', path: '/metaventions-hub' },
-  { id: AppMode.DASHBOARD, label: 'HUB', path: '/dashboard' },
+  { id: AppMode.METAVENTIONS_HUB, label: 'HUB', path: '/metaventions-hub' },
   { id: AppMode.BIBLIOMORPHIC, label: 'LAB', path: '/bibliomorphic' },
   { id: AppMode.PROCESS_MAP, label: 'MAPPER', path: '/process' },
   { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance' },
@@ -274,7 +273,7 @@ const App: React.FC = () => {
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-[#7b2cbf] via-[#f1c21b] to-[#7b2cbf] opacity-40" />
 
         <div className="flex items-center gap-8 h-full">
-            <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.location.hash = '/dashboard'}>
+            <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.location.hash = '/metaventions-hub'}>
                 <MetaventionsLogo size={24} showText={true} />
             </div>
             <div className="h-4 w-px bg-[var(--border-main)]" />
