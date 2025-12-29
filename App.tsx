@@ -41,17 +41,17 @@ import { audio } from './services/audioService';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const NAV_CONFIG = [
-  { id: AppMode.DASHBOARD, label: 'ECOSYSTEM HUB', path: '/dashboard' },
-  { id: AppMode.BIBLIOMORPHIC, label: 'STRATEGY LAB', path: '/bibliomorphic' },
-  { id: AppMode.PROCESS_MAP, label: 'SYSTEMS MAPPER', path: '/process' },
+  { id: AppMode.DASHBOARD, label: 'HUB', path: '/dashboard' },
+  { id: AppMode.BIBLIOMORPHIC, label: 'LAB', path: '/bibliomorphic' },
+  { id: AppMode.PROCESS_MAP, label: 'MAPPER', path: '/process' },
   { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance' },
-  { id: AppMode.CODE_STUDIO, label: 'LOGIC STUDIO', path: '/code' },
-  { id: AppMode.AGENT_CONTROL, label: 'ORCHESTRATOR', path: '/agents' },
-  { id: AppMode.MEMORY_CORE, label: 'ARCHIVE', path: '/memory' },
-  { id: AppMode.IMAGE_GEN, label: 'ASSET STUDIO', path: '/assets' },
-  { id: AppMode.HARDWARE_ENGINEER, label: 'INFRASTRUCTURE', path: '/hardware' },
+  { id: AppMode.CODE_STUDIO, label: 'LOGIC', path: '/code' },
+  { id: AppMode.AGENT_CONTROL, label: 'SWARM', path: '/agents' },
+  { id: AppMode.MEMORY_CORE, label: 'VAULT', path: '/memory' },
+  { id: AppMode.IMAGE_GEN, label: 'ASSETS', path: '/assets' },
+  { id: AppMode.HARDWARE_ENGINEER, label: 'INFRA', path: '/hardware' },
   { id: AppMode.VOICE_MODE, label: 'VOICE CORE', path: '/voice' },
-  { id: AppMode.SYNTHESIS_BRIDGE, label: 'IMPLEMENTATION', path: '/bridge' },
+  { id: AppMode.SYNTHESIS_BRIDGE, label: 'BRIDGE', path: '/bridge' },
   { id: 'NEXUS' as any, label: 'NEXUS', path: '/nexus' },
 ];
 
@@ -255,14 +255,14 @@ const App: React.FC = () => {
                 <MetaventionsLogo size={24} showText={true} />
             </div>
             <div className="h-4 w-px bg-[var(--border-main)]" />
-            <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-[1200px] h-full">
+            <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-[1400px] h-full">
                 {NAV_CONFIG.map(item => (
                     <button 
                         key={item.id} 
                         onClick={() => window.location.hash = item.path} 
-                        className="relative h-full px-3 group flex-shrink-0 flex items-center"
+                        className="relative h-full px-3.5 group flex-shrink-0 flex items-center"
                     >
-                        <span className={`text-[9.5px] font-black uppercase tracking-[0.25em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'}`}>
+                        <span className={`text-[9px] font-black uppercase tracking-[0.25em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'}`}>
                             {item.label}
                         </span>
                         {mode === item.id && (
