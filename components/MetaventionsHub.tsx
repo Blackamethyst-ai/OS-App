@@ -327,14 +327,18 @@ const MetaventionsHub: React.FC = () => {
           </div>
 
           {/* D-Ecosystem (Large Global View at bottom) */}
-          <div className="w-full h-[800px] mt-16 rounded-[4rem] overflow-hidden border border-white/10 shadow-[0_60px_150px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
-              <div className="absolute top-10 left-16 z-20 flex items-center gap-6 pointer-events-none">
-                  <div className="p-4 bg-white/5 border border-white/10 rounded-[2rem] backdrop-blur-3xl shadow-2xl">
-                      <Globe size={40} className="text-white/40 animate-[spin_20s_linear_infinite]" />
-                  </div>
-                  <div className="flex flex-col">
-                      <span className="text-xl font-black text-white uppercase tracking-[1em]">Sovereign Ecosystem</span>
-                      <span className="text-[10px] text-gray-600 font-mono uppercase tracking-[0.4em] mt-2">Active Global Node Synchronization</span>
+          <div className="w-full h-[850px] mt-20 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
+              {/* Refined Ecosystem Header HUD - Scales Down to Prevent Overlap */}
+              <div className="absolute top-12 left-16 z-20 flex flex-col gap-4 pointer-events-none">
+                  <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">
+                      The D-Ecosystem
+                  </h2>
+                  <div className="space-y-3">
+                      <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-6 py-3 rounded-full border border-white/10 shadow-2xl w-fit">
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_10px_#10b981]" />
+                          <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.3em]">Autonomous_Swarm_Lattice // Active</span>
+                      </div>
+                      <span className="text-[8px] text-gray-500 font-mono uppercase tracking-[0.4em] block pl-6">Active Global Node Synchronization</span>
                   </div>
               </div>
               <DEcosystem />
