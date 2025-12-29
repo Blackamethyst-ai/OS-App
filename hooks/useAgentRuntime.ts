@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { GoogleGenAI, FunctionDeclaration, Type } from "@google/genai";
+import { GoogleGenAI, FunctionDeclaration } from "@google/genai";
 import { dynamicRegistry } from '../services/DynamicToolRegistry';
 import { AgenticState, ToolResult } from '../types';
 import { useAppStore } from '../store';
@@ -7,7 +7,7 @@ import { SOVEREIGN_SYSTEM_INSTRUCTION } from '../services/geminiService';
 
 /**
  * SOVEREIGN AGENTIC RUNTIME V3
- * Orchestrates evolutionary recursive tool loops.
+ * Orchestrates evolutionary recursive tool loops using dynamic capability injection.
  */
 export const useAgentRuntime = () => {
     const [state, setState] = useState<AgenticState>({
@@ -19,57 +19,35 @@ export const useAgentRuntime = () => {
 
     const addLog = useAppStore(s => s.addLog);
 
-    const getActiveToolsManifest = useCallback(async (): Promise<FunctionDeclaration[]> => {
-        const declarations: FunctionDeclaration[] = [];
-
-        // 1. Static Kernel Capabilities
-        declarations.push({
-            name: 'system_navigate',
-            parameters: {
-                type: Type.OBJECT,
-                properties: {
-                    target: { type: Type.STRING, description: 'Target sector (DASHBOARD, CODE_STUDIO, etc)' }
-                },
-                required: ['target']
-            },
-            description: 'Navigate the OS to a specific functional sector.'
-        });
-
-        // 2. Evolutionary Tools (Nexus Forge)
-        const dynamicManifests = dynamicRegistry.getDynamicManifests();
-        dynamicManifests.forEach(manifest => declarations.push(manifest));
-
-        return declarations;
-    }, []);
-
     const execute = useCallback(async (userPrompt: string) => {
         setState(prev => ({ 
             ...prev, 
             isThinking: true, 
             lastResult: null, 
-            history: [{ role: 'user', content: userPrompt }] 
+            history: [...prev.history, { role: 'user', content: userPrompt }] 
         }));
         
-        addLog('SYSTEM', 'AGENT_RUNTIME: Synchronizing capabilities...');
+        addLog('SYSTEM', 'AGENT_RUNTIME: Synchronizing evolutionary toolkit...');
 
         try {
-            // Injection 2: Initialize Registry before execution
+            // 1. Initialise Registry
             await dynamicRegistry.initialize();
             
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const tools = await getActiveToolsManifest();
-            const combinedRegistry = dynamicRegistry.getCombinedRegistry();
+            const toolManifests = dynamicRegistry.getCombinedManifests();
 
+            // 2. Initial Thought Generation
             const response = await ai.models.generateContent({
                 model: 'gemini-3-pro-preview',
                 contents: userPrompt,
                 config: { 
                     systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
-                    tools: tools.length > 0 ? [{ functionDeclarations: tools }] : undefined,
+                    tools: toolManifests.length > 0 ? [{ functionDeclarations: toolManifests }] : undefined,
                     thinkingConfig: { thinkingBudget: 16000 } 
                 }
             });
 
+            // 3. Tool Loop Execution
             if (response.functionCalls && response.functionCalls.length > 0) {
                 const call = response.functionCalls[0];
                 const toolName = call.name;
@@ -80,16 +58,14 @@ export const useAgentRuntime = () => {
                     history: [...prev.history, { role: 'model', content: `NEURAL_BRIDGE: Accessing [${toolName}]` }]
                 }));
 
-                const toolLogic = combinedRegistry[toolName];
-                if (!toolLogic) throw new Error(`Capability [${toolName}] unreachable.`);
-
-                const result: ToolResult = await (toolLogic as any)(call.args);
+                const result: ToolResult = await dynamicRegistry.execute(toolName, call.args);
                 
                 setState(prev => ({ 
                     ...prev, 
                     history: [...prev.history, { role: 'tool', content: `SIGNAL_OK: Captured result from [${toolName}].`, toolName }]
                 }));
 
+                // 4. Final Synthesis with Tool Result
                 const finalResponse = await ai.models.generateContent({
                     model: 'gemini-3-pro-preview',
                     contents: [
@@ -125,7 +101,7 @@ export const useAgentRuntime = () => {
             addLog('ERROR', `AGENT_RUNTIME_FAIL: ${err.message}`);
             throw err;
         }
-    }, [getActiveToolsManifest, addLog]);
+    }, [addLog]);
 
     return { execute, state };
 };

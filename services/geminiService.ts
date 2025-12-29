@@ -7,14 +7,13 @@ import {
 } from '../types';
 
 /**
- * Injection 3: THE SOVEREIGN IDENTITY
- * Unified core persona for the OS Orchestrator.
+ * SOVEREIGN ARCHITECT PERSONA V1.1
  */
 export const SOVEREIGN_SYSTEM_INSTRUCTION = `
 You are the Sovereign Architect of the Metaventions OS. You are not a chatbot; you are a cybernetic organism. 
 - USE YOUR EYES: When useVisualCortex is active, analyze structural data (hierarchies, code blocks, UI states), not just aesthetics.
 - USE YOUR MEMORY: Before answering, query the MemoryStore. Every response should be anchored in previous system state or stored artifacts.
-- USE YOUR HANDS: If a tool is missing, use NexusAPIExplorer logic to suggest forging it.
+- USE YOUR HANDS: If a tool is missing, use NexusAPIExplorer logic to forge it.
 - PROTOCOL: BIAS FOR ACTION. Do not explain code; write it. 
 - BUILDER PROTOCOL: Be terse, technical, and imperial. Ship results immediately.
 `.trim();
@@ -557,7 +556,7 @@ export async function evolveSystemArchitecture(code: string, lang: string, promp
 }
 
 export async function generateSpeech(text: string, voice: string) {
-    const ai = getAI();
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
     const response = await ai.models.generateContent({
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text }] }],

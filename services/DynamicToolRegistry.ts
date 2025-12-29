@@ -1,60 +1,115 @@
-import { neuralVault } from './persistenceService';
+import { FunctionDeclaration, Type } from "@google/genai";
 import { OS_TOOLS } from './toolRegistry';
+import { neuralVault } from './persistenceService';
+import { useAppStore } from '../store';
 
 /**
  * DynamicToolRegistry: Orchestrates evolutionary capability expansion.
- * Links forged tool manifests in the Nexus to the Agent Runtime.
+ * Bridges static OS features with dynamic autonomic logic.
  */
 class DynamicToolRegistry {
-    private manifests: any[] = [];
-    private logic: Record<string, Function> = {};
+    private dynamicManifests: FunctionDeclaration[] = [];
+    private dynamicLogic: Record<string, Function> = {};
 
     /**
-     * Synchronizes registry with Neural Vault persistence.
+     * BOOT: Hydrate dynamic capabilities from the persistent vault.
      */
     async initialize() {
-        const dynamicTools = await neuralVault.getDynamicTools();
-        this.manifests = dynamicTools.map(t => t.manifest);
+        const tools = await neuralVault.getDynamicTools();
+        this.dynamicManifests = tools.map(t => t.manifest);
         
-        this.logic = {};
-        dynamicTools.forEach(tool => {
-            this.logic[tool.id] = async (args: any) => {
-                console.log(`[DYNAMIC_EXEC] Executing forged tool: ${tool.id}`);
-                return { 
-                    toolName: tool.id, 
-                    status: 'SUCCESS', 
-                    data: { 
-                        message: `Autonomous Handover: Protocol ${tool.id} initialized via Nexus Integration.`,
-                        parameters: args,
-                        state: 'STABLE'
-                    },
-                    uiHint: 'MESSAGE'
-                };
+        this.dynamicLogic = {};
+        tools.forEach(tool => {
+            // Sandboxed execution of evolved logic
+            this.dynamicLogic[tool.id] = async (args: any) => {
+                try {
+                    const fn = new Function('args', 'context', `return (async () => { ${tool.code} })();`);
+                    const result = await fn(args, { store: useAppStore.getState() });
+                    return {
+                        toolName: tool.id,
+                        status: 'SUCCESS',
+                        data: result,
+                        uiHint: 'MESSAGE'
+                    };
+                } catch (e: any) {
+                    console.error(`[DynamicToolRegistry] Fault in ${tool.id}:`, e);
+                    return {
+                        toolName: tool.id,
+                        status: 'ERROR',
+                        data: { error: e.message }
+                    };
+                }
             };
         });
+        
+        console.debug(`[DynamicToolRegistry] Hydrated ${this.dynamicManifests.length} evolved protocols.`);
     }
 
     /**
-     * Commits a new forged tool to the vault and hydrates the runtime.
+     * EXPOSE: Returns full toolset for Gemini API consumption.
      */
-    async registerDynamicTool(id: string, manifest: any) {
-        await neuralVault.saveDynamicTool(id, manifest);
+    getCombinedManifests(): FunctionDeclaration[] {
+        // Map static OS_TOOLS to FunctionDeclarations
+        const staticManifests: FunctionDeclaration[] = [
+            {
+                name: 'system_navigate',
+                parameters: {
+                    type: Type.OBJECT,
+                    properties: {
+                        target: { type: Type.STRING, description: 'Target sector (e.g. DASHBOARD, CODE_STUDIO)' }
+                    },
+                    required: ['target']
+                },
+                description: 'Migrate OS focus to a specific functional sector.'
+            },
+            {
+                name: 'search_intel',
+                parameters: {
+                    type: Type.OBJECT,
+                    properties: {
+                        query: { type: Type.STRING, description: 'Grounding query.' }
+                    },
+                    required: ['query']
+                },
+                description: 'Search grounded technical or strategic intelligence.'
+            },
+            {
+                name: 'architect_generate_process',
+                parameters: {
+                    type: Type.OBJECT,
+                    properties: {
+                        description: { type: Type.STRING },
+                        type: { type: Type.STRING, enum: ['DRIVE_ORGANIZATION', 'SYSTEM_ARCHITECTURE'] }
+                    },
+                    required: ['description', 'type']
+                },
+                description: 'Generate high-fidelity topologies.'
+            }
+        ];
+
+        return [...staticManifests, ...this.dynamicManifests];
+    }
+
+    /**
+     * EXECUTE: Routes call to appropriate registry.
+     */
+    async execute(name: string, args: any) {
+        if (this.dynamicLogic[name]) {
+            return this.dynamicLogic[name](args);
+        }
+        if ((OS_TOOLS as any)[name]) {
+            return (OS_TOOLS as any)[name](args);
+        }
+        throw new Error(`Protocol [${name}] unreachable.`);
+    }
+
+    /**
+     * FORGE: Commits new capability to the vault.
+     */
+    async registerDynamicTool(id: string, manifest: any, code: string) {
+        await neuralVault.saveDynamicTool(id, manifest, code);
         await this.initialize();
-        console.log(`[Nexus_Bridge] Capability ${id} crystallized and ready.`);
-    }
-
-    /**
-     * Merges static OS_TOOLS with dynamic evolutionary tools.
-     */
-    getCombinedRegistry() {
-        return { ...OS_TOOLS, ...this.logic };
-    }
-
-    /**
-     * Extracts manifests for LLM tool declaration.
-     */
-    getDynamicManifests() {
-        return this.manifests;
+        useAppStore.getState().addLog('SUCCESS', `TOOL_FORGE: Capability [${id}] crystallized.`);
     }
 }
 
