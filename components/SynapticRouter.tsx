@@ -11,6 +11,7 @@ import { audio } from '../services/audioService';
 
 // Lazy Load Views for performance
 const Dashboard = lazy(() => import('./Dashboard'));
+const MetaventionsHub = lazy(() => import('./MetaventionsHub'));
 const SynthesisBridge = lazy(() => import('./SynthesisBridge'));
 const BibliomorphicEngine = lazy(() => import('./BibliomorphicEngine'));
 const ProcessVisualizer = lazy(() => import('./ProcessVisualizer'));
@@ -45,6 +46,7 @@ const SynapticRouter: React.FC = () => {
 
             const routeMap: Record<string, any> = {
                 'dashboard': AppMode.DASHBOARD,
+                'metaventions-hub': AppMode.METAVENTIONS_HUB,
                 'bridge': AppMode.SYNTHESIS_BRIDGE,
                 'bibliomorphic': AppMode.BIBLIOMORPHIC,
                 'process': AppMode.PROCESS_MAP,
@@ -167,7 +169,7 @@ const SynapticRouter: React.FC = () => {
     };
 
     const isFixedLayout = useMemo(() => 
-        mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.AUTONOMOUS_FINANCE || (mode as any) === 'NEXUS'
+        mode === AppMode.METAVENTIONS_HUB || mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.AUTONOMOUS_FINANCE || (mode as any) === 'NEXUS'
     , [mode]);
 
     return (
@@ -195,6 +197,7 @@ const SynapticRouter: React.FC = () => {
                         }`}
                     >
                         {mode === AppMode.DASHBOARD && <Dashboard />}
+                        {mode === AppMode.METAVENTIONS_HUB && <MetaventionsHub />}
                         {mode === AppMode.SYNTHESIS_BRIDGE && <SynthesisBridge />}
                         {mode === AppMode.BIBLIOMORPHIC && <BibliomorphicEngine />}
                         {mode === AppMode.PROCESS_MAP && <ProcessVisualizer />}

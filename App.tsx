@@ -41,6 +41,7 @@ import { audio } from './services/audioService';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const NAV_CONFIG = [
+  { id: AppMode.METAVENTIONS_HUB, label: 'METAVENTIONS HUB', path: '/metaventions-hub' },
   { id: AppMode.DASHBOARD, label: 'HUB', path: '/dashboard' },
   { id: AppMode.BIBLIOMORPHIC, label: 'LAB', path: '/bibliomorphic' },
   { id: AppMode.PROCESS_MAP, label: 'MAPPER', path: '/process' },
@@ -212,7 +213,7 @@ const App: React.FC = () => {
   }, [theme]);
 
   const isFixedLayout = useMemo(() => 
-    mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.SYNTHESIS_BRIDGE || mode === AppMode.VOICE_MODE || mode === AppMode.AUTONOMOUS_FINANCE
+    mode === AppMode.METAVENTIONS_HUB || mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.SYNTHESIS_BRIDGE || mode === AppMode.VOICE_MODE || mode === AppMode.AUTONOMOUS_FINANCE
   , [mode]);
 
   return (

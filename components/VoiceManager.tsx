@@ -69,8 +69,10 @@ const VoiceManager: React.FC = () => {
             if (name === 'navigate_to_sector') {
                 const target = (args.target_sector as string || '').toUpperCase() as AppMode;
                 
+                // Added missing METAVENTIONS_HUB to satisfy TypeScript Record<AppMode, string> check
                 const routeMap: Record<AppMode, string> = {
                     [AppMode.DASHBOARD]: '/dashboard',
+                    [AppMode.METAVENTIONS_HUB]: '/metaventions-hub',
                     [AppMode.BIBLIOMORPHIC]: '/bibliomorphic',
                     [AppMode.PROCESS_MAP]: '/process',
                     [AppMode.MEMORY_CORE]: '/memory',

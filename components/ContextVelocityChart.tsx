@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts';
+import { Activity, Radio } from 'lucide-react';
 
 interface TelemetryPoint {
   time: string;
@@ -19,25 +20,17 @@ interface TelemetryPoint {
 }
 
 const fetchTelemetryData = async (): Promise<TelemetryPoint> => {
-  try {
-      // Logic for future API integration
-      const response = await fetch('/api/telemetry');
-      if (!response.ok) throw new Error('Telemetry API Offline');
-      return await response.json();
-  } catch (err) {
-      // Functional Simulation Engine
-      await new Promise(resolve => setTimeout(resolve, 200));
-      const now = new Date();
-      const timeString = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      
-      const isSpike = Math.random() > 0.92;
-      return {
-        time: timeString,
-        throughput: Math.floor(Math.random() * 45) + 25,
-        latency: isSpike ? Math.floor(Math.random() * 250) + 200 : Math.floor(Math.random() * 60) + 80,
-        ambiguityScore: Math.floor(Math.random() * 15) + (isSpike ? 20 : 0)
-      };
-  }
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const now = new Date();
+    const timeString = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    
+    const isSpike = Math.random() > 0.92;
+    return {
+      time: timeString,
+      throughput: Math.floor(Math.random() * 45) + 25,
+      latency: isSpike ? Math.floor(Math.random() * 250) + 200 : Math.floor(Math.random() * 60) + 80,
+      ambiguityScore: Math.floor(Math.random() * 15) + (isSpike ? 20 : 0)
+    };
 };
 
 interface ContextVelocityChartProps {
@@ -45,12 +38,10 @@ interface ContextVelocityChartProps {
 }
 
 const ContextVelocityChart: React.FC<ContextVelocityChartProps> = ({ onDrillDown }) => {
-  const { theme } = useAppStore(); // Reactive theme hook
+  const { theme } = useAppStore();
   const [data, setData] = useState<TelemetryPoint[]>([]);
-  const [isLive, setIsLive] = useState(true);
 
   useEffect(() => {
-    if (!isLive) return;
     const interval = setInterval(async () => {
       const point = await fetchTelemetryData();
       setData(prev => {
@@ -59,100 +50,57 @@ const ContextVelocityChart: React.FC<ContextVelocityChartProps> = ({ onDrillDown
       });
     }, 2000);
     return () => clearInterval(interval);
-  }, [isLive]);
-
-  // Derived colors from the theme for SVG elements that might not pick up CSS variables instantly
-  const chartColors = useMemo(() => {
-      return {
-          grid: 'var(--border-main)',
-          text: 'var(--text-muted)',
-          tooltipBg: 'var(--bg-panel)',
-          tooltipText: 'var(--text-primary)'
-      };
-  }, [theme]);
+  }, []);
 
   return (
-    <div 
-      key={theme} // Force re-render on theme change to update internal SVG styles
-      className="w-full h-full bg-[var(--bg-card-top)] rounded-2xl border border-[var(--border-main)] p-5 flex flex-col transition-all duration-700 shadow-xl overflow-hidden backdrop-blur-3xl"
-    >
-      <div className="flex justify-between items-center mb-5 shrink-0">
-        <div className="flex flex-col gap-1">
-            <h3 className="text-[10px] font-black text-[var(--text-primary)] uppercase tracking-[0.4em] font-mono leading-none">
-              Context Velocity
+    <div className="w-full h-full min-h-[300px] bg-[var(--bg-card-top)] rounded-[3rem] border border-[var(--border-main)] p-8 flex flex-col transition-all duration-700 shadow-2xl overflow-hidden backdrop-blur-3xl relative group/chart">
+      <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+      
+      <div className="flex justify-between items-center mb-6 shrink-0 relative z-10">
+        <div className="flex flex-col gap-1.5">
+            <h3 className="text-[11px] font-black text-white uppercase tracking-[0.4em] font-mono leading-none flex items-center gap-3">
+              <Activity size={16} className="text-[#9d4edd] animate-pulse" /> Context Velocity
             </h3>
-            <span className="text-[7px] font-mono text-[var(--text-muted)] uppercase tracking-widest">Temporal Throughput Index</span>
+            <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest pl-7">Temporal index // v4.0</span>
         </div>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setIsLive(!isLive)}
-            className={`flex items-center gap-2 px-2 py-1 rounded border transition-all ${isLive ? 'bg-[#10b981]/10 border-[#10b981]/30 text-[#10b981]' : 'bg-black/20 border-white/10 text-gray-500'}`}
-          >
-            <div className={`w-1.5 h-1.5 rounded-full ${isLive ? 'bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]' : 'bg-gray-500'}`} />
-            <span className="text-[8px] font-mono font-bold uppercase tracking-widest">{isLive ? 'LIVE' : 'PAUSED'}</span>
-          </button>
+        <div className="flex items-center gap-3 px-4 py-1.5 bg-[#10b981]/5 border border-[#10b981]/20 rounded-full shadow-inner group-hover/chart:border-[#10b981]/40 transition-all">
+            <Radio size={10} className="text-[#10b981] animate-pulse" />
+            <span className="text-[9px] font-black font-mono text-[#10b981] uppercase tracking-widest leading-none">Live</span>
         </div>
       </div>
       
-      <div className="flex-1 min-h-0 w-full">
+      <div className="flex-1 min-h-0 w-full opacity-60 group-hover:opacity-100 transition-opacity relative z-10">
         <ResponsiveContainer width="100%" height="100%">
-          <ComposedChart 
-            data={data} 
-            margin={{ top: 5, right: 5, bottom: 5, left: 0 }}
-            onClick={(e: any) => e && e.activePayload && onDrillDown(e.activePayload[0].payload)}
-          >
-            <CartesianGrid strokeDasharray="3 3" stroke={chartColors.grid} vertical={false} opacity={0.1} />
+          <ComposedChart data={data} margin={{ top: 5, right: 0, bottom: 0, left: -25 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
             <XAxis dataKey="time" hide />
-            <YAxis 
-                yAxisId="left" 
-                stroke={chartColors.text} 
-                tick={{fontSize: 8, fontFamily: 'Fira Code', fill: chartColors.text}} 
-                width={25} 
-                axisLine={false} 
-                tickLine={false}
-            />
-            <YAxis 
-                yAxisId="right" 
-                orientation="right" 
-                stroke={chartColors.text} 
-                tick={{fontSize: 8, fontFamily: 'Fira Code', fill: chartColors.text}} 
-                width={25} 
-                axisLine={false} 
-                tickLine={false}
-            />
+            <YAxis yAxisId="left" hide domain={[0, 100]} />
+            <YAxis yAxisId="right" hide domain={[0, 500]} />
             <Tooltip 
-              cursor={{ stroke: 'var(--border-main)', strokeWidth: 1 }}
+              cursor={{ stroke: 'rgba(255,255,255,0.05)', strokeWidth: 1 }}
               contentStyle={{ 
-                  backgroundColor: chartColors.tooltipBg, 
-                  border: '1px solid var(--border-main)', 
-                  fontSize: '10px', 
-                  borderRadius: '12px', 
-                  color: chartColors.tooltipText,
-                  backdropFilter: 'blur(10px)'
+                  backgroundColor: 'rgba(5,5,10,0.95)', 
+                  border: '1px solid rgba(255,255,255,0.1)', 
+                  fontSize: '11px', 
+                  borderRadius: '20px', 
+                  backdropFilter: 'blur(30px)',
+                  boxShadow: '0 30px 60px rgba(0,0,0,0.8)'
               }}
-              itemStyle={{ fontFamily: 'Fira Code', textTransform: 'uppercase', fontSize: '9px' }}
+              itemStyle={{ fontFamily: 'Fira Code', textTransform: 'uppercase', padding: '4px 0' }}
             />
-            <Bar yAxisId="left" dataKey="throughput" fill="#3b82f6" barSize={4} opacity={0.4} radius={[2, 2, 0, 0]} name="Throughput" />
-            <Line yAxisId="right" type="monotone" dataKey="latency" stroke="#ef4444" strokeWidth={2} dot={false} name="Latency" animationDuration={400} />
-            <Line yAxisId="left" type="step" dataKey="ambiguityScore" stroke="#f1c21b" strokeWidth={1.5} dot={false} name="Entropy" animationDuration={600} />
+            <Bar yAxisId="left" dataKey="throughput" fill="var(--amethyst)" barSize={5} opacity={0.3} radius={[3, 3, 0, 0]} />
+            <Line yAxisId="right" type="monotone" dataKey="latency" stroke="#ef4444" strokeWidth={3} dot={false} animationDuration={400} />
+            <Line yAxisId="left" type="step" dataKey="ambiguityScore" stroke="var(--cyan)" strokeWidth={2} dot={false} animationDuration={600} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center shrink-0">
-          <div className="flex gap-4">
-              <div className="flex flex-col">
-                  <span className="text-[6px] text-[var(--text-muted)] uppercase font-black">Sync</span>
-                  <span className="text-[9px] font-mono text-[var(--text-primary)]">LOCKED</span>
-              </div>
-              <div className="flex flex-col">
-                  <span className="text-[6px] text-[var(--text-muted)] uppercase font-black">Buffer</span>
-                  <span className="text-[9px] font-mono text-[var(--text-primary)]">{data.length}Pkts</span>
-              </div>
+      <div className="mt-6 pt-6 border-t border-white/5 flex justify-between items-center text-[9px] font-mono text-gray-600 uppercase tracking-[0.2em] shrink-0 relative z-10">
+          <div className="flex gap-6 font-black">
+              <span>Sync: <span className="text-white">OK</span></span>
+              <span>Load: <span className="text-white">{data.length}P</span></span>
           </div>
-          <div className="text-[7px] font-mono text-[var(--text-muted)] uppercase tracking-widest italic">
-            Telemetry Feed Stabilized
-          </div>
+          <span className="italic opacity-30 font-black tracking-widest">Feed_Stab_L0</span>
       </div>
     </div>
   );
