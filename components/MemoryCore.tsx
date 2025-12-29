@@ -130,29 +130,28 @@ const MemoryCore: React.FC = () => {
     }, [filteredArtifacts]);
 
     return (
-        <div className="flex h-full w-full font-sans bg-[var(--bg-main)] border border-[var(--border-main)] rounded-[2rem] overflow-hidden relative transition-colors duration-500">
-            <div className="w-80 border-r border-[var(--border-main)] bg-[var(--bg-side)] backdrop-blur flex flex-col shrink-0">
-                <div className="p-6 border-b border-[var(--border-main)] flex items-center justify-between bg-black/5">
-                    <div className="flex items-center gap-3">
+        <div className="flex h-full w-full font-sans bg-transparent border border-[var(--border-main)] rounded-[2.5rem] overflow-hidden relative transition-colors duration-500">
+            <div className="w-80 border-r border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl flex flex-col shrink-0 z-20">
+                <div className="p-8 border-b border-white/5 flex items-center justify-between bg-black/10">
+                    <div className="flex items-center gap-4">
                         <Database className="w-5 h-5 text-[#9d4edd] animate-pulse" />
-                        <span className="text-xs font-black font-mono uppercase tracking-[0.2em] text-[var(--text-main)]">Neural Vault</span>
+                        <span className="text-[11px] font-black font-mono uppercase tracking-[0.3em] text-white">Neural Vault</span>
                     </div>
                     {isIndexing && <Loader2 size={14} className="text-[#9d4edd] animate-spin" />}
                 </div>
-                <div className="p-4 border-b border-[var(--border-main)]">
+                <div className="p-6 border-b border-white/5">
                     <form onSubmit={handleVectorSearch} className="relative group">
                         <input 
                             value={searchQuery} 
                             onChange={e => setSearchQuery(e.target.value)} 
-                            placeholder="Semantic Vector Search..." 
-                            className="w-full bg-black/5 border border-[var(--border-main)] pl-4 pr-10 py-3 text-[11px] font-mono text-[var(--text-main)] focus:border-[#9d4edd] outline-none rounded-xl shadow-inner transition-all" 
+                            placeholder="Semantic Probe..." 
+                            className="w-full bg-black/40 border border-white/10 pl-10 pr-4 py-3 text-[11px] font-mono text-white focus:border-[#9d4edd] outline-none rounded-xl shadow-inner transition-all placeholder:text-gray-800" 
                         />
-                        <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-muted)] hover:text-[var(--text-main)] transition-colors">
-                            {isSearching ? <Loader2 size={16} className="animate-spin" /> : <Search size={16} />}
-                        </button>
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700 group-focus-within:text-[#9d4edd] transition-colors" />
+                        {isSearching && <Loader2 size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin text-[#9d4edd]" />}
                     </form>
                     {semanticResults && (
-                        <button onClick={() => { setSearchQuery(''); setSemanticResults(null); }} className="mt-2 text-[9px] font-mono text-[#9d4edd] hover:underline uppercase tracking-widest">Reset Search</button>
+                        <button onClick={() => { setSearchQuery(''); setSemanticResults(null); }} className="mt-3 text-[9px] font-mono text-[#9d4edd] hover:text-white uppercase tracking-widest font-black transition-colors">Clear Result Cache</button>
                     )}
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
@@ -162,49 +161,49 @@ const MemoryCore: React.FC = () => {
                             <button 
                                 key={art.id} 
                                 onClick={() => { setSelectedArtifact(art); audio.playClick(); }} 
-                                className={`w-full text-left p-4 rounded-2xl border transition-all flex flex-col gap-2 ${selectedArtifact?.id === art.id ? 'border-[#9d4edd] bg-[#9d4edd]/10' : 'border-transparent hover:bg-black/5'}`}
+                                className={`w-full text-left p-4 rounded-2xl border transition-all flex flex-col gap-2 ${selectedArtifact?.id === art.id ? 'border-[#9d4edd]/50 bg-[#9d4edd]/5 shadow-xl' : 'border-transparent hover:bg-white/5'}`}
                             >
-                                <div className="text-[11px] font-bold text-[var(--text-main)] truncate uppercase tracking-tight">{art.name}</div>
+                                <div className="text-[11px] font-black text-white truncate uppercase tracking-tighter font-mono">{art.name}</div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[9px] text-[var(--text-muted)] font-mono uppercase">{(art.analysis?.classification || 'RAW').substring(0, 15)}</span>
+                                    <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest">{(art.analysis?.classification || 'RAW_FRAGMENT').substring(0, 15)}</span>
                                     {semResult && (
-                                        <div className="flex items-center gap-1.5"><Zap size={8} className="text-[#10b981]" /><span className="text-[8px] text-[#10b981] font-bold">{Math.round(semResult.score * 100)}%</span></div>
+                                        <div className="flex items-center gap-1.5"><Zap size={8} className="text-[#10b981]" /><span className="text-[9px] text-[#10b981] font-black font-mono">{Math.round(semResult.score * 100)}%</span></div>
                                     )}
                                 </div>
                             </button>
                         );
                     })}
                     {filteredArtifacts.length === 0 && !isLoading && (
-                        <div className="py-20 text-center opacity-20 flex flex-col items-center gap-4 text-[var(--text-muted)]">
-                            <Search size={32} /><span className="text-[10px] font-mono uppercase">No semantic matches</span>
+                        <div className="py-20 text-center opacity-10 flex flex-col items-center gap-6 grayscale">
+                            <Search size={48} /><span className="text-[11px] font-mono uppercase tracking-[0.5em]">No logical matches</span>
                         </div>
                     )}
                 </div>
             </div>
 
             <div className="flex-1 flex flex-col relative bg-transparent">
-                <div className="h-16 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur flex items-center justify-between px-8 shrink-0 z-20">
-                    <div className="flex bg-black/5 p-1.5 rounded-xl border border-[var(--border-main)] shadow-inner">
+                <div className="h-16 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl flex items-center justify-between px-10 shrink-0 z-20">
+                    <div className="flex bg-black/20 p-1.5 rounded-xl border border-white/5 shadow-inner">
                         {[
                             { id: 'GRID', icon: LayoutGrid, label: 'Matrix' },
                             { id: 'GRAPH', icon: BrainCircuit, label: 'Lattice' },
-                            { id: 'XRAY', icon: Radar, label: 'Power X-Ray' }
+                            { id: 'XRAY', icon: Radar, label: 'Analysis' }
                         ].map(btn => (
                             <button 
                                 key={btn.id} 
                                 onClick={() => { setViewMode(btn.id as any); audio.playClick(); }} 
-                                className={`px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all ${viewMode === btn.id ? 'bg-[var(--text-main)] text-[var(--bg-main)] shadow-lg' : 'text-[var(--text-muted)] hover:text-[var(--text-main)] hover:bg-black/5'}`}
+                                className={`px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all ${viewMode === btn.id ? 'bg-white text-black shadow-2xl scale-105' : 'text-gray-500 hover:text-white'}`}
                             >
                                 <btn.icon size={14} /> {btn.label}
                             </button>
                         ))}
                     </div>
-                    <div className="flex items-center gap-6">
-                        <div className="flex items-center gap-3 text-[var(--text-muted)] text-[10px] font-mono uppercase">
-                            <Database size={14} /> Artifacts: {artifacts.length}
+                    <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-3 text-gray-600 text-[10px] font-mono uppercase tracking-widest">
+                            <Database size={14} /> Indexed: {artifacts.length}
                         </div>
-                        <label className="flex items-center gap-3 px-6 py-2.5 bg-[#9d4edd] text-black border border-transparent rounded-xl text-[10px] font-black uppercase tracking-widest cursor-pointer shadow-lg hover:scale-105 active:scale-95 transition-all">
-                            <Upload size={16} /> Secure Ingest
+                        <label className="flex items-center gap-4 px-8 py-2.5 bg-[#9d4edd] text-black border border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest cursor-pointer shadow-[0_0_30px_rgba(157,78,221,0.3)] hover:scale-105 active:scale-95 transition-all">
+                            <Upload size={18} /> Ingest
                             <input type="file" multiple className="hidden" onChange={handleFileUpload} />
                         </label>
                     </div>
@@ -221,21 +220,21 @@ const MemoryCore: React.FC = () => {
                                 <PowerXRay availableSources={artifacts} />
                             </motion.div>
                         ) : (
-                            <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 overflow-y-auto h-full custom-scrollbar">
+                            <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 overflow-y-auto h-full custom-scrollbar pb-32">
                                 {filteredArtifacts.map(art => (
                                     <motion.div 
                                         layout
                                         key={art.id} 
                                         onClick={() => { setSelectedArtifact(art); audio.playClick(); }} 
-                                        className={`p-6 bg-[var(--bg-panel)] border rounded-[2rem] transition-all cursor-pointer group shadow-xl relative overflow-hidden ${selectedArtifact?.id === art.id ? 'border-[#9d4edd] ring-4 ring-[#9d4edd]/5' : 'border-[var(--border-main)] hover:border-[#9d4edd]/30'}`}
+                                        className={`p-8 bg-transparent crystalline rounded-[3rem] transition-all cursor-pointer group shadow-2xl relative overflow-hidden ${selectedArtifact?.id === art.id ? 'border-white/40 ring-4 ring-white/5' : 'border-white/10 hover:border-white/30'}`}
                                     >
-                                        <div className="aspect-square bg-black/5 rounded-3xl flex items-center justify-center text-[var(--text-muted)] group-hover:text-[#9d4edd] transition-all mb-6 shadow-inner border border-[var(--border-main)] relative overflow-hidden">
-                                            <FileIcon size={48} className="group-hover:scale-110 transition-transform duration-700" />
+                                        <div className="aspect-square glass-action rounded-[2.5rem] flex items-center justify-center text-gray-600 group-hover:text-white transition-all mb-8 shadow-inner relative overflow-hidden">
+                                            <FileIcon size={64} className="group-hover:scale-110 transition-transform duration-1000" />
                                         </div>
-                                        <div className="text-xs font-black text-[var(--text-main)] uppercase truncate font-mono mb-2 tracking-tight">{art.name}</div>
-                                        <div className="flex justify-between items-center">
-                                            <span className="text-[8px] text-[var(--text-muted)] font-mono uppercase tracking-widest">{(art.analysis?.classification || 'UNCLASSIFIED').substring(0, 12)}</span>
-                                            <span className="text-[8px] text-[var(--text-muted)] opacity-50 font-mono">ID_{art.id.substring(0,6)}</span>
+                                        <div className="text-sm font-black text-white uppercase truncate font-mono mb-2 tracking-tight">{art.name}</div>
+                                        <div className="flex justify-between items-center border-t border-white/5 pt-4">
+                                            <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest">{(art.analysis?.classification || 'RAW').substring(0, 12)}</span>
+                                            <span className="text-[8px] text-gray-700 font-mono">ID_{art.id.substring(0,4)}</span>
                                         </div>
                                     </motion.div>
                                 ))}
@@ -247,36 +246,49 @@ const MemoryCore: React.FC = () => {
 
             <AnimatePresence>
                 {selectedArtifact && viewMode !== 'XRAY' && (
-                    <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} className="fixed top-0 right-0 bottom-0 w-[480px] bg-[var(--bg-panel)] backdrop-blur-3xl border-l border-[var(--border-main)] z-[300] shadow-2xl flex flex-col p-10 gap-10">
+                    <motion.div 
+                        initial={{ x: '100%' }} 
+                        animate={{ x: 0 }} 
+                        exit={{ x: '100%' }} 
+                        className="fixed top-0 right-0 bottom-0 w-[520px] bg-[var(--bg-header)] backdrop-blur-3xl border-l border-white/10 z-[300] shadow-[0_0_100px_rgba(0,0,0,1)] flex flex-col p-12 gap-12 glass-drawer-edge"
+                    >
                         <div className="flex justify-between items-start shrink-0">
-                            <div className="space-y-1 text-[var(--text-main)]">
-                                <h2 className="text-2xl font-black uppercase font-mono tracking-tighter truncate max-w-[320px]">{selectedArtifact.name}</h2>
-                                <p className="text-[10px] text-[var(--text-muted)] font-mono uppercase tracking-widest">{selectedArtifact.type} // {new Date(selectedArtifact.timestamp).toLocaleString()}</p>
+                            <div className="space-y-2 text-white">
+                                <h2 className="text-3xl font-black uppercase font-mono tracking-tighter truncate max-w-[360px] leading-tight">{selectedArtifact.name}</h2>
+                                <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em]">{selectedArtifact.type} // {new Date(selectedArtifact.timestamp).toLocaleTimeString()}</p>
                             </div>
-                            <button onClick={() => setSelectedArtifact(null)} className="p-2 hover:bg-black/5 rounded-xl transition-all text-[var(--text-muted)] hover:text-[var(--text-main)]"><X size={24}/></button>
+                            <button onClick={() => setSelectedArtifact(null)} className="p-3 hover:bg-white/5 rounded-2xl transition-all text-gray-500 hover:text-white"><X size={28}/></button>
                         </div>
                         
-                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-10 pr-2">
-                            <div className="aspect-video bg-black/5 rounded-[2.5rem] border border-[var(--border-main)] flex items-center justify-center shadow-inner group/prev relative overflow-hidden text-[var(--text-muted)]">
-                                <FileText size={80} className="group-hover:scale-110 transition-transform duration-1000" />
+                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-12 pr-4">
+                            <div className="aspect-video glass-action rounded-[3rem] flex items-center justify-center shadow-2xl group/prev relative overflow-hidden text-gray-700">
+                                <FileText size={100} className="group-hover:scale-110 group-hover:text-white transition-all duration-1000" />
                             </div>
 
-                            <div className="space-y-4">
-                                <div className="flex items-center gap-3 text-[10px] font-black text-[var(--text-muted)] uppercase tracking-widest px-2">
-                                    <Info size={14} className="text-[#9d4edd]" /> Intelligence Synthesis
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-4 text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] px-2">
+                                    <Info size={16} className="text-[#9d4edd]" /> Intelligent Manifest
                                 </div>
-                                <div className="p-8 bg-black/5 border border-[var(--border-main)] rounded-[2.5rem] text-[13px] font-mono text-[var(--text-main)] leading-relaxed italic border-l-4 border-l-[#9d4edd] shadow-inner">
-                                    "{selectedArtifact.analysis?.summary || 'Structural integrity scan pending.'}"
+                                <div className="p-10 bg-black/40 border border-white/5 rounded-[3.5rem] text-[15px] font-mono text-gray-300 leading-relaxed italic border-l-[6px] border-l-[#9d4edd] shadow-inner">
+                                    "{selectedArtifact.analysis?.summary || 'Integrity scan pending in background daemon.'}"
                                 </div>
                             </div>
+
+                            {selectedArtifact.tags && selectedArtifact.tags.length > 0 && (
+                                <div className="flex flex-wrap gap-3 px-2">
+                                    {selectedArtifact.tags.map(tag => (
+                                        <span key={tag} className="px-5 py-2 bg-white/5 rounded-full border border-white/10 text-[9px] font-black font-mono text-gray-500 uppercase tracking-widest">{tag}</span>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
-                        <div className="flex flex-col gap-4 shrink-0">
-                            <button onClick={() => openHoloProjector({ id: selectedArtifact.id, title: selectedArtifact.name, type: 'TEXT', content: selectedArtifact.analysis?.summary || selectedArtifact.name })} className="w-full py-5 bg-[#9d4edd] text-black rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3">
-                                <BrainCircuit size={18} /> Materialize Projection
+                        <div className="flex flex-col gap-5 shrink-0 pt-10 border-t border-white/5">
+                            <button onClick={() => openHoloProjector({ id: selectedArtifact.id, title: selectedArtifact.name, type: 'TEXT', content: selectedArtifact.analysis?.summary || selectedArtifact.name })} className="w-full py-6 bg-[#9d4edd] text-black rounded-[2rem] text-[12px] font-black uppercase tracking-[0.5em] shadow-[0_20px_50px_rgba(157,78,221,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5">
+                                <BrainCircuit size={22} /> Project Manifest
                             </button>
-                            <button onClick={async () => { if (confirm('Purge artifact?')) { await neuralVault.deleteArtifact(selectedArtifact.id); setSelectedArtifact(null); loadArtifacts(); audio.playError(); } }} className="w-full py-4 bg-transparent border border-[var(--border-main)] rounded-2xl text-[10px] font-black uppercase tracking-widest text-[var(--text-muted)] hover:text-red-500 hover:border-red-500/30 transition-all flex items-center justify-center gap-2">
-                                <Trash2 size={16} /> Execute Purge
+                            <button onClick={async () => { if (confirm('Irreversible purge?')) { await neuralVault.deleteArtifact(selectedArtifact.id); setSelectedArtifact(null); loadArtifacts(); audio.playError(); } }} className="w-full py-5 bg-transparent border border-white/10 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-gray-600 hover:text-red-500 hover:border-red-500/30 transition-all flex items-center justify-center gap-3">
+                                <Trash2 size={18} /> Purge Unit
                             </button>
                         </div>
                     </motion.div>

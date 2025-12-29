@@ -20,10 +20,10 @@ export const OS_TOOLS = {
         
         try {
             const domainContext = args.type === 'DRIVE_ORGANIZATION' 
-                ? "Generate a high-fidelity PARA structure. Include Multi-modal Parsing stages: 1. Hierarchical Text Extraction, 2. Image Captioning/OCR, 3. Table Content Parsing, 4. Equation Recognition. Map these to root directories." 
+                ? "Forge a high-end PARA (Projects, Areas, Resources, Archives) drive organization. Include Zettelkasten-style atomic note linking. Protocols: 1. Semantic Tagging, 2. Auto-Archival TTL, 3. Multi-modal indexing for Images/PDFs." 
                 : args.type === 'SYSTEM_ARCHITECTURE'
-                ? "Generate a cloud architecture with a dedicated Deep Ingestion Layer. Stages: Structured Content Listing -> Recursive Knowledge Grounding -> Hybrid Retrieval Bridge (Vector + Graph)."
-                : "Focus on swarm consensus and autonomous agentic delegation.";
+                ? "Forge a cloud-native architecture with a dedicated Deep Ingestion Layer. Stages: Edge Data Filtering -> Persistent Event Bus -> Autonomous Indexing -> Refractive Storage (Glacier + Hot Access)."
+                : "Focus on swarm consensus, weighted voting delegation, and recursive agentic self-correction.";
 
             const fullPrompt = `${args.description} | DOMAIN_GUIDANCE: ${domainContext} | DIRECTIVE: ${args.custom_directive || 'Standard Optimization'}`;
 
@@ -150,7 +150,7 @@ export const OS_TOOLS = {
 
     // 7. SEARCH INTELLIGENCE
     search_intel: async (args: { query: string }): Promise<ToolResult> => {
-        const { addLog } = useAppStore.getState();
+        const { addLog } = useAppStore();
         addLog('SYSTEM', `SEARCH_INTEL: Grounding intelligence for "${args.query}"...`);
         
         try {
