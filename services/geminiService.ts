@@ -215,16 +215,18 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
     if (reference) parts.push({ inlineData: reference.inlineData });
     
     // SOVEREIGN EMPIRE STANDARD - Biometric Identity Anchor + Cinematic Theme Integration
+    // REFINED PROMPT: Focus on "EMERGENCE" - The person is part of the scene, interacting with light and tech.
     const metaventionsDirective = `
-        BIOMETRIC IDENTITY ANCHOR: You MUST lock the facial geometry, skin tone, mustache/goatee structure, and precise identity of the man from the reference image. 
+        BIOMETRIC IDENTITY ANCHOR: You MUST lock the facial geometry, skin tone, mustache/goatee structure, and precise identity of the person from the reference image. 
         
-        THEME: METAVENTIONS AI SOVEREIGN COMMAND CENTER. 
-        ENVIRONMENT: A sprawling, high-fidelity futuristic laboratory with obsidian stone textures, translucent floating holographic data lattices, and ambient violet/cyan energy glows. 
-        CHARACTER INTEGRATION: Place the anchored identity into this environment. He should be portrayed as the Sovereign Architect, working with complex AI systems. 
-        APPAREL: The signature premium black faux-leather bomber jacket with a mandarin collar over a crisp white t-shirt. 
-        CINEMATOGRAPHY: High-end 8k digital cinema, anamorphic lens flares, master-class three-point studio lighting with rectangular softbox catchlights in the pupils. 
-        DETAIL: Sharp focal plane on the eyes, visible skin pores, macro-texture on the jacket grain. 
-        ATMOSPHERE: Visionary authority, Technological supremacy, Upper-echelon futurism.
+        THEME: METAVENTIONS AI SOVEREIGN EMERGENCE. 
+        ENVIRONMENT: A sprawled, multi-layered futuristic laboratory with obsidian walls and translucent floating holographic data lattices that cast real cyan and violet light onto the subject. 
+        CHARACTER INTEGRATION: The subject is the Grand Architect. He is NOT just standing there; he is cinematically immersed in an action. He is actively interacting with the holographic interface, his fingers leaving trails of glowing data. 
+        LIGHTING & SHADOW: Volumetric lighting. The ambient glow of the holograms should realistically illuminate the texture of his skin and the folds of his jacket. High-contrast cinematic shadows. 
+        APPAREL: A premium black leather bomber jacket with subtle technical patterns on the shoulders, worn over a sharp white t-shirt.
+        CINEMATOGRAPHY: An epic, wide-angle cinematic shot. 8k resolution, anamorphic lens flares, shallow depth of field focusing sharply on his focused expression. 
+        ATMOSPHERE: Intense intellectual focus, technological transcendence, supreme authority. 
+        THE PERSON MUST LOOK PART OF THE 3D SCENE, WITH MATCHING DEPTH, LIGHTING, AND ATMOSPHERIC FOG.
     `;
     
     parts.push({ text: `${metaventionsDirective} Scene Composition: ${prompt}` });
@@ -349,7 +351,7 @@ export async function analyzeCrossSectorImpact(performance: any, metaventions: a
 
 export async function generateAvatar(role: string, name: string) {
     const ai = getAI();
-    const prompt = `Cinematic editorial portrait for a ${role} named ${name}. METAVENTIONS AI SOVEREIGN EMPIRE look. High-class black professional, imperial futuristic aesthetics. Razor-sharp fade haircut, perfectly groomed. Royal purple and gold palette. 8k, hyper-realistic.`;
+    const prompt = `Cinematic editorial portrait for a ${role} named ${name}. METAVENTIONS AI SOVEREIGN EMPIRE look. High-class professional, imperial futuristic aesthetics. Royal purple and gold palette. 8k, hyper-realistic. Subject is active and immersed in a futuristic command center.`;
     const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: prompt
@@ -372,7 +374,7 @@ export async function constructCinematicPrompt(prompt: string, colorway: any, ch
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Convert this prompt into a Metaventions Sovereign Empire cinematic directive: "${prompt}". Focus on regal black professionals, obsidian textures, and royal highlights.`
+        contents: `Convert this prompt into a Metaventions Sovereign Empire cinematic directive: "${prompt}". Focus on regal professionals, obsidian textures, and royal highlights.`
     });
     return response.text || prompt;
 }

@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { 
     AppMode, AppTheme, UserProfile, FileData, Task, 
@@ -366,6 +365,7 @@ export const useAppStore = create<AppState>((set) => ({
         generatedCode: '',
         generatedWorkflow: null,
         runtimeResults: {},
+        /* Fix: Initialized activeStepIndex with null value instead of using a type expression */
         activeStepIndex: null,
         isSimulating: false,
         activeTab: 'living_map',
