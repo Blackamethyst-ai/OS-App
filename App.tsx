@@ -151,61 +151,62 @@ const App: React.FC = () => {
       if (isDark) document.documentElement.classList.add('dark');
       else document.documentElement.classList.remove('dark');
 
+      // Alpha values dropped significantly (0.05 to 0.12 range) for "Actual Glass" look
       switch (theme) {
           case AppTheme.LIGHT: return { 
               '--bg-app': '#F5F7FA', 
-              '--bg-header': '#ffffff',
-              '--bg-panel': 'rgba(255, 255, 255, 0.95)',
+              '--bg-header': 'rgba(255, 255, 255, 0.4)',
+              '--bg-panel': 'rgba(255, 255, 255, 0.1)',
               '--bg-side': '#f8f9fb',
-              '--bg-card-top': 'rgba(255, 255, 255, 0.8)', 
-              '--bg-card-bottom': 'rgba(240, 240, 245, 0.5)', 
+              '--bg-card-top': 'rgba(255, 255, 255, 0.12)', 
+              '--bg-card-bottom': 'rgba(240, 240, 245, 0.05)', 
               '--text-primary': '#0B1020', 
               '--text-muted': '#666666',
-              '--border-main': 'rgba(11, 16, 32, 0.08)'
+              '--border-main': 'rgba(11, 16, 32, 0.1)'
           };
           case AppTheme.AMBER: return { 
               '--bg-app': '#0a0500', 
-              '--bg-header': '#0a0500',
-              '--bg-panel': '#0d0700',
+              '--bg-header': 'rgba(10, 5, 0, 0.5)',
+              '--bg-panel': 'rgba(13, 7, 0, 0.2)',
               '--bg-side': '#0d0700',
-              '--bg-card-top': 'rgba(25, 12, 0, 0.8)', 
-              '--bg-card-bottom': 'rgba(15, 8, 0, 0.5)', 
+              '--bg-card-top': 'rgba(245, 158, 11, 0.08)', 
+              '--bg-card-bottom': 'rgba(15, 8, 0, 0.05)', 
               '--text-primary': '#f59e0b', 
               '--text-muted': '#78350f',
-              '--border-main': 'rgba(245, 158, 11, 0.15)'
+              '--border-main': 'rgba(245, 158, 11, 0.12)'
           };
           case AppTheme.MIDNIGHT: return { 
               '--bg-app': '#020617', 
-              '--bg-header': '#020617',
-              '--bg-panel': '#030a21',
+              '--bg-header': 'rgba(2, 6, 23, 0.5)',
+              '--bg-panel': 'rgba(3, 10, 33, 0.2)',
               '--bg-side': '#030a21',
-              '--bg-card-top': 'rgba(15, 23, 42, 0.8)', 
-              '--bg-card-bottom': 'rgba(7, 10, 20, 0.5)', 
+              '--bg-card-top': 'rgba(59, 130, 246, 0.1)', 
+              '--bg-card-bottom': 'rgba(7, 10, 20, 0.05)', 
               '--text-primary': '#e2e8f0', 
               '--text-muted': '#64748b',
-              '--border-main': 'rgba(59, 130, 246, 0.15)'
+              '--border-main': 'rgba(59, 130, 246, 0.12)'
           };
           case AppTheme.NEON_CYBER: return { 
               '--bg-app': '#010101', 
-              '--bg-header': '#010101',
-              '--bg-panel': '#050505',
+              '--bg-header': 'rgba(1, 1, 1, 0.5)',
+              '--bg-panel': 'rgba(5, 5, 5, 0.2)',
               '--bg-side': '#050505',
-              '--bg-card-top': 'rgba(13, 0, 26, 0.8)', 
-              '--bg-card-bottom': 'rgba(0, 5, 15, 0.5)', 
+              '--bg-card-top': 'rgba(217, 70, 239, 0.06)', 
+              '--bg-card-bottom': 'rgba(0, 5, 15, 0.04)', 
               '--text-primary': '#22d3ee', 
               '--text-muted': '#d946ef',
-              '--border-main': 'rgba(217, 70, 239, 0.25)'
+              '--border-main': 'rgba(217, 70, 239, 0.15)'
           };
           default: return { 
               '--bg-app': '#05070D', 
-              '--bg-header': '#030303',
-              '--bg-panel': '#0a0a0a',
+              '--bg-header': 'rgba(3, 3, 3, 0.5)',
+              '--bg-panel': 'rgba(10, 10, 10, 0.2)',
               '--bg-side': '#080808',
-              '--bg-card-top': 'rgba(12, 12, 16, 0.8)', 
-              '--bg-card-bottom': 'rgba(8, 8, 10, 0.5)', 
+              '--bg-card-top': 'rgba(255, 255, 255, 0.05)', 
+              '--bg-card-bottom': 'rgba(255, 255, 255, 0.02)', 
               '--text-primary': '#ffffff', 
               '--text-muted': '#a3a3a3',
-              '--border-main': 'rgba(255, 255, 255, 0.1)'
+              '--border-main': 'rgba(255, 255, 255, 0.08)'
           };
       }
   }, [theme]);
