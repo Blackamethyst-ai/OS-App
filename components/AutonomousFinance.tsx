@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -205,7 +204,7 @@ const AutonomousFinance: React.FC = () => {
                         </motion.div>
                     </div>
                 )}
-            </AnPresence>
+            </AnimatePresence>
 
             {/* Sector Header */}
             <div className="h-24 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl z-20 flex items-center justify-between px-12 shrink-0 relative overflow-hidden">
@@ -617,7 +616,7 @@ const AutonomousFinance: React.FC = () => {
                             ].map(item => (
                                 <div key={item.label} className="space-y-6">
                                     <div className="flex justify-between items-end">
-                                        <span className="text-11px] font-black text-gray-500 uppercase tracking-widest">{item.label}</span>
+                                        <span className="text-[11px] font-black text-gray-500 uppercase tracking-widest">{item.label}</span>
                                         <span className="text-3xl font-black font-mono text-white tracking-tighter">{item.val}%</span>
                                     </div>
                                     <div className="h-2 w-full bg-black/20 rounded-full overflow-hidden border border-white/5 p-0.5 shadow-inner">

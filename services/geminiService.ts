@@ -45,23 +45,30 @@ class LiveSession {
             model: 'gemini-2.5-flash-native-audio-preview-09-2025',
             callbacks: {
                 onopen: async () => {
-                    this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    const source = this.audioContext!.createMediaStreamSource(this.stream);
-                    const scriptProcessor = this.audioContext!.createScriptProcessor(4096, 1, 1);
-                    
-                    scriptProcessor.onaudioprocess = (e) => {
-                        const inputData = e.inputBuffer.getChannelData(0);
-                        const pcmBlob = createBlob(inputData);
-                        sessionPromise.then((s) => {
-                            s.sendRealtimeInput({ media: pcmBlob });
-                        });
-                    };
+                    try {
+                        this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        const source = this.audioContext!.createMediaStreamSource(this.stream);
+                        const scriptProcessor = this.audioContext!.createScriptProcessor(4096, 1, 1);
+                        
+                        scriptProcessor.onaudioprocess = (e) => {
+                            const inputData = e.inputBuffer.getChannelData(0);
+                            const pcmBlob = createBlob(inputData);
+                            sessionPromise.then((s) => {
+                                s.sendRealtimeInput({ media: pcmBlob });
+                            });
+                        };
 
-                    source.connect(this.inputAnalyser!);
-                    source.connect(scriptProcessor);
-                    scriptProcessor.connect(this.audioContext!.destination);
+                        source.connect(this.inputAnalyser!);
+                        source.connect(scriptProcessor);
+                        scriptProcessor.connect(this.audioContext!.destination);
 
-                    if (config.callbacks?.onopen) config.callbacks.onopen();
+                        if (config.callbacks?.onopen) config.callbacks.onopen();
+                    } catch (e: any) {
+                        console.error("Uplink Handshake Failed (Permissions):", e);
+                        if (config.callbacks?.onerror) {
+                            config.callbacks.onerror(e);
+                        }
+                    }
                 },
                 onmessage: async (message: LiveServerMessage) => {
                     if (message.toolCall) {
