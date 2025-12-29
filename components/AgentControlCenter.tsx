@@ -181,9 +181,9 @@ const AgentControlCenter: React.FC = () => {
     };
 
     return (
-        <div className="h-full w-full bg-[#020204] flex flex-col font-sans overflow-hidden transition-colors duration-500">
+        <div className="h-full w-full bg-transparent flex flex-col font-sans overflow-hidden transition-colors duration-500">
             {/* Tactical Header */}
-            <div className="h-14 border-b border-white/5 bg-black/40 flex items-center justify-between px-6 shrink-0 z-30">
+            <div className="h-14 border-b border-white/5 flex items-center justify-between px-6 shrink-0 z-30 crystalline">
                 <div className="flex items-center gap-4">
                     <div className="p-2 bg-[#9d4edd]/10 border border-[#9d4edd]/20 rounded-lg">
                         <Bot size={16} className="text-[#9d4edd]" />
@@ -198,7 +198,7 @@ const AgentControlCenter: React.FC = () => {
                         <span className="text-[8px] font-black text-[#10b981] uppercase tracking-widest">Swarm Sync</span>
                         <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
                     </div>
-                    <button className="p-2 text-gray-600 hover:text-white transition-colors border border-white/5 rounded-lg bg-white/5 group">
+                    <button className="p-2 text-gray-600 hover:text-white transition-colors border border-white/5 rounded-lg glass-action group">
                         <RefreshCw size={14} className="group-active:rotate-180 transition-transform duration-500" />
                     </button>
                 </div>
@@ -206,7 +206,7 @@ const AgentControlCenter: React.FC = () => {
 
             <div className="flex-1 flex overflow-hidden">
                 {/* Left Flank: Active Swarm Nodes */}
-                <div className="w-[300px] border-r border-white/5 bg-black/20 flex flex-col shrink-0">
+                <div className="w-[300px] border-r border-white/5 flex flex-col shrink-0">
                     <div className="p-5 border-b border-white/5 bg-white/[0.01]">
                         <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                             <Binary size={12} /> Active Swarm Nodes
@@ -228,12 +228,12 @@ const AgentControlCenter: React.FC = () => {
                 </div>
 
                 {/* The Nexus: Synthetic Mind workspace */}
-                <div className="flex-1 flex flex-col relative bg-[#010102]">
+                <div className="flex-1 flex flex-col relative bg-transparent">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.02)_0%,transparent_80%)] pointer-events-none" />
                     
                     {activeAgent ? (
                         <>
-                            <div className="p-6 border-b border-white/5 flex justify-between items-center relative z-10 bg-black/40">
+                            <div className="p-6 border-b border-white/5 flex justify-between items-center relative z-10 bg-black/10">
                                 <div className="flex items-center gap-4">
                                     <Globe size={14} className="text-[#9d4edd]" />
                                     <div>
@@ -266,12 +266,12 @@ const AgentControlCenter: React.FC = () => {
                                                 className={cn("flex", msg.role === 'USER' ? "justify-end" : "justify-start")}
                                             >
                                                 <div className={cn(
-                                                    "max-w-[80%] p-5 rounded-2xl border text-[11px] font-mono leading-relaxed shadow-2xl relative",
+                                                    "max-w-[80%] p-5 rounded-2xl border text-[11px] font-mono leading-relaxed shadow-2xl relative crystalline",
                                                     msg.role === 'USER' 
-                                                        ? "bg-white/[0.02] border-white/10 text-gray-500" 
+                                                        ? "text-gray-500" 
                                                         : msg.role === 'SYSTEM'
                                                         ? "bg-red-500/5 border-red-500/20 text-red-400 font-bold"
-                                                        : "bg-[#0a0a0a] border-[#9d4edd]/30 text-white border-l-4 border-l-[#9d4edd]"
+                                                        : "text-white border-l-4 border-l-[#9d4edd]"
                                                 )}>
                                                     <span className="text-[7px] font-black uppercase text-gray-700 block mb-2">{msg.role} // TERMINAL_OUTPUT</span>
                                                     {msg.text}
@@ -286,7 +286,7 @@ const AgentControlCenter: React.FC = () => {
                             </div>
 
                             {/* Strategic Directive Input */}
-                            <div className="p-8 border-t border-white/5 bg-black/60 relative z-20">
+                            <div className="p-8 border-t border-white/5 bg-transparent relative z-20">
                                 <div className="max-w-3xl mx-auto">
                                     <div className="text-[7px] font-black text-gray-600 uppercase tracking-[0.5em] mb-3 px-4 flex items-center gap-2">
                                         <Zap size={8} className="text-[#9d4edd] animate-pulse" /> Active Neural Circuitry
@@ -324,7 +324,7 @@ const AgentControlCenter: React.FC = () => {
                 </div>
 
                 {/* Right Flank: Logic Diagnostics */}
-                <div className="w-[340px] border-l border-white/5 bg-black/20 flex flex-col shrink-0">
+                <div className="w-[340px] border-l border-white/5 flex flex-col shrink-0">
                     <div className="p-5 border-b border-white/5 bg-white/[0.01] flex items-center gap-3">
                         <Activity className="w-4 h-4 text-[#9d4edd]" />
                         <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Logic Diagnostics</h2>
@@ -359,7 +359,7 @@ const AgentControlCenter: React.FC = () => {
                                 <span>Stability Vector</span>
                                 <GitBranch size={12} />
                             </div>
-                            <div className="aspect-square w-full rounded-[2rem] border border-white/5 bg-black/40 relative overflow-hidden flex items-center justify-center p-8 group shadow-inner">
+                            <div className="aspect-square w-full rounded-[2rem] border border-white/5 bg-black/20 relative overflow-hidden flex items-center justify-center p-8 group shadow-inner">
                                 <Waypoints size={80} className="text-[#9d4edd] opacity-20 group-hover:scale-110 transition-transform duration-1000" />
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.05)_0%,transparent_70%)]" />
                                 <div className="absolute inset-0 flex items-center justify-center">
@@ -371,7 +371,7 @@ const AgentControlCenter: React.FC = () => {
                     </div>
 
                     {/* Sector Awareness Metric */}
-                    <div className="p-5 border-t border-white/5 bg-black/60 shrink-0">
+                    <div className="p-5 border-t border-white/5 bg-transparent shrink-0">
                         <div className="flex justify-between items-center text-[8px] font-mono text-gray-600 uppercase mb-3 px-1">
                             <span>Sector Awareness</span>
                             <span className="text-[#10b981]">94%</span>
