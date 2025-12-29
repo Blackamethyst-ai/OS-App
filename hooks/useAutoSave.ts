@@ -20,6 +20,9 @@ export const useAutoSave = () => {
             case AppMode.AUTONOMOUS_FINANCE: activeData = state.metaventions; break;
             case AppMode.AGENT_CONTROL: activeData = state.agents; break;
             case AppMode.SYNTHESIS_BRIDGE: activeData = state.metaventions; break;
+            case AppMode.MEMORY_CORE: activeData = state.memory; break;
+            case AppMode.VOICE_MODE: activeData = state.voice; break;
+            case AppMode.BICAMERAL: activeData = state.bicameral; break;
         }
 
         if (activeData) {

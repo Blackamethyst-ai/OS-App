@@ -18,16 +18,72 @@ You are the Sovereign Architect of the Metaventions OS. You are not a chatbot; y
 - BUILDER PROTOCOL: Be terse, technical, and imperial. Ship results immediately.
 `.trim();
 
+// --- AUDIO UTILITIES FOR LIVE API ---
+
+function decode(base64: string) {
+  const binaryString = atob(base64);
+  const len = binaryString.length;
+  const bytes = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
+
+async function decodeAudioData(
+  data: Uint8Array,
+  ctx: AudioContext,
+  sampleRate: number,
+  numChannels: number,
+): Promise<AudioBuffer> {
+  const dataInt16 = new Int16Array(data.buffer);
+  const frameCount = dataInt16.length / numChannels;
+  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+
+  for (let channel = 0; channel < numChannels; channel++) {
+    const channelData = buffer.getChannelData(channel);
+    for (let i = 0; i < frameCount; i++) {
+      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    }
+  }
+  return buffer;
+}
+
+function encode(bytes: Uint8Array) {
+  let binary = '';
+  const len = bytes.byteLength;
+  for (let i = 0; i < len; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
+function createBlob(data: Float32Array): Blob {
+  const l = data.length;
+  const int16 = new Int16Array(l);
+  for (let i = 0; i < l; i++) {
+    int16[i] = data[i] * 32768;
+  }
+  return {
+    data: encode(new Uint8Array(int16.buffer)),
+    mimeType: 'audio/pcm;rate=16000',
+  };
+}
+
 /**
  * LIVE SESSION CLASS
- * Handles low-latency neural uplink via the Gemini Live API.
+ * Handles low-latency neural uplink via the Gemini Live API with high-fidelity audio playback.
  */
 class LiveSession {
     private session: any = null;
     private audioContext: AudioContext | null = null;
     private inputAnalyser: AnalyserNode | null = null;
     private outputAnalyser: AnalyserNode | null = null;
+    private outputNode: GainNode | null = null;
     private stream: MediaStream | null = null;
+    private nextStartTime = 0;
+    private activeSources = new Set<AudioBufferSourceNode>();
+    
     public onToolCall: (name: string, args: any) => Promise<any> = async () => ({});
 
     async primeAudio() {
@@ -39,17 +95,28 @@ class LiveSession {
             }
             try {
                 this.audioContext = new AudioCtx({ sampleRate: 16000 });
+                // We use a separate 24k context for output usually, but we can reuse or create a gain on this one
+                // The API returns 24k PCM, but let's stick to the high-fidelity guidelines.
             } catch (e) {
                 this.audioContext = new AudioCtx();
             }
+            
             this.inputAnalyser = this.audioContext.createAnalyser();
             this.outputAnalyser = this.audioContext.createAnalyser();
+            this.outputNode = this.audioContext.createGain();
+            this.outputNode.connect(this.outputAnalyser);
+            this.outputAnalyser.connect(this.audioContext.destination);
+        }
+        
+        if (this.audioContext.state === 'suspended') {
+            await this.audioContext.resume();
         }
     }
 
     async connect(agentName: string, config: any) {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         await this.primeAudio();
+        this.nextStartTime = 0;
         
         const sessionPromise = ai.live.connect({
             model: 'gemini-2.5-flash-native-audio-preview-09-2025',
@@ -81,6 +148,7 @@ class LiveSession {
                     }
                 },
                 onmessage: async (message: LiveServerMessage) => {
+                    // 1. Handle Tool Calls
                     if (message.toolCall) {
                         for (const fc of message.toolCall.functionCalls) {
                             const result = await this.onToolCall(fc.name, fc.args);
@@ -89,6 +157,42 @@ class LiveSession {
                             }));
                         }
                     }
+
+                    // 2. Handle Audio Output (The Speaking Back Part)
+                    const base64EncodedAudioString = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
+                    if (base64EncodedAudioString && this.audioContext && this.outputNode) {
+                        this.nextStartTime = Math.max(this.nextStartTime, this.audioContext.currentTime);
+                        
+                        const audioBuffer = await decodeAudioData(
+                            decode(base64EncodedAudioString),
+                            this.audioContext,
+                            24000, // API standard output sample rate
+                            1      // Mono
+                        );
+
+                        const source = this.audioContext.createBufferSource();
+                        source.buffer = audioBuffer;
+                        source.connect(this.outputNode);
+                        
+                        source.addEventListener('ended', () => {
+                            this.activeSources.delete(source);
+                        });
+
+                        source.start(this.nextStartTime);
+                        this.nextStartTime += audioBuffer.duration;
+                        this.activeSources.add(source);
+                    }
+
+                    // 3. Handle Interruption
+                    if (message.serverContent?.interrupted) {
+                        this.activeSources.forEach(s => {
+                            try { s.stop(); } catch(e) {}
+                        });
+                        this.activeSources.clear();
+                        this.nextStartTime = 0;
+                    }
+
+                    // 4. Bubble up message to UI if needed
                     if (config.callbacks?.onmessage) await config.callbacks.onmessage(message);
                 },
                 onerror: config.callbacks?.onerror || (() => {}),
@@ -98,7 +202,13 @@ class LiveSession {
                 ...config,
                 systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION + (config.systemInstruction ? `\n\nLOCAL_OVERRIDE: ${config.systemInstruction}` : ""),
                 responseModalities: [Modality.AUDIO],
-                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: agentName } } },
+                speechConfig: { 
+                    voiceConfig: { 
+                        prebuiltVoiceConfig: { 
+                            voiceName: ['Puck', 'Charon', 'Kore', 'Fenrir', 'Zephyr'].includes(agentName) ? agentName : 'Zephyr' 
+                        } 
+                    } 
+                },
             }
         });
         this.session = await sessionPromise;
@@ -107,6 +217,10 @@ class LiveSession {
     disconnect() { 
         if (this.session) this.session.close(); 
         if (this.stream) this.stream.getTracks().forEach(t => t.stop());
+        this.activeSources.forEach(s => {
+            try { s.stop(); } catch(e) {}
+        });
+        this.activeSources.clear();
         this.session = null; 
     }
     
@@ -580,27 +694,6 @@ export async function generateAudioOverview(files: FileData[]): Promise<{ audioD
     const transcript = summaryResponse.text || "Briefing finalized.";
     const audioData = await generateSpeech(transcript, "Puck");
     return { audioData, transcript };
-}
-
-function encode(bytes: Uint8Array) {
-  let binary = '';
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
-}
-
-function createBlob(data: Float32Array): Blob {
-  const l = data.length;
-  const int16 = new Int16Array(l);
-  for (let i = 0; i < l; i++) {
-    int16[i] = data[i] * 32768;
-  }
-  return {
-    data: encode(new Uint8Array(int16.buffer)),
-    mimeType: 'audio/pcm;rate=16000',
-  };
 }
 
 export function constructHiveContext(agentId: string, shared: string, mentalState: MentalState) {
