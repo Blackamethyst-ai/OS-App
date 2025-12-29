@@ -214,8 +214,6 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
     const parts: any[] = [];
     if (reference) parts.push({ inlineData: reference.inlineData });
     
-    // SOVEREIGN EMPIRE STANDARD - Biometric Identity Anchor + Cinematic Theme Integration
-    // REFINED PROMPT: Focus on "EMERGENCE" - The person is part of the scene, interacting with light and tech.
     const metaventionsDirective = `
         BIOMETRIC IDENTITY ANCHOR: You MUST lock the facial geometry, skin tone, mustache/goatee structure, and precise identity of the person from the reference image. 
         
@@ -238,6 +236,30 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
     });
     const imagePart = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
     return imagePart ? `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}` : "";
+}
+
+export async function analyzeVisualInput(data: FileData, context: string) {
+    const ai = getAI();
+    const prompt = `
+        ROLE: Visual Cortex of the Sovereign OS.
+        CONTEXT: ${context}
+        TASK: Analyze this multi-modal input. Identify structured data (financial, technical, or organizational), emotional sentiment, or explicit action items.
+        OUTPUT: Return a structured JSON response.
+        JSON_SCHEMA: {
+            "classification": "FINANCIAL" | "ARCHITECTURAL" | "CREATIVE" | "LOGIC",
+            "extracted_data": object,
+            "sentiment": string,
+            "suggested_sector": "AUTONOMOUS_FINANCE" | "PROCESS_MAP" | "CODE_STUDIO" | "MEMORY_CORE",
+            "summary": string,
+            "action_items": string[]
+        }
+    `;
+    const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: { parts: [{ inlineData: data.inlineData }, { text: prompt }] },
+        config: { responseMimeType: 'application/json' }
+    });
+    return JSON.parse(response.text || '{}');
 }
 
 export async function analyzeImageVision(data: FileData) {
@@ -592,9 +614,6 @@ export async function analyzePowerDynamics(target: string, internalContext: stri
     return JSON.parse(response.text || '{}');
 }
 
-/**
- * Decomposes a high-level task into atomic sub-tasks for processing.
- */
 export async function decomposeTaskToSubtasks(title: string, description: string): Promise<string[]> {
     const ai = getAI();
     const response = await ai.models.generateContent({
@@ -611,9 +630,6 @@ export async function decomposeTaskToSubtasks(title: string, description: string
     return JSON.parse(response.text || '[]');
 }
 
-/**
- * Performs a grounded search via Google Search and returns synthesized text results.
- */
 export async function searchGroundedIntel(query: string): Promise<string> {
     const ai = getAI();
     const response = await ai.models.generateContent({

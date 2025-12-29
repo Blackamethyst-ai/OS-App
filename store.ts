@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { 
     AppMode, AppTheme, UserProfile, FileData, Task, 
@@ -90,6 +91,11 @@ interface AppState {
             alignment: number;
         };
         agentAvatars: Record<string, string>;
+    };
+    visualCortex: {
+        isAnalyzing: boolean;
+        lastResult: any | null;
+        dropActive: boolean;
     };
     holo: {
         isOpen: boolean;
@@ -241,6 +247,7 @@ interface AppState {
     toggleTerminal: (open?: boolean) => void;
     setSearchState: (update: any) => void;
     setVoiceState: (update: any) => void;
+    setVisualCortexState: (update: any) => void;
     openHoloProjector: (artifact: any) => void;
     closeHoloProjector: () => void;
     setHoloAnalysis: (result: string | null) => void;
@@ -333,6 +340,11 @@ export const useAppStore = create<AppState>((set) => ({
         },
         agentAvatars: {}
     },
+    visualCortex: {
+        isAnalyzing: false,
+        lastResult: null,
+        dropActive: false
+    },
     holo: {
         isOpen: false,
         activeArtifact: null,
@@ -365,7 +377,7 @@ export const useAppStore = create<AppState>((set) => ({
         generatedCode: '',
         generatedWorkflow: null,
         runtimeResults: {},
-        /* Fix: Initialized activeStepIndex with null value instead of using a type expression */
+        // Fix: number | null was used as a value here, changed to null as it is an object initializer.
         activeStepIndex: null,
         isSimulating: false,
         activeTab: 'living_map',
@@ -540,6 +552,9 @@ export const useAppStore = create<AppState>((set) => ({
     setVoiceState: (update) => set((state) => ({ 
         voice: { ...state.voice, ...(typeof update === 'function' ? update(state.voice) : update) } 
     })),
+    setVisualCortexState: (update) => set((state) => ({ 
+        visualCortex: { ...state.visualCortex, ...(typeof update === 'function' ? update(state.visualCortex) : update) } 
+    })),
     openHoloProjector: (artifact) => set({ holo: { isOpen: true, activeArtifact: artifact, analysisResult: null, isAnalyzing: false } }),
     closeHoloProjector: () => set((state) => ({ holo: { ...state.holo, isOpen: false, activeArtifact: null } })),
     setHoloAnalysis: (result) => set((state) => ({ holo: { ...state.holo, analysisResult: result } })),
@@ -659,16 +674,20 @@ export const useAppStore = create<AppState>((set) => ({
             }, ...state.marketData.opportunities].slice(0, 10)
         }
     })),
-    commitInvestment: (id, amount) => set((state) => ({
-        marketData: {
-            ...state.marketData,
-            opportunities: state.marketData.opportunities.filter(o => o.id !== id)
-        },
-        metaventions: {
-            ...state.metaventions,
-            strategyLog: [...state.metaventions.strategyLog, `Allocated $${amount.toLocaleString()} to deployment [${id}]`]
-        }
-    })),
+    commitInvestment: (id, amount) => set((state) => {
+        const { metaventions: mv } = state;
+        const currentLogs = mv?.strategyLog || [];
+        return {
+            marketData: {
+                ...state.marketData,
+                opportunities: state.marketData.opportunities.filter(o => o.id !== id)
+            },
+            metaventions: {
+                ...mv,
+                strategyLog: [...currentLogs, `Allocated $${amount.toLocaleString()} to deployment [${id}] at ${new Date().toLocaleTimeString()}`]
+            }
+        };
+    }),
     setAgentState: (update) => set((state) => ({ 
         agents: { ...state.agents, ...(typeof update === 'function' ? update(state.agents) : update) } 
     })),

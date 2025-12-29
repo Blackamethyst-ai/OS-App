@@ -19,6 +19,7 @@ import ResearchTray from './components/ResearchTray';
 import VoiceManager from './components/VoiceManager'; 
 import VoiceCoreOverlay from './components/VoiceCoreOverlay'; 
 import UserProfileOverlay from './components/UserProfileOverlay'; 
+import VisualCortexOverlay from './components/VisualCortexOverlay';
 import FlywheelOrbit from './components/FlywheelOrbit';
 import AgenticHUD from './components/AgenticHUD';
 import GlobalStatusBar from './components/GlobalStatusBar';
@@ -30,6 +31,7 @@ import { useAutoSave } from './hooks/useAutoSave';
 import { useDaemonSwarm } from './hooks/useDaemonSwarm'; 
 import { useVoiceControl } from './hooks/useVoiceControl'; 
 import { useResearchAgent } from './hooks/useResearchAgent'; 
+import { useVisualCortex } from './hooks/useVisualCortex';
 import { 
     Target, X, User, ExternalLink, Activity
 } from 'lucide-react';
@@ -111,6 +113,7 @@ const App: React.FC = () => {
   useDaemonSwarm(); 
   useVoiceControl(); 
   useResearchAgent(); 
+  useVisualCortex();
 
   useEffect(() => {
     collabService.init();
@@ -226,6 +229,7 @@ const App: React.FC = () => {
       <FocusOverlay />
       <VoiceCoreOverlay /> 
       <UserProfileOverlay /> 
+      <VisualCortexOverlay />
       <CommandPalette /> 
       <PeerMeshOverlay />
       <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} /> 
@@ -243,7 +247,7 @@ const App: React.FC = () => {
         {isHelpOpen && <HelpCenter onClose={() => setHelpOpen(false)} />}
       </AnimatePresence>
 
-      <header className="flex-shrink-0 h-[56px] border-b z-[100] px-6 flex items-center justify-between backdrop-blur-3xl bg-[var(--bg-header)] border-[var(--border-main)] shadow-xl relative transition-colors duration-500">
+      <header className="flex-shrink-0 h-[56px] border-b border-[var(--border-main)] z-[100] px-6 flex items-center justify-between backdrop-blur-3xl bg-[var(--bg-header)] shadow-xl relative transition-colors duration-500">
         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-[#7b2cbf] via-[#f1c21b] to-[#7b2cbf] opacity-40" />
 
         <div className="flex items-center gap-8 h-full">
