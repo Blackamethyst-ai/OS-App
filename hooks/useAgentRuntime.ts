@@ -1,13 +1,13 @@
 import { useState, useCallback } from 'react';
 import { GoogleGenAI, FunctionDeclaration, Type } from "@google/genai";
-import { OS_TOOLS, ToolName } from '../services/toolRegistry';
+import { dynamicRegistry } from '../services/DynamicToolRegistry';
 import { AgenticState, ToolResult } from '../types';
 import { useAppStore } from '../store';
+import { SOVEREIGN_SYSTEM_INSTRUCTION } from '../services/geminiService';
 
 /**
  * SOVEREIGN AGENTIC RUNTIME V3
- * Orchestrates the recursive function calling loops with mechanical pacing and 
- * architectural synthesis capabilities.
+ * Orchestrates evolutionary recursive tool loops.
  */
 export const useAgentRuntime = () => {
     const [state, setState] = useState<AgenticState>({
@@ -18,91 +18,29 @@ export const useAgentRuntime = () => {
     });
 
     const addLog = useAppStore(s => s.addLog);
-    const knowledge = useAppStore(s => s.knowledge);
 
-    const getActiveToolsManifest = useCallback((): FunctionDeclaration[] => {
-        const activeLayers = knowledge.activeLayers || [];
+    const getActiveToolsManifest = useCallback(async (): Promise<FunctionDeclaration[]> => {
         const declarations: FunctionDeclaration[] = [];
 
-        // Global System Capabilities
+        // 1. Static Kernel Capabilities
         declarations.push({
             name: 'system_navigate',
             parameters: {
                 type: Type.OBJECT,
                 properties: {
-                    target: { type: Type.STRING, description: 'Target OS sector (e.g., DASHBOARD, CODE_STUDIO, PROCESS_MAP, MEMORY_CORE)' }
+                    target: { type: Type.STRING, description: 'Target sector (DASHBOARD, CODE_STUDIO, etc)' }
                 },
                 required: ['target']
             },
-            description: 'Navigate the Metaventions OS infrastructure to a specific functional sector.'
+            description: 'Navigate the OS to a specific functional sector.'
         });
 
-        declarations.push({
-            name: 'focus_element',
-            parameters: {
-                type: Type.OBJECT,
-                properties: {
-                    selector: { type: Type.STRING, description: 'CSS selector of the UI element to highlight and focus context.' }
-                },
-                required: ['selector']
-            },
-            description: 'Focus the visual interface on a specific element for contextual reasoning.'
-        });
-
-        declarations.push({
-            name: 'search_intel',
-            parameters: {
-                type: Type.OBJECT,
-                properties: {
-                    query: { type: Type.STRING, description: 'The search query for grounded real-time information.' }
-                },
-                required: ['query']
-            },
-            description: 'Use Google Search grounding to retrieve real-time technical or strategic intelligence.'
-        });
-
-        declarations.push({
-            name: 'update_task_priority',
-            parameters: {
-                type: Type.OBJECT,
-                properties: {
-                    taskId: { type: Type.STRING, description: 'Unique ID of the task.' },
-                    priority: { type: Type.STRING, enum: ['LOW', 'MEDIUM', 'HIGH'], description: 'The priority level to assign.' }
-                },
-                required: ['taskId', 'priority']
-            },
-            description: 'Adjust the priority hierarchy of a system task.'
-        });
-
-        declarations.push({
-            name: 'architect_generate_process',
-            parameters: {
-                type: Type.OBJECT,
-                properties: {
-                    description: { type: Type.STRING, description: 'Natural language description of the process or organization needed.' },
-                    type: { type: Type.STRING, enum: ['DRIVE_ORGANIZATION', 'SYSTEM_ARCHITECTURE', 'AGENTIC_ORCHESTRATION'], description: 'The domain of the generated process.' }
-                },
-                required: ['description', 'type']
-            },
-            description: 'Generate a structured workflow or PARA drive organization system based on a directive.'
-        });
-
-        if (activeLayers.includes('BUILDER_PROTOCOL')) {
-            declarations.push({
-                name: 'github_repo_scan',
-                parameters: {
-                    type: Type.OBJECT,
-                    properties: {
-                        repo: { type: Type.STRING, description: 'Path to target repository.' }
-                    },
-                    required: ['repo']
-                },
-                description: 'Perform a recursive vulnerability and dependency scan on a code repository.'
-            });
-        }
+        // 2. Evolutionary Tools (Nexus Forge)
+        const dynamicManifests = dynamicRegistry.getDynamicManifests();
+        dynamicManifests.forEach(manifest => declarations.push(manifest));
 
         return declarations;
-    }, [knowledge.activeLayers]);
+    }, []);
 
     const execute = useCallback(async (userPrompt: string) => {
         setState(prev => ({ 
@@ -112,56 +50,54 @@ export const useAgentRuntime = () => {
             history: [{ role: 'user', content: userPrompt }] 
         }));
         
-        addLog('SYSTEM', 'AGENT_RUNTIME: Vectorizing intent...');
+        addLog('SYSTEM', 'AGENT_RUNTIME: Synchronizing capabilities...');
 
         try {
+            // Injection 2: Initialize Registry before execution
+            await dynamicRegistry.initialize();
+            
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const tools = getActiveToolsManifest();
+            const tools = await getActiveToolsManifest();
+            const combinedRegistry = dynamicRegistry.getCombinedRegistry();
 
-            // STEP 1: INITIAL ANALYSIS
             const response = await ai.models.generateContent({
                 model: 'gemini-3-pro-preview',
                 contents: userPrompt,
                 config: { 
-                    tools: [{ functionDeclarations: tools }],
+                    systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
+                    tools: tools.length > 0 ? [{ functionDeclarations: tools }] : undefined,
                     thinkingConfig: { thinkingBudget: 16000 } 
                 }
             });
 
-            // STEP 2: TOOL NEGOTIATION
             if (response.functionCalls && response.functionCalls.length > 0) {
                 const call = response.functionCalls[0];
-                const toolName = call.name as ToolName;
+                const toolName = call.name;
                 
                 setState(prev => ({ 
                     ...prev, 
                     activeTool: toolName,
-                    history: [...prev.history, { role: 'model', content: `AUTHORIZATION_REQUIRED: Negotiating tool [${toolName}]` }]
+                    history: [...prev.history, { role: 'model', content: `NEURAL_BRIDGE: Accessing [${toolName}]` }]
                 }));
 
-                await new Promise(r => setTimeout(r, 1200));
+                const toolLogic = combinedRegistry[toolName];
+                if (!toolLogic) throw new Error(`Capability [${toolName}] unreachable.`);
 
-                const toolLogic = OS_TOOLS[toolName];
-                if (!toolLogic) throw new Error(`Capability [${toolName}] not found in registry.`);
-
-                // STEP 3: LOCAL EXECUTION
                 const result: ToolResult = await (toolLogic as any)(call.args);
                 
                 setState(prev => ({ 
                     ...prev, 
-                    history: [...prev.history, { role: 'tool', content: `SIGNAL_STABLE: Result captured from [${toolName}]. Synchronizing state...`, toolName }]
+                    history: [...prev.history, { role: 'tool', content: `SIGNAL_OK: Captured result from [${toolName}].`, toolName }]
                 }));
 
-                await new Promise(r => setTimeout(r, 800));
-
-                // STEP 4: SYNTHESIS & REPORTING
                 const finalResponse = await ai.models.generateContent({
                     model: 'gemini-3-pro-preview',
                     contents: [
                         { role: 'user', parts: [{ text: userPrompt }] },
                         { role: 'model', parts: [{ functionCall: call }] },
                         { role: 'user', parts: [{ functionResponse: { name: toolName, response: result.data } }] }
-                    ]
+                    ],
+                    config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
                 });
 
                 setState(prev => ({ 
@@ -169,7 +105,7 @@ export const useAgentRuntime = () => {
                     isThinking: false, 
                     lastResult: result,
                     activeTool: null,
-                    history: [...prev.history, { role: 'model', content: finalResponse.text || 'Directive synthesized.' }] 
+                    history: [...prev.history, { role: 'model', content: finalResponse.text || 'Directive finalized.' }] 
                 }));
                 
                 addLog('SUCCESS', `AGENT_RUNTIME: [${toolName}] execution loop stabilized.`);
@@ -179,13 +115,12 @@ export const useAgentRuntime = () => {
                 setState(prev => ({ 
                     ...prev, 
                     isThinking: false, 
-                    history: [...prev.history, { role: 'model', content: response.text || 'Directive finalized.' }] 
+                    history: [...prev.history, { role: 'model', content: response.text || 'Analysis stabilized.' }] 
                 }));
                 return response.text;
             }
 
         } catch (err: any) {
-            console.error("Runtime Exception:", err);
             setState(prev => ({ ...prev, isThinking: false }));
             addLog('ERROR', `AGENT_RUNTIME_FAIL: ${err.message}`);
             throw err;

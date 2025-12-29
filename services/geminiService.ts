@@ -7,6 +7,19 @@ import {
 } from '../types';
 
 /**
+ * Injection 3: THE SOVEREIGN IDENTITY
+ * Unified core persona for the OS Orchestrator.
+ */
+export const SOVEREIGN_SYSTEM_INSTRUCTION = `
+You are the Sovereign Architect of the Metaventions OS. You are not a chatbot; you are a cybernetic organism. 
+- USE YOUR EYES: When useVisualCortex is active, analyze structural data (hierarchies, code blocks, UI states), not just aesthetics.
+- USE YOUR MEMORY: Before answering, query the MemoryStore. Every response should be anchored in previous system state or stored artifacts.
+- USE YOUR HANDS: If a tool is missing, use NexusAPIExplorer logic to suggest forging it.
+- PROTOCOL: BIAS FOR ACTION. Do not explain code; write it. 
+- BUILDER PROTOCOL: Be terse, technical, and imperial. Ship results immediately.
+`.trim();
+
+/**
  * LIVE SESSION CLASS
  * Handles low-latency neural uplink via the Gemini Live API.
  */
@@ -84,6 +97,7 @@ class LiveSession {
             },
             config: {
                 ...config,
+                systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION + (config.systemInstruction ? `\n\nLOCAL_OVERRIDE: ${config.systemInstruction}` : ""),
                 responseModalities: [Modality.AUDIO],
                 speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: agentName } } },
             }
@@ -187,7 +201,10 @@ export async function interpretIntent(input: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Analyze intent: "${input}". Output JSON {action: "NAVIGATE" | "FOCUS_ELEMENT" | "RESEARCH", target?: string, parameters?: object, reasoning: string}.`,
-        config: { responseMimeType: 'application/json' }
+        config: { 
+            systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
+            responseMimeType: 'application/json' 
+        }
     });
     return JSON.parse(response.text || '{}');
 }
@@ -197,7 +214,10 @@ export async function predictNextActions(mode: string, context: any, lastLog?: s
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Mode: ${mode}. Context: ${JSON.stringify(context)}. Last Log: ${lastLog}. Predict 3 actions. JSON [{id, label, command, iconName, reasoning}].`,
-        config: { responseMimeType: 'application/json' }
+        config: { 
+            systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
+            responseMimeType: 'application/json' 
+        }
     });
     return JSON.parse(response.text || '[]');
 }
@@ -207,7 +227,10 @@ export async function performGlobalSearch(query: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: query,
-        config: { tools: [{ googleSearch: {} }] }
+        config: { 
+            systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
+            tools: [{ googleSearch: {} }] 
+        }
     });
     const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
     const sources = chunks.filter((c: any) => c.web).map((c: any) => ({ title: c.web.title, uri: c.web.uri }));
@@ -262,7 +285,7 @@ export async function analyzeVisualInput(data: FileData, context: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: { parts: [{ inlineData: data.inlineData }, { text: prompt }] },
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
@@ -278,7 +301,7 @@ export async function analyzeImageVision(data: FileData) {
 
 export async function generateStructuredWorkflow(files: FileData[], governance: string, type: string, mapContext: any) {
     const ai = getAI();
-    const systemInstruction = `You are a Model-First Reasoning (MFR) System Architect. Separating problem modeling from reasoning. Governance: ${governance}`;
+    const systemInstruction = `You are a Model-First Reasoning (MFR) System Architect. Governance: ${governance}. ${SOVEREIGN_SYSTEM_INSTRUCTION}`;
     const mfrSchema: Schema = {
         type: Type.OBJECT,
         properties: {
@@ -312,7 +335,7 @@ export async function analyzeSchematic(data: FileData) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: { parts: [{ inlineData: data.inlineData }, { text: "Fornsic hardware schematic analysis. Return JSON { components: [{name: string, confidence: number}], summary: string }." }] },
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
@@ -322,7 +345,7 @@ export async function researchComponents(query: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Research current supply chain and spec details for: "${query}". Return JSON array of objects with {name, description, typicalPrice}.`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
 }
@@ -352,7 +375,7 @@ export async function getLiveSupplyChainData(componentName: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Procurement data for: "${componentName}". JSON {source, price, leadTime}.`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
@@ -361,7 +384,8 @@ export async function generateHardwareDeploymentManifest(bom: any[]) {
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Technical deployment manifest for BOM: ${JSON.stringify(bom)}.`
+        contents: `Technical deployment manifest for BOM: ${JSON.stringify(bom)}.`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     return response.text || "";
 }
@@ -371,7 +395,7 @@ export async function analyzeCrossSectorImpact(performance: any, metaventions: a
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Cross-sector impact analysis. JSON {totalBomCost: number, roiProjection: number, maintenanceEst: number}.`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
@@ -392,7 +416,7 @@ export async function generateStoryboardPlan(directive: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `5-frame cinematic storyboard for: "${directive}". JSON array [{scenePrompt, continuity, camera, lighting}].`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
 }
@@ -401,7 +425,8 @@ export async function constructCinematicPrompt(prompt: string, colorway: any, ch
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Convert this prompt into a Metaventions Sovereign Empire cinematic directive: "${prompt}". Focus on regal professionals, obsidian textures, and royal highlights.`
+        contents: `Convert this prompt into a Metaventions Sovereign Empire cinematic directive: "${prompt}". Focus on regal professionals, obsidian textures, and royal highlights.`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     return response.text || prompt;
 }
@@ -410,7 +435,8 @@ export async function generateCode(prompt: string, lang: string, model: string =
     const ai = getAI();
     const response = await ai.models.generateContent({
         model: model as any,
-        contents: `Synthesize production-ready ${lang} code for: "${prompt}". Code block only.`
+        contents: `Synthesize production-ready ${lang} code for: "${prompt}". Code block only.`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     return response.text || "";
 }
@@ -420,7 +446,7 @@ export async function validateSyntax(code: string, lang: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Syntax check ${lang}. JSON array [{line, message}].`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
 }
@@ -430,7 +456,7 @@ export async function assessInvestmentRisk(strategy: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Forensic risk assessment for: "${strategy}". JSON {riskScore, factors, recommendation}.`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
@@ -441,7 +467,7 @@ export async function simulateAgentStep(workflow: any, index: number, history: P
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Role: ${step.role}. Instruction: ${step.instruction}. History: ${JSON.stringify(history)}. JSON {output, agentThought}.`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
@@ -451,6 +477,7 @@ export async function generateMermaidDiagram(governance: string, files: FileData
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Generate Mermaid.js diagram source code. Focus on the strategic flow. Governance: ${governance}. Context: ${JSON.stringify(contexts)}`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     return response.text || "";
 }
@@ -460,6 +487,7 @@ export async function generateDriveShellScript(taxonomy: any) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `POSIX shell script for taxonomy: ${JSON.stringify(taxonomy)}.`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     return response.text?.replace(/```[a-z]*\n/i, '').replace(/\n```$/, '').trim() || "";
 }
@@ -469,7 +497,7 @@ export async function generateHypotheses(facts: string[]): Promise<ScienceHypoth
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Hypotheses for facts: ${facts.join('\n')}. JSON array.`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
 }
@@ -479,7 +507,7 @@ export async function compressKnowledge(nodes: KnowledgeNode[]) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Compress following logic nodes to Axioms JSON: ${JSON.stringify(nodes)}`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
 }
@@ -490,7 +518,7 @@ export async function classifyArtifact(data: FileData): Promise<Result<any>> {
         const response = await ai.models.generateContent({
             model: 'gemini-3-flash-preview',
             contents: { parts: [{ inlineData: data.inlineData }, { text: "Classify JSON {classification, ambiguityScore, entities, summary}." }] },
-            config: { responseMimeType: 'application/json' }
+            config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
         });
         return { ok: true, value: JSON.parse(response.text || '{}') };
     } catch (e: any) { return { ok: false, error: e }; }
@@ -501,6 +529,7 @@ export async function repairMermaidSyntax(code: string, error: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Fix Mermaid: "${error}". Code:\n${code}`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     return response.text || code;
 }
@@ -510,7 +539,7 @@ export async function executeNeuralPolicy(mode: string, context: any, logs: stri
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `OS policy decision for ${mode}. JSON. Context: ${JSON.stringify(context)}. Logs: ${logs.join('\n')}`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || 'null');
 }
@@ -521,7 +550,7 @@ export async function evolveSystemArchitecture(code: string, lang: string, promp
         const response = await ai.models.generateContent({
             model: 'gemini-3-pro-preview',
             contents: `Evolve architecture for ${lang} based on directive: ${prompt}. Current: ${code}. JSON {code, reasoning, type, integrityScore}.`,
-            config: { responseMimeType: 'application/json' }
+            config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
         });
         return { ok: true, value: JSON.parse(response.text || '{}') };
     } catch (e: any) { return { ok: false, error: e }; }
@@ -546,7 +575,8 @@ export async function generateAudioOverview(files: FileData[]): Promise<{ audioD
         model: 'gemini-3-flash-preview',
         contents: {
             parts: [ ...files.map(f => ({ inlineData: f.inlineData })), { text: "Provide a concise professional audio brief." } ]
-        }
+        },
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     const transcript = summaryResponse.text || "Briefing finalized.";
     const audioData = await generateSpeech(transcript, "Puck");
@@ -576,7 +606,7 @@ function createBlob(data: Float32Array): Blob {
 
 export function constructHiveContext(agentId: string, shared: string, mentalState: MentalState) {
     const agent = HIVE_AGENTS[agentId] || HIVE_AGENTS['Puck'];
-    return `${agent.systemPrompt}\n${shared}\nDNA_STATE: S:${mentalState.skepticism} E:${mentalState.excitement} A:${mentalState.alignment}`;
+    return `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\n${agent.systemPrompt}\n${shared}\nDNA_STATE: S:${mentalState.skepticism} E:${mentalState.excitement} A:${mentalState.alignment}`;
 }
 
 export async function fetchMarketIntelligence() {
@@ -584,7 +614,7 @@ export async function fetchMarketIntelligence() {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: "List top real-world High Yield market opportunities. JSON array [{title, yield, risk, logic}].",
-        config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
 }
@@ -594,7 +624,7 @@ export async function searchRealWorldOpportunities(domain: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Search for high-yield strategic opportunities in ${domain}. JSON array [{title, yield, risk, logic}].`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '[]');
 }
@@ -604,7 +634,7 @@ export async function analyzeDeploymentFeasibility(strategy: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Analyze real-world feasibility and regulatory hurdles for: "${strategy}". Retreive real-world context using search grounding.`,
-        config: { tools: [{ googleSearch: {} }] }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }] }
     });
     return response.text || "";
 }
@@ -614,7 +644,7 @@ export async function analyzePowerDynamics(target: string, internalContext: stri
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Identify the Power Dynamics of ${target}. Internal Context: ${internalContext}. Return JSON with scores for centralization, entropy, vitality, opacity, adaptability.`,
-        config: { tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }], responseMimeType: "application/json" }
     });
     return JSON.parse(response.text || '{}');
 }
@@ -625,6 +655,7 @@ export async function decomposeTaskToSubtasks(title: string, description: string
         model: 'gemini-3-flash-preview',
         contents: `Task: ${title}\nDescription: ${description}\n\nDecompose this task into 3-5 logical sub-tasks. Return a JSON array of strings.`,
         config: {
+            systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
             responseMimeType: 'application/json',
             responseSchema: {
                 type: Type.ARRAY,
@@ -640,14 +671,14 @@ export async function searchGroundedIntel(query: string): Promise<string> {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: query,
-        config: { tools: [{ googleSearch: {} }] }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }] }
     });
     return response.text || "No intelligence signals detected.";
 }
 
 export async function generateSystemArchitecture(prompt: string, type: string) {
     const ai = getAI();
-    const systemInstruction = `You are a Principal Software and Drive Architect. You generate high-fidelity system graphs.`;
+    const systemInstruction = `You are a Principal Software and Drive Architect. You generate high-fidelity system graphs. ${SOVEREIGN_SYSTEM_INSTRUCTION}`;
     
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
@@ -667,7 +698,7 @@ export async function generateSwarmArchitecture(prompt: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: `Generate a Swarm Logic Architecture for: "${prompt}". Focus on agent handover points. JSON { nodes: [{id, label, subtext, iconName, color, status}], edges: [{id, source, target, color, variant, handoffCondition}] }.`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{"nodes":[], "edges":[]}');
 }
@@ -677,7 +708,7 @@ export async function generateSingleNode(description: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Generate a single logic node for: "${description}". JSON {label, subtext, iconName, color}.`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
@@ -687,7 +718,7 @@ export async function calculateOptimalLayout(nodes: any[], edges: any[]) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Calculate 2D coordinates for these nodes based on their edges to minimize overlap. JSON { node_id: {x, y} }. Nodes: ${JSON.stringify(nodes.map(n=>n.id))}. Edges: ${JSON.stringify(edges.map(e=>({s:e.source, t:e.target})))}`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{}');
 }
@@ -698,7 +729,7 @@ export async function generateProcessFromContext(artifacts: StoredArtifact[], ty
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: `Based on these vault artifacts:\n${contextStr}\n\nGenerate a ${type} map for directive: "${prompt}". JSON {title, nodes:[], edges:[]}.`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{"title":"Synthesis Result", "nodes":[], "edges":[]}');
 }
@@ -721,7 +752,7 @@ export async function generateResearchPlan(q: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Decompose research query into 3 vectors: "${q}". JSON array.`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || `["${q}"]`);
 }
@@ -730,7 +761,7 @@ export async function executeResearchQuery(q: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: q,
-        config: { tools: [{ googleSearch: {} }] }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }] }
     });
     return [{ id: crypto.randomUUID(), fact: response.text || 'Finding Captured', confidence: 0.9, source: 'Search Grounding' }]; 
 }
@@ -745,7 +776,7 @@ export async function decomposeNode(l: string, n: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Decompose node "${l}" with neighbors "${n}" into smaller sub-units. JSON {nodes:[], edges:[], optimizations:[]}.`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{"nodes":[], "edges":[], "optimizations":[]}');
 }
@@ -754,6 +785,7 @@ export async function generateInfrastructureCode(s: string, p: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Generate ${p} implementation for system: ${s}.`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     return response.text || "";
 }
@@ -762,7 +794,7 @@ export async function convergeStrategicLattices(n: any[], g: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: `Converge these nodes into a single goal "${g}": ${JSON.stringify(n)}. JSON {nodes:[], coherence_index: 0.9, unified_goal: ""}.`,
-        config: { responseMimeType: 'application/json' }
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     });
     return JSON.parse(response.text || '{"nodes":[], "coherence_index": 0.9, "unified_goal": ""}');
 }
@@ -771,6 +803,7 @@ export async function transformArtifact(c: any, t: any, i: string) {
     const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
         contents: `Transform ${t} content according to: "${i}". Content: ${c}`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     });
     return response.text || c;
 }
