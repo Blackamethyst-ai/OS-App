@@ -1,9 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
 import { 
     generateArchitectureImage, 
     promptSelectKey, 
-    fileToGenerativePart
+    fileToGenerativePart,
+    liveSession
 } from '../services/geminiService';
 import { AspectRatio, ImageSize } from '../types';
 import { 
@@ -11,7 +12,8 @@ import {
     Target, Loader2, RefreshCw, Upload, 
     Radio, Fingerprint, 
     TrendingUp, TrendingDown, Zap,
-    Bot, Globe, User, Hexagon
+    Bot, Globe, User, Hexagon,
+    Mic, MicOff, ShieldCheck
 } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -98,12 +100,93 @@ const SwarmBox = () => {
 const MetaventionsHub: React.FC = () => {
   const { 
     dashboard, setDashboardState, addLog, 
-    theme, user
+    theme, user, voice, setVoiceState, toggleProfile
   } = useAppStore();
 
   const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [telemetry] = useState({ cpu: 13.2, net: 0.8, trust: 99.4 });
+  const voiceCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = voiceCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let frameId: number;
+    const render = () => {
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = canvas.offsetWidth * dpr;
+        canvas.height = canvas.offsetHeight * dpr;
+        ctx.scale(dpr, dpr);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        const cx = canvas.width / (2 * dpr);
+        const cy = canvas.height / (2 * dpr);
+        const time = performance.now() / 1000;
+
+        if (voice.isActive) {
+            const freqs = liveSession.getInputFrequencies() || new Uint8Array(64);
+            const avg = freqs.reduce((a, b) => a + b, 0) / freqs.length;
+            const vol = avg / 255;
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, 20 + vol * 8, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(157, 78, 221, ${0.2 + vol})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
+            const bars = 24;
+            const step = (Math.PI * 2) / bars;
+            for (let i = 0; i < bars; i++) {
+                const angle = i * step + time * 0.2;
+                const val = (freqs[i % freqs.length] / 255) * (10 + vol * 20);
+                const r1 = 22;
+                const r2 = 22 + val;
+                
+                ctx.beginPath();
+                ctx.moveTo(cx + Math.cos(angle) * r1, cy + Math.sin(angle) * r1);
+                ctx.lineTo(cx + Math.cos(angle) * r2, cy + Math.sin(angle) * r2);
+                ctx.strokeStyle = i % 2 === 0 ? '#9d4edd' : '#22d3ee';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            }
+        } else {
+            ctx.beginPath();
+            ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 0.5;
+            ctx.setLineDash([2, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        frameId = requestAnimationFrame(render);
+    };
+    render();
+    return () => cancelAnimationFrame(frameId);
+  }, [voice.isActive]);
+
+  const handleUplink = async () => {
+    if (voice.isActive || voice.isConnecting) {
+        liveSession.disconnect();
+        setVoiceState({ isActive: false, isConnecting: false });
+        addLog('SYSTEM', 'COMMS_SEVERED: Neural voice channel terminated.');
+        audio.playError();
+    } else {
+        setVoiceState({ isConnecting: true });
+        try {
+            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setVoiceState({ isConnecting: false }); return; }
+            await liveSession.primeAudio();
+            setVoiceState({ isActive: true, isConnecting: false });
+            addLog('SUCCESS', 'COMMS_ESTABLISHED: Voice Core online.');
+            audio.playSuccess();
+        } catch (e) {
+            setVoiceState({ isConnecting: false });
+            addLog('ERROR', 'COMMS_FAIL: Voice interface handshake failed.');
+        }
+    }
+  };
 
   const handleGlobalSync = async () => {
       setIsSyncing(true);
@@ -149,7 +232,7 @@ const MetaventionsHub: React.FC = () => {
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/50 to-transparent" />
           
           <div className="flex items-center gap-8 relative z-10">
-              <div className="relative group">
+              <div className="relative group cursor-pointer" onClick={() => toggleProfile(true)}>
                   <div className="w-14 h-14 rounded-full border-2 border-[#9d4edd]/30 overflow-hidden bg-black/40 flex items-center justify-center shadow-xl group-hover:border-[#9d4edd] transition-all duration-700">
                       {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : <User size={24} className="text-gray-700" />}
                   </div>
@@ -182,8 +265,8 @@ const MetaventionsHub: React.FC = () => {
       <div className="flex-1 overflow-y-auto custom-scrollbar p-10 relative bg-transparent">
           <div className="grid grid-cols-12 gap-8 min-h-0 items-start">
               
-              {/* Strategic Operations Center (Primary Display - Wider for more room on left) */}
-              <div className="col-span-9 bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[3rem] p-0 shadow-2xl relative overflow-hidden flex flex-col min-h-[750px] group/soc">
+              {/* Strategic Operations Center (Primary Display) */}
+              <div className="col-span-9 bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-[3rem] p-0 shadow-2xl relative overflow-hidden flex flex-col min-h-[900px] group/soc">
                   <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 shrink-0 z-20 relative">
                       <div className="flex items-center gap-4">
                           <Target size={18} className="text-[#9d4edd] animate-pulse" />
@@ -195,7 +278,10 @@ const MetaventionsHub: React.FC = () => {
                       </div>
                   </div>
                   
-                  <div className="flex-1 relative overflow-hidden bg-black/40 group/view">
+                  <div 
+                    onClick={() => toggleProfile(true)}
+                    className="flex-1 relative overflow-hidden bg-black/40 group/view cursor-pointer"
+                  >
                       <AnimatePresence mode="wait">
                           {isSyncing ? (
                               <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/60 backdrop-blur-3xl">
@@ -246,18 +332,50 @@ const MetaventionsHub: React.FC = () => {
                       </div>
                   </div>
 
-                  <div className="h-20 bg-black/60 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-10 shrink-0 z-20 relative">
-                     <div className="flex items-center gap-8">
+                  <div className="h-28 bg-black/60 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-10 shrink-0 z-20 relative">
+                     <div className="flex items-center gap-12">
                         <div className="flex flex-col">
                             <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Neural Coherence</span>
                             <span className="text-lg font-black font-mono text-white tracking-tighter">0xV_ZENITH</span>
                         </div>
-                        <div className="h-8 w-px bg-white/5" />
+                        <div className="h-10 w-px bg-white/5" />
                         <div className="flex flex-col">
                             <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Auth Protocol</span>
                             <span className="text-base font-black font-mono text-[#10b981] tracking-tighter">SECURE_L0</span>
                         </div>
+                        
+                        {/* Integrated Voice Core Module */}
+                        <div className="h-10 w-px bg-white/5" />
+                        <div className="flex items-center gap-6">
+                            <div className="relative w-14 h-14 flex items-center justify-center shrink-0">
+                                <canvas ref={voiceCanvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
+                                <div className={cn(
+                                    "w-9 h-9 rounded-full border p-1 glass-action flex items-center justify-center relative transition-all duration-700 z-10",
+                                    voice.isActive ? "border-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.3)] scale-105" : "border-white/10"
+                                )}>
+                                    <div className="w-full h-full rounded-full overflow-hidden bg-black/20 flex items-center justify-center">
+                                        <Radio size={14} className={voice.isActive ? "text-[#9d4edd] animate-pulse" : "text-gray-700"} />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex flex-col gap-1.5">
+                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Comms Voice Core</span>
+                                <button 
+                                    onClick={handleUplink}
+                                    className={cn(
+                                        "px-5 py-1.5 rounded-xl text-[8px] font-black font-mono uppercase tracking-widest transition-all flex items-center gap-2 border glass-action active:scale-95",
+                                        voice.isActive 
+                                            ? "bg-red-500/10 border-red-500/20 text-red-400" 
+                                            : "text-[#9d4edd] border-[#9d4edd]/30 hover:border-[#9d4edd] hover:text-white"
+                                    )}
+                                >
+                                    {voice.isActive ? <MicOff size={10} /> : <Mic size={10} />}
+                                    {voice.isActive ? 'Sever Link' : 'Establish Comms'}
+                                </button>
+                            </div>
+                        </div>
                      </div>
+
                      <button 
                         onClick={handleGlobalSync} 
                         disabled={isSyncing}
@@ -269,7 +387,7 @@ const MetaventionsHub: React.FC = () => {
                   </div>
               </div>
 
-              {/* Sidebar Panel (Denser High-Fidelity Configuration - Narrower for more left room) */}
+              {/* Sidebar Panel */}
               <div className="col-span-3 space-y-8 flex flex-col">
                   
                   {/* COMPACTED CORE METRICS */}
@@ -328,7 +446,6 @@ const MetaventionsHub: React.FC = () => {
 
           {/* D-Ecosystem (Large Global View at bottom) */}
           <div className="w-full h-[850px] mt-20 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
-              {/* Refined Ecosystem Header HUD - Scales Down to Prevent Overlap */}
               <div className="absolute top-12 left-16 z-20 flex flex-col gap-4 pointer-events-none">
                   <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">
                       The D-Ecosystem
