@@ -84,16 +84,19 @@ const DEcosystem: React.FC = () => {
     const particles: Particle[] = Array.from({ length: PARTICLE_COUNT }, () => new Particle());
 
     const render = () => {
+      if (!canvas || !containerRef.current) return;
+      
       ctx.globalCompositeOperation = 'source-over';
       ctx.fillStyle = 'rgba(1, 1, 3, 0.22)'; 
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const dpr = window.devicePixelRatio || 1;
-      const centerX = canvas.width / (2 * dpr);
-      const centerY = canvas.height / (2 * dpr);
+      // Center based on the actual physical canvas pixels divided by DPR
+      const centerX = (canvas.width / dpr) / 2;
+      const centerY = (canvas.height / dpr) / 2;
       const time = performance.now() / 1000;
 
-      const baseDist = Math.min(canvas.width / dpr, canvas.height / dpr) * 0.4;
+      const baseDist = Math.min(canvas.width / dpr, canvas.height / dpr) * 0.38;
       const nodes = SECTORS.map(s => {
         const rad = s.angle * (Math.PI / 180);
         return {
@@ -229,7 +232,14 @@ const DEcosystem: React.FC = () => {
         canvasRef.current.width = width * dpr;
         canvasRef.current.height = height * dpr;
         const context = canvasRef.current.getContext('2d');
-        if (context) context.scale(dpr, dpr);
+        if (context) {
+            context.scale(dpr, dpr);
+            // Ensure particles that are in transit don't "jump" too wildly
+            particles.forEach(p => {
+                p.x = Math.max(0, Math.min(width, p.x));
+                p.y = Math.max(0, Math.min(height, p.y));
+            });
+        }
         canvasRef.current.style.width = `${width}px`;
         canvasRef.current.style.height = `${height}px`;
       }
@@ -251,8 +261,8 @@ const DEcosystem: React.FC = () => {
       
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
-      {/* NEURAL CORE - PERFECTLY CENTERED */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-40 pointer-events-none">
+      {/* NEURAL CORE - LOCKED TO CENTER */}
+      <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
         <motion.div 
             animate={{ scale: [1, 1.03, 1] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
