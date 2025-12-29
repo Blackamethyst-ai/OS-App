@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { History, Play, RotateCcw, Save, ChevronUp, ChevronDown, X } from 'lucide-react';
@@ -80,6 +79,11 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
             case AppMode.HARDWARE_ENGINEER: stateToSave = store.hardware; break;
             case AppMode.IMAGE_GEN: stateToSave = store.imageGen; break;
             case AppMode.BIBLIOMORPHIC: stateToSave = store.bibliomorphic; break;
+            case AppMode.DASHBOARD: stateToSave = store.dashboard; break;
+            case AppMode.METAVENTIONS_HUB: stateToSave = store.metaventions; break;
+            case AppMode.AUTONOMOUS_FINANCE: stateToSave = store.metaventions; break;
+            case AppMode.AGENT_CONTROL: stateToSave = store.agents; break;
+            case AppMode.SYNTHESIS_BRIDGE: stateToSave = store.metaventions; break;
             default: break;
         }
 

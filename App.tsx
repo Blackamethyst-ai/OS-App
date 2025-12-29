@@ -105,7 +105,8 @@ const App: React.FC = () => {
       isHelpOpen, setHelpOpen, 
       isScrubberOpen, setScrubberOpen, 
       isDiagnosticsOpen, setDiagnosticsOpen, 
-      isHUDClosed, setHUDClosed 
+      isHUDClosed, setHUDClosed,
+      setProcessState, setCodeStudioState, setHardwareState, setImageGenState, setBibliomorphicState, setDashboardState, setMetaventionsState, setAgentState
   } = useAppStore();
   
   const { setSector } = useSystemMind(); 
@@ -145,6 +146,23 @@ const App: React.FC = () => {
 
   useEffect(() => { setSector(mode); }, [mode, setSector]);
 
+  const handleRestore = (state: any) => {
+    switch(mode) {
+        case AppMode.PROCESS_MAP: setProcessState(state); break;
+        case AppMode.CODE_STUDIO: setCodeStudioState(state); break;
+        case AppMode.HARDWARE_ENGINEER: setHardwareState(state); break;
+        case AppMode.IMAGE_GEN: setImageGenState(state); break;
+        case AppMode.BIBLIOMORPHIC: setBibliomorphicState(state); break;
+        case AppMode.DASHBOARD: setDashboardState(state); break;
+        case AppMode.METAVENTIONS_HUB: setMetaventionsState(state); break;
+        case AppMode.AUTONOMOUS_FINANCE: setMetaventionsState(state); break;
+        case AppMode.AGENT_CONTROL: setAgentState(state); break;
+        case AppMode.SYNTHESIS_BRIDGE: setMetaventionsState(state); break;
+    }
+    addLog('INFO', 'Timeline resync successful.');
+    audio.playSuccess();
+  };
+
   const themeVars = useMemo(() => {
       const isDark = theme !== AppTheme.LIGHT;
       
@@ -152,7 +170,6 @@ const App: React.FC = () => {
       if (isDark) document.documentElement.classList.add('dark');
       else document.documentElement.classList.remove('dark');
 
-      // Alpha values dropped significantly (0.05 to 0.12 range) for "Actual Glass" look
       switch (theme) {
           case AppTheme.LIGHT: return { 
               '--bg-app': '#F5F7FA', 
@@ -235,7 +252,7 @@ const App: React.FC = () => {
       <CommandPalette /> 
       <PeerMeshOverlay />
       <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} /> 
-      <TimeTravelScrubber mode={mode} onRestore={() => addLog('INFO', 'Timeline resync successful.')} isOpen={isScrubberOpen} onClose={() => setScrubberOpen(false)} />
+      <TimeTravelScrubber mode={mode} onRestore={handleRestore} isOpen={isScrubberOpen} onClose={() => setScrubberOpen(false)} />
       <OverlayOS /> 
       <HoloProjector /> 
       <ResearchTray /> 

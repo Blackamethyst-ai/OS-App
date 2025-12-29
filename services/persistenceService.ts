@@ -65,14 +65,15 @@ interface NeuralVaultSchema extends DBSchema {
       key: string;
       value: {
           id: string;
-          manifest: any;
+          manifest: any; // FunctionDeclaration
+          code: string; // The executable logic as string
           timestamp: number;
       };
   };
 }
 
 class NeuralVaultService {
-  private dbName = 'structura_neural_vault_v1';
+  private dbName = 'structura_neural_vault_v2';
   private db: Promise<IDBPDatabase<NeuralVaultSchema>>;
 
   constructor() {
@@ -80,8 +81,8 @@ class NeuralVaultService {
   }
 
   private async initDB() {
-    return openDB<NeuralVaultSchema>(this.dbName, 5, {
-      upgrade(db, oldVersion, newVersion, transaction) {
+    return openDB<NeuralVaultSchema>(this.dbName, 1, {
+      upgrade(db) {
         if (!db.objectStoreNames.contains('artifacts')) {
           const store = db.createObjectStore('artifacts', { keyPath: 'id' });
           store.createIndex('by-date', 'timestamp');
@@ -129,21 +130,29 @@ class NeuralVaultService {
           .slice(0, limit);
   }
 
-  async saveArtifact(file: File, analysis: ArtifactAnalysis | null): Promise<string> {
+  async saveArtifact(file: File | Blob, analysis: ArtifactAnalysis | null): Promise<string> {
     const id = crypto.randomUUID();
     const db = await this.db;
-    const blob = new Blob([file], { type: file.type });
+    const name = file instanceof File ? file.name : `Artifact_${id.slice(0,8)}`;
+    
+    // Explicitly cast to prevent narrowing errors on unreachable branches in stricter environments
+    const blobData = file as Blob;
 
     await db.put('artifacts', {
       id,
-      name: file.name,
-      type: file.type,
-      data: blob,
+      name,
+      type: blobData.type,
+      data: blobData,
       analysis,
       timestamp: Date.now(),
-      tags: analysis?.classification ? [analysis.classification] : []
+      tags: analysis?.entities || []
     });
     return id;
+  }
+
+  async getArtifact(id: string) {
+      const db = await this.db;
+      return db.get('artifacts', id);
   }
 
   async getArtifacts() {
@@ -155,6 +164,16 @@ class NeuralVaultService {
       const db = await this.db;
       await db.delete('artifacts', id);
       await db.delete('vectors', id);
+  }
+
+  async saveDynamicTool(id: string, manifest: any, code: string) {
+      const db = await this.db;
+      await db.put('dynamic_tools', { id, manifest, code, timestamp: Date.now() });
+  }
+
+  async getDynamicTools() {
+      const db = await this.db;
+      return db.getAll('dynamic_tools');
   }
 
   async createCheckpoint(mode: AppMode, state: any, label: string = "Manual Save") {
@@ -187,16 +206,6 @@ class NeuralVaultService {
   async saveKnowledgeLayer(layer: KnowledgeLayer) {
       const db = await this.db;
       await db.put('knowledge_layers', layer);
-  }
-
-  async saveDynamicTool(id: string, manifest: any) {
-      const db = await this.db;
-      await db.put('dynamic_tools', { id, manifest, timestamp: Date.now() });
-  }
-
-  async getDynamicTools() {
-      const db = await this.db;
-      return db.getAll('dynamic_tools');
   }
 
   async wipeSystem() {

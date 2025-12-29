@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { neuralVault } from '../services/persistenceService';
@@ -6,7 +5,7 @@ import { AppMode } from '../types';
 
 export const useAutoSave = () => {
     const lastSave = useRef<number>(Date.now());
-    const mode = useAppStore(s => s.mode); // Track mode for switch saving
+    const mode = useAppStore(s => s.mode);
 
     const saveCheckpoint = (state: any, label: string) => {
         let activeData = null;
@@ -17,6 +16,10 @@ export const useAutoSave = () => {
             case AppMode.BIBLIOMORPHIC: activeData = state.bibliomorphic; break;
             case AppMode.DASHBOARD: activeData = state.dashboard; break;
             case AppMode.IMAGE_GEN: activeData = state.imageGen; break;
+            case AppMode.METAVENTIONS_HUB: activeData = state.metaventions; break;
+            case AppMode.AUTONOMOUS_FINANCE: activeData = state.metaventions; break;
+            case AppMode.AGENT_CONTROL: activeData = state.agents; break;
+            case AppMode.SYNTHESIS_BRIDGE: activeData = state.metaventions; break;
         }
 
         if (activeData) {
