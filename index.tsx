@@ -1,4 +1,3 @@
-
 import React, { ReactNode, ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
@@ -10,14 +9,18 @@ interface ErrorBoundaryProps {
 
 interface ErrorBoundaryState {
   hasError: boolean;
+  error: Error | null;
 }
 
 // Root Error Boundary for Sovereign OS Crash Handling
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  state: ErrorBoundaryState = { hasError: false };
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
 
-  static getDerivedStateFromError(_: Error): ErrorBoundaryState {
-    return { hasError: true };
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
@@ -39,15 +42,17 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                 
                 <h1 className="text-3xl font-black mb-4 tracking-[0.3em] uppercase text-red-500">System Failure</h1>
                 
-                <div className="flex items-center gap-2 text-gray-500 text-[10px] uppercase tracking-widest mb-8 border-b border-[#222] pb-2">
+                <div className="flex items-center gap-2 text-gray-500 text-[10px] uppercase tracking-widest mb-4 border-b border-[#222] pb-2">
                     <Terminal className="w-3 h-3" />
                     <span>KERNEL_EXCEPTION_TRAP</span>
                 </div>
 
-                <p className="text-sm text-gray-400 mb-10 leading-relaxed max-w-md">
-                    The Sovereign Architecture has encountered a fatal exception. 
-                    Neural processes have been suspended to prevent entropy propagation and data leakage.
-                </p>
+                <div className="p-4 bg-red-500/5 rounded border border-red-500/10 mb-8 w-full overflow-hidden">
+                    <p className="text-[10px] text-red-400 font-bold uppercase mb-2">Error Diagnostic:</p>
+                    <p className="text-xs text-gray-400 leading-relaxed font-mono break-all">
+                        {this.state.error?.message || "An unexpected neural desync occurred in the Sovereign Core."}
+                    </p>
+                </div>
 
                 <button 
                     onClick={() => window.location.reload()} 
@@ -66,17 +71,12 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       );
     }
 
-    return (this as any).props.children;
+    return (this.props as any).children;
   }
 }
 
-const mountApp = () => {
-  const rootElement = document.getElementById('root');
-  if (!rootElement) {
-    setTimeout(mountApp, 50);
-    return;
-  }
-
+const rootElement = document.getElementById('root');
+if (rootElement) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <React.StrictMode>
@@ -85,10 +85,4 @@ const mountApp = () => {
       </ErrorBoundary>
     </React.StrictMode>
   );
-};
-
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mountApp);
-} else {
-    mountApp();
 }

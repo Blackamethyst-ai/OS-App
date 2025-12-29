@@ -42,8 +42,6 @@
 
        .font-mono { font-family: 'Fira Code', monospace; }
        
-       /* THE CRYSTALLINE v2 SPECIFICATION */
-       /* Implements physical glass refraction: high saturation, edge-lighting, and specularity */
        .crystalline {
           background: var(--bg-card-top) !important;
           backdrop-filter: blur(60px) saturate(280%) brightness(1.05) contrast(1.1) !important;
@@ -56,7 +54,6 @@
           transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
        }
 
-       /* THE "SLID GLASS" DRAWER EFFECT */
        .glass-drawer-edge {
           border-left: 1px solid rgba(255, 255, 255, 0.4);
           box-shadow: inset 10px 0 30px -10px rgba(255, 255, 255, 0.03);
@@ -85,7 +82,7 @@
        .no-scrollbar::-webkit-scrollbar { display: none; }
        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
     </style>
-<script type="importmap">
+    <script type="importmap">
 {
   "imports": {
     "react": "https://esm.sh/react@19.0.0",
@@ -101,14 +98,14 @@
     "jszip": "https://esm.sh/jszip@3.10.1",
     "html-to-image": "https://esm.sh/html-to-image@1.11.13?external=react,react-dom",
     "redux": "https://esm.sh/redux@4.2.1",
-    "path": "https://esm.sh/path@^0.12.7",
-    "vite": "https://esm.sh/vite@^7.3.0",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
-    "mermaid": "https://esm.sh/mermaid@^11.12.2",
+    "path": "https://esm.sh/path@0.12.7",
+    "vite": "https://esm.sh/vite@7.3.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@5.1.2",
+    "mermaid": "https://esm.sh/mermaid@11.12.2",
+    "clsx": "https://esm.sh/clsx@2.1.1",
+    "tailwind-merge": "https://esm.sh/tailwind-merge@3.4.0",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "clsx": "https://esm.sh/clsx@^2.1.1",
-    "tailwind-merge": "https://esm.sh/tailwind-merge@^3.4.0"
+    "react/": "https://esm.sh/react@^19.2.3/"
   }
 }
 </script>
@@ -116,5 +113,5 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
-</body>
+  </body>
 </html>
