@@ -8,12 +8,11 @@ import {
     OperationalContext, AutonomousAgent
 } from './types';
 
-// Initial agents for the store
 const INITIAL_AGENTS: AutonomousAgent[] = [
     {
         id: 'puck',
         name: 'Puck',
-        role: 'Generative Architect',
+        role: 'Implementation Architect',
         context: OperationalContext.STRATEGY_SYNTHESIS,
         status: 'IDLE',
         memoryBuffer: [],
@@ -25,7 +24,7 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
     {
         id: 'charon',
         name: 'Charon',
-        role: 'Logical Auditor',
+        role: 'Audit Sentinel',
         context: OperationalContext.SYSTEM_MONITORING,
         status: 'IDLE',
         memoryBuffer: [],
@@ -37,7 +36,7 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
     {
         id: 'fenrir',
         name: 'Fenrir',
-        role: 'Execution Controller',
+        role: 'Execution Lead',
         context: OperationalContext.CODE_GENERATION,
         status: 'IDLE',
         memoryBuffer: [],
@@ -126,7 +125,7 @@ interface AppState {
         };
         pendingAIAddition: any | null;
         pendingAction: string | null;
-        governance: 'Metaventions Protocol v9.5-ZENITH';
+        governance: 'D-Ecosystem Protocol 2025.Q1';
         coherenceScore: number;
     };
     imageGen: {
@@ -288,7 +287,7 @@ export const useAppStore = create<AppState>((set) => ({
     mode: AppMode.DASHBOARD,
     theme: AppTheme.DARK,
     user: {
-        displayName: 'Architect_Core',
+        displayName: 'Operator_Core',
         role: 'ARCHITECT',
         clearanceLevel: 5,
         avatar: null
@@ -296,10 +295,10 @@ export const useAppStore = create<AppState>((set) => ({
     authenticated: false,
     isProfileOpen: false,
     isCommandPaletteOpen: false,
-    operationalContext: 'SYSTEM_STABLE_ZENITH',
+    operationalContext: 'D_ECOSYSTEM_PRODUCTION',
     kernel: {
         uptime: 0,
-        entropy: 8,
+        entropy: 5,
         integrity: 99
     },
     system: {
@@ -327,9 +326,9 @@ export const useAppStore = create<AppState>((set) => ({
         transcripts: [],
         partialTranscript: null,
         mentalState: {
-            skepticism: 50,
+            skepticism: 20,
             excitement: 85,
-            alignment: 90
+            alignment: 95
         },
         agentAvatars: {}
     },
@@ -367,8 +366,8 @@ export const useAppStore = create<AppState>((set) => ({
         },
         pendingAIAddition: null,
         pendingAction: null,
-        governance: 'Metaventions Protocol v9.5-ZENITH',
-        coherenceScore: 94
+        governance: 'D-Ecosystem Protocol 2025.Q1',
+        coherenceScore: 98
     },
     imageGen: {
         prompt: '',
@@ -480,25 +479,25 @@ export const useAppStore = create<AppState>((set) => ({
         layers: [
             {
                 id: 'LAYER_DEPIN',
-                name: 'DePIN Infrastructure',
+                name: 'Physical Infrastructure',
                 role: 'PHYSICAL_NETWORK',
-                leverage: 'Orchestrating decentralized physical infrastructure nodes.',
+                leverage: 'Orchestrating production-grade D-Infrastructure nodes.',
                 status: 'STABLE',
                 level: 1,
                 metrics: [
-                    { label: 'Nodes', value: '1,420', trend: 'up' },
+                    { label: 'Units', value: '1,420', trend: 'up' },
                     { label: 'Uptime', value: '99.99%', trend: 'stable' }
                 ]
             },
             {
                 id: 'LAYER_AI',
-                name: 'Autonomous Intelligence',
+                name: 'Strategic Intelligence',
                 role: 'COGNITIVE_CORE',
-                leverage: 'Recursive neural optimization of system parameters.',
+                leverage: 'Recursive neural implementation of meta inventions.',
                 status: 'OPTIMIZED',
                 level: 2,
                 metrics: [
-                    { label: 'Coherence', value: '96.4%', trend: 'up' },
+                    { label: 'Coherence', value: '98.4%', trend: 'up' },
                     { label: 'Latency', value: '3ms', trend: 'down' }
                 ]
             }
@@ -639,15 +638,15 @@ export const useAppStore = create<AppState>((set) => ({
     setMetaventionsState: (update) => set((state) => ({ 
         metaventions: { ...state.metaventions, ...(typeof update === 'function' ? update(state.metaventions) : update) } 
     })),
-    pushToInvestmentQueue: (metavention: any) => set((state) => ({
+    pushToInvestmentQueue: (implementation: any) => set((state) => ({
         marketData: {
             ...state.marketData,
             opportunities: [{
-                id: `metavention-${Date.now()}`,
-                title: metavention.title,
-                yield: `${metavention.viability}%`,
-                risk: metavention.riskVector === 'LOW' ? 'LOW' : 'HIGH',
-                logic: metavention.logic
+                id: `implement-${Date.now()}`,
+                title: implementation.title,
+                yield: `${implementation.viability}%`,
+                risk: implementation.riskVector === 'LOW' ? 'LOW' : 'HIGH',
+                logic: implementation.logic
             }, ...state.marketData.opportunities].slice(0, 10)
         }
     })),
@@ -658,7 +657,7 @@ export const useAppStore = create<AppState>((set) => ({
         },
         metaventions: {
             ...state.metaventions,
-            strategyLog: [...state.metaventions.strategyLog, `Invested $${amount.toLocaleString()} into [${id}]`]
+            strategyLog: [...state.metaventions.strategyLog, `Allocated $${amount.toLocaleString()} to deployment [${id}]`]
         }
     })),
     setAgentState: (update) => set((state) => ({ 

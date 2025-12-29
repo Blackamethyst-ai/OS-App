@@ -39,17 +39,17 @@ import { audio } from './services/audioService';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const NAV_CONFIG = [
-  { id: AppMode.DASHBOARD, label: 'HUB', path: '/dashboard' },
-  { id: AppMode.BIBLIOMORPHIC, label: 'LAB', path: '/bibliomorphic' },
-  { id: AppMode.PROCESS_MAP, label: 'MAPPER', path: '/process' },
-  { id: AppMode.AUTONOMOUS_FINANCE, label: 'FINANCE', path: '/finance' },
-  { id: AppMode.CODE_STUDIO, label: 'STUDIO', path: '/code' },
+  { id: AppMode.DASHBOARD, label: 'ECOSYSTEM HUB', path: '/dashboard' },
+  { id: AppMode.BIBLIOMORPHIC, label: 'STRATEGY LAB', path: '/bibliomorphic' },
+  { id: AppMode.PROCESS_MAP, label: 'SYSTEMS MAPPER', path: '/process' },
+  { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance' },
+  { id: AppMode.CODE_STUDIO, label: 'LOGIC STUDIO', path: '/code' },
   { id: AppMode.AGENT_CONTROL, label: 'ORCHESTRATOR', path: '/agents' },
   { id: AppMode.MEMORY_CORE, label: 'ARCHIVE', path: '/memory' },
-  { id: AppMode.IMAGE_GEN, label: 'ASSETS', path: '/assets' },
+  { id: AppMode.IMAGE_GEN, label: 'ASSET STUDIO', path: '/assets' },
   { id: AppMode.HARDWARE_ENGINEER, label: 'INFRASTRUCTURE', path: '/hardware' },
-  { id: AppMode.VOICE_MODE, label: 'COMMMS', path: '/voice' },
-  { id: AppMode.SYNTHESIS_BRIDGE, label: 'BRIDGE', path: '/bridge' },
+  { id: AppMode.VOICE_MODE, label: 'COMMS', path: '/voice' },
+  { id: AppMode.SYNTHESIS_BRIDGE, label: 'IMPLEMENTATION', path: '/bridge' },
 ];
 
 const FocusOverlay = () => {
@@ -243,21 +243,21 @@ const App: React.FC = () => {
       </AnimatePresence>
 
       <header className="flex-shrink-0 h-[56px] border-b z-[100] px-6 flex items-center justify-between backdrop-blur-3xl bg-[var(--bg-header)] border-[var(--border-main)] shadow-xl relative transition-colors duration-500">
-        <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-[#7b2cbf] via-[#f1c21b] to-[#7b2cbf] opacity-40" />
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-[#7b2cbf] via-[#f1c21b] to-[#7b2cbf] opacity-40" />
 
         <div className="flex items-center gap-8 h-full">
             <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.location.hash = '/dashboard'}>
                 <MetaventionsLogo size={24} showText={true} />
             </div>
             <div className="h-4 w-px bg-[var(--border-main)]" />
-            <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-[800px] h-full">
+            <nav className="flex items-center gap-1 overflow-x-auto no-scrollbar max-w-[900px] h-full">
                 {NAV_CONFIG.map(item => (
                     <button 
                         key={item.id} 
                         onClick={() => window.location.hash = item.path} 
-                        className="relative h-full px-2.5 group flex-shrink-0 flex items-center"
+                        className="relative h-full px-3 group flex-shrink-0 flex items-center"
                     >
-                        <span className={`text-[9px] font-black uppercase tracking-[0.2em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'}`}>
+                        <span className={`text-[9.5px] font-black uppercase tracking-[0.25em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'}`}>
                             {item.label}
                         </span>
                         {mode === item.id && (
