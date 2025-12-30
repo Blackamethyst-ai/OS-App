@@ -37,9 +37,15 @@ export const neuralAutomata = async () => {
         const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
         if (!hasKey) return; 
 
-        const decision = await executeNeuralPolicy(state.mode, contextSnapshot, recentLogs);
+        // Fixed: explicitly typed the decision result from executeNeuralPolicy to resolve unknown property errors
+        const decision = await executeNeuralPolicy(state.mode, contextSnapshot, recentLogs) as {
+            suggestedPatch?: { code: string, explanation: string },
+            level: 'ERROR' | 'WARN' | 'SUCCESS' | 'INFO' | 'SYSTEM',
+            message: string
+        };
 
         if (decision) {
+            // Fixed: Safely accessed suggestedPatch through explicit typing
             if (decision.suggestedPatch && state.mode === AppMode.CODE_STUDIO) {
                 const patchTimestamp = Date.now();
                 setCodeStudioState({
@@ -56,6 +62,7 @@ export const neuralAutomata = async () => {
                 }
             } else {
                 const lastLog = state.system.logs[state.system.logs.length - 1];
+                // Fixed: Safely accessed decision.message and decision.suggestedPatch through explicit typing
                 if (lastLog?.message !== decision.message && !decision.suggestedPatch) {
                     addLog(decision.level, decision.message);
                 }

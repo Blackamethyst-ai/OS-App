@@ -14,7 +14,7 @@ import {
     TrendingUp, TrendingDown, Zap,
     Bot, Globe, User, Hexagon,
     Mic, MicOff, ShieldCheck, DollarSign,
-    LineChart as ChartIcon, Download
+    LineChart as ChartIcon, Download, Layers
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
@@ -103,7 +103,7 @@ const SwarmBox = () => {
                 </div>
                 <div className="flex items-center gap-1.5">
                     <div className="w-1 h-1 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]" />
-                    <span className="text-[6px] font-mono text-gray-600 uppercase tracking-widest uppercase">V9.5 - THE D-Ecosystem</span>
+                    <span className="text-[6px] font-mono text-gray-600 uppercase tracking-widest">Active</span>
                 </div>
             </div>
             
@@ -131,7 +131,7 @@ const SwarmBox = () => {
             <div className="pt-2 border-t border-white/5 relative z-10">
                 <div className="flex justify-between items-center text-[6px] font-mono text-gray-700 uppercase tracking-widest">
                     <span>LATTICE_OK</span>
-                    <span className="text-[#10b981] font-black opacity-60 uppercase">V9.5 - THE D-Ecosystem</span>
+                    <span className="text-[#10b981] font-black opacity-60">V9.5-ZENITH</span>
                 </div>
             </div>
         </div>
@@ -239,7 +239,7 @@ const MetaventionsHub: React.FC = () => {
               return; 
           }
           const url = await generateArchitectureImage(
-              "Cinematic wide angle, Grand Architect in an obsidian futuristic laboratory, high-fidelity holographs, translucent data lattices, premium technical lighting.",
+              "Cinematic wide angle, Sovereign Architect in an obsidian futuristic laboratory, floating high-fidelity holographic data grids, translucent neural lattices, premium deep technical lighting, anamorphic lens flares.",
               AspectRatio.RATIO_16_9,
               ImageSize.SIZE_4K, 
               dashboard.referenceImage
@@ -305,7 +305,7 @@ const MetaventionsHub: React.FC = () => {
 
           <div className="flex items-center gap-12 relative z-10">
               <div className="text-right">
-                  <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block mb-0.5">System Uptime</span>
+                  <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block mb-0.5">Lattice Uptime</span>
                   <div className="flex items-center gap-3 mt-0.5">
                       <span className="text-2xl font-black font-mono text-white tracking-tighter">99.99%</span>
                       <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_100px_rgba(16,185,129,0.3)]" />
@@ -398,7 +398,7 @@ const MetaventionsHub: React.FC = () => {
                      <div className="flex items-center gap-12">
                         <div className="flex flex-col">
                             <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black uppercase">Neural Coherence</span>
-                            <span className="text-lg font-black font-mono text-white tracking-tighter uppercase">V9.5 - THE D-Ecosystem</span>
+                            <span className="text-lg font-black font-mono text-white tracking-tighter uppercase">V9.5-ZENITH</span>
                         </div>
                         <div className="h-10 w-px bg-white/5" />
                         <div className="flex flex-col">
@@ -421,7 +421,7 @@ const MetaventionsHub: React.FC = () => {
                                 </div>
                             </div>
                             <div className="flex flex-col gap-1.5">
-                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black uppercase">V9.5 - THE D-Ecosystem</span>
+                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black uppercase">Active Comms</span>
                                 <button 
                                     onClick={handleUplink}
                                     className={cn(
@@ -439,8 +439,8 @@ const MetaventionsHub: React.FC = () => {
                      </div>
 
                      <div className="flex flex-col items-end gap-3">
-                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest max-w-[280px] text-right leading-relaxed italic">
-                            High-fidelity orchestration of strategic implementation protocols and agentic workflows.
+                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest max-w-[280px] text-right leading-relaxed italic opacity-60">
+                            Orchestrating high-fidelity implementation protocols and autonomous agentic workflows.
                         </p>
                         <button 
                             onClick={handleGlobalSync} 

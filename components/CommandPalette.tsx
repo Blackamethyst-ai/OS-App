@@ -172,7 +172,8 @@ const CommandPalette: React.FC = () => {
           }
       }
 
-      const intent = await interpretIntent(input);
+      // Fixed: Typed intent result from interpretIntent to resolve unknown property access
+      const intent = await interpretIntent(input) as {action: string, target?: string, parameters?: any, reasoning: string};
       
       switch (intent.action) {
         case 'NAVIGATE':
@@ -191,6 +192,7 @@ const CommandPalette: React.FC = () => {
           }
           break;
         case 'FOCUS_ELEMENT':
+            // Fixed: Safely accessed parameters through explicit typing
             if (intent.parameters?.selector) {
                 setFocusedSelector(intent.parameters.selector);
                 setResult(`Focusing UI context: ${intent.parameters.selector}`);

@@ -9,7 +9,7 @@ import {
     Shield, GitCommit, Radio, Gauge, Waves, Fingerprint, PlayCircle,
     Terminal, ArrowUpRight, Compass, ListChecks, Network, 
     Database, Server, Layout, FileSearch, Workflow, AlertTriangle,
-    Eye, Maximize2, Info
+    Eye, Maximize2, Info, BarChart3
 } from 'lucide-react';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
 import { retryGeminiRequest, promptSelectKey } from '../services/geminiService';
@@ -18,6 +18,10 @@ import { audio } from '../services/audioService';
 import { AppMode } from '../types';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { cn } from '../utils/cn';
+import { 
+    ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, 
+    Tooltip, ResponsiveContainer, Cell 
+} from 'recharts';
 
 const ImpactProjection = ({ viability, risk }: { viability: number, risk: string }) => {
     const sectors = [
@@ -54,6 +58,14 @@ const YieldProbeCLI = () => {
     const [probeQuery, setProbeQuery] = useState('');
     const [probeResult, setProbeResult] = useState<string | null>(null);
 
+    // Mock data for the Risk/Impact scatter chart
+    const scatterData = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
+        x: Math.random() * 100, // Impact
+        y: Math.random() * 100, // Risk
+        z: Math.random() * 400 + 100, // Size
+        name: `NODE_${String(i).padStart(2,'0')}`
+    })), []);
+
     const handleProbe = async () => {
         if (!probeQuery.trim() || agentState.isThinking) return;
         actions.addLog('SYSTEM', `META_TOOLING: Dispatching probe for "${probeQuery}"...`);
@@ -71,7 +83,7 @@ const YieldProbeCLI = () => {
 
     return (
         <div className="h-full grid grid-cols-12 gap-8 p-10">
-            <div className="col-span-5 bg-[#0a0a0a] border border-[#333] rounded-[2.5rem] p-8 flex flex-col relative overflow-hidden group shadow-2xl">
+            <div className="col-span-5 bg-[#0a0a0a] border border-[#333] rounded-[2.5rem] p-8 flex flex-col relative overflow-hidden group shadow-2xl invisible-glass">
                 <div className="absolute inset-0 bg-gradient-to-b from-[#f1c21b]/5 to-transparent pointer-events-none" />
                 <div className="flex items-center gap-4 mb-8">
                     <div className="p-3 bg-[#f1c21b]/10 rounded-2xl border border-[#f1c21b]/40 text-[#f1c21b] shadow-xl">
@@ -95,7 +107,7 @@ const YieldProbeCLI = () => {
                     </div>
                 </div>
             </div>
-            <div className="col-span-7 bg-[#0a0a0a] border border-[#333] rounded-[2.5rem] p-12 flex flex-col relative overflow-hidden shadow-2xl">
+            <div className="col-span-7 bg-[#0a0a0a] border border-[#333] rounded-[2.5rem] p-12 flex flex-col relative overflow-hidden shadow-2xl invisible-glass">
                 <div className="flex justify-between items-center mb-8 relative z-10">
                     <div className="flex items-center gap-5">
                         <div className="p-3 bg-[#10b981]/10 border border-[#10b981]/40 rounded-2xl text-[#10b981]">
@@ -106,12 +118,36 @@ const YieldProbeCLI = () => {
                             <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest mt-2">Active Grounding Telemetry</p>
                         </div>
                     </div>
-                    <div className="px-6 py-2 bg-[#10b981]/10 text-[#10b981] rounded-full border border-[#10b981]/30 text-[10px] font-black uppercase tracking-widest shadow-xl animate-pulse">Sync Active</div>
+                    <div className="flex items-center gap-3">
+                        <div className="px-6 py-2 bg-[#10b981]/10 text-[#10b981] rounded-full border border-[#10b981]/30 text-[10px] font-black uppercase tracking-widest shadow-xl animate-pulse">Sync Active</div>
+                    </div>
                 </div>
-                <div className="flex-1 bg-black/40 rounded-[3rem] border border-white/5 relative overflow-hidden flex flex-col items-center justify-center group shadow-inner">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(16,185,129,0.03)_0%,transparent_70%)]" />
-                    <Compass size={120} className="text-gray-800 animate-[spin_20s_linear_infinite] group-hover:scale-110 transition-transform duration-1000" />
-                    <p className="mt-8 text-[11px] font-mono text-gray-600 uppercase tracking-[1em]">Awaiting Search Vector</p>
+                
+                <div className="flex-1 flex flex-col gap-6 min-h-0 relative z-10">
+                    <div className="h-64 bg-black/40 rounded-[2rem] border border-white/5 p-6 relative overflow-hidden group shadow-inner">
+                        <div className="absolute top-4 right-6 flex items-center gap-2 text-[8px] font-black text-gray-600 uppercase tracking-widest">
+                            <Target size={10} className="text-[#f1c21b]" /> Risk vs Impact Matrix
+                        </div>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                                <XAxis type="number" dataKey="x" name="Impact" unit="%" hide />
+                                <YAxis type="number" dataKey="y" name="Risk" unit="%" hide />
+                                <ZAxis type="number" dataKey="z" range={[50, 400]} />
+                                <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ backgroundColor: '#000', border: '1px solid #333', fontSize: '10px', fontFamily: 'Fira Code' }} />
+                                <Scatter name="Opportunities" data={scatterData}>
+                                    {scatterData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.y > 70 ? '#ef4444' : entry.x > 70 ? '#10b981' : '#22d3ee'} />
+                                    ))}
+                                </Scatter>
+                            </ScatterChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    <div className="flex-1 bg-black/20 rounded-[2rem] border border-white/5 flex flex-col items-center justify-center group shadow-inner">
+                        <Compass size={80} className="text-gray-800 animate-[spin_40s_linear_infinite] group-hover:scale-110 transition-transform duration-1000" />
+                        <p className="mt-6 text-[10px] font-mono text-gray-600 uppercase tracking-[1em]">Scanning Reality Vectors</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -169,7 +205,11 @@ const StrategicBridge = () => {
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
                 model: 'gemini-3-pro-preview',
                 contents: `Process Type: ${domainContext}. Contextual Overlays: ${activeKnowledge}. Output structured JSON blueprint.`,
-                config: { responseMimeType: 'application/json', responseSchema: schema }
+                config: { 
+                    responseMimeType: 'application/json', 
+                    responseSchema: schema,
+                    thinkingConfig: { thinkingBudget: 16000 }
+                }
             }));
 
             const data = JSON.parse(response.text || '{}');
@@ -187,7 +227,7 @@ const StrategicBridge = () => {
     return (
         <div className="flex h-full gap-8 p-10 overflow-hidden">
             <div className="w-[340px] flex flex-col gap-6 shrink-0">
-                <div className="p-8 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
+                <div className="p-8 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2.5rem] shadow-2xl relative overflow-hidden group invisible-glass">
                     <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] block mb-6 px-1">Process Domain</span>
                     <div className="space-y-3">
                         <button 
@@ -219,7 +259,7 @@ const StrategicBridge = () => {
                     </div>
                 </div>
 
-                <div className="p-8 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2.5rem] shadow-2xl flex-1 overflow-y-auto custom-scrollbar">
+                <div className="p-8 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2.5rem] shadow-2xl flex-1 overflow-y-auto custom-scrollbar invisible-glass">
                     <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] block mb-6 px-1">Synthesis Overlays</span>
                     <div className="space-y-2.5">
                         {Object.values(KNOWLEDGE_LAYERS).map(l => (
@@ -245,7 +285,7 @@ const StrategicBridge = () => {
                 <AnimatePresence mode="wait">
                     {currentImplementation ? (
                         <motion.div key="impl" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-8 pb-12">
-                            <div className="p-12 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[3.5rem] relative overflow-hidden shadow-2xl group/card">
+                            <div className="p-12 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[3.5rem] relative overflow-hidden shadow-2xl group/card invisible-glass">
                                 <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover/card:opacity-[0.05] transition-opacity rotate-12"><Sparkles size={180} /></div>
                                 <div className="flex justify-between items-start mb-10">
                                     <div>

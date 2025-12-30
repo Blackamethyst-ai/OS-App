@@ -27,10 +27,11 @@ export const OS_TOOLS = {
 
             const fullPrompt = `${args.description} | DOMAIN_GUIDANCE: ${domainContext} | DIRECTIVE: ${args.custom_directive || 'Standard Optimization'}`;
 
+            // Fixed: explicitly typed return from generateStructuredWorkflow to resolve unknown property errors
             const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', args.type, { 
                 prompt: fullPrompt,
                 dna: args.dna_profile
-            });
+            }) as {title: string, internalPlanningMonologue: string, protocols: any[], coherenceScore: number, taxonomy?: any};
             
             setProcessState({ 
                 generatedWorkflow: workflow, 
@@ -45,6 +46,7 @@ export const OS_TOOLS = {
                 data: { 
                     message: `Lattice for ${args.type} crystallized. Multi-modal parsing nodes verified.`,
                     coherence: workflow.coherenceScore,
+                    // Fixed: Safely accessed taxonomy through explicit typing
                     sectors: workflow.taxonomy?.root?.length || 0
                 },
                 uiHint: 'MESSAGE'
@@ -88,21 +90,25 @@ export const OS_TOOLS = {
         
         try {
             const contextNodes = process.nodes.slice(-3);
-            const result = await convergeStrategicLattices(contextNodes, args.targetGoal);
+            // Fixed: explicitly typed return from convergeStrategicLattices to resolve unknown property errors
+            const result = await convergeStrategicLattices(contextNodes, args.targetGoal) as {nodes: any[], coherence_index: number, unified_goal: string};
             
             setProcessState({ 
+                // Fixed: Safely accessed result.nodes through explicit typing
                 nodes: result.nodes.map((n: any, i: number) => ({
                     id: n.id,
                     type: 'holographic',
                     position: { x: 500 + i * 100, y: 300 + i * 50 },
                     data: { label: n.label, subtext: 'CONVERGED_AXIOM', status: 'SYNTHESIZED', color: '#10b981' }
                 })),
+                // Fixed: Safely accessed coherence_index through explicit typing
                 coherenceScore: Math.round(result.coherence_index * 100)
             });
 
             return {
                 toolName: 'converge_strategic_lattices',
                 status: 'SUCCESS',
+                // Fixed: Safely accessed unified_goal and coherence_index through explicit typing
                 data: { goal: result.unified_goal, coherence: result.coherence_index },
                 uiHint: 'STAT'
             };

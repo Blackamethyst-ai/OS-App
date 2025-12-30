@@ -35,13 +35,23 @@ export const useVisualCortex = () => {
                 fileData = { inlineData: { data: base64Data, mimeType: file.type } };
             }
 
-            const result = await analyzeVisualInput(fileData, `Active Mode: ${mode}`);
+            // Fixed: explicitly typed the result from analyzeVisualInput to resolve unknown property errors
+            const result = await analyzeVisualInput(fileData, `Active Mode: ${mode}`) as {
+                classification: string;
+                extracted_data: any;
+                sentiment: string;
+                suggested_sector: string;
+                summary: string;
+                action_items: string[];
+            };
             
             setVisualCortexState({ lastResult: result, isAnalyzing: false, isProbing: false });
+            // Fixed: Safely accessed sentiment through explicit typing
             addLog('SUCCESS', `OCULUS_SCAN: Analysis finalized. Sentiment: ${result.sentiment}`);
             audio.playSuccess();
 
             // Route based on Gemini Intelligence
+            // Fixed: Safely accessed suggested_sector, extracted_data and summary through explicit typing
             if (result.suggested_sector === 'AUTONOMOUS_FINANCE' && result.extracted_data) {
                 pushToInvestmentQueue({
                     title: result.summary,
@@ -52,6 +62,7 @@ export const useVisualCortex = () => {
                 addLog('INFO', 'ROUTING: Extracted financial metadata staged for Treasury.');
             } else if (result.suggested_sector === 'CODE_STUDIO') {
                 setMode('CODE_STUDIO' as any);
+                // Fixed: Safely accessed summary through explicit typing
                 setCodeStudioState({ prompt: `Implement logic based on visual analysis: ${result.summary}` });
             }
 
