@@ -9,7 +9,7 @@ import {
     Shield, GitCommit, Radio, Gauge, Waves, Fingerprint, PlayCircle,
     Terminal, ArrowUpRight, Compass, ListChecks, Network, 
     Database, Server, Layout, FileSearch, Workflow, AlertTriangle,
-    Eye, Maximize2, Info, BarChart3
+    Eye, Maximize2, Info, BarChart3, Library, Trash2, Send
 } from 'lucide-react';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
 import { retryGeminiRequest, promptSelectKey } from '../services/geminiService';
@@ -18,6 +18,10 @@ import { audio } from '../services/audioService';
 import { AppMode } from '../types';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { cn } from '../utils/cn';
+import { 
+    ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, 
+    Tooltip, ResponsiveContainer, Cell 
+} from 'recharts';
 
 const ImpactProjection = ({ viability, risk }: { viability: number, risk: string }) => {
     const sectors = [
@@ -53,6 +57,13 @@ const YieldProbeCLI = () => {
     const { execute, state: agentState } = useAgentRuntime();
     const [probeQuery, setProbeQuery] = useState('');
     const [probeResult, setProbeResult] = useState<string | null>(null);
+
+    const scatterData = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
+        x: Math.random() * 100, // Impact
+        y: Math.random() * 100, // Risk
+        z: Math.random() * 400 + 100, // Size
+        name: `NODE_${String(i).padStart(2,'0')}`
+    })), []);
 
     const handleProbe = async () => {
         if (!probeQuery.trim() || agentState.isThinking) return;
@@ -116,10 +127,20 @@ const YieldProbeCLI = () => {
                         <div className="absolute top-4 right-6 flex items-center gap-2 text-[8px] font-black text-gray-600 uppercase tracking-widest">
                             <Target size={10} className="text-[#f1c21b]" /> Risk vs Impact Matrix
                         </div>
-                        <div className="h-full flex flex-col justify-center items-center opacity-20">
-                            <BarChart3 size={120} className="text-gray-800" />
-                            <p className="text-[10px] font-mono tracking-widest uppercase mt-4">Calibrating Projection Mesh...</p>
-                        </div>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
+                                <XAxis type="number" dataKey="x" name="Impact" unit="%" hide />
+                                <YAxis type="number" dataKey="y" name="Risk" unit="%" hide />
+                                <ZAxis type="number" dataKey="z" range={[50, 400]} />
+                                <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ backgroundColor: '#000', border: '1px solid #333', fontSize: '10px', fontFamily: 'Fira Code' }} />
+                                <Scatter name="Opportunities" data={scatterData}>
+                                    {scatterData.map((entry, index) => (
+                                        <Cell key={`cell-${index}`} fill={entry.y > 70 ? '#ef4444' : entry.x > 70 ? '#10b981' : '#22d3ee'} />
+                                    ))}
+                                </Scatter>
+                            </ScatterChart>
+                        </ResponsiveContainer>
                     </div>
 
                     <div className="flex-1 bg-black/20 rounded-[2rem] border border-white/5 flex flex-col items-center justify-center group shadow-inner">
@@ -133,8 +154,8 @@ const YieldProbeCLI = () => {
 };
 
 const StrategicBridge = () => {
-    const { knowledge, actions } = useAppStore();
-    const { addLog, toggleKnowledgeLayer, pushToInvestmentQueue } = actions;
+    const { knowledge, metaventions, actions } = useAppStore();
+    const { addLog, toggleKnowledgeLayer, pushToInvestmentQueue, archiveIntervention, deployStrategyToLattice, removeStrategy } = actions;
     const activeKnowledgeLayerIds = knowledge.activeLayers || [];
     const [isGenerating, setIsGenerating] = useState(false);
     const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM'>('DRIVE');
@@ -238,13 +259,22 @@ const StrategicBridge = () => {
                 </div>
 
                 <div className="p-8 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2.5rem] shadow-2xl flex-1 overflow-y-auto custom-scrollbar invisible-glass">
-                    <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] block mb-6 px-1">Synthesis Overlays</span>
+                    <div className="flex items-center justify-between mb-6 px-1">
+                        <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em]">Strategy Library</span>
+                        <Library size={14} className="text-gray-600" />
+                    </div>
                     <div className="space-y-2.5">
-                        {Object.values(KNOWLEDGE_LAYERS).map(l => (
-                            <button key={l.id} onClick={() => toggleKnowledgeLayer(l.id)} className={`w-full p-4 rounded-2xl border text-left transition-all duration-500 relative overflow-hidden group/btn ${activeKnowledgeLayerIds.includes(l.id) ? 'bg-white/5 border-[var(--color)] shadow-xl scale-[1.02]' : 'border-transparent text-gray-500 opacity-40 hover:opacity-100 hover:border-white/10'}`} style={{ '--color': l.color } as any}>
-                                <span className="text-[10px] font-black uppercase font-mono tracking-widest relative z-10">{l.label}</span>
-                                {activeKnowledgeLayerIds.includes(l.id) && <div className="absolute inset-0 bg-gradient-to-r from-[var(--color)] to-transparent opacity-[0.03]" style={{ '--color': l.color } as any} />}
-                            </button>
+                        {metaventions.strategyLibrary.map(strat => (
+                            <div key={strat.id} className="p-4 bg-white/5 border border-white/5 rounded-2xl group/strat relative overflow-hidden transition-all hover:border-[#9d4edd]/40">
+                                <div className="flex justify-between items-start mb-2">
+                                    <div className="text-[10px] font-black text-white uppercase font-mono tracking-tighter truncate max-w-[160px]">{strat.title}</div>
+                                    <div className="flex gap-1.5 opacity-0 group-hover/strat:opacity-100 transition-all">
+                                        <button onClick={() => { deployStrategyToLattice(strat); audio.playClick(); }} className="p-1.5 bg-[#10b981]/10 text-[#10b981] rounded-lg hover:bg-[#10b981] hover:text-black transition-all" title="Deploy to Lattice"><Send size={10}/></button>
+                                        <button onClick={() => { removeStrategy(strat.id); audio.playError(); }} className="p-1.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-black transition-all" title="Purge Strategy"><Trash2 size={10}/></button>
+                                    </div>
+                                </div>
+                                <div className="text-[7px] text-gray-500 font-mono uppercase tracking-widest leading-relaxed line-clamp-2">"{strat.logic}"</div>
+                            </div>
                         ))}
                     </div>
                 </div>
@@ -273,12 +303,17 @@ const StrategicBridge = () => {
                                         </div>
                                         <h3 className="text-3xl font-black text-white uppercase font-mono tracking-tighter leading-tight">{currentImplementation.title}</h3>
                                     </div>
-                                    <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-right">
-                                        <span className="text-[8px] font-mono text-gray-500 uppercase block mb-1">Risk Classification</span>
-                                        <span className={cn(
-                                            "text-lg font-black font-mono tracking-widest",
-                                            currentImplementation.riskVector === 'LOW' ? "text-[#10b981]" : "text-[#ef4444]"
-                                        )}>{currentImplementation.riskVector}</span>
+                                    <div className="flex gap-4 items-center">
+                                        <button onClick={() => { archiveIntervention({ ...currentImplementation, id: `strat-${Date.now()}`, timestamp: Date.now() }); audio.playSuccess(); }} className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black uppercase text-gray-300 flex items-center gap-2 hover:border-[#9d4edd] transition-all">
+                                            <Save size={14} /> Archive
+                                        </button>
+                                        <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-right">
+                                            <span className="text-[8px] font-mono text-gray-500 uppercase block mb-1">Risk Classification</span>
+                                            <span className={cn(
+                                                "text-lg font-black font-mono tracking-widest",
+                                                currentImplementation.riskVector === 'LOW' ? "text-[#10b981]" : "text-[#ef4444]"
+                                            )}>{currentImplementation.riskVector}</span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -315,12 +350,20 @@ const StrategicBridge = () => {
                                     </div>
                                 </div>
                             </div>
-                            <button 
-                                onClick={() => { pushToInvestmentQueue(currentImplementation); addLog('SUCCESS', `PROTOCOL_DEPLOY: Authorized deployment of "${currentImplementation.title}"`); audio.playSuccess(); }} 
-                                className="w-full py-8 bg-[#10b981] text-black rounded-[2.5rem] text-[12px] font-black uppercase tracking-[0.5em] shadow-[0_30px_60px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5 group/commit"
-                            >
-                                <PlayCircle size={28} className="group-hover/commit:rotate-90 transition-transform duration-500" /> Commit Protocol Execution
-                            </button>
+                            <div className="flex gap-4">
+                                <button 
+                                    onClick={() => { pushToInvestmentQueue(currentImplementation); addLog('SUCCESS', `PROTOCOL_DEPLOY: Authorized deployment of "${currentImplementation.title}"`); audio.playSuccess(); }} 
+                                    className="flex-1 py-8 bg-[#10b981] text-black rounded-[2.5rem] text-[12px] font-black uppercase tracking-[0.5em] shadow-[0_30px_60px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5 group/commit"
+                                >
+                                    <PlayCircle size={28} className="group-hover/commit:rotate-90 transition-transform duration-500" /> Commit Protocol Execution
+                                </button>
+                                <button 
+                                    onClick={() => { deployStrategyToLattice(currentImplementation); addLog('SUCCESS', `LATTICE_INJECTION: Pushing "${currentImplementation.title}" blueprint to visual logic sector.`); audio.playSuccess(); }}
+                                    className="px-10 py-8 bg-[#9d4edd] text-black rounded-[2.5rem] text-[12px] font-black uppercase tracking-[0.2em] shadow-[0_30px_60px_rgba(157,78,221,0.3)] hover:scale-[1.02] transition-all flex items-center justify-center gap-4"
+                                >
+                                    <GitBranch size={28} /> Deploy Lattice
+                                </button>
+                            </div>
                         </motion.div>
                     ) : (
                         <div className="flex-1 flex flex-col items-center justify-center opacity-10 text-center gap-10 py-40">

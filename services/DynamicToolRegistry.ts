@@ -28,7 +28,8 @@ class DynamicToolRegistry {
                     const context = { 
                         log: state.actions.addLog,
                         mode: state.mode,
-                        vault: neuralVault
+                        vault: neuralVault,
+                        kernel: state.kernel
                     };
                     
                     const executor = new Function('args', 'os', `
