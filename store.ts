@@ -354,7 +354,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         isOpen: false,
         activeArtifact: null,
         analysisResult: null,
-        // Fix: Replace boolean type reference with initial value false
         isAnalyzing: false,
     },
     dashboard: {
@@ -656,7 +655,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         addResearchTask: (task) => set((state) => ({ 
             research: { ...state.research, tasks: [...state.research.tasks, task] } 
         })),
-        // Fix: correctly access state.research to avoid "Cannot find name 'research'" error
         updateResearchTask: (id, update) => set((state) => ({
             research: {
                 ...state.research,
