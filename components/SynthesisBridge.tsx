@@ -9,7 +9,7 @@ import {
     Shield, GitCommit, Radio, Gauge, Waves, Fingerprint, PlayCircle,
     Terminal, ArrowUpRight, Compass, ListChecks, Network, 
     Database, Server, Layout, FileSearch, Workflow, AlertTriangle,
-    Eye, Maximize2, Info, BarChart3, ShieldEllipsis, Cpu
+    Eye, Maximize2, Info, BarChart3
 } from 'lucide-react';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
 import { retryGeminiRequest, promptSelectKey } from '../services/geminiService';
@@ -18,24 +18,6 @@ import { audio } from '../services/audioService';
 import { AppMode } from '../types';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { cn } from '../utils/cn';
-import { 
-    ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, 
-    Tooltip, ResponsiveContainer, Cell 
-} from 'recharts';
-
-const CoherenceAuditOverlay = ({ active, score }: { active: boolean, score: number }) => (
-    <div className="absolute top-6 right-6 flex items-center gap-3 px-4 py-2 bg-black/60 backdrop-blur-3xl border border-white/10 rounded-full shadow-2xl z-20">
-        <div className="flex flex-col items-end">
-            <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Lattice Coherence</span>
-            <span className={cn(
-                "text-sm font-black font-mono leading-none tracking-tighter",
-                score > 90 ? "text-[#10b981]" : score > 70 ? "text-[#22d3ee]" : "text-[#ef4444]"
-            )}>{score}%</span>
-        </div>
-        <div className="h-6 w-px bg-white/10" />
-        <ShieldEllipsis size={18} className={cn(active ? "animate-pulse" : "opacity-30", score > 70 ? "text-[#10b981]" : "text-[#ef4444]")} />
-    </div>
-);
 
 const ImpactProjection = ({ viability, risk }: { viability: number, risk: string }) => {
     const sectors = [
@@ -71,13 +53,6 @@ const YieldProbeCLI = () => {
     const { execute, state: agentState } = useAgentRuntime();
     const [probeQuery, setProbeQuery] = useState('');
     const [probeResult, setProbeResult] = useState<string | null>(null);
-
-    const scatterData = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
-        x: Math.random() * 100,
-        y: Math.random() * 100,
-        z: Math.random() * 400 + 100,
-        name: `NODE_${String(i).padStart(2,'0')}`
-    })), []);
 
     const handleProbe = async () => {
         if (!probeQuery.trim() || agentState.isThinking) return;
@@ -141,20 +116,10 @@ const YieldProbeCLI = () => {
                         <div className="absolute top-4 right-6 flex items-center gap-2 text-[8px] font-black text-gray-600 uppercase tracking-widest">
                             <Target size={10} className="text-[#f1c21b]" /> Risk vs Impact Matrix
                         </div>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <ScatterChart margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" />
-                                <XAxis type="number" dataKey="x" name="Impact" unit="%" hide />
-                                <YAxis type="number" dataKey="y" name="Risk" unit="%" hide />
-                                <ZAxis type="number" dataKey="z" range={[50, 400]} />
-                                <Tooltip cursor={{ strokeDasharray: '3 3' }} contentStyle={{ backgroundColor: '#000', border: '1px solid #333', fontSize: '10px', fontFamily: 'Fira Code' }} />
-                                <Scatter name="Opportunities" data={scatterData}>
-                                    {scatterData.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={entry.y > 70 ? '#ef4444' : entry.x > 70 ? '#10b981' : '#22d3ee'} />
-                                    ))}
-                                </Scatter>
-                            </ScatterChart>
-                        </ResponsiveContainer>
+                        <div className="h-full flex flex-col justify-center items-center opacity-20">
+                            <BarChart3 size={120} className="text-gray-800" />
+                            <p className="text-[10px] font-mono tracking-widest uppercase mt-4">Calibrating Projection Mesh...</p>
+                        </div>
                     </div>
 
                     <div className="flex-1 bg-black/20 rounded-[2rem] border border-white/5 flex flex-col items-center justify-center group shadow-inner">
@@ -174,13 +139,10 @@ const StrategicBridge = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM'>('DRIVE');
     const [currentImplementation, setCurrentImplementation] = useState<any | null>(null);
-    const [isAuditing, setIsAuditing] = useState(false);
-    const [coherenceScore, setCoherenceScore] = useState(0);
 
     const generateImplementation = async () => {
         setIsGenerating(true);
         setCurrentImplementation(null);
-        setCoherenceScore(0);
         addLog('SYSTEM', `SYNC_INIT: Forging structured process for ${processType === 'DRIVE' ? 'Drive Organization' : 'System Architecture'}...`);
         audio.playClick();
 
@@ -230,19 +192,7 @@ const StrategicBridge = () => {
 
             const data = JSON.parse(response.text || '{}');
             setCurrentImplementation(data);
-            
-            // Post-Generation Audit Sequence
-            setIsAuditing(true);
-            const auditResponse = await ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
-                contents: `Audit this workflow for coherence: ${JSON.stringify(data)}. Output an integer score 0-100. JSON {score}.`,
-                config: { responseMimeType: 'application/json' }
-            });
-            const auditResult = JSON.parse(auditResponse.text || '{"score": 85}');
-            setCoherenceScore(auditResult.score);
-            setIsAuditing(false);
-
-            addLog('SUCCESS', `SYNC_COMPLETE: ${data.title} crystallized with ${auditResult.score}% coherence.`);
+            addLog('SUCCESS', `SYNC_COMPLETE: ${data.title} crystallized.`);
             audio.playSuccess();
         } catch (e: any) {
             addLog('ERROR', `SYNC_FAIL: ${e.message}`);
@@ -312,10 +262,7 @@ const StrategicBridge = () => {
             <div className="flex-1 flex flex-col gap-8 overflow-y-auto custom-scrollbar pr-4">
                 <AnimatePresence mode="wait">
                     {currentImplementation ? (
-                        <motion.div key="impl" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-8 pb-12 relative">
-                            
-                            <CoherenceAuditOverlay active={isAuditing} score={coherenceScore} />
-
+                        <motion.div key="impl" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-8 pb-12">
                             <div className="p-12 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[3.5rem] relative overflow-hidden shadow-2xl group/card invisible-glass">
                                 <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover/card:opacity-[0.05] transition-opacity rotate-12"><Sparkles size={180} /></div>
                                 <div className="flex justify-between items-start mb-10">
