@@ -29,7 +29,8 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
 };
 
 const TaskBoard: React.FC = () => {
-    const { tasks, addTask, updateTask, addLog } = useAppStore();
+    const { tasks, actions } = useAppStore();
+    const { addTask, updateTask, addLog } = actions;
     const [filter, setFilter] = useState<{ priority: string; status: string }>({ priority: 'ALL', status: 'ALL' });
     const [sortBy, setSortBy] = useState<'DATE' | 'PRIORITY'>('PRIORITY');
     const [newTaskTitle, setNewTaskTitle] = useState('');
@@ -124,7 +125,8 @@ const TaskBoard: React.FC = () => {
 };
 
 const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
-    const { updateTask, deleteTask, addLog, toggleSubTask } = useAppStore();
+    const { actions } = useAppStore();
+    const { updateTask, deleteTask, addLog, toggleSubTask } = actions;
     const [isBreakingDown, setIsBreakingDown] = useState(false);
     
     const isDone = task.status === TaskStatus.DONE || task.status === TaskStatus.COMPLETED;

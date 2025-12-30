@@ -139,10 +139,8 @@ const SwarmBox = () => {
 };
 
 const MetaventionsHub: React.FC = () => {
-  const { 
-    dashboard, setDashboardState, addLog, 
-    theme, user, voice, setVoiceState, toggleProfile
-  } = useAppStore();
+  const { dashboard, theme, user, voice, actions } = useAppStore();
+  const { setDashboardState, addLog, setVoiceState, toggleProfile } = actions;
 
   const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);

@@ -1,11 +1,11 @@
-
 import React from 'react';
 import { useAppStore } from '../store';
 import { motion } from 'framer-motion';
 import MetaventionsLogo from './MetaventionsLogo';
 
 const NeuralHeader: React.FC = () => {
-    const { toggleTerminal } = useAppStore();
+    const { actions } = useAppStore();
+    const { toggleTerminal } = actions;
 
     return (
         <motion.div 

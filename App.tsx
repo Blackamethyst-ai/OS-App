@@ -58,7 +58,7 @@ const NAV_CONFIG = [
 
 const FocusOverlay = () => {
     const selector = useAppStore(s => s.focusedSelector);
-    const setFocusedSelector = useAppStore(s => s.setFocusedSelector);
+    const { setFocusedSelector } = useAppStore(s => s.actions);
     const [bounds, setBounds] = useState<DOMRect | null>(null);
 
     useEffect(() => {
@@ -90,7 +90,6 @@ const FocusOverlay = () => {
                 className="absolute border-2 border-[#9d4edd] rounded"
                 style={{ left: bounds.left - 4, top: bounds.top - 4, width: bounds.width + 8, height: bounds.height + 8 }}
             >
-                {/* Fixed: corrected size prop syntax from size(10) to size={10} */}
                 <div className="absolute -top-8 left-0 bg-[#9d4edd] text-black text-[10px] font-black font-mono px-2 py-0.5 rounded flex items-center gap-2 pointer-events-auto cursor-pointer" onClick={() => setFocusedSelector(null)}>
                     <Target size={12}/> CONTEXT_FOCUS_L0 <X size={10} />
                 </div>
@@ -101,15 +100,15 @@ const FocusOverlay = () => {
 
 const App: React.FC = () => {
   const { 
-      mode, theme, voice, toggleProfile, toggleCommandPalette, 
-      setSearchState, setVoiceState, addLog, 
-      isHelpOpen, setHelpOpen, 
-      isScrubberOpen, setScrubberOpen, 
-      isDiagnosticsOpen, setDiagnosticsOpen, 
-      isHUDClosed, setHUDClosed,
-      setProcessState, setCodeStudioState, setHardwareState, setImageGenState, setBibliomorphicState, setDashboardState, setMetaventionsState, setAgentState,
-      setMemoryState, setBicameralState
+      mode, theme, actions,
+      isHelpOpen, isScrubberOpen, isDiagnosticsOpen, isHUDClosed,
   } = useAppStore();
+  
+  const { 
+      addLog, setMode, setHelpOpen, setScrubberOpen, setDiagnosticsOpen,
+      setProcessState, setCodeStudioState, setHardwareState, setImageGenState, setBibliomorphicState, setDashboardState, setMetaventionsState, setAgentState,
+      setMemoryState, setBicameralState, toggleProfile, toggleCommandPalette, setVoiceState
+  } = actions;
   
   const { setSector } = useSystemMind(); 
 

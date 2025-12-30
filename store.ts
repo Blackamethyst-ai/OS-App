@@ -237,62 +237,65 @@ interface AppState {
     tasks: Task[];
     metaventions: MetaventionsState;
 
-    setMode: (mode: AppMode) => void;
-    setTheme: (theme: AppTheme) => void;
-    setUserProfile: (profile: Partial<UserProfile>) => void;
-    setAuthenticated: (auth: boolean) => void;
-    toggleProfile: (open?: boolean) => void;
-    toggleCommandPalette: (open?: boolean) => void;
-    addLog: (level: 'ERROR' | 'WARN' | 'SUCCESS' | 'INFO' | 'SYSTEM', message: string) => void;
-    toggleTerminal: (open?: boolean) => void;
-    setSearchState: (update: any) => void;
-    setVoiceState: (update: any) => void;
-    setVisualCortexState: (update: any) => void;
-    openHoloProjector: (artifact: any) => void;
-    closeHoloProjector: () => void;
-    setHoloAnalysis: (result: string | null) => void;
-    setHoloAnalyzing: (busy: boolean) => void;
-    setDashboardState: (update: any) => void;
-    toggleKnowledgeLayer: (id: string) => void;
-    optimizeLayer: (id: string) => void;
-    setProcessState: (update: any) => void;
-    updateProcessNode: (id: string, update: any) => void;
-    setImageGenState: (update: any) => void;
-    setCodeStudioState: (update: any) => void;
-    setHardwareState: (update: any) => void;
-    setMemoryState: (update: any) => void;
-    setBibliomorphicState: (update: any) => void;
-    setDiscoveryState: (update: any) => void;
-    addResearchTask: (task: any) => void;
-    updateResearchTask: (id: string, update: any) => void;
-    removeResearchTask: (id: string) => void;
-    cancelResearchTask: (id: string) => void;
-    setBicameralState: (update: any) => void;
-    setCollabState: (update: any) => void;
-    addSwarmEvent: (event: any) => void;
-    openContextMenu: (x: number, y: number, type: string, content: any) => void;
-    closeContextMenu: () => void;
-    addTask: (task: any) => void;
-    updateTask: (id: string, update: any) => void;
-    deleteTask: (id: string) => void;
-    toggleSubTask: (taskId: string, subTaskId: string) => void;
-    setHelpOpen: (open: boolean) => void;
-    setScrubberOpen: (open: boolean) => void;
-    setDiagnosticsOpen: (open: boolean) => void;
-    setHUDClosed: (closed: boolean) => void;
-    setFocusedSelector: (selector: string | null) => void;
-    addDockItem: (item: any) => void;
-    removeDockItem: (id: string) => void;
-    archiveIntervention: (protocol: any) => void;
-    setMetaventionsState: (update: any) => void;
-    pushToInvestmentQueue: (metavention: any) => void;
-    commitInvestment: (id: string, amount: number) => void;
-    setAgentState: (update: any) => void;
-    updateAgent: (id: string, update: Partial<AutonomousAgent>) => void;
-    addAgent: (agent: AutonomousAgent) => void;
+    // Actions separated for performance
+    actions: {
+        setMode: (mode: AppMode) => void;
+        setTheme: (theme: AppTheme) => void;
+        setUserProfile: (profile: Partial<UserProfile>) => void;
+        setAuthenticated: (auth: boolean) => void;
+        toggleProfile: (open?: boolean) => void;
+        toggleCommandPalette: (open?: boolean) => void;
+        addLog: (level: 'ERROR' | 'WARN' | 'SUCCESS' | 'INFO' | 'SYSTEM', message: string) => void;
+        toggleTerminal: (open?: boolean) => void;
+        setSearchState: (update: any) => void;
+        setVoiceState: (update: any) => void;
+        setVisualCortexState: (update: any) => void;
+        openHoloProjector: (artifact: any) => void;
+        closeHoloProjector: () => void;
+        setHoloAnalysis: (result: string | null) => void;
+        setHoloAnalyzing: (busy: boolean) => void;
+        setDashboardState: (update: any) => void;
+        toggleKnowledgeLayer: (id: string) => void;
+        optimizeLayer: (id: string) => void;
+        setProcessState: (update: any) => void;
+        updateProcessNode: (id: string, update: any) => void;
+        setImageGenState: (update: any) => void;
+        setCodeStudioState: (update: any) => void;
+        setHardwareState: (update: any) => void;
+        setMemoryState: (update: any) => void;
+        setBibliomorphicState: (update: any) => void;
+        setDiscoveryState: (update: any) => void;
+        addResearchTask: (task: any) => void;
+        updateResearchTask: (id: string, update: any) => void;
+        removeResearchTask: (id: string) => void;
+        cancelResearchTask: (id: string) => void;
+        setBicameralState: (update: any) => void;
+        setCollabState: (update: any) => void;
+        addSwarmEvent: (event: any) => void;
+        openContextMenu: (x: number, y: number, type: string, content: any) => void;
+        closeContextMenu: () => void;
+        addTask: (task: any) => void;
+        updateTask: (id: string, update: any) => void;
+        deleteTask: (id: string) => void;
+        toggleSubTask: (taskId: string, subTaskId: string) => void;
+        setHelpOpen: (open: boolean) => void;
+        setScrubberOpen: (open: boolean) => void;
+        setDiagnosticsOpen: (open: boolean) => void;
+        setHUDClosed: (closed: boolean) => void;
+        setFocusedSelector: (selector: string | null) => void;
+        addDockItem: (item: any) => void;
+        removeDockItem: (id: string) => void;
+        archiveIntervention: (protocol: any) => void;
+        setMetaventionsState: (update: any) => void;
+        pushToInvestmentQueue: (metavention: any) => void;
+        commitInvestment: (id: string, amount: number) => void;
+        setAgentState: (update: any) => void;
+        updateAgent: (id: string, update: Partial<AutonomousAgent>) => void;
+        addAgent: (agent: AutonomousAgent) => void;
+    };
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState>((set, get) => ({
     mode: AppMode.METAVENTIONS_HUB,
     theme: AppTheme.DARK,
     user: {
@@ -351,7 +354,8 @@ export const useAppStore = create<AppState>((set) => ({
         isOpen: false,
         activeArtifact: null,
         analysisResult: null,
-        isAnalyzing: false
+        // Fix: Replace boolean type reference with initial value false
+        isAnalyzing: false,
     },
     dashboard: {
         isGenerating: false,
@@ -537,11 +541,19 @@ export const useAppStore = create<AppState>((set) => ({
                 timestamp: Date.now()
             },
             {
-                id: 'AUTOPOIETIC_ARCH_OS',
-                title: 'Autopoietic Cloud Ingestion',
+                id: 'PARA_NAMING_CONVENTION',
+                title: 'PARA Naming Protocol',
+                context: 'Drive Organization',
+                logic: 'Date-stamped project identifiers with [P] [A] [R] [A] prefixes for zero-ambiguity indexing.',
+                physicalImpact: 'Instant semantic recall across all storage nodes.',
+                timestamp: Date.now()
+            },
+            {
+                id: 'CLOUD_INGEST_L0',
+                title: 'L0 Cloud Ingestion Mesh',
                 context: 'Infrastructure Strategy',
-                logic: 'Self-correcting data pipelines using schema-evolution daemons.',
-                physicalImpact: 'Zero-entropy processing for unstructured data streams.',
+                logic: 'Edge-distributed event buffering with high-fidelity de-duplication.',
+                physicalImpact: '99.9% data integrity during peak ingress cycles.',
                 timestamp: Date.now()
             }
         ],
@@ -549,176 +561,178 @@ export const useAppStore = create<AppState>((set) => ({
         economicProtocols: []
     },
 
-    setMode: (mode) => set({ mode }),
-    setTheme: (theme) => set({ theme }),
-    setUserProfile: (profile) => set((state) => ({ user: { ...state.user, ...profile } })),
-    setAuthenticated: (authenticated) => set({ authenticated }),
-    toggleProfile: (open) => set((state) => ({ isProfileOpen: open ?? !state.isProfileOpen })),
-    toggleCommandPalette: (open) => set((state) => ({ isCommandPaletteOpen: open ?? !state.isCommandPaletteOpen })),
-    addLog: (level, message) => set((state) => ({
-        system: {
-            ...state.system,
-            logs: [...state.system.logs, { id: crypto.randomUUID(), level, message, timestamp: Date.now() }]
-        }
-    })),
-    toggleTerminal: (open) => set((state) => ({
-        system: { ...state.system, isTerminalOpen: open ?? !state.system.isTerminalOpen }
-    })),
-    setSearchState: (update) => set((state) => ({ 
-        search: { ...state.search, ...(typeof update === 'function' ? update(state.search) : update) } 
-    })),
-    setVoiceState: (update) => set((state) => ({ 
-        voice: { ...state.voice, ...(typeof update === 'function' ? update(state.voice) : update) } 
-    })),
-    setVisualCortexState: (update) => set((state) => ({ 
-        visualCortex: { ...state.visualCortex, ...(typeof update === 'function' ? update(state.visualCortex) : update) } 
-    })),
-    openHoloProjector: (artifact) => set({ holo: { isOpen: true, activeArtifact: artifact, analysisResult: null, isAnalyzing: false } }),
-    closeHoloProjector: () => set((state) => ({ holo: { ...state.holo, isOpen: false, activeArtifact: null } })),
-    setHoloAnalysis: (result) => set((state) => ({ holo: { ...state.holo, analysisResult: result } })),
-    setHoloAnalyzing: (busy) => set((state) => ({ holo: { ...state.holo, isAnalyzing: busy } })),
-    setDashboardState: (update) => set((state) => ({ 
-        dashboard: { ...state.dashboard, ...(typeof update === 'function' ? update(state.dashboard) : update) } 
-    })),
-    toggleKnowledgeLayer: (id) => set((state) => {
-        const active = state.knowledge.activeLayers.includes(id)
-            ? state.knowledge.activeLayers.filter(l => l !== id)
-            : [...state.knowledge.activeLayers, id];
-        return { knowledge: { activeLayers: active } };
-    }),
-    optimizeLayer: (id) => set((state) => ({
-        knowledge: { activeLayers: [...state.knowledge.activeLayers, id] }
-    })),
-    setProcessState: (update) => set((state) => ({ 
-        process: { ...state.process, ...(typeof update === 'function' ? update(state.process) : update) } 
-    })),
-    updateProcessNode: (id, update) => set((state) => ({
-        process: {
-            ...state.process,
-            nodes: state.process.nodes.map(n => n.id === id ? { ...n, data: { ...n.data, ...update } } : n)
-        }
-    })),
-    setImageGenState: (update) => set((state) => ({ 
-        imageGen: { ...state.imageGen, ...(typeof update === 'function' ? update(state.imageGen) : update) } 
-    })),
-    setCodeStudioState: (update) => set((state) => ({ 
-        codeStudio: { ...state.codeStudio, ...(typeof update === 'function' ? update(state.codeStudio) : update) } 
-    })),
-    setHardwareState: (update) => set((state) => ({ 
-        hardware: { ...state.hardware, ...(typeof update === 'function' ? update(state.hardware) : update) } 
-    })),
-    setMemoryState: (update) => set((state) => ({ 
-        memory: { ...state.memory, ...(typeof update === 'function' ? update(state.memory) : update) } 
-    })),
-    setBibliomorphicState: (update) => set((state) => ({ 
-        bibliomorphic: { ...state.bibliomorphic, ...(typeof update === 'function' ? update(state.bibliomorphic) : update) } 
-    })),
-    setDiscoveryState: (update) => set((state) => ({ 
-        discovery: { ...state.discovery, ...(typeof update === 'function' ? update(state.discovery) : update) } 
-    })),
-    addResearchTask: (task) => set((state) => ({ 
-        research: { ...state.research, tasks: [...state.research.tasks, task] } 
-    })),
-    updateResearchTask: (id, update) => set((state) => ({
-        research: {
-            ...state.research,
-            tasks: state.research.tasks.map(t => t.id === id ? { ...t, ...update } : t)
-        }
-    })),
-    removeResearchTask: (id) => set((state) => ({
-        research: { ...state.research, tasks: state.research.tasks.filter(t => t.id !== id) }
-    })),
-    cancelResearchTask: (id) => set((state) => ({
-        research: {
-            ...state.research,
-            tasks: state.research.tasks.map(t => t.id === id ? { ...t, status: 'CANCELLED' } : t)
-        }
-    })),
-    setBicameralState: (update) => set((state) => ({ 
-        bicameral: { ...state.bicameral, ...(typeof update === 'function' ? update(state.bicameral) : update) } 
-    })),
-    setCollabState: (update) => set((state) => ({ 
-        collaboration: { ...state.collaboration, ...(typeof update === 'function' ? update(state.collaboration) : update) } 
-    })),
-    addSwarmEvent: (event) => set((state) => ({
-        collaboration: {
-            ...state.collaboration,
-            events: [{ id: crypto.randomUUID(), timestamp: Date.now(), ...event }, ...state.collaboration.events].slice(0, 20)
-        }
-    })),
-    openContextMenu: (x, y, type, content) => set({ contextMenu: { isOpen: true, x, y, contextType: type, targetContent: content } }),
-    closeContextMenu: () => set((state) => ({ contextMenu: { ...state.contextMenu, isOpen: false } })),
-    addTask: (task) => set((state) => ({ 
-        tasks: [...state.tasks, { id: crypto.randomUUID(), timestamp: Date.now(), subtasks: [], ...task }] 
-    })),
-    updateTask: (id, update) => set((state) => ({
-        tasks: state.tasks.map(t => t.id === id ? { ...t, ...update } : t)
-    })),
-    deleteTask: (id) => set((state) => ({
-        tasks: state.tasks.filter(t => t.id !== id)
-    })),
-    toggleSubTask: (taskId, subTaskId) => set((state) => ({
-        tasks: state.tasks.map(t => t.id === taskId ? {
-            ...t,
-            subtasks: t.subtasks.map(s => s.id === subTaskId ? { ...s, completed: !s.completed } : s)
-        } : t)
-    })),
-    setHelpOpen: (isHelpOpen) => set({ isHelpOpen }),
-    setScrubberOpen: (isScrubberOpen) => set({ isScrubberOpen }),
-    setDiagnosticsOpen: (isDiagnosticsOpen) => set({ isDiagnosticsOpen }),
-    setHUDClosed: (isHUDClosed) => set({ isHUDClosed }),
-    setFocusedSelector: (focusedSelector) => set({ focusedSelector }),
-    addDockItem: (item) => set((state) => ({
-        system: { ...state.system, dockItems: [...state.system.dockItems, item].slice(-10) }
-    })),
-    removeDockItem: (id) => set((state) => ({
-        system: { ...state.system, dockItems: state.system.dockItems.filter(i => i.id !== id) }
-    })),
-    archiveIntervention: (protocol) => set((state) => ({
-        metaventions: { ...state.metaventions, strategyLibrary: [protocol, ...state.metaventions.strategyLibrary] }
-    })),
-    setMetaventionsState: (update) => set((state) => ({ 
-        metaventions: { ...state.metaventions, ...(typeof update === 'function' ? update(state.metaventions) : update) } 
-    })),
-    pushToInvestmentQueue: (metavention: any) => set((state) => ({
-        marketData: {
-            ...state.marketData,
-            opportunities: [{
-                id: `implement-${Date.now()}`,
-                title: metavention.title,
-                yield: `${metavention.viability}%`,
-                risk: metavention.riskVector === 'LOW' ? 'LOW' : 'HIGH',
-                logic: metavention.logic
-            }, ...state.marketData.opportunities].slice(0, 10)
-        }
-    })),
-    commitInvestment: (id, amount) => set((state) => {
-        const { metaventions: mv } = state;
-        const currentLogs = mv?.strategyLog || [];
-        return {
+    actions: {
+        setMode: (mode) => set({ mode }),
+        setTheme: (theme) => set({ theme }),
+        setUserProfile: (profile) => set((state) => ({ user: { ...state.user, ...profile } })),
+        setAuthenticated: (authenticated) => set({ authenticated }),
+        toggleProfile: (open) => set((state) => ({ isProfileOpen: open ?? !state.isProfileOpen })),
+        toggleCommandPalette: (open) => set((state) => ({ isCommandPaletteOpen: open ?? !state.isCommandPaletteOpen })),
+        addLog: (level, message) => set((state) => ({
+            system: {
+                ...state.system,
+                logs: [...state.system.logs, { id: crypto.randomUUID(), level, message, timestamp: Date.now() }]
+            }
+        })),
+        toggleTerminal: (open) => set((state) => ({
+            system: { ...state.system, isTerminalOpen: open ?? !state.system.isTerminalOpen }
+        })),
+        setSearchState: (update) => set((state) => ({ 
+            search: { ...state.search, ...(typeof update === 'function' ? update(state.search) : update) } 
+        })),
+        setVoiceState: (update) => set((state) => ({ 
+            voice: { ...state.voice, ...(typeof update === 'function' ? update(state.voice) : update) } 
+        })),
+        setVisualCortexState: (update) => set((state) => ({ 
+            visualCortex: { ...state.visualCortex, ...(typeof update === 'function' ? update(state.visualCortex) : update) } 
+        })),
+        openHoloProjector: (artifact) => set({ holo: { isOpen: true, activeArtifact: artifact, analysisResult: null, isAnalyzing: false } }),
+        closeHoloProjector: () => set((state) => ({ holo: { ...state.holo, isOpen: false, activeArtifact: null } })),
+        setHoloAnalysis: (result) => set((state) => ({ holo: { ...state.holo, analysisResult: result } })),
+        setHoloAnalyzing: (busy) => set((state) => ({ holo: { ...state.holo, isAnalyzing: busy } })),
+        setDashboardState: (update) => set((state) => ({ 
+            dashboard: { ...state.dashboard, ...(typeof update === 'function' ? update(state.dashboard) : update) } 
+        })),
+        toggleKnowledgeLayer: (id) => set((state) => {
+            const active = state.knowledge.activeLayers.includes(id)
+                ? state.knowledge.activeLayers.filter(l => l !== id)
+                : [...state.knowledge.activeLayers, id];
+            return { knowledge: { activeLayers: active } };
+        }),
+        optimizeLayer: (id) => set((state) => ({
+            knowledge: { activeLayers: [...state.knowledge.activeLayers, id] }
+        })),
+        setProcessState: (update) => set((state) => ({ 
+            process: { ...state.process, ...(typeof update === 'function' ? update(state.process) : update) } 
+        })),
+        updateProcessNode: (id, update) => set((state) => ({
+            process: {
+                ...state.process,
+                nodes: state.process.nodes.map(n => n.id === id ? { ...n, data: { ...n.data, ...update } } : n)
+            }
+        })),
+        setImageGenState: (update) => set((state) => ({ 
+            imageGen: { ...state.imageGen, ...(typeof update === 'function' ? update(state.imageGen) : update) } 
+        })),
+        setCodeStudioState: (update) => set((state) => ({ 
+            codeStudio: { ...state.codeStudio, ...(typeof update === 'function' ? update(state.codeStudio) : update) } 
+        })),
+        setHardwareState: (update) => set((state) => ({ 
+            hardware: { ...state.hardware, ...(typeof update === 'function' ? update(state.hardware) : update) } 
+        })),
+        setMemoryState: (update) => set((state) => ({ 
+            memory: { ...state.memory, ...(typeof update === 'function' ? update(state.memory) : update) } 
+        })),
+        setBibliomorphicState: (update) => set((state) => ({ 
+            bibliomorphic: { ...state.bibliomorphic, ...(typeof update === 'function' ? update(state.bibliomorphic) : update) } 
+        })),
+        setDiscoveryState: (update) => set((state) => ({ 
+            discovery: { ...state.discovery, ...(typeof update === 'function' ? update(state.discovery) : update) } 
+        })),
+        addResearchTask: (task) => set((state) => ({ 
+            research: { ...state.research, tasks: [...state.research.tasks, task] } 
+        })),
+        updateResearchTask: (id, update) => set((state) => ({
+            research: {
+                ...state.research,
+                tasks: state.research.tasks.map(t => t.id === id ? { ...t, ...update } : t)
+            }
+        })),
+        removeResearchTask: (id) => set((state) => ({
+            research: { ...state.research, tasks: state.research.tasks.filter(t => t.id !== id) }
+        })),
+        cancelResearchTask: (id) => set((state) => ({
+            research: {
+                ...state.research,
+                tasks: state.research.tasks.map(t => t.id === id ? { ...t, status: 'CANCELLED' } : t)
+            }
+        })),
+        setBicameralState: (update) => set((state) => ({ 
+            bicameral: { ...state.bicameral, ...(typeof update === 'function' ? update(state.bicameral) : update) } 
+        })),
+        setCollabState: (update) => set((state) => ({ 
+            collaboration: { ...state.collaboration, ...(typeof update === 'function' ? update(state.collaboration) : update) } 
+        })),
+        addSwarmEvent: (event) => set((state) => ({
+            collaboration: {
+                ...state.collaboration,
+                events: [{ id: crypto.randomUUID(), timestamp: Date.now(), ...event }, ...state.collaboration.events].slice(0, 20)
+            }
+        })),
+        openContextMenu: (x, y, type, content) => set({ contextMenu: { isOpen: true, x, y, contextType: type, targetContent: content } }),
+        closeContextMenu: () => set((state) => ({ contextMenu: { ...state.contextMenu, isOpen: false } })),
+        addTask: (task) => set((state) => ({ 
+            tasks: [...state.tasks, { id: crypto.randomUUID(), timestamp: Date.now(), subtasks: [], ...task }] 
+        })),
+        updateTask: (id, update) => set((state) => ({
+            tasks: state.tasks.map(t => t.id === id ? { ...t, ...update } : t)
+        })),
+        deleteTask: (id) => set((state) => ({
+            tasks: state.tasks.filter(t => t.id !== id)
+        })),
+        toggleSubTask: (taskId, subTaskId) => set((state) => ({
+            tasks: state.tasks.map(t => t.id === taskId ? {
+                ...t,
+                subtasks: t.subtasks.map(s => s.id === subTaskId ? { ...s, completed: !s.completed } : s)
+            } : t)
+        })),
+        setHelpOpen: (isHelpOpen) => set({ isHelpOpen }),
+        setScrubberOpen: (isScrubberOpen) => set({ isScrubberOpen }),
+        setDiagnosticsOpen: (isDiagnosticsOpen) => set({ isDiagnosticsOpen }),
+        setHUDClosed: (isHUDClosed) => set({ isHUDClosed }),
+        setFocusedSelector: (focusedSelector) => set({ focusedSelector }),
+        addDockItem: (item) => set((state) => ({
+            system: { ...state.system, dockItems: [...state.system.dockItems, item].slice(-10) }
+        })),
+        removeDockItem: (id) => set((state) => ({
+            system: { ...state.system, dockItems: state.system.dockItems.filter(i => i.id !== id) }
+        })),
+        archiveIntervention: (protocol) => set((state) => ({
+            metaventions: { ...state.metaventions, strategyLibrary: [protocol, ...state.metaventions.strategyLibrary] }
+        })),
+        setMetaventionsState: (update) => set((state) => ({ 
+            metaventions: { ...state.metaventions, ...(typeof update === 'function' ? update(state.metaventions) : update) } 
+        })),
+        pushToInvestmentQueue: (metavention: any) => set((state) => ({
             marketData: {
                 ...state.marketData,
-                opportunities: state.marketData.opportunities.filter(o => o.id !== id)
-            },
-            metaventions: {
-                ...mv,
-                strategyLog: [...currentLogs, `Allocated $${amount.toLocaleString()} to deployment [${id}] at ${new Date().toLocaleTimeString()}`]
+                opportunities: [{
+                    id: `implement-${Date.now()}`,
+                    title: metavention.title,
+                    yield: `${metavention.viability}%`,
+                    risk: metavention.riskVector === 'LOW' ? 'LOW' : 'HIGH',
+                    logic: metavention.logic
+                }, ...state.marketData.opportunities].slice(0, 10)
             }
-        };
-    }),
-    setAgentState: (update) => set((state) => ({ 
-        agents: { ...state.agents, ...(typeof update === 'function' ? update(state.agents) : update) } 
-    })),
-    updateAgent: (id, update) => set((state) => ({
-        agents: {
-            ...state.agents,
-            activeAgents: state.agents.activeAgents.map(a => a.id === id ? { ...a, ...update } : a)
-        }
-    })),
-    addAgent: (agent) => set((state) => ({
-        agents: {
-            ...state.agents,
-            activeAgents: [...state.agents.activeAgents, agent]
-        }
-    })),
+        })),
+        commitInvestment: (id, amount) => set((state) => {
+            const { metaventions: mv } = state;
+            const currentLogs = mv?.strategyLog || [];
+            return {
+                marketData: {
+                    ...state.marketData,
+                    opportunities: state.marketData.opportunities.filter(o => o.id !== id)
+                },
+                metaventions: {
+                    ...mv,
+                    strategyLog: [...currentLogs, `Allocated $${amount.toLocaleString()} to deployment [${id}] at ${new Date().toLocaleTimeString()}`]
+                }
+            };
+        }),
+        setAgentState: (update) => set((state) => ({ 
+            agents: { ...state.agents, ...(typeof update === 'function' ? update(state.agents) : update) } 
+        })),
+        updateAgent: (id, update) => set((state) => ({
+            agents: {
+                ...state.agents,
+                activeAgents: state.agents.activeAgents.map(a => a.id === id ? { ...a, ...update } : a)
+            }
+        })),
+        addAgent: (agent) => set((state) => ({
+            agents: {
+                ...state.agents,
+                activeAgents: [...state.agents.activeAgents, agent]
+            }
+        })),
+    }
 }));

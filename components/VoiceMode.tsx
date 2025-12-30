@@ -177,7 +177,8 @@ const NodePersona = ({ image, freqs, color, label, isAgent, isThinking }: any) =
 // --- MAIN COMPONENT ---
 
 const VoiceMode: React.FC = () => {
-  const { voice, setVoiceState, user, addLog } = useAppStore();
+  const { voice, user, actions } = useAppStore();
+  const { setVoiceState, addLog } = actions;
   const [showTuning, setShowTuning] = useState(false);
   const [userFreqs, setUserFreqs] = useState<Uint8Array | null>(null);
   const [agentFreqs, setAgentFreqs] = useState<Uint8Array | null>(null);
@@ -213,7 +214,7 @@ const VoiceMode: React.FC = () => {
           };
           fetchAvatar();
       }
-  }, [voice.voiceName, agentAvatar]);
+  }, [voice.voiceName, agentAvatar, currentAgentMetadata, isGeneratingAvatar, setVoiceState]);
 
   useEffect(() => {
       let rafId: number;

@@ -19,8 +19,6 @@ import { AppMode } from '../types';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { cn } from '../utils/cn';
 
-// --- SUB-COMPONENTS ---
-
 const ImpactProjection = ({ viability, risk }: { viability: number, risk: string }) => {
     const sectors = [
         { label: 'Structural Coherence', val: viability, color: '#9d4edd' },
@@ -51,14 +49,14 @@ const ImpactProjection = ({ viability, risk }: { viability: number, risk: string
 };
 
 const YieldProbeCLI = () => {
-    const { addLog } = useAppStore();
+    const { actions } = useAppStore();
     const { execute, state: agentState } = useAgentRuntime();
     const [probeQuery, setProbeQuery] = useState('');
     const [probeResult, setProbeResult] = useState<string | null>(null);
 
     const handleProbe = async () => {
         if (!probeQuery.trim() || agentState.isThinking) return;
-        addLog('SYSTEM', `META_TOOLING: Dispatching probe for "${probeQuery}"...`);
+        actions.addLog('SYSTEM', `META_TOOLING: Dispatching probe for "${probeQuery}"...`);
         setProbeResult(null);
         audio.playClick();
         
@@ -121,7 +119,8 @@ const YieldProbeCLI = () => {
 };
 
 const StrategicBridge = () => {
-    const { metaventions, addLog, knowledge, toggleKnowledgeLayer, pushToInvestmentQueue } = useAppStore();
+    const { knowledge, actions } = useAppStore();
+    const { addLog, toggleKnowledgeLayer, pushToInvestmentQueue } = actions;
     const activeKnowledgeLayerIds = knowledge.activeLayers || [];
     const [isGenerating, setIsGenerating] = useState(false);
     const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM'>('DRIVE');
@@ -164,8 +163,8 @@ const StrategicBridge = () => {
             };
 
             const domainContext = processType === 'DRIVE' 
-                ? "Generate a high-fidelity PARA (Projects, Areas, Resources, Archives) drive organization workflow with naming conventions and archival triggers."
-                : "Generate a cloud-native systems architecture implementation process with ingestion, processing, and refractive storage layers.";
+                ? "Generate a high-fidelity PARA (Projects, Areas, Resources, Archives) drive organization workflow."
+                : "Generate a cloud-native systems architecture implementation process.";
 
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
                 model: 'gemini-3-pro-preview',
@@ -187,7 +186,6 @@ const StrategicBridge = () => {
 
     return (
         <div className="flex h-full gap-8 p-10 overflow-hidden">
-            {/* Control Sidebar */}
             <div className="w-[340px] flex flex-col gap-6 shrink-0">
                 <div className="p-8 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2.5rem] shadow-2xl relative overflow-hidden group">
                     <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em] block mb-6 px-1">Process Domain</span>
@@ -243,7 +241,6 @@ const StrategicBridge = () => {
                 </button>
             </div>
 
-            {/* Main Blueprint Display */}
             <div className="flex-1 flex flex-col gap-8 overflow-y-auto custom-scrollbar pr-4">
                 <AnimatePresence mode="wait">
                     {currentImplementation ? (
@@ -334,7 +331,7 @@ const SynthesisBridge: React.FC = () => {
                         <GitMerge className="w-6 h-6 text-[#9d4edd]" />
                     </div>
                     <div>
-                        <h1 className="text-lg font-black font-mono uppercase tracking-[0.5em] text-white leading-none">Synthesis Bridge</h1>
+                        <h1 className="text-lg font-black font-mono uppercase tracking-[0.5em] text-white leading-none uppercase">V9.5 - THE D-Ecosystem</h1>
                         <span className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-2 block">D-System Implementation Hub</span>
                     </div>
                 </div>

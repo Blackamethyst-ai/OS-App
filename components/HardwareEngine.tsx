@@ -139,7 +139,8 @@ const MOCK_GPUS = [
 ];
 
 const HardwareEngine: React.FC = () => {
-    const { hardware, setHardwareState, addLog, metaventions } = useAppStore();
+    const { hardware, actions, metaventions } = useAppStore();
+    const { setHardwareState, addLog } = actions;
     const { currentEra, schematicImage, analysis, bom, isLoading, xrayImage, finTelemetry } = hardware;
     
     const [clockSpeed, setClockSpeed] = useState(3.4);

@@ -24,7 +24,8 @@ import DEcosystem from './DEcosystem';
 import ContextVelocityChart from './ContextVelocityChart';
 
 const ExecutiveBanner = () => {
-    const { user, voice, setVoiceState, addLog } = useAppStore();
+    const { user, voice, actions } = useAppStore();
+    const { setVoiceState, addLog } = actions;
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -236,10 +237,8 @@ const MetricCard = ({ title, value, detail, icon: Icon, color, data, trend }: an
 );
 
 const Dashboard: React.FC = () => {
-  const { 
-    dashboard, setDashboardState, user, addLog, setMode, 
-    voice, setVoiceState, kernel, openHoloProjector 
-  } = useAppStore();
+  const { dashboard, user, voice, kernel, actions } = useAppStore();
+  const { setDashboardState, setMode, setVoiceState, addLog, openHoloProjector } = actions;
 
   const [telemetry, setTelemetry] = useState({ cpu: 12.5, net: 0.8, mem: 58, health: 98 });
   const [cpuHist, setCpuHist] = useState(Array.from({length: 20}, () => ({ value: 10 + Math.random() * 5 })));

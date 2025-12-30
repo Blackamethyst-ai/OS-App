@@ -1,4 +1,3 @@
-
 import { useAppStore } from '../store';
 import { AppMode, PeerPresence, SwarmEvent } from '../types';
 
@@ -22,7 +21,7 @@ class CollaborationService {
     }
 
     private syncPeers() {
-        const { setCollabState } = useAppStore.getState();
+        const { actions } = useAppStore.getState();
         const initialPeers: PeerPresence[] = Array.from({ length: 3 + Math.floor(Math.random() * 4) }).map((_, i) => ({
             id: `peer-${i}`,
             name: MOCK_PEER_NAMES[Math.floor(Math.random() * MOCK_PEER_NAMES.length)],
@@ -33,11 +32,13 @@ class CollaborationService {
             color: MOCK_COLORS[Math.floor(Math.random() * MOCK_COLORS.length)]
         }));
 
-        setCollabState({ peers: initialPeers });
+        actions.setCollabState({ peers: initialPeers });
     }
 
     private simulateNetworkActivity() {
-        const { setCollabState, addSwarmEvent, collaboration, addLog } = useAppStore.getState();
+        const state = useAppStore.getState();
+        const { setCollabState, addSwarmEvent, addLog } = state.actions;
+        const { collaboration } = state;
         const rand = Math.random();
 
         // 1. Peer Sector Migration
@@ -46,8 +47,8 @@ class CollaborationService {
             const peer = collaboration.peers[peerIdx];
             const nextSector = Object.values(AppMode)[Math.floor(Math.random() * Object.values(AppMode).length)];
             
-            setCollabState(prev => ({
-                peers: prev.peers.map((p, i) => i === peerIdx ? { ...p, activeSector: nextSector, lastSeen: Date.now() } : p)
+            setCollabState((prev: any) => ({
+                peers: prev.peers.map((p: any, i: number) => i === peerIdx ? { ...p, activeSector: nextSector, lastSeen: Date.now() } : p)
             }));
 
             addSwarmEvent({
@@ -61,8 +62,8 @@ class CollaborationService {
         // 2. Swarm Action
         if (rand < 0.3 && collaboration.peers.length > 0) {
             const peer = collaboration.peers[Math.floor(Math.random() * collaboration.peers.length)];
-            const actions = ['Optimized Lattice', 'Synchronized Vault', 'Generated Asset', 'Executed Directive', 'Refactored Logic'];
-            const action = actions[Math.floor(Math.random() * actions.length)];
+            const actionsList = ['Optimized Lattice', 'Synchronized Vault', 'Generated Asset', 'Executed Directive', 'Refactored Logic'];
+            const action = actionsList[Math.floor(Math.random() * actionsList.length)];
 
             addSwarmEvent({
                 userId: peer.id,

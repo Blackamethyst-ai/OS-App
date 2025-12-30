@@ -1,11 +1,11 @@
-
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store';
 import { Shield, Fingerprint, Key, ChevronRight, Loader2, Cpu, Globe, Lock } from 'lucide-react';
 
 const AuthModule: React.FC = () => {
-    const { setAuthenticated, setUserProfile } = useAppStore();
+    const { actions } = useAppStore();
+    const { setAuthenticated, setUserProfile } = actions;
     const [view, setView] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
     const [isLoading, setIsLoading] = useState(false);
     const [credentials, setCredentials] = useState({ username: '', password: '', role: 'OPERATOR' });

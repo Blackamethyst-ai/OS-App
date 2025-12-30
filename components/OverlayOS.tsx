@@ -5,7 +5,8 @@ import { Terminal, Image as ImageIcon, Code, FileText, X, Maximize2, Trash2, Cpu
 
 // --- SYSTEM TERMINAL ---
 const SystemTerminal: React.FC = () => {
-    const { system, toggleTerminal, addLog, research, voice, bicameral, process, codeStudio, hardware } = useAppStore();
+    const { system, research, voice, bicameral, process, codeStudio, hardware, actions } = useAppStore();
+    const { toggleTerminal, addLog } = actions;
     const bottomRef = useRef<HTMLDivElement>(null);
     const [cmd, setCmd] = useState('');
 
@@ -147,7 +148,8 @@ const SystemTerminal: React.FC = () => {
 
 // --- QUANTUM DOCK ---
 const QuantumDock: React.FC = () => {
-    const { system, removeDockItem } = useAppStore();
+    const { system, actions } = useAppStore();
+    const { removeDockItem } = actions;
     const [hoveredId, setHoveredId] = useState<string | null>(null);
     const [previewItem, setPreviewItem] = useState<any | null>(null);
 
@@ -272,7 +274,8 @@ const QuantumDock: React.FC = () => {
 
 // --- GLOBAL OVERLAY MANAGER ---
 const OverlayOS: React.FC = () => {
-    const { addDockItem, imageGen, codeStudio, hardware, toggleTerminal } = useAppStore();
+    const { imageGen, codeStudio, actions } = useAppStore();
+    const { addDockItem, toggleTerminal } = actions;
     
     // Global Keyboard Listeners
     useEffect(() => {

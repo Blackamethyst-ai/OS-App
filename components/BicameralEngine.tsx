@@ -11,7 +11,8 @@ import { SwarmStatus, AgentDNA } from '../types';
 import { audio } from '../services/audioService';
 
 const BicameralEngine: React.FC = () => {
-    const { bicameral, setBicameralState, addLog } = useAppStore();
+    const { bicameral, actions } = useAppStore();
+    const { setBicameralState, addLog } = actions;
     const { goal, plan, ledger, isPlanning, isSwarming, swarmStatus } = bicameral;
     
     const [selectedDNA, setSelectedDNA] = useState<AgentDNA>(AGENT_DNA_BUILDER[1]); 
@@ -263,7 +264,7 @@ ${result.output}
                                 key={activeTask.id}
                                 initial={{ opacity: 0, scale: 0.98 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="text-2xl font-black text-white font-mono leading-relaxed drop-shadow-[0_10px_30px_rgba(0,0,0,1)]"
+                                className="text-2xl font-black text-white font-mono leading-relaxed drop-shadow-[0_10px_30px_rgba(0,0,0,0.1)]"
                             >
                                 "{activeTask.description}"
                             </motion.h1>

@@ -884,7 +884,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             disabled={isPlanning || (!imageGen.prompt?.trim() && !productionBible)}
                                             className="w-full py-4 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 disabled:opacity-30 active:scale-95 shadow-xl group"
                                         >
-                                            {isPlanning ? <Loader2 size={16} className="animate-spin"/> : <Sparkles size={16} className="group-hover:scale-110 transition-transform" />}
+                                            {isPlanning ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} className="group-hover:scale-110 transition-transform" />}
                                             Initialize Synthesis
                                         </button>
                                         
@@ -961,7 +961,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         >
                                             <div className="aspect-video bg-black relative overflow-hidden group/frame">
                                                 {f.imageUrl ? (
-                                                    <img src={f.imageUrl} className="w-full h-full object-cover group-hover/frame:scale-110 transition-transform duration-[8s]" />
+                                                    <img src={f.imageUrl} className="w-full h-full object-cover group-hover/frame:scale-110 transition-transform duration-[8s]" alt="" />
                                                 ) : (
                                                     <div className="absolute inset-0 flex flex-col items-center justify-center opacity-10 gap-6">
                                                         <Film size={64} className="text-gray-500" />
@@ -1076,7 +1076,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     disabled={isVideoLoading || !videoPrompt.trim()}
                                     className="w-full py-5 bg-[#d946ef] hover:bg-[#f0abfc] text-black font-black font-mono text-[10px] uppercase tracking-[0.4em] rounded-[2.5rem] transition-all shadow-[0_20px_50px_rgba(217,70,239,0.4)] flex items-center justify-center gap-5 disabled:opacity-50 active:scale-95 relative z-10 mb-2 group/btn"
                                 >
-                                    {isVideoLoading ? <Loader2 className="w-7 h-7 animate-spin" /> : <MoveUpRight size={24} className="group-hover/btn:scale-125 transition-transform" />}
+                                    {isVideoLoading ? <Loader2 size={7} className="w-7 h-7 animate-spin" /> : <MoveUpRight size={24} className="group-hover/btn:scale-125 transition-transform" />}
                                     {isVideoLoading ? 'Synthesizing...' : 'Forge Motion Sequence'}
                                 </button>
                             </div>

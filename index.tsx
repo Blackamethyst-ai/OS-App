@@ -18,10 +18,14 @@ interface ErrorBoundaryState {
  */
 // Fixed: Using Component named import to ensure robust TypeScript inference for state and props
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Explicitly define state property to resolve Property 'state' does not exist error
+  public state: ErrorBoundaryState = { hasError: false, error: null };
+  // Fix: Explicitly define props property to resolve Property 'props' does not exist error on line 83
+  public props: ErrorBoundaryProps;
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    // Fixed: state property is correctly initialized within constructor
-    this.state = { hasError: false, error: null };
+    this.props = props;
   }
 
   public static getDerivedStateFromError(error: Error): ErrorBoundaryState {

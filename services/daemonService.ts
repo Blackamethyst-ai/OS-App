@@ -4,14 +4,12 @@ import { AppMode } from '../types';
 
 let lastLoggedPatchTimestamp = 0;
 
-// Unified Neural Automata
-// Aggregates diverse inputs into a unified context and provides proactive system healing.
 export const neuralAutomata = async () => {
     try {
         const state = useAppStore.getState();
-        const { addLog, setCodeStudioState, setHardwareState, setProcessState } = state;
+        const { actions } = state;
+        const { addLog, setCodeStudioState, setHardwareState, setProcessState } = actions;
 
-        // --- AUTONOMIC LOOP 1: SELF-HEALING DIAGRAMS ---
         if (state.mode === AppMode.PROCESS_MAP && state.process.diagramStatus === 'ERROR' && state.process.generatedCode) {
             addLog('WARN', 'AUTONOMIC_REFLEX: Visual Cortex Damage Detected. Initiating Repair...');
             try {
@@ -24,7 +22,6 @@ export const neuralAutomata = async () => {
             }
         }
 
-        // 1. Gather Context Snapshot
         const contextSnapshot: any = {};
         if (state.mode === AppMode.CODE_STUDIO) {
             const code = state.codeStudio.generatedCode;
@@ -37,14 +34,11 @@ export const neuralAutomata = async () => {
         }
 
         const recentLogs = state.system.logs.slice(-5).map(l => l.message);
-
-        // 2. Consult the Policy Engine
         const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
         if (!hasKey) return; 
 
         const decision = await executeNeuralPolicy(state.mode, contextSnapshot, recentLogs);
 
-        // 3. Execute Decision
         if (decision) {
             if (decision.suggestedPatch && state.mode === AppMode.CODE_STUDIO) {
                 const patchTimestamp = Date.now();
@@ -56,7 +50,6 @@ export const neuralAutomata = async () => {
                     }
                 });
 
-                // DEDUPLICATION: Only log a notification if it's a fresh patch window
                 if (patchTimestamp - lastLoggedPatchTimestamp > 60000) { 
                     addLog('SUCCESS', `[NEURAL_HEALER] optimization available in Studio.`);
                     lastLoggedPatchTimestamp = patchTimestamp;

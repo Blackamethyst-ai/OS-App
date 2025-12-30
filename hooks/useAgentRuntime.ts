@@ -17,8 +17,9 @@ export const useAgentRuntime = () => {
         history: []
     });
 
-    const addLog = useAppStore(s => s.addLog);
+    const addLog = useAppStore(s => s.actions.addLog);
 
+    // Fixed: Completed truncated execute function and added proper return types
     const execute = useCallback(async (userPrompt: string) => {
         setState(prev => ({ 
             ...prev, 
@@ -76,32 +77,40 @@ export const useAgentRuntime = () => {
                     config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
                 });
 
+                const text = finalResponse.text || 'Directive finalized.';
                 setState(prev => ({ 
                     ...prev, 
                     isThinking: false, 
                     lastResult: result,
                     activeTool: null,
-                    history: [...prev.history, { role: 'model', content: finalResponse.text || 'Directive finalized.' }] 
+                    history: [...prev.history, { role: 'model', content: text }] 
                 }));
                 
                 addLog('SUCCESS', `AGENT_RUNTIME: [${toolName}] execution loop stabilized.`);
-                return finalResponse.text;
-
+                return text;
             } else {
+                const text = response.text || 'Directive finalized.';
                 setState(prev => ({ 
                     ...prev, 
                     isThinking: false, 
-                    history: [...prev.history, { role: 'model', content: response.text || 'Analysis stabilized.' }] 
+                    history: [...prev.history, { role: 'model', content: text }] 
                 }));
-                return response.text;
+                return text;
             }
 
-        } catch (err: any) {
-            setState(prev => ({ ...prev, isThinking: false }));
-            addLog('ERROR', `AGENT_RUNTIME_FAIL: ${err.message}`);
-            throw err;
+        } catch (e: any) {
+            console.error("Agent Runtime Error:", e);
+            const errorMsg = `ERROR: Cognitive failure. ${e.message}`;
+            setState(prev => ({ 
+                ...prev, 
+                isThinking: false, 
+                history: [...prev.history, { role: 'model', content: errorMsg }] 
+            }));
+            addLog('ERROR', `AGENT_RUNTIME_FAIL: ${e.message}`);
+            return null;
         }
     }, [addLog]);
 
-    return { execute, state };
+    // Fixed: Added return statement to resolve "Property does not exist on type void" errors in multiple files
+    return { state, execute };
 };

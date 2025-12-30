@@ -6,7 +6,8 @@ import { promptSelectKey, transformArtifact, retryGeminiRequest } from '../servi
 import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
 
 const HoloProjector: React.FC = () => {
-    const { holo, closeHoloProjector, setHoloAnalysis, setHoloAnalyzing, openHoloProjector, addLog } = useAppStore();
+    const { holo, actions } = useAppStore();
+    const { closeHoloProjector, setHoloAnalysis, setHoloAnalyzing, openHoloProjector, addLog } = actions;
     const [isTransforming, setIsTransforming] = useState(false);
 
     const handleAnalyze = async () => {

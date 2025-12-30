@@ -25,11 +25,11 @@ const AutonomousFinance = lazy(() => import('./AutonomousFinance'));
 const NexusAPIExplorer = lazy(() => import('./NexusAPIExplorer'));
 
 const SynapticRouter: React.FC = () => {
+    const { mode, contextMenu, actions } = useAppStore();
     const { 
-        mode, setMode, contextMenu, closeContextMenu, 
-        openHoloProjector, setCodeStudioState, setBibliomorphicState,
-        addLog, toggleTerminal
-    } = useAppStore();
+        setMode, closeContextMenu, openHoloProjector, 
+        setCodeStudioState, setBibliomorphicState, addLog, toggleTerminal 
+    } = actions;
 
     const [routeInfo, setRouteInfo] = useState({ path: '', sub: '', params: new URLSearchParams() });
 
@@ -100,12 +100,12 @@ const SynapticRouter: React.FC = () => {
                 content = codeTarget.textContent;
             }
 
-            useAppStore.getState().openContextMenu(e.clientX, e.clientY, type, content);
+            actions.openContextMenu(e.clientX, e.clientY, type, content);
             audio.playHover();
         };
 
         const handleClick = () => {
-            if (useAppStore.getState().contextMenu.isOpen) closeContextMenu();
+            if (contextMenu.isOpen) closeContextMenu();
         };
 
         document.addEventListener('contextmenu', handleContextMenu);
@@ -114,7 +114,7 @@ const SynapticRouter: React.FC = () => {
             document.removeEventListener('contextmenu', handleContextMenu);
             document.removeEventListener('click', handleClick);
         };
-    }, [closeContextMenu]);
+    }, [closeContextMenu, contextMenu.isOpen, actions]);
 
     const handleAction = (action: string) => {
         const { targetContent, contextType } = contextMenu;
@@ -150,9 +150,9 @@ const SynapticRouter: React.FC = () => {
             case 'SEARCH':
                 if (targetContent) {
                     const safeQuery = String(targetContent || '').substring(0, 100);
-                    useAppStore.getState().setSearchState({ query: safeQuery, isOpen: true });
+                    actions.setSearchState({ query: safeQuery, isOpen: true });
                     performGlobalSearch(safeQuery).then(results => {
-                        useAppStore.getState().setSearchState({ results });
+                        actions.setSearchState({ results });
                     });
                 }
                 break;
@@ -160,7 +160,6 @@ const SynapticRouter: React.FC = () => {
                 window.location.hash = '/code';
                 if (targetContent) {
                     const safePrompt = `Refactor this logic:\n\n${String(targetContent || '').substring(0, 500)}`;
-                    const { setCodeStudioState } = useAppStore.getState();
                     setCodeStudioState({ prompt: safePrompt });
                 }
                 break;
