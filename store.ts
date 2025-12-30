@@ -286,12 +286,14 @@ interface AppState {
         addDockItem: (item: any) => void;
         removeDockItem: (id: string) => void;
         archiveIntervention: (protocol: any) => void;
+        removeStrategy: (id: string) => void;
         setMetaventionsState: (update: any) => void;
         pushToInvestmentQueue: (metavention: any) => void;
         commitInvestment: (id: string, amount: number) => void;
         setAgentState: (update: any) => void;
         updateAgent: (id: string, update: Partial<AutonomousAgent>) => void;
         addAgent: (agent: AutonomousAgent) => void;
+        deployStrategyToLattice: (strategy: any) => void;
     };
 }
 
@@ -713,6 +715,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         archiveIntervention: (protocol) => set((state) => ({
             metaventions: { ...state.metaventions, strategyLibrary: [protocol, ...state.metaventions.strategyLibrary] }
         })),
+        removeStrategy: (id) => set((state) => ({
+            metaventions: { ...state.metaventions, strategyLibrary: state.metaventions.strategyLibrary.filter(s => s.id !== id) }
+        })),
         setMetaventionsState: (update) => set((state) => ({ 
             metaventions: { ...state.metaventions, ...(typeof update === 'function' ? update(state.metaventions) : update) } 
         })),
@@ -757,5 +762,27 @@ export const useAppStore = create<AppState>((set, get) => ({
                 activeAgents: [...state.agents.activeAgents, agent]
             }
         })),
+        deployStrategyToLattice: (strategy: any) => set((state) => {
+            // Converts a strategic blueprint into actionable nodes for the Process Visualizer
+            const newNodeId = `node-strat-${Date.now()}`;
+            const nodes = [...state.process.nodes, {
+                id: newNodeId,
+                type: 'holographic',
+                position: { x: 400, y: 200 },
+                data: {
+                    label: strategy.title,
+                    subtext: strategy.logic,
+                    iconName: 'ShieldCheck',
+                    color: '#10b981',
+                    status: 'DEPLOYED',
+                    drift: 0
+                }
+            }];
+            
+            return {
+                process: { ...state.process, nodes },
+                mode: AppMode.PROCESS_MAP
+            };
+        }),
     }
 }));
