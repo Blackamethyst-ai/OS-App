@@ -118,7 +118,7 @@ const PerformanceMixer = ({ label, value, unit, min, max, onValueChange, color }
     <div className="flex flex-col gap-1 p-2 bg-white/[0.02] border border-white/5 rounded-lg group hover:border-white/10 transition-all">
         <div className="flex justify-between items-end">
             <div className="flex flex-col">
-                <span className="text-[7px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none">{label}</span>
+                <span className="text-[7px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none mb-1">{label}</span>
                 <span className="text-[10px] font-black font-mono text-white tracking-tighter mt-0.5">{value}{unit}</span>
             </div>
             <div className="h-3 w-0.5 rounded-full bg-white/5 overflow-hidden">
@@ -196,12 +196,18 @@ const HardwareEngine: React.FC = () => {
             addLog('SYSTEM', `INGEST_INIT: Processing Blueprint [${file.name}]...`);
             try {
                 if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); }
-                const [scan, xray, iso] = await Promise.all([analyzeSchematic(data), generateXRayVariant(data), generateIsometricSchematic(data)]);
+                // Fixed: explicitly typed return values for analyzeSchematic to resolve unknown property errors
+                const [scan, xray, iso] = await Promise.all([
+                    analyzeSchematic(data) as Promise<{components: {name: string, confidence: number}[], summary: string}>, 
+                    generateXRayVariant(data), 
+                    generateIsometricSchematic(data)
+                ]);
                 setHardwareState({ analysis: scan, xrayImage: xray, isLoading: false, bom: scan.components || [] });
                 setIsometricImage(iso);
                 addLog('SUCCESS', 'SCAN_COMPLETE: Infrastructure topology reconstructed.');
                 audio.playSuccess();
-                if (scan.components?.length > 0) fetchSupplyChain(scan.components[0].name);
+                // Fixed: Access scan.components safely after explicit typing
+                if (scan.components && scan.components.length > 0) fetchSupplyChain(scan.components[0].name);
             } catch (err: any) {
                 setHardwareState({ isLoading: false, error: err.message });
                 addLog('ERROR', `SCAN_FAIL: ${err.message}`);

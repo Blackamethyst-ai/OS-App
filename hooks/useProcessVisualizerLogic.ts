@@ -217,8 +217,10 @@ export const useProcessVisualizerLogic = () => {
         setState({ isLoading: true });
         try {
             if (!(await checkApiKey())) return;
-            const nodeData = await generateSingleNode(description);
+            // Fixed: explicitly typed return from generateSingleNode to resolve spread type and unknown property errors
+            const nodeData = await generateSingleNode(description) as {label: string, subtext: string, iconName: string, color: string};
             const centerPosition = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
+            // Fixed: Safely spread nodeData after explicit typing
             const newNode: Node = { id: `node_${Date.now()}`, type: 'holographic', position: centerPosition, data: { ...nodeData, theme: visualTheme, status: 'INITIALIZED', progress: 1, drift: 0 } };
             setNodes(nds => nds.concat(newNode));
             addLog('SUCCESS', `AI_NODE: Crystallized "${nodeData.label}" at viewport center.`);
@@ -233,8 +235,10 @@ export const useProcessVisualizerLogic = () => {
             if (!(await checkApiKey())) return;
             const neighbors = edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id)
                                     .map(e => nodes.find(n => n.id === (e.source === selectedNode.id ? e.target : e.source))?.data.label).join(', ');
-            const result = await decomposeNode(selectedNode.data.label as string, neighbors);
-            if (result.optimizations?.length > 0) {
+            // Fixed: explicitly typed return from decomposeNode to resolve unknown property errors
+            const result = await decomposeNode(selectedNode.data.label as string, neighbors) as {nodes: any[], edges: any[], optimizations: string[]};
+            // Fixed: Safely accessed optimizations through explicit typing
+            if (result.optimizations && result.optimizations.length > 0) {
                 addLog('SUCCESS', `OPTIMIZE: Found ${result.optimizations.length} improvements for "${selectedNode.data.label}".`);
             } else { addLog('INFO', `OPTIMIZE: Node "${selectedNode.data.label}" is architecturally sound.`); }
             setIsOptimizing(false);
@@ -248,7 +252,8 @@ export const useProcessVisualizerLogic = () => {
         addLog('SYSTEM', 'LATTICE_SYNC: Calculating optimal semantic topology...');
         try {
             if (!(await checkApiKey())) return;
-            const newPositions = await calculateOptimalLayout(nodes, edges);
+            // Fixed: explicitly typed return from calculateOptimalLayout to resolve unknown indexing error
+            const newPositions = await calculateOptimalLayout(nodes, edges) as Record<string, {x: number, y: number}>;
             setNodes(nds => nds.map(node => ({ ...node, position: newPositions[node.id] || node.position, data: { ...node.data, drift: Math.max(0, (node.data?.drift || 0) - 20) } })));
             addLog('SUCCESS', 'LATTICE_SYNC: Autopoietic organization complete.');
             setTimeout(() => fitView({ duration: 1000 }), 100);
@@ -273,8 +278,10 @@ export const useProcessVisualizerLogic = () => {
                 return;
             }
 
-            const result = await generateProcessFromContext(artifacts as StoredArtifact[], state.workflowType, architecturePrompt);
+            // Fixed: explicitly typed return from generateProcessFromContext to resolve unknown property errors
+            const result = await generateProcessFromContext(artifacts as StoredArtifact[], state.workflowType, architecturePrompt) as {title: string, nodes: any[], edges: any[]};
             
+            // Fixed: Safely accessed result properties after explicit typing
             const newNodes = (result.nodes || []).map((n: any, i: number) => ({
                 id: n.id,
                 type: 'holographic',
@@ -380,11 +387,14 @@ export const useProcessVisualizerLogic = () => {
                 let result;
                 if (state.workflowType === 'AGENTIC_ORCHESTRATION') {
                     addLog('SYSTEM', 'SWARM_SYNTHESIS: Forging cognitive architecture...');
-                    result = await generateSwarmArchitecture(architecturePrompt);
+                    // Fixed: explicitly typed return from generateSwarmArchitecture to resolve unknown property errors
+                    result = await generateSwarmArchitecture(architecturePrompt) as {nodes: any[], edges: any[]};
                 } else {
                     addLog('SYSTEM', `ARCHITECT: Constructing ${state.workflowType} topology...`);
-                    result = await generateSystemArchitecture(architecturePrompt, state.workflowType);
+                    // Fixed: explicitly typed return from generateSystemArchitecture to resolve unknown property errors
+                    result = await generateSystemArchitecture(architecturePrompt, state.workflowType) as {nodes: any[], edges: any[]};
                 }
+                // Fixed: Safely accessed result properties after explicit typing
                 const newNodes = result.nodes.map((n: any, i: number) => ({ id: n.id, type: state.workflowType === 'AGENTIC_ORCHESTRATION' ? 'agentic' : 'holographic', position: { x: 600 + Math.cos(i) * 300, y: 400 + Math.sin(i) * 300 }, data: { ...n, theme: visualTheme, progress: 2, drift: 0 } }));
                 const newEdges = result.edges.map((e: any) => ({ id: e.id, source: e.source, target: e.target, type: 'cinematic', data: { color: e.color || '#9d4edd', variant: e.variant || 'stream', handoffCondition: e.handoffCondition } }));
                 setNodes(newNodes); setEdges(newEdges); setTimeout(() => fitView({ duration: 1000 }), 100);
