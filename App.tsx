@@ -41,8 +41,8 @@ import { audio } from './services/audioService';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const NAV_CONFIG = [
-  { id: AppMode.METAVENTIONS_HUB, label: 'HUB', path: '/metaventions-hub' },
   { id: AppMode.DASHBOARD, label: 'DASHBOARD', path: '/dashboard' },
+  { id: AppMode.METAVENTIONS_HUB, label: 'HUB', path: '/metaventions-hub' },
   { id: AppMode.BIBLIOMORPHIC, label: 'LAB', path: '/bibliomorphic' },
   { id: AppMode.PROCESS_MAP, label: 'MAPPER', path: '/process' },
   { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance' },

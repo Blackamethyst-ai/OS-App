@@ -299,13 +299,13 @@ const MetaventionsHub: React.FC = () => {
                       </div>
                       <span className="text-gray-700 font-mono text-[9px] tracking-widest font-black uppercase">Identity Verified</span>
                   </div>
-                  <h1 className="text-2xl font-black text-white uppercase font-mono tracking-tighter leading-none mt-1">Metaventions Hub</h1>
+                  <h1 className="text-2xl font-black text-white uppercase font-mono tracking-tighter leading-none mt-1">Dashboard Hub</h1>
               </div>
           </div>
 
           <div className="flex items-center gap-12 relative z-10">
               <div className="text-right">
-                  <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block">System Uptime</span>
+                  <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block mb-0.5">System Uptime</span>
                   <div className="flex items-center gap-3 mt-0.5">
                       <span className="text-2xl font-black font-mono text-white tracking-tighter">99.99%</span>
                       <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_100px_rgba(16,185,129,0.3)]" />
@@ -550,7 +550,7 @@ const MetaventionsHub: React.FC = () => {
                           <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
                           <span className="text-[9px] font-black font-mono text-white uppercase tracking-[0.3em]">Autonomous_Swarm_Lattice // Active</span>
                       </div>
-                      <span className="text-[7px] text-gray-500 font-mono uppercase tracking-[0.4em] block pl-6">Active Global Node Synchronization</span>
+                      <span className="text-[7px] text-gray-500 font-mono uppercase tracking-0.4em] block pl-6">Active Global Node Synchronization</span>
                   </div>
               </div>
               <DEcosystem />
