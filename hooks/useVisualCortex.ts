@@ -6,9 +6,11 @@ import { useAgentRuntime } from './useAgentRuntime';
 
 export const useVisualCortex = () => {
     const { 
-        visualCortex, setVisualCortexState, addLog, 
-        mode, setMode, setCodeStudioState, pushToInvestmentQueue 
+        visualCortex, mode, actions 
     } = useAppStore();
+    const { 
+        setVisualCortexState, addLog, setMode, setCodeStudioState, pushToInvestmentQueue 
+    } = actions;
     const { execute } = useAgentRuntime();
 
     const processVisualInput = useCallback(async (file: File | Blob, name: string = 'Captured Stream') => {
