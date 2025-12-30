@@ -9,7 +9,7 @@ import {
     Shield, GitCommit, Radio, Gauge, Waves, Fingerprint, PlayCircle,
     Terminal, ArrowUpRight, Compass, ListChecks, Network, 
     Database, Server, Layout, FileSearch, Workflow, AlertTriangle,
-    Eye, Maximize2, Info, BarChart3
+    Eye, Maximize2, Info, BarChart3, ShieldEllipsis, Cpu
 } from 'lucide-react';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
 import { retryGeminiRequest, promptSelectKey } from '../services/geminiService';
@@ -22,6 +22,20 @@ import {
     ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, 
     Tooltip, ResponsiveContainer, Cell 
 } from 'recharts';
+
+const CoherenceAuditOverlay = ({ active, score }: { active: boolean, score: number }) => (
+    <div className="absolute top-6 right-6 flex items-center gap-3 px-4 py-2 bg-black/60 backdrop-blur-3xl border border-white/10 rounded-full shadow-2xl z-20">
+        <div className="flex flex-col items-end">
+            <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Lattice Coherence</span>
+            <span className={cn(
+                "text-sm font-black font-mono leading-none tracking-tighter",
+                score > 90 ? "text-[#10b981]" : score > 70 ? "text-[#22d3ee]" : "text-[#ef4444]"
+            )}>{score}%</span>
+        </div>
+        <div className="h-6 w-px bg-white/10" />
+        <ShieldEllipsis size={18} className={cn(active ? "animate-pulse" : "opacity-30", score > 70 ? "text-[#10b981]" : "text-[#ef4444]")} />
+    </div>
+);
 
 const ImpactProjection = ({ viability, risk }: { viability: number, risk: string }) => {
     const sectors = [
@@ -58,11 +72,10 @@ const YieldProbeCLI = () => {
     const [probeQuery, setProbeQuery] = useState('');
     const [probeResult, setProbeResult] = useState<string | null>(null);
 
-    // Mock data for the Risk/Impact scatter chart
     const scatterData = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
-        x: Math.random() * 100, // Impact
-        y: Math.random() * 100, // Risk
-        z: Math.random() * 400 + 100, // Size
+        x: Math.random() * 100,
+        y: Math.random() * 100,
+        z: Math.random() * 400 + 100,
         name: `NODE_${String(i).padStart(2,'0')}`
     })), []);
 
@@ -161,10 +174,13 @@ const StrategicBridge = () => {
     const [isGenerating, setIsGenerating] = useState(false);
     const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM'>('DRIVE');
     const [currentImplementation, setCurrentImplementation] = useState<any | null>(null);
+    const [isAuditing, setIsAuditing] = useState(false);
+    const [coherenceScore, setCoherenceScore] = useState(0);
 
     const generateImplementation = async () => {
         setIsGenerating(true);
         setCurrentImplementation(null);
+        setCoherenceScore(0);
         addLog('SYSTEM', `SYNC_INIT: Forging structured process for ${processType === 'DRIVE' ? 'Drive Organization' : 'System Architecture'}...`);
         audio.playClick();
 
@@ -214,7 +230,19 @@ const StrategicBridge = () => {
 
             const data = JSON.parse(response.text || '{}');
             setCurrentImplementation(data);
-            addLog('SUCCESS', `SYNC_COMPLETE: ${data.title} crystallized.`);
+            
+            // Post-Generation Audit Sequence
+            setIsAuditing(true);
+            const auditResponse = await ai.models.generateContent({
+                model: 'gemini-3-flash-preview',
+                contents: `Audit this workflow for coherence: ${JSON.stringify(data)}. Output an integer score 0-100. JSON {score}.`,
+                config: { responseMimeType: 'application/json' }
+            });
+            const auditResult = JSON.parse(auditResponse.text || '{"score": 85}');
+            setCoherenceScore(auditResult.score);
+            setIsAuditing(false);
+
+            addLog('SUCCESS', `SYNC_COMPLETE: ${data.title} crystallized with ${auditResult.score}% coherence.`);
             audio.playSuccess();
         } catch (e: any) {
             addLog('ERROR', `SYNC_FAIL: ${e.message}`);
@@ -284,7 +312,10 @@ const StrategicBridge = () => {
             <div className="flex-1 flex flex-col gap-8 overflow-y-auto custom-scrollbar pr-4">
                 <AnimatePresence mode="wait">
                     {currentImplementation ? (
-                        <motion.div key="impl" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-8 pb-12">
+                        <motion.div key="impl" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98 }} className="space-y-8 pb-12 relative">
+                            
+                            <CoherenceAuditOverlay active={isAuditing} score={coherenceScore} />
+
                             <div className="p-12 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[3.5rem] relative overflow-hidden shadow-2xl group/card invisible-glass">
                                 <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover/card:opacity-[0.05] transition-opacity rotate-12"><Sparkles size={180} /></div>
                                 <div className="flex justify-between items-start mb-10">
@@ -322,7 +353,7 @@ const StrategicBridge = () => {
                                     <div className="grid grid-cols-1 gap-3">
                                         {currentImplementation.workflowSteps.map((step: any, i: number) => (
                                             <div key={i} className="flex items-center gap-6 p-6 bg-white/[0.01] border border-white/[0.03] rounded-[2rem] hover:bg-white/[0.04] transition-all group/step">
-                                                <div className="w-12 h-12 rounded-2xl bg-black border border-white/10 flex items-center justify-center font-mono font-black text-[#9d4edd] shrink-0 shadow-lg group-hover/step:bg-[#9d4edd] group-hover/step:text-black transition-all">
+                                                <div className="w-12 h-12 rounded-2xl bg-black border border-white/10 flex items-center justify-center font-mono font-black text-sm text-[#9d4edd] shrink-0 shadow-lg group-hover/step:bg-[#9d4edd] group-hover/step:text-black transition-all">
                                                     {String(i + 1).padStart(2, '0')}
                                                 </div>
                                                 <div className="flex-1 min-w-0">

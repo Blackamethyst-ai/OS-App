@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { 
@@ -7,12 +8,13 @@ import {
     Settings, Sliders, X, CheckCircle2, AlertTriangle, ListChecks,
     History, Binary, Brain, ShieldCheck, Sparkles, Microscope,
     Fingerprint, Gauge, Waves, ChevronRight, PlayCircle, Boxes, Dna,
-    Plus, GitBranch, Share2, PowerOff, Scissors, Command, Waypoints
+    Plus, GitBranch, Share2, PowerOff, Scissors, Command, Waypoints,
+    Workflow, ListTodo, Circle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AutonomousAgent, OperationalContext, MentalState } from '../types';
-import { GoogleGenAI } from "@google/genai";
-import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION } from '../services/geminiService';
+import { GoogleGenAI, Schema, Type, GenerateContentResponse } from "@google/genai";
+import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest } from '../services/geminiService';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 
@@ -111,7 +113,7 @@ const AgentControlCenter: React.FC = () => {
         if (scrollRef.current) {
             scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' });
         }
-    }, [activeAgent?.memoryBuffer.length]);
+    }, [activeAgent?.memoryBuffer.length, activeAgent?.status]);
 
     const handleIntentDispatch = async () => {
         if (!input.trim() || !activeAgent) return;
@@ -119,7 +121,6 @@ const AgentControlCenter: React.FC = () => {
         setInput('');
         setAgentState({ isDispatching: true });
         
-        // Optimistically add user message to buffer
         updateAgent(activeAgent.id, { 
             status: 'THINKING', 
             memoryBuffer: [...activeAgent.memoryBuffer, { timestamp: Date.now(), role: 'USER', text: query }] 
@@ -135,34 +136,58 @@ const AgentControlCenter: React.FC = () => {
             }
             
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const response = await ai.models.generateContent({
-                model: 'gemini-3-pro-preview',
-                contents: `User Directive: "${query}"`,
-                config: { 
-                    systemInstruction: `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\nACT AS: ${activeAgent.name}, role: ${activeAgent.role}. Respond to the user's directive within the context of ${activeAgent.context}. Maintain a technical, agentic, and professional tone.`,
-                    responseMimeType: 'application/json',
-                    responseSchema: {
-                        type: 'OBJECT',
-                        properties: {
-                            responseText: { type: 'STRING' },
-                            energyDelta: { type: 'NUMBER', description: "Amount of energy consumed by this reasoning task (1-5)" }
-                        },
-                        required: ['responseText', 'energyDelta']
-                    },
-                    thinkingConfig: { thinkingBudget: 8000 }
-                }
-            });
-
-            const result = JSON.parse(response.text || '{}');
             
+            // Phase 1: Task Decomposition (Gemini 3 Pro)
+            addLog('SYSTEM', `RUNTIME: Decomposing instruction for [${activeAgent.name}]...`);
+            const planSchema: Schema = {
+                type: Type.OBJECT,
+                properties: {
+                    id: { type: Type.STRING },
+                    description: { type: Type.STRING },
+                    instruction: { type: Type.STRING },
+                    weight: { type: Type.NUMBER }
+                },
+                required: ['id', 'description', 'instruction', 'weight']
+            };
+
+            // Fix: Explicitly type planResponse to resolve 'unknown' property access error
+            const planResponse: GenerateContentResponse = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+                model: 'gemini-3-pro-preview',
+                contents: `Decompose this directive for agent ${activeAgent.name} into specific atomic steps. Directive: "${query}"`,
+                config: { responseMimeType: 'application/json', responseSchema: planSchema }
+            }));
+
+            const taskChain = JSON.parse(planResponse.text || '[]');
+            updateAgent(activeAgent.id, { tasks: taskChain.map((t: any) => ({ ...t, status: 'PENDING' })) });
+
+            // Phase 2: Sequential Execution with Reasoning
+            let finalBuffer = [...activeAgent.memoryBuffer, { timestamp: Date.now(), role: 'USER', text: query }];
+            
+            for (let i = 0; i < taskChain.length; i++) {
+                const step = taskChain[i];
+                updateAgent(activeAgent.id, { 
+                    tasks: taskChain.map((t: any, idx: number) => idx === i ? { ...t, status: 'IN_PROGRESS' } : (idx < i ? { ...t, status: 'COMPLETED' } : { ...t, status: 'PENDING' }))
+                });
+
+                // Fix: Wrapped in retryGeminiRequest and added explicit typing to resolve 'unknown' property error at line 161 (in user's version)
+                const stepResponse: GenerateContentResponse = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+                    model: 'gemini-3-flash-preview',
+                    contents: `Step ${i + 1}: ${step.instruction}. Reasoning within context of: ${query}`,
+                    config: { 
+                        systemInstruction: `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\nACT AS: ${activeAgent.name}.`,
+                        thinkingConfig: { thinkingBudget: 4000 }
+                    }
+                }));
+
+                finalBuffer = [...finalBuffer, { timestamp: Date.now(), role: 'AI', text: `[STEP_${i+1}] ${stepResponse.text}` }];
+                updateAgent(activeAgent.id, { memoryBuffer: finalBuffer });
+                await new Promise(r => setTimeout(r, 800));
+            }
+
             updateAgent(activeAgent.id, { 
                 status: 'ACTIVE', 
-                energyLevel: Math.max(0, activeAgent.energyLevel - (result.energyDelta || 2)), 
-                memoryBuffer: [...activeAgent.memoryBuffer, { 
-                    timestamp: Date.now(), 
-                    role: 'AI', 
-                    text: result.responseText || "Directive processed. Logic stabilized." 
-                }] 
+                tasks: taskChain.map((t: any) => ({ ...t, status: 'COMPLETED' })),
+                energyLevel: Math.max(10, activeAgent.energyLevel - taskChain.length * 2)
             });
             
             audio.playSuccess();
@@ -173,7 +198,7 @@ const AgentControlCenter: React.FC = () => {
                 memoryBuffer: [...activeAgent.memoryBuffer, { 
                     timestamp: Date.now(), 
                     role: 'SYSTEM', 
-                    text: `ERROR: Cognitive link interrupted. Reason: ${e.message}` 
+                    text: `ERROR: Runtime fault. ${e.message}` 
                 }]
             });
             audio.playError();
@@ -318,7 +343,7 @@ const AgentControlCenter: React.FC = () => {
                                                 value={input}
                                                 onChange={e => setInput(e.target.value)}
                                                 disabled={agents.isDispatching}
-                                                placeholder={agents.isDispatching ? "Synthesizing response..." : "Input operational intent sequence..."}
+                                                placeholder={agents.isDispatching ? "Processing chain of thought..." : "Input operational intent sequence..."}
                                                 className="flex-1 bg-transparent border-none outline-none text-[12px] font-mono text-white placeholder:text-gray-800 uppercase tracking-[0.2em] py-4"
                                             />
                                             <button 
@@ -348,6 +373,38 @@ const AgentControlCenter: React.FC = () => {
                     </div>
 
                     <div className="p-6 space-y-10 flex-1 overflow-y-auto custom-scrollbar">
+                        {/* Task Chain Queue */}
+                        <div className="space-y-4">
+                            <span className="text-[8px] font-black text-gray-500 uppercase tracking-[0.4em] px-1 flex items-center gap-2">
+                                <ListTodo size={12} /> Active Task Chain
+                            </span>
+                            <div className="space-y-2">
+                                {activeAgent?.tasks && activeAgent.tasks.length > 0 ? (
+                                    activeAgent.tasks.map((task, idx) => (
+                                        <div key={task.id} className={cn(
+                                            "p-3 rounded-xl border transition-all flex items-center justify-between",
+                                            task.status === 'COMPLETED' ? "bg-emerald-500/5 border-emerald-500/20 opacity-50" :
+                                            task.status === 'IN_PROGRESS' ? "bg-[#9d4edd]/10 border-[#9d4edd]/40 shadow-lg" :
+                                            "bg-white/[0.02] border-white/5"
+                                        )}>
+                                            <div className="flex items-center gap-3">
+                                                <div className="text-[8px] font-mono text-gray-500">{(idx + 1).toString().padStart(2, '0')}</div>
+                                                <div className="text-[9px] font-black font-mono text-white truncate max-w-[140px] uppercase">{task.description}</div>
+                                            </div>
+                                            {task.status === 'COMPLETED' ? <CheckCircle2 size={12} className="text-emerald-500" /> :
+                                             task.status === 'IN_PROGRESS' ? <Loader2 size={12} className="text-[#9d4edd] animate-spin" /> :
+                                             <Circle size={10} className="text-gray-800" />}
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="py-8 text-center opacity-10 flex flex-col items-center gap-4">
+                                        <Workflow size={32} />
+                                        <span className="text-[8px] font-mono uppercase tracking-widest">Awaiting Plan</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                         {/* Core Capabilities Chips */}
                         <div className="space-y-4">
                             <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">Active Skill Manifest</span>
@@ -367,22 +424,6 @@ const AgentControlCenter: React.FC = () => {
                                 <AutonomicTask label="Neural Pruning" progress={12} color="#9d4edd" />
                                 <AutonomicTask label="Context Optimization" progress={18} color="#22d3ee" />
                                 <AutonomicTask label="Vault Indexing" progress={42} color="#10b981" />
-                            </div>
-                        </div>
-
-                        {/* Stability Vector Projection */}
-                        <div className="space-y-4 pt-10">
-                            <div className="flex justify-between items-center text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">
-                                <span>Stability Vector</span>
-                                <GitBranch size={12} className="text-[#9d4edd]" />
-                            </div>
-                            <div className="aspect-square w-full rounded-[2.5rem] border border-white/5 bg-black/40 relative overflow-hidden flex items-center justify-center p-8 group shadow-inner">
-                                <Waypoints size={80} className="text-[#9d4edd] opacity-20 group-hover:scale-110 transition-transform duration-1000" />
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.05)_0%,transparent_70%)]" />
-                                <div className="absolute inset-0 flex items-center justify-center">
-                                    <div className="w-24 h-24 rounded-full border border-dashed border-[#9d4edd]/30 animate-[spin_30s_linear_infinite]" />
-                                    <div className="w-12 h-12 rounded-full border border-dotted border-[#22d3ee]/20 animate-[spin_15s_linear_infinite_reverse] absolute" />
-                                </div>
                             </div>
                         </div>
                     </div>
