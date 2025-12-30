@@ -25,7 +25,7 @@ import ContextVelocityChart from './ContextVelocityChart';
 
 const ExecutiveBanner = () => {
     const { user, voice, actions } = useAppStore();
-    const { setVoiceState, addLog } = actions;
+    const { setVoiceState, addLog, toggleProfile } = actions;
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
     useEffect(() => {
@@ -143,7 +143,7 @@ const ExecutiveBanner = () => {
 
                 <div className="flex-1 flex flex-col gap-0.5">
                     <div className="flex items-center gap-3 mb-1">
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 glass-action rounded-full border-white/10">
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 glass-action rounded-full border-white/10" onClick={() => toggleProfile(true)}>
                             <ShieldCheck size={10} className="text-[#10b981]" />
                             <span className="text-[8px] font-black font-mono text-white/90 uppercase tracking-widest">Sovereign_Enclave_V1</span>
                         </div>
@@ -238,7 +238,7 @@ const MetricCard = ({ title, value, detail, icon: Icon, color, data, trend }: an
 
 const Dashboard: React.FC = () => {
   const { dashboard, user, voice, kernel, actions } = useAppStore();
-  const { setDashboardState, setMode, setVoiceState, addLog, openHoloProjector } = actions;
+  const { setDashboardState, setMode, setVoiceState, addLog, openHoloProjector, toggleProfile } = actions;
 
   const [telemetry, setTelemetry] = useState({ cpu: 12.5, net: 0.8, mem: 58, health: 98 });
   const [cpuHist, setCpuHist] = useState(Array.from({length: 20}, () => ({ value: 10 + Math.random() * 5 })));
@@ -339,8 +339,8 @@ const Dashboard: React.FC = () => {
                       <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black/10">
                           {dashboard.identityUrl ? (
                               <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full relative group/hero">
-                                  <img src={dashboard.identityUrl} className="w-full h-full object-cover grayscale-[10%] group-hover/hero:grayscale-0 transition-all duration-[30s]" alt="Executive" />
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60" />
+                                  <img src={dashboard.identityUrl} className="w-full h-full object-cover grayscale-[10%] group-hover/hero:grayscale-0 transition-all duration-[30s] cursor-pointer" onClick={() => toggleProfile(true)} alt="Executive" />
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-60 pointer-events-none" />
                                   
                                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-all duration-500 backdrop-blur-md z-30">
                                       <div className="flex gap-4 scale-90 group-hover/hero:scale-100 transition-transform">
