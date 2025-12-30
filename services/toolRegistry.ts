@@ -14,7 +14,7 @@ export const OS_TOOLS = {
         custom_directive?: string;
         dna_profile?: Partial<MentalState>;
     }): Promise<ToolResult> => {
-        const { setProcessState, addLog } = useAppStore.getState();
+        const { setProcessState, addLog } = useAppStore.getState().actions;
         
         addLog('SYSTEM', `ARCHITECT: Synthesizing ${args.type} topology with Multi-modal Parsing protocols...`);
         
@@ -60,7 +60,7 @@ export const OS_TOOLS = {
         weights: Partial<MentalState>;
         reasoning?: string;
     }): Promise<ToolResult> => {
-        const { setVoiceState, addLog } = useAppStore.getState();
+        const { setVoiceState, addLog } = useAppStore.getState().actions;
         
         setVoiceState(prev => ({
             mentalState: { ...prev.mentalState, ...args.weights }
@@ -82,7 +82,8 @@ export const OS_TOOLS = {
 
     // 3. LATTICE CONVERGENCE
     converge_strategic_lattices: async (args: { targetGoal: string }): Promise<ToolResult> => {
-        const { addLog, setProcessState, process } = useAppStore.getState();
+        const { actions, process } = useAppStore.getState();
+        const { addLog, setProcessState } = actions;
         addLog('SYSTEM', `CONVERGENCE: Orchestrating multi-lattice synthesis for "${args.targetGoal}"...`);
         
         try {
@@ -112,7 +113,7 @@ export const OS_TOOLS = {
 
     // 4. UI CONTEXT FOCUS
     focus_element: async (args: { selector: string }): Promise<ToolResult> => {
-        const { setFocusedSelector, addLog } = useAppStore.getState();
+        const { setFocusedSelector, addLog } = useAppStore.getState().actions;
         setFocusedSelector(args.selector);
         addLog('SUCCESS', `UI_FOCUS: Targeted element context [${args.selector}]`);
         return {
@@ -125,7 +126,7 @@ export const OS_TOOLS = {
 
     // 5. TASK MANAGEMENT
     update_task_priority: async (args: { taskId: string, priority: TaskPriority }): Promise<ToolResult> => {
-        const { updateTask, addLog } = useAppStore.getState();
+        const { updateTask, addLog } = useAppStore.getState().actions;
         updateTask(args.taskId, { priority: args.priority });
         addLog('SUCCESS', `TASK_UPDATE: Prioritized task ${args.taskId} to ${args.priority}`);
         return {
@@ -138,7 +139,7 @@ export const OS_TOOLS = {
 
     // 6. SYSTEM NAVIGATION
     system_navigate: async (args: { target: string }): Promise<ToolResult> => {
-        const { setMode } = useAppStore.getState();
+        const { setMode } = useAppStore.getState().actions;
         const targetMode = AppMode[args.target.toUpperCase() as keyof typeof AppMode];
         
         if (targetMode) {
@@ -150,7 +151,7 @@ export const OS_TOOLS = {
 
     // 7. SEARCH INTELLIGENCE
     search_intel: async (args: { query: string }): Promise<ToolResult> => {
-        const { addLog } = useAppStore.getState(); // FIX: Used getState() to avoid Error #321
+        const { addLog } = useAppStore.getState().actions; 
         addLog('SYSTEM', `SEARCH_INTEL: Grounding intelligence for "${args.query}"...`);
         
         try {

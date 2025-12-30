@@ -16,7 +16,8 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
   const [isRendering, setIsRendering] = useState(false);
   const [isRepairing, setIsRepairing] = useState(false);
   const [activeCode, setActiveCode] = useState(code);
-  const { setProcessState } = useAppStore();
+  const { actions } = useAppStore();
+  const { setProcessState } = actions;
   const [transform, setTransform] = useState({ x: 0, y: 0, scale: 0.8 });
   const isDragging = useRef(false);
   const lastMousePosition = useRef({ x: 0, y: 0 });
@@ -54,7 +55,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
     };
     render();
     return () => { isMounted = false; };
-  }, [activeCode]);
+  }, [activeCode, setProcessState]);
 
   const handleAutoRepair = async () => {
       if (!error) return;
