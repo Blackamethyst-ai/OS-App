@@ -555,6 +555,30 @@ export const useAppStore = create<AppState>((set, get) => ({
                 logic: 'Edge-distributed event buffering with high-fidelity de-duplication.',
                 physicalImpact: '99.9% data integrity during peak ingress cycles.',
                 timestamp: Date.now()
+            },
+            {
+                id: 'ZETTELKASTEN_ATOMIC',
+                title: 'Zettelkasten Atomic Index',
+                context: 'Knowledge Management',
+                logic: 'Decomposition of large files into bi-directionally linked markdown atomic nodes.',
+                physicalImpact: '80% improvement in cross-domain synthesis speed.',
+                timestamp: Date.now()
+            },
+            {
+                id: 'RECURSIVE_BACKUP',
+                title: 'Recursive Cold-Storage',
+                context: 'Disaster Recovery',
+                logic: 'Automated pruning and shifting of low-utility assets to decentralized cold storage tiers.',
+                physicalImpact: 'Predictive OpEx reduction of 30% per annum.',
+                timestamp: Date.now()
+            },
+            {
+                id: 'IAC_BASELINE',
+                title: 'IaC Infrastructure Baseline',
+                context: 'Systems Engineering',
+                logic: 'Terraform-native modular blueprints for rapid Sovereign node deployment.',
+                physicalImpact: 'Deployment cycle reduced from hours to 180 seconds.',
+                timestamp: Date.now()
             }
         ],
         wallets: [],
@@ -632,6 +656,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         addResearchTask: (task) => set((state) => ({ 
             research: { ...state.research, tasks: [...state.research.tasks, task] } 
         })),
+        // Fix: correctly access state.research to avoid "Cannot find name 'research'" error
         updateResearchTask: (id, update) => set((state) => ({
             research: {
                 ...state.research,

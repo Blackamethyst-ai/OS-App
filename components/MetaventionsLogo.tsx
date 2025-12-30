@@ -70,22 +70,22 @@ const MetaventionsLogo: React.FC<LogoProps> = ({ size = 32, showText = false, cl
 
       {showText && (
         <div className="flex items-baseline gap-2 select-none">
-          {/* Metaventions Word - Spectral Glow with Light Color (White) */}
+          {/* Metaventions Word - Pure White with Spectral Glow */}
           <motion.span 
             animate={{ 
                 textShadow: [
-                    "0 0 12px var(--logo-glow)",
-                    "0 0 25px rgba(255, 255, 255, 0.6)",
-                    "0 0 12px var(--logo-glow)"
+                    "0 0 10px rgba(255, 255, 255, 0.4)",
+                    "0 0 20px rgba(255, 255, 255, 0.7)",
+                    "0 0 10px rgba(255, 255, 255, 0.4)"
                 ]
             }}
-            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
             className="text-2xl font-black font-sans tracking-tight uppercase leading-none text-white"
           >
             Metaventions
           </motion.span>
 
-          {/* AI part - Intensive focus pulse */}
+          {/* AI part - Intensive focus pulse with colors */}
           <motion.span 
             animate={{ 
                 color: ["var(--cyan)", "var(--amethyst)", "var(--cyan)"],
