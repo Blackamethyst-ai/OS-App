@@ -232,12 +232,25 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
         if (!report) return;
         const newNodes = report.majorFrictionPoints.map((point, i) => ({
             id: `issue-${Date.now()}-${i}`,
-            file: { name: `RISK: ${point.substring(0, 20)}...` } as File,
-            status: 'rejected',
-            data: null,
-            analysis: { summary: point, classification: 'RISK_VECTOR', ambiguityScore: 90, entities: [] }
+            type: 'holographic',
+            position: { x: 100 * i, y: 150 * i },
+            data: { 
+                label: `RISK_DETECTED`, 
+                subtext: point, 
+                iconName: 'AlertTriangle', 
+                color: '#ef4444', 
+                status: 'REJECTED',
+                theme: 'DARK',
+                progress: 1,
+                drift: 80
+            }
         }));
-        setProcessState((prev: any) => ({ artifacts: [...prev.artifacts, ...newNodes as any] }));
+        
+        setProcessState((prev: any) => ({ 
+            nodes: [...prev.nodes, ...newNodes as any],
+            activeTab: 'living_map'
+        }));
+        
         addLog('SYSTEM', `AGORA_BRIDGE: ${newNodes.length} Risk Vectors injected into Process Logic.`);
         setMode(AppMode.PROCESS_MAP);
     };
