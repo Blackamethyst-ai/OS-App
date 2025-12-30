@@ -41,7 +41,9 @@ export const VISUAL_THEMES: Record<AppTheme, any> = {
 };
 
 export const useProcessVisualizerLogic = () => {
-    const { process: state, setProcessState: setState, setCodeStudioState, setMode, theme: globalTheme, addLog, openHoloProjector, updateProcessNode } = useAppStore();
+    const { process: state, theme: globalTheme, actions } = useAppStore();
+    const { setProcessState: setState, setCodeStudioState, setMode, addLog, openHoloProjector, updateProcessNode } = actions;
+    
     const activeTab = state.activeTab || 'living_map';
     const [visualTheme, setVisualTheme] = useState<AppTheme>(AppTheme.DARK);
     const [showGrid, setShowGrid] = useState(true);

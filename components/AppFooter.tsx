@@ -8,7 +8,8 @@ import { audio } from '../services/audioService';
 import MetaventionsLogo from './MetaventionsLogo';
 
 const AppFooter: React.FC = () => {
-    const { mode, addLog } = useAppStore();
+    const { mode, actions } = useAppStore();
+    const { addLog } = actions;
     const [isSaving, setIsSaving] = useState(false);
 
     const handleManualSnapshot = async () => {
@@ -134,7 +135,7 @@ const AppFooter: React.FC = () => {
                     
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-3">
-                            <span className="text-[8px] font-mono text-gray-700 uppercase tracking-[0.3em]">Sector_Sync</span>
+                            <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">Sector_Sync</span>
                             <div className="flex gap-1.5 items-center">
                                 <motion.div 
                                     animate={{ opacity: [0.3, 1, 0.3], scale: [1, 1.4, 1] }}

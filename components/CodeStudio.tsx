@@ -23,15 +23,14 @@ const highlightCode = (code: string, lang: string) => {
 };
 
 const CodeStudio: React.FC = () => {
-  const { codeStudio, setCodeStudioState, addLog } = useAppStore();
+  const { codeStudio, actions } = useAppStore();
+  const { setCodeStudioState, addLog } = actions;
   const { track } = useFlywheel('BUILDER PROTOCOL');
   const { state: agentState } = useAgentRuntime();
   
-  // Local UI state for copying
   const [isCopied, setIsCopied] = React.useState(false);
   const [syntaxErrors, setSyntaxErrors] = useState<{ line: number; message: string }[]>([]);
 
-  // Neural Syntax Validation Loop
   useEffect(() => {
       const code = codeStudio.generatedCode;
       if (!code) { setSyntaxErrors([]); return; }
@@ -76,12 +75,10 @@ const CodeStudio: React.FC = () => {
       audio.playClick();
   };
 
-  // Fixed: codeLines now uses correctly imported useMemo
   const codeLines = useMemo(() => codeStudio.generatedCode?.split('\n') || [], [codeStudio.generatedCode]);
 
   return (
     <div className="flex flex-col h-full rounded-3xl border border-[#1f1f1f] bg-[#030303] shadow-2xl overflow-hidden font-sans relative">
-      {/* Sector Header */}
       <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur z-30 flex items-center px-8 justify-between shrink-0">
           <div className="flex items-center gap-8">
               <div className="flex items-center gap-3">
@@ -89,12 +86,11 @@ const CodeStudio: React.FC = () => {
                     <Code size={18} className="text-[#9d4edd]" />
                 </div>
                 <div>
-                    <h1 className="text-sm font-black font-mono text-white uppercase tracking-widest leading-none">Code Studio</h1>
+                    <h1 className="text-sm font-black font-mono text-white uppercase tracking-widest leading-none uppercase">V9.5 - THE D-Ecosystem</h1>
                     <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-1">Logic Forge v5.0</span>
                 </div>
               </div>
 
-              {/* Tab Selector */}
               <div className="flex items-center gap-1 bg-[#111] p-1 rounded-xl border border-white/5">
                 <button 
                     onClick={() => setActiveTab('IDE')} 
@@ -128,7 +124,6 @@ const CodeStudio: React.FC = () => {
       </div>
 
       <div className="flex-1 flex overflow-hidden relative">
-          {/* Main Display Sector */}
           <div className="flex-1 flex flex-col min-w-0 bg-[#050505] relative overflow-hidden">
               <AnimatePresence mode="wait">
                   {codeStudio.activeTab === 'IDE' && (
@@ -153,7 +148,6 @@ const CodeStudio: React.FC = () => {
                                   </div>
                               ) : codeStudio.generatedCode ? (
                                   <div className="relative flex">
-                                      {/* Line Numbers */}
                                       <div className="w-10 shrink-0 text-right pr-4 border-r border-white/5 text-[10px] font-mono text-gray-700 select-none space-y-[1.4em] pt-[0.2em]">
                                           {codeLines.map((_, i) => <div key={i}>{i + 1}</div>)}
                                       </div>
@@ -188,7 +182,6 @@ const CodeStudio: React.FC = () => {
               </AnimatePresence>
           </div>
 
-          {/* Right Context Sidebar */}
           <div className="w-96 border-l border-[#1f1f1f] bg-[#0a0a0a] flex flex-col shrink-0 relative z-20">
                 <div className="p-6 border-b border-[#1f1f1f] flex items-center justify-between bg-white/[0.01]">
                     <div className="flex items-center gap-3">
@@ -227,7 +220,6 @@ const CodeStudio: React.FC = () => {
                     )}
                 </div>
 
-                {/* Directive Input */}
                 <div className="p-6 border-t border-[#1f1f1f] bg-black">
                     <div className="flex items-center justify-between mb-3 px-1">
                         <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Logic Directive Matrix</span>
@@ -238,7 +230,7 @@ const CodeStudio: React.FC = () => {
                             value={codeStudio.prompt} 
                             onChange={e => setCodeStudioState({ prompt: e.target.value })} 
                             className="w-full bg-[#0a0a0a] border border-[#222] p-5 rounded-2xl text-[11px] font-mono text-gray-300 outline-none h-44 resize-none focus:border-[#9d4edd] transition-all placeholder:text-gray-800 shadow-inner group-hover:border-[#333]" 
-                            placeholder="Input strategic intent sequence (e.g. 'Build a decentralized consensus node in Rust')..." 
+                            placeholder="Input strategic intent sequence..." 
                         />
                         <div className="absolute bottom-4 right-4 opacity-0 group-focus-within:opacity-100 transition-opacity">
                             <span className="text-[8px] font-mono text-gray-600">CMD+ENTER TO SYNC</span>
@@ -263,7 +255,6 @@ const CodeStudio: React.FC = () => {
           </div>
       </div>
 
-      {/* Global Studio HUD Footer */}
       <div className="h-10 bg-[#0a0a0a] border-t border-[#1f1f1f] px-8 flex items-center justify-between text-[8px] font-mono text-gray-600 shrink-0 relative z-20">
           <div className="flex gap-8 items-center">
               <div className="flex items-center gap-2 uppercase tracking-widest text-[#10b981]">
@@ -279,7 +270,7 @@ const CodeStudio: React.FC = () => {
           <div className="flex items-center gap-4">
               <span>BUFF: {codeStudio.generatedCode?.length || 0} bytes</span>
               <span className="text-gray-800">|</span>
-              <span className="uppercase tracking-[0.3em]">Neural Compiler v4.2.1-ZENITH</span>
+              <span className="uppercase tracking-[0.3em]">V9.5 - THE D-Ecosystem</span>
           </div>
       </div>
     </div>

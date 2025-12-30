@@ -5,8 +5,9 @@ import { Users, X, Globe, Activity, Terminal, Shield, Zap, Target } from 'lucide
 import { AppMode } from '../types';
 
 const PeerMeshOverlay: React.FC = () => {
-    const { collaboration, setCollabState } = useAppStore();
+    const { collaboration, actions } = useAppStore();
     const { peers, events, isOverlayOpen } = collaboration;
+    const { setCollabState } = actions;
 
     if (!isOverlayOpen) return null;
 

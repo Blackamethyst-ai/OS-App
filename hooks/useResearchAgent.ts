@@ -10,10 +10,10 @@ import { consensusEngine } from '../services/bicameralService';
 import { FactChunk, AtomicTask, ScienceHypothesis } from '../types';
 
 export const useResearchAgent = () => {
-    const { research, updateResearchTask, addLog, setBicameralState } = useAppStore();
+    const { research, actions } = useAppStore();
+    const { updateResearchTask, addLog, setBicameralState } = actions;
     const processingRef = useRef<Set<string>>(new Set());
 
-    // Restore state from localStorage on boot for persistence
     useEffect(() => {
         const savedState = localStorage.getItem('structura_research_state');
         if (savedState) {
@@ -132,9 +132,6 @@ export const useResearchAgent = () => {
                 setBicameralState({ isSwarming: false });
 
                 const finalReport = bicameralResult.output;
-                
-                // --- VAULT INTEGRATION START ---
-                // Persist the research finding as an indexed artifact for Vector Search
                 const researchBlob = new Blob([finalReport], { type: 'text/markdown' });
                 const researchFile = new File([researchBlob], `RESEARCH_${task.id.slice(0,8)}.md`, { type: 'text/markdown' });
                 
@@ -149,7 +146,6 @@ export const useResearchAgent = () => {
                 if (embedding.length > 0) {
                     await neuralVault.saveVector(artifactId, embedding, { query: task.query });
                 }
-                // --- VAULT INTEGRATION END ---
 
                 updateResearchTask(task.id, { 
                     result: finalReport, 
@@ -170,5 +166,5 @@ export const useResearchAgent = () => {
 
         const interval = setInterval(checkQueue, 2000);
         return () => clearInterval(interval);
-    }, [research.tasks]);
+    }, [research.tasks, updateResearchTask, addLog, setBicameralState]);
 };

@@ -13,7 +13,8 @@ interface AgoraPanelProps {
 }
 
 const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
-    const { voice, setProcessState, setMode, addLog } = useAppStore();
+    const { voice, actions } = useAppStore();
+    const { setProcessState, setMode, addLog } = actions;
     const [status, setStatus] = useState<'IDLE' | 'GEN_PERSONAS' | 'DEBATING' | 'SYNTHESIZING' | 'COMPLETE'>('IDLE');
     const [personas, setPersonas] = useState<SyntheticPersona[]>([]);
     const [history, setHistory] = useState<DebateTurn[]>([]);
@@ -236,7 +237,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
             data: null,
             analysis: { summary: point, classification: 'RISK_VECTOR', ambiguityScore: 90, entities: [] }
         }));
-        setProcessState(prev => ({ artifacts: [...prev.artifacts, ...newNodes as any] }));
+        setProcessState((prev: any) => ({ artifacts: [...prev.artifacts, ...newNodes as any] }));
         addLog('SYSTEM', `AGORA_BRIDGE: ${newNodes.length} Risk Vectors injected into Process Logic.`);
         setMode(AppMode.PROCESS_MAP);
     };
@@ -373,7 +374,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                 </div>
             </div>
 
-            <div className="w-1/2 flex flex-col bg-[#080808]">
+            <div className="flex-1 flex flex-col bg-[#080808]">
                 <div className="h-12 border-b border-[#1f1f1f] flex items-center justify-between px-4 bg-[#0a0a0a]">
                     <div className="flex items-center"><MessageSquare className="w-4 h-4 text-gray-500 mr-2" /><span className="text-xs font-mono uppercase text-gray-400">Senate Transcript</span></div>
                     {status === 'DEBATING' && (

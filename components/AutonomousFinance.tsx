@@ -107,7 +107,8 @@ const FinanceMetric = ({ label, value, trend, icon: Icon, color }: any) => (
 // --- MAIN SECTOR ---
 
 const AutonomousFinance: React.FC = () => {
-    const { addLog, metaventions, marketData, commitInvestment, theme } = useAppStore();
+    const { metaventions, marketData, theme, actions } = useAppStore();
+    const { addLog, commitInvestment } = actions;
     
     const [activeSector, setActiveSector] = useState<'OVERVIEW' | 'YIELD_OPS' | 'LIQUIDITY' | 'LEDGER'>('OVERVIEW');
     const [isSearching, setIsSearching] = useState(false);
@@ -306,7 +307,7 @@ const AutonomousFinance: React.FC = () => {
                                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.05)_0%,transparent_70%)]" />
                                             <div className="w-full flex justify-between mb-4">
                                                 <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Asset Allocation</span>
-                                                <div className="w-2 h-2 rounded-full bg-[#22d3ee] animate-pulse shadow-[0_0_10px_#22d3ee]" />
+                                                <div className="w-2 h-2 rounded-full bg-[#22d3ee] animate-pulse shadow-[0_0_100px_#22d3ee]" />
                                             </div>
                                             <div className="w-full h-full">
                                                 <ResponsiveContainer width="100%" height="100%">

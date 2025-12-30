@@ -8,7 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 const MotionDiv = motion.div as any;
 
 const GlobalSearchBar: React.FC = () => {
-  const { search, setSearchState, setMode } = useAppStore();
+  const { search, actions } = useAppStore();
+  const { setSearchState, setMode } = actions;
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   

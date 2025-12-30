@@ -116,7 +116,8 @@ const CinematicEdge = ({ id, sourceX, sourceY, targetX, targetY, markerEnd, data
 };
 
 const ProcessVisualizerContent = () => {
-    const { process: processData, setProcessState } = useAppStore();
+    const { process: processData, actions } = useAppStore();
+    const { setProcessState } = actions;
     const logic = useProcessVisualizerLogic();
     const {
         activeTab, onNodesChange, onEdgesChange, onConnect, 
@@ -141,7 +142,7 @@ const ProcessVisualizerContent = () => {
                 
                 <div className="flex items-center gap-10">
                     <div className="flex items-center gap-4">
-                        <div className="p-2.5 bg-[var(--amethyst)]/10 border border-[var(--amethyst)]/40 rounded-xl">
+                        <div className="p-2.5 bg-[var(--amethyst)]/10 border border-[var(--border-main)] rounded-xl">
                             <Workflow className="w-5 h-5 text-[var(--amethyst)]" />
                         </div>
                         <div>

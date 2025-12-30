@@ -26,7 +26,7 @@ class DynamicToolRegistry {
                     const state = useAppStore.getState();
                     // Pass store methods as a clean context object to avoid hook detection
                     const context = { 
-                        log: state.addLog,
+                        log: state.actions.addLog,
                         mode: state.mode,
                         vault: neuralVault
                     };
@@ -123,7 +123,7 @@ class DynamicToolRegistry {
     async registerDynamicTool(id: string, manifest: any, code: string) {
         await neuralVault.saveDynamicTool(id, manifest, code);
         await this.initialize();
-        useAppStore.getState().addLog('SUCCESS', `TOOL_FORGE: Capability [${id}] crystallized.`);
+        useAppStore.getState().actions.addLog('SUCCESS', `TOOL_FORGE: Capability [${id}] crystallized.`);
     }
 }
 

@@ -10,6 +10,13 @@ const MotionDiv = motion.div as any;
 const CommandPalette: React.FC = () => {
   const { 
       isCommandPaletteOpen, 
+      mode,
+      system,
+      user,
+      actions
+  } = useAppStore();
+  
+  const { 
       toggleCommandPalette, 
       setMode, 
       setProcessState, 
@@ -21,11 +28,9 @@ const CommandPalette: React.FC = () => {
       setTheme,
       addResearchTask, 
       setFocusedSelector,
-      addLog,
-      mode,
-      system,
-      user
-  } = useAppStore();
+      addLog
+  } = actions;
+
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isPredicting, setIsPredicting] = useState(false);
@@ -246,7 +251,7 @@ const CommandPalette: React.FC = () => {
                 className="flex-1 bg-transparent border-none outline-none text-white font-mono text-base placeholder:text-gray-600 uppercase tracking-widest"
                 autoComplete="off"
               />
-              {isLoading && <Loader2 className="w-5 h-5 text-[#9d4edd] animate-spin ml-4" />}
+              {isLoading && <Loader2 size={5} className="w-5 h-5 text-[#9d4edd] animate-spin ml-4" />}
               <button onClick={() => toggleCommandPalette(false)} className="ml-5 p-2 text-gray-500 hover:text-white transition-colors glass-action rounded-xl"><X className="w-5 h-5" /></button>
             </div>
             
@@ -255,7 +260,7 @@ const CommandPalette: React.FC = () => {
                     <div className="bg-black/20">
                         <div className="px-8 py-3 text-[9px] text-[#9d4edd] font-black font-mono uppercase tracking-[0.4em] flex items-center justify-between border-b border-white/10 bg-white/[0.05]">
                             <span className="flex items-center gap-3"><BrainCircuit className="w-4 h-4" /> Predicted_Contextual_Signals</span>
-                            {isPredicting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                            {isPredicting && <Loader2 size={3.5} className="w-3.5 h-3.5 animate-spin" />}
                         </div>
                         
                         <div className="max-h-[300px] overflow-y-auto custom-scrollbar">

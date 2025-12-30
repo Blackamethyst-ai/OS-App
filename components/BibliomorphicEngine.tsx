@@ -10,12 +10,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { KnowledgeNode } from '../types';
 import AgoraPanel from './AgoraPanel';
 import BicameralEngine from './BicameralEngine'; 
-import SuperLattice from './visualizations/SuperLattice';
+import DiscoveryLab from './DiscoveryLab';
 import { useSystemMind } from '../stores/useSystemMind';
 import { audio } from '../services/audioService';
 
 const DNABuilder = () => {
-    const { voice, setVoiceState, addLog } = useAppStore();
+    const { voice, actions } = useAppStore();
+    const { setVoiceState, addLog } = actions;
     const { mentalState } = voice;
 
     const handleUpdate = (key: string, val: number) => {
@@ -108,39 +109,16 @@ const DNABuilder = () => {
 };
 
 const BibliomorphicEngine: React.FC = () => {
-  const { bibliomorphic, setBibliomorphicState, discovery, research, addResearchTask, voice } = useAppStore();
+  const { bibliomorphic, actions, voice } = useAppStore();
+  const { setBibliomorphicState } = actions;
   const { setSector } = useSystemMind();
   
   const activeTab = bibliomorphic.activeTab || 'discovery'; 
   const setActiveTab = (tab: string) => setBibliomorphicState({ activeTab: tab });
 
-  const [labPhase, setLabPhase] = useState<'CALIBRATION' | 'CRUCIBLE'>('CALIBRATION');
-
-  const activeKnowledge = useMemo(() => {
-      const nodes: KnowledgeNode[] = [];
-      research.tasks.forEach(t => {
-          nodes.push({ id: t.id, label: t.query, type: 'CONCEPT', connections: [], strength: 10 });
-          if (t.findings) {
-              t.findings.forEach(f => {
-                  nodes.push({ id: f.id, label: f.fact, type: 'FACT', connections: [t.id], strength: f.confidence });
-              });
-          }
-      });
-      discovery.hypotheses.forEach(h => {
-          nodes.push({ id: h.id, label: h.statement, type: 'HYPOTHESIS', connections: [], strength: h.confidence });
-      });
-      return nodes;
-  }, [research.tasks, discovery.hypotheses]);
-
   useEffect(() => {
       setSector(`NAV_BIBLIO_${activeTab.toUpperCase()}`);
   }, [activeTab, setSector]);
-
-  const handleResearchDispatch = (input: string) => {
-      if (!input.trim()) return;
-      addResearchTask({ id: crypto.randomUUID(), query: input, status: 'QUEUED', progress: 0, logs: ['Initializing Science Protocol...'], timestamp: Date.now() });
-      setLabPhase('CRUCIBLE'); 
-  };
 
   return (
     <div className="h-full w-full bg-[var(--bg-main)] text-[var(--text-main)] flex font-sans overflow-hidden border border-[var(--border-main)] rounded-[2rem] shadow-2xl relative transition-colors duration-500">
@@ -170,8 +148,8 @@ const BibliomorphicEngine: React.FC = () => {
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                         <div className="text-[11px] font-black font-mono text-[var(--text-muted)] uppercase tracking-widest px-1">Synthesis Readout</div>
                         <div className="bg-[var(--bg-card-bottom)] p-5 rounded-[1.5rem] border border-[var(--border-main)] shadow-inner">
-                            <div className="flex justify-between text-[9px] font-mono text-[var(--text-muted)] uppercase mb-3"><span>Knowledge Density</span><span>{Math.round((activeKnowledge.length/50)*100)}%</span></div>
-                            <div className="h-1.5 bg-black/10 rounded-full overflow-hidden border border-[var(--border-main)]"><div className="h-full bg-[#22d3ee] shadow-[0_0_8px_#22d3ee]" style={{ width: `${Math.min(100, (activeKnowledge.length/50)*100)}%` }} /></div>
+                            <span className="text-[9px] font-mono text-[var(--text-muted)] uppercase">V9.5 - THE D-Ecosystem</span>
+                            <p className="text-[10px] text-gray-500 mt-2 font-mono leading-relaxed uppercase">Establishing cognitive research bridges for the D-Ecosystem.</p>
                         </div>
                       </motion.div>
                   )}
@@ -202,17 +180,7 @@ const BibliomorphicEngine: React.FC = () => {
           <AnimatePresence mode="wait">
               {activeTab === 'discovery' && (
                   <motion.div key="discovery" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full relative">
-                      <SuperLattice nodes={activeKnowledge} mode={labPhase === 'CRUCIBLE' ? 'ACTIVE' : 'FOCUS'} />
-                      <div className="absolute bottom-12 left-1/2 -translate-x-1/2 w-full max-w-xl px-10 pointer-events-none">
-                          <div className="bg-[var(--bg-card-top)] backdrop-blur-3xl border border-[var(--border-main)] p-1.5 rounded-[2rem] shadow-2xl flex items-center pointer-events-auto">
-                              <input 
-                                  className="flex-1 bg-transparent border-none outline-none px-8 py-5 text-base font-mono text-[var(--text-main)] placeholder:text-gray-400 uppercase tracking-widest"
-                                  placeholder="Input strategic probe..."
-                                  onKeyDown={e => e.key === 'Enter' && handleResearchDispatch((e.target as HTMLInputElement).value)}
-                              />
-                              <button className="p-5 bg-[#22d3ee] text-black rounded-2xl hover:bg-[#67e8f9] transition-all shadow-[0_0_30px_rgba(34,211,238,0.3)]"><ArrowRight size={24}/></button>
-                          </div>
-                      </div>
+                      <DiscoveryLab />
                   </motion.div>
               )}
               {activeTab === 'dna' && <motion.div key="dna" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full"><DNABuilder /></motion.div>}

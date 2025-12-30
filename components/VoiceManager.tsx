@@ -57,9 +57,11 @@ const recalibrateDnaTool: FunctionDeclaration = {
 
 const VoiceManager: React.FC = () => {
     const { 
-        voice, setVoiceState, setMode, addLog,
+        voice, actions,
         operationalContext
     } = useAppStore();
+    const { setVoiceState, setMode, addLog } = actions;
+    
     const { currentLocation } = useSystemMind();
     const connectionAttemptRef = useRef(false);
     const partialTranscriptRef = useRef<string>("");
@@ -69,7 +71,6 @@ const VoiceManager: React.FC = () => {
             if (name === 'navigate_to_sector') {
                 const target = (args.target_sector as string || '').toUpperCase() as AppMode;
                 
-                // Added missing METAVENTIONS_HUB to satisfy TypeScript Record<AppMode, string> check
                 const routeMap: Record<AppMode, string> = {
                     [AppMode.DASHBOARD]: '/dashboard',
                     [AppMode.METAVENTIONS_HUB]: '/metaventions-hub',

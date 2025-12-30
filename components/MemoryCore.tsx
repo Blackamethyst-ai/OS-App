@@ -27,7 +27,8 @@ const CLASSIFICATION_MAP: Record<string, { color: string, bg: string, icon: any 
 };
 
 const MemoryCore: React.FC = () => {
-    const { openHoloProjector, addLog } = useAppStore();
+    const { actions } = useAppStore();
+    const { openHoloProjector, addLog } = actions;
     
     const [artifacts, setArtifacts] = useState<StoredArtifact[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -62,7 +63,6 @@ const MemoryCore: React.FC = () => {
                 tags: ['DYNAMIC_TOOL']
             }));
 
-            // Normalization: Ensure tags is always an array to prevent runtime failures
             const combined = [...files, ...toolArtifacts]
                 .map(item => ({
                     ...item,
@@ -122,14 +122,10 @@ const MemoryCore: React.FC = () => {
                     if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); break; }
                     
                     const fileData = await fileToGenerativePart(file);
-                    
-                    // Immediate Deep Scan via classifyArtifact
                     const analysisRes = await classifyArtifact(fileData);
                     const analysis = analysisRes.ok ? analysisRes.value : null;
                     
                     const id = await neuralVault.saveArtifact(file, analysis);
-                    
-                    // Force immediate vector indexing for semantic search
                     const textForVector = analysis ? `${analysis.classification} ${analysis.summary} ${analysis.structural_intelligence || ''}` : file.name;
                     const embedding = await generateEmbedding(textForVector);
                     if (embedding.length > 0) {
@@ -167,7 +163,6 @@ const MemoryCore: React.FC = () => {
             label: a.name,
             type: 'CONCEPT' as const,
             strength: a.analysis?.ambiguityScore ? 100 - a.analysis.ambiguityScore : 70,
-            // Robust array check to prevent runtime crashes
             connections: Array.isArray(a.tags) ? a.tags.map(t => String(t)) : [],
             color: CLASSIFICATION_MAP[a.analysis?.classification || '']?.color || '#333',
             data: a.analysis
@@ -179,7 +174,7 @@ const MemoryCore: React.FC = () => {
             <div className="w-80 border-r border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl flex flex-col shrink-0 z-20">
                 <div className="p-8 border-b border-white/5 flex items-center justify-between bg-black/10">
                     <div className="flex items-center gap-4">
-                        <div className="p-2 bg-[#9d4edd]/20 rounded-xl text-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.2)]">
+                        <div className="p-2 bg-[#9d4edd]/20 rounded-xl text-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.25)]">
                             <Database size={16} className={isIndexing ? 'animate-pulse' : ''} />
                         </div>
                         <span className="text-[11px] font-black font-mono uppercase tracking-[0.3em] text-white">Neural Vault</span>

@@ -16,7 +16,8 @@ import { useVisualCortex } from '../hooks/useVisualCortex';
 import { audio } from '../services/audioService';
 
 const LayerControlMesh = () => {
-    const { toggleKnowledgeLayer, knowledge, addLog } = useAppStore();
+    const { knowledge, actions } = useAppStore();
+    const { toggleKnowledgeLayer, addLog } = actions;
     const activeLayerIds = knowledge.activeLayers || [];
     
     const dynamicLayers = use(neuralVault.getKnowledgeLayers());
@@ -60,12 +61,11 @@ const LayerControlMesh = () => {
 
 const GlobalStatusBar: React.FC = () => {
     const { 
-        kernel, knowledge, system, mode,
-        isScrubberOpen, setScrubberOpen,
-        isDiagnosticsOpen, setDiagnosticsOpen,
-        collaboration, setCollabState,
-        addLog
+        kernel, system, collaboration, actions,
+        isScrubberOpen, isDiagnosticsOpen
     } = useAppStore();
+    const { setScrubberOpen, setDiagnosticsOpen, setCollabState, addLog } = actions;
+
     const { execute, state: agentState } = useAgentRuntime();
     const { probeScreen, isProbing } = useVisualCortex();
     const [input, setInput] = useState('');
@@ -179,7 +179,7 @@ const GlobalStatusBar: React.FC = () => {
                         </div>
 
                         <div className="text-right pl-4 border-l border-[var(--border-main)] min-w-[80px]">
-                            <div className="text-[7px] text-[var(--text-muted)] font-mono uppercase tracking-widest">Uptime</div>
+                            <div className="text-[7px] text-[var(--text-muted)] font-mono uppercase tracking-widest">V9.5</div>
                             <div className="text-[11px] font-mono font-bold text-[var(--text-primary)] tracking-tight">{formatUptime(kernel.uptime)}</div>
                         </div>
                     </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { generateHypotheses, simulateExperiment, generateTheory, promptSelectKey, compressKnowledge, fileToGenerativePart, classifyArtifact, smartOrganizeArtifact } from '../services/geminiService';
@@ -13,7 +12,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import SuperLattice from './visualizations/SuperLattice';
 
 const DiscoveryLab: React.FC = () => {
-    const { discovery, setDiscoveryState, addLog, research, addResearchTask, cancelResearchTask } = useAppStore();
+    const { discovery, research, actions } = useAppStore();
+    const { setDiscoveryState, addLog, addResearchTask, cancelResearchTask } = actions;
     const [input, setInput] = useState('');
     const [isCompressing, setIsCompressing] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -67,8 +67,6 @@ const DiscoveryLab: React.FC = () => {
                     if (!hasKey) { await promptSelectKey(); break; }
 
                     const fileData = await fileToGenerativePart(file);
-                    
-                    // FIX: Properly handle Result return from classifyArtifact
                     const analysisResult = await classifyArtifact(fileData);
                     if (analysisResult.ok) {
                         const analysis = analysisResult.value;
@@ -123,7 +121,7 @@ const DiscoveryLab: React.FC = () => {
                         <FlaskConical className="w-4 h-4 text-[#22d3ee]" />
                     </div>
                     <div>
-                        <h1 className="text-sm font-bold font-mono uppercase tracking-widest text-white">Discovery Lab</h1>
+                        <h1 className="text-sm font-bold font-mono uppercase tracking-widest text-white uppercase">V9.5 - THE D-Ecosystem</h1>
                         <p className="text-[9px] text-gray-500 font-mono">Autonomous Science Protocol</p>
                     </div>
                 </div>

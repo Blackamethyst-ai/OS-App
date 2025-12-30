@@ -12,7 +12,8 @@ interface KnowledgeGraphProps {
 }
 
 const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) => {
-    const { addResearchTask, addLog } = useAppStore();
+    const { actions } = useAppStore();
+    const { addResearchTask, addLog } = actions;
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
     const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);

@@ -5,7 +5,8 @@ import { BrainCircuit, ChevronUp, ChevronDown, ChevronRight, CheckCircle2, Loade
 import { audio } from '../services/audioService';
 
 const ResearchTray: React.FC = () => {
-    const { research, cancelResearchTask, addResearchTask, addLog } = useAppStore();
+    const { research, actions } = useAppStore();
+    const { cancelResearchTask, addResearchTask, addLog } = actions;
     const [isExpanded, setIsExpanded] = useState(false);
     const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
     

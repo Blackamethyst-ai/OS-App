@@ -33,7 +33,9 @@ const SchematicNode = ({ label, color, icon: Icon }: any) => (
 );
 
 const NexusAPIExplorer: React.FC = () => {
-    const { addLog, setProcessState, addAgent } = useAppStore();
+    const { actions } = useAppStore();
+    const { addLog, setProcessState, addAgent } = actions;
+    
     const [query, setQuery] = useState('');
     const [activeCat, setActiveCat] = useState('ALL');
     const [selectedApi, setSelectedApi] = useState<GoogleApiDefinition | null>(null);
@@ -381,7 +383,7 @@ const NexusAPIExplorer: React.FC = () => {
                                     <button 
                                         onClick={forgeCapability} 
                                         disabled={isForging}
-                                        className="flex-1 py-6 bg-[#9d4edd] text-black font-black font-mono text-[11px] uppercase tracking-[0.5em] rounded-[2rem] hover:bg-[#b06bf7] transition-all shadow-[0_30px_80px_rgba(157,78,221,0.4)] flex items-center justify-center gap-5 active:scale-95 disabled:opacity-50"
+                                        className="flex-1 py-6 bg-[#9d4edd] text-black rounded-[2rem] text-[11px] font-black uppercase tracking-[0.5em] rounded-[2rem] hover:bg-[#b06bf7] transition-all shadow-[0_30px_80px_rgba(157,78,221,0.4)] flex items-center justify-center gap-5 active:scale-95 disabled:opacity-50"
                                     >
                                         <Sparkles size={20} /> Forge Protocol
                                     </button>

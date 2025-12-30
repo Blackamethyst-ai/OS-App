@@ -1,4 +1,3 @@
-
 import { useAppStore } from '../store';
 import { evolveSystemArchitecture } from './geminiService';
 import { AppMode } from '../types';
@@ -14,7 +13,8 @@ const SCAN_COOLDOWN = 30000; // 30 seconds of inactivity required
  */
 export const autopoieticDaemon = async () => {
     const state = useAppStore.getState();
-    const { codeStudio, addLog, setCodeStudioState } = state;
+    const { codeStudio, actions } = state;
+    const { addLog, setCodeStudioState } = actions;
 
     // Guard: Only run in Code Studio with valid code that has changed
     if (state.mode !== AppMode.CODE_STUDIO) return;
