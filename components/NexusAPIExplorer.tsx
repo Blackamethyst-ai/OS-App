@@ -35,7 +35,6 @@ const SchematicNode = ({ label, color, icon: Icon }: any) => (
 const NexusAPIExplorer: React.FC = () => {
     const { actions } = useAppStore();
     const { addLog, setProcessState, addAgent } = actions;
-    
     const [query, setQuery] = useState('');
     const [activeCat, setActiveCat] = useState('ALL');
     const [selectedApi, setSelectedApi] = useState<GoogleApiDefinition | null>(null);
@@ -246,9 +245,9 @@ const NexusAPIExplorer: React.FC = () => {
                                 <div className="flex-1 min-w-0 pr-4 relative z-10">
                                     <div className="flex items-center gap-2 mb-1">
                                         <div className="w-1 h-1 rounded-full bg-[#22d3ee] animate-pulse" />
-                                        <span className="text-[11px] font-black text-white uppercase truncate">{api.title}</span>
+                                        <span className="text-11px font-black text-white uppercase truncate">{api.title}</span>
                                     </div>
-                                    <div className="text-[8px] text-gray-500 font-mono truncate uppercase tracking-tighter opacity-60 group-hover:opacity-100">{api.description}</div>
+                                    <div className="text-8px text-gray-500 font-mono truncate uppercase tracking-tighter opacity-60 group-hover:opacity-100">{api.description}</div>
                                 </div>
                                 <Sparkles size={14} className="text-[#22d3ee] shrink-0 animate-pulse" />
                             </motion.button>
@@ -265,15 +264,15 @@ const NexusAPIExplorer: React.FC = () => {
                             )}
                         >
                             <div className="flex-1 min-w-0 pr-4 relative z-10">
-                                <div className="text-[11px] font-black text-gray-200 group-hover:text-white transition-colors truncate uppercase tracking-tighter">{api.title}</div>
-                                <div className="text-[8px] text-gray-600 font-mono truncate uppercase mt-1 tracking-tighter">{api.description}</div>
+                                <div className="text-11px font-black text-gray-200 group-hover:text-white transition-colors truncate uppercase tracking-tighter">{api.title}</div>
+                                <div className="text-8px text-gray-600 font-mono truncate uppercase mt-1 tracking-tighter">{api.description}</div>
                             </div>
                             <ChevronRight size={14} className={cn("shrink-0 transition-transform group-hover:translate-x-1", selectedApi?.title === api.title ? "text-[#9d4edd]" : "text-gray-800")} />
                         </button>
                     ))}
                 </div>
                 
-                <div className="h-10 bg-black/80 border-t border-white/5 px-8 flex justify-between items-center text-[8px] font-mono text-gray-700 tracking-[0.2em] shrink-0 uppercase">
+                <div className="h-10 bg-black/80 border-t border-white/5 px-8 flex justify-between items-center text-8px font-mono text-gray-700 tracking-[0.2em] shrink-0 uppercase">
                     <div className="flex gap-6">
                         <span>Lattice_Endpoints: {GOOGLE_APIS.length + liveSearchResults.length}</span>
                         <span className="text-[#10b981]">Auth: SECURE</span>
@@ -298,7 +297,7 @@ const NexusAPIExplorer: React.FC = () => {
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
                                         <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full">
-                                            <span className="text-[9px] font-black text-[#9d4edd] uppercase tracking-[0.3em]">{selectedApi.category} Protocol</span>
+                                            <span className="text-9px font-black text-[#9d4edd] uppercase tracking-[0.3em]">{selectedApi.category} Protocol</span>
                                         </div>
                                         <div className="h-1 w-12 bg-white/5 rounded-full" />
                                     </div>
@@ -309,7 +308,7 @@ const NexusAPIExplorer: React.FC = () => {
 
                             <div className="grid grid-cols-2 gap-10 mb-12">
                                 <div className="space-y-6">
-                                    <div className="flex items-center gap-3 text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">
+                                    <div className="flex items-center gap-3 text-10px font-black text-gray-500 uppercase tracking-widest px-2">
                                         <Terminal size={14} className="text-[#9d4edd]" /> Capability Blueprint
                                     </div>
                                     <div className="p-8 bg-black/60 border border-white/5 rounded-[2.5rem] shadow-inner relative overflow-hidden group/summary">
@@ -319,7 +318,7 @@ const NexusAPIExplorer: React.FC = () => {
                                 </div>
                                 
                                 <div className="space-y-6">
-                                    <div className="flex items-center gap-3 text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">
+                                    <div className="flex items-center gap-3 text-10px font-black text-gray-500 uppercase tracking-widest px-2">
                                         <Waypoints size={14} className="text-[#22d3ee]" /> Integration Schematic
                                     </div>
                                     <div className="bg-black/40 border border-white/5 rounded-[2.5rem] p-8 flex items-center justify-around relative shadow-inner">
@@ -342,12 +341,12 @@ const NexusAPIExplorer: React.FC = () => {
                                 <div className="flex justify-between items-end mb-4 px-2">
                                     <div className="flex items-center gap-3">
                                         <Code size={18} className="text-[#22d3ee]" />
-                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">MCP Capability Manifest</span>
+                                        <span className="text-10px font-black text-gray-500 uppercase tracking-[0.4em]">MCP Capability Manifest</span>
                                     </div>
                                     {generatedSchema && (
                                         <div className="flex items-center gap-2">
                                             <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
-                                            <span className="text-[9px] font-mono text-[#10b981] font-bold uppercase">Ready for Injection</span>
+                                            <span className="text-9px font-mono text-[#10b981] font-bold uppercase">Ready for Injection</span>
                                         </div>
                                     )}
                                 </div>
@@ -360,11 +359,11 @@ const NexusAPIExplorer: React.FC = () => {
                                                     <Loader2 size={40} className="text-[#9d4edd] animate-spin" />
                                                     <div className="absolute inset-0 blur-2xl bg-[#9d4edd]/30 animate-pulse" />
                                                 </div>
-                                                <p className="text-[11px] font-mono text-white animate-pulse tracking-[0.8em] uppercase">Synthesizing Protocol Logic...</p>
+                                                <p className="text-11px font-mono text-white animate-pulse tracking-[0.8em] uppercase">Synthesizing Protocol Logic...</p>
                                             </motion.div>
                                         ) : generatedSchema ? (
                                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full">
-                                                <pre className="p-10 font-mono text-[11px] text-gray-400 overflow-auto custom-scrollbar h-full selection:bg-[#9d4edd]/40 leading-relaxed">
+                                                <pre className="p-10 font-mono text-11px text-gray-400 overflow-auto custom-scrollbar h-full selection:bg-[#9d4edd]/40 leading-relaxed">
                                                     {generatedSchema}
                                                 </pre>
                                             </motion.div>
@@ -383,7 +382,7 @@ const NexusAPIExplorer: React.FC = () => {
                                     <button 
                                         onClick={forgeCapability} 
                                         disabled={isForging}
-                                        className="flex-1 py-6 bg-[#9d4edd] text-black rounded-[2rem] text-[11px] font-black uppercase tracking-[0.5em] rounded-[2rem] hover:bg-[#b06bf7] transition-all shadow-[0_30px_80px_rgba(157,78,221,0.4)] flex items-center justify-center gap-5 active:scale-95 disabled:opacity-50"
+                                        className="flex-1 py-6 bg-[#9d4edd] text-black rounded-[2rem] text-11px font-black uppercase tracking-[0.5em] rounded-[2rem] hover:bg-[#b06bf7] transition-all shadow-[0_30px_80px_rgba(157,78,221,0.4)] flex items-center justify-center gap-5 active:scale-95 disabled:opacity-50"
                                     >
                                         <Sparkles size={20} /> Forge Protocol
                                     </button>
@@ -391,14 +390,14 @@ const NexusAPIExplorer: React.FC = () => {
                                     <>
                                         <button 
                                             onClick={forgeCapability}
-                                            className="px-10 py-6 bg-white/5 border border-white/10 hover:border-white/30 text-gray-500 hover:text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all"
+                                            className="px-10 py-6 bg-white/5 border border-white/10 hover:border-white/30 text-gray-500 hover:text-white rounded-[2rem] text-10px font-black uppercase tracking-widest transition-all"
                                         >
                                             Re-Forge
                                         </button>
                                         <button 
                                             onClick={handleCommitToOS}
                                             disabled={isCommitting}
-                                            className="flex-1 py-6 bg-[#10b981] text-black font-black font-mono text-[11px] uppercase tracking-[0.5em] rounded-[2rem] shadow-[0_30px_80px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5"
+                                            className="flex-1 py-6 bg-[#10b981] text-black font-black font-mono text-11px uppercase tracking-[0.5em] rounded-[2rem] shadow-[0_30px_80px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5"
                                         >
                                             {isCommitting ? <Loader2 size={20} className="animate-spin" /> : <PlayCircle size={22} />}
                                             Commit to OS Swarm

@@ -99,7 +99,8 @@ const SwarmNodeCard: React.FC<{ agent: AutonomousAgent, isActive: boolean, onCli
 };
 
 const AgentControlCenter: React.FC = () => {
-    const { agents, setAgentState, updateAgent, addLog } = useAppStore();
+    const { agents, actions } = useAppStore();
+    const { setAgentState, updateAgent, addLog } = actions;
     const [selectedAgentId, setSelectedAgentId] = useState<string | null>(agents.activeAgents[0]?.id || null);
     const [input, setInput] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -208,7 +209,7 @@ const AgentControlCenter: React.FC = () => {
                 {/* Left Flank: Active Swarm Nodes */}
                 <div className="w-[300px] border-r border-white/5 flex flex-col shrink-0">
                     <div className="p-5 border-b border-white/5 bg-white/[0.01]">
-                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                        <span className="text-9px font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
                             <Binary size={12} /> Active Swarm Nodes
                         </span>
                     </div>
@@ -221,7 +222,7 @@ const AgentControlCenter: React.FC = () => {
                                 onClick={() => { setSelectedAgentId(agent.id); audio.playClick(); }} 
                             />
                         ))}
-                        <button className="w-full py-4 border border-dashed border-white/10 rounded-xl text-[8px] font-black uppercase text-gray-600 hover:text-white hover:border-white/20 transition-all flex items-center justify-center gap-2">
+                        <button className="w-full py-4 border border-dashed border-white/10 rounded-xl text-8px font-black uppercase text-gray-600 hover:text-white hover:border-white/20 transition-all flex items-center justify-center gap-2">
                             <Plus size={12} /> Register New Agent
                         </button>
                     </div>
@@ -238,12 +239,12 @@ const AgentControlCenter: React.FC = () => {
                                     <Globe size={14} className="text-[#9d4edd]" />
                                     <div>
                                         <h2 className="text-xs font-black text-white uppercase tracking-[0.2em]">{activeAgent.name.toUpperCase()} MIND MODE</h2>
-                                        <p className="text-[8px] text-gray-600 font-mono uppercase tracking-widest mt-0.5">Autonomous general intelligence buffer.</p>
+                                        <p className="text-8px text-gray-600 font-mono uppercase tracking-widest mt-0.5">Autonomous general intelligence buffer.</p>
                                     </div>
                                 </div>
                                 <div className="text-right">
-                                    <span className="text-[7px] font-mono text-gray-700 uppercase tracking-widest block">Uplink Hash</span>
-                                    <span className="text-[10px] font-black font-mono text-[#9d4edd] uppercase">ALPHA_V8</span>
+                                    <span className="text-7px font-mono text-gray-700 uppercase tracking-widest block">Uplink Hash</span>
+                                    <span className="text-10px font-black font-mono text-[#9d4edd] uppercase">ALPHA_V8</span>
                                 </div>
                             </div>
 
@@ -273,9 +274,9 @@ const AgentControlCenter: React.FC = () => {
                                                         ? "bg-red-500/5 border-red-500/20 text-red-400 font-bold"
                                                         : "text-white border-l-4 border-l-[#9d4edd]"
                                                 )}>
-                                                    <span className="text-[7px] font-black uppercase text-gray-700 block mb-2">{msg.role} // TERMINAL_OUTPUT</span>
+                                                    <span className="text-7px font-black uppercase text-gray-700 block mb-2">{msg.role} // TERMINAL_OUTPUT</span>
                                                     {msg.text}
-                                                    <div className="text-[6px] text-gray-800 absolute bottom-2 right-4 font-mono">
+                                                    <div className="text-6px text-gray-800 absolute bottom-2 right-4 font-mono">
                                                         {new Date(msg.timestamp).toLocaleTimeString()}
                                                     </div>
                                                 </div>
@@ -288,7 +289,7 @@ const AgentControlCenter: React.FC = () => {
                             {/* Strategic Directive Input */}
                             <div className="p-8 border-t border-white/5 bg-transparent relative z-20">
                                 <div className="max-w-3xl mx-auto">
-                                    <div className="text-[7px] font-black text-gray-600 uppercase tracking-[0.5em] mb-3 px-4 flex items-center gap-2">
+                                    <div className="text-7px font-black text-gray-600 uppercase tracking-[0.5em] mb-3 px-4 flex items-center gap-2">
                                         <Zap size={8} className="text-[#9d4edd] animate-pulse" /> Active Neural Circuitry
                                     </div>
                                     <div className="crystalline border border-white/10 rounded-2xl p-1.5 focus-within:border-[#9d4edd]/50 transition-all shadow-2xl relative group">
@@ -327,16 +328,16 @@ const AgentControlCenter: React.FC = () => {
                 <div className="w-[340px] border-l border-white/5 flex flex-col shrink-0">
                     <div className="p-5 border-b border-white/5 bg-white/[0.01] flex items-center gap-3">
                         <Activity className="w-4 h-4 text-[#9d4edd]" />
-                        <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Logic Diagnostics</h2>
+                        <h2 className="text-10px font-black text-white uppercase tracking-[0.2em]">Logic Diagnostics</h2>
                     </div>
 
                     <div className="p-6 space-y-10 flex-1 overflow-y-auto custom-scrollbar">
                         {/* Core Capabilities Chips */}
                         <div className="space-y-4">
-                            <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">Core Capabilities</span>
+                            <span className="text-8px font-black text-gray-600 uppercase tracking-widest px-1">Core Capabilities</span>
                             <div className="flex flex-wrap gap-2">
                                 {(activeAgent?.capabilities || ['GENERAL_PURPOSE', 'LOGIC_SYNTHESIS']).map(cap => (
-                                    <div key={cap} className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-[#9d4edd] uppercase tracking-widest transition-all hover:bg-white/10 hover:border-[#9d4edd]/30 cursor-default">
+                                    <div key={cap} className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-8px font-black text-[#9d4edd] uppercase tracking-widest transition-all hover:bg-white/10 hover:border-[#9d4edd]/30 cursor-default">
                                         {cap}
                                     </div>
                                 ))}
@@ -345,7 +346,7 @@ const AgentControlCenter: React.FC = () => {
 
                         {/* Autonomic Tasks Progress Bars */}
                         <div className="space-y-6">
-                            <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">Autonomic Tasks</span>
+                            <span className="text-8px font-black text-gray-600 uppercase tracking-widest px-1">Autonomic Tasks</span>
                             <div className="space-y-6">
                                 <AutonomicTask label="Neural Pruning" progress={12} color="#9d4edd" />
                                 <AutonomicTask label="Context Optimization" progress={18} color="#22d3ee" />
@@ -355,7 +356,7 @@ const AgentControlCenter: React.FC = () => {
 
                         {/* Stability Vector Projection */}
                         <div className="space-y-4 pt-10">
-                            <div className="flex justify-between items-center text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">
+                            <div className="flex justify-between items-center text-8px font-black text-gray-600 uppercase tracking-widest px-1">
                                 <span>Stability Vector</span>
                                 <GitBranch size={12} />
                             </div>
@@ -372,7 +373,7 @@ const AgentControlCenter: React.FC = () => {
 
                     {/* Sector Awareness Metric */}
                     <div className="p-5 border-t border-white/5 bg-transparent shrink-0">
-                        <div className="flex justify-between items-center text-[8px] font-mono text-gray-600 uppercase mb-3 px-1">
+                        <div className="flex justify-between items-center text-8px font-mono text-gray-600 uppercase mb-3 px-1">
                             <span>Sector Awareness</span>
                             <span className="text-[#10b981]">94%</span>
                         </div>
