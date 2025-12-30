@@ -77,7 +77,29 @@ const AppFooter: React.FC = () => {
                         <MetaventionsLogo size={24} showText={true} />
                         <div className="h-6 w-px bg-white/5 hidden sm:block" />
                         <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-[0.4em] flex items-center gap-6">
-                            <span className="text-[var(--stellar-white)] font-black">© 2025 METAVENTIONS AI</span>
+                            <div className="flex items-center gap-2">
+                                <span className="text-[var(--stellar-white)] font-black">© 2025</span>
+                                <motion.span 
+                                    animate={{ 
+                                        textShadow: [
+                                            "0 0 8px rgba(255, 255, 255, 0.3)",
+                                            "0 0 16px rgba(255, 255, 255, 0.6)",
+                                            "0 0 8px rgba(255, 255, 255, 0.3)"
+                                        ]
+                                    }}
+                                    transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                                    className="text-white font-black"
+                                >
+                                    METAVENTIONS
+                                </motion.span>
+                                <motion.span 
+                                    animate={{ color: ["#18E6FF", "#7B2CFF", "#18E6FF"] }}
+                                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                    className="font-black"
+                                >
+                                    AI
+                                </motion.span>
+                            </div>
                             <span className="opacity-20 hidden lg:block">//</span>
                             <span className="hidden lg:block">Architecture OS</span>
                             <span className="opacity-20 hidden lg:block">//</span>
