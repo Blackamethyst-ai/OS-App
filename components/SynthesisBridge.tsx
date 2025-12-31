@@ -16,10 +16,10 @@ import {
     Code,
     ChevronDown,
     FileText,
-    FolderOpen
+    FolderOpen,
+    Aperture
 } from 'lucide-react';
 import { GoogleGenAI, Type, Schema, GenerateContentResponse } from '@google/genai';
-// Fix: Added generateStructuredWorkflow to the import list from geminiService
 import { retryGeminiRequest, promptSelectKey, safeParseJson, generateStructuredWorkflow } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
@@ -56,7 +56,6 @@ const DomainCard = ({ id, label, sub, icon: Icon, active, onClick, color }: any)
 );
 
 const TreeView = ({ data }: { data: any }) => {
-    // FIX: Defensive check for structure array to avoid "Cannot read properties of undefined (reading 'map')"
     if (!data || !Array.isArray(data.structure)) return null;
     
     const renderNode = (node: any, depth = 0) => {
@@ -79,7 +78,6 @@ const TreeView = ({ data }: { data: any }) => {
                         <span className="text-[8px] text-gray-700 opacity-0 group-hover/node:opacity-100 transition-opacity ml-2 italic">— {node.description}</span>
                     )}
                 </div>
-                {/* FIX: Defensive check for children array mapping */}
                 {Array.isArray(node.children) && node.children.map((child: any) => renderNode(child, depth + 1))}
             </div>
         );
@@ -165,7 +163,6 @@ const ImplementationDeck: React.FC<{
                         <ListChecks size={20} className="text-[#10b981]" />
                         <span className="text-xs font-black text-white uppercase tracking-[0.4em]">Implementation Sequence</span>
                     </div>
-                    {/* FIX: Defensive check for workflowSteps array mapping */}
                     {Array.isArray(data.workflowSteps) && data.workflowSteps.map((step: any, i: number) => (
                         <motion.div 
                             key={i} 
@@ -237,7 +234,7 @@ const ImplementationDeck: React.FC<{
 };
 
 const SynthesisBridge: React.FC = () => {
-    const { actions, knowledge } = useAppStore();
+    const { actions, knowledge, dashboard } = useAppStore();
     const { addLog, pushToInvestmentQueue, archiveIntervention, setDashboardState } = actions;
     
     const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM' | 'CODE'>('DRIVE');
@@ -269,7 +266,7 @@ const SynthesisBridge: React.FC = () => {
                 : "Generate a technical manifesto for React/TypeScript type safety. Specifically address resolving Property props errors via explicit generic inheritance. Use strict architectural terms.");
 
             const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', processType === 'DRIVE' ? 'DRIVE_ORGANIZATION' : 'SYSTEM_ARCHITECTURE', { 
-                prompt: `${directive}. User Context: ${customIntent}. Knowledge Layers: ${activeLayers}.`,
+                prompt: `${directive}. User Context: ${customIntent}. Knowledge Layers: ${activeLayers}. Fidelity: ${dashboard.architecturalFidelity}%.`,
                 dna: { skepticism: 10, excitement: 90, alignment: 95 }
             });
 
@@ -305,6 +302,16 @@ const SynthesisBridge: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-12">
+                    <div className="flex items-center gap-4 bg-black/40 px-6 py-2 rounded-2xl border border-white/5">
+                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Forge Fidelity</span>
+                        <div className="flex items-center gap-4">
+                            <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
+                                <motion.div animate={{ width: `${dashboard.architecturalFidelity}%` }} className="h-full bg-[#7B2CFF]" />
+                            </div>
+                            <span className="text-[10px] font-black font-mono text-white">{dashboard.architecturalFidelity}%</span>
+                        </div>
+                    </div>
+                    <div className="h-10 w-px bg-white/5" />
                     <div className="flex flex-col items-end gap-1.5">
                         <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest">Protocol Sync</span>
                         <div className="flex items-center gap-3">
@@ -335,6 +342,29 @@ const SynthesisBridge: React.FC = () => {
                                 id="CODE" label="Type Sovereignty" sub="ARCH DEBT FIX" icon={Code} color="#f1c21b"
                                 active={processType === 'CODE'} onClick={() => { setProcessType('CODE'); audio.playClick(); }} 
                             />
+                        </div>
+                    </div>
+
+                    <div className="p-8 bg-[#0a0a0c] border border-white/5 rounded-[3rem] shadow-2xl invisible-glass space-y-8 backdrop-blur-3xl">
+                        <div className="flex items-center gap-3 mb-2 px-1">
+                            <Aperture size={16} className="text-gray-500" />
+                            <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Fidelity Tuning</span>
+                        </div>
+                        <div className="space-y-4 px-2">
+                            <div className="flex justify-between items-center text-[9px] font-mono text-gray-600">
+                                <span>ABSTRACT</span>
+                                <span>PRODUCTION</span>
+                            </div>
+                            <input 
+                                type="range" 
+                                min="10" max="100" 
+                                value={dashboard.architecturalFidelity}
+                                onChange={e => setDashboardState({ architecturalFidelity: parseInt(e.target.value) })}
+                                className="w-full h-1 bg-white/5 rounded-full appearance-none accent-[#7B2CFF] cursor-pointer"
+                            />
+                            <p className="text-[8px] text-gray-700 italic uppercase leading-relaxed">
+                                "Higher fidelity increases token density and recursive verification rounds."
+                            </p>
                         </div>
                     </div>
 

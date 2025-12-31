@@ -19,7 +19,8 @@ import {
     AlertTriangle, ZapOff, Scan, Maximize2,
     FileSearch, ListChecks, Workflow, Code,
     X, FolderTree, FileText, ChevronRight,
-    Terminal, Crosshair, Sparkles
+    Terminal, Crosshair, Sparkles, Eye, EyeOff,
+    Navigation, Settings, Layout, MousePointer2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
@@ -28,7 +29,92 @@ import { cn } from '../utils/cn';
 import DEcosystem from './DEcosystem';
 import ContextVelocityChart from './ContextVelocityChart';
 
+// --- VISIONARY CONSTANTS ---
+const VISIONARY_DIRECTIVES = [
+    "Architecture is the frozen music of logic.",
+    "Entropy is the architect's primary adversary.",
+    "System coherence emerges from recursive symmetry.",
+    "Identity is the first anchor of any autonomous lattice.",
+    "Complexity must be distilled, not merely managed.",
+    "The D-Ecosystem thrives on decentralized integrity.",
+    "Vision is the roadmap of implementation.",
+    "Data without structure is noise; structure without data is an empty shell."
+];
+
 // --- SUB-COMPONENTS ---
+
+const VisionaryTicker = () => {
+    const [index, setIndex] = useState(0);
+    useEffect(() => {
+        const interval = setInterval(() => setIndex(i => (i + 1) % VISIONARY_DIRECTIVES.length), 8000);
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-black/60 backdrop-blur-xl border border-white/5 px-6 py-2 rounded-full shadow-2xl">
+            <AnimatePresence mode="wait">
+                <motion.div 
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="flex items-center gap-3"
+                >
+                    <Sparkles size={10} className="text-[#f1c21b] animate-pulse" />
+                    <span className="text-[8px] font-black font-mono text-gray-400 uppercase tracking-[0.4em] italic">
+                        {VISIONARY_DIRECTIVES[index]}
+                    </span>
+                </motion.div>
+            </AnimatePresence>
+        </div>
+    );
+};
+
+const NeuralFileStream = ({ active }: { active: boolean }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    useEffect(() => {
+        if (!active) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let frame = 0;
+        const particles: any[] = Array.from({ length: 40 }, () => ({
+            x: Math.random() * 800,
+            y: Math.random() * 400,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            size: Math.random() * 2 + 1,
+            color: ['#9d4edd', '#22d3ee', '#f1c21b', '#10b981'][Math.floor(Math.random() * 4)]
+        }));
+
+        const animate = () => {
+            frame++;
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = p.color;
+                ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        };
+        const handle = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(handle);
+    }, [active]);
+
+    return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-10 opacity-30" />;
+};
 
 const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) => (
     <div className="crystalline border-none rounded-2xl p-4 flex flex-col gap-2 hover:border-white/15 transition-all group shadow-inner relative overflow-hidden invisible-glass hover:scale-[1.02]">
@@ -354,6 +440,11 @@ const MetaventionsHub: React.FC = () => {
     actions.addLog('SUCCESS', 'ASSET_STUDIO: Strategic view manifest cached to local storage.');
   };
 
+  const toggleOculus = () => {
+    actions.setDashboardState({ isOculusView: !dashboard.isOculusView });
+    audio.playClick();
+  };
+
   return (
     <div key={theme} className="h-full w-full bg-[#020204] flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out relative">
       
@@ -378,82 +469,99 @@ const MetaventionsHub: React.FC = () => {
       </div>
       
       {/* Enhanced Header Banner */}
-      <div className="h-20 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-3xl z-20 flex items-center justify-between px-10 shrink-0 relative overflow-hidden shadow-2xl">
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/50 to-transparent" />
-          
-          <div className="flex items-center gap-10 relative z-10">
-              <div className="relative group cursor-pointer" onClick={() => actions.toggleProfile(true)}>
-                  <div className="w-14 h-14 rounded-[2rem] border-2 border-[#9d4edd]/30 overflow-hidden bg-black/60 flex items-center justify-center shadow-[0_0_30px_rgba(157,78,221,0.15)] group-hover:border-[#9d4edd] group-hover:shadow-[0_0_40px_rgba(157,78,221,0.3)] transition-all duration-700">
-                      {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="User" /> : <User size={24} className="text-gray-700" />}
-                  </div>
-                  <motion.div 
-                    animate={{ scale: [1, 1.15, 1], opacity: [1, 0.5, 1] }}
-                    transition={{ duration: 3, repeat: Infinity }}
-                    className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#0a0a0a] border border-white/10 rounded-full flex items-center justify-center text-[#9d4edd] shadow-2xl"
-                  >
-                      <ShieldCheck size={12} className="text-[#10b981]" />
-                  </motion.div>
-              </div>
-              <div className="flex flex-col">
-                  <div className="flex items-center gap-4">
-                      <div className="px-3 py-0.5 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-lg backdrop-blur-3xl shadow-inner">
-                        <span className="text-[9px] font-black text-[#9d4edd] uppercase font-mono tracking-[0.4em] leading-none">Identity_Verified_L0</span>
-                      </div>
-                      <div className="h-1 w-8 bg-white/5 rounded-full" />
-                      <span className="text-gray-500 font-mono text-[9px] tracking-widest font-black uppercase opacity-60">Handshake Stable</span>
-                  </div>
-                  <h1 className="text-2xl font-black text-white uppercase font-mono tracking-tighter leading-none mt-1.5 flex items-center gap-3">
-                    The D-Ecosystem
-                    <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 2, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] shadow-[0_0_12px_#9d4edd]" />
-                  </h1>
-              </div>
-          </div>
+      <AnimatePresence>
+        {!dashboard.isOculusView && (
+            <motion.div 
+                initial={{ y: -100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -100, opacity: 0 }}
+                className="h-20 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-3xl z-20 flex items-center justify-between px-10 shrink-0 relative overflow-hidden shadow-2xl"
+            >
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/50 to-transparent" />
+                
+                <div className="flex items-center gap-10 relative z-10">
+                    <div className="relative group cursor-pointer" onClick={() => actions.toggleProfile(true)}>
+                        <div className="w-14 h-14 rounded-[2rem] border-2 border-[#9d4edd]/30 overflow-hidden bg-black/60 flex items-center justify-center shadow-[0_0_30px_rgba(157,78,221,0.15)] group-hover:border-[#9d4edd] group-hover:shadow-[0_0_40px_rgba(157,78,221,0.3)] transition-all duration-700">
+                            {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="User" /> : <User size={24} className="text-gray-700" />}
+                        </div>
+                        <motion.div 
+                            animate={{ scale: [1, 1.15, 1], opacity: [1, 0.5, 1] }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                            className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#0a0a0a] border border-white/10 rounded-full flex items-center justify-center text-[#9d4edd] shadow-2xl"
+                        >
+                            <ShieldCheck size={12} className="text-[#10b981]" />
+                        </motion.div>
+                    </div>
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-4">
+                            <div className="px-3 py-0.5 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-lg backdrop-blur-3xl shadow-inner">
+                                <span className="text-[9px] font-black text-[#9d4edd] uppercase font-mono tracking-[0.4em] leading-none">Identity_Verified_L0</span>
+                            </div>
+                            <div className="h-1 w-8 bg-white/5 rounded-full" />
+                            <span className="text-gray-500 font-mono text-[9px] tracking-widest font-black uppercase opacity-60">Handshake Stable</span>
+                        </div>
+                        <h1 className="text-2xl font-black text-white uppercase font-mono tracking-tighter leading-none mt-1.5 flex items-center gap-3">
+                            The D-Ecosystem
+                            <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 2, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] shadow-[0_0_12px_#9d4edd]" />
+                        </h1>
+                    </div>
+                </div>
 
-          <div className="flex items-center gap-16 relative z-10">
-              <div className="flex items-center gap-12">
-                  <div className="text-right group/stat">
-                      <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-1 group-hover:text-white transition-colors">Global Lattice</span>
-                      <div className="flex items-center gap-4 mt-0.5">
-                          <span className="text-2xl font-black font-mono text-white tracking-tighter">99.99%</span>
-                          <div className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_15px_#10b981]" />
-                      </div>
-                  </div>
-                  <div className="h-10 w-px bg-white/5" />
-                  <div className="text-right group/stat">
-                      <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-1 group-hover:text-white transition-colors">Neural Flux</span>
-                      <div className="flex items-center gap-4 mt-0.5">
-                          <span className="text-2xl font-black font-mono text-white tracking-tighter">{telemetry.entropy.toFixed(1)}</span>
-                          <div className={cn(
-                            "w-2.5 h-2.5 rounded-full animate-pulse transition-all duration-700",
-                            telemetry.entropy > 12 ? 'bg-[#ef4444] shadow-[0_0_15px_#ef4444]' : 'bg-[#9d4edd] shadow-[0_0_15px_#9d4edd]'
-                          )} />
-                      </div>
-                  </div>
-              </div>
-          </div>
-      </div>
+                <div className="flex items-center gap-16 relative z-10">
+                    <div className="flex items-center gap-12">
+                        <div className="text-right group/stat">
+                            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-1 group-hover:text-white transition-colors">Global Lattice</span>
+                            <div className="flex items-center gap-4 mt-0.5">
+                                <span className="text-2xl font-black font-mono text-white tracking-tighter">99.99%</span>
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_15px_#10b981]" />
+                            </div>
+                        </div>
+                        <div className="h-10 w-px bg-white/5" />
+                        <div className="text-right group/stat">
+                            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-1 group-hover:text-white transition-colors">Neural Flux</span>
+                            <div className="flex items-center gap-4 mt-0.5">
+                                <span className="text-2xl font-black font-mono text-white tracking-tighter">{telemetry.entropy.toFixed(1)}</span>
+                                <div className={cn(
+                                    "w-2.5 h-2.5 rounded-full animate-pulse transition-all duration-700",
+                                    telemetry.entropy > 12 ? 'bg-[#ef4444] shadow-[0_0_15px_#ef4444]' : 'bg-[#9d4edd] shadow-[0_0_15px_#9d4edd]'
+                                )} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-10 relative bg-transparent z-10">
+          {/* Visionary Overlay Directive */}
+          {!dashboard.isOculusView && <VisionaryTicker />}
+
           <div className="grid grid-cols-12 gap-8 min-h-0 items-start">
               
               {/* Strategic Operations Center (Primary Display) */}
-              <div className="col-span-9 crystalline rounded-[4rem] p-0 shadow-2xl relative overflow-hidden flex flex-col min-h-[1000px] group/soc invisible-glass border border-white/5">
+              <div className={cn(
+                  "crystalline shadow-2xl relative overflow-hidden flex flex-col min-h-[1000px] group/soc invisible-glass border border-white/5 transition-all duration-1000",
+                  dashboard.isOculusView ? "col-span-12 rounded-none border-none" : "col-span-9 rounded-[4rem]"
+              )}>
                   
                   {/* Protocol Ticker Overlay */}
-                  <div className="absolute top-14 left-0 w-full h-8 z-30 bg-[#0a0a0c]/40 backdrop-blur-md border-y border-white/5 overflow-hidden flex items-center">
-                       <motion.div 
-                        animate={{ x: ['100%', '-100%'] }}
-                        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                        className="whitespace-nowrap flex items-center gap-12"
-                       >
-                           {['INITIALIZING_PARA_DRIVE_V8', 'CLOUD_NODES_STABILIZED', 'DEPIN_EQUITY_LOCKED', 'RECURSIVE_ZETTELKASTEN_SYNC', 'IA_ORCHESTRATION_L0_OK'].map((msg, i) => (
-                               <div key={i} className="flex items-center gap-3">
-                                   <div className="w-1 h-1 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />
-                                   <span className="text-[8px] font-black font-mono text-white/40 uppercase tracking-[0.5em]">{msg}</span>
-                               </div>
-                           ))}
-                       </motion.div>
-                  </div>
+                  {!dashboard.isOculusView && (
+                    <div className="absolute top-14 left-0 w-full h-8 z-30 bg-[#0a0a0c]/40 backdrop-blur-md border-y border-white/5 overflow-hidden flex items-center">
+                        <motion.div 
+                            animate={{ x: ['100%', '-100%'] }}
+                            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                            className="whitespace-nowrap flex items-center gap-12"
+                        >
+                            {['INITIALIZING_PARA_DRIVE_V8', 'CLOUD_NODES_STABILIZED', 'DEPIN_EQUITY_LOCKED', 'RECURSIVE_ZETTELKASTEN_SYNC', 'IA_ORCHESTRATION_L0_OK'].map((msg, i) => (
+                                <div key={i} className="flex items-center gap-3">
+                                    <div className="w-1 h-1 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />
+                                    <span className="text-[8px] font-black font-mono text-white/40 uppercase tracking-[0.5em]">{msg}</span>
+                                </div>
+                            ))}
+                        </motion.div>
+                    </div>
+                  )}
 
                   <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 shrink-0 z-20 relative">
                       <div className="flex items-center gap-4">
@@ -461,6 +569,17 @@ const MetaventionsHub: React.FC = () => {
                           <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Strategic Operations Center</span>
                       </div>
                       <div className="flex items-center gap-6">
+                           <button 
+                                onClick={toggleOculus}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-1 rounded-full border transition-all",
+                                    dashboard.isOculusView ? "bg-[#f1c21b] border-[#f1c21b] text-black" : "bg-black/40 border-white/10 text-gray-500 hover:text-white"
+                                )}
+                           >
+                               {dashboard.isOculusView ? <EyeOff size={12} /> : <Eye size={12} />}
+                               <span className="text-[8px] font-mono uppercase tracking-widest font-black">{dashboard.isOculusView ? 'Disable Oculus' : 'Oculus View'}</span>
+                           </button>
+
                            {dashboard.activeManifest && (
                                <button 
                                 onClick={() => setShowBlueprint(!showBlueprint)}
@@ -481,6 +600,9 @@ const MetaventionsHub: React.FC = () => {
                   </div>
                   
                   <div className="flex-1 relative overflow-hidden bg-[#020204] group/view">
+                      {/* Visionary Feature: Neural Particle Interaction */}
+                      <NeuralFileStream active={!!dashboard.activeManifest} />
+
                       <AnimatePresence mode="wait">
                           {isSyncing ? (
                               <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/80 backdrop-blur-3xl">
@@ -706,127 +828,145 @@ const MetaventionsHub: React.FC = () => {
               </div>
 
               {/* Sidebar Panel */}
-              <div className="col-span-3 space-y-8 flex flex-col relative z-10">
-                  
-                  {/* Biometric Anchor - With Reticle Animations */}
-                  <div className="crystalline rounded-[3rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/anchor shrink-0 invisible-glass border border-white/5">
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
-                      
-                      <div className="flex items-center justify-between relative z-10 px-1">
-                         <div className="flex items-center gap-4">
-                             <div className="relative">
-                                <Fingerprint size={20} className="text-[#9d4edd]" />
-                                <motion.div 
-                                    animate={{ rotate: 360 }}
-                                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                                    className="absolute -inset-2 border border-dashed border-[#9d4edd]/30 rounded-full"
-                                />
-                             </div>
-                             <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Biometric Anchor</span>
-                         </div>
-                         <label className="cursor-pointer p-2.5 bg-black/40 hover:bg-black/60 rounded-xl transition-all border border-white/5 group/btn-up shadow-xl active:scale-95">
-                            <Upload size={14} className="text-gray-500 group-hover/btn-up:text-white" />
-                            <input type="file" className="hidden" onChange={handleAnchorSwap} accept="image/*" />
-                         </label>
-                      </div>
-
-                      <div 
-                        onClick={() => fileInputRef.current?.click()}
-                        className="aspect-video bg-black/60 rounded-[2.5rem] border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer"
-                      >
-                          <input type="file" ref={fileInputRef} className="hidden" onChange={handleAnchorSwap} accept="image/*" />
-                          
-                          <motion.div 
-                            animate={{ top: ['-100%', '100%'] }}
-                            transition={{ duration: 2, repeat: isSyncing ? Infinity : 0, ease: "linear" }}
-                            className={cn(
-                                "absolute left-0 w-full h-[2px] bg-[#9d4edd] shadow-[0_0_20px_#9d4edd] z-30",
-                                !isSyncing && "hidden"
-                            )}
-                          />
-
-                          {dashboard.referenceImage ? (
-                                <>
-                                    <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover grayscale opacity-40 transition-all duration-1000 group-hover/v-anchor:opacity-90 group-hover/v-anchor:grayscale-0" alt="Anchor" />
-                                    {/* Scanning Overlay during Sync */}
-                                    {isSyncing && (
-                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px]">
-                                            <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center relative">
-                                                <div className="absolute inset-0 border-t-2 border-[#9d4edd] rounded-full animate-spin" />
-                                                <Target size={24} className="text-[#9d4edd] animate-pulse" />
-                                            </div>
-                                        </div>
-                                    )}
-                                    <div className="absolute inset-0 bg-white/5 opacity-0 group-hover/v-anchor:opacity-100 transition-all duration-700 flex items-center justify-center">
-                                        <div className="px-8 py-2 bg-black/80 rounded-xl border border-white/10 text-[9px] font-black uppercase tracking-[0.4em] text-white backdrop-blur-3xl shadow-2xl active:scale-95">RE-CALIBRATE</div>
+              <AnimatePresence>
+                {!dashboard.isOculusView && (
+                    <motion.div 
+                        initial={{ x: 100, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: 100, opacity: 0 }}
+                        className="col-span-3 space-y-8 flex flex-col relative z-10"
+                    >
+                        
+                        {/* Biometric Anchor - With Reticle Animations */}
+                        <div className="crystalline rounded-[3rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/anchor shrink-0 invisible-glass border border-white/5">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
+                            
+                            <div className="flex items-center justify-between relative z-10 px-1">
+                                <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                        <Fingerprint size={20} className="text-[#9d4edd]" />
+                                        <motion.div 
+                                            animate={{ rotate: 360 }}
+                                            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                            className="absolute -inset-2 border border-dashed border-[#9d4edd]/30 rounded-full"
+                                        />
                                     </div>
-                                </>
-                          ) : (
-                                <div className="flex flex-col items-center gap-4 opacity-20 group-hover/anchor:opacity-40 transition-opacity">
-                                    <div className="w-14 h-14 rounded-full border border-dashed border-white/30 flex items-center justify-center">
-                                        <Fingerprint size={24} />
-                                    </div>
-                                    <span className="text-[9px] font-black uppercase tracking-[0.5em] font-mono">Load Identity Key</span>
+                                    <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Biometric Anchor</span>
                                 </div>
-                          )}
-                      </div>
-                  </div>
+                                <label className="cursor-pointer p-2.5 bg-black/40 hover:bg-black/60 rounded-xl transition-all border border-white/5 group/btn-up shadow-xl active:scale-95">
+                                    <Upload size={14} className="text-gray-500 group-hover/btn-up:text-white" />
+                                    <input type="file" className="hidden" onChange={handleAnchorSwap} accept="image/*" />
+                                </label>
+                            </div>
 
-                  <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden shrink-0 invisible-glass border border-white/5">
-                      <div className="grid grid-cols-2 gap-4">
-                          <CompactMetric title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
-                          <CompactMetric title="BANDWIDTH" value={`${telemetry.net}GB/s`} detail="PEAK" icon={Radio} color="var(--amethyst)" trend="up" />
-                          <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
-                          <CompactMetric title="LATENCY" value="2.4ms" detail="OPTIMAL" icon={Zap} color="#f59e0b" trend="up" />
-                      </div>
-                  </div>
+                            <div 
+                                onClick={() => fileInputRef.current?.click()}
+                                className="aspect-video bg-black/60 rounded-[2.5rem] border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer"
+                            >
+                                <input type="file" ref={fileInputRef} className="hidden" onChange={handleAnchorSwap} accept="image/*" />
+                                
+                                <motion.div 
+                                    animate={{ top: ['-100%', '100%'] }}
+                                    transition={{ duration: 2, repeat: isSyncing ? Infinity : 0, ease: "linear" }}
+                                    className={cn(
+                                        "absolute left-0 w-full h-[2px] bg-[#9d4edd] shadow-[0_0_20px_#9d4edd] z-30",
+                                        !isSyncing && "hidden"
+                                    )}
+                                />
 
-                  <DirectoryPeek manifest={dashboard.activeManifest} />
+                                {dashboard.referenceImage ? (
+                                        <>
+                                            <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover grayscale opacity-40 transition-all duration-1000 group-hover/v-anchor:opacity-90 group-hover/v-anchor:grayscale-0" alt="Anchor" />
+                                            {/* Scanning Overlay during Sync */}
+                                            {isSyncing && (
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                                                    <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center relative">
+                                                        <div className="absolute inset-0 border-t-2 border-[#9d4edd] rounded-full animate-spin" />
+                                                        <Target size={24} className="text-[#9d4edd] animate-pulse" />
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover/v-anchor:opacity-100 transition-all duration-700 flex items-center justify-center">
+                                                <div className="px-8 py-2 bg-black/80 rounded-xl border border-white/10 text-[9px] font-black uppercase tracking-[0.4em] text-white backdrop-blur-3xl shadow-2xl active:scale-95">RE-CALIBRATE</div>
+                                            </div>
+                                        </>
+                                ) : (
+                                        <div className="flex flex-col items-center gap-4 opacity-20 group-hover/anchor:opacity-40 transition-opacity">
+                                            <div className="w-14 h-14 rounded-full border border-dashed border-white/30 flex items-center justify-center">
+                                                <Fingerprint size={24} />
+                                            </div>
+                                            <span className="text-[9px] font-black uppercase tracking-[0.5em] font-mono">Load Identity Key</span>
+                                        </div>
+                                )}
+                            </div>
+                        </div>
 
-                  <div className="crystalline rounded-[2.5rem] p-8 h-64 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5">
-                      <div className="flex items-center gap-3 mb-6 relative z-10">
-                        <ChartIcon size={14} className="text-[#f1c21b]" />
-                        <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
-                      </div>
-                      <div className="flex-1 h-44 relative z-10">
-                         <ResponsiveContainer width="100%" height="100%">
-                            <RadarChart data={dashboard.topologyData}>
-                                <PolarGrid stroke="#333" />
-                                <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
-                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
-                            </RadarChart>
-                         </ResponsiveContainer>
-                      </div>
-                      <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
-                  </div>
+                        <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden shrink-0 invisible-glass border border-white/5">
+                            <div className="grid grid-cols-2 gap-4">
+                                <CompactMetric title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
+                                <CompactMetric title="BANDWIDTH" value={`${telemetry.net}GB/s`} detail="PEAK" icon={Radio} color="var(--amethyst)" trend="up" />
+                                <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
+                                <CompactMetric title="LATENCY" value="2.4ms" detail="OPTIMAL" icon={Zap} color="#f59e0b" trend="up" />
+                            </div>
+                        </div>
 
-                  <CapitalVelocity />
+                        <DirectoryPeek manifest={dashboard.activeManifest} />
 
-                  <SwarmBox />
-                  
-                  <div className="flex-1 min-h-[300px]">
-                    <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
-                  </div>
-              </div>
+                        <div className="crystalline rounded-[2.5rem] p-8 h-64 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5">
+                            <div className="flex items-center gap-3 mb-6 relative z-10">
+                                <ChartIcon size={14} className="text-[#f1c21b]" />
+                                <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
+                            </div>
+                            <div className="flex-1 h-44 relative z-10">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <RadarChart data={dashboard.topologyData}>
+                                        <PolarGrid stroke="#333" />
+                                        <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
+                                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                        <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
+                                    </RadarChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
+                        </div>
+
+                        <CapitalVelocity />
+
+                        <SwarmBox />
+                        
+                        <div className="flex-1 min-h-[300px]">
+                            <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
+                        </div>
+                    </motion.div>
+                )}
+              </AnimatePresence>
           </div>
 
-          <div className="w-full h-[850px] mt-20 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
-              <div className="absolute top-12 left-16 z-20 flex flex-col gap-3 pointer-events-none">
-                  <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">
-                      The D-Ecosystem
-                  </h2>
-                  <div className="space-y-2">
-                      <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-6 py-2.5 rounded-full border border-white/10 shadow-2xl w-fit">
-                          <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
-                          <span className="text-[9px] font-black font-mono text-white uppercase tracking-[0.3em]">Autonomous_Swarm_Lattice // Active</span>
-                      </div>
-                      <span className="text-[7px] text-gray-500 font-mono uppercase tracking-[0.4em] block pl-6">Active Global Node Synchronization</span>
-                  </div>
-              </div>
-              <DEcosystem />
-              <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
-          </div>
+          <AnimatePresence>
+            {!dashboard.isOculusView && (
+                <motion.div 
+                    initial={{ y: 200, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 200, opacity: 0 }}
+                    className="w-full h-[850px] mt-20 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0"
+                >
+                    <div className="absolute top-12 left-16 z-20 flex flex-col gap-3 pointer-events-none">
+                        <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">
+                            The D-Ecosystem
+                        </h2>
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-6 py-2.5 rounded-full border border-white/10 shadow-2xl w-fit">
+                                <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
+                                <span className="text-[9px] font-black font-mono text-white uppercase tracking-[0.3em]">Autonomous_Swarm_Lattice // Active</span>
+                            </div>
+                            <span className="text-[7px] text-gray-500 font-mono uppercase tracking-[0.4em] block pl-6">Active Global Node Synchronization</span>
+                        </div>
+                    </div>
+                    <DEcosystem />
+                    <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
+                </motion.div>
+            )}
+          </AnimatePresence>
       </div>
     </div>
   );

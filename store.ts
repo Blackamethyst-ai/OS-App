@@ -114,6 +114,9 @@ interface AppState {
         referenceImage: FileData | null;
         activeThemeColor: string;
         topologyData: { s: string; A: number }[];
+        paraFocus: 'PROJECTS' | 'AREAS' | 'RESOURCES' | 'ARCHIVES' | 'NONE';
+        isOculusView: boolean;
+        architecturalFidelity: number;
     };
     knowledge: {
         activeLayers: string[];
@@ -386,7 +389,10 @@ export const useAppStore = create<AppState>((set, get) => ({
             { s: 'SECURITY', A: 96 },
             { s: 'YIELD', A: 84 },
             { s: 'SCALE', A: 91 }
-        ]
+        ],
+        paraFocus: 'NONE',
+        isOculusView: false,
+        architecturalFidelity: 85
     },
     knowledge: {
         activeLayers: ['BUILDER_PROTOCOL', 'CRYPTO_CONTEXT', 'STRATEGIC_FUTURISM']

@@ -1,4 +1,3 @@
-
 import React, { ReactNode, ErrorInfo, StrictMode, Component } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
@@ -19,14 +18,10 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Directly extending Component<P, S> from react to ensure generic type safety and property access for 'this.props'.
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Explicitly defining state property on the class to ensure synchronization between generic declaration and implementation.
+// Fix: Inherit from React.Component with explicit generic types to ensure 'this.props' and 'this.state' are correctly typed and visible to the TS compiler.
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Use property initializer for state to ensure synchronization between generic declaration and implementation.
   public state: ErrorBoundaryState = { hasError: false, error: null };
-
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-  }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     // Update state so the next render will show the fallback UI
@@ -44,7 +39,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   };
 
   render(): ReactNode {
-    // Fix: Property access for 'state' and 'props' now correctly typed via direct inheritance from Component.
+    // Fix: Properly accessing 'state' and 'props' from 'this' via inheritance from React.Component to resolve member visibility errors.
     const { hasError, error } = this.state;
     const { fallback, children } = this.props;
 
