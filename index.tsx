@@ -1,47 +1,57 @@
-import React, { ReactNode, ErrorInfo } from 'react';
+import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw, Terminal, Activity } from 'lucide-react';
 
+// 1. Strict Interface Definitions for Type Safety
 interface ErrorBoundaryProps {
+  // Fix: make children optional to resolve instantiation error where children are not correctly mapped to props in some TS versions
   children?: ReactNode;
+  fallback?: ReactNode;
 }
 
 interface ErrorBoundaryState {
   hasError: boolean;
-  error: any;
+  error: Error | null;
 }
 
 /**
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
+ * 2. Pass interfaces as Generics: Component<Props, State> to resolve 'props' identification errors.
  */
-// Explicitly use React.Component to ensure 'props' is correctly typed from ErrorBoundaryProps
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  public state: ErrorBoundaryState = { hasError: false, error: null };
+// Fix: Use the imported Component class directly to ensure proper type inheritance for props and state, resolving 'Property props does not exist' errors
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Explicitly initialize state property to resolve 'Property state does not exist on type ErrorBoundary' errors
+  state: ErrorBoundaryState = { hasError: false, error: null };
 
   constructor(props: ErrorBoundaryProps) {
     super(props);
   }
 
-  static getDerivedStateFromError(error: any): ErrorBoundaryState {
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    // Update state so the next render will show the fallback UI
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: any, errorInfo: ErrorInfo) {
-    console.error("KERNEL PANIC:", error, errorInfo);
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Log to system console for forensic analysis
+    console.error("CRITICAL UI ERROR [Kernel Panic]:", error, errorInfo);
   }
 
+  // 3. The Recovery Action
+  handleReload = () => {
+    window.location.reload();
+  };
+
   render(): ReactNode {
+    // Fix: Access state and props which are now correctly recognized through explicit inheritance from React.Component
     if (this.state.hasError) {
-      let errorMsg = "An unexpected neural desync occurred.";
-      const error = this.state.error;
-      
-      if (error) {
-        if (typeof error === 'string') errorMsg = error;
-        else if (error.message) errorMsg = error.message;
-        else errorMsg = JSON.stringify(error);
-      }
+      // 4. Enhanced Sovereign Fallback UI
+      // Fix: this.props is now correctly resolved through explicit inheritance from the Component generic class
+      if (this.props.fallback) return this.props.fallback;
+
+      const errorMsg = this.state.error?.message || "An unexpected neural desync occurred.";
 
       return (
         <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#020204] text-white font-mono p-12 overflow-hidden relative">
@@ -67,7 +77,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
                 <div className="flex gap-4">
                     <button 
-                        onClick={() => window.location.reload()} 
+                        onClick={this.handleReload} 
                         className="group px-10 py-4 bg-red-500 hover:bg-red-400 text-black font-black text-[10px] uppercase tracking-[0.4em] transition-all flex items-center gap-3 shadow-[0_0_40px_rgba(239,68,68,0.3)] rounded-2xl active:scale-95"
                     >
                         <RefreshCw className="w-4 h-4 group-hover:rotate-180 transition-transform duration-700" />
@@ -90,14 +100,15 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       );
     }
 
-    // Access children through this.props, which is now explicitly typed via React.Component inheritance
+    // Fix: this.props.children is now correctly recognized as existing on the ErrorBoundary type through explicit Component inheritance
     return this.props.children;
   }
 }
 
 const rootElement = document.getElementById('root');
 if (rootElement) {
-  createRoot(rootElement).render(
+  const root = createRoot(rootElement);
+  root.render(
     <React.StrictMode>
       <ErrorBoundary>
         <App />

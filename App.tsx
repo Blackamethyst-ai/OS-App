@@ -15,7 +15,6 @@ import SynapticRouter from './components/SynapticRouter';
 import TimeTravelScrubber from './components/TimeTravelScrubber'; 
 import HelpCenter from './components/HelpCenter';
 import ThemeSwitcher from './components/ThemeSwitcher';
-import SunMoonToggle from './components/SunMoonToggle';
 import ResearchTray from './components/ResearchTray'; 
 import VoiceManager from './components/VoiceManager'; 
 import VoiceCoreOverlay from './components/VoiceCoreOverlay'; 
@@ -311,7 +310,6 @@ const App: React.FC = () => {
             <GlobalSearchBar />
             <div className="h-5 w-px bg-[var(--border-main)]" />
             <div className="flex items-center gap-3">
-                <SunMoonToggle />
                 <ThemeSwitcher />
                 <button onClick={() => { actions.toggleProfile(true); audio.playClick(); }} className="p-2.5 text-[var(--text-muted)] hover:text-[#f1c21b] transition-all rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10">
                     <User size={18} />
