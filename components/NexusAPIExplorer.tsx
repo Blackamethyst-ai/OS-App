@@ -330,7 +330,7 @@ const NexusAPIExplorer: React.FC = () => {
                                         <SchematicNode label="Kernel" color="#22d3ee" icon={Cpu} />
                                         <div className="flex-1 px-4 flex flex-col items-center gap-2">
                                             <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                                            <motion.div animate={{ x: [20, -20] }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }} className="w-1.5 h-1.5 rounded-full bg-[#f1c21b] shadow-[0_0_10px_#f1c21b]" />
+                                            <motion.div animate={{ x: [20, -20] }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }} className="w-1.5 h-1.5 rounded-full bg-[#f1c21b] shadow-[0_0_100px_#f1c21b]" />
                                         </div>
                                         <SchematicNode label="Swarm" color="#10b981" icon={Bot} />
                                     </div>
@@ -382,7 +382,7 @@ const NexusAPIExplorer: React.FC = () => {
                                     <button 
                                         onClick={forgeCapability} 
                                         disabled={isForging}
-                                        className="flex-1 py-6 bg-[#9d4edd] text-black rounded-[2rem] text-11px font-black uppercase tracking-[0.5em] rounded-[2rem] hover:bg-[#b06bf7] transition-all shadow-[0_30px_80px_rgba(157,78,221,0.4)] flex items-center justify-center gap-5 active:scale-95 disabled:opacity-50"
+                                        className="flex-1 py-6 bg-[#9d4edd] text-black rounded-[2rem] text-11px font-black uppercase tracking-[0.5em] hover:bg-[#b06bf7] transition-all shadow-[0_30px_80px_rgba(157,78,221,0.4)] flex items-center justify-center gap-5 active:scale-95 disabled:opacity-50"
                                     >
                                         <Sparkles size={20} /> Forge Protocol
                                     </button>

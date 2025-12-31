@@ -343,11 +343,11 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
 }
 
 /**
- * generateAvatar: Typed response fix.
+ * generateAvatar: Updated with utopian, modern futuristic prompt for high-quality Black African American agents.
  */
 export async function generateAvatar(role: string, name: string) {
     const ai = getAI();
-    const prompt = `Hyper-realistic futuristic avatar portrait of a "${role}" named "${name}". Obsidian/Neon aesthetic, premium technical lighting, cinematic depth.`;
+    const prompt = `Utopian masterpiece portrait of a beautiful Black African American agent named "${name}" in the role of "${role}". Utopian futuristic aesthetic, clean soft technical lighting, cinematic headshot depth. Professional business suit or premium leather jacket with a crisp white tee. High fidelity skin texture, modern elegant appearance.`;
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: [{ text: prompt }],
@@ -651,6 +651,7 @@ export async function evolveSystemArchitecture(code: string, lang: string, promp
                 thinkingConfig: { thinkingBudget: 32000 }
             }
         }));
+        // Fix: Use the correctly named 'response' variable defined above to access model output text
         return { ok: true, value: safeParseJson(response.text) };
     } catch (e: any) { return { ok: false, error: e }; }
 }
@@ -990,7 +991,7 @@ export async function transformArtifact(c: any, t: any, i: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Transform artifact of type ${t} using the following instruction: "${i}". Content Buffer: ${c}`,
+        contents: `Transformation Request: ${i}. Context: ${t}. Input: ${c}`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     }));
     return response.text || c;

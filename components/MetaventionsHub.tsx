@@ -292,7 +292,8 @@ const MetaventionsHub: React.FC = () => {
       }
   };
 
-  const handleDownloadMainAsset = () => {
+  const handleDownloadMainAsset = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
     if (!mainImageUrl) return;
     const link = document.createElement('a');
     link.href = mainImageUrl;
@@ -302,6 +303,12 @@ const MetaventionsHub: React.FC = () => {
     document.body.removeChild(link);
     audio.playSuccess();
     actions.addLog('SUCCESS', 'ASSET_STUDIO: Strategic view manifest cached to local storage.');
+  };
+
+  const handleDeepDive = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!mainImageUrl) return;
+    actions.openContextMenu(e.clientX, e.clientY, 'IMAGE', mainImageUrl);
   };
 
   return (
@@ -380,7 +387,10 @@ const MetaventionsHub: React.FC = () => {
                       </div>
                   </div>
                   
-                  <div className="flex-1 relative overflow-hidden bg-black/40 group/view">
+                  <div 
+                    className="flex-1 relative overflow-hidden bg-black/40 group/view"
+                    onContextMenu={handleDeepDive}
+                  >
                       <AnimatePresence mode="wait">
                           {isSyncing ? (
                               <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/60 backdrop-blur-3xl">
@@ -428,7 +438,7 @@ const MetaventionsHub: React.FC = () => {
                               </motion.div>
                           )}
                       </AnimatePresence>
-                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
                       
                       <div className="absolute bottom-8 left-10 z-20 flex flex-col gap-3">
                            <div className="text-[8px] font-black font-mono text-[#9d4edd] uppercase tracking-[0.5em] mb-1 px-1">Lattice_Operational_State</div>

@@ -1,4 +1,4 @@
-import React, { ReactNode, ErrorInfo } from 'react';
+import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw, Terminal, Activity } from 'lucide-react';
@@ -18,8 +18,8 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Use React.Component with generics to ensure 'props' and 'state' are correctly inherited and recognized by the compiler.
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+// Fix: Use explicitly imported Component with generics to ensure 'props' and 'state' are correctly inherited and recognized by the compiler.
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   // Fix: Explicitly initialize state property to resolve potential state identification errors
   state: ErrorBoundaryState = { hasError: false, error: null };
 
@@ -43,10 +43,10 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   };
 
   render(): ReactNode {
-    // Fix: Access state and props which are now correctly recognized through explicit inheritance from React.Component
+    // Fix: Access state and props which are now correctly recognized through explicit inheritance from Component
     if (this.state.hasError) {
       // 4. Enhanced Sovereign Fallback UI
-      // Fix: this.props is now correctly resolved through explicit inheritance from the React.Component generic class
+      // Fix: this.props is now correctly resolved through explicit inheritance from the Component generic class
       if (this.props.fallback) return this.props.fallback;
 
       const errorMsg = this.state.error?.message || "An unexpected neural desync occurred.";
@@ -98,7 +98,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       );
     }
 
-    // Fix: this.props.children is now correctly recognized via explicit React.Component inheritance
+    // Fix: this.props.children is now correctly recognized via explicit Component inheritance
     return this.props.children;
   }
 }

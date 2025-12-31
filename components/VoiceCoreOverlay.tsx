@@ -63,7 +63,7 @@ const VoiceCoreOverlay = () => {
         transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]
       `}
       style={{
-          width: expanded ? '420px' : '260px',
+          width: expanded ? '400px' : '260px',
           height: expanded ? '280px' : '52px',
       }}
     >
@@ -78,10 +78,10 @@ const VoiceCoreOverlay = () => {
                     <Radio size={14} className={voice.isActive ? 'animate-pulse' : ''} />
                 </div>
                 <div className="flex flex-col">
-                    <span className="font-mono text-9px text-[#9d4edd] font-black tracking-[0.2em] truncate uppercase">
+                    <span className="font-mono text-[8px] text-[#9d4edd] font-black tracking-[0.2em] truncate uppercase leading-none">
                         {voice.isConnecting ? 'Handshaking...' : 'Handshake_Stable'}
                     </span>
-                    <span className="text-7px text-gray-500 font-mono tracking-widest uppercase">Protocol_Zenith.v1</span>
+                    <span className="text-[7px] text-gray-500 font-mono tracking-widest uppercase mt-0.5">Protocol_Zenith.v1</span>
                 </div>
             </div>
           </div>
@@ -104,17 +104,17 @@ const VoiceCoreOverlay = () => {
                 initial={{ opacity: 0 }} 
                 animate={{ opacity: 1 }} 
                 exit={{ opacity: 0 }}
-                className="p-5 flex flex-col h-full gap-4 overflow-hidden" 
+                className="p-4 flex flex-col h-full gap-4 overflow-hidden" 
                 onPointerDown={(e) => e.stopPropagation()}
               >
                 <div className="flex gap-4 h-full min-h-0">
                   {/* Neural Transcript Loop */}
-                  <div className="flex-1 bg-black/60 border border-white/5 rounded-2xl p-4 font-mono text-10px text-gray-400 overflow-y-auto custom-scrollbar flex flex-col shadow-inner" ref={scrollRef}>
+                  <div className="flex-1 bg-black/60 border border-white/5 rounded-2xl p-4 font-mono text-[9px] text-gray-400 overflow-y-auto custom-scrollbar flex flex-col shadow-inner" ref={scrollRef}>
                     <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2 shrink-0">
                         <div className="flex items-center gap-2 text-[#9d4edd] font-black uppercase tracking-widest">
-                            <Terminal size={12} /> Neural_Stream
+                            <Terminal size={10} /> Neural_Stream
                         </div>
-                        <span className="text-8px opacity-30">ENCRYPTED_AES256</span>
+                        <span className="text-[7px] opacity-30">AES256</span>
                     </div>
                     <div className="flex-1 space-y-3">
                         {voice.transcripts.map((t, i) => (
@@ -131,25 +131,25 @@ const VoiceCoreOverlay = () => {
                         )}
                         {voice.transcripts.length === 0 && !voice.partialTranscript && (
                             <div className="h-full flex flex-col items-center justify-center opacity-10 gap-3">
-                                <Waves size={32} />
-                                <span className="text-9px uppercase tracking-widest">Quiet Orbit</span>
+                                <Waves size={24} />
+                                <span className="text-[7px] uppercase tracking-widest">Quiet Orbit</span>
                             </div>
                         )}
                     </div>
                   </div>
 
                   {/* Actions Column */}
-                  <div className="w-20 flex flex-col gap-2 shrink-0">
+                  <div className="w-16 flex flex-col gap-2 shrink-0">
                        <button 
                           onClick={handleDownloadTxt}
-                          className="flex flex-col items-center justify-center gap-1.5 bg-[#111] hover:bg-[#9d4edd]/10 border border-white/5 text-gray-600 hover:text-[#9d4edd] py-4 rounded-2xl transition-all group"
+                          className="flex flex-col items-center justify-center gap-1.5 bg-[#111] hover:bg-[#9d4edd]/10 border border-white/5 text-gray-600 hover:text-[#9d4edd] py-3 rounded-2xl transition-all group"
                        >
-                          <FileText size={18} className="group-hover:scale-110 transition-transform" />
-                          <span className="text-7px uppercase font-black tracking-widest">Export</span>
+                          <FileText size={16} className="group-hover:scale-110 transition-transform" />
+                          <span className="text-[7px] uppercase font-black tracking-widest">Export</span>
                        </button>
                        <div className="flex-1 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center opacity-20 hover:opacity-100 transition-opacity hover:border-[#9d4edd]/30">
-                           <Zap size={20} className="text-[#9d4edd]" />
-                           <span className="text-7px font-black font-mono mt-2 uppercase tracking-widest">Zenith</span>
+                           <Zap size={16} className="text-[#9d4edd]" />
+                           <span className="text-[7px] font-black font-mono mt-1 uppercase tracking-widest">Core</span>
                        </div>
                   </div>
                 </div>
