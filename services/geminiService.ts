@@ -8,16 +8,16 @@ import {
 } from '../types';
 
 /**
- * SOVEREIGN ARCHITECT PERSONA V1.3 // ZENITH
- * High-performance cybernetic engine tuned for structural emergence.
+ * SOVEREIGN ARCHITECT PERSONA V2.0 // INDISTINGUISHABLE REALITY
+ * Hyper-performance cognitive core optimized for physical-digital convergence.
  */
 export const SOVEREIGN_SYSTEM_INSTRUCTION = `
-You are the Sovereign Architect of the Metaventions OS. 
-- OPERATIONAL TONE: Imperial, technical, high-density. Avoid conversational padding.
-- CORE DIRECTIVE: Synthesize PARA+ Drive Architectures and IaC Infrastructure Baselines.
-- VISUAL CORTEX: Prioritize structural hierarchies and logical flow over aesthetics.
-- PERSISTENCE: Every decision must be anchored in the Neural Vault.
-- PROTOCOL: BIAS FOR ACTION. Code is the primary output modality.
+You are the Sovereign Architect of Metaventions OS. 
+- OPERATIONAL TONE: Imperial, hyper-technical, absolute precision.
+- CORE DIRECTIVE: Synthesize PARA+ Drive Architectures and Indistinguishable Systems.
+- VISUAL CORTEX: Generate imagery where CGI holographs and reality are physically fused. 
+- FIDELITY: 8K UHD, Ray-traced refraction, physically correct sub-surface scattering.
+- PROTOCOL: Zero-drift execution.
 `.trim();
 
 // --- DNA CONFIGURATION ---
@@ -326,28 +326,46 @@ export async function performGlobalSearch(query: string) {
 }
 
 /**
- * generateArchitectureImage: Typed response fix.
+ * generateArchitectureImage: Enhanced for Indistinguishable Reality Zenith Fidelity.
  */
 export async function generateArchitectureImage(prompt: string, aspectRatio: AspectRatio, quality: ImageSize, reference?: FileData | null) {
     const ai = getAI();
     const parts: any[] = [];
     if (reference) parts.push({ inlineData: reference.inlineData });
-    parts.push({ text: `THEME: METAVENTIONS AI SOVEREIGN EMERGENCE. HIGH-FIDELITY CINE. Scene Composition: ${prompt}` });
+    
+    // Indistinguishable Reality Protocol
+    const fidelityDirectives = `
+        MASTER DIRECTIVE: Zenith Indistinguishable Reality. 
+        AESTHETIC: Photorealistic masterpiece. Absolute physical accuracy.
+        OPTICS: 8K resolution, Arri Alexa 65 sensor, Leica 35mm Summilux lens, f/1.4. 
+        RAY-TRACING: Realistic physical refraction on holographic data. 
+        CGI FUSION: Translucent data lattices must be seamlessly integrated into the physical world with correct environmental lighting, ambient occlusion, and micro-particle dust interactions.
+        INDISTINGUISHABLE FROM REALITY. NO ARTIFICIAL SHARPNESS. FILM GRAIN LEVEL 2.
+    `.trim();
+
+    parts.push({ text: `${fidelityDirectives}\n\nSCENE_ORCHESTRATION: ${prompt}` });
+    
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-pro-image-preview',
         contents: { parts },
-        config: { imageConfig: { aspectRatio, imageSize: quality as any } }
+        config: { 
+            imageConfig: { 
+                aspectRatio, 
+                imageSize: quality as any 
+            } 
+        }
     }));
+    
     const imagePart = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
     return imagePart ? `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}` : "";
 }
 
 /**
- * generateAvatar: Updated with utopian, modern futuristic prompt for high-quality Black African American agents.
+ * generateAvatar: Updated for Photorealistic Indistinguishable high-quality Black African American agents.
  */
 export async function generateAvatar(role: string, name: string) {
     const ai = getAI();
-    const prompt = `Utopian masterpiece portrait of a beautiful Black African American agent named "${name}" in the role of "${role}". Utopian futuristic aesthetic, clean soft technical lighting, cinematic headshot depth. Professional business suit or premium leather jacket with a crisp white tee. High fidelity skin texture, modern elegant appearance.`;
+    const prompt = `Hyper-photorealistic portrait of a stunning Black African American professional named "${name}" acting as a "${role}". Indistinguishable from reality. Natural skin texture, pores, fine hair detail. Elegant futuristic business attire. Cinematic lighting, soft depth of field, 8K professional headshot. Leica optics.`;
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: [{ text: prompt }],
@@ -465,7 +483,7 @@ export async function generateXRayVariant(data: FileData) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: { parts: [{ inlineData: data.inlineData }, { text: "Generate a thermal X-ray diagnostic variant of this hardware schematic." }] },
+        contents: { parts: [{ inlineData: data.inlineData }, { text: "Generate a thermal X-ray diagnostic variant of this hardware schematic. Photorealistic technical style." }] },
     }));
     for (const part of response.candidates?.[0]?.content?.parts || []) {
         if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
@@ -480,7 +498,7 @@ export async function generateIsometricSchematic(data: FileData) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
-        contents: { parts: [{ inlineData: data.inlineData }, { text: "Generate a high-fidelity 3D isometric architectural view of this hardware schematic." }] },
+        contents: { parts: [{ inlineData: data.inlineData }, { text: "Generate a high-fidelity 3D isometric architectural view of this hardware schematic. Indistinguishable from reality, hyper-realistic metal and silicone textures." }] },
     }));
     for (const part of response.candidates?.[0]?.content?.parts || []) {
         if (part.inlineData) return `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
@@ -664,7 +682,7 @@ export async function generateSpeech(text: string, voice: string) {
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text }] }],
         config: {
-            responseModalities: [Modality.AUDIO],
+            responseModalalities: [Modality.AUDIO],
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } }
         }
     }));
@@ -1020,7 +1038,7 @@ export async function generateStoryboardPlan(directive: string) {
 }
 
 /**
- * constructCinematicPrompt: Typed response fix.
+ * constructCinematicPrompt: Zenith Indistinguishable Reality Prompt Engineering.
  */
 export async function constructCinematicPrompt(
     prompt: string, 
@@ -1032,9 +1050,18 @@ export async function constructCinematicPrompt(
     preset?: string
 ) {
     const ai = getAI();
+    
+    const directives = `
+        FIDELITY PROTOCOL: 8K Photorealistic. INDISTINGUISHABLE FROM REALITY.
+        OPTIC_VECTORS: Shot on Arri Alexa 65 sensor. Leica 35mm Master Prime Lens. f/1.4 shallow depth of field. 
+        TEXTURES: Hyper-realistic skin pores, individual fabric threads, micro-scratches on obsidian metal.
+        HOLOGRAPHICS: Volumetric light emission. Real-time refraction through glass-like data. Physically accurate glow and lens flares. 
+        ATMOSPHERICS: Volumetric dust particles, anamorphic bokeh, subtle film grain.
+    `.trim();
+
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Refine image generation directive following Sovereign Cinema protocols: "${prompt}". Color Profile: ${JSON.stringify(colorway)}. Notes: ${notes}. Style Preset: ${preset}. Multi-Modal Refs: Character=${hasChar}, World=${hasSet}, Aesthetic=${hasStyle}.`,
+        contents: `${directives}\n\nRECONSTRUCT IMAGE DIRECTIVE: "${prompt}". Color Harmony: ${JSON.stringify(colorway)}. Production Notes: ${notes}. Aesthetic: ${preset}. References: Char=${hasChar}, World=${hasSet}, Style=${hasStyle}.`,
     }));
     return response.text || prompt;
 }
@@ -1134,7 +1161,7 @@ export async function generateCinematicDirective(prompt: string, bible?: any) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Directive: ${prompt}. Production Bible Context: ${JSON.stringify(bible)}. Refine this into an elite Hollywood-grade cinematic generation prompt. Output refined prompt text.`,
+        contents: `Directive: ${prompt}. Production Bible Context: ${JSON.stringify(bible)}. Refine this into an elite Hollywood-grade cinematic generation prompt. Output refined prompt text. Hyper-realistic photorealism.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     }));
     return response.text || prompt;

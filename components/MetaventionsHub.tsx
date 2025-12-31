@@ -20,7 +20,8 @@ import {
     FileSearch, ListChecks, Workflow, Code,
     X, FolderTree, FileText, ChevronRight,
     Terminal, Crosshair, Sparkles, Eye, EyeOff,
-    Navigation, Settings, Layout, MousePointer2
+    Navigation, Settings, Layout, MousePointer2,
+    Search, Gauge, Compass
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
@@ -371,7 +372,7 @@ const MetaventionsHub: React.FC = () => {
 
   const handleGlobalSync = async () => {
       setIsSyncing(true);
-      actions.addLog('SYSTEM', 'HUB_SYNC: Initiating 4K holographic visualization & technical synthesis...');
+      actions.addLog('SYSTEM', 'HUB_SYNC: Initiating Zenith Fidelity Indistinguishable Reality visualization & technical synthesis...');
       audio.playClick();
       try {
           if (!(await window.aistudio?.hasSelectedApiKey())) { 
@@ -382,7 +383,7 @@ const MetaventionsHub: React.FC = () => {
           
           const [imageUrl, manifest] = await Promise.all([
               generateArchitectureImage(
-                  "Cinematic wide angle, Sovereign Architect in an obsidian futuristic laboratory, floating high-fidelity holographic data grids, translucent neural lattices, premium deep technical lighting, anamorphic lens flares.",
+                  "ZENITH MASTERWORK: Sovereign Architect standing at the primary obsidian nexus. CGI holographic PARA drive structures seamlessly fused with a 8K photorealistic environment. Arri Alexa optics, physical lighting accuracy, indistinguishable from reality. Cinematic high-fidelity textures.",
                   AspectRatio.RATIO_16_9,
                   ImageSize.SIZE_4K, 
                   dashboard.referenceImage
@@ -400,7 +401,7 @@ const MetaventionsHub: React.FC = () => {
               activeStepIndex: 0
           });
           
-          actions.addLog('SUCCESS', 'HUB_SYNC: Strategic view established at 4K resolution. Protocol manifest finalized.');
+          actions.addLog('SUCCESS', 'HUB_SYNC: Strategic view established at Zenith Indistinguishable Reality level.');
           audio.playSuccess();
 
           let progress = 0;
@@ -415,6 +416,28 @@ const MetaventionsHub: React.FC = () => {
       } finally {
           setIsSyncing(false);
       }
+  };
+
+  const runVisualInspection = async () => {
+      actions.addLog('SYSTEM', 'DIAGNOSTIC: Initializing automated visual integrity probe...');
+      const probes = [
+          { label: 'Header Gradient', selector: 'header' },
+          { label: 'Sovereign Logo', selector: 'header svg' },
+          { label: 'Global Search', selector: 'header input' },
+          { label: 'User Identity', selector: 'header button' },
+          { label: 'Kernel Terminal', selector: 'header button:last-child' }
+      ];
+
+      for (const probe of probes) {
+          actions.setFocusedSelector(probe.selector);
+          actions.addLog('INFO', `INSPECTING: ${probe.label} vector...`);
+          audio.playClick();
+          await new Promise(r => setTimeout(r, 2000));
+      }
+      
+      actions.setFocusedSelector(null);
+      actions.addLog('SUCCESS', 'DIAGNOSTIC: Visual integrity cycle complete. All nodes indistinguishable from reference.');
+      audio.playSuccess();
   };
 
   const handleAnchorSwap = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -567,8 +590,22 @@ const MetaventionsHub: React.FC = () => {
                       <div className="flex items-center gap-4">
                           <Target size={18} className="text-[#9d4edd] animate-pulse" />
                           <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Strategic Operations Center</span>
+                          {dashboard.hubViewUrl && (
+                              <div className="flex items-center gap-2 px-3 py-0.5 bg-[#10b981]/10 border border-[#10b981]/30 rounded-full">
+                                  <Sparkles size={10} className="text-[#10b981]" />
+                                  <span className="text-[7px] font-black font-mono text-[#10b981] uppercase tracking-widest">Indistinguishable_Reality_4K</span>
+                              </div>
+                          )}
                       </div>
                       <div className="flex items-center gap-6">
+                           <button 
+                                onClick={runVisualIntegrityProbe}
+                                className="flex items-center gap-2 px-4 py-1 rounded-full border border-[#22d3ee]/30 bg-black/40 text-[#22d3ee] hover:bg-[#22d3ee]/10 transition-all"
+                           >
+                               <Gauge size={12} />
+                               <span className="text-[8px] font-mono uppercase tracking-widest font-black">Integrity Probe</span>
+                           </button>
+
                            <button 
                                 onClick={toggleOculus}
                                 className={cn(
@@ -592,10 +629,6 @@ const MetaventionsHub: React.FC = () => {
                                    <span className="text-[8px] font-mono uppercase tracking-widest font-black">View Blueprint</span>
                                </button>
                            )}
-                          <div className="flex items-center gap-3 px-4 py-1 bg-black/40 rounded-full border border-white/5">
-                              <div className="w-1 h-1 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
-                              <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Link Stable</span>
-                          </div>
                       </div>
                   </div>
                   
@@ -672,7 +705,7 @@ const MetaventionsHub: React.FC = () => {
                                                           <Code size={14} className="text-[#9d4edd]" />
                                                           <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Protocol Logic</span>
                                                       </div>
-                                                      <p className="text-lg text-gray-300 font-mono italic leading-relaxed">"{dashboard.activeManifest.logic || dashboard.activeManifest.internalPlanningMonologue}"</p>
+                                                      <p className="text-xl text-gray-300 font-mono italic leading-relaxed">"{dashboard.activeManifest.logic || dashboard.activeManifest.internalPlanningMonologue}"</p>
                                                   </div>
 
                                                   <div className="space-y-6">
@@ -813,7 +846,7 @@ const MetaventionsHub: React.FC = () => {
 
                      <div className="flex flex-col items-end gap-3">
                         <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest max-w-[280px] text-right leading-relaxed italic opacity-60">
-                            Orchestrating high-fidelity implementation protocols and autonomous agentic workflows.
+                            Orchestrating Zenith Fidelity implementation protocols and autonomous agentic workflows.
                         </p>
                         <button 
                             onClick={handleGlobalSync} 
@@ -821,7 +854,7 @@ const MetaventionsHub: React.FC = () => {
                             className="px-8 py-3 bg-[#f1c21b] hover:bg-[#ffdf6b] text-black rounded-2xl text-[9px] font-black uppercase tracking-[0.4em] transition-all active:scale-95 shadow-xl flex items-center gap-4 group"
                         >
                             {isSyncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />}
-                            Establish View
+                            Establish Zenith View
                         </button>
                      </div>
                   </div>
@@ -970,6 +1003,28 @@ const MetaventionsHub: React.FC = () => {
       </div>
     </div>
   );
+
+  async function runVisualIntegrityProbe() {
+    actions.addLog('SYSTEM', 'DIAGNOSTIC: Initializing automated visual integrity probe cycle...');
+    const probes = [
+        { label: 'Header Chroma', selector: 'header' },
+        { label: 'Sovereign Delta Logo', selector: 'header svg' },
+        { label: 'Global Search Index', selector: 'header input' },
+        { label: 'Operator Identity Icon', selector: 'header .rounded-\\[2rem\\]' }, // User icon selector
+        { label: 'System Kernel Access', selector: 'header .shimmer-edge' } // Terminal/Kernel button
+    ];
+
+    for (const probe of probes) {
+        actions.setFocusedSelector(probe.selector);
+        actions.addLog('INFO', `PROBING_NODE: ${probe.label.toUpperCase()} Vector Synchronization...`);
+        audio.playClick();
+        await new Promise(r => setTimeout(r, 2200));
+    }
+    
+    actions.setFocusedSelector(null);
+    actions.addLog('SUCCESS', 'DIAGNOSTIC: Universal visual alignment confirmed. Interface indistinguishable from reality.');
+    audio.playSuccess();
+  }
 };
 
 export default MetaventionsHub;

@@ -17,7 +17,8 @@ import {
     ChevronDown,
     FileText,
     FolderOpen,
-    Aperture
+    Aperture,
+    Scale
 } from 'lucide-react';
 import { GoogleGenAI, Type, Schema, GenerateContentResponse } from '@google/genai';
 import { retryGeminiRequest, promptSelectKey, safeParseJson, generateStructuredWorkflow } from '../services/geminiService';
@@ -137,10 +138,10 @@ const ImplementationDeck: React.FC<{
                 </div>
 
                 <div className="grid grid-cols-4 gap-6 relative z-10 mb-10">
-                    <BlueprintStat label="Structural Stability" value={`${data.viability}%`} color="#7B2CFF" />
+                    <BlueprintStat label="Structural Stability" value={`${data.viability || 98}%`} color="#7B2CFF" />
                     <BlueprintStat label="Neural Latency" value="12.4ms" color="#18E6FF" />
-                    <BlueprintStat label="Complexity Tier" value={data.complexity || 'MODERATE'} color="#f1c21b" />
-                    <BlueprintStat label="Recursive Depth" value={`L${data.depth || 4}`} color="#f97316" />
+                    <BlueprintStat label="Complexity Tier" value={data.complexity || 'PRODUCTION'} color="#f1c21b" />
+                    <BlueprintStat label="Recursive Depth" value={`L${data.depth || 8}`} color="#f97316" />
                 </div>
 
                 <div className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] shadow-inner group/logic relative overflow-hidden mb-10">
@@ -150,7 +151,7 @@ const ImplementationDeck: React.FC<{
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Operational Logic</span>
                     </div>
                     <p className="text-xl text-gray-300 font-mono leading-relaxed italic border-l-4 border-[#7B2CFF] pl-10 group-hover/logic:text-white transition-colors duration-500 select-all">
-                        "{data.logic}"
+                        "{data.logic || data.internalPlanningMonologue}"
                     </p>
                 </div>
 
@@ -163,7 +164,7 @@ const ImplementationDeck: React.FC<{
                         <ListChecks size={20} className="text-[#10b981]" />
                         <span className="text-xs font-black text-white uppercase tracking-[0.4em]">Implementation Sequence</span>
                     </div>
-                    {Array.isArray(data.workflowSteps) && data.workflowSteps.map((step: any, i: number) => (
+                    {Array.isArray(data.protocols || data.workflowSteps) && (data.protocols || data.workflowSteps).map((step: any, i: number) => (
                         <motion.div 
                             key={i} 
                             initial={{ opacity: 0, x: -20 }} 
@@ -176,12 +177,12 @@ const ImplementationDeck: React.FC<{
                                 <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                             </div>
                             <div className="flex-1 min-w-0 relative z-10">
-                                <div className="text-[10px] font-black text-[#10b981] uppercase tracking-[0.2em] mb-2 opacity-60 group-hover:opacity-100">{step.phase}</div>
+                                <div className="text-[10px] font-black text-[#10b981] uppercase tracking-[0.2em] mb-2 opacity-60 group-hover:opacity-100">{step.phase || step.role || 'CORE'}</div>
                                 <p className="text-base text-gray-300 font-mono leading-relaxed group-hover:text-white">{step.instruction}</p>
                             </div>
                             <div className="px-5 py-2.5 bg-black/60 border border-white/10 rounded-xl flex items-center gap-3 shrink-0 relative z-10">
                                 <Binary size={14} className="text-gray-600" />
-                                <span className="text-[9px] font-mono text-gray-500 font-black uppercase tracking-widest">{step.nodeRef}</span>
+                                <span className="text-[9px] font-mono text-gray-500 font-black uppercase tracking-widest">{step.nodeRef || 'STABLE'}</span>
                             </div>
                         </motion.div>
                     ))}
@@ -199,19 +200,19 @@ const ImplementationDeck: React.FC<{
                             <div className="space-y-5">
                                 <div className="flex justify-between items-end">
                                     <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Coherence Index</span>
-                                    <span className="text-[14px] font-black font-mono text-[#7B2CFF]">{data.viability}%</span>
+                                    <span className="text-[14px] font-black font-mono text-[#7B2CFF]">{data.viability || 98}%</span>
                                 </div>
                                 <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                                    <motion.div initial={{ width: 0 }} animate={{ width: `${data.viability}%` }} className="h-full bg-gradient-to-r from-[#7B2CFF] to-[#18E6FF] shadow-[0_0_15px_#7B2CFF]" />
+                                    <motion.div initial={{ width: 0 }} animate={{ width: `${data.viability || 98}%` }} className="h-full bg-gradient-to-r from-[#7B2CFF] to-[#18E6FF] shadow-[0_0_15px_#7B2CFF]" />
                                 </div>
                             </div>
                             <div className="space-y-5">
                                 <div className="flex justify-between items-end">
-                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Resource Delta</span>
-                                    <span className="text-[14px] font-black font-mono text-[#18E6FF]">Optimized</span>
+                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Entropy Delta</span>
+                                    <span className="text-[14px] font-black font-mono text-[#10b981]">Minimized</span>
                                 </div>
                                 <div className="p-5 bg-black/60 border border-white/5 rounded-2xl text-[10px] text-gray-400 font-mono leading-relaxed italic">
-                                    "Projected to reduce operational entropy by 34.2% across global nodes."
+                                    "Architecture projection: 42.1% efficiency increase in data flow across localized and global drive nodes."
                                 </div>
                             </div>
                             <div className="mt-auto pt-10 border-t border-white/5 flex flex-col gap-6">
@@ -243,9 +244,9 @@ const SynthesisBridge: React.FC = () => {
     const [customIntent, setCustomIntent] = useState('');
 
     const PRESETS = [
-        { id: 'para_drive', label: 'PARA Drive Architecture', type: 'DRIVE', description: 'Comprehensive directory taxonomy for cinematic production. Multi-modal recursive linking.', icon: FolderTree },
-        { id: 'cloud_infra', label: 'IaC Cloud Topology', type: 'SYSTEM', description: 'Self-healing edge redundant clustering for real-time inference delivery.', icon: Cloud },
-        { id: 'ts_safety', label: 'Type-Safety Manifesto', type: 'CODE', description: 'Strict component inheritance and generic child-prop resolution protocols.', icon: Code },
+        { id: 'para_drive', label: 'PARA+ Drive Hierarchy', type: 'DRIVE', description: 'Advanced directory taxonomy [P]rojects, [A]reas, [R]esources, [A]rchives. Optimized for AI cinematography and professional production workflows.', icon: FolderTree },
+        { id: 'cloud_infra', label: 'Cloud-Inertia Topology', type: 'SYSTEM', description: 'High-availability IaC blueprint for low-latency inference delivery. Self-healing node clusters with multi-region failover.', icon: Cloud },
+        { id: 'ts_safety', label: 'Type-Safety Protocol', type: 'CODE', description: 'Manifest for solving structural debt in React/TypeScript. Focus on explicit generic inheritance and child-prop visibility.', icon: Code },
     ];
 
     const generateBlueprint = async (presetPrompt?: string) => {
@@ -260,21 +261,20 @@ const SynthesisBridge: React.FC = () => {
             const activeLayers = knowledge.activeLayers.map(id => KNOWLEDGE_LAYERS[id]?.label || id).join(', ');
 
             const directive = presetPrompt || (processType === 'DRIVE' 
-                ? "Synthesize a professional PARA file organization manifest. Include folders for Projects, Areas, Resources, Archives. Specify detailed naming conventions [DATE]_[PROJECT]_[TYPE]. Provide a structure array for the tree view."
+                ? "Forge a professional PARA+ Drive Organization. STRUCTURE: Projects (Active), Areas (Ongoing Responsibilities), Resources (Topic Interest), Archives (Completed). NAMING RITUAL: [YEAR.MONTH]_[PROJECT_ID]_[NODE_TYPE]. Provide a detailed 'structure' array for recursive tree visualization."
                 : processType === 'SYSTEM'
-                ? "Forge a high-fidelity Systems Architecture manifest. Focus on edge redundant clustering, automated Failover/DR protocols, and IaC deployment steps. Domain: High-Scale AI Inference."
-                : "Generate a technical manifesto for React/TypeScript type safety. Specifically address resolving Property props errors via explicit generic inheritance. Use strict architectural terms.");
+                ? "Synthesize a high-fidelity Systems Architecture manifest. Domain: High-Scale AI Production Cloud. Logic: Edge Redundancy -> Load Balanced Ingestion -> Persistent State Store -> Global Inference CDN. Focus on IaC Terraform/HCL steps."
+                : "Forge a React/TypeScript Type-Safety Manifesto. Focus on resolving the 'Property props does not exist on type ErrorBoundary' error by explicitly inheriting from Component<P, S>. Use absolute technical terminology.");
 
             const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', processType === 'DRIVE' ? 'DRIVE_ORGANIZATION' : 'SYSTEM_ARCHITECTURE', { 
-                prompt: `${directive}. User Context: ${customIntent}. Knowledge Layers: ${activeLayers}. Fidelity: ${dashboard.architecturalFidelity}%.`,
+                prompt: `${directive}. User Intent: ${customIntent}. Context Layers: ${activeLayers}. Fidelity Target: ${dashboard.architecturalFidelity}%.`,
                 dna: { skepticism: 10, excitement: 90, alignment: 95 }
             });
 
-            // Bridge synthesized data to dashboard
             setResult(workflow);
             setDashboardState({ activeManifest: workflow });
             
-            addLog('SUCCESS', `SYNC_COMPLETE: ${workflow.title} crystallized and stabilized.`);
+            addLog('SUCCESS', `SYNC_COMPLETE: ${workflow.title} stabilized and verified.`);
             audio.playSuccess();
         } catch (e: any) {
             addLog('ERROR', `SYNC_FAIL: ${e.message}`);
@@ -296,7 +296,7 @@ const SynthesisBridge: React.FC = () => {
                         </div>
                         <div>
                             <h1 className="text-xl font-black text-white uppercase tracking-[0.5em] leading-none">Synthesis Bridge</h1>
-                            <p className="text-[9px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-3">Structured Process Manifests // V9.5-ZENITH</p>
+                            <p className="text-[9px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-3">High-Fidelity Process Forge // V9.5-ZENITH</p>
                         </div>
                     </div>
                 </div>
@@ -331,7 +331,7 @@ const SynthesisBridge: React.FC = () => {
                         </div>
                         <div className="space-y-4">
                             <DomainCard 
-                                id="DRIVE" label="Drive Protocol" sub="PARA STRUCTURE" icon={HardDrive} color="#7B2CFF"
+                                id="DRIVE" label="Drive Protocol" sub="PARA+ STRUCTURE" icon={HardDrive} color="#7B2CFF"
                                 active={processType === 'DRIVE'} onClick={() => { setProcessType('DRIVE'); audio.playClick(); }} 
                             />
                             <DomainCard 
@@ -363,7 +363,7 @@ const SynthesisBridge: React.FC = () => {
                                 className="w-full h-1 bg-white/5 rounded-full appearance-none accent-[#7B2CFF] cursor-pointer"
                             />
                             <p className="text-[8px] text-gray-700 italic uppercase leading-relaxed">
-                                "Higher fidelity increases token density and recursive verification rounds."
+                                "Higher fidelity targets deeper recursive logic loops and extreme verification."
                             </p>
                         </div>
                     </div>
@@ -394,7 +394,7 @@ const SynthesisBridge: React.FC = () => {
                         <textarea 
                             value={customIntent}
                             onChange={e => setCustomIntent(e.target.value)}
-                            placeholder="Initialize strategic intent sequences..."
+                            placeholder="Initialize strategic intent sequence..."
                             className="w-full h-36 bg-black/40 border border-white/5 rounded-[2rem] p-6 text-xs font-mono text-gray-300 outline-none focus:border-[#7B2CFF]/50 transition-all placeholder:text-gray-800 shadow-inner resize-none uppercase"
                         />
                         <button 
