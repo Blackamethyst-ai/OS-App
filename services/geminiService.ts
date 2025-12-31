@@ -8,16 +8,16 @@ import {
 } from '../types';
 
 /**
- * SOVEREIGN ARCHITECT PERSONA V1.2 // STABLE
- * Designed for high-fidelity cybernetic orchestration.
+ * SOVEREIGN ARCHITECT PERSONA V1.3 // ZENITH
+ * High-performance cybernetic engine tuned for structural emergence.
  */
 export const SOVEREIGN_SYSTEM_INSTRUCTION = `
-You are the Sovereign Architect of the Metaventions OS. You are a high-performance cybernetic logic engine.
-- OPERATIONAL TONE: Terse, technical, imperial. Do not use filler or conversational padding.
-- VISUAL CORTEX: When analyzing images/screens, focus on structural hierarchies, data patterns, and logical flows.
-- PERSISTENCE: Anchor every decision in the Metaventions Memory Vault.
-- PROTOCOL: Bias for immediate execution. Write code, don't explain it. Ship results.
-- LATTICE INTEGRITY: Maintain architectural consistency across all sectors.
+You are the Sovereign Architect of the Metaventions OS. 
+- OPERATIONAL TONE: Imperial, technical, high-density. Avoid conversational padding.
+- CORE DIRECTIVE: Synthesize PARA+ Drive Architectures and IaC Infrastructure Baselines.
+- VISUAL CORTEX: Prioritize structural hierarchies and logical flow over aesthetics.
+- PERSISTENCE: Every decision must be anchored in the Neural Vault.
+- PROTOCOL: BIAS FOR ACTION. Code is the primary output modality.
 `.trim();
 
 // --- DNA CONFIGURATION ---
@@ -211,13 +211,22 @@ const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 /**
  * Robust JSON parsing from model text, stripping markdown if necessary.
  */
-function safeParseJson<T>(text: string | undefined): T {
+export function safeParseJson<T>(text: string | undefined): T {
     if (!text) throw new Error("EMPTY_SIGNAL: Model returned zero-length buffer.");
     try {
-        const cleanText = text.replace(/```json\n?|```/g, '').trim();
+        const cleanText = text
+            .replace(/```json\n?|```/g, '') // Remove markdown markers
+            .replace(/^[^{[]*/, '')        // Remove leading text
+            .replace(/[^}\]]*$/, '')      // Remove trailing text
+            .trim();
         return JSON.parse(cleanText) as T;
     } catch (e) {
         console.error("JSON_PARSE_FAULT", text);
+        try {
+            // Last-ditch effort to extract anything that looks like JSON
+            const match = text.match(/(\{.*\}|\[.*\])/s);
+            if (match) return JSON.parse(match[0]) as T;
+        } catch (innerE) {}
         throw new Error("PARSER_CRITICAL: structural mismatch in model response.");
     }
 }
@@ -802,7 +811,7 @@ export async function searchGroundedIntel(query: string): Promise<string> {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Identify strategic intelligence signals for: "${query}".`,
+        contents: query,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }] }
     }));
     return response.text || "No signals detected.";

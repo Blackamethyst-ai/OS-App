@@ -12,7 +12,7 @@ import {
     Eye, Maximize2, Info, BarChart3, Library, Trash2, Send
 } from 'lucide-react';
 import { GoogleGenAI, GenerateContentResponse, Type, Schema } from '@google/genai';
-import { retryGeminiRequest, promptSelectKey } from '../services/geminiService';
+import { retryGeminiRequest, promptSelectKey, safeParseJson } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
 import { AppMode } from '../types';
@@ -211,7 +211,7 @@ const StrategicBridge = () => {
                 }
             }));
 
-            const data = JSON.parse(response.text || '{}');
+            const data = safeParseJson<any>(response.text);
             setCurrentImplementation(data);
             addLog('SUCCESS', `SYNC_COMPLETE: ${data.title} crystallized.`);
             audio.playSuccess();

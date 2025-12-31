@@ -64,7 +64,6 @@ class DynamicToolRegistry {
      * EXPOSE: Returns full toolset for Gemini API consumption.
      */
     getCombinedManifests(): FunctionDeclaration[] {
-        // Map static OS_TOOLS to FunctionDeclarations
         const staticManifests: FunctionDeclaration[] = [
             {
                 name: 'system_navigate',
