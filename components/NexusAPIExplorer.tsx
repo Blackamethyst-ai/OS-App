@@ -137,7 +137,6 @@ const NexusAPIExplorer: React.FC = () => {
 
             await dynamicRegistry.registerDynamicTool(id, manifest, code);
             
-            // Register a specialized autonomous agent for this forged capability
             const newAgent = {
                 id: `node-${Date.now()}`,
                 name: selectedApi.title.split(' ')[0] + ' Bot',
@@ -249,7 +248,7 @@ const NexusAPIExplorer: React.FC = () => {
                                     </div>
                                     <div className="text-8px text-gray-500 font-mono truncate uppercase tracking-tighter opacity-60 group-hover:opacity-100">{api.description}</div>
                                 </div>
-                                <iparkles size={14} className="text-[#22d3ee] shrink-0 animate-pulse" />
+                                <Sparkles size={14} className="text-[#22d3ee] shrink-0 animate-pulse" />
                             </motion.button>
                         ))}
                     </AnimatePresence>

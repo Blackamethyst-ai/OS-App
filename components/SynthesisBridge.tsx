@@ -19,7 +19,8 @@ import {
     FolderOpen
 } from 'lucide-react';
 import { GoogleGenAI, Type, Schema, GenerateContentResponse } from '@google/genai';
-import { retryGeminiRequest, promptSelectKey, safeParseJson } from '../services/geminiService';
+// Fix: Added generateStructuredWorkflow to the import list from geminiService
+import { retryGeminiRequest, promptSelectKey, safeParseJson, generateStructuredWorkflow } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
@@ -55,7 +56,7 @@ const DomainCard = ({ id, label, sub, icon: Icon, active, onClick, color }: any)
 );
 
 const TreeView = ({ data }: { data: any }) => {
-    if (!data || !data.structure) return null;
+    if (!data || !Array.isArray(data.structure)) return null;
     
     const renderNode = (node: any, depth = 0) => {
         return (
@@ -77,7 +78,7 @@ const TreeView = ({ data }: { data: any }) => {
                         <span className="text-[8px] text-gray-700 opacity-0 group-hover/node:opacity-100 transition-opacity ml-2 italic">— {node.description}</span>
                     )}
                 </div>
-                {node.children && node.children.map((child: any) => renderNode(child, depth + 1))}
+                {Array.isArray(node.children) && node.children.map((child: any) => renderNode(child, depth + 1))}
             </div>
         );
     };
@@ -162,13 +163,13 @@ const ImplementationDeck: React.FC<{
                         <ListChecks size={20} className="text-[#10b981]" />
                         <span className="text-xs font-black text-white uppercase tracking-[0.4em]">Implementation Sequence</span>
                     </div>
-                    {data.workflowSteps.map((step: any, i: number) => (
+                    {Array.isArray(data.workflowSteps) && data.workflowSteps.map((step: any, i: number) => (
                         <motion.div 
                             key={i} 
                             initial={{ opacity: 0, x: -20 }} 
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: i * 0.1 }}
-                            className="p-8 bg-[#0a0a0c] border border-white/5 rounded-[2.5rem] flex items-center gap-10 group hover:border-[#10b981]/30 transition-all shadow-xl relative overflow-hidden backdrop-blur-3xl"
+                            className="p-8 bg-[#0a0a0c] border border-white/5 rounded-[3.5rem] flex items-center gap-10 group hover:border-[#10b981]/30 transition-all shadow-xl relative overflow-hidden backdrop-blur-3xl"
                         >
                             <div className="w-16 h-16 bg-black border border-white/10 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-[#10b981] group-hover:text-black transition-all shadow-lg relative z-10 overflow-hidden">
                                 <span className="text-xl font-black font-mono">{(i+1).toString().padStart(2, '0')}</span>
@@ -234,7 +235,7 @@ const ImplementationDeck: React.FC<{
 
 const SynthesisBridge: React.FC = () => {
     const { actions, knowledge } = useAppStore();
-    const { addLog, pushToInvestmentQueue, archiveIntervention } = actions;
+    const { addLog, pushToInvestmentQueue, archiveIntervention, setDashboardState } = actions;
     
     const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM' | 'CODE'>('DRIVE');
     const [isGenerating, setIsGenerating] = useState(false);
@@ -256,46 +257,7 @@ const SynthesisBridge: React.FC = () => {
         try {
             if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsGenerating(false); return; }
             
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const activeLayers = knowledge.activeLayers.map(id => KNOWLEDGE_LAYERS[id]?.label || id).join(', ');
-
-            const schema: Schema = {
-                type: Type.OBJECT,
-                properties: {
-                    title: { type: Type.STRING },
-                    type: { type: Type.STRING, enum: ['DIRECTORY', 'SEQUENCE', 'PROTOCOL'] },
-                    logic: { type: Type.STRING },
-                    viability: { type: Type.NUMBER },
-                    riskVector: { type: Type.STRING, enum: ['LOW', 'MEDIUM', 'HIGH'] },
-                    complexity: { type: Type.STRING },
-                    depth: { type: Type.NUMBER },
-                    structure: {
-                        type: Type.ARRAY,
-                        items: {
-                            type: Type.OBJECT,
-                            properties: {
-                                name: { type: Type.STRING },
-                                type: { type: Type.STRING, enum: ['folder', 'file'] },
-                                description: { type: Type.STRING },
-                                children: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, type: { type: Type.STRING, enum: ['folder', 'file'] }, description: { type: Type.STRING } } } }
-                            }
-                        }
-                    },
-                    workflowSteps: {
-                        type: Type.ARRAY,
-                        items: {
-                            type: Type.OBJECT,
-                            properties: {
-                                phase: { type: Type.STRING },
-                                instruction: { type: Type.STRING },
-                                nodeRef: { type: Type.STRING }
-                            },
-                            required: ['phase', 'instruction', 'nodeRef']
-                        }
-                    }
-                },
-                required: ['title', 'logic', 'viability', 'riskVector', 'workflowSteps']
-            };
 
             const directive = presetPrompt || (processType === 'DRIVE' 
                 ? "Synthesize a professional PARA file organization manifest. Include folders for Projects, Areas, Resources, Archives. Specify detailed naming conventions [DATE]_[PROJECT]_[TYPE]. Provide a structure array for the tree view."
@@ -303,19 +265,16 @@ const SynthesisBridge: React.FC = () => {
                 ? "Forge a high-fidelity Systems Architecture manifest. Focus on edge redundant clustering, automated Failover/DR protocols, and IaC deployment steps. Domain: High-Scale AI Inference."
                 : "Generate a technical manifesto for React/TypeScript type safety. Specifically address resolving Property props errors via explicit generic inheritance. Use strict architectural terms.");
 
-            const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-                model: 'gemini-3-pro-preview',
-                contents: `Directive: ${directive}. User Context: ${customIntent}. Knowledge Layers: ${activeLayers}. Output full Structured Process Schema.`,
-                config: { 
-                    responseMimeType: 'application/json',
-                    responseSchema: schema,
-                    thinkingConfig: { thinkingBudget: 16000 }
-                }
-            }));
+            const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', processType === 'DRIVE' ? 'DRIVE_ORGANIZATION' : 'SYSTEM_ARCHITECTURE', { 
+                prompt: `${directive}. User Context: ${customIntent}. Knowledge Layers: ${activeLayers}.`,
+                dna: { skepticism: 10, excitement: 90, alignment: 95 }
+            });
 
-            const data = safeParseJson<any>(response.text);
-            setResult(data);
-            addLog('SUCCESS', `SYNC_COMPLETE: ${data.title} crystallized and stabilized.`);
+            // Bridge synthesized data to dashboard
+            setResult(workflow);
+            setDashboardState({ activeManifest: workflow });
+            
+            addLog('SUCCESS', `SYNC_COMPLETE: ${workflow.title} crystallized and stabilized.`);
             audio.playSuccess();
         } catch (e: any) {
             addLog('ERROR', `SYNC_FAIL: ${e.message}`);

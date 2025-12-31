@@ -4,23 +4,19 @@ import { useAppStore } from '../store';
 import { Activity, Sliders, RefreshCw, AudioWaveform, Zap } from 'lucide-react';
 
 const EmotionalResonanceGraph: React.FC = () => {
-    const { imageGen, setImageGenState } = useAppStore();
+    const imageGen = useAppStore(s => s.imageGen);
+    const setImageGenState = useAppStore(s => s.actions.setImageGenState);
     const { resonanceCurve } = imageGen;
     
     const svgRef = useRef<SVGSVGElement>(null);
     const [dragging, setDragging] = useState<{ index: number; type: 'tension' | 'dynamics' } | null>(null);
     
-    // Mixer State
-    const [tensionBias, setTensionBias] = useState(0); // -20 to +20
-    const [dynamicsRange, setDynamicsRange] = useState(1); // 0.5 to 1.5
-
     const width = 600;
-    const height = 220; // Increased height from baseline
+    const height = 220; 
     const padding = 20;
     const pointsCount = 10;
     const xStep = (width - padding * 2) / (pointsCount - 1);
 
-    // --- ALGORITHMS ---
     const applyAlgorithm = (algo: 'HERO' | 'CHAOS' | 'RISING' | 'STEADY') => {
         if (!Array.isArray(resonanceCurve)) return;
         const newCurve = resonanceCurve.map((_, i) => {
@@ -29,10 +25,8 @@ const EmotionalResonanceGraph: React.FC = () => {
             let d = 50;
 
             if (algo === 'HERO') {
-                // Classic build up, dip (dark night), climax, resolve
                 t = 30 + Math.sin(progress * Math.PI * 1.5) * 40; 
                 d = 40 + Math.sin(progress * Math.PI * 2) * 20;
-                // Add a spike near end
                 if (i === 8) { t = 90; d = 90; }
             } else if (algo === 'CHAOS') {
                 t = Math.random() * 80 + 10;
@@ -50,7 +44,6 @@ const EmotionalResonanceGraph: React.FC = () => {
         setImageGenState({ resonanceCurve: newCurve });
     };
 
-    // --- MIXER LOGIC ---
     const nudgeTension = (amount: number) => {
         if (!Array.isArray(resonanceCurve)) return;
         const newCurve = resonanceCurve.map(p => ({
@@ -122,15 +115,12 @@ const EmotionalResonanceGraph: React.FC = () => {
 
     return (
         <div className="w-full h-full bg-[#050505] border border-[#222] rounded-lg overflow-hidden relative group flex flex-col">
-            
-            {/* Toolbar */}
             <div className="flex items-center justify-between px-4 py-1.5 border-b border-[#222] bg-[#0a0a0a] shrink-0">
                 <div className="flex items-center gap-4 text-[9px] font-mono uppercase tracking-widest">
                     <span className="text-[#9d4edd] flex items-center gap-1"><Activity className="w-3 h-3"/> Tension</span>
                     <span className="text-[#22d3ee] flex items-center gap-1"><AudioWaveform className="w-3 h-3"/> Dynamics</span>
                 </div>
                 
-                {/* Generative Synthesizer Buttons */}
                 <div className="flex gap-1">
                     <button onClick={() => applyAlgorithm('HERO')} className="px-2 py-0.5 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Hero's Journey">Hero</button>
                     <button onClick={() => applyAlgorithm('RISING')} className="px-2 py-0.5 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Linear Rise">Rise</button>
@@ -139,7 +129,6 @@ const EmotionalResonanceGraph: React.FC = () => {
                 </div>
             </div>
 
-            {/* Graph Area */}
             <div className="flex-1 relative p-4 bg-gradient-to-b from-[#0a0a0a] to-[#050505]">
                 <svg 
                     ref={svgRef}
@@ -193,7 +182,6 @@ const EmotionalResonanceGraph: React.FC = () => {
                 </svg>
             </div>
 
-            {/* Mixer Controls (Bottom) */}
             <div className="grid grid-cols-2 gap-4 p-3 border-t border-[#222] bg-[#080808] shrink-0">
                 <div className="flex flex-col gap-1.5">
                     <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase">

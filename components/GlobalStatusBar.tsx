@@ -21,7 +21,8 @@ const LayerControlMesh = () => {
     const { toggleKnowledgeLayer, addLog } = actions;
     const activeLayerIds = knowledge.activeLayers || [];
     
-    const dynamicLayers = use(neuralVault.getKnowledgeLayers());
+    const dynamicLayersRaw = use(neuralVault.getKnowledgeLayers());
+    const dynamicLayers = Array.isArray(dynamicLayersRaw) ? dynamicLayersRaw : [];
     
     const allLayers: Record<string, KnowledgeLayer> = {
         ...KNOWLEDGE_LAYERS,

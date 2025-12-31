@@ -5,7 +5,7 @@ import {
     SwarmResult, SwarmStatus, SearchResultItem, Message, 
     PeerPresence, SwarmEvent, TaskPriority, TaskStatus, 
     AspectRatio, ImageSize, StoredArtifact, MetaventionsState,
-    OperationalContext, AutonomousAgent
+    OperationalContext, AutonomousAgent, Frame, ProductionBible
 } from './types';
 import { neuralVault } from './services/persistenceService';
 
@@ -107,6 +107,10 @@ interface AppState {
     dashboard: {
         isGenerating: boolean;
         identityUrl: null | string;
+        hubViewUrl: null | string;
+        activeManifest: any | null;
+        deploymentProgress: number;
+        activeStepIndex: number;
         referenceImage: FileData | null;
         activeThemeColor: string;
         topologyData: { s: string; A: number }[];
@@ -149,6 +153,13 @@ interface AppState {
         activeColorway: any;
         activeStylePreset: string;
         resonanceCurve: { frame: number; tension: number; dynamics: number }[];
+        productionBible: ProductionBible | null;
+        frames: Frame[];
+        selectedHeroMode: 'NONE' | 'HERO' | 'RISING' | 'CHAOS' | 'STEADY';
+        videoUrl: string | null;
+        videoPrompt: string;
+        videoRes: '720p' | '1080p';
+        videoMotionBias: number;
     };
     codeStudio: {
         prompt: string;
@@ -363,6 +374,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     dashboard: {
         isGenerating: false,
         identityUrl: null,
+        hubViewUrl: null,
+        activeManifest: null,
+        deploymentProgress: 0,
+        activeStepIndex: 0,
         referenceImage: null,
         activeThemeColor: '#18E6FF',
         topologyData: [
@@ -410,7 +425,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         styleRefs: [],
         activeColorway: null,
         activeStylePreset: 'Cinematic Anamorphic',
-        resonanceCurve: Array.from({ length: 10 }, (_, i) => ({ frame: i, tension: 50, dynamics: 50 }))
+        resonanceCurve: Array.from({ length: 10 }, (_, i) => ({ frame: i, tension: 50, dynamics: 50 })),
+        productionBible: null,
+        frames: [],
+        selectedHeroMode: 'NONE',
+        videoUrl: null,
+        videoPrompt: '',
+        videoRes: '1080p',
+        videoMotionBias: 50
     },
     codeStudio: {
         prompt: '',
@@ -550,12 +572,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         setAuthenticated: (authenticated) => set({ authenticated }),
         toggleProfile: (open) => set((state) => ({ isProfileOpen: open ?? !state.isProfileOpen })),
         toggleCommandPalette: (open) => set((state) => ({ isCommandPaletteOpen: open ?? !state.isCommandPaletteOpen })),
-        addLog: (level, message) => set((state) => ({
-            system: {
-                ...state.system,
-                logs: [...state.system.logs, { id: crypto.randomUUID(), level, message, timestamp: Date.now() }]
-            }
-        })),
+        addLog: (level, message) => set((state) => {
+            const id = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+            return {
+                system: {
+                    ...state.system,
+                    logs: [...state.system.logs, { id, level, message, timestamp: Date.now() }]
+                }
+            };
+        }),
         toggleTerminal: (open) => set((state) => ({
             system: { ...state.system, isTerminalOpen: open ?? !state.system.isTerminalOpen }
         })),
@@ -635,17 +660,23 @@ export const useAppStore = create<AppState>((set, get) => ({
         setCollabState: (update) => set((state) => ({ 
             collaboration: { ...state.collaboration, ...(typeof update === 'function' ? update(state.collaboration) : update) } 
         })),
-        addSwarmEvent: (event) => set((state) => ({
-            collaboration: {
-                ...state.collaboration,
-                events: [{ id: crypto.randomUUID(), timestamp: Date.now(), ...event }, ...state.collaboration.events].slice(0, 20)
-            }
-        })),
+        addSwarmEvent: (event) => set((state) => {
+            const id = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+            return {
+                collaboration: {
+                    ...state.collaboration,
+                    events: [{ id, timestamp: Date.now(), ...event }, ...state.collaboration.events].slice(0, 20)
+                }
+            };
+        }),
         openContextMenu: (x, y, type, content) => set({ contextMenu: { isOpen: true, x, y, contextType: type, targetContent: content } }),
         closeContextMenu: () => set((state) => ({ contextMenu: { ...state.contextMenu, isOpen: false } })),
-        addTask: (task) => set((state) => ({ 
-            tasks: [...state.tasks, { id: crypto.randomUUID(), timestamp: Date.now(), subtasks: [], ...task }] 
-        })),
+        addTask: (task) => set((state) => {
+            const id = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+            return { 
+                tasks: [...state.tasks, { id, timestamp: Date.now(), subtasks: [], ...task }] 
+            };
+        }),
         updateTask: (id, update) => set((state) => ({
             tasks: state.tasks.map(t => t.id === id ? { ...t, ...update } : t)
         })),

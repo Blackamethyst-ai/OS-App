@@ -4,7 +4,8 @@ import {
     generateArchitectureImage, 
     promptSelectKey, 
     fileToGenerativePart,
-    liveSession
+    liveSession,
+    generateStructuredWorkflow
 } from '../services/geminiService';
 import { AspectRatio, ImageSize } from '../types';
 import { 
@@ -15,7 +16,9 @@ import {
     Bot, Globe, User, Hexagon,
     Mic, MicOff, ShieldCheck, DollarSign,
     LineChart as ChartIcon, Download, Layers,
-    AlertTriangle, ZapOff, Scan, Maximize2
+    AlertTriangle, ZapOff, Scan, Maximize2,
+    FileSearch, ListChecks, Workflow, Code,
+    X, FolderTree, FileText, ChevronRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
@@ -24,9 +27,6 @@ import { cn } from '../utils/cn';
 import DEcosystem from './DEcosystem';
 import ContextVelocityChart from './ContextVelocityChart';
 
-/**
- * CompactMetric: High-density data node for the sidebar.
- */
 const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) => (
     <div className="crystalline border-none rounded-2xl p-4 flex flex-col gap-2 hover:border-white/15 transition-all group shadow-inner relative overflow-hidden invisible-glass">
         <div className="flex justify-between items-center relative z-10">
@@ -46,15 +46,12 @@ const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) 
     </div>
 );
 
-/**
- * CapitalVelocity: Strategic financial flow visualization.
- */
 const CapitalVelocity = () => (
     <div className="crystalline rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/cap shrink-0 invisible-glass">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.01)_0%,transparent_70%)] pointer-events-none" />
         
         <div className="flex items-center gap-4 relative z-10">
-            <div className="p-2 bg-[#10b981]/10 rounded-xl text-[#10b981] border border-[#10b981]/20">
+            <div className="p-2 bg-[#10b981]/10 rounded-xl text-[#10b981] border border-[#10b981]/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                 <DollarSign size={16} />
             </div>
             <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Capital Velocity</span>
@@ -86,9 +83,6 @@ const CapitalVelocity = () => (
     </div>
 );
 
-/**
- * SwarmBox: The tactical hive container. Reactive to agent state.
- */
 const SwarmBox = () => {
     const agents = useAppStore(s => s.agents.activeAgents);
     const hexCount = 6;
@@ -150,8 +144,30 @@ const SwarmBox = () => {
     );
 };
 
+const DirectoryPeek = ({ manifest }: { manifest: any }) => {
+    if (!manifest || !Array.isArray(manifest.structure)) return null;
+    return (
+        <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/peek shrink-0 invisible-glass">
+            <div className="flex items-center justify-between relative z-10 px-1">
+                <div className="flex items-center gap-3">
+                    <FolderTree size={14} className="text-[#f1c21b]" />
+                    <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.3em]">Drive Topology</span>
+                </div>
+                <ChevronRight size={12} className="text-gray-600 group-hover/peek:translate-x-1 transition-transform" />
+            </div>
+            <div className="flex-1 bg-black/40 rounded-2xl p-4 border border-white/5 max-h-[160px] overflow-y-auto custom-scrollbar space-y-2 relative z-10">
+                {manifest.structure.slice(0, 5).map((node: any, i: number) => (
+                    <div key={i} className="flex items-center gap-3 px-2 py-1.5 hover:bg-white/5 rounded-lg transition-colors">
+                        <FileText size={10} className="text-gray-600" />
+                        <span className="text-[9px] font-mono text-gray-400 uppercase truncate tracking-tight">{node.name}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
 const MetaventionsHub: React.FC = () => {
-  // ATOMIC SELECTORS for maximum stability
   const actions = useAppStore(s => s.actions);
   const dashboard = useAppStore(s => s.dashboard);
   const theme = useAppStore(s => s.theme);
@@ -159,8 +175,8 @@ const MetaventionsHub: React.FC = () => {
   const voice = useAppStore(s => s.voice);
   const kernel = useAppStore(s => s.kernel);
 
-  const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [showBlueprint, setShowBlueprint] = useState(false);
   const [telemetry, setTelemetry] = useState({ cpu: 13.2, net: 0.8, trust: 99.4, entropy: kernel.entropy });
   const voiceCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -258,7 +274,7 @@ const MetaventionsHub: React.FC = () => {
 
   const handleGlobalSync = async () => {
       setIsSyncing(true);
-      actions.addLog('SYSTEM', 'HUB_SYNC: Initiating 4K holographic visualization...');
+      actions.addLog('SYSTEM', 'HUB_SYNC: Initiating 4K holographic visualization & technical synthesis...');
       audio.playClick();
       try {
           if (!(await window.aistudio?.hasSelectedApiKey())) { 
@@ -266,15 +282,39 @@ const MetaventionsHub: React.FC = () => {
               setIsSyncing(false); 
               return; 
           }
-          const url = await generateArchitectureImage(
-              "Cinematic wide angle, Sovereign Architect in an obsidian futuristic laboratory, floating high-fidelity holographic data grids, translucent neural lattices, premium deep technical lighting, anamorphic lens flares.",
-              AspectRatio.RATIO_16_9,
-              ImageSize.SIZE_4K, 
-              dashboard.referenceImage
-          );
-          setMainImageUrl(url);
-          actions.addLog('SUCCESS', 'HUB_SYNC: Strategic view established at 4K resolution.');
+          
+          // Parallel Synthesis: Image + Logic
+          const [imageUrl, manifest] = await Promise.all([
+              generateArchitectureImage(
+                  "Cinematic wide angle, Sovereign Architect in an obsidian futuristic laboratory, floating high-fidelity holographic data grids, translucent neural lattices, premium deep technical lighting, anamorphic lens flares.",
+                  AspectRatio.RATIO_16_9,
+                  ImageSize.SIZE_4K, 
+                  dashboard.referenceImage
+              ),
+              generateStructuredWorkflow([], 'D-Ecosystem Protocol 2025.Q1', 'SYSTEM_ARCHITECTURE', {
+                  description: "High-fidelity PARA Drive Architecture and Cloud-Infrastucture topology for cinematic AI production. Focus on recursive naming, Zettelkasten linking, and self-healing cloud nodes.",
+                  context: "Ecosystem Hub Core"
+              })
+          ]);
+
+          actions.setDashboardState({ 
+              hubViewUrl: imageUrl,
+              activeManifest: manifest,
+              deploymentProgress: 0,
+              activeStepIndex: 0
+          });
+          
+          actions.addLog('SUCCESS', 'HUB_SYNC: Strategic view established at 4K resolution. Protocol manifest finalized.');
           audio.playSuccess();
+
+          // Simulate deployment pulse
+          let progress = 0;
+          const deployInterval = setInterval(() => {
+            progress += 5;
+            actions.setDashboardState({ deploymentProgress: progress });
+            if (progress >= 100) clearInterval(deployInterval);
+          }, 3000);
+
       } catch (e: any) {
           actions.addLog('ERROR', `SYNC_FAIL: ${e.message}`);
       } finally {
@@ -294,9 +334,9 @@ const MetaventionsHub: React.FC = () => {
 
   const handleDownloadMainAsset = (e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
-    if (!mainImageUrl) return;
+    if (!dashboard.hubViewUrl) return;
     const link = document.createElement('a');
-    link.href = mainImageUrl;
+    link.href = dashboard.hubViewUrl;
     link.download = `The_D_Ecosystem_Sync_${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
@@ -305,19 +345,15 @@ const MetaventionsHub: React.FC = () => {
     actions.addLog('SUCCESS', 'ASSET_STUDIO: Strategic view manifest cached to local storage.');
   };
 
-  const handleDeepDive = (e: React.MouseEvent) => {
-    e.preventDefault();
-    if (!mainImageUrl) return;
-    actions.openContextMenu(e.clientX, e.clientY, 'IMAGE', mainImageUrl);
-  };
-
   return (
-    <div key={theme} className="h-full w-full bg-transparent flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out">
+    <div key={theme} className="h-full w-full bg-[#020204] flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out relative">
+      
+      {/* Background Living Mesh */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
       
       {/* Enhanced Header Banner */}
       <div className="h-20 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-3xl z-20 flex items-center justify-between px-10 shrink-0 relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/50 to-transparent" />
-          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
           
           <div className="flex items-center gap-10 relative z-10">
               <div className="relative group cursor-pointer" onClick={() => actions.toggleProfile(true)}>
@@ -327,7 +363,7 @@ const MetaventionsHub: React.FC = () => {
                   <motion.div 
                     animate={{ scale: [1, 1.15, 1], opacity: [1, 0.5, 1] }}
                     transition={{ duration: 3, repeat: Infinity }}
-                    className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#0a0a0c] border border-white/10 rounded-full flex items-center justify-center text-[#9d4edd] shadow-2xl"
+                    className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#0a0a0a] border border-white/10 rounded-full flex items-center justify-center text-[#9d4edd] shadow-2xl"
                   >
                       <ShieldCheck size={12} className="text-[#10b981]" />
                   </motion.div>
@@ -371,26 +407,54 @@ const MetaventionsHub: React.FC = () => {
           </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-10 relative bg-transparent">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-10 relative bg-transparent z-10">
           <div className="grid grid-cols-12 gap-8 min-h-0 items-start">
               
               {/* Strategic Operations Center (Primary Display) */}
               <div className="col-span-9 crystalline rounded-[3rem] p-0 shadow-2xl relative overflow-hidden flex flex-col min-h-[1000px] group/soc invisible-glass">
+                  
+                  {/* Protocol Ticker Overlay */}
+                  <div className="absolute top-14 left-0 w-full h-8 z-30 bg-[#9d4edd]/10 backdrop-blur-md border-y border-white/5 overflow-hidden flex items-center">
+                       <motion.div 
+                        animate={{ x: ['100%', '-100%'] }}
+                        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                        className="whitespace-nowrap flex items-center gap-12"
+                       >
+                           {['INITIALIZING_PARA_DRIVE_V8', 'CLOUD_NODES_STABILIZED', 'DEPIN_EQUITY_LOCKED', 'RECURSIVE_ZETTELKASTEN_SYNC', 'IA_ORCHESTRATION_L0_OK'].map((msg, i) => (
+                               <div key={i} className="flex items-center gap-3">
+                                   <div className="w-1 h-1 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />
+                                   <span className="text-[8px] font-black font-mono text-white/60 uppercase tracking-[0.4em]">{msg}</span>
+                               </div>
+                           ))}
+                       </motion.div>
+                  </div>
+
                   <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 shrink-0 z-20 relative">
                       <div className="flex items-center gap-4">
                           <Target size={18} className="text-[#9d4edd] animate-pulse" />
                           <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Strategic Operations Center</span>
                       </div>
-                      <div className="flex items-center gap-3 px-4 py-1 bg-black/40 rounded-full border border-white/5">
-                          <div className="w-1 h-1 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
-                          <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Link Stable</span>
+                      <div className="flex items-center gap-6">
+                           {dashboard.activeManifest && (
+                               <button 
+                                onClick={() => setShowBlueprint(!showBlueprint)}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-1 rounded-full border transition-all",
+                                    showBlueprint ? "bg-[#22d3ee] border-[#22d3ee] text-black shadow-[0_0_15px_#22d3ee]" : "bg-black/40 border-white/10 text-[#22d3ee] hover:bg-[#22d3ee]/10"
+                                )}
+                               >
+                                   <Workflow size={12} />
+                                   <span className="text-[8px] font-mono uppercase tracking-widest font-black">View Blueprint</span>
+                               </button>
+                           )}
+                          <div className="flex items-center gap-3 px-4 py-1 bg-black/40 rounded-full border border-white/5">
+                              <div className="w-1 h-1 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
+                              <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Link Stable</span>
+                          </div>
                       </div>
                   </div>
                   
-                  <div 
-                    className="flex-1 relative overflow-hidden bg-black/40 group/view"
-                    onContextMenu={handleDeepDive}
-                  >
+                  <div className="flex-1 relative overflow-hidden bg-black/40 group/view">
                       <AnimatePresence mode="wait">
                           {isSyncing ? (
                               <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/60 backdrop-blur-3xl">
@@ -398,57 +462,127 @@ const MetaventionsHub: React.FC = () => {
                                       <Loader2 size={60} className="text-[#9d4edd] animate-spin mb-6" />
                                       <div className="absolute inset-0 blur-3xl bg-[#9d4edd]/20 animate-pulse" />
                                   </div>
-                                  <span className="text-[12px] font-black font-mono text-white uppercase tracking-[0.8em]">Establishing Viewport...</span>
+                                  <span className="text-[12px] font-black font-mono text-white uppercase tracking-[0.8em]">Synthesizing Lattice...</span>
                               </motion.div>
-                          ) : mainImageUrl ? (
-                              <motion.div key="image-container" className="w-full h-full relative group/img-node">
-                                  <motion.img 
-                                    initial={{ opacity: 0, scale: 1.05 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    src={mainImageUrl} 
-                                    className="w-full h-full object-cover grayscale-[30%] opacity-80 transition-all duration-[30s] group-hover/view:scale-110 group-hover/view:grayscale-0 group-hover/view:opacity-100 cursor-pointer" 
-                                    onClick={() => actions.toggleProfile(true)}
-                                  />
+                          ) : (
+                              <motion.div key="content" className="w-full h-full relative group/img-node">
+                                  {dashboard.hubViewUrl ? (
+                                      <motion.img 
+                                        initial={{ opacity: 0, scale: 1.05 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        src={dashboard.hubViewUrl} 
+                                        className="w-full h-full object-cover grayscale-[30%] opacity-80 transition-all duration-[30s] group-hover/view:scale-110 group-hover/view:grayscale-0 group-hover/view:opacity-100 cursor-pointer" 
+                                      />
+                                  ) : (
+                                      <div className="h-full flex flex-col items-center justify-center opacity-10 gap-8 grayscale p-20">
+                                          <Target size={120} className="animate-pulse" />
+                                          <p className="text-xl font-mono uppercase tracking-[1em]">Establishing Viewport...</p>
+                                      </div>
+                                  )}
+
+                                  {/* Blueprint Overlay Drawer */}
+                                  <AnimatePresence>
+                                      {showBlueprint && dashboard.activeManifest && (
+                                          <motion.div 
+                                            initial={{ x: '100%' }}
+                                            animate={{ x: 0 }}
+                                            exit={{ x: '100%' }}
+                                            className="absolute top-0 right-0 bottom-0 w-1/2 bg-[#050505]/95 backdrop-blur-3xl border-l border-white/10 z-[35] shadow-[0_0_100px_rgba(0,0,0,1)] p-12 flex flex-col gap-10"
+                                          >
+                                              <div className="flex justify-between items-start">
+                                                  <div className="space-y-4">
+                                                      <div className="flex items-center gap-3">
+                                                          <div className="p-2.5 bg-[#22d3ee]/20 rounded-xl text-[#22d3ee] border border-[#22d3ee]/30">
+                                                              <FileSearch size={20} />
+                                                          </div>
+                                                          <span className="text-[10px] font-black text-white font-mono uppercase tracking-[0.4em]">Structured Process Blueprint</span>
+                                                      </div>
+                                                      <h3 className="text-3xl font-black text-white uppercase font-mono tracking-tighter leading-none">{dashboard.activeManifest.title}</h3>
+                                                  </div>
+                                                  <button onClick={() => setShowBlueprint(false)} className="p-3 text-gray-500 hover:text-white transition-colors bg-white/5 rounded-2xl"><X size={24} /></button>
+                                              </div>
+
+                                              <div className="flex-1 overflow-y-auto custom-scrollbar space-y-12 pr-4">
+                                                  <div className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] shadow-inner relative group/logic">
+                                                      <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover/logic:opacity-10 transition-opacity"><Zap size={60} /></div>
+                                                      <div className="flex items-center gap-3 mb-6">
+                                                          <Code size={14} className="text-[#9d4edd]" />
+                                                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Protocol Logic</span>
+                                                      </div>
+                                                      <p className="text-lg text-gray-300 font-mono italic leading-relaxed">"{dashboard.activeManifest.logic || dashboard.activeManifest.internalPlanningMonologue}"</p>
+                                                  </div>
+
+                                                  <div className="space-y-6">
+                                                      <div className="flex items-center gap-3 text-[11px] font-black text-gray-500 uppercase tracking-widest px-2">
+                                                          <ListChecks size={16} className="text-[#10b981]" /> Implementation Sequence
+                                                      </div>
+                                                      <div className="space-y-4">
+                                                          {Array.isArray(dashboard.activeManifest?.protocols) && dashboard.activeManifest.protocols.map((p: any, i: number) => (
+                                                              <div key={i} className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-6 group hover:border-white/10 transition-all">
+                                                                  <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center font-mono font-black text-sm text-[#22d3ee] border border-white/5">{i+1}</div>
+                                                                  <span className="text-sm text-gray-300 font-mono group-hover:text-white transition-colors">{p.instruction}</span>
+                                                              </div>
+                                                          ))}
+                                                      </div>
+                                                  </div>
+                                              </div>
+
+                                              <div className="pt-8 border-t border-white/5 flex gap-4">
+                                                  <button onClick={() => actions.deployStrategyToLattice(dashboard.activeManifest)} className="flex-1 py-5 bg-[#22d3ee] text-black font-black text-[10px] uppercase rounded-2xl tracking-[0.4em] shadow-[0_20px_50px_rgba(34,211,238,0.2)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4">
+                                                      <RefreshCw size={16} /> Deploy to Topology
+                                                  </button>
+                                              </div>
+                                          </motion.div>
+                                      )}
+                                  </AnimatePresence>
+
                                   <div className="absolute top-10 right-10 z-40 opacity-0 group-hover/img-node:opacity-100 transition-all">
                                       <div className="flex flex-col gap-3">
                                           <button 
                                             onClick={handleDownloadMainAsset}
                                             className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-white shadow-2xl hover:scale-105 active:scale-95 transition-all"
-                                            title="Download Viewport Manifest"
                                           >
                                               <Download size={24} />
                                           </button>
                                           <button 
-                                            onClick={(e) => { e.stopPropagation(); actions.openHoloProjector({ id: 'soc-scan', title: 'Holo Inspect', type: 'IMAGE', content: mainImageUrl }); }}
+                                            onClick={(e) => { e.stopPropagation(); actions.openHoloProjector({ id: 'soc-scan', title: 'Holo Inspect', type: 'IMAGE', content: dashboard.hubViewUrl }); }}
                                             className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-[#18E6FF] shadow-2xl hover:scale-105 active:scale-95 transition-all"
-                                            title="Holo Inspect"
                                           >
                                               <Maximize2 size={24} />
                                           </button>
                                       </div>
                                   </div>
                               </motion.div>
-                          ) : (
-                              <motion.div 
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                className="h-full flex flex-col items-center justify-center text-center p-12 gap-6 opacity-20 group-hover/view:opacity-40 transition-opacity duration-1000"
-                              >
-                                  <div className="relative">
-                                      <Hexagon size={100} className="text-gray-500 animate-[spin_20s_linear_infinite]" />
-                                      <div className="absolute inset-0 flex items-center justify-center">
-                                          <Target size={32} className="text-[#9d4edd]" />
-                                      </div>
-                                  </div>
-                                  <div className="space-y-2">
-                                      <h3 className="text-xl font-black text-white uppercase tracking-[0.6em]">Viewport Standby</h3>
-                                      <p className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.2em] max-sm mx-auto">Manual protocol required for holographic uplink.</p>
-                                  </div>
-                              </motion.div>
                           )}
                       </AnimatePresence>
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
                       
+                      {/* Active Implementation Pulse Overlay */}
+                      <AnimatePresence>
+                        {dashboard.activeManifest && dashboard.deploymentProgress < 100 && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute bottom-10 right-10 z-[35] w-64 bg-black/80 backdrop-blur-3xl border border-[#22d3ee]/40 p-6 rounded-3xl shadow-[0_0_50px_rgba(34,211,238,0.2)] flex flex-col gap-4"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Protocol Deployment</span>
+                                    <span className="text-[10px] font-black font-mono text-[#22d3ee]">{dashboard.deploymentProgress}%</span>
+                                </div>
+                                <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                    <motion.div 
+                                        className="h-full bg-[#22d3ee] shadow-[0_0_15px_#22d3ee]" 
+                                        animate={{ width: `${dashboard.deploymentProgress}%` }}
+                                    />
+                                </div>
+                                <div className="text-[8px] font-mono text-gray-400 uppercase tracking-tighter truncate italic">
+                                    Phase_{Math.floor(dashboard.deploymentProgress / 20) + 1}: Syncing Virtual Nodes...
+                                </div>
+                            </motion.div>
+                        )}
+                      </AnimatePresence>
+
                       <div className="absolute bottom-8 left-10 z-20 flex flex-col gap-3">
                            <div className="text-[8px] font-black font-mono text-[#9d4edd] uppercase tracking-[0.5em] mb-1 px-1">Lattice_Operational_State</div>
                            <div className="flex gap-2.5">
@@ -464,7 +598,7 @@ const MetaventionsHub: React.FC = () => {
                   <div className="h-32 bg-black/60 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-10 shrink-0 z-20 relative">
                      <div className="flex items-center gap-12">
                         <div className="flex flex-col">
-                            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black uppercase">Neural Coherence</span>
+                            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Neural Coherence</span>
                             <span className="text-lg font-black font-mono text-white tracking-tighter uppercase">The D-Ecosystem</span>
                         </div>
                         <div className="h-10 w-px bg-white/5" />
@@ -488,7 +622,7 @@ const MetaventionsHub: React.FC = () => {
                                 </div>
                             </div>
                             <div className="flex flex-col gap-1.5">
-                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black uppercase">Active Comms</span>
+                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Active Comms</span>
                                 <button 
                                     onClick={handleUplink}
                                     className={cn(
@@ -539,18 +673,19 @@ const MetaventionsHub: React.FC = () => {
                          </label>
                       </div>
 
-                      {/* Fully Clickable Anchor Frame with Scanning Effect */}
                       <div 
                         onClick={() => fileInputRef.current?.click()}
                         className="aspect-video bg-black/60 rounded-3xl border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer"
                       >
                           <input type="file" ref={fileInputRef} className="hidden" onChange={handleAnchorSwap} accept="image/*" />
                           
-                          {/* Animated Scan Line */}
                           <motion.div 
                             animate={{ top: ['-100%', '100%'] }}
-                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                            className="absolute left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent shadow-[0_0_10px_#9d4edd] z-30"
+                            transition={{ duration: 2, repeat: isSyncing ? Infinity : 0, ease: "linear" }}
+                            className={cn(
+                                "absolute left-0 w-full h-[2px] bg-[#9d4edd] shadow-[0_0_20px_#9d4edd] z-30",
+                                !isSyncing && "hidden"
+                            )}
                           />
 
                           {dashboard.referenceImage ? (
@@ -571,7 +706,6 @@ const MetaventionsHub: React.FC = () => {
                       </div>
                   </div>
 
-                  {/* 2. Compacted Core Metrics Matrix */}
                   <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden shrink-0 invisible-glass">
                       <div className="grid grid-cols-2 gap-4">
                           <CompactMetric title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
@@ -581,7 +715,8 @@ const MetaventionsHub: React.FC = () => {
                       </div>
                   </div>
 
-                  {/* 3. Network Topology Radar */}
+                  <DirectoryPeek manifest={dashboard.activeManifest} />
+
                   <div className="crystalline rounded-[2.5rem] p-8 h-64 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass">
                       <div className="flex items-center gap-3 mb-6 relative z-10">
                         <ChartIcon size={14} className="text-[#f1c21b]" />
@@ -600,20 +735,16 @@ const MetaventionsHub: React.FC = () => {
                       <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
                   </div>
 
-                  {/* 4. Capital Velocity Section */}
                   <CapitalVelocity />
 
-                  {/* 5. Swarm Matrix Sector */}
                   <SwarmBox />
                   
-                  {/* 6. Operational Velocity (Graph) */}
                   <div className="flex-1 min-h-[300px]">
                     <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
                   </div>
               </div>
           </div>
 
-          {/* D-Ecosystem (Large Global View at bottom) */}
           <div className="w-full h-[850px] mt-20 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
               <div className="absolute top-12 left-16 z-20 flex flex-col gap-3 pointer-events-none">
                   <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">
