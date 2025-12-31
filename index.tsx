@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+import React, { ReactNode, ErrorInfo } from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw, Terminal } from 'lucide-react';
@@ -9,36 +9,45 @@ interface ErrorBoundaryProps {
 
 interface ErrorBoundaryState {
   hasError: boolean;
-  error: Error | null;
+  error: any;
 }
 
 /**
  * Root Error Boundary for Sovereign OS Crash Handling.
  * Handles critical application failures with a specialized system diagnostic UI.
  */
-// Fixed: Using Component named import to ensure robust TypeScript inference for state and props
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Explicitly define state property to resolve Property 'state' does not exist error
+// Fix: Explicitly use React.Component to ensure that this.props and this.state are correctly recognized by the TypeScript compiler via generic inheritance.
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Explicitly declare state while satisfying the inherited React.Component members.
   public state: ErrorBoundaryState = { hasError: false, error: null };
-  // Fix: Explicitly define props property to resolve Property 'props' does not exist error on line 83
-  public props: ErrorBoundaryProps;
 
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.props = props;
-  }
-
-  public static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+  public static getDerivedStateFromError(error: any): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  public componentDidCatch(error: any, errorInfo: ErrorInfo) {
     console.error("CRITICAL KERNEL PANIC:", error, errorInfo);
   }
 
   render() {
-    // Fixed: Accessed state via this.state
+    // Fix: Access state through this.state which is now explicitly inherited and recognized.
     if (this.state.hasError) {
+      let errorMsg = "An unexpected neural desync occurred in the Sovereign Core.";
+      const error = this.state.error;
+      
+      if (error) {
+        if (typeof error === 'string') errorMsg = error;
+        else if (error.message) errorMsg = error.message;
+        else if (error.stack) errorMsg = error.stack.split('\n')[0];
+        else {
+          try {
+            errorMsg = JSON.stringify(error).substring(0, 250);
+          } catch (e) {
+            errorMsg = "Unserializable structural mismatch in component tree.";
+          }
+        }
+      }
+
       return (
         <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#030303] text-white font-mono p-12 overflow-hidden relative">
             <div className="absolute inset-0 bg-[linear-gradient(rgba(157,78,221,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.05)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none"></div>
@@ -60,8 +69,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                 <div className="p-4 bg-red-500/5 rounded border border-red-500/10 mb-8 w-full overflow-hidden">
                     <p className="text-[10px] text-red-400 font-bold uppercase mb-2">Error Diagnostic:</p>
                     <p className="text-xs text-gray-400 leading-relaxed font-mono break-all">
-                        {/* Fixed: Accessed state error property safely */}
-                        {this.state.error?.message || "An unexpected neural desync occurred in the Sovereign Core."}
+                        {errorMsg}
                     </p>
                 </div>
 
@@ -82,7 +90,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       );
     }
 
-    // Fixed: Accessed props correctly
+    // Fix: Access props through this.props which is correctly inherited from the generic React.Component class.
     return this.props.children;
   }
 }

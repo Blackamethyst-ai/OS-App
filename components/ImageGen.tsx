@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import JSZip from 'jszip';
@@ -71,7 +72,8 @@ const CrewSlot = ({ role, status, icon: Icon, color }: { role: string, status: s
 );
 
 const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
-  const { imageGen, setImageGenState, addLog, openHoloProjector } = useAppStore();
+  const { imageGen, actions } = useAppStore();
+  const { setImageGenState, addLog, openHoloProjector } = actions;
   const [activeTab, setActiveTab] = useState<'SINGLE' | 'STORYBOARD' | 'VIDEO' | 'TEASER'>('SINGLE');
   
   // Cinematic Production State
@@ -1161,7 +1163,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
                                             className="relative flex flex-col items-center gap-10 w-full max-w-7xl"
                                         >
-                                            <div className="w-full aspect-video rounded-[3rem] overflow-hidden shadow-[0_0_150px_rgba(0,0,0,1)] border border-white/10 relative group/hero shrink-0">
+                                            <div className="w-full aspect-video rounded-[3rem] overflow-hidden shadow-[0_0_150px_rgba(0,0,0,1)] border border-white/10 rounded-full text-[11px] font-black font-mono text-white shadow-2xl relative group/hero shrink-0">
                                                 <img src={frames[teaserIdx].imageUrl} className="w-full h-full object-cover group-hover/hero:scale-105 transition-transform duration-[15s] ease-linear" alt="Theater View" />
                                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30 opacity-60" />
                                                 

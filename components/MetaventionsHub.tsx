@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
 import { 
@@ -14,7 +15,8 @@ import {
     TrendingUp, TrendingDown, Zap,
     Bot, Globe, User, Hexagon,
     Mic, MicOff, ShieldCheck, DollarSign,
-    LineChart as ChartIcon, Download, Layers
+    LineChart as ChartIcon, Download, Layers,
+    AlertTriangle, ZapOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
@@ -139,14 +141,26 @@ const SwarmBox = () => {
 };
 
 const MetaventionsHub: React.FC = () => {
-  const { dashboard, theme, user, voice, actions } = useAppStore();
+  const { dashboard, theme, user, voice, kernel, actions } = useAppStore();
   const { setDashboardState, addLog, setVoiceState, toggleProfile } = actions;
 
   const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [telemetry] = useState({ cpu: 13.2, net: 0.8, trust: 99.4 });
+  const [telemetry, setTelemetry] = useState({ cpu: 13.2, net: 0.8, trust: 99.4, entropy: kernel.entropy });
   const voiceCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Small update: Real-time entropy jitter simulation
+  useEffect(() => {
+    const interval = setInterval(() => {
+        setTelemetry(prev => ({
+            ...prev,
+            cpu: Math.max(5, Math.min(25, prev.cpu + (Math.random() * 2 - 1))),
+            entropy: Math.max(1, Math.min(15, prev.entropy + (Math.random() * 0.4 - 0.2)))
+        }));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const canvas = voiceCanvasRef.current;
@@ -304,11 +318,21 @@ const MetaventionsHub: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-12 relative z-10">
-              <div className="text-right">
-                  <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block mb-0.5">Lattice Uptime</span>
-                  <div className="flex items-center gap-3 mt-0.5">
-                      <span className="text-2xl font-black font-mono text-white tracking-tighter">99.99%</span>
-                      <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_100px_rgba(16,185,129,0.3)]" />
+              <div className="flex items-center gap-10">
+                  <div className="text-right">
+                      <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block mb-0.5">Lattice Uptime</span>
+                      <div className="flex items-center gap-3 mt-0.5">
+                          <span className="text-2xl font-black font-mono text-white tracking-tighter">99.99%</span>
+                          <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.3)]" />
+                      </div>
+                  </div>
+                  <div className="h-10 w-px bg-white/5" />
+                  <div className="text-right">
+                      <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block mb-0.5">Structural Entropy</span>
+                      <div className="flex items-center gap-3 mt-0.5">
+                          <span className="text-2xl font-black font-mono text-white tracking-tighter">{telemetry.entropy.toFixed(1)}</span>
+                          <div className={`w-2 h-2 rounded-full animate-pulse transition-colors ${telemetry.entropy > 10 ? 'bg-[#ef4444] shadow-[0_0_10px_#ef4444]' : 'bg-[#f59e0b] shadow-[0_0_10px_#f59e0b]'}`} />
+                      </div>
                   </div>
               </div>
           </div>
@@ -457,7 +481,7 @@ const MetaventionsHub: React.FC = () => {
               {/* Sidebar Panel */}
               <div className="col-span-3 space-y-8 flex flex-col">
                   
-                  {/* 1. Biometric Anchor (Promoted to Top) */}
+                  {/* 1. Biometric Anchor */}
                   <div className="crystalline rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-5 relative overflow-hidden group/anchor shrink-0 invisible-glass">
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
                       
@@ -472,12 +496,20 @@ const MetaventionsHub: React.FC = () => {
                          </label>
                       </div>
 
-                      {/* Fully Clickable Anchor Frame */}
+                      {/* Fully Clickable Anchor Frame with Scanning Effect */}
                       <div 
                         onClick={() => fileInputRef.current?.click()}
                         className="aspect-video bg-black/60 rounded-3xl border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer"
                       >
                           <input type="file" ref={fileInputRef} className="hidden" onChange={handleAnchorSwap} accept="image/*" />
+                          
+                          {/* Animated Scan Line */}
+                          <motion.div 
+                            animate={{ top: ['-100%', '100%'] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                            className="absolute left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent shadow-[0_0_10px_#9d4edd] z-30"
+                          />
+
                           {dashboard.referenceImage ? (
                                 <>
                                     <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover grayscale opacity-40 transition-all duration-1000 group-hover/v-anchor:opacity-90 group-hover/v-anchor:grayscale-0" alt="Anchor" />
@@ -499,14 +531,14 @@ const MetaventionsHub: React.FC = () => {
                   {/* 2. Compacted Core Metrics Matrix */}
                   <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden shrink-0 invisible-glass">
                       <div className="grid grid-cols-2 gap-4">
-                          <CompactMetric title="CPU LOAD" value={`${telemetry.cpu}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
+                          <CompactMetric title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
                           <CompactMetric title="BANDWIDTH" value={`${telemetry.net}GB/s`} detail="PEAK" icon={Radio} color="var(--amethyst)" trend="up" />
                           <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
                           <CompactMetric title="LATENCY" value="2.4ms" detail="OPTIMAL" icon={Zap} color="#f59e0b" trend="up" />
                       </div>
                   </div>
 
-                  {/* 3. Network Topology Radar (Feature Parity) */}
+                  {/* 3. Network Topology Radar */}
                   <div className="crystalline rounded-[2.5rem] p-8 h-64 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass">
                       <div className="flex items-center gap-3 mb-6 relative z-10">
                         <ChartIcon size={14} className="text-[#f1c21b]" />
@@ -540,7 +572,6 @@ const MetaventionsHub: React.FC = () => {
 
           {/* D-Ecosystem (Large Global View at bottom) */}
           <div className="w-full h-[850px] mt-20 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
-              {/* Refined Ecosystem Header HUD - Scales Down to Prevent Overlap */}
               <div className="absolute top-12 left-16 z-20 flex flex-col gap-3 pointer-events-none">
                   <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">
                       The D-Ecosystem

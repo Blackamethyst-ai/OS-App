@@ -1,4 +1,4 @@
-import React, { useEffect, useState, Suspense, lazy, useMemo } from 'react';
+import React, { useEffect, useState, Suspense, lazy, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -25,26 +25,24 @@ const AutonomousFinance = lazy(() => import('./AutonomousFinance'));
 const NexusAPIExplorer = lazy(() => import('./NexusAPIExplorer'));
 
 const SynapticRouter: React.FC = () => {
-    const { mode, contextMenu, actions } = useAppStore();
-    const { 
-        setMode, closeContextMenu, openHoloProjector, 
-        setCodeStudioState, setBibliomorphicState, addLog, toggleTerminal 
-    } = actions;
-
-    const [routeInfo, setRouteInfo] = useState({ path: '', sub: '', params: new URLSearchParams() });
+    // Atomic selectors to prevent unnecessary re-renders during system heartbeat
+    const contextMenu = useAppStore(s => s.contextMenu);
+    const actions = useAppStore(s => s.actions);
+    
+    const lastSyncedHash = useRef<string>('');
+    const [routeInfo, setRouteInfo] = useState({ path: '', sub: '', params: '' });
 
     useEffect(() => {
         const handleRouting = () => {
-            const hash = window.location.hash || '#/metaventions-hub';
-            const [fullPath, queryStr] = hash.replace('#', '').split('?');
+            const currentHash = window.location.hash || '#/metaventions-hub';
+            if (currentHash === lastSyncedHash.current) return;
+
+            const [fullPath, queryStr] = currentHash.replace('#', '').split('?');
             const parts = fullPath.split('/').filter(Boolean);
             const mainPath = parts[0] || 'metaventions-hub';
             const subPath = parts[1] || '';
-            const params = new URLSearchParams(queryStr);
 
-            setRouteInfo({ path: mainPath, sub: subPath, params });
-
-            const routeMap: Record<string, any> = {
+            const routeMap: Record<string, AppMode> = {
                 'dashboard': AppMode.DASHBOARD,
                 'metaventions-hub': AppMode.METAVENTIONS_HUB,
                 'bridge': AppMode.SYNTHESIS_BRIDGE,
@@ -57,24 +55,29 @@ const SynapticRouter: React.FC = () => {
                 'voice': AppMode.VOICE_MODE,
                 'agents': AppMode.AGENT_CONTROL,
                 'finance': AppMode.AUTONOMOUS_FINANCE,
-                'nexus': 'NEXUS'
+                'nexus': 'NEXUS' as any
             };
 
             const targetMode = routeMap[mainPath];
-            if (targetMode && targetMode !== mode) {
-                setMode(targetMode);
+            const currentStore = useAppStore.getState();
+            
+            if (targetMode !== undefined && targetMode !== currentStore.mode) {
+                actions.setMode(targetMode);
                 audio.playTransition();
             }
 
-            if (targetMode === AppMode.BIBLIOMORPHIC && subPath) {
-                setBibliomorphicState({ activeTab: subPath });
+            if (targetMode === AppMode.BIBLIOMORPHIC && subPath && currentStore.bibliomorphic.activeTab !== subPath) {
+                actions.setBibliomorphicState({ activeTab: subPath });
             }
+
+            setRouteInfo({ path: mainPath, sub: subPath, params: queryStr || '' });
+            lastSyncedHash.current = currentHash;
         };
 
         window.addEventListener('hashchange', handleRouting);
         handleRouting(); 
         return () => window.removeEventListener('hashchange', handleRouting);
-    }, [mode, setMode, setBibliomorphicState]);
+    }, [actions]);
 
     useEffect(() => {
         const handleContextMenu = (e: MouseEvent) => {
@@ -105,7 +108,7 @@ const SynapticRouter: React.FC = () => {
         };
 
         const handleClick = () => {
-            if (contextMenu.isOpen) closeContextMenu();
+            if (contextMenu.isOpen) actions.closeContextMenu();
         };
 
         document.addEventListener('contextmenu', handleContextMenu);
@@ -114,7 +117,7 @@ const SynapticRouter: React.FC = () => {
             document.removeEventListener('contextmenu', handleContextMenu);
             document.removeEventListener('click', handleClick);
         };
-    }, [closeContextMenu, contextMenu.isOpen, actions]);
+    }, [contextMenu.isOpen, actions]);
 
     const handleAction = (action: string) => {
         const { targetContent, contextType } = contextMenu;
@@ -122,7 +125,7 @@ const SynapticRouter: React.FC = () => {
         switch (action) {
             case 'HOLO_VIEW':
                 if (targetContent) {
-                  openHoloProjector({
+                  actions.openHoloProjector({
                       id: `holo-${Date.now()}`,
                       type: contextType as any,
                       title: 'Synaptic Projection',
@@ -132,8 +135,8 @@ const SynapticRouter: React.FC = () => {
                 break;
             case 'DEEP_SCAN':
                 if (targetContent && contextType === 'IMAGE') {
-                  addLog('SYSTEM', 'DIAGNOSTIC: Initializing Deep Sector Scan...');
-                  openHoloProjector({
+                  actions.addLog('SYSTEM', 'DIAGNOSTIC: Initializing Deep Sector Scan...');
+                  actions.openHoloProjector({
                       id: `scan-${Date.now()}`,
                       type: 'IMAGE',
                       title: 'Sovereign Diagnostic Scan',
@@ -144,7 +147,7 @@ const SynapticRouter: React.FC = () => {
             case 'COPY':
                 if (targetContent) {
                     navigator.clipboard.writeText(targetContent);
-                    addLog('INFO', 'BUFFER: Fragment cached to clipboard.');
+                    actions.addLog('INFO', 'BUFFER: Fragment cached to clipboard.');
                 }
                 break;
             case 'SEARCH':
@@ -160,13 +163,14 @@ const SynapticRouter: React.FC = () => {
                 window.location.hash = '/code';
                 if (targetContent) {
                     const safePrompt = `Refactor this logic:\n\n${String(targetContent || '').substring(0, 500)}`;
-                    setCodeStudioState({ prompt: safePrompt });
+                    actions.setCodeStudioState({ prompt: safePrompt });
                 }
                 break;
         }
-        closeContextMenu();
+        actions.closeContextMenu();
     };
 
+    const mode = useAppStore(s => s.mode);
     const isFixedLayout = useMemo(() => 
         mode === AppMode.METAVENTIONS_HUB || mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.AUTONOMOUS_FINANCE || (mode as any) === 'NEXUS'
     , [mode]);
@@ -245,7 +249,7 @@ const SynapticRouter: React.FC = () => {
                             <div className="h-px bg-[#222] my-1" />
                             <MenuItem icon={ArrowUpRight} label="Hub" onClick={() => window.location.hash = '/metaventions-hub'} />
                             <MenuItem icon={Activity} label="Diagnostics" onClick={() => window.location.hash = '/memory'} />
-                            <MenuItem icon={Terminal} label="Terminal" onClick={() => toggleTerminal(true)} />
+                            <MenuItem icon={Terminal} label="Terminal" onClick={() => actions.toggleTerminal(true)} />
                         </div>
                     </motion.div>
                 )}
