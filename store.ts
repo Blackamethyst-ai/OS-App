@@ -1,4 +1,3 @@
-
 import { create } from 'zustand';
 import { 
     AppMode, AppTheme, UserProfile, FileData, Task, 
@@ -8,6 +7,7 @@ import {
     AspectRatio, ImageSize, StoredArtifact, MetaventionsState,
     OperationalContext, AutonomousAgent
 } from './types';
+import { neuralVault } from './services/persistenceService';
 
 const INITIAL_AGENTS: AutonomousAgent[] = [
     {
@@ -106,7 +106,7 @@ interface AppState {
     };
     dashboard: {
         isGenerating: boolean;
-        identityUrl: string | null;
+        identityUrl: null | string;
         referenceImage: FileData | null;
         activeThemeColor: string;
         topologyData: { s: string; A: number }[];
@@ -294,6 +294,7 @@ interface AppState {
         setAgentState: (update: any) => void;
         updateAgent: (id: string, update: Partial<AutonomousAgent>) => void;
         addAgent: (agent: AutonomousAgent) => void;
+        hydrateAgents: () => Promise<void>;
         deployStrategyToLattice: (strategy: any) => void;
     };
 }
@@ -699,15 +700,25 @@ export const useAppStore = create<AppState>((set, get) => ({
         setAgentState: (update) => set((state) => ({ 
             agents: { ...state.agents, ...(typeof update === 'function' ? update(state.agents) : update) } 
         })),
-        updateAgent: (id, update) => set((state) => ({
-            agents: {
-                ...state.agents,
-                activeAgents: state.agents.activeAgents.map(a => a.id === id ? { ...a, ...update } : a)
+        updateAgent: (id, update) => set((state) => {
+            const updatedAgents = state.agents.activeAgents.map(a => a.id === id ? { ...a, ...update } : a);
+            const targetAgent = updatedAgents.find(a => a.id === id);
+            if (targetAgent) {
+                neuralVault.saveAgent(targetAgent); // Unitary Persistence Reflex
             }
-        })),
-        addAgent: (agent) => set((state) => ({
-            agents: { ...state.agents, activeAgents: [...state.agents.activeAgents, agent] }
-        })),
+            return { agents: { ...state.agents, activeAgents: updatedAgents } };
+        }),
+        addAgent: (agent) => set((state) => {
+            const next = [...state.agents.activeAgents, agent];
+            neuralVault.saveAgent(agent);
+            return { agents: { ...state.agents, activeAgents: next } };
+        }),
+        hydrateAgents: async () => {
+            const saved = await neuralVault.getAgents();
+            if (saved.length > 0) {
+                set((state) => ({ agents: { ...state.agents, activeAgents: saved } }));
+            }
+        },
         deployStrategyToLattice: (strategy: any) => set((state) => {
             const nodes = [...state.process.nodes, {
                 id: `node-strat-${Date.now()}`,
