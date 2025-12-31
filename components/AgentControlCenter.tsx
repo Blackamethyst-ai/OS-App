@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { 
@@ -213,7 +212,6 @@ const AgentControlCenter: React.FC = () => {
         if (!activeAgent) return;
         const updated = activeAgent.tasks.map(t => {
             if (t.id === taskId) {
-                // Fix: Use correct type for AtomicTask status update to resolve TaskStatus assignment error
                 const nextStatus: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' = t.status === 'PENDING' ? 'IN_PROGRESS' : t.status === 'IN_PROGRESS' ? 'COMPLETED' : 'PENDING';
                 return { ...t, status: nextStatus };
             }
@@ -380,7 +378,7 @@ const AgentControlCenter: React.FC = () => {
                                                 <div className="absolute inset-0 bg-gradient-to-tr from-[#9d4edd]/10 to-transparent opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
                                             </div>
                                             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#0a0a0a] border border-white/10 rounded-full flex items-center justify-center">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_10px_#10b981]" />
                                             </div>
                                         </div>
                                         <div>
