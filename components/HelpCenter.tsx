@@ -5,7 +5,8 @@ import {
     HardDrive, Image as ImageIcon, Cpu, 
     Code, Mic, Settings, Info, Zap, 
     Shield, Network, FlaskConical, Command, History,
-    BookOpen, Layers, GitBranch, Globe, Database, Terminal, Workflow
+    BookOpen, Layers, GitBranch, Globe, Database, Terminal, Workflow,
+    ShieldCheck, CheckCircle2
 } from 'lucide-react';
 
 interface HelpCenterProps {
@@ -38,14 +39,14 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                 animate={{ scale: 1, y: 0 }}
                 exit={{ scale: 0.9, y: 20 }}
                 onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-5xl h-[85vh] bg-[#0a0a0a] border border-[#333] rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
+                className="w-full max-w-6xl h-[85vh] bg-[#0a0a0a] border border-[#333] rounded-2xl overflow-hidden shadow-2xl flex flex-col relative"
             >
                 <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(157,78,221,0.02)_50%,transparent_75%,transparent)] bg-[size:20px_20px] pointer-events-none"></div>
                 
                 <div className="h-16 border-b border-[#1f1f1f] bg-[#111] flex items-center justify-between px-8 relative z-10 shrink-0">
                     <div className="flex items-center gap-3">
                         <HelpCircle className="w-5 h-5 text-[#9d4edd]" />
-                        <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-white uppercase">V1.0 - THE D-Ecosystem Guide</h2>
+                        <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-white uppercase">V9.5 - THE D-Ecosystem Guide</h2>
                     </div>
                     <button onClick={onClose} className="p-2 text-gray-500 hover:text-white transition-colors">
                         <X className="w-6 h-6" />
@@ -71,14 +72,14 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-12">
                         <div className="p-8 bg-[#050505] border border-[#222] rounded-2xl relative overflow-hidden group hover:border-[#9d4edd]/50 transition-colors">
                             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <Zap className="w-24 h-24 text-white" />
                             </div>
                             <div className="flex items-center gap-3 mb-6">
                                 <Zap className="w-5 h-5 text-[#f1c21b]" />
-                                <h3 className="text-sm font-bold font-mono uppercase text-white tracking-widest">Global Keyboard Protocols</h3>
+                                <h3 className="text-sm font-bold font-mono uppercase text-white tracking-widest">Keyboard Protocols</h3>
                             </div>
                             <ul className="space-y-4 font-mono text-xs">
                                 <li className="flex justify-between items-center text-gray-400 group/key">
@@ -86,20 +87,16 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                                     <kbd className="bg-[#222] px-2 py-1 rounded border border-[#333] text-white shadow-lg">CMD + K</kbd>
                                 </li>
                                 <li className="flex justify-between items-center text-gray-400 group/key">
-                                    <span>System Terminal (Quake Mode)</span>
+                                    <span>Terminal (Quake)</span>
                                     <kbd className="bg-[#222] px-2 py-1 rounded border border-[#333] text-white shadow-lg">~</kbd>
                                 </li>
                                 <li className="flex justify-between items-center text-gray-400 group/key">
-                                    <span>Global System Search</span>
+                                    <span>Global Search</span>
                                     <kbd className="bg-[#222] px-2 py-1 rounded border border-[#333] text-white shadow-lg">CMD + S</kbd>
                                 </li>
                                 <li className="flex justify-between items-center text-gray-400 group/key">
-                                    <span>Toggle Voice Uplink</span>
+                                    <span>Voice Uplink</span>
                                     <kbd className="bg-[#222] px-2 py-1 rounded border border-[#333] text-white shadow-lg">CMD + SHIFT + V</kbd>
-                                </li>
-                                <li className="flex justify-between items-center text-gray-400 group/key">
-                                    <span>Open Documentation</span>
-                                    <kbd className="bg-[#222] px-2 py-1 rounded border border-[#333] text-white shadow-lg">F1</kbd>
                                 </li>
                             </ul>
                         </div>
@@ -110,23 +107,47 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                             </div>
                             <div className="flex items-center gap-3 mb-6">
                                 <Info className="w-5 h-5 text-[#22d3ee]" />
-                                <h3 className="text-sm font-bold font-mono uppercase text-white tracking-widest">Neural Integration Guidance</h3>
+                                <h3 className="text-sm font-bold font-mono uppercase text-white tracking-widest">Neural Integration</h3>
                             </div>
                             <p className="text-[10px] text-gray-400 font-mono leading-relaxed mb-6">
-                                The Voice Core maintains a high-fidelity mental model of the entire application. It can see your screen, navigate to any sector, and trigger local UI actions using its dynamic visual cortex.
+                                The Voice Core maintains screen awareness. It can see sectors and trigger local UI actions using its dynamic visual cortex.
                             </p>
                             <div className="space-y-3">
                                 <div className="flex items-center gap-3 p-2 bg-white/5 rounded border border-white/10 text-[9px] font-mono text-gray-300">
                                     <Activity className="w-3.5 h-3.5 text-[#9d4edd]" />
-                                    <span>"Analyze the current hardware thermal map"</span>
+                                    <span>"Analyze hardware thermal map"</span>
                                 </div>
                                 <div className="flex items-center gap-3 p-2 bg-white/5 rounded border border-white/10 text-[9px] font-mono text-gray-300">
                                     <Command className="w-3.5 h-3.5 text-[#22d3ee]" />
-                                    <span>"Switch to light theme and navigate to dashboard"</span>
+                                    <span>"Switch to light theme"</span>
                                 </div>
-                                <div className="flex items-center gap-3 p-2 bg-white/5 rounded border border-white/10 text-[9px] font-mono text-gray-300">
-                                    <Code className="w-3.5 h-3.5 text-[#f1c21b]" />
-                                    <span>"Draft a rust backend for the sovereign vault"</span>
+                            </div>
+                        </div>
+
+                        {/* New Section: Technical Sovereignty (React/TS Best Practices) */}
+                        <div className="p-8 bg-[#050505] border border-[#f1c21b]/20 rounded-2xl relative overflow-hidden group hover:border-[#f1c21b]/50 transition-colors">
+                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                                <Code className="w-24 h-24 text-white" />
+                            </div>
+                            <div className="flex items-center gap-3 mb-6">
+                                <ShieldCheck className="w-5 h-5 text-[#f1c21b]" />
+                                <h3 className="text-sm font-bold font-mono uppercase text-white tracking-widest">Technical Sovereignty</h3>
+                            </div>
+                            <p className="text-[10px] text-gray-400 font-mono leading-relaxed mb-4">
+                                Maintain structural integrity in custom components. Resolve <span className="text-[#f1c21b]">"Property props does not exist"</span> errors via explicit child typing.
+                            </p>
+                            <div className="space-y-4">
+                                <div className="p-3 bg-black/60 rounded-xl border border-white/5 space-y-2 shadow-inner">
+                                    <div className="flex items-center gap-2 text-[8px] font-black text-[#f1c21b] uppercase">
+                                        <CheckCircle2 size={10} /> Step 1: Define Item Props
+                                    </div>
+                                    <div className="text-[8px] text-gray-500 font-mono italic">Create specialized interfaces for children elements.</div>
+                                </div>
+                                <div className="p-3 bg-black/60 rounded-xl border border-white/5 space-y-2 shadow-inner">
+                                    <div className="flex items-center gap-2 text-[8px] font-black text-[#22d3ee] uppercase">
+                                        <CheckCircle2 size={10} /> Step 2: Generic Type Safety
+                                    </div>
+                                    <div className="text-[8px] text-gray-500 font-mono italic">Cast children as ReactElement&lt;T&gt; to access internal props.</div>
                                 </div>
                             </div>
                         </div>
@@ -135,7 +156,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
 
                 <div className="h-14 bg-[#050505] border-t border-[#1f1f1f] px-8 flex items-center justify-between text-[10px] font-mono text-gray-600 shrink-0">
                     <div className="flex items-center gap-4">
-                        <span className="uppercase tracking-[0.3em] uppercase">V1.0 - THE D-Ecosystem // Proprietary Interface</span>
+                        <span className="uppercase tracking-[0.3em] uppercase">V9.5 - THE D-Ecosystem // Proprietary Interface</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
