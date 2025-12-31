@@ -21,7 +21,7 @@ import {
     Scale
 } from 'lucide-react';
 import { GoogleGenAI, Type, Schema, GenerateContentResponse } from '@google/genai';
-import { retryGeminiRequest, promptSelectKey, safeParseJson, generateStructuredWorkflow } from '../services/geminiService';
+import { retryGeminiRequest, promptSelectKey, safeParseJson, generateStructuredWorkflow, compressKnowledge } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
@@ -102,6 +102,8 @@ const ImplementationDeck: React.FC<{
 }> = ({ data, onDeploy, onArchive }) => {
     if (!data) return null;
 
+    const protocols = Array.isArray(data.protocols) ? data.protocols : Array.isArray(data.workflowSteps) ? data.workflowSteps : [];
+
     return (
         <motion.div 
             initial={{ opacity: 0, y: 20 }} 
@@ -164,7 +166,7 @@ const ImplementationDeck: React.FC<{
                         <ListChecks size={20} className="text-[#10b981]" />
                         <span className="text-xs font-black text-white uppercase tracking-[0.4em]">Implementation Sequence</span>
                     </div>
-                    {Array.isArray(data.protocols || data.workflowSteps) && (data.protocols || data.workflowSteps).map((step: any, i: number) => (
+                    {protocols.map((step: any, i: number) => (
                         <motion.div 
                             key={i} 
                             initial={{ opacity: 0, x: -20 }} 
@@ -258,7 +260,7 @@ const SynthesisBridge: React.FC = () => {
         try {
             if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsGenerating(false); return; }
             
-            const activeLayers = knowledge.activeLayers.map(id => KNOWLEDGE_LAYERS[id]?.label || id).join(', ');
+            const activeLayers = (knowledge.activeLayers || []).map(id => KNOWLEDGE_LAYERS[id]?.label || id).join(', ');
 
             const directive = presetPrompt || (processType === 'DRIVE' 
                 ? "Forge a professional PARA+ Drive Organization. STRUCTURE: Projects (Active), Areas (Ongoing Responsibilities), Resources (Topic Interest), Archives (Completed). NAMING RITUAL: [YEAR.MONTH]_[PROJECT_ID]_[NODE_TYPE]. Provide a detailed 'structure' array for recursive tree visualization."
@@ -440,7 +442,7 @@ const SynthesisBridge: React.FC = () => {
             <div className="h-10 bg-[#020204]/80 border-t border-white/5 px-12 flex items-center justify-between text-[9px] font-mono text-gray-700 shrink-0 relative z-[60] backdrop-blur-4xl uppercase font-black">
                 <div className="flex gap-16 items-center">
                     <div className="flex items-center gap-3 text-[#10b981] tracking-[0.2em]">
-                        <ShieldCheck size={16} className="shadow-[0_0_10px_#10b981]" /> Sync_Stable
+                        <ShieldCheck size={16} className="shadow-[0_0_100px_#10b981]" /> Sync_Stable
                     </div>
                     <div className="flex items-center gap-3 tracking-widest">
                         <Activity size={16} className="text-[#18E6FF]" /> Load: {Math.floor(Math.random() * 8 + 2)}%

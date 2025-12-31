@@ -17,9 +17,9 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Metaventions OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// FIX: Using React.Component explicitly to ensure this.props is correctly inherited and typed
+// Fix: Explicitly inheriting from React.Component to resolve "Property props does not exist"
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // FIX: Added constructor to explicitly initialize props and state for better type safety and inheritance check
+  // Fix: Explicitly define state and initialize via constructor for structural integrity
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -39,13 +39,20 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
 
   render(): ReactNode {
     const { hasError, error } = this.state;
-    // FIX: Correctly access this.props now that the class correctly extends React.Component
     const { fallback, children } = this.props;
 
     if (hasError) {
       if (fallback) return fallback;
 
-      const errorMsg = error?.message || "An unexpected neural desync occurred.";
+      // Robust stringification for object errors
+      let errorMsg = "An unexpected neural desync occurred.";
+      if (error instanceof Error) {
+        errorMsg = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        errorMsg = JSON.stringify(error);
+      } else if (typeof error === 'string') {
+        errorMsg = error;
+      }
 
       return (
         <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#020204] text-white font-mono p-12 overflow-hidden relative">

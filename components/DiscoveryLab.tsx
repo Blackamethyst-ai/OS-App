@@ -22,28 +22,29 @@ const DiscoveryLab: React.FC = () => {
     
     const activeKnowledge = useMemo(() => {
         let nodes: KnowledgeNode[] = [];
-        const tasksToInclude = filterTaskId ? research.tasks.filter(t => t.id === filterTaskId) : research.tasks;
+        const researchTasks = research?.tasks || [];
+        const tasksToInclude = filterTaskId ? researchTasks.filter(t => t.id === filterTaskId) : researchTasks;
 
         tasksToInclude.forEach(t => {
-            nodes.push({ id: t.id, label: t.query, type: 'CONCEPT', connections: [], strength: 10 });
-            if (t.findings) {
-                t.findings.forEach(f => {
-                    nodes.push({ id: f.id, label: f.fact, type: 'FACT', connections: [t.id], strength: f.confidence });
+            nodes.push({ id: t.id, label: t.query || 'Probe', type: 'CONCEPT', connections: [], strength: 10 });
+            if (Array.isArray(t.findings)) {
+                t.findings.forEach((f: any) => {
+                    nodes.push({ id: f.id, label: f.fact, type: 'FACT', connections: [t.id], strength: f.confidence || 0 });
                 });
             }
         });
 
         if (!filterTaskId) {
-            discovery.hypotheses.forEach(h => {
-                nodes.push({ id: h.id, label: h.statement, type: 'HYPOTHESIS', connections: [], strength: h.confidence });
+            (discovery?.hypotheses || []).forEach(h => {
+                nodes.push({ id: h.id, label: h.statement, type: 'HYPOTHESIS', connections: [], strength: h.confidence || 0 });
             });
-            axioms.forEach(a => {
-                nodes.push({ id: a.id, label: a.statement, type: 'AXIOM', connections: a.sourceNodes, strength: 100 });
+            (axioms || []).forEach(a => {
+                nodes.push({ id: a.id, label: a.statement, type: 'AXIOM', connections: a.sourceNodes || [], strength: 100 });
             });
         }
 
         return nodes;
-    }, [research.tasks, discovery.hypotheses, axioms, filterTaskId]);
+    }, [research, discovery, axioms, filterTaskId]);
 
     const handleResearchDispatch = async (customQuery?: string) => {
         const query = customQuery || input;
@@ -87,8 +88,12 @@ const DiscoveryLab: React.FC = () => {
         addLog('SYSTEM', 'COMPRESSION_CORE: Initializing Lossy Knowledge Distillation...');
         try {
             const result = await compressKnowledge(activeKnowledge);
-            setAxioms(prev => [...prev, ...result]);
-            addLog('SUCCESS', `COMPRESSION_COMPLETE: Lattice density increased by ~${Math.round(result.reduce((a,b)=>a+b.reductionFactor,0)/result.length)}%`);
+            if (Array.isArray(result) && result.length > 0) {
+                setAxioms(prev => [...prev, ...result]);
+                const totalReduction = result.reduce((a, b) => a + (b.reductionFactor || 0), 0);
+                const avgReduction = Math.round(totalReduction / result.length);
+                addLog('SUCCESS', `COMPRESSION_COMPLETE: Lattice density increased by ~${avgReduction}%`);
+            }
         } catch (e) {
             addLog('ERROR', 'COMPRESSION_FAIL: Structural collision in logic model.');
         } finally {
@@ -100,7 +105,7 @@ const DiscoveryLab: React.FC = () => {
         if (activeKnowledge.length < 5) return;
         setDiscoveryState({ status: 'HYPOTHESIZING', isLoading: true });
         try {
-            const allFacts = research.tasks.flatMap(t => t.findings?.map(f => f.fact) || []);
+            const allFacts = (research?.tasks || []).flatMap(t => t.findings?.map((f: any) => f.fact) || []);
             const subset = allFacts.slice(0, 20);
             const hyps = await generateHypotheses(subset);
             setDiscoveryState({ hypotheses: hyps, status: 'IDLE', isLoading: false });
@@ -156,8 +161,8 @@ const DiscoveryLab: React.FC = () => {
                             {isCompressing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Minimize2 className="w-3 h-3" />}
                             Distill Axioms
                         </button>
-                        <button onClick={handleGenerateHypotheses} disabled={discovery.isLoading} className="px-4 py-2 bg-[#22d3ee] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#67e8f9] transition-all flex items-center gap-2">
-                            {discovery.isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles size={20} className="w-3 h-3" />}
+                        <button onClick={handleGenerateHypotheses} disabled={discovery?.isLoading} className="px-4 py-2 bg-[#22d3ee] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#67e8f9] transition-all flex items-center gap-2">
+                            {discovery?.isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles size={20} className="w-3 h-3" />}
                             Hypothesize
                         </button>
                     </div>
@@ -181,7 +186,7 @@ const DiscoveryLab: React.FC = () => {
                             )}
                         </div>
                         <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
-                            {research.tasks.map(task => (
+                            {(research?.tasks || []).map(task => (
                                 <div 
                                     key={task.id} 
                                     onClick={() => setFilterTaskId(task.id === filterTaskId ? null : task.id)}
@@ -193,7 +198,7 @@ const DiscoveryLab: React.FC = () => {
                                     </div>
                                     <div className="h-1 bg-[#333] rounded-full overflow-hidden mb-1"><div className="h-full bg-[#f59e0b]" style={{ width: `${task.progress}%` }} /></div>
                                     <div className="flex justify-between items-center">
-                                        <div className="text-[8px] text-gray-600 font-mono truncate max-w-[140px]">{task.logs[task.logs.length-1]}</div>
+                                        <div className="text-[8px] text-gray-600 font-mono truncate max-w-[140px]">{Array.isArray(task.logs) ? task.logs[task.logs.length-1] : 'Idle'}</div>
                                         {filterTaskId === task.id && <span className="text-[7px] font-black text-[#22d3ee] animate-pulse">LOCK_ACTIVE</span>}
                                     </div>
                                 </div>
@@ -216,7 +221,7 @@ const DiscoveryLab: React.FC = () => {
                                     <p className="text-gray-300 leading-relaxed font-mono italic">"{axiom.statement}"</p>
                                     <div className="mt-2 flex items-center gap-2">
                                         <CheckCircle2 size={10} className="text-[#42be65]" />
-                                        <span className="text-[8px] text-gray-600 font-mono uppercase">SUPPORTED BY {axiom.sourceNodes.length} NODES</span>
+                                        <span className="text-[8px] text-gray-600 font-mono uppercase">SUPPORTED BY {Array.isArray(axiom.sourceNodes) ? axiom.sourceNodes.length : 0} NODES</span>
                                     </div>
                                 </div>
                             ))}
