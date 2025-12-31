@@ -1,5 +1,5 @@
 
-import React, { ReactNode, ErrorInfo } from 'react';
+import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
@@ -17,12 +17,14 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Use React.Component to resolve TS errors regarding state and props not existing on ErrorBoundary.
+// Fix: Explicitly extend React.Component and declare the state property to avoid TypeScript errors regarding missing state/props
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Explicitly declare the state property as a class field to resolve "Property 'state' does not exist"
+  public state: ErrorBoundaryState = { hasError: false, error: null };
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    // Fix: Correct initialization of state property within the component constructor.
-    this.state = { hasError: false, error: null };
+    // Fix: Initialization is now handled by the class property above to satisfy strict TS compilers
   }
 
   static getDerivedStateFromError(error: any): ErrorBoundaryState {
@@ -34,10 +36,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   render() {
-    // Fix: Correctly accessing hasError property from this.state.
+    // Fix: Access state and props which are now correctly inherited and recognized by the compiler via React.Component
     if (this.state.hasError) {
       let errorMsg = "An unexpected neural desync occurred.";
-      // Fix: Correctly accessing error property from this.state.
       const error = this.state.error;
       
       if (error) {
@@ -62,7 +63,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                 </div>
                 <button 
                     onClick={() => window.location.reload()} 
-                    className="group px-10 py-4 bg-red-500 hover:bg-red-400 text-black font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(157,78,221,0.3)]"
+                    className="group px-10 py-4 bg-red-500 hover:bg-red-400 text-black font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(239,68,68,0.3)]"
                 >
                     <RefreshCw className="w-4 h-4" />
                     Cold Reboot
@@ -72,7 +73,6 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       );
     }
 
-    // Fix: Correctly accessing children property from this.props.
     return this.props.children;
   }
 }
