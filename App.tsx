@@ -15,6 +15,7 @@ import SynapticRouter from './components/SynapticRouter';
 import TimeTravelScrubber from './components/TimeTravelScrubber'; 
 import HelpCenter from './components/HelpCenter';
 import ThemeSwitcher from './components/ThemeSwitcher';
+import SunMoonToggle from './components/SunMoonToggle';
 import ResearchTray from './components/ResearchTray'; 
 import VoiceManager from './components/VoiceManager'; 
 import VoiceCoreOverlay from './components/VoiceCoreOverlay'; 
@@ -165,11 +166,24 @@ const App: React.FC = () => {
   };
 
   const themeVars = useMemo(() => {
-      // Light Mode removed. Enforcing Dark by default.
-      document.documentElement.setAttribute('data-theme', 'dark');
-      document.documentElement.classList.add('dark');
+      const isDark = theme !== AppTheme.LIGHT;
+      
+      document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+      if (isDark) document.documentElement.classList.add('dark');
+      else document.documentElement.classList.remove('dark');
 
       switch (theme) {
+          case AppTheme.LIGHT: return { 
+              '--bg-app': '#F5F7FA', 
+              '--bg-header': 'rgba(255, 255, 255, 0.4)',
+              '--bg-panel': 'rgba(255, 255, 255, 0.1)',
+              '--bg-side': '#f8f9fb',
+              '--bg-card-top': 'rgba(255, 255, 255, 0.12)', 
+              '--bg-card-bottom': 'rgba(240, 240, 245, 0.05)', 
+              '--text-primary': '#0B1020', 
+              '--text-muted': '#666666',
+              '--border-main': 'rgba(11, 16, 32, 0.1)'
+          };
           case AppTheme.AMBER: return { 
               '--bg-app': '#0a0500', 
               '--bg-header': 'rgba(10, 5, 0, 0.5)',
@@ -227,7 +241,7 @@ const App: React.FC = () => {
         style={{ backgroundColor: 'var(--bg-app)', color: 'var(--text-primary)', ...themeVars as any }}
     >
       <Starfield mode={mode} />
-      <BackgroundEffect isDarkMode={true} />
+      <BackgroundEffect isDarkMode={theme !== AppTheme.LIGHT} />
       
       <div className="absolute inset-0 pointer-events-none z-[200] opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
 
@@ -284,6 +298,7 @@ const App: React.FC = () => {
             <GlobalSearchBar />
             <div className="h-4 w-px bg-[var(--border-main)]" />
             <div className="flex items-center gap-2">
+                <SunMoonToggle />
                 <ThemeSwitcher />
                 <button onClick={() => actions.toggleProfile(true)} className="p-2 text-[var(--text-muted)] hover:text-[#f1c21b] transition-all rounded-lg hover:bg-black/5">
                     <User size={16} />

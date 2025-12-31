@@ -74,7 +74,6 @@ const DEcosystem: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [coherence, setCoherence] = useState(94.8);
   const [activeTransitNode, setActiveTransitNode] = useState<string | null>(null);
-  // Fix: Use a Ref to track active transit node within the requestAnimationFrame loop without stale closure issues.
   const activeTransitNodeRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -205,7 +204,6 @@ const DEcosystem: React.FC = () => {
         ctx.font = '800 8px Fira Code';
         ctx.fillText(`${n.load}% ARCH LOAD`, n.x, n.y - 45);
 
-        // Fix: Use activeTransitNodeRef instead of undefined variable 'p'.
         if (activeTransitNodeRef.current === n.id) {
              ctx.beginPath();
              ctx.arc(n.x, n.y, 15 * beat, 0, Math.PI * 2);
@@ -221,11 +219,10 @@ const DEcosystem: React.FC = () => {
     const rebalanceInterval = setInterval(() => {
         const targetId = SECTORS[Math.floor(Math.random() * SECTORS.length)].id;
         setActiveTransitNode(targetId);
-        // Fix: Sync Ref with State for the animation loop.
         activeTransitNodeRef.current = targetId;
 
         let batchCount = 0;
-        const batchMax = 45; // Rapid data transfer
+        const batchMax = 45; 
 
         for (let i = 0; i < particles.length; i++) {
             if (batchCount >= batchMax) break;

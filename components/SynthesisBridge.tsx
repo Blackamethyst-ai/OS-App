@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -11,23 +10,16 @@ import {
     Terminal, ArrowUpRight, Compass, ListChecks, Network, 
     Database, Server, Layout, FileSearch, Workflow, AlertTriangle,
     Eye, Maximize2, Info, BarChart3, Library, Trash2, Send,
-    Boxes, Cpu, Component, Share2, ClipboardList
+    Boxes, Cpu, Component, Share2, ClipboardList, BookOpen, 
+    // Fixed: Replaced FileTree with FolderTree as FileTree is not exported by lucide-react
+    FolderTree,
+    Cloud
 } from 'lucide-react';
 import { GoogleGenAI, Type, Schema, GenerateContentResponse } from '@google/genai';
 import { retryGeminiRequest, promptSelectKey, safeParseJson } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
-import { 
-    ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, 
-    Tooltip, ResponsiveContainer, Cell 
-} from 'recharts';
-
-/**
- * --- BLUEPRINT COMMAND DECK ---
- * Impeccable upgrade to the Synthesis Bridge.
- * Dedicated to structured processes: PARA organization and System Architecture.
- */
 
 const BlueprintStat = ({ label, value, color }: { label: string, value: string, color: string }) => (
     <div className="flex flex-col gap-1 p-4 bg-white/[0.02] border border-white/5 rounded-2xl relative overflow-hidden group hover:border-white/10 transition-all">
@@ -59,7 +51,6 @@ const DomainCard = ({ id, label, sub, icon: Icon, active, onClick, color }: any)
     </button>
 );
 
-// Fix: Typing ImplementationDeck as React.FC ensures that React-specific props like 'key' are allowed.
 const ImplementationDeck: React.FC<{
     data: any;
     onDeploy: (d: any) => void;
@@ -73,7 +64,6 @@ const ImplementationDeck: React.FC<{
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col gap-8 pb-20"
         >
-            {/* Header: Identity of the synthesized process */}
             <div className="p-10 bg-[#0a0a0a] border border-white/5 rounded-[3rem] relative overflow-hidden shadow-2xl invisible-glass">
                 <div className="absolute top-0 right-0 p-8 opacity-[0.02] rotate-12"><Component size={180} /></div>
                 
@@ -111,7 +101,7 @@ const ImplementationDeck: React.FC<{
                 </div>
 
                 <div className="p-8 bg-black/40 border border-white/5 rounded-[2rem] shadow-inner group/logic relative overflow-hidden">
-                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover/logic:opacity-10 transition-opacity"><Microscope size={60} /></div>
+                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] group/logic:opacity-10 transition-opacity"><Microscope size={60} /></div>
                     <div className="flex items-center gap-3 mb-6">
                         <Terminal size={16} className="text-[#9d4edd]" />
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Operational Logic</span>
@@ -122,7 +112,6 @@ const ImplementationDeck: React.FC<{
                 </div>
             </div>
 
-            {/* Steps: Detailed Sequence */}
             <div className="grid grid-cols-12 gap-8">
                 <div className="col-span-8 space-y-4">
                     <div className="flex items-center gap-4 px-2 mb-6">
@@ -208,11 +197,17 @@ const SynthesisBridge: React.FC = () => {
     const [result, setResult] = useState<any | null>(null);
     const [customIntent, setCustomIntent] = useState('');
 
-    const generateBlueprint = async () => {
+    const PRESETS = [
+        { id: 'para_drive', label: 'PARA Drive Alpha', type: 'DRIVE', description: 'Advanced file taxonomy based on Tiago Fortes PARA method. Optimized for large asset libraries.', icon: FolderTree },
+        { id: 'cloud_infra', label: 'Edge-In Cloud Arch', type: 'SYSTEM', description: 'Serverless deployment manifest with global CDN hooks and redundant node clustering.', icon: Cloud },
+        { id: 'vault_sync', label: 'Vault Persistence', type: 'DRIVE', description: 'Automated cross-region synchronization protocol for Sovereign Neural Vaults.', icon: Database },
+    ];
+
+    const generateBlueprint = async (presetPrompt?: string) => {
         setIsGenerating(true);
         setResult(null);
         audio.playClick();
-        addLog('SYSTEM', `SYNC: Initializing high-fidelity logic forge for ${processType}...`);
+        addLog('SYSTEM', `SYNC: Initializing logic forge for ${processType}...`);
 
         try {
             if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsGenerating(false); return; }
@@ -243,9 +238,9 @@ const SynthesisBridge: React.FC = () => {
                 required: ['title', 'logic', 'viability', 'riskVector', 'workflowSteps']
             };
 
-            const directive = processType === 'DRIVE' 
-                ? "Synthesize a high-fidelity PARA (Projects, Areas, Resources, Archives) drive organization process. Focus on recursive naming and decentralized metadata anchors."
-                : "Forge a cloud-native systems architecture blueprint. Focus on edge distribution, event-driven ingestion, and self-healing node clusters.";
+            const directive = presetPrompt || (processType === 'DRIVE' 
+                ? "Synthesize a high-fidelity PARA drive organization process. Focus on recursive naming and decentralized metadata anchors."
+                : "Forge a cloud-native systems architecture blueprint. Focus on edge distribution, event-driven ingestion, and self-healing node clusters.");
 
             const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
                 model: 'gemini-3-pro-preview',
@@ -271,7 +266,6 @@ const SynthesisBridge: React.FC = () => {
 
     return (
         <div className="h-full w-full bg-transparent flex flex-col font-sans overflow-hidden transition-all duration-700">
-            {/* Impeccable Header */}
             <div className="h-20 border-b border-white/5 bg-[#0a0a0a]/90 backdrop-blur-3xl z-30 flex items-center justify-between px-12 shrink-0 relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/50 to-transparent" />
                 
@@ -282,7 +276,7 @@ const SynthesisBridge: React.FC = () => {
                         </div>
                         <div>
                             <h1 className="text-lg font-black text-white uppercase tracking-[0.5em] leading-none">Synthesis Bridge</h1>
-                            <p className="text-[8px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-2">D-System Architecture Core // V9.5</p>
+                            <p className="text-[8px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-2">Structured Processes & Topologies // V9.5</p>
                         </div>
                     </div>
                     <div className="h-8 w-px bg-white/5" />
@@ -308,8 +302,7 @@ const SynthesisBridge: React.FC = () => {
             </div>
 
             <div className="flex-1 flex overflow-hidden p-10 gap-10">
-                {/* Control Sidebar */}
-                <div className="w-[360px] flex flex-col gap-8 shrink-0">
+                <div className="w-[360px] flex flex-col gap-8 shrink-0 overflow-y-auto custom-scrollbar pr-2">
                     <div className="p-8 bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] shadow-2xl invisible-glass space-y-6">
                         <div className="flex items-center gap-3 mb-2">
                             <Target size={14} className="text-gray-500" />
@@ -327,31 +320,31 @@ const SynthesisBridge: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="flex-1 bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] p-8 flex flex-col gap-6 shadow-2xl invisible-glass">
-                        <div className="flex items-center justify-between px-1">
-                            <div className="flex items-center gap-3">
-                                <Library size={14} className="text-gray-500" />
-                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Protocol Archive</span>
-                            </div>
-                            <div className="text-[8px] font-mono text-gray-700">{metaventions.strategyLibrary.length} UNIT(S)</div>
+                    <div className="p-8 bg-[#0a0a0a] border border-white/5 rounded-[2.5rem] shadow-2xl invisible-glass space-y-6">
+                        <div className="flex items-center gap-3 mb-2">
+                            <BookOpen size={14} className="text-gray-500" />
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em]">Standard Protocols</span>
                         </div>
-                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3 pr-2">
-                            {metaventions.strategyLibrary.map(strat => (
+                        <div className="space-y-3">
+                            {PRESETS.map(preset => (
                                 <button 
-                                    key={strat.id} 
-                                    className="w-full text-left p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:border-[#9d4edd]/40 transition-all group relative overflow-hidden"
+                                    key={preset.id}
+                                    onClick={() => { setProcessType(preset.type as any); setCustomIntent(preset.description); generateBlueprint(preset.description); }}
+                                    className="w-full p-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-2xl text-left transition-all group"
                                 >
-                                    <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity"><ArrowUpRight size={10} className="text-[#9d4edd]" /></div>
-                                    <div className="text-[10px] font-black text-white uppercase tracking-tighter truncate mb-1">{strat.title}</div>
-                                    <div className="text-[8px] text-gray-600 font-mono truncate">{strat.logic}</div>
+                                    <div className="flex items-center gap-3 mb-1">
+                                        <preset.icon size={12} className="text-[#9d4edd]" />
+                                        <div className="text-[10px] font-black text-white uppercase font-mono truncate">{preset.label}</div>
+                                    </div>
+                                    <div className="text-[8px] text-gray-600 font-mono line-clamp-2 uppercase leading-relaxed">{preset.description}</div>
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-4 pt-2">
                         <div className="flex items-center justify-between px-6">
-                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Global Intent Buffer</span>
+                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Custom Requirement</span>
                             <Binary size={12} className="text-[#9d4edd] animate-pulse" />
                         </div>
                         <textarea 
@@ -361,17 +354,16 @@ const SynthesisBridge: React.FC = () => {
                             className="w-full h-32 bg-black/40 border border-white/5 rounded-3xl p-6 text-xs font-mono text-gray-300 outline-none focus:border-[#9d4edd]/50 transition-all placeholder:text-gray-800 shadow-inner resize-none"
                         />
                         <button 
-                            onClick={generateBlueprint}
+                            onClick={() => generateBlueprint()}
                             disabled={isGenerating}
                             className="w-full py-6 bg-[#9d4edd] hover:bg-[#b06bf7] text-black rounded-[2rem] text-xs font-black uppercase tracking-[0.6em] transition-all shadow-[0_20px_50px_rgba(157,78,221,0.3)] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-4 group"
                         >
                             {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles size={20} className="group-hover:rotate-12 transition-transform" />}
-                            {isGenerating ? 'FORGING...' : 'Crystallize'}
+                            {isGenerating ? 'FORGING...' : 'Synthesize Process'}
                         </button>
                     </div>
                 </div>
 
-                {/* Main Deck / Result Area */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar pr-4">
                     <AnimatePresence mode="wait">
                         {result ? (
@@ -393,7 +385,7 @@ const SynthesisBridge: React.FC = () => {
                                 </div>
                                 <div className="space-y-4">
                                     <h3 className="text-3xl font-black font-mono text-white uppercase tracking-[1em]">Logic Hub Standby</h3>
-                                    <p className="text-[11px] font-mono text-gray-500 max-w-sm mx-auto uppercase tracking-widest leading-loose">Input intent and select a structural domain to initialize high-fidelity protocol synthesis.</p>
+                                    <p className="text-[11px] font-mono text-gray-500 max-w-sm mx-auto uppercase tracking-widest leading-loose">Select a standard protocol or input custom intent to initialize structured process synthesis.</p>
                                 </div>
                             </motion.div>
                         )}
@@ -401,23 +393,22 @@ const SynthesisBridge: React.FC = () => {
                 </div>
             </div>
 
-            {/* Global HUD Strip */}
             <div className="h-10 bg-black border-t border-white/5 px-12 flex items-center justify-between text-[8px] font-mono text-gray-600 shrink-0 relative z-[60] backdrop-blur-3xl">
                 <div className="flex gap-12 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
                     <div className="flex items-center gap-3 text-[#10b981] font-black uppercase tracking-[0.2em]">
                         <ShieldCheck size={14} className="shadow-[0_0_10px_#10b981]" /> Sync_Stable
                     </div>
                     <div className="flex items-center gap-3 uppercase tracking-widest font-black">
-                        <Binary size={14} className="text-[#9d4edd]" /> Kernel_Handshake: 0xFFD4E
+                        <Binary size={14} className="text-[#9d4edd]" /> Handshake: 0xPARA_PRO
                     </div>
                     <div className="flex items-center gap-3 uppercase tracking-widest font-black">
-                        <Database size={14} className="text-[#22d3ee]" /> Vault_Active: {metaventions.strategyLibrary.length} blueprints
+                        <Database size={14} className="text-[#22d3ee]" /> Repository_Active
                     </div>
                 </div>
                 <div className="flex items-center gap-10">
-                    <span className="uppercase tracking-[0.5em] opacity-40 leading-none">THE D-ECOSYSTEM SYNTHESIS BRIDGE</span>
+                    <span className="uppercase tracking-[0.5em] opacity-40 leading-none">STRATEGIC IMPLEMENTATION ENGINE</span>
                     <div className="h-4 w-px bg-white/10" />
-                    <span className="font-black text-gray-400 uppercase tracking-widest leading-none">OS_VERSION_9.5_ZENITH</span>
+                    <span className="font-black text-gray-400 uppercase tracking-widest leading-none">V9.5-ZENITH</span>
                 </div>
             </div>
         </div>

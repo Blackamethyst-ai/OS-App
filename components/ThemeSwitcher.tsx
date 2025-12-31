@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store';
-import { Moon, Contrast, Terminal, Book, Box, Zap, Palette, ShieldAlert, LayoutGrid } from 'lucide-react';
+import { Moon, Sun, Contrast, Terminal, Book, Box, Zap, Palette, ShieldAlert, LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
 import { AppTheme } from '../types';
 
 const UI_PREVIEW_MAP: Record<AppTheme, { bg: string; accent: string; text: string }> = {
     [AppTheme.DARK]: { bg: '#030303', accent: '#9d4edd', text: '#e5e5e5' },
-    [AppTheme.LIGHT]: { bg: '#030303', accent: '#9d4edd', text: '#e5e5e5' }, // Redirect preview to dark
+    [AppTheme.LIGHT]: { bg: '#F5F7FA', accent: '#0B1020', text: '#0B1020' },
     [AppTheme.CONTRAST]: { bg: '#000000', accent: '#ffffff', text: '#ffffff' },
     [AppTheme.HIGH_CONTRAST]: { bg: '#000000', accent: '#00ff00', text: '#00ff00' },
     [AppTheme.AMBER]: { bg: '#0a0a0a', accent: '#f59e0b', text: '#f59e0b' },
@@ -18,7 +18,6 @@ const UI_PREVIEW_MAP: Record<AppTheme, { bg: string; accent: string; text: strin
 };
 
 const ThemeSwitcher: React.FC = () => {
-    // Fixed: Accessed theme and actions separately to ensure correct destructuring
     const theme = useAppStore(s => s.theme);
     const actions = useAppStore(s => s.actions);
     const { setTheme } = actions;
@@ -26,15 +25,14 @@ const ThemeSwitcher: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [hoveredTheme, setHoveredTheme] = useState<AppTheme | null>(null);
 
-    // Removed AppTheme.LIGHT as it has been deprecated for high-fidelity dark aesthetics
     const themes = [
-        { id: AppTheme.DARK, icon: Moon, label: 'Dark Core', color: '#9d4edd', desc: 'Default low-light interface' },
+        { id: AppTheme.DARK, icon: Moon, label: 'Void Core', color: '#9d4edd', desc: 'Obsidian logic interface' },
+        { id: AppTheme.LIGHT, icon: Sun, label: 'High Light', color: '#0B1020', desc: 'Clarity focus palette' },
         { id: AppTheme.MIDNIGHT, icon: Box, label: 'Midnight', color: '#3b82f6', desc: 'Deep blue oceanic focus' },
         { id: AppTheme.AMBER, icon: Terminal, label: 'Amber Protocol', color: '#f59e0b', desc: 'Retro-industrial terminal' },
         { id: AppTheme.SOLARIZED, icon: Book, label: 'Solarized', color: '#2aa198', desc: 'Optimized reading mode' },
         { id: AppTheme.NEON_CYBER, icon: Zap, label: 'Neon Cyber', color: '#d946ef', desc: 'High-entropy visual skin' },
         { id: AppTheme.CONTRAST, icon: Contrast, label: 'High Contrast', color: '#ffffff', desc: 'Pure black/white access' },
-        { id: AppTheme.HIGH_CONTRAST, icon: ShieldAlert, label: 'Max Contrast', color: '#00ff00', desc: 'Accessibility focus' },
         { id: AppTheme.CUSTOM, icon: Palette, label: 'Custom Skin', color: '#9d4edd', desc: 'User-defined visual parameters' }
     ];
 

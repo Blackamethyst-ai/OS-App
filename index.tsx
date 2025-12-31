@@ -1,4 +1,5 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+
+import React, { ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
@@ -16,11 +17,13 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fixed: Added explicit constructor and state initialization to ensure proper inheritance and visibility of 'props' within the class scope
+// Fixed: Explicitly use React.Component from the react import to ensure 'state' and 'props' are correctly identified by the compiler
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fixed: Using property initializer for state to ensure it's correctly declared on the class type
+  public state: ErrorBoundaryState = { hasError: false, error: null };
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: any): ErrorBoundaryState {
@@ -68,7 +71,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       );
     }
 
-    // Fixed: 'this.props' is correctly resolved when using the imported Component as a base class with an explicit constructor
+    // Fixed: 'this.props' is now correctly resolved as the class inherits from React.Component with explicit generic parameters
     return this.props.children;
   }
 }
