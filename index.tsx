@@ -1,4 +1,5 @@
-import React, { ReactNode, ErrorInfo, Component, StrictMode } from 'react';
+
+import React, { ReactNode, ErrorInfo, StrictMode, Component } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw, Terminal, Activity } from 'lucide-react';
@@ -18,12 +19,13 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Use the named Component import directly to ensure generic types are correctly recognized by the TypeScript compiler, resolving property access errors on 'this'.
+// Fix: Directly extending Component<P, S> from react to ensure generic type safety and property access for 'this.props'.
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Explicitly defining state property on the class to ensure synchronization between generic declaration and implementation.
+  public state: ErrorBoundaryState = { hasError: false, error: null };
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    // Fix: Correctly initialize state on the class instance.
-    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -42,7 +44,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   };
 
   render(): ReactNode {
-    // Fix: Access state and props through 'this' context which is now correctly typed via Component inheritance.
+    // Fix: Property access for 'state' and 'props' now correctly typed via direct inheritance from Component.
     const { hasError, error } = this.state;
     const { fallback, children } = this.props;
 
