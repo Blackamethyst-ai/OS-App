@@ -16,14 +16,9 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Explicitly extend Component with props and state types to ensure base class properties like this.props are recognized.
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Explicitly declare state as a class property for strict TypeScript compatibility
+// Fixed: Explicitly extending React.Component to resolve 'props' inheritance issues in TypeScript
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   public state: ErrorBoundaryState = { hasError: false, error: null };
-
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-  }
 
   static getDerivedStateFromError(error: any): ErrorBoundaryState {
     return { hasError: true, error };
@@ -70,7 +65,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       );
     }
 
-    // Fix: line 74: Use this.props which is now correctly resolved due to explicit inheritance from Component.
+    // Fixed: 'props' is correctly inherited from React.Component when specified explicitly
     return this.props.children;
   }
 }
