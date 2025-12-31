@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { 
@@ -14,14 +13,10 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { AutonomousAgent, OperationalContext, MentalState } from '../types';
 import { GoogleGenAI, Schema, Type, GenerateContentResponse } from "@google/genai";
-import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest } from '../services/geminiService';
+import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest, safeParseJson } from '../services/geminiService';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 
-/**
- * AutonomicTask Component
- * Visualizes background system processes for the active agent node.
- */
 const AutonomicTask: React.FC<{ label: string, progress: number, color: string }> = ({ label, progress, color }) => (
     <div className="space-y-2">
         <div className="flex justify-between items-center text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest">
@@ -42,10 +37,6 @@ const AutonomicTask: React.FC<{ label: string, progress: number, color: string }
     </div>
 );
 
-/**
- * SwarmNodeCard Component
- * Represents a single agent node in the swarm with energy and status monitoring.
- */
 const SwarmNodeCard: React.FC<{ agent: AutonomousAgent, isActive: boolean, onClick: () => void }> = ({ agent, isActive, onClick }) => {
     const isSleeping = agent.status === 'SLEEPING';
     const accent = agent.id === 'charon' ? '#10b981' : agent.id === 'puck' ? '#9d4edd' : '#22d3ee';
@@ -137,30 +128,30 @@ const AgentControlCenter: React.FC = () => {
             
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
-            // Phase 1: Task Decomposition (Gemini 3 Pro)
             addLog('SYSTEM', `RUNTIME: Decomposing instruction for [${activeAgent.name}]...`);
             const planSchema: Schema = {
-                type: Type.OBJECT,
-                properties: {
-                    id: { type: Type.STRING },
-                    description: { type: Type.STRING },
-                    instruction: { type: Type.STRING },
-                    weight: { type: Type.NUMBER }
-                },
-                required: ['id', 'description', 'instruction', 'weight']
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        id: { type: Type.STRING },
+                        description: { type: Type.STRING },
+                        instruction: { type: Type.STRING },
+                        weight: { type: Type.NUMBER }
+                    },
+                    required: ['id', 'description', 'instruction', 'weight']
+                }
             };
 
-            // Fix: Explicitly type planResponse to resolve 'unknown' property access error
-            const planResponse: GenerateContentResponse = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+            const planResponse = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
                 model: 'gemini-3-pro-preview',
                 contents: `Decompose this directive for agent ${activeAgent.name} into specific atomic steps. Directive: "${query}"`,
                 config: { responseMimeType: 'application/json', responseSchema: planSchema }
             }));
 
-            const taskChain = JSON.parse(planResponse.text || '[]');
+            const taskChain = safeParseJson<any[]>(planResponse.text);
             updateAgent(activeAgent.id, { tasks: taskChain.map((t: any) => ({ ...t, status: 'PENDING' })) });
 
-            // Phase 2: Sequential Execution with Reasoning
             let finalBuffer = [...activeAgent.memoryBuffer, { timestamp: Date.now(), role: 'USER', text: query }];
             
             for (let i = 0; i < taskChain.length; i++) {
@@ -169,10 +160,9 @@ const AgentControlCenter: React.FC = () => {
                     tasks: taskChain.map((t: any, idx: number) => idx === i ? { ...t, status: 'IN_PROGRESS' } : (idx < i ? { ...t, status: 'COMPLETED' } : { ...t, status: 'PENDING' }))
                 });
 
-                // Fix: Wrapped in retryGeminiRequest and added explicit typing to resolve 'unknown' property error at line 161 (in user's version)
-                const stepResponse: GenerateContentResponse = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+                const stepResponse = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
                     model: 'gemini-3-flash-preview',
-                    contents: `Step ${i + 1}: ${step.instruction}. Reasoning within context of: ${query}`,
+                    contents: `Step ${i + 1}: ${step.instruction}. Context: ${query}`,
                     config: { 
                         systemInstruction: `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\nACT AS: ${activeAgent.name}.`,
                         thinkingConfig: { thinkingBudget: 4000 }
@@ -181,7 +171,7 @@ const AgentControlCenter: React.FC = () => {
 
                 finalBuffer = [...finalBuffer, { timestamp: Date.now(), role: 'AI', text: `[STEP_${i+1}] ${stepResponse.text}` }];
                 updateAgent(activeAgent.id, { memoryBuffer: finalBuffer });
-                await new Promise(r => setTimeout(r, 800));
+                await new Promise(r => setTimeout(r, 600));
             }
 
             updateAgent(activeAgent.id, { 
@@ -209,7 +199,6 @@ const AgentControlCenter: React.FC = () => {
 
     return (
         <div className="h-full w-full bg-transparent flex flex-col font-sans overflow-hidden transition-all duration-500">
-            {/* Tactical Header */}
             <div className="h-14 border-b border-white/5 flex items-center justify-between px-6 shrink-0 z-30 crystalline invisible-glass">
                 <div className="flex items-center gap-4">
                     <div className="p-2 bg-[#9d4edd]/10 border border-[#9d4edd]/20 rounded-lg">
@@ -232,7 +221,6 @@ const AgentControlCenter: React.FC = () => {
             </div>
 
             <div className="flex-1 flex overflow-hidden">
-                {/* Left Flank: Active Swarm Nodes */}
                 <div className="w-[300px] border-r border-white/5 flex flex-col shrink-0 bg-black/20">
                     <div className="p-5 border-b border-white/5 bg-white/[0.01]">
                         <span className="text-9px font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
@@ -254,7 +242,6 @@ const AgentControlCenter: React.FC = () => {
                     </div>
                 </div>
 
-                {/* The Nexus: Synthetic Mind workspace */}
                 <div className="flex-1 flex flex-col relative bg-transparent">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.02)_0%,transparent_80%)] pointer-events-none" />
                     
@@ -327,7 +314,6 @@ const AgentControlCenter: React.FC = () => {
                                 </AnimatePresence>
                             </div>
 
-                            {/* Strategic Directive Input */}
                             <div className="p-10 border-t border-white/5 bg-black/20 relative z-20">
                                 <div className="max-w-4xl mx-auto">
                                     <div className="text-[8px] font-black text-gray-600 uppercase tracking-[0.6em] mb-4 px-6 flex items-center gap-3">
@@ -343,7 +329,7 @@ const AgentControlCenter: React.FC = () => {
                                                 value={input}
                                                 onChange={e => setInput(e.target.value)}
                                                 disabled={agents.isDispatching}
-                                                placeholder={agents.isDispatching ? "Processing chain of thought..." : "Input operational intent sequence..."}
+                                                placeholder={agents.isDispatching ? "Synthesizing sequential protocol..." : "Input operational intent sequence..."}
                                                 className="flex-1 bg-transparent border-none outline-none text-[12px] font-mono text-white placeholder:text-gray-800 uppercase tracking-[0.2em] py-4"
                                             />
                                             <button 
@@ -365,7 +351,6 @@ const AgentControlCenter: React.FC = () => {
                     )}
                 </div>
 
-                {/* Right Flank: Logic Diagnostics */}
                 <div className="w-[340px] border-l border-white/5 flex flex-col shrink-0 bg-black/10">
                     <div className="p-5 border-b border-white/5 bg-white/[0.01] flex items-center gap-3">
                         <Activity className="w-4 h-4 text-[#9d4edd]" />
@@ -373,7 +358,6 @@ const AgentControlCenter: React.FC = () => {
                     </div>
 
                     <div className="p-6 space-y-10 flex-1 overflow-y-auto custom-scrollbar">
-                        {/* Task Chain Queue */}
                         <div className="space-y-4">
                             <span className="text-[8px] font-black text-gray-500 uppercase tracking-[0.4em] px-1 flex items-center gap-2">
                                 <ListTodo size={12} /> Active Task Chain
@@ -405,7 +389,6 @@ const AgentControlCenter: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Core Capabilities Chips */}
                         <div className="space-y-4">
                             <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">Active Skill Manifest</span>
                             <div className="flex flex-wrap gap-2">
@@ -417,7 +400,6 @@ const AgentControlCenter: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* Autonomic Tasks Progress Bars */}
                         <div className="space-y-6">
                             <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest px-1">Background Processes</span>
                             <div className="space-y-6">
@@ -428,7 +410,6 @@ const AgentControlCenter: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Sector Awareness Metric */}
                     <div className="p-8 border-t border-white/5 bg-transparent shrink-0">
                         <div className="flex justify-between items-center text-[8px] font-mono text-gray-600 uppercase mb-4 px-1">
                             <span>Sector Awareness</span>

@@ -9,10 +9,11 @@ import {
     Activity, Clock, Cpu, Shield, Zap, Hammer, Coins, 
     Telescope, History, AlertOctagon, BrainCircuit, 
     ArrowRight, Loader2, Terminal, HardDrive, Globe, Users,
-    Eye, Scan, Monitor, Save
+    Eye, Scan, Monitor, Save, Gauge
 } from 'lucide-react';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { useVisualCortex } from '../hooks/useVisualCortex';
+import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor';
 import { audio } from '../services/audioService';
 
 const LayerControlMesh = () => {
@@ -68,6 +69,7 @@ const GlobalStatusBar: React.FC = () => {
 
     const { execute, state: agentState } = useAgentRuntime();
     const { probeScreen, isProbing } = useVisualCortex();
+    const { fps, memory } = usePerformanceMonitor();
     const [input, setInput] = useState('');
     const [driveHealth, setDriveHealth] = useState(99);
     const [isRevealed, setIsRevealed] = useState(false);
@@ -123,9 +125,23 @@ const GlobalStatusBar: React.FC = () => {
                                 <span className="text-[10px] font-mono font-black text-[#10b981]">{Math.round(driveHealth)}%</span>
                             </div>
                         </div>
-                        <div className="flex flex-col">
-                            <span className="text-[7px] font-mono text-[var(--text-muted)] uppercase tracking-widest leading-none mb-1">Int</span>
-                            <span className="text-[10px] font-mono font-black text-[#9d4edd] leading-none">{Math.round(kernel.integrity)}%</span>
+                        <div className="flex items-center gap-4">
+                            <div className="flex flex-col">
+                                <span className="text-[7px] font-mono text-[var(--text-muted)] uppercase tracking-widest leading-none mb-1">Perf</span>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-[10px] font-mono font-black text-[#22d3ee]">{fps}</span>
+                                    <span className="text-[7px] text-gray-500 font-bold uppercase tracking-tighter">FPS</span>
+                                </div>
+                            </div>
+                            {memory && (
+                                <div className="flex flex-col">
+                                    <span className="text-[7px] font-mono text-[var(--text-muted)] uppercase tracking-widest leading-none mb-1">Heap</span>
+                                    <div className="flex items-center gap-1.5">
+                                        <span className="text-[10px] font-mono font-black text-[#f59e0b]">{memory.used}</span>
+                                        <span className="text-[7px] text-gray-500 font-bold uppercase tracking-tighter">MB</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     </div>
 
