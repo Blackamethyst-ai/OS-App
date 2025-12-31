@@ -204,8 +204,8 @@ export interface Colorway {
 
 export const SOVEREIGN_DEFAULT_COLORWAY: Colorway = {
     id: 'sovereign-default',
-    name: 'Amethyst',
-    colors: ['#9d4edd', '#0a0a0a']
+    name: 'Sovereign Bridge',
+    colors: ['#7B2CFF', '#18E6FF', '#020204']
 };
 
 export interface EconomicProtocol {
@@ -294,6 +294,15 @@ export interface SwarmResult {
     agentId: string;
     executionTime: number;
     voteLedger: VoteLedger;
+}
+
+export interface VoteLedger {
+    winner: string;
+    count: number;
+    runnerUp: string;
+    runnerUpCount: number;
+    totalRounds: number;
+    killedAgents: number;
 }
 
 export interface VoteLedger {

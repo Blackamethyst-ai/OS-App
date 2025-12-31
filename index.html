@@ -10,23 +10,47 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
     <style>
        :root {
-          /* --- SOVEREIGN TWO-TONE PALETTE --- */
-          --azure-blue: #3b82f6;
+          /* --- SOVEREIGN BRAND VECTORS // BRIDGE FLAGSHIP SYNC --- */
           --amethyst: #7B2CFF;
           --cyan: #18E6FF;
+          --azure-blue: #3b82f6;
+          --executive-gold: #f1c21b;
+          
+          /* --- NEURAL DARK THEME (VOID CORE) --- */
           --void-black: #020204;
+          --obsidian-surface: #0a0a0c;
           --stellar-white: #FFFFFF;
+          
+          /* --- NEURAL LIGHT THEME (HIGH CLARITY) --- */
+          --clarity-white: #F8FAFC;
+          --clarity-surface: #F1F5F9;
+          --clarity-border: rgba(15, 23, 42, 0.08);
 
-          /* --- REFINED GLASS MAPPING --- */
+          /* --- GLOBAL UI MAPPING (Standardized) --- */
           --bg-app: var(--void-black);
-          --bg-header: rgba(5, 5, 10, 0.15);
-          --bg-panel: rgba(255, 255, 255, 0.01);
-          --bg-card: rgba(255, 255, 255, 0.005);
+          --bg-header: rgba(2, 2, 4, 0.7);
+          --bg-panel: rgba(255, 255, 255, 0.012);
+          --bg-card: rgba(255, 255, 255, 0.006);
           --text-primary: var(--stellar-white);
           --text-secondary: #94A3B8;
           --text-muted: #64748b;
-          --border-main: rgba(255, 255, 255, 0.04);
-          --logo-glow: rgba(123, 44, 255, 0.5);
+          --border-main: rgba(255, 255, 255, 0.08);
+          --border-strong: rgba(255, 255, 255, 0.15);
+          
+          /* --- ANIMATION DELAYS --- */
+          --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+       }
+
+       [data-theme='light'] {
+          --bg-app: var(--clarity-white);
+          --bg-header: rgba(255, 255, 255, 0.8);
+          --bg-panel: rgba(15, 23, 42, 0.02);
+          --bg-card: rgba(15, 23, 42, 0.01);
+          --text-primary: #0F172A;
+          --text-secondary: #475569;
+          --text-muted: #94A3B8;
+          --border-main: var(--clarity-border);
+          --border-strong: rgba(15, 23, 42, 0.12);
        }
 
        body { 
@@ -35,58 +59,92 @@
           color: var(--text-primary); 
           margin: 0; 
           padding: 0; 
-          transition: background-color 1s ease, color 0.5s ease;
+          transition: background-color 0.8s var(--ease-out-expo), color 0.4s ease;
           -webkit-font-smoothing: antialiased;
           overflow: hidden;
        }
 
        .font-mono { font-family: 'Fira Code', monospace; }
        
+       /* --- CRYSTALLINE GLASS ARCHITECTURE --- */
        .crystalline {
-          background: rgba(255, 255, 255, 0.008) !important;
-          backdrop-filter: blur(40px) saturate(200%) brightness(1.1) !important;
-          -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(1.1) !important;
-          border: 0.5px solid rgba(255, 255, 255, 0.06);
+          background: var(--bg-panel) !important;
+          backdrop-filter: blur(45px) saturate(210%) brightness(1.05) !important;
+          -webkit-backdrop-filter: blur(45px) saturate(210%) brightness(1.05) !important;
+          border: 0.5px solid var(--border-main);
           box-shadow: 
             inset 0 1px 0 rgba(255, 255, 255, 0.05),
-            0 15px 35px -5px rgba(0, 0, 0, 0.5);
-          transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            0 25px 50px -12px rgba(0, 0, 0, 0.5);
+          transition: all 0.5s var(--ease-out-expo);
        }
 
        .invisible-glass {
-          background: rgba(255, 255, 255, 0.002) !important;
-          backdrop-filter: blur(25px) !important;
-          -webkit-backdrop-filter: blur(25px) !important;
-          border: 0.5px solid rgba(255, 255, 255, 0.03);
-       }
-
-       .glass-drawer-edge {
-          border-left: 1px solid rgba(255, 255, 255, 0.1);
-          box-shadow: inset 10px 0 30px -10px rgba(255, 255, 255, 0.01);
+          background: rgba(255, 255, 255, 0.003) !important;
+          backdrop-filter: blur(30px) saturate(160%) !important;
+          -webkit-backdrop-filter: blur(30px) saturate(160%) !important;
+          border: 0.5px solid var(--border-main);
        }
 
        .glass-action {
-          background: rgba(255, 255, 255, 0.02);
-          backdrop-filter: blur(20px) saturate(200%);
-          border: 0.5px solid rgba(255, 255, 255, 0.08);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          background: rgba(255, 255, 255, 0.03);
+          backdrop-filter: blur(20px) saturate(180%);
+          border: 0.5px solid var(--border-main);
+          transition: all 0.3s var(--ease-out-expo);
        }
+       
        .glass-action:hover {
-          background: rgba(255, 255, 255, 0.05);
-          border-color: rgba(255, 255, 255, 0.2);
+          background: rgba(255, 255, 255, 0.08);
+          border-color: var(--border-strong);
           transform: translateY(-1px);
+          box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
        }
 
-       .custom-scrollbar::-webkit-scrollbar { width: 3px; height: 3px; }
+       /* --- BRAND ELEMENT SYSTEM --- */
+       .brand-gradient-text {
+          background: linear-gradient(90deg, var(--amethyst), var(--cyan));
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+       }
+
+       .brand-inner-glow {
+          box-shadow: inset 0 0 40px rgba(123, 44, 255, 0.05);
+       }
+
+       .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(255, 255, 255, 0.05);
+          background: rgba(24, 230, 255, 0.2);
           border-radius: 10px;
        }
        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
 
        .no-scrollbar::-webkit-scrollbar { display: none; }
        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+       @keyframes subtle-pulse {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.7; }
+       }
+       .animate-pulse-subtle { animation: subtle-pulse 4s infinite ease-in-out; }
+
+       .shimmer-edge {
+          position: relative;
+          overflow: hidden;
+       }
+       .shimmer-edge::after {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: -150%;
+          width: 50%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
+          animation: shimmer 5s infinite linear;
+       }
+       @keyframes shimmer {
+          0% { left: -150%; }
+          100% { left: 250%; }
+       }
     </style>
     <script type="importmap">
 {
