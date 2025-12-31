@@ -145,6 +145,7 @@ const SwarmBox = () => {
 };
 
 const DirectoryPeek = ({ manifest }: { manifest: any }) => {
+    // FIX: Defensive check for structure array to avoid "Cannot read properties of undefined (reading 'slice')"
     if (!manifest || !Array.isArray(manifest.structure)) return null;
     return (
         <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/peek shrink-0 invisible-glass">
@@ -517,6 +518,7 @@ const MetaventionsHub: React.FC = () => {
                                                           <ListChecks size={16} className="text-[#10b981]" /> Implementation Sequence
                                                       </div>
                                                       <div className="space-y-4">
+                                                          {/* FIX: Explicit defensive check for protocols array mapping */}
                                                           {Array.isArray(dashboard.activeManifest?.protocols) && dashboard.activeManifest.protocols.map((p: any, i: number) => (
                                                               <div key={i} className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-6 group hover:border-white/10 transition-all">
                                                                   <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center font-mono font-black text-sm text-[#22d3ee] border border-white/5">{i+1}</div>
