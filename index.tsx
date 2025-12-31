@@ -3,7 +3,6 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw, Terminal, Activity } from 'lucide-react';
 
-// 1. Strict Interface Definitions for Type Safety
 interface ErrorBoundaryProps {
   children?: ReactNode;
   fallback?: ReactNode;
@@ -15,36 +14,31 @@ interface ErrorBoundaryState {
 }
 
 /**
- * Root Error Boundary for Sovereign OS.
+ * Root Error Boundary for Metaventions OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Inherit from React.Component with explicit generic types to ensure 'this.props' and 'this.state' are correctly typed and visible to the TS compiler.
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Use property initializer for state to ensure synchronization between generic declaration and implementation.
+// FIX: Using imported Component directly instead of React.Component for more reliable type inference of this.props and this.state
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   public state: ErrorBoundaryState = { hasError: false, error: null };
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    // Update state so the next render will show the fallback UI
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Log to system console for forensic analysis
     console.error("CRITICAL UI ERROR [Kernel Panic]:", error, errorInfo);
   }
 
-  // 3. The Recovery Action
   handleReload = () => {
     window.location.reload();
   };
 
   render(): ReactNode {
-    // Fix: Properly accessing 'state' and 'props' from 'this' via inheritance from React.Component to resolve member visibility errors.
     const { hasError, error } = this.state;
+    // FIX: Accessing this.props now that the class correctly extends Component
     const { fallback, children } = this.props;
 
     if (hasError) {
-      // 4. Enhanced Sovereign Fallback UI
       if (fallback) return fallback;
 
       const errorMsg = error?.message || "An unexpected neural desync occurred.";
