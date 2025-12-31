@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+import React, { ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
@@ -16,14 +16,13 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Use the named Component import instead of React.Component to ensure props and state are correctly inherited and recognized by the compiler
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Explicitly declare the state property as a class field to resolve "Property 'state' does not exist"
+// Fix: Explicitly extend React.Component with props and state types to ensure base class properties like this.props are recognized.
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Explicitly declare state as a class property for strict TypeScript compatibility
   public state: ErrorBoundaryState = { hasError: false, error: null };
 
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    // Fix: Initialization is now handled by the class property above to satisfy strict TS compilers
   }
 
   static getDerivedStateFromError(error: any): ErrorBoundaryState {
@@ -35,7 +34,6 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   render() {
-    // Fix: Access state and props which are now correctly inherited and recognized by the compiler via Component inheritance
     if (this.state.hasError) {
       let errorMsg = "An unexpected neural desync occurred.";
       const error = this.state.error;
@@ -62,7 +60,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
                 </div>
                 <button 
                     onClick={() => window.location.reload()} 
-                    className="group px-10 py-4 bg-red-500 hover:bg-red-400 text-black font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(157,78,221,0.3)]"
+                    className="group px-10 py-4 bg-red-500 hover:bg-red-400 text-black font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(239,68,68,0.3)]"
                 >
                     <RefreshCw className="w-4 h-4" />
                     Cold Reboot
@@ -72,6 +70,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       );
     }
 
+    // Fix: line 72: this.props is now correctly resolved due to explicit inheritance from React.Component.
     return this.props.children;
   }
 }
