@@ -13,8 +13,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AutonomousAgent, OperationalContext, MentalState, TaskStatus, AtomicTask } from '../types';
-import { GoogleGenAI, Schema, Type, GenerateContentResponse } from "@google/genai";
-import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest, safeParseJson } from '../services/geminiService';
+import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest } from '../services/geminiService';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 
@@ -212,7 +212,7 @@ const AgentControlCenter: React.FC = () => {
         if (!activeAgent) return;
         const updated = activeAgent.tasks.map(t => {
             if (t.id === taskId) {
-                // Fix: Explicitly type nextStatus to match AtomicTask['status'] union
+                // Precise union literals to match TaskStatus/AtomicTask definitions
                 const nextStatus: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' = t.status === 'PENDING' ? 'IN_PROGRESS' : t.status === 'IN_PROGRESS' ? 'COMPLETED' : 'PENDING';
                 return { ...t, status: nextStatus };
             }
