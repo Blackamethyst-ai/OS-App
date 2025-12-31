@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
 import { 
@@ -88,10 +87,10 @@ const CapitalVelocity = () => (
 );
 
 /**
- * SwarmBox: The tactical hive container. Reduced size (V5 upgrade).
+ * SwarmBox: The tactical hive container. Reactive to agent state.
  */
 const SwarmBox = () => {
-    const { agents } = useAppStore();
+    const agents = useAppStore(s => s.agents.activeAgents);
     const hexCount = 6;
 
     return (
@@ -111,17 +110,28 @@ const SwarmBox = () => {
             
             <div className="grid grid-cols-3 gap-2 relative z-10 px-1">
                 {Array.from({ length: hexCount }).map((_, i) => {
-                    const agent = agents.activeAgents[i];
+                    const agent = agents[i];
                     const isActive = !!agent;
+                    const isThinking = agent?.status === 'THINKING';
+
                     return (
                         <div key={i} className={cn(
-                            "aspect-square flex flex-col items-center justify-center rounded-xl border transition-all duration-700 shadow-inner",
+                            "aspect-square flex flex-col items-center justify-center rounded-xl border transition-all duration-700 shadow-inner relative overflow-hidden",
                             isActive 
                                 ? "bg-black/60 border-[#9d4edd]/30 shadow-[0_0_10px_rgba(157,78,221,0.1)]" 
                                 : "bg-black/10 border-white/5 opacity-10"
                         )}>
                             {isActive ? (
-                                <Bot size={14} className="text-[#9d4edd]" />
+                                <>
+                                    <Bot size={14} className={cn(isThinking ? "text-[#f1c21b] animate-pulse" : "text-[#9d4edd]")} />
+                                    {isThinking && (
+                                        <motion.div 
+                                            animate={{ opacity: [0, 0.4, 0] }}
+                                            transition={{ duration: 1.5, repeat: Infinity }}
+                                            className="absolute inset-0 bg-[#f1c21b]/10"
+                                        />
+                                    )}
+                                </>
                             ) : (
                                 <div className="w-0.5 h-0.5 rounded-full bg-white/5" />
                             )}
@@ -141,6 +151,7 @@ const SwarmBox = () => {
 };
 
 const MetaventionsHub: React.FC = () => {
+  // ATOMIC SELECTORS for maximum stability
   const actions = useAppStore(s => s.actions);
   const dashboard = useAppStore(s => s.dashboard);
   const theme = useAppStore(s => s.theme);
