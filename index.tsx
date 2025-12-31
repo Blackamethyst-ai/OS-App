@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+import React, { ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
@@ -16,10 +16,13 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Handles critical application failures with a specialized system diagnostic UI.
  */
-// Fix: Use Component directly from named imports and ensure generics are properly applied to the class inheritance
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Initialize state as a class property with explicit typing to assist the compiler
-  public state: ErrorBoundaryState = { hasError: false, error: null };
+// Fix: Explicitly extend React.Component to ensure correctly typed access to this.props and this.state
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Standardize state initialization in the constructor for improved type resolution across different TS environments
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
 
   static getDerivedStateFromError(error: any): ErrorBoundaryState {
     return { hasError: true, error };
@@ -30,8 +33,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 
   render() {
-    // Fix: Access state from the Component instance correctly
+    // Fix: Destructure state and props within the render method for cleaner access and reliable typing
     const { hasError, error } = this.state;
+    const { children } = this.props;
     
     if (hasError) {
       let errorMsg = "An unexpected neural desync occurred.";
@@ -67,8 +71,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
         </div>
       );
     }
-    // Fix: Correctly access the 'children' property from 'props' inherited from React.Component
-    return this.props.children;
+    // Fix: Return 'children' from destructured this.props
+    return children;
   }
 }
 
