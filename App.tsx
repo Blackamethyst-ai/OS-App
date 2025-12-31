@@ -33,12 +33,13 @@ import { useVoiceControl } from './hooks/useVoiceControl';
 import { useResearchAgent } from './hooks/useResearchAgent'; 
 import { useVisualCortex } from './hooks/useVisualCortex';
 import { 
-    Target, X, User, ExternalLink, Activity
+    Target, X, User, ExternalLink, Activity, ShieldCheck, Terminal
 } from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
 import { collabService } from './services/collabService';
 import { audio } from './services/audioService'; 
 import { AnimatePresence, motion } from 'framer-motion';
+import { cn } from './utils/cn';
 
 const NAV_CONFIG = [
   { id: AppMode.METAVENTIONS_HUB, label: 'ECOSYSTEM', path: '/metaventions-hub' },
@@ -103,6 +104,7 @@ const FocusOverlay = () => {
 const App: React.FC = () => {
   const mode = useAppStore(s => s.mode);
   const theme = useAppStore(s => s.theme);
+  const user = useAppStore(s => s.user);
   const actions = useAppStore(s => s.actions);
   const isHelpOpen = useAppStore(s => s.isHelpOpen);
   const isScrubberOpen = useAppStore(s => s.isScrubberOpen);
@@ -280,51 +282,93 @@ const App: React.FC = () => {
         {isHelpOpen && <HelpCenter onClose={() => actions.setHelpOpen(false)} />}
       </AnimatePresence>
 
-      <header className="flex-shrink-0 h-[60px] border-b border-[var(--border-main)] z-[100] px-8 flex items-center justify-between backdrop-blur-3xl bg-[var(--bg-header)] shadow-2xl relative transition-colors duration-500">
-        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-[#7B2CFF] via-[#f1c21b] to-[#18E6FF] opacity-60" />
+      <header className="flex-shrink-0 h-[70px] border-b border-[var(--border-main)] z-[100] px-10 flex items-center justify-between backdrop-blur-3xl bg-[var(--bg-header)] shadow-2xl relative transition-all duration-500">
+        {/* Procedural Header Gradient Sweep */}
+        <motion.div 
+            animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            className="absolute top-0 left-0 w-full h-[1.5px] bg-[length:200%_auto] bg-gradient-to-r from-[#7B2CFF] via-[#f1c21b] to-[#18E6FF] opacity-80" 
+        />
 
-        <div className="flex items-center gap-10 h-full">
-            <div className="flex items-center gap-4 cursor-pointer group" onClick={() => window.location.hash = '/metaventions-hub'}>
-                <MetaventionsLogo size={28} showText={true} />
+        <div className="flex items-center gap-12 h-full">
+            <div className="flex items-center gap-4 cursor-pointer group relative" onClick={() => window.location.hash = '/metaventions-hub'}>
+                {/* Focal Logo Glow */}
+                <div className="absolute inset-[-20px] bg-[radial-gradient(circle,rgba(157,78,221,0.15)_0%,transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                <MetaventionsLogo size={32} showText={true} className="relative z-10 transition-transform duration-700 group-hover:scale-105" />
             </div>
-            <div className="h-5 w-px bg-[var(--border-main)]" />
+            <div className="h-6 w-px bg-white/5" />
             <nav className="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-[1400px] h-full">
                 {NAV_CONFIG.map(item => (
                     <button 
                         key={item.id} 
                         onClick={() => { window.location.hash = item.path; audio.playClick(); }} 
-                        className="relative h-full px-4 group flex-shrink-0 flex items-center"
+                        className="relative h-full px-5 group flex-shrink-0 flex items-center"
                     >
                         <span className={`text-[10px] font-black uppercase tracking-[0.3em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b] scale-105' : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)] group-hover:scale-105'}`}>
                             {item.label}
                         </span>
                         {mode === item.id && (
-                            <motion.div layoutId="activeTabGlow" className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-gradient-to-r from-[#7B2CFF] via-[#f1c21b] to-[#18E6FF] shadow-[0_0_15px_rgba(241,194,27,0.7)]" />
+                            <motion.div layoutId="activeTabGlow" className="absolute bottom-0 left-0 right-0 h-[2.5px] rounded-full bg-gradient-to-r from-[#7B2CFF] via-[#f1c21b] to-[#18E6FF] shadow-[0_0_20px_rgba(241,194,27,0.7)]" />
                         )}
                     </button>
                 ))}
             </nav>
         </div>
 
-        <div className="flex items-center gap-6 h-full">
-            <GlobalSearchBar />
-            <div className="h-5 w-px bg-[var(--border-main)]" />
-            <div className="flex items-center gap-3">
+        <div className="flex items-center gap-8 h-full">
+            {/* Neural Probe Search bar */}
+            <div className="relative group">
+                <GlobalSearchBar />
+                <div className="absolute inset-x-0 bottom-[-2px] h-[1px] bg-[#9d4edd]/0 group-focus-within:bg-[#9d4edd]/50 transition-all duration-500 blur-sm" />
+            </div>
+
+            <div className="h-6 w-px bg-white/5" />
+
+            <div className="flex items-center gap-5">
                 <ThemeSwitcher />
-                <button onClick={() => { actions.toggleProfile(true); audio.playClick(); }} className="p-2.5 text-[var(--text-muted)] hover:text-[#f1c21b] transition-all rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10">
-                    <User size={18} />
+                
+                {/* Biometric Identity Node */}
+                <button 
+                    onClick={() => { actions.toggleProfile(true); audio.playClick(); }} 
+                    className="group/user relative p-1 transition-all rounded-[2rem] border border-white/5 bg-black/40 hover:border-[#9d4edd]/50 hover:shadow-[0_0_25px_rgba(157,78,221,0.2)]"
+                >
+                    <div className="w-10 h-10 rounded-[2rem] overflow-hidden flex items-center justify-center relative">
+                        {user.avatar ? (
+                            <img src={user.avatar} className="w-full h-full object-cover grayscale-[30%] group-hover/user:grayscale-0 transition-all duration-1000" alt="Identity" />
+                        ) : (
+                            <User size={18} className="text-gray-600 group-hover/user:text-[#9d4edd] transition-colors" />
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-[#9d4edd]/20 to-transparent opacity-0 group-hover/user:opacity-100 transition-opacity" />
+                    </div>
+                    <motion.div 
+                        animate={{ scale: [1, 1.2, 1], opacity: [1, 0.6, 1] }}
+                        transition={{ duration: 3, repeat: Infinity }}
+                        className="absolute -bottom-1 -right-1 w-4 h-4 bg-[#0a0a0a] border border-[#10b981]/50 rounded-full flex items-center justify-center shadow-2xl"
+                    >
+                        <ShieldCheck size={10} className="text-[#10b981]" />
+                    </motion.div>
                 </button>
             </div>
-            <button onClick={() => { actions.toggleCommandPalette(); audio.playClick(); }} className="relative group/eco px-5 py-2 bg-[#020204] border border-[var(--border-main)] hover:border-[#f1c21b]/50 rounded-xl transition-all duration-500 shadow-2xl overflow-hidden active:scale-95 shimmer-edge">
-                <span className="relative z-10 text-[9px] font-black font-mono tracking-[0.25em] uppercase flex items-center gap-3 text-[#f1c21b]">
+
+            {/* Kernel Port Toggle */}
+            <button 
+                onClick={() => { actions.toggleCommandPalette(); audio.playClick(); }} 
+                className="relative group/eco px-6 py-2.5 bg-[#050505] border border-white/10 hover:border-[#f1c21b]/50 rounded-2xl transition-all duration-700 shadow-2xl overflow-hidden active:scale-95 shimmer-edge"
+            >
+                <div className="absolute inset-0 bg-gradient-to-r from-[#f1c21b]/5 to-transparent opacity-0 group-hover/eco:opacity-100 transition-opacity" />
+                <span className="relative z-10 text-[10px] font-black font-mono tracking-[0.3em] uppercase flex items-center gap-4 text-gray-500 group-hover:text-[#f1c21b] transition-all">
+                    <Terminal size={14} className="group-hover:rotate-12 transition-transform" />
                     SYSTEM_KERNEL
-                    <ExternalLink size={12} className="text-[var(--text-muted)] group-hover:text-[#f1c21b] transition-colors" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#f1c21b] animate-pulse shadow-[0_0_10px_#f1c21b]" />
                 </span>
             </button>
         </div>
       </header>
 
-      <div className={`flex-1 relative flex flex-col min-h-0 ${isFixedLayout ? 'pb-0' : 'pb-1 overflow-y-auto custom-scrollbar'}`}>
+      <div className={cn(
+          "flex-1 relative flex flex-col min-h-0 transition-all duration-1000",
+          isFixedLayout ? 'pb-0' : 'pb-1 overflow-y-auto custom-scrollbar'
+      )}>
         <SynapticRouter />
       </div>
 
