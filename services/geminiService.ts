@@ -343,11 +343,11 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
 }
 
 /**
- * generateAvatar: Updated with utopian, modern futuristic prompt for high-quality Black African American agents.
+ * generateAvatar: Updated with utopian, modern futuristic prompt for high-quality handsome Black African American men.
  */
 export async function generateAvatar(role: string, name: string) {
     const ai = getAI();
-    const prompt = `Utopian masterpiece portrait of a beautiful Black African American agent named "${name}" in the role of "${role}". Utopian futuristic aesthetic, clean soft technical lighting, cinematic headshot depth. Professional business suit or premium leather jacket with a crisp white tee. High fidelity skin texture, modern elegant appearance.`;
+    const prompt = `Utopian masterpiece portrait of a handsome Black African American man named "${name}" in the role of "${role}". Utopian futuristic aesthetic, clean soft technical lighting, cinematic headshot depth. Professional business suit or premium leather jacket with a crisp white tee. High fidelity skin texture, modern elegant appearance.`;
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: [{ text: prompt }],

@@ -1,4 +1,4 @@
-import React, { ReactNode, ErrorInfo } from 'react';
+import React, { ReactNode, ErrorInfo, Component } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw, Terminal, Activity } from 'lucide-react';
@@ -18,12 +18,13 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Use React.Component with generics to ensure 'props' and 'state' are correctly inherited and recognized by the compiler.
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+// Fix: Use direct Component import and explicit state property declaration to ensure 'state' and 'props' are correctly recognized by TypeScript
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Explicitly declare state property to satisfy strict TypeScript compiler checks for inherited members
+  public state: ErrorBoundaryState = { hasError: false, error: null };
+
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    // Fix: Explicitly initialize state in constructor to resolve potential inheritance recognition errors
-    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -42,7 +43,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   };
 
   render(): ReactNode {
-    // Fix: Destructure state and props from 'this' to ensure they are correctly resolved by the TypeScript compiler
+    // Fix: Access state and props from 'this' which are now correctly typed through explicit declaration and Component inheritance
     const { hasError, error } = this.state;
     const { fallback, children } = this.props;
 
@@ -99,7 +100,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       );
     }
 
-    // Fix: Return children from props, now correctly typed through destructured this.props
+    // Fix: Return children from props, now correctly identified by the TypeScript compiler
     return children;
   }
 }
