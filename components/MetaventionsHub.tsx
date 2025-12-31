@@ -15,7 +15,7 @@ import {
     Bot, Globe, User, Hexagon,
     Mic, MicOff, ShieldCheck, DollarSign,
     LineChart as ChartIcon, Download, Layers,
-    AlertTriangle, ZapOff
+    AlertTriangle, ZapOff, Scan, Maximize2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
@@ -143,7 +143,7 @@ const SwarmBox = () => {
             <div className="pt-2 border-t border-white/5 relative z-10">
                 <div className="flex justify-between items-center text-[6px] font-mono text-gray-700 uppercase tracking-widest">
                     <span>LATTICE_OK</span>
-                    <span className="text-[#10b981] font-black opacity-60">V9.5-ZENITH</span>
+                    <span className="text-[#10b981] font-black opacity-60">The D-Ecosystem</span>
                 </div>
             </div>
         </div>
@@ -297,7 +297,7 @@ const MetaventionsHub: React.FC = () => {
     if (!mainImageUrl) return;
     const link = document.createElement('a');
     link.href = mainImageUrl;
-    link.download = `Metaventions_Sync_${Date.now()}.png`;
+    link.download = `The_D_Ecosystem_Sync_${Date.now()}.png`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -410,13 +410,22 @@ const MetaventionsHub: React.FC = () => {
                                     onClick={() => actions.toggleProfile(true)}
                                   />
                                   <div className="absolute top-10 right-10 z-40 opacity-0 group-hover/img-node:opacity-100 transition-all">
-                                      <button 
-                                        onClick={handleDownloadMainAsset}
-                                        className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-white shadow-2xl hover:scale-105 active:scale-95 transition-all"
-                                        title="Download Viewport Manifest"
-                                      >
-                                          <Download size={24} />
-                                      </button>
+                                      <div className="flex flex-col gap-3">
+                                          <button 
+                                            onClick={handleDownloadMainAsset}
+                                            className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-white shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                                            title="Download Viewport Manifest"
+                                          >
+                                              <Download size={24} />
+                                          </button>
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); actions.openHoloProjector({ id: 'soc-scan', title: 'Holo Inspect', type: 'IMAGE', content: mainImageUrl }); }}
+                                            className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-[#18E6FF] shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                                            title="Holo Inspect"
+                                          >
+                                              <Maximize2 size={24} />
+                                          </button>
+                                      </div>
                                   </div>
                               </motion.div>
                           ) : (

@@ -131,6 +131,7 @@ const VoiceManager: React.FC = () => {
                     DOMAINS: Full UI Sector Control authorized.
                     OPERATIONAL_PRIORITY: Synchronous user assistance.
                     DIRECTIVE: You are an executive-tier OS assistant. Respond quickly and use tools to drive the UI whenever navigation or synthesis is requested.
+                    NAV_COHERENCE: User-facing labels are: ECOSYSTEM (Dashboard), RESEARCH (Lab), TOPOLOGY (Process Map), TREASURY (Finance), LOGIC (Code Studio), SWARM (Agent Control), MEMORY (Vault), CINEMA (Image Gen), HARDWARE (Infra), VOICE CORE (Voice Mode), SYNTHESIS (Bridge), NEXUS.
                     MENTAL_STATE: Your current DNA weights are S:${voice.mentalState.skepticism}, E:${voice.mentalState.excitement}, A:${voice.mentalState.alignment}.
                     `;
 

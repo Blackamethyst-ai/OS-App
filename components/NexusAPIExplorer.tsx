@@ -249,7 +249,7 @@ const NexusAPIExplorer: React.FC = () => {
                                     </div>
                                     <div className="text-8px text-gray-500 font-mono truncate uppercase tracking-tighter opacity-60 group-hover:opacity-100">{api.description}</div>
                                 </div>
-                                <Sparkles size={14} className="text-[#22d3ee] shrink-0 animate-pulse" />
+                                <iparkles size={14} className="text-[#22d3ee] shrink-0 animate-pulse" />
                             </motion.button>
                         ))}
                     </AnimatePresence>
@@ -272,7 +272,7 @@ const NexusAPIExplorer: React.FC = () => {
                     ))}
                 </div>
                 
-                <div className="h-10 bg-black/80 border-t border-white/5 px-8 flex justify-between items-center text-[7px] font-mono text-gray-700 tracking-[0.2em] shrink-0 uppercase font-black">
+                <div className="h-10 bg-black/80 border-t border-white/5 px-8 flex justify-between items-center text-[6px] font-mono text-gray-700 tracking-[0.2em] shrink-0 uppercase font-black">
                     <div className="flex gap-6">
                         <span>Lattice_Endpoints: {GOOGLE_APIS.length + liveSearchResults.length}</span>
                         <span className="text-[#10b981]">Auth: SECURE</span>
