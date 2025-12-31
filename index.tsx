@@ -1,4 +1,4 @@
-import React, { ReactNode, ErrorInfo } from 'react';
+import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw } from 'lucide-react';
@@ -16,14 +16,10 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Handles critical application failures with a specialized system diagnostic UI.
  */
-// Fix: Use React.Component explicitly to ensure TypeScript correctly identifies inherited properties like 'props' and 'state'
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Move state initialization to a class property to assist TypeScript in resolving property existence
-  state: ErrorBoundaryState = { hasError: false, error: null };
-
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-  }
+// Fix: Use Component directly from named imports and ensure generics are properly applied to the class inheritance
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Initialize state as a class property with explicit typing to assist the compiler
+  public state: ErrorBoundaryState = { hasError: false, error: null };
 
   static getDerivedStateFromError(error: any): ErrorBoundaryState {
     return { hasError: true, error };
@@ -34,10 +30,11 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   render() {
-    // Fix: Accessing state inherited from React.Component
-    if (this.state.hasError) {
+    // Fix: Access state from the Component instance correctly
+    const { hasError, error } = this.state;
+    
+    if (hasError) {
       let errorMsg = "An unexpected neural desync occurred.";
-      const error = this.state.error;
       
       if (error) {
         if (typeof error === 'string') errorMsg = error;
@@ -70,7 +67,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         </div>
       );
     }
-    // Fix: Accessing props inherited from React.Component
+    // Fix: Correctly access the 'children' property from 'props' inherited from React.Component
     return this.props.children;
   }
 }

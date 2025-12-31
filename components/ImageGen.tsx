@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import JSZip from 'jszip';
@@ -588,7 +589,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                         { id: 'TEASER', label: 'Screening', icon: MonitorPlay }
                     ].map(tab => (
                         <button 
-                            key={tab.id}
+                            key={tab.id} 
                             onClick={() => { setActiveTab(tab.id as any); audio.playClick(); }}
                             className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all
                                 ${activeTab === tab.id ? 'bg-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/30' : 'text-gray-500 hover:text-gray-300'}
@@ -1269,7 +1270,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
             </AnimatePresence>
         </div>
 
-        {/* Global Production Footer HUD */}
+        {/* Global Studio Footer HUD */}
         <div className="h-10 bg-[#0a0a0a] border-t border-[#1f1f1f] px-8 flex items-center justify-between text-[8px] font-mono text-gray-600 shrink-0 relative z-[60]">
             <div className="flex gap-10 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
                 <div className="flex items-center gap-3 text-emerald-500 font-bold uppercase tracking-[0.2em]">
