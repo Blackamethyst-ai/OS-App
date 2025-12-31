@@ -53,7 +53,7 @@ const ImpactProjection = ({ viability, risk }: { viability: number, risk: string
 };
 
 const YieldProbeCLI = () => {
-    const { actions } = useAppStore();
+    const actions = useAppStore(s => s.actions);
     const { execute, state: agentState } = useAgentRuntime();
     const [probeQuery, setProbeQuery] = useState('');
     const [probeResult, setProbeResult] = useState<string | null>(null);
@@ -154,9 +154,10 @@ const YieldProbeCLI = () => {
 };
 
 const StrategicBridge = () => {
-    const { knowledge, metaventions, actions } = useAppStore();
-    const { addLog, toggleKnowledgeLayer, pushToInvestmentQueue, archiveIntervention, deployStrategyToLattice, removeStrategy } = actions;
-    const activeKnowledgeLayerIds = knowledge.activeLayers || [];
+    const activeKnowledgeLayerIds = useAppStore(s => s.knowledge.activeLayers || []);
+    const metaventions = useAppStore(s => s.metaventions);
+    const actions = useAppStore(s => s.actions);
+    
     const [isGenerating, setIsGenerating] = useState(false);
     const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM'>('DRIVE');
     const [currentImplementation, setCurrentImplementation] = useState<any | null>(null);
@@ -164,14 +165,14 @@ const StrategicBridge = () => {
     const generateImplementation = async () => {
         setIsGenerating(true);
         setCurrentImplementation(null);
-        addLog('SYSTEM', `SYNC_INIT: Forging structured process for ${processType === 'DRIVE' ? 'Drive Organization' : 'System Architecture'}...`);
+        actions.addLog('SYSTEM', `SYNC_INIT: Forging structured process for ${processType === 'DRIVE' ? 'Drive Organization (PARA)' : 'System Architecture'}...`);
         audio.playClick();
 
         try {
             if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsGenerating(false); return; }
             
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const activeKnowledge = activeKnowledgeLayerIds.map(id => KNOWLEDGE_LAYERS[id]?.label).join(', ');
+            const activeLayersText = activeKnowledgeLayerIds.map(id => KNOWLEDGE_LAYERS[id]?.label).join(', ');
             
             const schema: Schema = {
                 type: Type.OBJECT,
@@ -198,12 +199,12 @@ const StrategicBridge = () => {
             };
 
             const domainContext = processType === 'DRIVE' 
-                ? "Generate a high-fidelity PARA (Projects, Areas, Resources, Archives) drive organization workflow."
-                : "Generate a cloud-native systems architecture implementation process.";
+                ? "Generate a high-fidelity PARA (Projects, Areas, Resources, Archives) drive organization workflow. Focus on recursive naming, metadata tagging, and auto-archival TTL protocols."
+                : "Generate a cloud-native systems architecture implementation process. Focus on edge distribution, IaC scaling, and refractive storage layers.";
 
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
                 model: 'gemini-3-pro-preview',
-                contents: `Process Type: ${domainContext}. Contextual Overlays: ${activeKnowledge}. Output structured JSON blueprint.`,
+                contents: `Directive: ${domainContext}. High-Level Goal: Generate a structured implementation process. Contextual Overlays: ${activeLayersText}. Output as structured JSON.`,
                 config: { 
                     responseMimeType: 'application/json', 
                     responseSchema: schema,
@@ -213,10 +214,10 @@ const StrategicBridge = () => {
 
             const data = safeParseJson<any>(response.text);
             setCurrentImplementation(data);
-            addLog('SUCCESS', `SYNC_COMPLETE: ${data.title} crystallized.`);
+            actions.addLog('SUCCESS', `SYNC_COMPLETE: ${data.title} protocol synthesized.`);
             audio.playSuccess();
         } catch (e: any) {
-            addLog('ERROR', `SYNC_FAIL: ${e.message}`);
+            actions.addLog('ERROR', `SYNC_FAIL: ${e.message}`);
             audio.playError();
         } finally {
             setIsGenerating(false);
@@ -269,8 +270,8 @@ const StrategicBridge = () => {
                                 <div className="flex justify-between items-start mb-2">
                                     <div className="text-[10px] font-black text-white uppercase font-mono tracking-tighter truncate max-w-[160px]">{strat.title}</div>
                                     <div className="flex gap-1.5 opacity-0 group-hover/strat:opacity-100 transition-all">
-                                        <button onClick={() => { deployStrategyToLattice(strat); audio.playClick(); }} className="p-1.5 bg-[#10b981]/10 text-[#10b981] rounded-lg hover:bg-[#10b981] hover:text-black transition-all" title="Deploy to Lattice"><Send size={10}/></button>
-                                        <button onClick={() => { removeStrategy(strat.id); audio.playError(); }} className="p-1.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-black transition-all" title="Purge Strategy"><Trash2 size={10}/></button>
+                                        <button onClick={() => { actions.deployStrategyToLattice(strat); audio.playClick(); }} className="p-1.5 bg-[#10b981]/10 text-[#10b981] rounded-lg hover:bg-[#10b981] hover:text-black transition-all" title="Deploy to Lattice"><Send size={10}/></button>
+                                        <button onClick={() => { actions.removeStrategy(strat.id); audio.playError(); }} className="p-1.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-black transition-all" title="Purge Strategy"><Trash2 size={10}/></button>
                                     </div>
                                 </div>
                                 <div className="text-[7px] text-gray-500 font-mono uppercase tracking-widest leading-relaxed line-clamp-2">"{strat.logic}"</div>
@@ -304,7 +305,7 @@ const StrategicBridge = () => {
                                         <h3 className="text-3xl font-black text-white uppercase font-mono tracking-tighter leading-tight">{currentImplementation.title}</h3>
                                     </div>
                                     <div className="flex gap-4 items-center">
-                                        <button onClick={() => { archiveIntervention({ ...currentImplementation, id: `strat-${Date.now()}`, timestamp: Date.now() }); audio.playSuccess(); }} className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black uppercase text-gray-300 flex items-center gap-2 hover:border-[#9d4edd] transition-all">
+                                        <button onClick={() => { actions.archiveIntervention({ ...currentImplementation, id: `strat-${Date.now()}`, timestamp: Date.now() }); audio.playSuccess(); }} className="px-5 py-2.5 bg-white/5 border border-white/10 rounded-2xl text-[9px] font-black uppercase text-gray-300 flex items-center gap-2 hover:border-[#9d4edd] transition-all">
                                             <Save size={14} /> Archive
                                         </button>
                                         <div className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-right">
@@ -352,13 +353,13 @@ const StrategicBridge = () => {
                             </div>
                             <div className="flex gap-4">
                                 <button 
-                                    onClick={() => { pushToInvestmentQueue(currentImplementation); addLog('SUCCESS', `PROTOCOL_DEPLOY: Authorized deployment of "${currentImplementation.title}"`); audio.playSuccess(); }} 
+                                    onClick={() => { actions.pushToInvestmentQueue(currentImplementation); actions.addLog('SUCCESS', `PROTOCOL_DEPLOY: Authorized deployment of "${currentImplementation.title}"`); audio.playSuccess(); }} 
                                     className="flex-1 py-8 bg-[#10b981] text-black rounded-[2.5rem] text-[12px] font-black uppercase tracking-[0.5em] shadow-[0_30px_60px_rgba(16,185,129,0.3)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5 group/commit"
                                 >
                                     <PlayCircle size={28} className="group-hover/commit:rotate-90 transition-transform duration-500" /> Commit Protocol Execution
                                 </button>
                                 <button 
-                                    onClick={() => { deployStrategyToLattice(currentImplementation); addLog('SUCCESS', `LATTICE_INJECTION: Pushing "${currentImplementation.title}" blueprint to visual logic sector.`); audio.playSuccess(); }}
+                                    onClick={() => { actions.deployStrategyToLattice(currentImplementation); actions.addLog('SUCCESS', `LATTICE_INJECTION: Pushing "${currentImplementation.title}" blueprint to visual logic sector.`); audio.playSuccess(); }}
                                     className="px-10 py-8 bg-[#9d4edd] text-black rounded-[2.5rem] text-[12px] font-black uppercase tracking-[0.2em] shadow-[0_30px_60px_rgba(157,78,221,0.3)] hover:scale-[1.02] transition-all flex items-center justify-center gap-4"
                                 >
                                     <GitBranch size={28} /> Deploy Lattice

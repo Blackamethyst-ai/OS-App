@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { neuralVault } from '../services/persistenceService';
@@ -10,7 +11,8 @@ import { AppTheme } from '../types';
 const ROLES = ['ARCHITECT', 'OPERATOR', 'SENTINEL', 'NETRUNNER', 'OVERWATCH'];
 
 const UserProfileOverlay: React.FC = () => {
-    const { isProfileOpen, toggleProfile, user, setUserProfile, addLog, theme, setTheme } = useAppStore();
+    const { isProfileOpen, user, theme, actions } = useAppStore();
+    const { toggleProfile, setUserProfile, addLog, setTheme } = actions;
     
     // Local state for editing
     const [editName, setEditName] = useState(user.displayName || '');
