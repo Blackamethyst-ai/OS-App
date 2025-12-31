@@ -1,4 +1,4 @@
-import React, { ReactNode, ErrorInfo, Component } from 'react';
+import React, { ReactNode, ErrorInfo, Component, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw, Terminal, Activity } from 'lucide-react';
@@ -18,10 +18,11 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Explicitly using React.Component to ensure inheritance and generic types are correctly recognized by TypeScript, resolving the issue where 'this.props' was unrecognized.
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+// Fix: Use the named Component import directly to ensure generic types are correctly recognized by the TypeScript compiler, resolving property access errors on 'this'.
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
+    // Fix: Correctly initialize state on the class instance.
     this.state = { hasError: false, error: null };
   }
 
@@ -41,7 +42,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   };
 
   render(): ReactNode {
-    // Fix: Accessing state and props through the properly inherited Component base class using 'this' keyword to resolve property access errors.
+    // Fix: Access state and props through 'this' context which is now correctly typed via Component inheritance.
     const { hasError, error } = this.state;
     const { fallback, children } = this.props;
 
@@ -106,10 +107,10 @@ const rootElement = document.getElementById('root');
 if (rootElement) {
   const root = createRoot(rootElement);
   root.render(
-    <React.StrictMode>
+    <StrictMode>
       <ErrorBoundary>
         <App />
       </ErrorBoundary>
-    </React.StrictMode>
+    </StrictMode>
   );
 }

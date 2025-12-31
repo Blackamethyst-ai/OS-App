@@ -56,6 +56,7 @@ const DomainCard = ({ id, label, sub, icon: Icon, active, onClick, color }: any)
 );
 
 const TreeView = ({ data }: { data: any }) => {
+    // FIX: Defensive check for structure array to avoid "Cannot read properties of undefined (reading 'map')"
     if (!data || !Array.isArray(data.structure)) return null;
     
     const renderNode = (node: any, depth = 0) => {
@@ -78,6 +79,7 @@ const TreeView = ({ data }: { data: any }) => {
                         <span className="text-[8px] text-gray-700 opacity-0 group-hover/node:opacity-100 transition-opacity ml-2 italic">— {node.description}</span>
                     )}
                 </div>
+                {/* FIX: Defensive check for children array mapping */}
                 {Array.isArray(node.children) && node.children.map((child: any) => renderNode(child, depth + 1))}
             </div>
         );
@@ -163,6 +165,7 @@ const ImplementationDeck: React.FC<{
                         <ListChecks size={20} className="text-[#10b981]" />
                         <span className="text-xs font-black text-white uppercase tracking-[0.4em]">Implementation Sequence</span>
                     </div>
+                    {/* FIX: Defensive check for workflowSteps array mapping */}
                     {Array.isArray(data.workflowSteps) && data.workflowSteps.map((step: any, i: number) => (
                         <motion.div 
                             key={i} 
