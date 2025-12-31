@@ -1,3 +1,4 @@
+
 import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
@@ -16,8 +17,8 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fixed: Explicitly extending React.Component to resolve 'props' inheritance issues in TypeScript
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+// Fixed: Using 'Component' from named imports to ensure 'props' is correctly inherited and recognized by TypeScript
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   public state: ErrorBoundaryState = { hasError: false, error: null };
 
   static getDerivedStateFromError(error: any): ErrorBoundaryState {
@@ -65,7 +66,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
       );
     }
 
-    // Fixed: 'props' is correctly inherited from React.Component when specified explicitly
+    // Fixed: 'props' is correctly inherited from Component when using named import
     return this.props.children;
   }
 }
