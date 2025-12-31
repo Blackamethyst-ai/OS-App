@@ -1,3 +1,4 @@
+
 import React, { ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
@@ -14,13 +15,13 @@ interface ErrorBoundaryState {
 
 /**
  * Root Error Boundary for Sovereign OS.
- * Handles critical application failures with a specialized system diagnostic UI.
+ * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Explicitly extend React.Component to ensure correctly typed access to this.props and this.state
+// Fix: Explicitly extending React.Component and specifying generic types to resolve TS errors regarding state and props.
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Standardize state initialization in the constructor for improved type resolution across different TS environments
   constructor(props: ErrorBoundaryProps) {
     super(props);
+    // Fix: Correct initialization of state property within the component constructor.
     this.state = { hasError: false, error: null };
   }
 
@@ -33,12 +34,11 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   render() {
-    // Fix: Destructure state and props within the render method for cleaner access and reliable typing
-    const { hasError, error } = this.state;
-    const { children } = this.props;
-    
-    if (hasError) {
+    // Fix: Correctly accessing hasError property from this.state.
+    if (this.state.hasError) {
       let errorMsg = "An unexpected neural desync occurred.";
+      // Fix: Correctly accessing error property from this.state.
+      const error = this.state.error;
       
       if (error) {
         if (typeof error === 'string') errorMsg = error;
@@ -56,7 +56,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                     <ShieldAlert className="w-10 h-10 text-red-500" />
                 </div>
                 <h1 className="text-2xl font-black mb-4 tracking-[0.3em] uppercase text-red-500">System Failure</h1>
-                <div className="p-4 bg-red-500/5 rounded border border-red-500/10 mb-8 w-full overflow-hidden">
+                <div className="p-4 bg-red-500/5 rounded border border-red-500/10 mb-8 w-full overflow-hidden text-left">
                     <p className="text-[10px] text-red-400 font-bold uppercase mb-2">Diagnostic:</p>
                     <p className="text-xs text-gray-400 leading-relaxed font-mono break-all">{errorMsg}</p>
                 </div>
@@ -71,8 +71,9 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
         </div>
       );
     }
-    // Fix: Return 'children' from destructured this.props
-    return children;
+
+    // Fix: Correctly accessing children property from this.props.
+    return this.props.children;
   }
 }
 
