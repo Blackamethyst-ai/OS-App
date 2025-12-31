@@ -450,6 +450,6 @@ export interface KnowledgeLayer {
     color: string;
     description: string;
     systemInstruction: string;
-    memoryTags: string[];
+    memoryTags: string[]; 
     activeModes: AppMode[];
 }

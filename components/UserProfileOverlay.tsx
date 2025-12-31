@@ -3,7 +3,7 @@ import { useAppStore } from '../store';
 import { neuralVault } from '../services/persistenceService';
 import { generateAvatar, promptSelectKey } from '../services/geminiService';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, X, Camera, Save, ShieldCheck, Loader2, Fingerprint, ScanFace, Sparkles, ChevronDown, Upload, Sun, Moon, Contrast } from 'lucide-react';
+import { User, X, Camera, Save, ShieldCheck, Loader2, Fingerprint, ScanFace, Sparkles, ChevronDown, Upload, Sun, Moon, Contrast, Activity } from 'lucide-react';
 import { audio } from '../services/audioService';
 import { AppTheme } from '../types';
 
@@ -266,8 +266,8 @@ const UserProfileOverlay: React.FC = () => {
                                 <label className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-2">Visual Interface Theme</label>
                                 <div className="flex gap-4">
                                     <ThemeButton mode={AppTheme.DARK} icon={Moon} label="Dark Mode" />
-                                    <ThemeButton mode={AppTheme.LIGHT} icon={Sun} label="Light Mode" />
                                     <ThemeButton mode={AppTheme.CONTRAST} icon={Contrast} label="High Contrast" />
+                                    <ThemeButton mode={AppTheme.MIDNIGHT} icon={Activity} label="Midnight" />
                                 </div>
                             </div>
 
