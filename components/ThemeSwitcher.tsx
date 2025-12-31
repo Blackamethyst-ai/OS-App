@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store';
-import { Sun, Moon, Contrast, Terminal, Book, Box, Zap, Palette, ShieldAlert, LayoutGrid } from 'lucide-react';
+import { Moon, Contrast, Terminal, Book, Box, Zap, Palette, ShieldAlert, LayoutGrid } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
 import { AppTheme } from '../types';
 
 const UI_PREVIEW_MAP: Record<AppTheme, { bg: string; accent: string; text: string }> = {
     [AppTheme.DARK]: { bg: '#030303', accent: '#9d4edd', text: '#e5e5e5' },
-    [AppTheme.LIGHT]: { bg: '#f5f5f5', accent: '#a855f7', text: '#171717' },
+    [AppTheme.LIGHT]: { bg: '#030303', accent: '#9d4edd', text: '#e5e5e5' }, // Redirect preview to dark
     [AppTheme.CONTRAST]: { bg: '#000000', accent: '#ffffff', text: '#ffffff' },
     [AppTheme.HIGH_CONTRAST]: { bg: '#000000', accent: '#00ff00', text: '#00ff00' },
-    [AppTheme.AMBER]: { bg: '#0a0500', accent: '#f59e0b', text: '#f59e0b' },
+    [AppTheme.AMBER]: { bg: '#0a0a0a', accent: '#f59e0b', text: '#f59e0b' },
     [AppTheme.SOLARIZED]: { bg: '#fdf6e3', accent: '#2aa198', text: '#657b83' },
     [AppTheme.MIDNIGHT]: { bg: '#020617', accent: '#3b82f6', text: '#e2e8f0' },
     [AppTheme.NEON_CYBER]: { bg: '#000000', accent: '#d946ef', text: '#22d3ee' },
@@ -18,14 +18,18 @@ const UI_PREVIEW_MAP: Record<AppTheme, { bg: string; accent: string; text: strin
 };
 
 const ThemeSwitcher: React.FC = () => {
-    const { theme, setTheme } = useAppStore();
+    // Fixed: Accessed theme and actions separately to ensure correct destructuring
+    const theme = useAppStore(s => s.theme);
+    const actions = useAppStore(s => s.actions);
+    const { setTheme } = actions;
+    
     const [isOpen, setIsOpen] = useState(false);
     const [hoveredTheme, setHoveredTheme] = useState<AppTheme | null>(null);
 
+    // Removed AppTheme.LIGHT as it has been deprecated for high-fidelity dark aesthetics
     const themes = [
         { id: AppTheme.DARK, icon: Moon, label: 'Dark Core', color: '#9d4edd', desc: 'Default low-light interface' },
         { id: AppTheme.MIDNIGHT, icon: Box, label: 'Midnight', color: '#3b82f6', desc: 'Deep blue oceanic focus' },
-        { id: AppTheme.LIGHT, icon: Sun, label: 'High Light', color: '#a855f7', desc: 'Maximized clarity' },
         { id: AppTheme.AMBER, icon: Terminal, label: 'Amber Protocol', color: '#f59e0b', desc: 'Retro-industrial terminal' },
         { id: AppTheme.SOLARIZED, icon: Book, label: 'Solarized', color: '#2aa198', desc: 'Optimized reading mode' },
         { id: AppTheme.NEON_CYBER, icon: Zap, label: 'Neon Cyber', color: '#d946ef', desc: 'High-entropy visual skin' },
@@ -36,12 +40,14 @@ const ThemeSwitcher: React.FC = () => {
 
     const currentTheme = themes.find(t => t.id === theme) || themes[0];
     const previewThemeId = hoveredTheme || theme;
-    const previewStyles = UI_PREVIEW_MAP[previewThemeId];
+    const previewStyles = UI_PREVIEW_MAP[previewThemeId] || UI_PREVIEW_MAP[AppTheme.DARK];
 
     const handleThemeSelect = (id: AppTheme) => {
-        setTheme(id);
-        setIsOpen(false);
-        audio.playClick();
+        if (typeof setTheme === 'function') {
+            setTheme(id);
+            setIsOpen(false);
+            audio.playClick();
+        }
     };
 
     return (
@@ -70,14 +76,12 @@ const ThemeSwitcher: React.FC = () => {
                                 <Palette size={10} />
                             </div>
 
-                            {/* UI Matrix Preview Area */}
                             <div className="px-3 mb-4">
                                 <div className="text-[7px] font-mono text-gray-600 uppercase tracking-widest mb-1.5">Matrix Projection Preview</div>
                                 <div 
                                     className="w-full h-28 rounded-lg border border-white/10 overflow-hidden relative shadow-inner transition-colors duration-500"
                                     style={{ backgroundColor: previewStyles.bg }}
                                 >
-                                    {/* Mock Header */}
                                     <div className="h-6 border-b border-white/5 flex items-center justify-between px-2 gap-1.5 bg-black/20">
                                         <div className="flex items-center gap-1">
                                             <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: previewStyles.accent }} />
@@ -90,14 +94,12 @@ const ThemeSwitcher: React.FC = () => {
                                     </div>
                                     
                                     <div className="p-3 flex gap-3 h-full">
-                                        {/* Mock Sidebar */}
                                         <div className="w-10 border-r border-white/5 h-full flex flex-col gap-1.5 pt-1">
                                             {[1,2,3,4].map(i => (
                                                 <div key={i} className="w-full h-1.5 opacity-10 rounded-sm" style={{ backgroundColor: previewStyles.text }} />
                                             ))}
                                         </div>
                                         
-                                        {/* Mock Dashboard Area */}
                                         <div className="flex-1 space-y-3 pt-1">
                                             <div className="w-2/3 h-2.5 opacity-80 rounded-sm" style={{ backgroundColor: previewStyles.text }} />
                                             <div className="grid grid-cols-2 gap-2">
@@ -112,8 +114,6 @@ const ThemeSwitcher: React.FC = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    
-                                    {/* Scanline Effect */}
                                     <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(255,255,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.01)_1px,transparent_1px)] bg-[size:8px_8px]"></div>
                                 </div>
                             </div>
