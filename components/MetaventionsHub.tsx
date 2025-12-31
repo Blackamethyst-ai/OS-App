@@ -307,45 +307,57 @@ const MetaventionsHub: React.FC = () => {
   return (
     <div key={theme} className="h-full w-full bg-transparent flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out">
       
-      {/* Header Banner */}
-      <div className="h-20 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl z-20 flex items-center justify-between px-10 shrink-0 relative overflow-hidden">
+      {/* Enhanced Header Banner */}
+      <div className="h-20 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-3xl z-20 flex items-center justify-between px-10 shrink-0 relative overflow-hidden shadow-2xl">
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/50 to-transparent" />
+          <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
           
-          <div className="flex items-center gap-8 relative z-10">
+          <div className="flex items-center gap-10 relative z-10">
               <div className="relative group cursor-pointer" onClick={() => actions.toggleProfile(true)}>
-                  <div className="w-14 h-14 rounded-full border-2 border-[#9d4edd]/30 overflow-hidden bg-black/40 flex items-center justify-center shadow-xl group-hover:border-[#9d4edd] transition-all duration-700">
+                  <div className="w-14 h-14 rounded-[2rem] border-2 border-[#9d4edd]/30 overflow-hidden bg-black/60 flex items-center justify-center shadow-[0_0_30px_rgba(157,78,221,0.15)] group-hover:border-[#9d4edd] group-hover:shadow-[0_0_40px_rgba(157,78,221,0.3)] transition-all duration-700">
                       {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="User" /> : <User size={24} className="text-gray-700" />}
                   </div>
-                  <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-black border border-white/10 rounded-full flex items-center justify-center text-[#9d4edd] shadow-lg">
-                      <Shield size={10} />
-                  </div>
+                  <motion.div 
+                    animate={{ scale: [1, 1.15, 1], opacity: [1, 0.5, 1] }}
+                    transition={{ duration: 3, repeat: Infinity }}
+                    className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#0a0a0c] border border-white/10 rounded-full flex items-center justify-center text-[#9d4edd] shadow-2xl"
+                  >
+                      <ShieldCheck size={12} className="text-[#10b981]" />
+                  </motion.div>
               </div>
               <div className="flex flex-col">
-                  <div className="flex items-center gap-3">
-                      <div className="px-2 py-0.5 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-full">
-                        <span className="text-[8px] font-black text-[#9d4edd] uppercase font-mono tracking-widest leading-none">Sovereign_Enclave_V1</span>
+                  <div className="flex items-center gap-4">
+                      <div className="px-3 py-0.5 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-lg backdrop-blur-3xl shadow-inner">
+                        <span className="text-[9px] font-black text-[#9d4edd] uppercase font-mono tracking-[0.4em] leading-none">Identity_Verified_L0</span>
                       </div>
-                      <span className="text-gray-700 font-mono text-[9px] tracking-widest font-black uppercase">Identity Verified</span>
+                      <div className="h-1 w-8 bg-white/5 rounded-full" />
+                      <span className="text-gray-500 font-mono text-[9px] tracking-widest font-black uppercase opacity-60">Handshake Stable</span>
                   </div>
-                  <h1 className="text-2xl font-black text-white uppercase font-mono tracking-tighter leading-none mt-1">Dashboard Hub</h1>
+                  <h1 className="text-2xl font-black text-white uppercase font-mono tracking-tighter leading-none mt-1.5 flex items-center gap-3">
+                    The D-Ecosystem
+                    <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 2, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] shadow-[0_0_12px_#9d4edd]" />
+                  </h1>
               </div>
           </div>
 
-          <div className="flex items-center gap-12 relative z-10">
-              <div className="flex items-center gap-10">
-                  <div className="text-right">
-                      <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block mb-0.5">Lattice Uptime</span>
-                      <div className="flex items-center gap-3 mt-0.5">
+          <div className="flex items-center gap-16 relative z-10">
+              <div className="flex items-center gap-12">
+                  <div className="text-right group/stat">
+                      <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-1 group-hover:text-white transition-colors">Global Lattice</span>
+                      <div className="flex items-center gap-4 mt-0.5">
                           <span className="text-2xl font-black font-mono text-white tracking-tighter">99.99%</span>
-                          <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.3)]" />
+                          <div className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_15px_#10b981]" />
                       </div>
                   </div>
                   <div className="h-10 w-px bg-white/5" />
-                  <div className="text-right">
-                      <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block mb-0.5">Structural Entropy</span>
-                      <div className="flex items-center gap-3 mt-0.5">
+                  <div className="text-right group/stat">
+                      <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-1 group-hover:text-white transition-colors">Neural Flux</span>
+                      <div className="flex items-center gap-4 mt-0.5">
                           <span className="text-2xl font-black font-mono text-white tracking-tighter">{telemetry.entropy.toFixed(1)}</span>
-                          <div className={`w-2 h-2 rounded-full animate-pulse transition-colors ${telemetry.entropy > 10 ? 'bg-[#ef4444] shadow-[0_0_10px_#ef4444]' : 'bg-[#f59e0b] shadow-[0_0_10px_#f59e0b]'}`} />
+                          <div className={cn(
+                            "w-2.5 h-2.5 rounded-full animate-pulse transition-all duration-700",
+                            telemetry.entropy > 12 ? 'bg-[#ef4444] shadow-[0_0_15px_#ef4444]' : 'bg-[#9d4edd] shadow-[0_0_15px_#9d4edd]'
+                          )} />
                       </div>
                   </div>
               </div>
@@ -411,7 +423,7 @@ const MetaventionsHub: React.FC = () => {
                                   </div>
                                   <div className="space-y-2">
                                       <h3 className="text-xl font-black text-white uppercase tracking-[0.6em]">Viewport Standby</h3>
-                                      <p className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.2em] max-w-sm mx-auto">Manual protocol required for holographic uplink.</p>
+                                      <p className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.2em] max-sm mx-auto">Manual protocol required for holographic uplink.</p>
                                   </div>
                               </motion.div>
                           )}
@@ -434,7 +446,7 @@ const MetaventionsHub: React.FC = () => {
                      <div className="flex items-center gap-12">
                         <div className="flex flex-col">
                             <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black uppercase">Neural Coherence</span>
-                            <span className="text-lg font-black font-mono text-white tracking-tighter uppercase">V9.5-ZENITH</span>
+                            <span className="text-lg font-black font-mono text-white tracking-tighter uppercase">The D-Ecosystem</span>
                         </div>
                         <div className="h-10 w-px bg-white/5" />
                         <div className="flex flex-col">

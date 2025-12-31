@@ -1,11 +1,10 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+import React, { ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw, Terminal, Activity } from 'lucide-react';
 
 // 1. Strict Interface Definitions for Type Safety
 interface ErrorBoundaryProps {
-  // Fix: make children optional to resolve instantiation error where children are not correctly mapped to props in some TS versions
   children?: ReactNode;
   fallback?: ReactNode;
 }
@@ -18,11 +17,10 @@ interface ErrorBoundaryState {
 /**
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
- * 2. Pass interfaces as Generics: Component<Props, State> to resolve 'props' identification errors.
  */
-// Fix: Use the imported Component class directly to ensure proper type inheritance for props and state, resolving 'Property props does not exist' errors
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Explicitly initialize state property to resolve 'Property state does not exist on type ErrorBoundary' errors
+// Fix: Use React.Component with generics to ensure 'props' and 'state' are correctly inherited and recognized by the compiler.
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Explicitly initialize state property to resolve potential state identification errors
   state: ErrorBoundaryState = { hasError: false, error: null };
 
   constructor(props: ErrorBoundaryProps) {
@@ -48,7 +46,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     // Fix: Access state and props which are now correctly recognized through explicit inheritance from React.Component
     if (this.state.hasError) {
       // 4. Enhanced Sovereign Fallback UI
-      // Fix: this.props is now correctly resolved through explicit inheritance from the Component generic class
+      // Fix: this.props is now correctly resolved through explicit inheritance from the React.Component generic class
       if (this.props.fallback) return this.props.fallback;
 
       const errorMsg = this.state.error?.message || "An unexpected neural desync occurred.";
@@ -100,7 +98,7 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       );
     }
 
-    // Fix: this.props.children is now correctly recognized as existing on the ErrorBoundary type through explicit Component inheritance
+    // Fix: this.props.children is now correctly recognized via explicit React.Component inheritance
     return this.props.children;
   }
 }
