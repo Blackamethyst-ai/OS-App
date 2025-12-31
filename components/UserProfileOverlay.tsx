@@ -11,8 +11,10 @@ import { AppTheme } from '../types';
 const ROLES = ['ARCHITECT', 'OPERATOR', 'SENTINEL', 'NETRUNNER', 'OVERWATCH'];
 
 const UserProfileOverlay: React.FC = () => {
-    const { isProfileOpen, user, theme, actions } = useAppStore();
-    const { toggleProfile, setUserProfile, addLog, setTheme } = actions;
+    const isProfileOpen = useAppStore(s => s.isProfileOpen);
+    const user = useAppStore(s => s.user);
+    const theme = useAppStore(s => s.theme);
+    const actions = useAppStore(s => s.actions);
     
     // Local state for editing
     const [editName, setEditName] = useState(user.displayName || '');
@@ -39,7 +41,7 @@ const UserProfileOverlay: React.FC = () => {
             
             // Validation: Size < 5MB
             if (file.size > 5 * 1024 * 1024) {
-                addLog('ERROR', 'UPLOAD_FAIL: Image exceeds 5MB limit.');
+                actions.addLog('ERROR', 'UPLOAD_FAIL: Image exceeds 5MB limit.');
                 audio.playError();
                 return;
             }
@@ -69,7 +71,7 @@ const UserProfileOverlay: React.FC = () => {
             audio.playSuccess();
         } catch (err: any) {
             console.error("Avatar Gen Error:", err);
-            addLog('ERROR', `AVATAR_GEN: ${err.message}`);
+            actions.addLog('ERROR', `AVATAR_GEN: ${err.message}`);
             audio.playError();
         } finally {
             setIsGenerating(false);
@@ -90,21 +92,21 @@ const UserProfileOverlay: React.FC = () => {
             };
             
             // 1. Update Store
-            setUserProfile(newProfile);
+            actions.setUserProfile(newProfile);
             
             // 2. Persist to DB
             await neuralVault.saveProfile(newProfile);
             
-            addLog('SUCCESS', `PROFILE_UPDATE: Identity confirmed for [${editName}]`);
+            actions.addLog('SUCCESS', `PROFILE_UPDATE: Identity confirmed for [${editName}]`);
             audio.playSuccess();
             
             setTimeout(() => {
                 setIsSaving(false);
-                toggleProfile(false);
+                actions.toggleProfile(false);
             }, 800);
         } catch (err) {
             console.error("Profile Save Error", err);
-            addLog('ERROR', "PROFILE_SAVE_FAILED: Write access denied");
+            actions.addLog('ERROR', "PROFILE_SAVE_FAILED: Write access denied");
             setIsSaving(false);
             audio.playError();
         }
@@ -112,7 +114,7 @@ const UserProfileOverlay: React.FC = () => {
 
     const ThemeButton = ({ mode, icon: Icon, label }: { mode: AppTheme, icon: any, label: string }) => (
         <button
-            onClick={() => { setTheme(mode); audio.playClick(); }}
+            onClick={() => { actions.setTheme(mode); audio.playClick(); }}
             className={`flex-1 py-3 rounded-lg border flex flex-col items-center justify-center gap-2 transition-all ${
                 theme === mode 
                 ? 'bg-[#9d4edd] text-black border-[#9d4edd] shadow-lg scale-105' 
@@ -145,7 +147,7 @@ const UserProfileOverlay: React.FC = () => {
                                 <ScanFace className="w-5 h-5" />
                                 <span className="font-mono font-bold uppercase tracking-widest text-xs">Identity Fabrication</span>
                             </div>
-                            <button onClick={() => toggleProfile(false)} className="text-gray-500 hover:text-white transition-colors">
+                            <button onClick={() => actions.toggleProfile(false)} className="text-gray-500 hover:text-white transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>

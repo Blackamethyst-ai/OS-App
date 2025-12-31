@@ -141,8 +141,12 @@ const SwarmBox = () => {
 };
 
 const MetaventionsHub: React.FC = () => {
-  const { dashboard, theme, user, voice, kernel, actions } = useAppStore();
-  const { setDashboardState, addLog, setVoiceState, toggleProfile } = actions;
+  const actions = useAppStore(s => s.actions);
+  const dashboard = useAppStore(s => s.dashboard);
+  const theme = useAppStore(s => s.theme);
+  const user = useAppStore(s => s.user);
+  const voice = useAppStore(s => s.voice);
+  const kernel = useAppStore(s => s.kernel);
 
   const [mainImageUrl, setMainImageUrl] = useState<string | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -150,7 +154,6 @@ const MetaventionsHub: React.FC = () => {
   const voiceCanvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Small update: Real-time entropy jitter simulation
   useEffect(() => {
     const interval = setInterval(() => {
         setTelemetry(prev => ({
@@ -224,27 +227,27 @@ const MetaventionsHub: React.FC = () => {
   const handleUplink = async () => {
     if (voice.isActive || voice.isConnecting) {
         liveSession.disconnect();
-        setVoiceState({ isActive: false, isConnecting: false });
-        addLog('SYSTEM', 'COMMS_SEVERED: Neural voice channel terminated.');
+        actions.setVoiceState({ isActive: false, isConnecting: false });
+        actions.addLog('SYSTEM', 'COMMS_SEVERED: Neural voice channel terminated.');
         audio.playError();
     } else {
-        setVoiceState({ isConnecting: true });
+        actions.setVoiceState({ isConnecting: true });
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setVoiceState({ isConnecting: false }); return; }
+            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); actions.setVoiceState({ isConnecting: false }); return; }
             await liveSession.primeAudio();
-            setVoiceState({ isActive: true, isConnecting: false });
-            addLog('SUCCESS', 'COMMS_ESTABLISHED: Voice Core online.');
+            actions.setVoiceState({ isActive: true, isConnecting: false });
+            actions.addLog('SUCCESS', 'COMMS_ESTABLISHED: Voice Core online.');
             audio.playSuccess();
         } catch (e) {
-            setVoiceState({ isConnecting: false });
-            addLog('ERROR', 'COMMS_FAIL: Voice interface handshake failed.');
+            actions.setVoiceState({ isConnecting: false });
+            actions.addLog('ERROR', 'COMMS_FAIL: Voice interface handshake failed.');
         }
     }
   };
 
   const handleGlobalSync = async () => {
       setIsSyncing(true);
-      addLog('SYSTEM', 'HUB_SYNC: Initiating 4K holographic visualization...');
+      actions.addLog('SYSTEM', 'HUB_SYNC: Initiating 4K holographic visualization...');
       audio.playClick();
       try {
           if (!(await window.aistudio?.hasSelectedApiKey())) { 
@@ -259,10 +262,10 @@ const MetaventionsHub: React.FC = () => {
               dashboard.referenceImage
           );
           setMainImageUrl(url);
-          addLog('SUCCESS', 'HUB_SYNC: Strategic view established at 4K resolution.');
+          actions.addLog('SUCCESS', 'HUB_SYNC: Strategic view established at 4K resolution.');
           audio.playSuccess();
       } catch (e: any) {
-          addLog('ERROR', `SYNC_FAIL: ${e.message}`);
+          actions.addLog('ERROR', `SYNC_FAIL: ${e.message}`);
       } finally {
           setIsSyncing(false);
       }
@@ -272,8 +275,8 @@ const MetaventionsHub: React.FC = () => {
       if (e.target.files?.[0]) {
           const file = e.target.files[0];
           const part = await fileToGenerativePart(file);
-          setDashboardState({ referenceImage: part });
-          addLog('SUCCESS', `ANCHOR_LOAD: Biometric vector updated.`);
+          actions.setDashboardState({ referenceImage: part });
+          actions.addLog('SUCCESS', `ANCHOR_LOAD: Biometric vector updated.`);
           audio.playSuccess();
       }
   };
@@ -287,7 +290,7 @@ const MetaventionsHub: React.FC = () => {
     link.click();
     document.body.removeChild(link);
     audio.playSuccess();
-    addLog('SUCCESS', 'ASSET_STUDIO: Strategic view manifest cached to local storage.');
+    actions.addLog('SUCCESS', 'ASSET_STUDIO: Strategic view manifest cached to local storage.');
   };
 
   return (
@@ -298,9 +301,9 @@ const MetaventionsHub: React.FC = () => {
           <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/50 to-transparent" />
           
           <div className="flex items-center gap-8 relative z-10">
-              <div className="relative group cursor-pointer" onClick={() => toggleProfile(true)}>
+              <div className="relative group cursor-pointer" onClick={() => actions.toggleProfile(true)}>
                   <div className="w-14 h-14 rounded-full border-2 border-[#9d4edd]/30 overflow-hidden bg-black/40 flex items-center justify-center shadow-xl group-hover:border-[#9d4edd] transition-all duration-700">
-                      {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" /> : <User size={24} className="text-gray-700" />}
+                      {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="User" /> : <User size={24} className="text-gray-700" />}
                   </div>
                   <div className="absolute -bottom-0.5 -right-0.5 w-5 h-5 bg-black border border-white/10 rounded-full flex items-center justify-center text-[#9d4edd] shadow-lg">
                       <Shield size={10} />
@@ -354,9 +357,7 @@ const MetaventionsHub: React.FC = () => {
                       </div>
                   </div>
                   
-                  <div 
-                    className="flex-1 relative overflow-hidden bg-black/40 group/view"
-                  >
+                  <div className="flex-1 relative overflow-hidden bg-black/40 group/view">
                       <AnimatePresence mode="wait">
                           {isSyncing ? (
                               <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/60 backdrop-blur-3xl">
@@ -373,7 +374,7 @@ const MetaventionsHub: React.FC = () => {
                                     animate={{ opacity: 1, scale: 1 }}
                                     src={mainImageUrl} 
                                     className="w-full h-full object-cover grayscale-[30%] opacity-80 transition-all duration-[30s] group-hover/view:scale-110 group-hover/view:grayscale-0 group-hover/view:opacity-100 cursor-pointer" 
-                                    onClick={() => toggleProfile(true)}
+                                    onClick={() => actions.toggleProfile(true)}
                                   />
                                   <div className="absolute top-10 right-10 z-40 opacity-0 group-hover/img-node:opacity-100 transition-all">
                                       <button 
@@ -565,7 +566,7 @@ const MetaventionsHub: React.FC = () => {
                   
                   {/* 6. Operational Velocity (Graph) */}
                   <div className="flex-1 min-h-[300px]">
-                    <ContextVelocityChart onDrillDown={(p) => addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
+                    <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
                   </div>
               </div>
           </div>

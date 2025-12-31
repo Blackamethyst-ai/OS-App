@@ -57,7 +57,7 @@ const NAV_CONFIG = [
 
 const FocusOverlay = () => {
     const selector = useAppStore(s => s.focusedSelector);
-    const { setFocusedSelector } = useAppStore(s => s.actions);
+    const actions = useAppStore(s => s.actions);
     const [bounds, setBounds] = useState<DOMRect | null>(null);
 
     useEffect(() => {
@@ -89,7 +89,7 @@ const FocusOverlay = () => {
                 className="absolute border-2 border-[#9d4edd] rounded"
                 style={{ left: bounds.left - 4, top: bounds.top - 4, width: bounds.width + 8, height: bounds.height + 8 }}
             >
-                <div className="absolute -top-8 left-0 bg-[#9d4edd] text-black text-[10px] font-black font-mono px-2 py-0.5 rounded flex items-center gap-2 pointer-events-auto cursor-pointer" onClick={() => setFocusedSelector(null)}>
+                <div className="absolute -top-8 left-0 bg-[#9d4edd] text-black text-[10px] font-black font-mono px-2 py-0.5 rounded flex items-center gap-2 pointer-events-auto cursor-pointer" onClick={() => actions.setFocusedSelector(null)}>
                     <Target size={12}/> CONTEXT_FOCUS_L0 <X size={10} />
                 </div>
             </motion.div>
@@ -98,16 +98,13 @@ const FocusOverlay = () => {
 };
 
 const App: React.FC = () => {
-  const { 
-      mode, theme, actions,
-      isHelpOpen, isScrubberOpen, isDiagnosticsOpen, isHUDClosed,
-  } = useAppStore();
-  
-  const { 
-      addLog, setMode, setHelpOpen, setScrubberOpen, setDiagnosticsOpen,
-      setProcessState, setCodeStudioState, setHardwareState, setImageGenState, setBibliomorphicState, setDashboardState, setMetaventionsState, setAgentState,
-      setMemoryState, setBicameralState, toggleProfile, toggleCommandPalette, setVoiceState
-  } = actions;
+  const mode = useAppStore(s => s.mode);
+  const theme = useAppStore(s => s.theme);
+  const actions = useAppStore(s => s.actions);
+  const isHelpOpen = useAppStore(s => s.isHelpOpen);
+  const isScrubberOpen = useAppStore(s => s.isScrubberOpen);
+  const isDiagnosticsOpen = useAppStore(s => s.isDiagnosticsOpen);
+  const isHUDClosed = useAppStore(s => s.isHUDClosed);
   
   const { setSector } = useSystemMind(); 
 
@@ -136,33 +133,34 @@ const App: React.FC = () => {
         if (window.aistudio?.hasSelectedApiKey) {
             const hasKey = await window.aistudio.hasSelectedApiKey();
             if (!hasKey) { 
-                addLog('WARN', 'SECURITY: API Key missing.'); 
+                actions.addLog('WARN', 'SECURITY: API Key missing.'); 
                 await promptSelectKey(); 
             }
         }
     };
     checkKey();
-  }, [addLog]);
+    // Only run on initial mount to avoid any potential logic loops
+  }, []);
 
   useEffect(() => { setSector(mode); }, [mode, setSector]);
 
   const handleRestore = (state: any) => {
     switch(mode) {
-        case AppMode.PROCESS_MAP: setProcessState(state); break;
-        case AppMode.CODE_STUDIO: setCodeStudioState(state); break;
-        case AppMode.HARDWARE_ENGINEER: setHardwareState(state); break;
-        case AppMode.IMAGE_GEN: setImageGenState(state); break;
-        case AppMode.BIBLIOMORPHIC: setBibliomorphicState(state); break;
-        case AppMode.DASHBOARD: setDashboardState(state); break;
-        case AppMode.METAVENTIONS_HUB: setMetaventionsState(state); break;
-        case AppMode.AUTONOMOUS_FINANCE: setMetaventionsState(state); break;
-        case AppMode.AGENT_CONTROL: setAgentState(state); break;
-        case AppMode.SYNTHESIS_BRIDGE: setMetaventionsState(state); break;
-        case AppMode.MEMORY_CORE: setMemoryState(state); break;
-        case AppMode.VOICE_MODE: setVoiceState(state); break;
-        case AppMode.BICAMERAL: setBicameralState(state); break;
+        case AppMode.PROCESS_MAP: actions.setProcessState(state); break;
+        case AppMode.CODE_STUDIO: actions.setCodeStudioState(state); break;
+        case AppMode.HARDWARE_ENGINEER: actions.setHardwareState(state); break;
+        case AppMode.IMAGE_GEN: actions.setImageGenState(state); break;
+        case AppMode.BIBLIOMORPHIC: actions.setBibliomorphicState(state); break;
+        case AppMode.DASHBOARD: actions.setDashboardState(state); break;
+        case AppMode.METAVENTIONS_HUB: actions.setMetaventionsState(state); break;
+        case AppMode.AUTONOMOUS_FINANCE: actions.setMetaventionsState(state); break;
+        case AppMode.AGENT_CONTROL: actions.setAgentState(state); break;
+        case AppMode.SYNTHESIS_BRIDGE: actions.setMetaventionsState(state); break;
+        case AppMode.MEMORY_CORE: actions.setMemoryState(state); break;
+        case AppMode.VOICE_MODE: actions.setVoiceState(state); break;
+        case AppMode.BICAMERAL: actions.setBicameralState(state); break;
     }
-    addLog('INFO', 'Timeline resync successful.');
+    actions.addLog('INFO', 'Timeline resync successful.');
     audio.playSuccess();
   };
 
@@ -254,8 +252,8 @@ const App: React.FC = () => {
       <VisualCortexOverlay />
       <CommandPalette /> 
       <PeerMeshOverlay />
-      <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => setDiagnosticsOpen(false)} /> 
-      <TimeTravelScrubber mode={mode} onRestore={handleRestore} isOpen={isScrubberOpen} onClose={() => setScrubberOpen(false)} />
+      <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => actions.setDiagnosticsOpen(false)} /> 
+      <TimeTravelScrubber mode={mode} onRestore={handleRestore} isOpen={isScrubberOpen} onClose={() => actions.setScrubberOpen(false)} />
       <OverlayOS /> 
       <HoloProjector /> 
       <ResearchTray /> 
@@ -266,7 +264,7 @@ const App: React.FC = () => {
       </AnimatePresence>
       
       <AnimatePresence>
-        {isHelpOpen && <HelpCenter onClose={() => setHelpOpen(false)} />}
+        {isHelpOpen && <HelpCenter onClose={() => actions.setHelpOpen(false)} />}
       </AnimatePresence>
 
       <header className="flex-shrink-0 h-[56px] border-b border-[var(--border-main)] z-[100] px-6 flex items-center justify-between backdrop-blur-3xl bg-[var(--bg-header)] shadow-xl relative transition-colors duration-500">
@@ -300,11 +298,11 @@ const App: React.FC = () => {
             <div className="h-4 w-px bg-[var(--border-main)]" />
             <div className="flex items-center gap-1">
                 <ThemeSwitcher />
-                <button onClick={() => toggleProfile(true)} className="p-2 text-[var(--text-muted)] hover:text-[#f1c21b] transition-all rounded-lg hover:bg-black/5">
+                <button onClick={() => actions.toggleProfile(true)} className="p-2 text-[var(--text-muted)] hover:text-[#f1c21b] transition-all rounded-lg hover:bg-black/5">
                     <User size={16} />
                 </button>
             </div>
-            <button onClick={() => toggleCommandPalette()} className="relative group/eco px-4 py-1.5 bg-[var(--bg-app)] border border-[var(--border-main)] hover:border-[#f1c21b]/40 rounded-lg transition-all duration-500 shadow-lg overflow-hidden active:scale-95">
+            <button onClick={() => actions.toggleCommandPalette()} className="relative group/eco px-4 py-1.5 bg-[var(--bg-app)] border border-[var(--border-main)] hover:border-[#f1c21b]/40 rounded-lg transition-all duration-500 shadow-lg overflow-hidden active:scale-95">
                 <span className="relative z-10 text-[8px] font-black font-mono tracking-[0.2em] uppercase flex items-center gap-2 text-[#f1c21b]">
                     SYSTEMS
                     <ExternalLink size={10} className="text-[var(--text-muted)] group-hover:text-[#f1c21b] transition-colors" />
