@@ -157,7 +157,7 @@ const DiscoveryLab: React.FC = () => {
                             Distill Axioms
                         </button>
                         <button onClick={handleGenerateHypotheses} disabled={discovery.isLoading} className="px-4 py-2 bg-[#22d3ee] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#67e8f9] transition-all flex items-center gap-2">
-                            {discovery.isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                            {discovery.isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles size={20} className="w-3 h-3" />}
                             Hypothesize
                         </button>
                     </div>

@@ -305,7 +305,7 @@ const MetaventionsHub: React.FC = () => {
   };
 
   return (
-    <div key={theme} className="h-full w-full flex flex-col font-sans bg-transparent overflow-hidden transition-all duration-700 ease-in-out">
+    <div key={theme} className="h-full w-full bg-transparent flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out">
       
       {/* Header Banner */}
       <div className="h-20 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl z-20 flex items-center justify-between px-10 shrink-0 relative overflow-hidden">
@@ -593,7 +593,7 @@ const MetaventionsHub: React.FC = () => {
                           <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
                           <span className="text-[9px] font-black font-mono text-white uppercase tracking-[0.3em]">Autonomous_Swarm_Lattice // Active</span>
                       </div>
-                      <span className="text-[7px] text-gray-500 font-mono uppercase tracking-0.4em] block pl-6">Active Global Node Synchronization</span>
+                      <span className="text-[7px] text-gray-500 font-mono uppercase tracking-[0.4em] block pl-6">Active Global Node Synchronization</span>
                   </div>
               </div>
               <DEcosystem />

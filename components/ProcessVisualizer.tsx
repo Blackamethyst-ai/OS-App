@@ -11,7 +11,10 @@ import {
     CheckCircle, Clock, RefreshCw, DraftingCompass, 
     Layers, Grid3X3, ListChecks, Map, ShieldCheck, GitBranch,
     ChevronRight, Binary, HardDrive, Server, Target, Box,
-    Network, Search, Cpu, Database, Brain
+    Network, Search, Cpu, Database, Brain, 
+    // Fixed: Replaced FileTree with FolderTree
+    FolderTree, 
+    Cloud
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useAppStore } from '../store';
@@ -135,6 +138,17 @@ const ProcessVisualizerContent = () => {
         return () => { delete (window as any).processLogic; };
     }, [updateNodeStatus]);
 
+    const handleApplyPreset = (type: string) => {
+        audio.playClick();
+        if (type === 'PARA') {
+            setProcessState({ workflowType: 'DRIVE_ORGANIZATION' });
+            setArchitecturePrompt("Generate a comprehensive PARA (Projects, Areas, Resources, Archives) drive taxonomy for a production asset studio. Focus on recursive naming and decentralized metadata anchors.");
+        } else {
+            setProcessState({ workflowType: 'SYSTEM_ARCHITECTURE' });
+            setArchitecturePrompt("Forge a cloud-native systems architecture blueprint. Focus on edge distribution, event-driven ingestion, and self-healing node clusters for real-time AI processing.");
+        }
+    };
+
     return (
         <div className="h-full w-full bg-transparent flex flex-col relative overflow-hidden font-sans border border-[var(--border-main)] rounded-[2.5rem] shadow-2xl transition-colors duration-500">
             <div className="h-16 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl z-[60] flex items-center justify-between px-10 shrink-0 relative">
@@ -195,7 +209,7 @@ const ProcessVisualizerContent = () => {
 
                     {activeTab === 'architect' && (
                         <motion.div key="architect" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="h-full flex flex-col items-center justify-center p-12">
-                            <div className="w-full max-w-3xl bg-transparent crystalline rounded-[3rem] p-12 border border-white/10 shadow-2xl space-y-10 relative overflow-hidden">
+                            <div className="w-full max-w-3xl bg-transparent crystalline rounded-[3rem] p-12 border border-white/10 shadow-2xl space-y-8 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-8 opacity-[0.03]"><DraftingCompass size={140} /></div>
                                 <div className="flex items-center gap-5 relative z-10">
                                     <div className="p-4 bg-[var(--cyan)]/10 rounded-2xl border border-[var(--cyan)]/30 text-[var(--cyan)]">
@@ -207,28 +221,39 @@ const ProcessVisualizerContent = () => {
                                     </div>
                                 </div>
                                 
-                                <div className="flex gap-2 p-1 bg-black/20 rounded-2xl border border-white/5 w-fit relative z-10 shadow-inner">
-                                    {[
-                                        { id: 'DRIVE_ORGANIZATION', icon: HardDrive, label: 'D-System PARA' },
-                                        { id: 'SYSTEM_ARCHITECTURE', icon: Server, label: 'Infrastructure' }
-                                    ].map(mode => (
-                                        <button 
-                                            key={mode.id}
-                                            onClick={() => { setProcessState({ workflowType: mode.id as any }); audio.playClick(); }}
-                                            className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
-                                                ${processData.workflowType === mode.id ? 'bg-white text-black shadow-lg scale-105' : 'text-gray-500 hover:text-white'}
-                                            `}
-                                        >
-                                            <mode.icon size={12} /> {mode.label}
+                                <div className="flex flex-col gap-4 relative z-10">
+                                    <div className="flex gap-2 p-1 bg-black/20 rounded-2xl border border-white/5 w-fit shadow-inner">
+                                        {[
+                                            { id: 'DRIVE_ORGANIZATION', icon: HardDrive, label: 'D-System PARA' },
+                                            { id: 'SYSTEM_ARCHITECTURE', icon: Server, label: 'Infrastructure' }
+                                        ].map(mode => (
+                                            <button 
+                                                key={mode.id}
+                                                onClick={() => { setProcessState({ workflowType: mode.id as any }); audio.playClick(); }}
+                                                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
+                                                    ${processData.workflowType === mode.id ? 'bg-white text-black shadow-lg scale-105' : 'text-gray-500 hover:text-white'}
+                                                `}
+                                            >
+                                                <mode.icon size={12} /> {mode.label}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div className="flex gap-4">
+                                        <button onClick={() => handleApplyPreset('PARA')} className="px-4 py-2 bg-white/5 border border-white/10 hover:border-[#9d4edd]/50 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-white flex items-center gap-2 transition-all">
+                                            <FolderTree size={12} /> Load PARA Pattern
                                         </button>
-                                    ))}
+                                        <button onClick={() => handleApplyPreset('SYSTEM')} className="px-4 py-2 bg-white/5 border border-white/10 hover:border-[var(--cyan)]/50 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-white flex items-center gap-2 transition-all">
+                                            <Cloud size={12} /> Load Cloud Pattern
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <textarea 
                                     value={architecturePrompt} 
                                     onChange={(e) => setArchitecturePrompt(e.target.value)} 
                                     placeholder={`Define operational parameters for ${processData.workflowType === 'DRIVE_ORGANIZATION' ? 'PARA Data Taxonomy' : 'Production Systems Blueprint'}...`}
-                                    className="w-full h-48 bg-black/40 border border-white/10 rounded-[2rem] p-8 text-sm font-mono text-white outline-none focus:border-[var(--cyan)] transition-all placeholder:text-gray-800 shadow-inner relative z-10" 
+                                    className="w-full h-40 bg-black/40 border border-white/10 rounded-[2rem] p-8 text-sm font-mono text-white outline-none focus:border-[var(--cyan)] transition-all placeholder:text-gray-800 shadow-inner relative z-10" 
                                 />
                                 
                                 <button 
