@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAppStore } from './store';
 import { useSystemMind } from './stores/useSystemMind'; 
@@ -117,6 +116,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     collabService.init();
+    actions.hydrateAgents(); // Unitary Persistence Initialized
     return () => collabService.disconnect();
   }, []);
 
@@ -140,7 +140,6 @@ const App: React.FC = () => {
         }
     };
     checkKey();
-    // Only run on initial mount to avoid any potential logic loops
   }, []);
 
   useEffect(() => { setSector(mode); }, [mode, setSector]);

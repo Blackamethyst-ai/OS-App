@@ -10,10 +10,10 @@ import {
     Fingerprint, Gauge, Waves, ChevronRight, PlayCircle, Boxes, Dna,
     Plus, GitBranch, Share2, PowerOff, Scissors, Command, Waypoints,
     Workflow, ListTodo, Circle, SearchCode, History as HistoryIcon,
-    ShieldAlert, ChevronDown, MousePointer2, User
+    ShieldAlert, ChevronDown, MousePointer2, User, Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AutonomousAgent, OperationalContext, MentalState, TaskStatus } from '../types';
+import { AutonomousAgent, OperationalContext, MentalState, TaskStatus, AtomicTask } from '../types';
 import { GoogleGenAI, Schema, Type, GenerateContentResponse } from "@google/genai";
 import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest, safeParseJson } from '../services/geminiService';
 import { audio } from '../services/audioService';
@@ -149,6 +149,7 @@ const AgentControlCenter: React.FC = () => {
     const [selectedAgentId, setSelectedAgentId] = useState<string | null>(agents.activeAgents[0]?.id || null);
     const [input, setInput] = useState('');
     const [viewMode, setViewMode] = useState<'MEMORY' | 'SKILLS' | 'TASKS'>('MEMORY');
+    const [taskInput, setTaskInput] = useState('');
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const activeAgent = agents.activeAgents.find(a => a.id === selectedAgentId);
@@ -190,6 +191,36 @@ const AgentControlCenter: React.FC = () => {
             updateAgent(activeAgent.id, { status: 'IDLE' });
             addLog('ERROR', `SEARCH_FAIL: ${e.message}`);
         }
+    };
+
+    const handleAddTask = () => {
+        if (!activeAgent || !taskInput.trim()) return;
+        const newTask: AtomicTask = {
+            id: `task-${Date.now()}`,
+            description: taskInput,
+            isolated_input: '',
+            instruction: taskInput,
+            weight: 1,
+            status: 'PENDING'
+        };
+        updateAgent(activeAgent.id, { tasks: [...activeAgent.tasks, newTask] });
+        setTaskInput('');
+        audio.playClick();
+        addLog('INFO', `TASK_QUEUE: New directive logged for [${activeAgent.name}].`);
+    };
+
+    const toggleTaskStatus = (taskId: string) => {
+        if (!activeAgent) return;
+        const updated = activeAgent.tasks.map(t => {
+            if (t.id === taskId) {
+                // Fix: Use correct type for AtomicTask status update to resolve TaskStatus assignment error
+                const nextStatus: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' = t.status === 'PENDING' ? 'IN_PROGRESS' : t.status === 'IN_PROGRESS' ? 'COMPLETED' : 'PENDING';
+                return { ...t, status: nextStatus };
+            }
+            return t;
+        });
+        updateAgent(activeAgent.id, { tasks: updated });
+        audio.playSuccess();
     };
 
     const handleDirectExecute = async () => {
@@ -349,7 +380,7 @@ const AgentControlCenter: React.FC = () => {
                                                 <div className="absolute inset-0 bg-gradient-to-tr from-[#9d4edd]/10 to-transparent opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
                                             </div>
                                             <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#0a0a0a] border border-white/10 rounded-full flex items-center justify-center">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_10px_#10b981]" />
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
                                             </div>
                                         </div>
                                         <div>
@@ -421,7 +452,10 @@ const AgentControlCenter: React.FC = () => {
                                                         <div className="text-[8px] text-gray-600 font-mono uppercase tracking-widest">Protocol: Operational</div>
                                                     </div>
                                                 ))}
-                                                <button className="p-5 border border-dashed border-white/10 rounded-[1.5rem] flex flex-col items-center justify-center gap-3 opacity-30 hover:opacity-100 hover:border-[#9d4edd] transition-all cursor-pointer group">
+                                                <button 
+                                                    onClick={() => window.location.hash = '/nexus'}
+                                                    className="p-5 border border-dashed border-white/10 rounded-[1.5rem] flex flex-col items-center justify-center gap-3 opacity-30 hover:opacity-100 hover:border-[#9d4edd] transition-all cursor-pointer group"
+                                                >
                                                     <Plus size={24} className="text-gray-600 group-hover:text-[#9d4edd]" />
                                                     <span className="text-[9px] font-black uppercase text-gray-700 font-mono tracking-widest">Graft Skill</span>
                                                 </button>
@@ -441,6 +475,16 @@ const AgentControlCenter: React.FC = () => {
                                                         <p className="text-[9px] text-gray-500 font-mono uppercase mt-1 tracking-tighter uppercase">Sequential Execution Logic</p>
                                                     </div>
                                                 </div>
+                                                <div className="flex gap-2">
+                                                    <input 
+                                                        value={taskInput}
+                                                        onChange={e => setTaskInput(e.target.value)}
+                                                        onKeyDown={e => e.key === 'Enter' && handleAddTask()}
+                                                        placeholder="New Directive..."
+                                                        className="bg-black/60 border border-white/10 px-4 py-2 rounded-xl text-[10px] font-mono text-white focus:border-[#9d4edd] outline-none"
+                                                    />
+                                                    <button onClick={handleAddTask} className="p-2 bg-[#9d4edd] text-black rounded-xl hover:scale-105 transition-transform"><Plus size={16}/></button>
+                                                </div>
                                             </div>
                                             <div className="space-y-3">
                                                 {activeAgent.tasks.map((task, i) => (
@@ -454,14 +498,17 @@ const AgentControlCenter: React.FC = () => {
                                                             <motion.div animate={{ left: ['-100%', '100%'] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent opacity-30" />
                                                         )}
                                                         <div className="flex items-center gap-8 relative z-10">
-                                                            <div className={cn(
-                                                                "w-12 h-12 rounded-2xl flex items-center justify-center font-mono font-black text-sm transition-all",
-                                                                task.status === 'COMPLETED' ? "bg-[#10b981] text-black" : 
-                                                                task.status === 'IN_PROGRESS' ? "bg-[#9d4edd] text-black shadow-[0_0_20px_#9d4edd55]" : 
-                                                                "bg-black border border-white/10 text-gray-600"
-                                                            )}>
+                                                            <button 
+                                                                onClick={() => toggleTaskStatus(task.id)}
+                                                                className={cn(
+                                                                    "w-12 h-12 rounded-2xl flex items-center justify-center font-mono font-black text-sm transition-all",
+                                                                    task.status === 'COMPLETED' ? "bg-[#10b981] text-black" : 
+                                                                    task.status === 'IN_PROGRESS' ? "bg-[#9d4edd] text-black shadow-[0_0_20px_#9d4edd55]" : 
+                                                                    "bg-black border border-white/10 text-gray-600 hover:border-white/40"
+                                                                )}
+                                                            >
                                                                 {(i+1).toString().padStart(2, '0')}
-                                                            </div>
+                                                            </button>
                                                             <div>
                                                                 <h4 className="text-[13px] font-black text-white uppercase tracking-tight mb-1 group-hover:text-[#9d4edd] transition-colors">{task.description}</h4>
                                                                 <div className="flex gap-4 items-center">
@@ -472,10 +519,16 @@ const AgentControlCenter: React.FC = () => {
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <div className="relative z-10">
+                                                        <div className="relative z-10 flex gap-2">
                                                             {task.status === 'COMPLETED' ? <CheckCircle2 size={24} className="text-[#10b981]" /> :
                                                              task.status === 'IN_PROGRESS' ? <Loader2 size={24} className="text-[#9d4edd] animate-spin" /> :
-                                                             <button className="p-3 hover:bg-white/5 rounded-xl text-gray-700 transition-colors"><ChevronRight size={20} /></button>}
+                                                             <button onClick={() => toggleTaskStatus(task.id)} className="p-3 hover:bg-white/5 rounded-xl text-gray-700 transition-colors"><ChevronRight size={20} /></button>}
+                                                            <button 
+                                                                onClick={() => updateAgent(activeAgent.id, { tasks: activeAgent.tasks.filter(t => t.id !== task.id) })}
+                                                                className="p-3 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-gray-700 hover:text-red-500 rounded-xl transition-all"
+                                                            >
+                                                                <Trash2 size={16}/>
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 ))}

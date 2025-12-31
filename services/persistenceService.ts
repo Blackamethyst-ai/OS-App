@@ -1,5 +1,5 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
-import { AppMode, ArtifactAnalysis, Message, UserProfile, KnowledgeLayer } from '../types';
+import { AppMode, ArtifactAnalysis, Message, UserProfile, KnowledgeLayer, AutonomousAgent } from '../types';
 import { cosineSimilarity } from '../utils/vector';
 
 // --- SCHEMA DEFINITION ---
@@ -70,6 +70,11 @@ interface NeuralVaultSchema extends DBSchema {
           timestamp: number;
       };
   };
+
+  agents: {
+      key: string;
+      value: AutonomousAgent;
+  };
 }
 
 class NeuralVaultService {
@@ -107,6 +112,9 @@ class NeuralVaultService {
         if (!db.objectStoreNames.contains('dynamic_tools')) {
             db.createObjectStore('dynamic_tools', { keyPath: 'id' });
         }
+        if (!db.objectStoreNames.contains('agents')) {
+            db.createObjectStore('agents', { keyPath: 'id' });
+        }
       },
     });
   }
@@ -133,12 +141,8 @@ class NeuralVaultService {
   async saveArtifact(file: File | Blob, analysis: ArtifactAnalysis | null): Promise<string> {
     const id = crypto.randomUUID();
     const db = await this.db;
-    
-    // Fixed: Narrowing issue by explicitly using a local variable for the check
     const isFile = file instanceof File;
     const name = isFile ? (file as File).name : `Artifact_${id.slice(0,8)}`;
-    
-    // Explicitly treat as Blob to unify property access across branches
     const blobRef = file as Blob;
 
     await db.put('artifacts', {
@@ -148,7 +152,6 @@ class NeuralVaultService {
       data: blobRef,
       analysis,
       timestamp: Date.now(),
-      // Force tags to be an array to prevent .map failures in UI components
       tags: Array.isArray(analysis?.entities) ? analysis.entities : []
     });
     return id;
@@ -202,6 +205,16 @@ class NeuralVaultService {
       return db.get('profile', 'current_user');
   }
 
+  async saveAgent(agent: AutonomousAgent) {
+      const db = await this.db;
+      await db.put('agents', agent);
+  }
+
+  async getAgents(): Promise<AutonomousAgent[]> {
+      const db = await this.db;
+      return db.getAll('agents');
+  }
+
   async getKnowledgeLayers(): Promise<KnowledgeLayer[]> {
       const db = await this.db;
       return db.getAll('knowledge_layers');
@@ -221,6 +234,7 @@ class NeuralVaultService {
       await db.clear('knowledge_layers');
       await db.clear('vectors');
       await db.clear('dynamic_tools');
+      await db.clear('agents');
   }
 }
 
