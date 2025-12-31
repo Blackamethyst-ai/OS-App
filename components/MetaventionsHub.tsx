@@ -33,6 +33,7 @@ import ContextVelocityChart from './ContextVelocityChart';
 // --- VISIONARY CONSTANTS ---
 const VISIONARY_DIRECTIVES = [
     "Architecture is the frozen music of logic.",
+    "Metaventions: Sovereign architecture secured.",
     "Entropy is the architect's primary adversary.",
     "System coherence emerges from recursive symmetry.",
     "Identity is the first anchor of any autonomous lattice.",
@@ -788,6 +789,10 @@ const MetaventionsHub: React.FC = () => {
                                 </div>
                                 <div className="flex justify-between items-center text-[7px] font-black text-gray-700 uppercase tracking-[0.4em]">
                                     <span>Phase_{Math.floor(dashboard.deploymentProgress / 20) + 1}_Engaged</span>
+                                    <span className="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 rounded border border-white/10">
+                                      <div className="w-1 h-1 rounded-full bg-[#9d4edd] animate-pulse" />
+                                      <span className="text-[6px] font-mono text-[#9d4edd]">SOVEREIGN_V1</span>
+                                    </span>
                                     <Loader2 size={10} className="animate-spin" />
                                 </div>
                             </motion.div>
@@ -997,7 +1002,10 @@ const MetaventionsHub: React.FC = () => {
                                 <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
                                 <span className="text-[9px] font-black font-mono text-white uppercase tracking-[0.3em]">Autonomous_Swarm_Lattice // Active</span>
                             </div>
-                            <span className="text-[7px] text-gray-500 font-mono uppercase tracking-[0.4em] block pl-6">Active Global Node Synchronization</span>
+                            <div className="flex items-center gap-2 pl-6">
+                              <span className="text-[7px] text-gray-500 font-mono uppercase tracking-[0.4em] block">Active Global Node Synchronization</span>
+                              <span className="text-[6px] px-1.5 py-0.5 bg-[#9d4edd]/10 border border-[#9d4edd]/20 rounded font-black font-mono text-[#9d4edd] uppercase">SOVEREIGN_V1_STABLE</span>
+                            </div>
                         </div>
                     </div>
                     <DEcosystem />
