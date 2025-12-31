@@ -212,6 +212,7 @@ const AgentControlCenter: React.FC = () => {
         if (!activeAgent) return;
         const updated = activeAgent.tasks.map(t => {
             if (t.id === taskId) {
+                // Fix: Explicitly type nextStatus to match AtomicTask['status'] union
                 const nextStatus: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' = t.status === 'PENDING' ? 'IN_PROGRESS' : t.status === 'IN_PROGRESS' ? 'COMPLETED' : 'PENDING';
                 return { ...t, status: nextStatus };
             }

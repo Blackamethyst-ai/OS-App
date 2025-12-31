@@ -1,4 +1,3 @@
-
 import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
@@ -17,8 +16,8 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Explicitly extend React.Component and declare the state property to avoid TypeScript errors regarding missing state/props
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+// Fix: Use the named Component import instead of React.Component to ensure props and state are correctly inherited and recognized by the compiler
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   // Fix: Explicitly declare the state property as a class field to resolve "Property 'state' does not exist"
   public state: ErrorBoundaryState = { hasError: false, error: null };
 
@@ -36,7 +35,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   }
 
   render() {
-    // Fix: Access state and props which are now correctly inherited and recognized by the compiler via React.Component
+    // Fix: Access state and props which are now correctly inherited and recognized by the compiler via Component inheritance
     if (this.state.hasError) {
       let errorMsg = "An unexpected neural desync occurred.";
       const error = this.state.error;
@@ -63,7 +62,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
                 </div>
                 <button 
                     onClick={() => window.location.reload()} 
-                    className="group px-10 py-4 bg-red-500 hover:bg-red-400 text-black font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(239,68,68,0.3)]"
+                    className="group px-10 py-4 bg-red-500 hover:bg-red-400 text-black font-black text-xs uppercase tracking-[0.3em] transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(157,78,221,0.3)]"
                 >
                     <RefreshCw className="w-4 h-4" />
                     Cold Reboot
