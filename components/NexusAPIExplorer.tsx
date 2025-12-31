@@ -272,12 +272,12 @@ const NexusAPIExplorer: React.FC = () => {
                     ))}
                 </div>
                 
-                <div className="h-10 bg-black/80 border-t border-white/5 px-8 flex justify-between items-center text-8px font-mono text-gray-700 tracking-[0.2em] shrink-0 uppercase">
+                <div className="h-10 bg-black/80 border-t border-white/5 px-8 flex justify-between items-center text-[7px] font-mono text-gray-700 tracking-[0.2em] shrink-0 uppercase font-black">
                     <div className="flex gap-6">
                         <span>Lattice_Endpoints: {GOOGLE_APIS.length + liveSearchResults.length}</span>
                         <span className="text-[#10b981]">Auth: SECURE</span>
                     </div>
-                    <span>Nexus_Core_v9.5</span>
+                    <span>Nexus_Core_</span>
                 </div>
             </div>
 
