@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import JSZip from 'jszip';
@@ -72,8 +71,9 @@ const CrewSlot = ({ role, status, icon: Icon, color }: { role: string, status: s
 );
 
 const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
-  const { imageGen, actions } = useAppStore();
-  const { setImageGenState, addLog, openHoloProjector } = actions;
+  const imageGen = useAppStore(s => s.imageGen);
+  const actions = useAppStore(s => s.actions);
+  
   const [activeTab, setActiveTab] = useState<'SINGLE' | 'STORYBOARD' | 'VIDEO' | 'TEASER'>('SINGLE');
   
   // Cinematic Production State
@@ -127,25 +127,25 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
         const dataPromises = files.map(file => fileToGenerativePart(file));
         const newDatas = await Promise.all(dataPromises);
         
-        if (type === 'CHAR') setImageGenState({ characterRefs: [...imageGen.characterRefs, ...newDatas] });
-        if (type === 'SET') setImageGenState({ worldRefs: [...imageGen.worldRefs, ...newDatas] });
-        if (type === 'STYLE') setImageGenState({ styleRefs: [...imageGen.styleRefs, ...newDatas] });
+        if (type === 'CHAR') actions.setImageGenState({ characterRefs: [...imageGen.characterRefs, ...newDatas] });
+        if (type === 'SET') actions.setImageGenState({ worldRefs: [...imageGen.worldRefs, ...newDatas] });
+        if (type === 'STYLE') actions.setImageGenState({ styleRefs: [...imageGen.styleRefs, ...newDatas] });
         
         audio.playClick();
-        addLog('INFO', `ASSET_LOAD: Added ${newDatas.length} references to ${type} buffer.`);
+        actions.addLog('INFO', `ASSET_LOAD: Added ${newDatas.length} references to ${type} buffer.`);
     }
   };
 
   const removeRef = (idx: number, type: 'CHAR' | 'SET' | 'STYLE') => {
-      if (type === 'CHAR') setImageGenState({ characterRefs: imageGen.characterRefs.filter((_, i) => i !== idx) });
-      if (type === 'SET') setImageGenState({ worldRefs: imageGen.worldRefs.filter((_, i) => i !== idx) });
-      if (type === 'STYLE') setImageGenState({ styleRefs: imageGen.styleRefs.filter((_, i) => i !== idx) });
+      if (type === 'CHAR') actions.setImageGenState({ characterRefs: imageGen.characterRefs.filter((_, i) => i !== idx) });
+      if (type === 'SET') actions.setImageGenState({ worldRefs: imageGen.worldRefs.filter((_, i) => i !== idx) });
+      if (type === 'STYLE') actions.setImageGenState({ styleRefs: imageGen.styleRefs.filter((_, i) => i !== idx) });
   };
 
   const synthesizeProductionBible = async () => {
       if (imageGen.characterRefs.length === 0 && imageGen.worldRefs.length === 0 && imageGen.styleRefs.length === 0) return;
       setIsSynthesizingBible(true);
-      addLog('SYSTEM', 'PRODUCTION_BIBLE: Executing multi-modal scan for cinematic consistency...');
+      actions.addLog('SYSTEM', 'PRODUCTION_BIBLE: Executing multi-modal scan for cinematic consistency...');
       
       try {
           if (!(await checkApiKey())) { setIsSynthesizingBible(false); return; }
@@ -190,10 +190,10 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
           const bible = JSON.parse(response.text || '{}');
           setProductionBible(bible);
-          addLog('SUCCESS', 'PRODUCTION_BIBLE: Cinematic DNA locked. Theme consistency prioritized.');
+          actions.addLog('SUCCESS', 'PRODUCTION_BIBLE: Cinematic DNA locked. Theme consistency prioritized.');
           audio.playSuccess();
       } catch (err: any) {
-          addLog('ERROR', `SCAN_FAIL: ${err.message}`);
+          actions.addLog('ERROR', `SCAN_FAIL: ${err.message}`);
       } finally {
           setIsSynthesizingBible(false);
       }
@@ -203,7 +203,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
       if (!imageGen.prompt?.trim() && imageGen.characterRefs.length === 0) return;
       if (!(await checkApiKey())) return;
 
-      setImageGenState({ isLoading: true, error: null });
+      actions.setImageGenState({ isLoading: true, error: null });
       audio.playClick();
 
       try {
@@ -251,15 +251,15 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
           }
 
           if (url) { 
-              setImageGenState({ generatedImage: { url, prompt: finalPrompt, aspectRatio: imageGen.aspectRatio, size: imageGen.quality }, isLoading: false }); 
-              addLog('SUCCESS', `ASSET_STUDIO: Render finalized at ${imageGen.quality}.`); 
+              actions.setImageGenState({ generatedImage: { url, prompt: finalPrompt, aspectRatio: imageGen.aspectRatio, size: imageGen.quality }, isLoading: false }); 
+              actions.addLog('SUCCESS', `ASSET_STUDIO: Render finalized at ${imageGen.quality}.`); 
               audio.playSuccess();
           } else {
               throw new Error("Empty buffer from cinematic core.");
           }
       } catch (err: any) { 
-          setImageGenState({ error: err.message, isLoading: false }); 
-          addLog('ERROR', `RENDER_FAIL: ${err.message}`); 
+          actions.setImageGenState({ error: err.message, isLoading: false }); 
+          actions.addLog('ERROR', `RENDER_FAIL: ${err.message}`); 
           audio.playError();
       }
   };
@@ -267,7 +267,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
   const handlePlanSequence = async () => {
     if (!imageGen.prompt?.trim() && !productionBible) return;
     setIsPlanning(true);
-    addLog('SYSTEM', 'DIRECTOR: Forging narrative sequence timeline...');
+    actions.addLog('SYSTEM', 'DIRECTOR: Forging narrative sequence timeline...');
     try {
         if (!(await checkApiKey())) { setIsPlanning(false); return; }
         
@@ -284,10 +284,10 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
             lighting: p.lighting || 'Masterpiece Key-Light',
             status: 'pending'
         })));
-        addLog('SUCCESS', 'DIRECTOR: Timeline synchronized. Continuous logic locked.');
+        actions.addLog('SUCCESS', 'DIRECTOR: Timeline synchronized. Continuous logic locked.');
         audio.playSuccess();
     } catch (err: any) {
-        addLog('ERROR', `PLAN_FAIL: ${err.message}`);
+        actions.addLog('ERROR', `PLAN_FAIL: ${err.message}`);
     } finally {
         setIsPlanning(false);
     }
@@ -346,14 +346,14 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
   const renderSequence = async () => {
     setIsBatchRendering(true);
-    addLog('SYSTEM', 'STUDIO_RENDER: Batch-processing high-fidelity sequence...');
+    actions.addLog('SYSTEM', 'STUDIO_RENDER: Batch-processing high-fidelity sequence...');
     for (let i = 0; i < frames.length; i++) {
         if (frames[i].status === 'done') continue;
         await renderFrame(i);
         await new Promise(r => setTimeout(r, 1200)); 
     }
     setIsBatchRendering(false);
-    addLog('SUCCESS', 'STUDIO_RENDER: Sequence fabricated and archived.');
+    actions.addLog('SUCCESS', 'STUDIO_RENDER: Sequence fabricated and archived.');
     audio.playSuccess();
   };
 
@@ -364,7 +364,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     setIsVideoLoading(true);
     setVideoUrl(null);
     setVideoProgressMsg("Priming VEO Temporal Handshake...");
-    addLog('SYSTEM', 'VEO_CORE: Forging high-motion cinematic sequence...');
+    actions.addLog('SYSTEM', 'VEO_CORE: Forging high-motion cinematic sequence...');
     
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -399,10 +399,10 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
         const blob = await response.blob();
         setVideoUrl(URL.createObjectURL(blob));
-        addLog('SUCCESS', 'VEO_COMPLETE: Temporal sequence stabilized at 1080p.');
+        actions.addLog('SUCCESS', 'VEO_COMPLETE: Temporal sequence stabilized at 1080p.');
         audio.playSuccess();
     } catch (err: any) {
-        addLog('ERROR', `VEO_FAIL: ${err.message}`);
+        actions.addLog('ERROR', `VEO_FAIL: ${err.message}`);
         audio.playError();
     } finally {
         setIsVideoLoading(false);
@@ -416,7 +416,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     const folder = zip.folder("production_bundle_v8");
     const audioFolder = folder?.folder("synthesized_audio");
     
-    addLog('SYSTEM', 'DELIVERY: Compiling encrypted production bundle...');
+    actions.addLog('SYSTEM', 'DELIVERY: Compiling encrypted production bundle...');
     
     for (const frame of frames) {
       if (frame.imageUrl) {
@@ -443,7 +443,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     link.href = URL.createObjectURL(content);
     link.download = `cinema_bundle_${Date.now()}.zip`;
     link.click();
-    addLog('SUCCESS', 'DELIVERY: Production bundle archive exported.');
+    actions.addLog('SUCCESS', 'DELIVERY: Production bundle archive exported.');
     audio.playSuccess();
     setIsExportingBundle(false);
   };
@@ -452,7 +452,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     const currentFrame = frames[idx];
     if (!currentFrame || !currentFrame.scenePrompt) return;
     
-    addLog('SYSTEM', `SOUND_STUDIO: Synthesizing narrative for Node_${idx+1}...`);
+    actions.addLog('SYSTEM', `SOUND_STUDIO: Synthesizing narrative for Node_${idx+1}...`);
     
     try {
       if (!(await checkApiKey())) return;
@@ -470,7 +470,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
         return `data:audio/pcm;base64,${audioData}`;
       }
     } catch (err: any) {
-        addLog('ERROR', `SOUND_FAIL_NODE_${idx+1}: ${err.message}`);
+        actions.addLog('ERROR', `SOUND_FAIL_NODE_${idx+1}: ${err.message}`);
     }
     return null;
   };
@@ -481,7 +481,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
   const generateAllSequenceAudio = async () => {
     if (frames.length === 0) return;
     setIsGeneratingTeaserAudio(true);
-    addLog('SYSTEM', 'SOUND_STUDIO: Batch-synthesizing full sequence narration...');
+    actions.addLog('SYSTEM', 'SOUND_STUDIO: Batch-synthesizing full sequence narration...');
     
     for (let i = 0; i < frames.length; i++) {
         if (frames[i].audioUrl) continue;
@@ -491,14 +491,14 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     }
     
     setIsGeneratingTeaserAudio(false);
-    addLog('SUCCESS', 'SOUND_STUDIO: Narration sequence synchronized.');
+    actions.addLog('SUCCESS', 'SOUND_STUDIO: Narration sequence synchronized.');
     audio.playSuccess();
   };
 
   const playFullSequence = async () => {
       if (frames.length === 0) return;
       setIsAutoPlaying(true);
-      addLog('SYSTEM', 'SCREENING: Initializing slideshow narrative playback...');
+      actions.addLog('SYSTEM', 'SCREENING: Initializing slideshow narrative playback...');
       
       for (let i = 0; i < frames.length; i++) {
           if (!isAutoPlaying && i > 0) break; 
@@ -516,7 +516,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
           }
       }
       setIsAutoPlaying(false);
-      addLog('SUCCESS', 'SCREENING: Slideshow finalized.');
+      actions.addLog('SUCCESS', 'SCREENING: Slideshow finalized.');
   };
 
   const renderRefs = (type: 'CHAR' | 'SET' | 'STYLE') => {
@@ -538,7 +538,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
               <div className="grid grid-cols-4 gap-2">
                   {refs.map((ref, i) => (
                       <div key={i} className="aspect-square relative rounded-lg overflow-hidden border border-white/5 group/ref">
-                          <img src={`data:${ref.inlineData.mimeType};base64,${ref.inlineData.data}`} className="w-full h-full object-cover grayscale-[30%] group-hover/ref:grayscale-0 transition-all" />
+                          <img src={`data:${ref.inlineData.mimeType};base64,${ref.inlineData.data}`} className="w-full h-full object-cover grayscale-[30%] group-hover/ref:grayscale-0 transition-all" alt="ref" />
                           <button onClick={() => removeRef(i, type)} className="absolute top-1 right-1 p-1 bg-black/60 rounded text-white opacity-0 group-hover/ref:opacity-100 transition-opacity"><X size={10}/></button>
                       </div>
                   ))}
@@ -575,7 +575,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                         <Aperture className="w-5 h-5 text-[#9d4edd]" />
                     </div>
                     <div>
-                        <h1 className="text-lg font-black font-mono uppercase tracking-[0.4em] text-white leading-none uppercase">V8.1 - THE D-Ecosystem</h1>
+                        <h1 className="text-lg font-black font-mono uppercase tracking-[0.4em] text-white leading-none">V8.1 - THE D-Ecosystem</h1>
                         <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-2 block">Prime Production // v8.1-ZENITH</span>
                     </div>
                 </div>
@@ -673,7 +673,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                 </span>
                                 <textarea 
                                     value={imageGen.prompt} 
-                                    onChange={e => setImageGenState({ prompt: e.target.value })}
+                                    onChange={e => actions.setImageGenState({ prompt: e.target.value })}
                                     className="w-full h-40 bg-[#0a0a0a] border border-[#222] p-6 rounded-[2.5rem] text-sm font-mono text-gray-300 outline-none focus:border-[#9d4edd] resize-none transition-all placeholder:text-gray-800 shadow-inner group-hover:border-[#333]" 
                                     placeholder="Input core narrative intent sequence..." 
                                 />
@@ -684,7 +684,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Optics (Aspect)</label>
                                     <div className="grid grid-cols-2 gap-2">
                                         {Object.values(AspectRatio).map(r => (
-                                            <button key={r} onClick={() => setImageGenState({ aspectRatio: r })} className={`py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.aspectRatio === r ? 'bg-[#9d4edd] border-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/20' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{r}</button>
+                                            <button key={r} onClick={() => actions.setImageGenState({ aspectRatio: r })} className={`py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.aspectRatio === r ? 'bg-[#9d4edd] border-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/20' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{r}</button>
                                         ))}
                                     </div>
                                 </div>
@@ -692,7 +692,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Fidelity (Tier)</label>
                                     <div className="flex flex-col gap-2">
                                         {[ImageSize.SIZE_1K, ImageSize.SIZE_2K, ImageSize.SIZE_4K].map(s => (
-                                            <button key={s} onClick={() => setImageGenState({ quality: s })} className={`w-full py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{s}</button>
+                                            <button key={s} onClick={() => actions.setImageGenState({ quality: s })} className={`w-full py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{s}</button>
                                         ))}
                                     </div>
                                 </div>
@@ -803,14 +803,14 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
                                 <div className="flex items-center gap-4 px-10">
                                     <button 
-                                        onClick={() => imageGen.generatedImage && openHoloProjector({ id: 'current', title: 'Master Frame', type: 'IMAGE', content: imageGen.generatedImage.url })} 
+                                        onClick={() => imageGen.generatedImage && actions.openHoloProjector({ id: 'current', title: 'Master Frame', type: 'IMAGE', content: imageGen.generatedImage.url })} 
                                         className="px-6 py-2.5 bg-white/5 border border-white/10 hover:border-white/40 text-gray-300 hover:text-white rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2"
                                     >
                                         <Maximize2 size={14} /> Fullscreen
                                     </button>
                                     <button 
                                         onClick={() => imageGen.generatedImage && downloadAsset(imageGen.generatedImage.url, `master_frame_${Date.now()}.png`)} 
-                                        className="px-6 py-2.5 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(157,78,221,0.2)] active:scale-95"
+                                        className="px-6 py-2.5 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(157,78,221,0.25)] active:scale-95"
                                     >
                                         <Download size={14}/> Secure Buffer
                                     </button>
@@ -871,8 +871,8 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     <div className="flex-1 min-h-[160px] relative group">
                                         <textarea 
                                             value={imageGen.prompt} 
-                                            onChange={e => setImageGenState({ prompt: e.target.value })}
-                                            className="w-full h-full bg-black border border-[#222] p-5 rounded-[2rem] text-sm font-mono text-gray-300 outline-none focus:border-[#9d4edd] resize-none transition-all placeholder:text-gray-800 shadow-inner group-hover:border-[#333]"
+                                            onChange={e => actions.setImageGenState({ prompt: e.target.value })}
+                                            className="w-full h-full bg-black border border-[#222] p-5 rounded-[2rem] text-sm font-mono text-gray-300 outline-none focus:border-[#9d4edd] resize-none transition-all placeholder:text-gray-800 shadow-inner group-hover/border-[#333]"
                                             placeholder="Define the narrative arc and visual intent..."
                                         />
                                         <div className="absolute bottom-4 right-6 opacity-20 pointer-events-none">
@@ -921,7 +921,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             </div>
                                             <div className="flex gap-1.5 p-1 bg-black/40 rounded-xl border border-white/5">
                                                 {[ImageSize.SIZE_1K, ImageSize.SIZE_2K].map(s => (
-                                                    <button key={s} onClick={() => setImageGenState({ quality: s })} className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20' : 'bg-transparent border-transparent text-gray-600 hover:text-gray-300'}`}>{s}</button>
+                                                    <button key={s} onClick={() => actions.setImageGenState({ quality: s })} className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20' : 'bg-transparent border-transparent text-gray-600 hover:text-gray-300'}`}>{s}</button>
                                                 ))}
                                             </div>
                                         </div>
@@ -963,7 +963,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         >
                                             <div className="aspect-video bg-black relative overflow-hidden group/frame">
                                                 {f.imageUrl ? (
-                                                    <img src={f.imageUrl} className="w-full h-full object-cover group-hover/frame:scale-110 transition-transform duration-[8s]" alt="" />
+                                                    <img src={f.imageUrl} className="w-full h-full object-cover group-hover/frame:scale-110 transition-transform duration-[8s]" alt="frame" />
                                                 ) : (
                                                     <div className="absolute inset-0 flex flex-col items-center justify-center opacity-10 gap-6">
                                                         <Film size={64} className="text-gray-500" />
@@ -973,7 +973,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                                 <div className="absolute top-6 left-6 px-4 py-2 bg-black/70 backdrop-blur-xl border border-white/10 rounded-full text-[10px] font-black font-mono text-white z-10 shadow-2xl uppercase">Node_{i+1}</div>
                                                 <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/frame:opacity-100 transition-opacity flex items-center justify-center gap-5 z-20">
                                                     <button onClick={() => renderFrame(i)} className="p-4 bg-[#9d4edd] text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95"><RefreshCw size={24} /></button>
-                                                    {f.imageUrl && <button onClick={() => openHoloProjector({ id: `f-${i}`, title: `Frame ${i+1}`, type: 'IMAGE', content: f.imageUrl })} className="p-4 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95"><Maximize size={24}/></button>}
+                                                    {f.imageUrl && <button onClick={() => actions.openHoloProjector({ id: `f-${i}`, title: `Frame ${i+1}`, type: 'IMAGE', content: f.imageUrl })} className="p-4 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95"><Maximize size={24}/></button>}
                                                 </div>
                                             </div>
                                             <div className="p-8 space-y-6 overflow-y-auto max-h-[300px] custom-scrollbar">
@@ -1055,7 +1055,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                                         <button 
                                                             key={res} 
                                                             onClick={() => { setVideoRes(res as any); audio.playClick(); }} 
-                                                            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${videoRes === res ? 'bg-[#d946ef] text-black shadow-lg shadow-[#d946ef]/20' : 'text-gray-500 hover:text-white'}`}
+                                                            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${videoRes === res ? 'bg-[#d946ef] text-black shadow-lg shadow-[#d946ef]/20' : 'text-gray-500 hover:text-white'}`}
                                                         >
                                                             {res}
                                                         </button>
@@ -1104,7 +1104,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-12 relative z-10">
                                         <div className="relative">
                                             <div className="w-40 h-40 rounded-full border-4 border-t-[#d946ef] border-white/5 animate-spin" />
-                                            <div className="absolute inset-0 blur-3xl bg-[#d946ef]/20 animate-pulse" />
+                                            <div className="absolute inset-0 blur-3xl bg-[#9d4edd]/20 animate-pulse" />
                                         </div>
                                         <div className="text-center space-y-4">
                                             <p className="text-3xl font-black font-mono text-white uppercase tracking-[1em] animate-pulse">{videoProgressMsg}</p>
@@ -1145,7 +1145,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         transition={{ duration: 2 }}
                                         className="absolute inset-0 blur-[150px] scale-150 saturate-200"
                                     >
-                                        <img src={frames[teaserIdx].imageUrl} className="w-full h-full object-cover" alt="" />
+                                        <img src={frames[teaserIdx].imageUrl} className="w-full h-full object-cover" alt="blur" />
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -1254,7 +1254,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     `}
                                 >
                                     {f.imageUrl ? (
-                                        <img src={f.imageUrl} className="w-full h-full object-cover group-hover/tn:scale-110 transition-transform duration-1000" alt="" />
+                                        <img src={f.imageUrl} className="w-full h-full object-cover group-hover/tn:scale-110 transition-transform duration-1000" alt="tn" />
                                     ) : (
                                         <div className="w-full h-full bg-[#050505] flex items-center justify-center text-[11px] font-mono text-gray-700 uppercase tracking-widest">Node_{i+1}</div>
                                     )}
