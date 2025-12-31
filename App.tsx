@@ -26,6 +26,7 @@ import GlobalStatusBar from './components/GlobalStatusBar';
 import PeerMeshOverlay from './components/PeerMeshOverlay';
 import MetaventionsLogo from './components/MetaventionsLogo';
 import AppFooter from './components/AppFooter';
+import AuthModule from './components/AuthModule';
 
 import { useAutoSave } from './hooks/useAutoSave'; 
 import { useDaemonSwarm } from './hooks/useDaemonSwarm'; 
@@ -105,6 +106,7 @@ const App: React.FC = () => {
   const mode = useAppStore(s => s.mode);
   const theme = useAppStore(s => s.theme);
   const user = useAppStore(s => s.user);
+  const authenticated = useAppStore(s => s.authenticated);
   const actions = useAppStore(s => s.actions);
   const isHelpOpen = useAppStore(s => s.isHelpOpen);
   const isScrubberOpen = useAppStore(s => s.isScrubberOpen);
@@ -259,8 +261,13 @@ const App: React.FC = () => {
       
       <div className="absolute inset-0 pointer-events-none z-[200] opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
 
-      <GlobalStatusBar />
+      <AnimatePresence>
+        {!authenticated && <AuthModule />}
+      </AnimatePresence>
 
+      {/* OS Kernel Layer */}
+      <GlobalStatusBar />
+      
       <FocusOverlay />
       <VoiceCoreOverlay /> 
       <UserProfileOverlay /> 

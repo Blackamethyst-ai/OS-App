@@ -468,6 +468,9 @@ const MetaventionsHub: React.FC = () => {
     audio.playClick();
   };
 
+  // Safe access for progress tracker logic to prevent crash on undefined length
+  const manifestProtocols = dashboard.activeManifest?.protocols || [];
+
   return (
     <div key={theme} className="h-full w-full bg-[#020204] flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out relative">
       
@@ -778,7 +781,9 @@ const MetaventionsHub: React.FC = () => {
                                 <div className="space-y-2">
                                     <div className="text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest">Active Process Sequence:</div>
                                     <div className="p-3 bg-black/60 border border-white/5 rounded-xl font-mono text-[9px] text-[#22d3ee] italic leading-relaxed">
-                                        {dashboard.activeManifest.protocols[Math.floor((dashboard.deploymentProgress / 101) * dashboard.activeManifest.protocols.length)]?.instruction || "Synchronizing Neural Lattice..."}
+                                        {manifestProtocols.length > 0 
+                                            ? manifestProtocols[Math.min(manifestProtocols.length - 1, Math.floor((dashboard.deploymentProgress / 100) * manifestProtocols.length))]?.instruction 
+                                            : "Synchronizing Neural Lattice..."}
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-center text-[7px] font-black text-gray-700 uppercase tracking-[0.4em]">
@@ -1010,8 +1015,8 @@ const MetaventionsHub: React.FC = () => {
         { label: 'Header Chroma', selector: 'header' },
         { label: 'Sovereign Delta Logo', selector: 'header svg' },
         { label: 'Global Search Index', selector: 'header input' },
-        { label: 'Operator Identity Icon', selector: 'header .rounded-\\[2rem\\]' }, // User icon selector
-        { label: 'System Kernel Access', selector: 'header .shimmer-edge' } // Terminal/Kernel button
+        { label: 'Operator Identity Icon', selector: 'header .rounded-\\[2rem\\]' }, 
+        { label: 'System Kernel Access', selector: 'header .shimmer-edge' } 
     ];
 
     for (const probe of probes) {

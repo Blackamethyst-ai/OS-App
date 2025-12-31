@@ -1124,7 +1124,7 @@ export async function generateAutopoieticFramework(nodes: any[]) {
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-pro-preview',
         contents: `Forge a self-sustaining framework manifest for the following node set: ${JSON.stringify(nodes)}.`,
-        config: { thinkingConfig: { thinkingBudget: 32000 } }
+        config: { thinkingBudget: 32000 }
     }));
     return response.text || "";
 }
