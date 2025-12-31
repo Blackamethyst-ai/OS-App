@@ -1,4 +1,4 @@
-import React, { Component, ReactNode, ErrorInfo } from 'react';
+import React, { ReactNode, ErrorInfo } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw, Terminal, Activity } from 'lucide-react';
@@ -18,13 +18,12 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Sovereign OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Use explicitly imported Component with generics to ensure 'props' and 'state' are correctly inherited and recognized by the compiler.
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Explicitly initialize state property to resolve potential state identification errors
-  state: ErrorBoundaryState = { hasError: false, error: null };
-
+// Fix: Use React.Component with generics to ensure 'props' and 'state' are correctly inherited and recognized by the compiler.
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
+    // Fix: Explicitly initialize state in constructor to resolve potential inheritance recognition errors
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -43,13 +42,15 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   };
 
   render(): ReactNode {
-    // Fix: Access state and props which are now correctly recognized through explicit inheritance from Component
-    if (this.state.hasError) {
-      // 4. Enhanced Sovereign Fallback UI
-      // Fix: this.props is now correctly resolved through explicit inheritance from the Component generic class
-      if (this.props.fallback) return this.props.fallback;
+    // Fix: Destructure state and props from 'this' to ensure they are correctly resolved by the TypeScript compiler
+    const { hasError, error } = this.state;
+    const { fallback, children } = this.props;
 
-      const errorMsg = this.state.error?.message || "An unexpected neural desync occurred.";
+    if (hasError) {
+      // 4. Enhanced Sovereign Fallback UI
+      if (fallback) return fallback;
+
+      const errorMsg = error?.message || "An unexpected neural desync occurred.";
 
       return (
         <div className="h-screen w-screen flex flex-col items-center justify-center bg-[#020204] text-white font-mono p-12 overflow-hidden relative">
@@ -98,8 +99,8 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
       );
     }
 
-    // Fix: this.props.children is now correctly recognized via explicit Component inheritance
-    return this.props.children;
+    // Fix: Return children from props, now correctly typed through destructured this.props
+    return children;
   }
 }
 
