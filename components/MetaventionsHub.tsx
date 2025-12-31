@@ -18,7 +18,8 @@ import {
     LineChart as ChartIcon, Download, Layers,
     AlertTriangle, ZapOff, Scan, Maximize2,
     FileSearch, ListChecks, Workflow, Code,
-    X, FolderTree, FileText, ChevronRight
+    X, FolderTree, FileText, ChevronRight,
+    Terminal, Crosshair, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
@@ -27,8 +28,10 @@ import { cn } from '../utils/cn';
 import DEcosystem from './DEcosystem';
 import ContextVelocityChart from './ContextVelocityChart';
 
+// --- SUB-COMPONENTS ---
+
 const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) => (
-    <div className="crystalline border-none rounded-2xl p-4 flex flex-col gap-2 hover:border-white/15 transition-all group shadow-inner relative overflow-hidden invisible-glass">
+    <div className="crystalline border-none rounded-2xl p-4 flex flex-col gap-2 hover:border-white/15 transition-all group shadow-inner relative overflow-hidden invisible-glass hover:scale-[1.02]">
         <div className="flex justify-between items-center relative z-10">
             <div className="p-1.5 rounded-lg bg-white/5 text-gray-500 group-hover:text-white transition-all">
                 <Icon size={12} style={{ color }} />
@@ -47,7 +50,7 @@ const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) 
 );
 
 const CapitalVelocity = () => (
-    <div className="crystalline rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/cap shrink-0 invisible-glass">
+    <div className="crystalline rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/cap shrink-0 invisible-glass hover:border-white/10 transition-all">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.01)_0%,transparent_70%)] pointer-events-none" />
         
         <div className="flex items-center gap-4 relative z-10">
@@ -88,7 +91,7 @@ const SwarmBox = () => {
     const hexCount = 6;
 
     return (
-        <div className="crystalline rounded-[2rem] p-5 flex flex-col gap-4 shadow-2xl relative overflow-hidden group/swarm shrink-0 invisible-glass">
+        <div className="crystalline rounded-[2rem] p-5 flex flex-col gap-4 shadow-2xl relative overflow-hidden group/swarm shrink-0 invisible-glass hover:border-white/10 transition-all">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(157,78,221,0.02)_0%,transparent_70%)] pointer-events-none" />
             
             <div className="flex items-center justify-between px-1 relative z-10">
@@ -145,10 +148,9 @@ const SwarmBox = () => {
 };
 
 const DirectoryPeek = ({ manifest }: { manifest: any }) => {
-    // FIX: Defensive check for structure array to avoid "Cannot read properties of undefined (reading 'slice')"
     if (!manifest || !Array.isArray(manifest.structure)) return null;
     return (
-        <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/peek shrink-0 invisible-glass">
+        <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/peek shrink-0 invisible-glass hover:border-white/10 transition-all">
             <div className="flex items-center justify-between relative z-10 px-1">
                 <div className="flex items-center gap-3">
                     <FolderTree size={14} className="text-[#f1c21b]" />
@@ -158,15 +160,23 @@ const DirectoryPeek = ({ manifest }: { manifest: any }) => {
             </div>
             <div className="flex-1 bg-black/40 rounded-2xl p-4 border border-white/5 max-h-[160px] overflow-y-auto custom-scrollbar space-y-2 relative z-10">
                 {manifest.structure.slice(0, 5).map((node: any, i: number) => (
-                    <div key={i} className="flex items-center gap-3 px-2 py-1.5 hover:bg-white/5 rounded-lg transition-colors">
+                    <motion.div 
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.1 }}
+                        key={i} 
+                        className="flex items-center gap-3 px-2 py-1.5 hover:bg-white/5 rounded-lg transition-colors"
+                    >
                         <FileText size={10} className="text-gray-600" />
                         <span className="text-[9px] font-mono text-gray-400 uppercase truncate tracking-tight">{node.name}</span>
-                    </div>
+                    </motion.div>
                 ))}
             </div>
         </div>
     );
 };
+
+// --- MAIN HUB COMPONENT ---
 
 const MetaventionsHub: React.FC = () => {
   const actions = useAppStore(s => s.actions);
@@ -284,7 +294,6 @@ const MetaventionsHub: React.FC = () => {
               return; 
           }
           
-          // Parallel Synthesis: Image + Logic
           const [imageUrl, manifest] = await Promise.all([
               generateArchitectureImage(
                   "Cinematic wide angle, Sovereign Architect in an obsidian futuristic laboratory, floating high-fidelity holographic data grids, translucent neural lattices, premium deep technical lighting, anamorphic lens flares.",
@@ -308,7 +317,6 @@ const MetaventionsHub: React.FC = () => {
           actions.addLog('SUCCESS', 'HUB_SYNC: Strategic view established at 4K resolution. Protocol manifest finalized.');
           audio.playSuccess();
 
-          // Simulate deployment pulse
           let progress = 0;
           const deployInterval = setInterval(() => {
             progress += 5;
@@ -349,8 +357,25 @@ const MetaventionsHub: React.FC = () => {
   return (
     <div key={theme} className="h-full w-full bg-[#020204] flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out relative">
       
-      {/* Background Living Mesh */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none z-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+      {/* Living Neural Mesh Background */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+          <div className="absolute inset-0 bg-[#020204]" />
+          <motion.div 
+            animate={{ 
+                opacity: [0.03, 0.08, 0.03],
+                scale: [1, 1.1, 1],
+                background: [
+                    "radial-gradient(circle at 20% 30%, #7B2CFF 0%, transparent 50%)",
+                    "radial-gradient(circle at 80% 70%, #18E6FF 0%, transparent 50%)",
+                    "radial-gradient(circle at 20% 30%, #7B2CFF 0%, transparent 50%)"
+                ]
+            }}
+            transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-0 blur-[120px]"
+          />
+          <div className="absolute inset-0 opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1.5px,transparent_1.5px),linear-gradient(90deg,rgba(255,255,255,0.01)_1.5px,transparent_1.5px)] bg-[size:60px_60px] opacity-20" />
+      </div>
       
       {/* Enhanced Header Banner */}
       <div className="h-20 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-3xl z-20 flex items-center justify-between px-10 shrink-0 relative overflow-hidden shadow-2xl">
@@ -412,19 +437,19 @@ const MetaventionsHub: React.FC = () => {
           <div className="grid grid-cols-12 gap-8 min-h-0 items-start">
               
               {/* Strategic Operations Center (Primary Display) */}
-              <div className="col-span-9 crystalline rounded-[3rem] p-0 shadow-2xl relative overflow-hidden flex flex-col min-h-[1000px] group/soc invisible-glass">
+              <div className="col-span-9 crystalline rounded-[4rem] p-0 shadow-2xl relative overflow-hidden flex flex-col min-h-[1000px] group/soc invisible-glass border border-white/5">
                   
                   {/* Protocol Ticker Overlay */}
-                  <div className="absolute top-14 left-0 w-full h-8 z-30 bg-[#9d4edd]/10 backdrop-blur-md border-y border-white/5 overflow-hidden flex items-center">
+                  <div className="absolute top-14 left-0 w-full h-8 z-30 bg-[#0a0a0c]/40 backdrop-blur-md border-y border-white/5 overflow-hidden flex items-center">
                        <motion.div 
                         animate={{ x: ['100%', '-100%'] }}
-                        transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
                         className="whitespace-nowrap flex items-center gap-12"
                        >
                            {['INITIALIZING_PARA_DRIVE_V8', 'CLOUD_NODES_STABILIZED', 'DEPIN_EQUITY_LOCKED', 'RECURSIVE_ZETTELKASTEN_SYNC', 'IA_ORCHESTRATION_L0_OK'].map((msg, i) => (
                                <div key={i} className="flex items-center gap-3">
                                    <div className="w-1 h-1 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />
-                                   <span className="text-[8px] font-black font-mono text-white/60 uppercase tracking-[0.4em]">{msg}</span>
+                                   <span className="text-[8px] font-black font-mono text-white/40 uppercase tracking-[0.5em]">{msg}</span>
                                </div>
                            ))}
                        </motion.div>
@@ -455,10 +480,10 @@ const MetaventionsHub: React.FC = () => {
                       </div>
                   </div>
                   
-                  <div className="flex-1 relative overflow-hidden bg-black/40 group/view">
+                  <div className="flex-1 relative overflow-hidden bg-[#020204] group/view">
                       <AnimatePresence mode="wait">
                           {isSyncing ? (
-                              <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/60 backdrop-blur-3xl">
+                              <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/80 backdrop-blur-3xl">
                                   <div className="relative">
                                       <Loader2 size={60} className="text-[#9d4edd] animate-spin mb-6" />
                                       <div className="absolute inset-0 blur-3xl bg-[#9d4edd]/20 animate-pulse" />
@@ -468,12 +493,27 @@ const MetaventionsHub: React.FC = () => {
                           ) : (
                               <motion.div key="content" className="w-full h-full relative group/img-node">
                                   {dashboard.hubViewUrl ? (
-                                      <motion.img 
-                                        initial={{ opacity: 0, scale: 1.05 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        src={dashboard.hubViewUrl} 
-                                        className="w-full h-full object-cover grayscale-[30%] opacity-80 transition-all duration-[30s] group-hover/view:scale-110 group-hover/view:grayscale-0 group-hover/view:opacity-100 cursor-pointer" 
-                                      />
+                                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full relative overflow-hidden">
+                                          <motion.img 
+                                            initial={{ scale: 1.05 }}
+                                            animate={{ scale: 1 }}
+                                            src={dashboard.hubViewUrl} 
+                                            className="w-full h-full object-cover grayscale-[20%] opacity-80 transition-all duration-[30s] group-hover/view:scale-110 group-hover/view:grayscale-0 group-hover/view:opacity-100 cursor-pointer" 
+                                          />
+                                          {/* Implementation Scanning Reticle */}
+                                          <motion.div 
+                                              animate={{ 
+                                                top: ['10%', '80%', '40%', '10%'],
+                                                left: ['10%', '20%', '70%', '10%']
+                                              }}
+                                              transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                                              className="absolute w-40 h-40 border border-[#9d4edd]/40 rounded-full flex items-center justify-center pointer-events-none z-20"
+                                          >
+                                              <Crosshair className="text-[#9d4edd] opacity-50" size={32} />
+                                              <div className="absolute inset-0 rounded-full border-t-2 border-l-2 border-[#18E6FF]/30 animate-spin" />
+                                              <div className="absolute -bottom-8 whitespace-nowrap text-[8px] font-mono text-[#9d4edd] uppercase font-black tracking-widest bg-black/40 px-2 py-0.5 rounded">Scanning_Node_Target</div>
+                                          </motion.div>
+                                      </motion.div>
                                   ) : (
                                       <div className="h-full flex flex-col items-center justify-center opacity-10 gap-8 grayscale p-20">
                                           <Target size={120} className="animate-pulse" />
@@ -518,7 +558,6 @@ const MetaventionsHub: React.FC = () => {
                                                           <ListChecks size={16} className="text-[#10b981]" /> Implementation Sequence
                                                       </div>
                                                       <div className="space-y-4">
-                                                          {/* FIX: Explicit defensive check for protocols array mapping */}
                                                           {Array.isArray(dashboard.activeManifest?.protocols) && dashboard.activeManifest.protocols.map((p: any, i: number) => (
                                                               <div key={i} className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-6 group hover:border-white/10 transition-all">
                                                                   <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center font-mono font-black text-sm text-[#22d3ee] border border-white/5">{i+1}</div>
@@ -559,34 +598,44 @@ const MetaventionsHub: React.FC = () => {
                       </AnimatePresence>
                       <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
                       
-                      {/* Active Implementation Pulse Overlay */}
+                      {/* Live Protocol Sequencer Overlay */}
                       <AnimatePresence>
                         {dashboard.activeManifest && dashboard.deploymentProgress < 100 && (
                             <motion.div 
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0 }}
-                                className="absolute bottom-10 right-10 z-[35] w-64 bg-black/80 backdrop-blur-3xl border border-[#22d3ee]/40 p-6 rounded-3xl shadow-[0_0_50px_rgba(34,211,238,0.2)] flex flex-col gap-4"
+                                className="absolute bottom-10 right-10 z-[35] w-72 bg-[#050505]/90 backdrop-blur-3xl border border-[#22d3ee]/40 p-8 rounded-[2.5rem] shadow-[0_0_80px_rgba(34,211,238,0.15)] flex flex-col gap-6"
                             >
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Protocol Deployment</span>
-                                    <span className="text-[10px] font-black font-mono text-[#22d3ee]">{dashboard.deploymentProgress}%</span>
+                                    <div className="flex items-center gap-3">
+                                        <Activity size={14} className="text-[#22d3ee] animate-pulse" />
+                                        <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Protocol Deployment</span>
+                                    </div>
+                                    <span className="text-[12px] font-black font-mono text-[#22d3ee]">{dashboard.deploymentProgress}%</span>
                                 </div>
-                                <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
                                     <motion.div 
-                                        className="h-full bg-[#22d3ee] shadow-[0_0_15px_#22d3ee]" 
+                                        className="h-full bg-gradient-to-r from-[#22d3ee] to-[#18E6FF] shadow-[0_0_20px_#22d3ee]" 
                                         animate={{ width: `${dashboard.deploymentProgress}%` }}
                                     />
                                 </div>
-                                <div className="text-[8px] font-mono text-gray-400 uppercase tracking-tighter truncate italic">
-                                    Phase_{Math.floor(dashboard.deploymentProgress / 20) + 1}: Syncing Virtual Nodes...
+                                <div className="space-y-2">
+                                    <div className="text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest">Active Process Sequence:</div>
+                                    <div className="p-3 bg-black/60 border border-white/5 rounded-xl font-mono text-[9px] text-[#22d3ee] italic leading-relaxed">
+                                        {dashboard.activeManifest.protocols[Math.floor((dashboard.deploymentProgress / 101) * dashboard.activeManifest.protocols.length)]?.instruction || "Synchronizing Neural Lattice..."}
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center text-[7px] font-black text-gray-700 uppercase tracking-[0.4em]">
+                                    <span>Phase_{Math.floor(dashboard.deploymentProgress / 20) + 1}_Engaged</span>
+                                    <Loader2 size={10} className="animate-spin" />
                                 </div>
                             </motion.div>
                         )}
                       </AnimatePresence>
 
                       <div className="absolute bottom-8 left-10 z-20 flex flex-col gap-3">
-                           <div className="text-[8px] font-black font-mono text-[#9d4edd] uppercase tracking-[0.5em] mb-1 px-1">Lattice_Operational_State</div>
+                           <div className="text-[8px] font-black font-mono text-[#9d4edd] uppercase tracking-[0.5em] mb-1 px-1 opacity-60">Lattice_Operational_State</div>
                            <div className="flex gap-2.5">
                                {[1,2,3].map(i => (
                                    <div key={i} className="w-10 h-10 bg-black/60 border border-white/10 rounded-xl backdrop-blur-3xl flex items-center justify-center text-gray-500 hover:text-white hover:border-[#9d4edd]/50 transition-all shadow-xl group/node cursor-pointer">
@@ -606,10 +655,9 @@ const MetaventionsHub: React.FC = () => {
                         <div className="h-10 w-px bg-white/5" />
                         <div className="flex flex-col">
                             <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Auth Protocol</span>
-                            <span className="text-base font-black font-mono text-[#10b981] tracking-tighter">SECURE_L0</span>
+                            <span className="text-base font-black font-mono text-[#10b981] tracking-tighter uppercase">Secure_L0</span>
                         </div>
                         
-                        {/* Integrated Voice Core Module */}
                         <div className="h-10 w-px bg-white/5" />
                         <div className="flex items-center gap-6">
                             <div className="relative w-14 h-14 flex items-center justify-center shrink-0">
@@ -658,18 +706,25 @@ const MetaventionsHub: React.FC = () => {
               </div>
 
               {/* Sidebar Panel */}
-              <div className="col-span-3 space-y-8 flex flex-col">
+              <div className="col-span-3 space-y-8 flex flex-col relative z-10">
                   
-                  {/* 1. Biometric Anchor */}
-                  <div className="crystalline rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-5 relative overflow-hidden group/anchor shrink-0 invisible-glass">
+                  {/* Biometric Anchor - With Reticle Animations */}
+                  <div className="crystalline rounded-[3rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/anchor shrink-0 invisible-glass border border-white/5">
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
                       
                       <div className="flex items-center justify-between relative z-10 px-1">
                          <div className="flex items-center gap-4">
-                             <Fingerprint size={20} className="text-[#9d4edd]" />
+                             <div className="relative">
+                                <Fingerprint size={20} className="text-[#9d4edd]" />
+                                <motion.div 
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                    className="absolute -inset-2 border border-dashed border-[#9d4edd]/30 rounded-full"
+                                />
+                             </div>
                              <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Biometric Anchor</span>
                          </div>
-                         <label className="cursor-pointer p-2.5 bg-black/40 hover:bg-black/60 rounded-xl transition-all border border-white/5 group/btn-up shadow-xl">
+                         <label className="cursor-pointer p-2.5 bg-black/40 hover:bg-black/60 rounded-xl transition-all border border-white/5 group/btn-up shadow-xl active:scale-95">
                             <Upload size={14} className="text-gray-500 group-hover/btn-up:text-white" />
                             <input type="file" className="hidden" onChange={handleAnchorSwap} accept="image/*" />
                          </label>
@@ -677,7 +732,7 @@ const MetaventionsHub: React.FC = () => {
 
                       <div 
                         onClick={() => fileInputRef.current?.click()}
-                        className="aspect-video bg-black/60 rounded-3xl border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer"
+                        className="aspect-video bg-black/60 rounded-[2.5rem] border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer"
                       >
                           <input type="file" ref={fileInputRef} className="hidden" onChange={handleAnchorSwap} accept="image/*" />
                           
@@ -693,6 +748,15 @@ const MetaventionsHub: React.FC = () => {
                           {dashboard.referenceImage ? (
                                 <>
                                     <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover grayscale opacity-40 transition-all duration-1000 group-hover/v-anchor:opacity-90 group-hover/v-anchor:grayscale-0" alt="Anchor" />
+                                    {/* Scanning Overlay during Sync */}
+                                    {isSyncing && (
+                                        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                                            <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center relative">
+                                                <div className="absolute inset-0 border-t-2 border-[#9d4edd] rounded-full animate-spin" />
+                                                <Target size={24} className="text-[#9d4edd] animate-pulse" />
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className="absolute inset-0 bg-white/5 opacity-0 group-hover/v-anchor:opacity-100 transition-all duration-700 flex items-center justify-center">
                                         <div className="px-8 py-2 bg-black/80 rounded-xl border border-white/10 text-[9px] font-black uppercase tracking-[0.4em] text-white backdrop-blur-3xl shadow-2xl active:scale-95">RE-CALIBRATE</div>
                                     </div>
@@ -708,7 +772,7 @@ const MetaventionsHub: React.FC = () => {
                       </div>
                   </div>
 
-                  <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden shrink-0 invisible-glass">
+                  <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden shrink-0 invisible-glass border border-white/5">
                       <div className="grid grid-cols-2 gap-4">
                           <CompactMetric title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
                           <CompactMetric title="BANDWIDTH" value={`${telemetry.net}GB/s`} detail="PEAK" icon={Radio} color="var(--amethyst)" trend="up" />
@@ -719,7 +783,7 @@ const MetaventionsHub: React.FC = () => {
 
                   <DirectoryPeek manifest={dashboard.activeManifest} />
 
-                  <div className="crystalline rounded-[2.5rem] p-8 h-64 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass">
+                  <div className="crystalline rounded-[2.5rem] p-8 h-64 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5">
                       <div className="flex items-center gap-3 mb-6 relative z-10">
                         <ChartIcon size={14} className="text-[#f1c21b]" />
                         <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
