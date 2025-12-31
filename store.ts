@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 import { 
     AppMode, AppTheme, UserProfile, FileData, Task, 
@@ -16,7 +17,7 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
         context: OperationalContext.STRATEGY_SYNTHESIS,
         status: 'IDLE',
         memoryBuffer: [],
-        capabilities: ['Strategic Synthesis', 'Visual Perception', 'Navigation Control'],
+        capabilities: ['system_navigate', 'search_intel', 'architect_generate_process'],
         currentMindset: { skepticism: 10, excitement: 95, alignment: 75 },
         energyLevel: 100,
         tasks: []
@@ -28,7 +29,7 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
         context: OperationalContext.SYSTEM_MONITORING,
         status: 'IDLE',
         memoryBuffer: [],
-        capabilities: ['Error Detection', 'Security Auditing', 'Process Validation'],
+        capabilities: ['search_intel', 'update_task_priority'],
         currentMindset: { skepticism: 95, excitement: 15, alignment: 90 },
         energyLevel: 100,
         tasks: []
@@ -40,7 +41,7 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
         context: OperationalContext.CODE_GENERATION,
         status: 'IDLE',
         memoryBuffer: [],
-        capabilities: ['Coding', 'Refactoring', 'Unit Testing'],
+        capabilities: ['search_intel', 'architect_generate_process'],
         currentMindset: { skepticism: 35, excitement: 65, alignment: 85 },
         energyLevel: 100,
         tasks: []
@@ -216,6 +217,7 @@ interface AppState {
     agents: {
         activeAgents: AutonomousAgent[];
         isDispatching: boolean;
+        swarmHealth: number;
     };
     collaboration: {
         peers: PeerPresence[];
@@ -237,7 +239,6 @@ interface AppState {
     tasks: Task[];
     metaventions: MetaventionsState;
 
-    // Actions separated for performance
     actions: {
         setMode: (mode: AppMode) => void;
         setTheme: (theme: AppTheme) => void;
@@ -483,7 +484,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
     agents: {
         activeAgents: INITIAL_AGENTS,
-        isDispatching: false
+        isDispatching: false,
+        swarmHealth: 100
     },
     collaboration: {
         peers: [],
@@ -533,54 +535,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         isAnalyzing: false,
         strategyLog: [],
         strategyLibrary: [
-            {
-                id: 'PARA_DRIVE_SYSTEM',
-                title: 'PARA+ Drive Architecture',
-                context: 'D-System File Management',
-                logic: 'Recursive multi-modal indexing with adaptive TTL for Projects and Areas.',
-                physicalImpact: '40% reduction in data retrieval latency.',
-                timestamp: Date.now()
-            },
-            {
-                id: 'PARA_NAMING_CONVENTION',
-                title: 'PARA Naming Protocol',
-                context: 'Drive Organization',
-                logic: 'Date-stamped project identifiers with [P] [A] [R] [A] prefixes for zero-ambiguity indexing.',
-                physicalImpact: 'Instant semantic recall across all storage nodes.',
-                timestamp: Date.now()
-            },
-            {
-                id: 'CLOUD_INGEST_L0',
-                title: 'L0 Cloud Ingestion Mesh',
-                context: 'Infrastructure Strategy',
-                logic: 'Edge-distributed event buffering with high-fidelity de-duplication.',
-                physicalImpact: '99.9% data integrity during peak ingress cycles.',
-                timestamp: Date.now()
-            },
-            {
-                id: 'ZETTELKASTEN_ATOMIC',
-                title: 'Zettelkasten Atomic Index',
-                context: 'Knowledge Management',
-                logic: 'Decomposition of large files into bi-directionally linked markdown atomic nodes.',
-                physicalImpact: '80% improvement in cross-domain synthesis speed.',
-                timestamp: Date.now()
-            },
-            {
-                id: 'RECURSIVE_BACKUP',
-                title: 'Recursive Cold-Storage',
-                context: 'Disaster Recovery',
-                logic: 'Automated pruning and shifting of low-utility assets to decentralized cold storage tiers.',
-                physicalImpact: 'Predictive OpEx reduction of 30% per annum.',
-                timestamp: Date.now()
-            },
-            {
-                id: 'IAC_BASELINE',
-                title: 'IaC Infrastructure Baseline',
-                context: 'Systems Engineering',
-                logic: 'Terraform-native modular blueprints for rapid Sovereign node deployment.',
-                physicalImpact: 'Deployment cycle reduced from hours to 180 seconds.',
-                timestamp: Date.now()
-            }
+            { id: 'PARA_DRIVE_SYSTEM', title: 'PARA+ Drive Architecture', context: 'D-System File Management', logic: 'Recursive multi-modal indexing with adaptive TTL for Projects and Areas.', physicalImpact: '40% reduction in data retrieval latency.', timestamp: Date.now() },
+            { id: 'PARA_NAMING_CONVENTION', title: 'PARA Naming Protocol', context: 'Drive Organization', logic: 'Date-stamped project identifiers with [P] [A] [R] [A] prefixes for zero-ambiguity indexing.', physicalImpact: 'Instant semantic recall across all storage nodes.', timestamp: Date.now() }
         ],
         wallets: [],
         economicProtocols: []
@@ -735,16 +691,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         })),
         commitInvestment: (id, amount) => set((state) => {
             const { metaventions: mv } = state;
-            const currentLogs = mv?.strategyLog || [];
             return {
-                marketData: {
-                    ...state.marketData,
-                    opportunities: state.marketData.opportunities.filter(o => o.id !== id)
-                },
-                metaventions: {
-                    ...mv,
-                    strategyLog: [...currentLogs, `Allocated $${amount.toLocaleString()} to deployment [${id}] at ${new Date().toLocaleTimeString()}`]
-                }
+                marketData: { ...state.marketData, opportunities: state.marketData.opportunities.filter(o => o.id !== id) },
+                metaventions: { ...mv, strategyLog: [...(mv?.strategyLog || []), `Allocated $${amount.toLocaleString()} to [${id}]`] }
             };
         }),
         setAgentState: (update) => set((state) => ({ 
@@ -757,32 +706,16 @@ export const useAppStore = create<AppState>((set, get) => ({
             }
         })),
         addAgent: (agent) => set((state) => ({
-            agents: {
-                ...state.agents,
-                activeAgents: [...state.agents.activeAgents, agent]
-            }
+            agents: { ...state.agents, activeAgents: [...state.agents.activeAgents, agent] }
         })),
         deployStrategyToLattice: (strategy: any) => set((state) => {
-            // Converts a strategic blueprint into actionable nodes for the Process Visualizer
-            const newNodeId = `node-strat-${Date.now()}`;
             const nodes = [...state.process.nodes, {
-                id: newNodeId,
+                id: `node-strat-${Date.now()}`,
                 type: 'holographic',
                 position: { x: 400, y: 200 },
-                data: {
-                    label: strategy.title,
-                    subtext: strategy.logic,
-                    iconName: 'ShieldCheck',
-                    color: '#10b981',
-                    status: 'DEPLOYED',
-                    drift: 0
-                }
+                data: { label: strategy.title, subtext: strategy.logic, iconName: 'ShieldCheck', color: '#10b981', status: 'DEPLOYED', drift: 0 }
             }];
-            
-            return {
-                process: { ...state.process, nodes },
-                mode: AppMode.PROCESS_MAP
-            };
+            return { process: { ...state.process, nodes }, mode: AppMode.PROCESS_MAP };
         }),
     }
 }));
