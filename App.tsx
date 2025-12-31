@@ -253,7 +253,7 @@ const App: React.FC = () => {
         style={{ backgroundColor: 'var(--bg-app)', color: 'var(--text-primary)', ...themeVars as any }}
     >
       <Starfield mode={mode} />
-      <BackgroundEffect isDarkMode={theme !== AppTheme.LIGHT} mode={mode} />
+      <BackgroundEffect isDarkMode={theme !== AppTheme.LIGHT} />
       
       <div className="absolute inset-0 pointer-events-none z-[200] opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
 

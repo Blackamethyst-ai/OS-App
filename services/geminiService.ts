@@ -343,11 +343,11 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
 }
 
 /**
- * generateAvatar: Updated with utopian, modern futuristic prompt for high-quality handsome Black African American men.
+ * generateAvatar: Updated with utopian, modern futuristic prompt for high-quality Black African American agents.
  */
 export async function generateAvatar(role: string, name: string) {
     const ai = getAI();
-    const prompt = `Utopian masterpiece portrait of a handsome Black African American man named "${name}" in the role of "${role}". Utopian futuristic aesthetic, clean soft technical lighting, cinematic headshot depth. Professional business suit or premium leather jacket with a crisp white tee. High fidelity skin texture, modern elegant appearance.`;
+    const prompt = `Utopian masterpiece portrait of a beautiful Black African American agent named "${name}" in the role of "${role}". Utopian futuristic aesthetic, clean soft technical lighting, cinematic headshot depth. Professional business suit or premium leather jacket with a crisp white tee. High fidelity skin texture, modern elegant appearance.`;
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: [{ text: prompt }],
@@ -651,7 +651,6 @@ export async function evolveSystemArchitecture(code: string, lang: string, promp
                 thinkingConfig: { thinkingBudget: 32000 }
             }
         }));
-        // Fix: Use the correctly named 'response' variable defined above to access model output text
         return { ok: true, value: safeParseJson(response.text) };
     } catch (e: any) { return { ok: false, error: e }; }
 }
@@ -1126,4 +1125,17 @@ export async function assessInvestmentRisk(strategy: string) {
         config: { responseMimeType: 'application/json' }
     }));
     return safeParseJson<{riskScore: number, reasoning: string}>(response.text);
+}
+
+/**
+ * generateCinematicDirective: Synthesizes elite-tier cinematic intent.
+ */
+export async function generateCinematicDirective(prompt: string, bible?: any) {
+    const ai = getAI();
+    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: `Directive: ${prompt}. Production Bible Context: ${JSON.stringify(bible)}. Refine this into an elite Hollywood-grade cinematic generation prompt. Output refined prompt text.`,
+        config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
+    }));
+    return response.text || prompt;
 }

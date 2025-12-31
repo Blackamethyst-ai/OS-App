@@ -190,6 +190,27 @@ export interface ScienceHypothesis {
     status: 'IDLE' | 'TESTING' | 'VERIFIED' | 'REJECTED';
 }
 
+export interface Frame {
+    index: number;
+    scenePrompt: string;
+    continuity: string;
+    camera: string;
+    lighting: string;
+    status: 'pending' | 'generating' | 'done' | 'error';
+    imageUrl?: string;
+    audioUrl?: string;
+    error?: string;
+}
+
+export interface ProductionBible {
+    theme: string;
+    atmosphere: string;
+    visualLogic: string;
+    narrativeArc: string;
+    opticProfile: string;
+    cinematicNotes: string[];
+}
+
 export interface ResonancePoint {
     frame: number;
     tension: number;
@@ -294,15 +315,6 @@ export interface SwarmResult {
     agentId: string;
     executionTime: number;
     voteLedger: VoteLedger;
-}
-
-export interface VoteLedger {
-    winner: string;
-    count: number;
-    runnerUp: string;
-    runnerUpCount: number;
-    totalRounds: number;
-    killedAgents: number;
 }
 
 export interface VoteLedger {

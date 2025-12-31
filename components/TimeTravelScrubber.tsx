@@ -23,7 +23,7 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
     const [snapshots, setSnapshots] = useState<Snapshot[]>([]);
     const [activeIndex, setActiveIndex] = useState<number | null>(null); // null = Live
     const scrollRef = useRef<HTMLDivElement>(null);
-    const { addLog } = useAppStore();
+    const addLog = useAppStore(s => s.actions.addLog);
 
     // Load History
     useEffect(() => {
