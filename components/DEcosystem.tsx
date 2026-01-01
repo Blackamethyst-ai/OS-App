@@ -276,7 +276,11 @@ const DEcosystem: React.FC = () => {
       
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
 
-      {/* NEURAL CORE OVERLAY */}
+      {/* 
+          NEURAL CORE OVERLAY - LOCKED CENTER 
+          By using inset-0 and flex-centering, this container will always match
+           the canvas boundaries exactly, pinning the percentage to the swarm center.
+      */}
       <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
         <motion.div 
             animate={{ scale: [1, 1.02, 1] }}

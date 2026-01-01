@@ -17,10 +17,10 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Metaventions OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Explicitly use React.Component to ensure generic types are properly applied and resolve "Property state/props does not exist" errors
+// Fix: Directly use the imported Component class to ensure generic types are properly applied and resolve "Property state/props does not exist" errors
 class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   // Fix: Explicitly declare state property for type safety to satisfy base class inheritance requirements in the current TypeScript environment
-  state: ErrorBoundaryState = { hasError: false, error: null };
+  override state: ErrorBoundaryState = { hasError: false, error: null };
 
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -30,7 +30,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     return { hasError: true, error };
   }
 
-  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("CRITICAL UI ERROR [Kernel Panic]:", error, errorInfo);
   }
 
@@ -38,7 +38,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     window.location.reload();
   };
 
-  render(): ReactNode {
+  override render(): ReactNode {
     // Fix: Access state and props using 'this' keyword within the class method context
     const { hasError, error } = this.state;
     const { fallback, children } = this.props;
