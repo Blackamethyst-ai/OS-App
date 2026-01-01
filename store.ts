@@ -77,6 +77,7 @@ interface AppState {
         query: string;
         results: SearchResultItem[];
         history: string[];
+        filter: 'ALL' | 'COMMANDS' | 'MEMORY' | 'WORLD';
     };
     voice: {
         isActive: boolean;
@@ -346,7 +347,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         isSearching: false,
         query: '',
         results: [],
-        history: []
+        history: [],
+        filter: 'ALL'
     },
     voice: {
         isActive: false,
