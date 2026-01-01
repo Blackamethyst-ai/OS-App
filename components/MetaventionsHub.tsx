@@ -22,7 +22,6 @@ import {
     Terminal, Crosshair, Sparkles, Eye, EyeOff,
     Navigation, Settings, Layout, MousePointer2,
     Search, Gauge, Compass,
-    // Fix: Added missing UserCircle import
     UserCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,6 +30,7 @@ import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import DEcosystem from './DEcosystem';
 import ContextVelocityChart from './ContextVelocityChart';
+import HolographicCommandDeck from './HolographicCommandDeck';
 
 // --- VISIONARY CONSTANTS ---
 const VISIONARY_DIRECTIVES = [
@@ -46,6 +46,76 @@ const VISIONARY_DIRECTIVES = [
 ];
 
 // --- NEW MAGIC SUB-COMPONENTS ---
+
+/**
+ * VOLUMETRIC FOG
+ * Slow-shifting gradients for infinite depth.
+ */
+const VolumetricFog = () => (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-40">
+        <motion.div 
+            animate={{ 
+                x: [-100, 100, -100],
+                y: [-50, 50, -50],
+                scale: [1, 1.2, 1],
+                rotate: [0, 15, 0]
+            }}
+            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+            className="absolute -inset-[100%] bg-[radial-gradient(circle_at_30%_40%,rgba(157,78,221,0.08)_0%,transparent_50%)]"
+        />
+        <motion.div 
+            animate={{ 
+                x: [100, -100, 100],
+                y: [50, -50, 50],
+                scale: [1.2, 1, 1.2],
+                rotate: [0, -15, 0]
+            }}
+            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+            className="absolute -inset-[100%] bg-[radial-gradient(circle_at_70%_60%,rgba(34,211,238,0.05)_0%,transparent_40%)]"
+        />
+    </div>
+);
+
+/**
+ * DATA STREAM TETHER
+ * SVG connection between Sidebar and SOC.
+ */
+const DataStreamTether = () => (
+    <svg className="fixed inset-0 w-full h-full pointer-events-none z-30 opacity-40">
+        <defs>
+            <linearGradient id="streamGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#9d4edd" stopOpacity="0" />
+                <stop offset="50%" stopColor="#22d3ee" stopOpacity="1" />
+                <stop offset="100%" stopColor="#9d4edd" stopOpacity="0" />
+            </linearGradient>
+            <filter id="packetGlow">
+                <feGaussianBlur stdDeviation="2" result="blur" />
+                <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                </feMerge>
+            </filter>
+        </defs>
+        
+        {/* Curved Logic Path */}
+        <path 
+            d="M 1200,280 C 1100,280 900,280 800,280" 
+            fill="none" 
+            stroke="rgba(255,255,255,0.03)" 
+            strokeWidth="1" 
+        />
+
+        {/* Data Packet */}
+        <motion.circle
+            r="2"
+            fill="#18E6FF"
+            filter="url(#packetGlow)"
+            animate={{ cx: [1200, 800] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+            style={{ cy: 280 }}
+        />
+    </svg>
+);
 
 /**
  * PROCEDURAL HOLOGRAM
@@ -87,7 +157,6 @@ const ProceduralHologram = () => {
             ctx.lineWidth = 0.5;
 
             points.forEach((p, i) => {
-                // Rotation
                 const x1 = p.x * Math.cos(frame) - p.z * Math.sin(frame);
                 const z1 = p.z * Math.cos(frame) + p.x * Math.sin(frame);
                 const y1 = p.y * Math.cos(frame * 0.5) - z1 * Math.sin(frame * 0.5);
@@ -102,7 +171,6 @@ const ProceduralHologram = () => {
                 ctx.fillStyle = z2 > 0 ? 'rgba(34, 211, 238, 0.4)' : 'rgba(157, 78, 221, 0.3)';
                 ctx.fill();
 
-                // Connect to random neighbors
                 if (i % 10 === 0) {
                     points.slice(i, i + 3).forEach(n => {
                         const nx = n.x * Math.cos(frame) - n.z * Math.sin(frame);
@@ -589,7 +657,6 @@ const MetaventionsHub: React.FC = () => {
     audio.playClick();
   };
 
-  // Safe access for progress tracker logic to prevent crash on undefined length
   const manifestProtocols = dashboard.activeManifest?.protocols || [];
 
   return (
@@ -598,6 +665,7 @@ const MetaventionsHub: React.FC = () => {
       {/* Living Neural Mesh Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-[#020204]" />
+          <VolumetricFog />
           <motion.div 
             animate={{ 
                 opacity: [0.03, 0.08, 0.03],
@@ -615,6 +683,9 @@ const MetaventionsHub: React.FC = () => {
           <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1.5px,transparent_1.5px),linear-gradient(90deg,rgba(255,255,255,0.01)_1.5px,transparent_1.5px)] bg-[size:60px_60px] opacity-20" />
       </div>
       
+      <DataStreamTether />
+      <HolographicCommandDeck />
+
       {/* Enhanced Header Banner */}
       <AnimatePresence>
         {!dashboard.isOculusView && (
@@ -633,7 +704,7 @@ const MetaventionsHub: React.FC = () => {
                         </div>
                         <motion.div 
                             animate={{ scale: [1, 1.15, 1], opacity: [1, 0.5, 1] }}
-                            transition={{ duration: 3, repeat: Infinity }}
+                            transition={{ duration: 2, repeat: Infinity }}
                             className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#0a0a0a] border border-white/10 rounded-full flex items-center justify-center text-[#9d4edd] shadow-2xl"
                         >
                             <ShieldCheck size={12} className="text-[#10b981]" />
