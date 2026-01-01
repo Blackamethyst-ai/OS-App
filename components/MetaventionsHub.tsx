@@ -801,7 +801,7 @@ const MetaventionsHub: React.FC = () => {
                     initial={{ y: 200, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: 200, opacity: 0 }}
-                    className="w-full h-[850px] mt-20 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0"
+                    className="w-full h-[950px] mt-20 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0"
                 >
                     <div className="absolute top-12 left-16 z-20 flex flex-col gap-3 pointer-events-none">
                         <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">
