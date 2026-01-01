@@ -10,7 +10,7 @@ interface LogoProps {
 const MetaventionsLogo: React.FC<LogoProps> = ({ size = 32, showText = false, className = "" }) => {
   return (
     <div className={`flex items-center gap-5 ${className}`}>
-      <div style={{ width: size, height: size }} className="relative shrink-0">
+      <div style={{ width: size, height: size }} className="relative shrink-0 group/logo-svg">
         {/* Deep background glow - Meditative, ultra-slow pulse */}
         <motion.div 
             animate={{ 
@@ -24,7 +24,7 @@ const MetaventionsLogo: React.FC<LogoProps> = ({ size = 32, showText = false, cl
                 ]
             }}
             transition={{ duration: 35, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute inset-[-120%] pointer-events-none blur-[70px] z-0 rounded-full"
+            className="absolute inset-[-140%] pointer-events-none blur-[80px] z-0 rounded-full group-hover/logo-svg:opacity-60 transition-opacity"
         />
 
         <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full relative z-10 filter drop-shadow-[0_0_15px_rgba(24,230,255,0.6)]">
@@ -48,6 +48,7 @@ const MetaventionsLogo: React.FC<LogoProps> = ({ size = 32, showText = false, cl
                 ] 
             }}
             transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+            className="group-hover/logo-svg:brightness-125 transition-all"
           />
           
           {/* Inner Delta Glow */}

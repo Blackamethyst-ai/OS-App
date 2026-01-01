@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAppStore } from '../store';
 import { performGlobalSearch, promptSelectKey } from '../services/geminiService';
@@ -8,7 +7,7 @@ import {
     Search, Loader2, ArrowRight, X, History, 
     Command, BrainCircuit, Globe, Database, 
     Zap, Terminal, Sparkles, Filter, Trash2, Clock,
-    Layers
+    Layers, Scan
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
@@ -41,12 +40,14 @@ const FilterChip = ({ label, active, onClick, icon: Icon }: any) => (
 );
 
 const GlobalSearchBar: React.FC = () => {
-  const { search, actions } = useAppStore();
+  const { search, actions, focusedSelector } = useAppStore();
   const { setSearchState, setMode, addLog, toggleTerminal } = actions;
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  const isBeingInspected = focusedSelector === 'header input';
 
   // --- Search Persistence Logic ---
   const addToHistory = useCallback((q: string) => {
@@ -181,7 +182,7 @@ const GlobalSearchBar: React.FC = () => {
 
   return (
     <div ref={containerRef} className="relative z-50 flex items-center h-full">
-        <form onSubmit={e => e.preventDefault()} className="flex items-center w-80">
+        <form onSubmit={e => e.preventDefault()} className="flex items-center w-80 relative">
             <div className="relative w-full group">
                 <input
                     ref={inputRef}
@@ -192,13 +193,21 @@ const GlobalSearchBar: React.FC = () => {
                     onKeyDown={handleKeyDown}
                     className={cn(
                         "w-full bg-black/40 border rounded-full px-12 py-2 text-[10px] font-mono text-white outline-none transition-all shadow-inner",
-                        validationError ? "border-red-500/50" : "border-white/10 focus:border-[#9d4edd] group-hover:border-white/20"
+                        validationError ? "border-red-500/50" : "border-white/10 focus:border-[#9d4edd] group-hover:border-white/20",
+                        isBeingInspected && "border-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.2)]"
                     )}
                     placeholder="Locate intelligence..."
                 />
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
                     {search.isSearching ? <Loader2 className="w-3.5 h-3.5 text-[#9d4edd] animate-spin" /> : <Search className="w-3.5 h-3.5 text-gray-500" />}
                 </div>
+
+                {isBeingInspected && (
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-[#9d4edd] px-2 py-0.5 rounded-full shadow-[0_0_10px_#9d4edd]">
+                         <Scan size={8} className="text-black animate-pulse" />
+                         <span className="text-[7px] font-black text-black uppercase tracking-widest">[SCANNING]</span>
+                    </div>
+                )}
                 
                 {/* Validation Feedback */}
                 <AnimatePresence>
@@ -260,7 +269,7 @@ const GlobalSearchBar: React.FC = () => {
                                          
                                          <div className={cn(
                                              "w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 transition-all",
-                                             selectedIndex === i ? "bg-[#9d4edd]/20 border-[#9d4edd]/40 text-[#9d4edd]" : "bg-black/40 border-white/10 text-gray-700"
+                                             selectedIndex === i ? "bg-[#9d4edd]/20 border-[#9d4edd]/40 text-[#9d4edd]" : "bg-black/40 border-white/5 text-gray-700"
                                          )}>
                                              {item.category === 'COMMANDS' ? <Terminal size={18} /> : 
                                               item.category === 'MEMORY' ? <Database size={18} /> : 

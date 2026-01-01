@@ -1,14 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Terminal, Image as ImageIcon, Code, FileText, X, Maximize2, Trash2, Cpu, Activity, Download, Copy, ExternalLink, Zap, BrainCircuit, Radio, Loader2, GitBranch } from 'lucide-react';
+import { Terminal, Image as ImageIcon, Code, FileText, X, Maximize2, Trash2, Cpu, Activity, Download, Copy, ExternalLink, Zap, BrainCircuit, Radio, Loader2, GitBranch, Scan } from 'lucide-react';
+import { cn } from '../utils/cn';
 
 // --- SYSTEM TERMINAL ---
 const SystemTerminal: React.FC = () => {
-    const { system, research, voice, bicameral, process, codeStudio, hardware, actions } = useAppStore();
+    const { system, research, voice, bicameral, process, codeStudio, hardware, actions, focusedSelector } = useAppStore();
     const { toggleTerminal, addLog } = actions;
     const bottomRef = useRef<HTMLDivElement>(null);
     const [cmd, setCmd] = useState('');
+
+    const isBeingInspected = focusedSelector === 'header button:last-child';
 
     useEffect(() => {
         if (system.isTerminalOpen && bottomRef.current) {
@@ -47,15 +50,31 @@ const SystemTerminal: React.FC = () => {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: '-100%', opacity: 0 }}
                     transition={{ type: 'spring', stiffness: 200, damping: 25 }}
-                    className="fixed top-0 left-0 right-0 h-96 bg-[#050505]/95 backdrop-blur-md border-b border-[#9d4edd] z-[9999] shadow-2xl font-mono text-xs flex flex-col"
+                    className={cn(
+                        "fixed top-0 left-0 right-0 h-96 bg-[#050505]/95 backdrop-blur-md border-b z-[9999] shadow-2xl font-mono text-xs flex flex-col transition-all duration-700",
+                        isBeingInspected ? "border-[#22d3ee] shadow-[0_0_40px_rgba(34,211,238,0.3)]" : "border-[#9d4edd]"
+                    )}
                 >
                     {/* Header */}
-                    <div className="h-8 bg-[#111] border-b border-[#333] flex items-center justify-between px-4 shrink-0">
-                        <div className="flex items-center gap-2 text-[#9d4edd]">
+                    <div className="h-8 bg-[#111] border-b border-[#333] flex items-center justify-between px-4 shrink-0 relative overflow-hidden">
+                        <div className="flex items-center gap-2 text-[#9d4edd] relative z-10">
                             <Terminal className="w-4 h-4" />
                             <span className="uppercase tracking-widest font-bold">System Mind // ROOT ACCESS</span>
                         </div>
-                        <button onClick={() => toggleTerminal(false)} className="text-gray-500 hover:text-white"><X className="w-4 h-4" /></button>
+                        
+                        {isBeingInspected && (
+                            <motion.div 
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                                className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                            >
+                                <div className="flex items-center gap-3 px-4 py-0.5 bg-[#22d3ee] text-black rounded-full shadow-[0_0_15px_#22d3ee]">
+                                    <Scan size={10} className="animate-pulse" />
+                                    <span className="text-[8px] font-black uppercase tracking-[0.3em]">ROOT_DIAGNOSTIC_ACTIVE</span>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        <button onClick={() => toggleTerminal(false)} className="text-gray-500 hover:text-white relative z-10"><X className="w-4 h-4" /></button>
                     </div>
 
                     {/* Process Monitor (HTOP Style) */}
