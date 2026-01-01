@@ -194,10 +194,19 @@ const AgentControlCenter: React.FC = () => {
     const [input, setInput] = useState('');
     const [viewMode, setViewMode] = useState<'MEMORY' | 'SKILLS' | 'TASKS'>('MEMORY');
     const [taskInput, setTaskInput] = useState('');
+    const [skillQuery, setSkillQuery] = useState('');
+    const [isFetchingSkills, setIsFetchingSkills] = useState(false);
     const [isGrounding, setIsGrounding] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
     const activeAgent = agents.activeAgents.find(a => a.id === selectedAgentId);
+
+    const filteredCapabilities = useMemo(() => {
+        if (!activeAgent) return [];
+        return activeAgent.capabilities.filter(cap => 
+            cap.toLowerCase().includes(skillQuery.toLowerCase())
+        );
+    }, [activeAgent, skillQuery]);
 
     const handleSearchGrounding = async () => {
         if (!activeAgent || !input.trim()) return;
@@ -241,6 +250,27 @@ const AgentControlCenter: React.FC = () => {
         }
     };
 
+    const handleFetchCapabilities = async () => {
+        if (!activeAgent) return;
+        setIsFetchingSkills(true);
+        audio.playClick();
+        addLog('SYSTEM', `KERNEL_QUERY: Fetching evolved capabilities for [${activeAgent.name}]...`);
+        
+        // Simulation of fetching from kernel
+        await new Promise(r => setTimeout(r, 2000));
+        
+        addLog('SUCCESS', `KERNEL_QUERY: Capabilities synchronized with Node_${activeAgent.id}.`);
+        setIsFetchingSkills(false);
+        audio.playSuccess();
+    };
+
+    const handleUpdateStatus = (status: AutonomousAgent['status']) => {
+        if (!activeAgent) return;
+        updateAgent(activeAgent.id, { status });
+        addLog('INFO', `NODE_UPDATE: [${activeAgent.name}] status transitioned to ${status}.`);
+        audio.playClick();
+    };
+
     const handleAddTask = () => {
         if (!activeAgent || !taskInput.trim()) return;
         const newTask: AtomicTask = {
@@ -261,9 +291,7 @@ const AgentControlCenter: React.FC = () => {
         if (!activeAgent) return;
         const updated = activeAgent.tasks.map(t => {
             if (t.id === taskId) {
-                const nextStatus: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' = 
-                    t.status === 'PENDING' ? 'IN_PROGRESS' : 
-                    t.status === 'IN_PROGRESS' ? 'COMPLETED' : 'PENDING';
+                const nextStatus: any = t.status === 'PENDING' ? 'IN_PROGRESS' : t.status === 'IN_PROGRESS' ? 'COMPLETED' : 'PENDING';
                 return { ...t, status: nextStatus };
             }
             return t;
@@ -338,7 +366,7 @@ const AgentControlCenter: React.FC = () => {
                                 onClick={() => { setViewMode(tab.id as any); audio.playClick(); }}
                                 className={cn(
                                     "px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all",
-                                    viewMode === tab.id ? "bg-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/30" : "text-gray-600 hover:text-gray-300"
+                                    viewMode === tab.id ? "bg-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/30" : "text-gray-500 hover:text-gray-300"
                                 )}
                             >
                                 <tab.icon size={12} className={viewMode === tab.id ? 'fill-current' : ''} /> {tab.label}
@@ -362,7 +390,7 @@ const AgentControlCenter: React.FC = () => {
                 {/* Node Selector (Sidebar) */}
                 <div className="w-[320px] border-r border-white/5 flex flex-col shrink-0 bg-black/20 z-10">
                     <div className="p-6 border-b border-white/5 bg-white/[0.01]">
-                        <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] flex items-center gap-3 px-1">
+                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] flex items-center gap-3 px-1">
                             <Binary size={14} className="text-[#9d4edd]" /> Operational Nodes
                         </span>
                     </div>
@@ -448,6 +476,19 @@ const AgentControlCenter: React.FC = () => {
                                                     <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">{activeAgent.context}</span>
                                                 </div>
                                                 <div className="h-3 w-px bg-white/10" />
+                                                <div className="flex items-center gap-4">
+                                                    <select 
+                                                        value={activeAgent.status}
+                                                        onChange={e => handleUpdateStatus(e.target.value as any)}
+                                                        className="bg-black/60 border border-white/10 rounded-lg px-3 py-1 text-[9px] font-mono text-[#9d4edd] uppercase outline-none focus:border-[#9d4edd] transition-all cursor-pointer"
+                                                    >
+                                                        <option value="IDLE">STBY / IDLE</option>
+                                                        <option value="ACTIVE">LIVE / ACTIVE</option>
+                                                        <option value="THINKING">BUSY / THINKING</option>
+                                                        <option value="SLEEPING">OFF / SLEEPING</option>
+                                                    </select>
+                                                </div>
+                                                <div className="h-3 w-px bg-white/10" />
                                                 <div className="flex items-center gap-2 text-[#10b981]">
                                                     <ShieldCheck size={12} />
                                                     <span className="text-[9px] font-mono font-black uppercase tracking-widest">Enclave_Attested_L0</span>
@@ -457,8 +498,9 @@ const AgentControlCenter: React.FC = () => {
                                     </div>
 
                                     <div className="flex gap-3 relative z-10">
-                                         <button className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center gap-2 shadow-xl active:scale-95">
-                                             <HistoryIcon size={14} /> Neural Checkpoint
+                                         <button onClick={handleFetchCapabilities} disabled={isFetchingSkills} className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center gap-2 shadow-xl active:scale-95">
+                                             {isFetchingSkills ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} 
+                                             Fetch Kernel Capabilities
                                          </button>
                                          <button className="p-2 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500 hover:bg-red-500 hover:text-black transition-all shadow-xl active:scale-95">
                                              <PowerOff size={18} />
@@ -481,38 +523,53 @@ const AgentControlCenter: React.FC = () => {
                                     )}
 
                                     {viewMode === 'SKILLS' && (
-                                        <div className="h-full flex flex-col items-center justify-center gap-12 py-4">
+                                        <div className="h-full flex flex-col items-center gap-12 py-4">
                                             <div className="scale-90 origin-center h-48 flex items-center justify-center">
                                                 <SkillConstellation capabilities={activeAgent.capabilities} color="#9d4edd" isActive={true} />
                                             </div>
-                                            
-                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-6xl px-4 pb-8">
-                                                {activeAgent.capabilities.map(cap => (
-                                                    <motion.div 
-                                                        key={cap} 
-                                                        whileHover={{ y: -3, scale: 1.01 }}
-                                                        className="p-5 bg-white/[0.02] border border-white/5 rounded-[2rem] flex flex-col gap-4 group transition-all shadow-2xl relative overflow-hidden"
-                                                    >
-                                                        <div className="absolute inset-0 bg-gradient-to-tr from-[#9d4edd]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                        <div className="flex justify-between items-start relative z-10">
-                                                            <div className="p-3 rounded-2xl bg-black/40 text-[#9d4edd] border border-[#9d4edd]/30 shadow-lg">
-                                                                <Zap size={16} className="group-hover:scale-110 transition-transform" />
+
+                                            <div className="w-full max-w-4xl space-y-8">
+                                                <div className="flex items-center bg-black/60 border border-white/10 rounded-2xl px-6 py-3 shadow-inner relative group/search-box">
+                                                    <Search size={16} className="text-gray-600 mr-4 group-focus-within/search-box:text-[#9d4edd] transition-colors" />
+                                                    <input 
+                                                        value={skillQuery}
+                                                        onChange={e => setSkillQuery(e.target.value)}
+                                                        placeholder="Probe Functional Capabilities..."
+                                                        className="bg-transparent border-none outline-none text-xs font-mono text-white w-full uppercase placeholder:text-gray-800"
+                                                    />
+                                                    {skillQuery && (
+                                                        <button onClick={() => setSkillQuery('')} className="p-1 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-all"><X size={14}/></button>
+                                                    )}
+                                                </div>
+
+                                                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 pb-8">
+                                                    {filteredCapabilities.map(cap => (
+                                                        <motion.div 
+                                                            key={cap} 
+                                                            whileHover={{ y: -3, scale: 1.01 }}
+                                                            className="p-5 bg-white/[0.02] border border-white/5 rounded-[2rem] flex flex-col gap-4 group transition-all shadow-2xl relative overflow-hidden"
+                                                        >
+                                                            <div className="absolute inset-0 bg-gradient-to-tr from-[#9d4edd]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                            <div className="flex justify-between items-start relative z-10">
+                                                                <div className="p-3 rounded-2xl bg-black/40 text-[#9d4edd] border border-[#9d4edd]/30 shadow-lg">
+                                                                    <Zap size={16} className="group-hover:scale-110 transition-transform" />
+                                                                </div>
+                                                                <div className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_10px_#10b981]" />
                                                             </div>
-                                                            <div className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_10px_#10b981]" />
+                                                            <div className="text-[12px] font-black text-white uppercase font-mono tracking-widest leading-tight relative z-10">{cap.split('_').join(' ')}</div>
+                                                            <div className="text-[8px] text-gray-600 font-mono uppercase tracking-[0.2em] relative z-10">Protocol: Integrated</div>
+                                                        </motion.div>
+                                                    ))}
+                                                    <button 
+                                                        onClick={() => window.location.hash = '/nexus'}
+                                                        className="p-6 border-2 border-dashed border-white/5 rounded-[2rem] flex flex-col items-center justify-center gap-4 opacity-30 hover:opacity-100 hover:border-[#9d4edd]/50 transition-all cursor-pointer group shadow-2xl"
+                                                    >
+                                                        <div className="p-4 bg-white/5 rounded-full group-hover:bg-[#9d4edd]/10 transition-colors">
+                                                            <Plus size={32} className="text-gray-600 group-hover:text-[#9d4edd] transition-all" />
                                                         </div>
-                                                        <div className="text-[12px] font-black text-white uppercase font-mono tracking-widest leading-tight relative z-10">{cap.split('_').join(' ')}</div>
-                                                        <div className="text-[8px] text-gray-600 font-mono uppercase tracking-[0.2em] relative z-10">Protocol: Integrated</div>
-                                                    </motion.div>
-                                                ))}
-                                                <button 
-                                                    onClick={() => window.location.hash = '/nexus'}
-                                                    className="p-6 border-2 border-dashed border-white/5 rounded-[2rem] flex flex-col items-center justify-center gap-4 opacity-30 hover:opacity-100 hover:border-[#9d4edd]/50 transition-all cursor-pointer group shadow-2xl"
-                                                >
-                                                    <div className="p-4 bg-white/5 rounded-full group-hover:bg-[#9d4edd]/10 transition-colors">
-                                                        <Plus size={32} className="text-gray-600 group-hover:text-[#9d4edd] transition-all" />
-                                                    </div>
-                                                    <span className="text-[10px] font-black uppercase text-gray-500 font-mono tracking-[0.4em] group-hover:text-white">Graft Capability</span>
-                                                </button>
+                                                        <span className="text-[10px] font-black uppercase text-gray-500 font-mono tracking-[0.4em] group-hover:text-white">Graft Capability</span>
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     )}
@@ -581,7 +638,7 @@ const AgentControlCenter: React.FC = () => {
                                                         <div className="relative z-10 flex gap-4">
                                                             {task.status === 'COMPLETED' ? <CheckCircle2 size={36} className="text-[#10b981]" /> :
                                                              task.status === 'IN_PROGRESS' ? <Loader2 size={36} className="text-[#9d4edd] animate-spin" /> :
-                                                             <button onClick={() => toggleTaskStatus(task.id)} className="p-4 hover:bg-white/5 rounded-2xl text-gray-600 hover:text-white transition-all"><ChevronRight size={28} /></button>}
+                                                             <button onClick={() => toggleTaskStatus(task.id)} className="p-3 hover:bg-white/5 rounded-xl text-gray-600 hover:text-white transition-all"><ChevronRight size={24} /></button>}
                                                             <button 
                                                                 onClick={() => updateAgent(activeAgent.id, { tasks: activeAgent.tasks.filter(t => t.id !== task.id) })}
                                                                 className="p-4 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-gray-700 hover:text-red-500 rounded-2xl transition-all"
