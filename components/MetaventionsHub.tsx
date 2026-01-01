@@ -21,7 +21,9 @@ import {
     X, FolderTree, FileText, ChevronRight,
     Terminal, Crosshair, Sparkles, Eye, EyeOff,
     Navigation, Settings, Layout, MousePointer2,
-    Search, Gauge, Compass
+    Search, Gauge, Compass,
+    // Fix: Added missing UserCircle import
+    UserCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
@@ -43,7 +45,119 @@ const VISIONARY_DIRECTIVES = [
     "Data without structure is noise; structure without data is an empty shell."
 ];
 
-// --- SUB-COMPONENTS ---
+// --- NEW MAGIC SUB-COMPONENTS ---
+
+/**
+ * PROCEDURAL HOLOGRAM
+ * A rotating 3D sphere of neural points for the idle Strategic Operations Center.
+ */
+const ProceduralHologram = () => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let frame = 0;
+        const points: any[] = [];
+        const count = 120;
+        const radius = 100;
+
+        for (let i = 0; i < count; i++) {
+            const phi = Math.acos(-1 + (2 * i) / count);
+            const theta = Math.sqrt(count * Math.PI) * phi;
+            points.push({
+                x: Math.cos(theta) * Math.sin(phi),
+                y: Math.sin(theta) * Math.sin(phi),
+                z: Math.cos(phi)
+            });
+        }
+
+        const render = () => {
+            frame += 0.01;
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            ctx.strokeStyle = 'rgba(157, 78, 221, 0.1)';
+            ctx.lineWidth = 0.5;
+
+            points.forEach((p, i) => {
+                // Rotation
+                const x1 = p.x * Math.cos(frame) - p.z * Math.sin(frame);
+                const z1 = p.z * Math.cos(frame) + p.x * Math.sin(frame);
+                const y1 = p.y * Math.cos(frame * 0.5) - z1 * Math.sin(frame * 0.5);
+                const z2 = z1 * Math.cos(frame * 0.5) + p.y * Math.sin(frame * 0.5);
+
+                const scale = 200 / (200 + z2);
+                const screenX = cx + x1 * radius * scale;
+                const screenY = cy + y1 * radius * scale;
+
+                ctx.beginPath();
+                ctx.arc(screenX, screenY, 1.5 * scale, 0, Math.PI * 2);
+                ctx.fillStyle = z2 > 0 ? 'rgba(34, 211, 238, 0.4)' : 'rgba(157, 78, 221, 0.3)';
+                ctx.fill();
+
+                // Connect to random neighbors
+                if (i % 10 === 0) {
+                    points.slice(i, i + 3).forEach(n => {
+                        const nx = n.x * Math.cos(frame) - n.z * Math.sin(frame);
+                        const nz1 = n.z * Math.cos(frame) + n.x * Math.sin(frame);
+                        const ny = n.y * Math.cos(frame * 0.5) - nz1 * Math.sin(frame * 0.5);
+                        const nz2 = nz1 * Math.cos(frame * 0.5) + n.y * Math.sin(frame * 0.5);
+                        const nScale = 200 / (200 + nz2);
+                        ctx.beginPath();
+                        ctx.moveTo(screenX, screenY);
+                        ctx.lineTo(cx + nx * radius * nScale, cy + ny * radius * nScale);
+                        ctx.stroke();
+                    });
+                }
+            });
+
+            requestAnimationFrame(render);
+        };
+        const handle = requestAnimationFrame(render);
+        return () => cancelAnimationFrame(handle);
+    }, []);
+
+    return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none opacity-40 z-10" />;
+};
+
+const Scanline = () => (
+    <motion.div 
+        animate={{ top: ['-20%', '120%'] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+        className="absolute left-0 right-0 h-40 bg-gradient-to-b from-transparent via-[#9d4edd]/5 to-transparent pointer-events-none z-20"
+    />
+);
+
+const SwarmLattice = () => (
+    <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-20">
+        <motion.path 
+            d="M 50,50 L 150,50 L 100,150 Z"
+            fill="none"
+            stroke="#9d4edd"
+            strokeWidth="1"
+            strokeDasharray="4 4"
+            animate={{ strokeDashoffset: [0, 20] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.circle 
+            cx="100" cy="80" r="40"
+            fill="none"
+            stroke="#18E6FF"
+            strokeWidth="0.5"
+            animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.4, 0.1] }}
+            transition={{ duration: 4, repeat: Infinity }}
+        />
+    </svg>
+);
+
+// --- ORIGINAL SUB-COMPONENTS (With Magic Injected) ---
 
 const VisionaryTicker = () => {
     const [index, setIndex] = useState(0);
@@ -194,21 +308,27 @@ const SwarmBox = () => {
             </div>
             
             <div className="grid grid-cols-3 gap-2 relative z-10 px-1">
+                <SwarmLattice />
                 {Array.from({ length: hexCount }).map((_, i) => {
                     const agent = agents[i];
                     const isActive = !!agent;
                     const isThinking = agent?.status === 'THINKING';
 
                     return (
-                        <div key={i} className={cn(
-                            "aspect-square flex flex-col items-center justify-center rounded-xl border transition-all duration-700 shadow-inner relative overflow-hidden",
-                            isActive 
-                                ? "bg-black/60 border-[#9d4edd]/30 shadow-[0_0_10px_rgba(157,78,221,0.1)]" 
-                                : "bg-black/10 border-white/5 opacity-10"
-                        )}>
+                        <motion.div 
+                            key={i} 
+                            animate={isActive ? { scale: [1, 1.05, 1] } : {}}
+                            transition={{ duration: 3 + i, repeat: Infinity, ease: "easeInOut" }}
+                            className={cn(
+                                "aspect-square flex flex-col items-center justify-center rounded-xl border transition-all duration-700 shadow-inner relative overflow-hidden",
+                                isActive 
+                                    ? "bg-black/60 border-[#9d4edd]/30 shadow-[0_0_10px_rgba(157,78,221,0.1)]" 
+                                    : "bg-black/10 border-white/5 opacity-10"
+                            )}
+                        >
                             {isActive ? (
                                 <>
-                                    <Bot size={14} className={cn(isThinking ? "text-[#f1c21b] animate-pulse" : "text-[#9d4edd]")} />
+                                    <Bot size={14} className={cn(isThinking ? "text-[#f1c21b] animate-spin" : "text-[#9d4edd]")} />
                                     {isThinking && (
                                         <motion.div 
                                             animate={{ opacity: [0, 0.4, 0] }}
@@ -220,7 +340,7 @@ const SwarmBox = () => {
                             ) : (
                                 <div className="w-0.5 h-0.5 rounded-full bg-white/5" />
                             )}
-                        </div>
+                        </motion.div>
                     );
                 })}
             </div>
@@ -419,26 +539,26 @@ const MetaventionsHub: React.FC = () => {
       }
   };
 
-  const runVisualInspection = async () => {
-      actions.addLog('SYSTEM', 'DIAGNOSTIC: Initializing automated visual integrity probe...');
-      const probes = [
-          { label: 'Header Gradient', selector: 'header' },
-          { label: 'Sovereign Logo', selector: 'header svg' },
-          { label: 'Global Search', selector: 'header input' },
-          { label: 'User Identity', selector: 'header button' },
-          { label: 'Kernel Terminal', selector: 'header button:last-child' }
-      ];
+  const runVisualIntegrityProbe = async () => {
+    actions.addLog('SYSTEM', 'DIAGNOSTIC: Initializing automated visual integrity probe cycle...');
+    const probes = [
+        { label: 'Header Chroma', selector: 'header' },
+        { label: 'Sovereign Delta Logo', selector: 'header svg' },
+        { label: 'Global Search Index', selector: 'header input' },
+        { label: 'Operator Identity Icon', selector: 'header .rounded-\\[2rem\\]' }, 
+        { label: 'System Kernel Access', selector: 'header .shimmer-edge' } 
+    ];
 
-      for (const probe of probes) {
-          actions.setFocusedSelector(probe.selector);
-          actions.addLog('INFO', `INSPECTING: ${probe.label} vector...`);
-          audio.playClick();
-          await new Promise(r => setTimeout(r, 2000));
-      }
-      
-      actions.setFocusedSelector(null);
-      actions.addLog('SUCCESS', 'DIAGNOSTIC: Visual integrity cycle complete. All nodes indistinguishable from reference.');
-      audio.playSuccess();
+    for (const probe of probes) {
+        actions.setFocusedSelector(probe.selector);
+        actions.addLog('INFO', `PROBING_NODE: ${probe.label.toUpperCase()} Vector Synchronization...`);
+        audio.playClick();
+        await new Promise(r => setTimeout(r, 2200));
+    }
+    
+    actions.setFocusedSelector(null);
+    actions.addLog('SUCCESS', 'DIAGNOSTIC: Universal visual alignment confirmed. Interface indistinguishable from reality.');
+    audio.playSuccess();
   };
 
   const handleAnchorSwap = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -574,7 +694,7 @@ const MetaventionsHub: React.FC = () => {
                   
                   {/* Protocol Ticker Overlay */}
                   {!dashboard.isOculusView && (
-                    <div className="absolute top-14 left-0 w-full h-8 z-30 bg-[#0a0a0c]/40 backdrop-blur-md border-y border-white/5 overflow-hidden flex items-center">
+                    <div className="absolute top-14 left-0 w-full h-8 z-30 bg-[#0a0a0a]/40 backdrop-blur-md border-y border-white/5 overflow-hidden flex items-center">
                         <motion.div 
                             animate={{ x: ['100%', '-100%'] }}
                             transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
@@ -637,6 +757,7 @@ const MetaventionsHub: React.FC = () => {
                   </div>
                   
                   <div className="flex-1 relative overflow-hidden bg-[#020204] group/view">
+                      <Scanline />
                       {/* Visionary Feature: Neural Particle Interaction */}
                       <NeuralFileStream active={!!dashboard.activeManifest} />
 
@@ -674,9 +795,19 @@ const MetaventionsHub: React.FC = () => {
                                           </motion.div>
                                       </motion.div>
                                   ) : (
-                                      <div className="h-full flex flex-col items-center justify-center opacity-10 gap-8 grayscale p-20">
-                                          <Target size={120} className="animate-pulse" />
-                                          <p className="text-xl font-mono uppercase tracking-[1em]">Establishing Viewport...</p>
+                                      <div className="h-full flex flex-col items-center justify-center relative bg-black/10">
+                                          <ProceduralHologram />
+                                          <div className="flex flex-col items-center gap-8 opacity-20 group-hover/view:opacity-40 transition-all duration-1000 text-center relative z-20">
+                                              <div className="relative">
+                                                  <UserCircle size={100} className="animate-pulse" />
+                                                  <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 10, ease: "linear" }} className="absolute -inset-4 border border-dashed border-white/20 rounded-full" />
+                                              </div>
+                                              <p className="text-xl font-mono uppercase tracking-[1.2em]">Sovereign Core Hub</p>
+                                              <div className="flex gap-4">
+                                                  <div className="px-3 py-1 bg-white/5 border border-white/10 rounded text-[8px] font-mono uppercase">Idle_Lattice_L0</div>
+                                                  <div className="px-3 py-1 bg-white/5 border border-white/10 rounded text-[8px] font-mono uppercase">Context_Ready</div>
+                                              </div>
+                                          </div>
                                       </div>
                                   )}
 
@@ -704,7 +835,7 @@ const MetaventionsHub: React.FC = () => {
 
                                               <div className="flex-1 overflow-y-auto custom-scrollbar space-y-12 pr-4">
                                                   <div className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] shadow-inner relative group/logic">
-                                                      <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover/logic:opacity-10 transition-opacity"><Zap size={60} /></div>
+                                                      <div className="absolute top-0 right-0 p-4 opacity-[0.03] group/logic:opacity-10 transition-opacity"><Zap size={60} /></div>
                                                       <div className="flex items-center gap-3 mb-6">
                                                           <Code size={14} className="text-[#9d4edd]" />
                                                           <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Protocol Logic</span>
@@ -881,8 +1012,10 @@ const MetaventionsHub: React.FC = () => {
                     >
                         
                         {/* Biometric Anchor - With Reticle Animations */}
-                        <div className="crystalline rounded-[3rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/anchor shrink-0 invisible-glass border border-white/5">
+                        <div className="crystalline rounded-[3rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/anchor shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
                             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
+                            {/* Glass Reflection Shimmer */}
+                            <div className="absolute inset-0 opacity-0 group-hover/anchor:opacity-20 bg-[linear-gradient(45deg,transparent_45%,rgba(255,255,255,0.8)_50%,transparent_55%)] bg-[length:200%_200%] animate-[shimmer_5s_infinite_linear] pointer-events-none" />
                             
                             <div className="flex items-center justify-between relative z-10 px-1">
                                 <div className="flex items-center gap-4">
@@ -902,19 +1035,20 @@ const MetaventionsHub: React.FC = () => {
                                 </label>
                             </div>
 
-                            <div 
+                            <motion.div 
                                 onClick={() => fileInputRef.current?.click()}
+                                whileHover="scanning"
                                 className="aspect-video bg-black/60 rounded-[2.5rem] border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer"
                             >
                                 <input type="file" ref={fileInputRef} className="hidden" onChange={handleAnchorSwap} accept="image/*" />
                                 
                                 <motion.div 
-                                    animate={{ top: ['-100%', '100%'] }}
-                                    transition={{ duration: 2, repeat: isSyncing ? Infinity : 0, ease: "linear" }}
-                                    className={cn(
-                                        "absolute left-0 w-full h-[2px] bg-[#9d4edd] shadow-[0_0_20px_#9d4edd] z-30",
-                                        !isSyncing && "hidden"
-                                    )}
+                                    variants={{
+                                        scanning: { top: ['0%', '100%', '0%'], opacity: 1 }
+                                    }}
+                                    animate={isSyncing ? "scanning" : { opacity: 0 }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                    className="absolute left-0 right-0 h-[2px] bg-[#18E6FF] shadow-[0_0_20px_#18E6FF] z-30 pointer-events-none"
                                 />
 
                                 {dashboard.referenceImage ? (
@@ -935,13 +1069,16 @@ const MetaventionsHub: React.FC = () => {
                                         </>
                                 ) : (
                                         <div className="flex flex-col items-center gap-4 opacity-20 group-hover/anchor:opacity-40 transition-opacity">
-                                            <div className="w-14 h-14 rounded-full border border-dashed border-white/30 flex items-center justify-center">
+                                            <motion.div 
+                                                variants={{ scanning: { color: "#18E6FF", scale: 1.1 } }}
+                                                className="w-14 h-14 rounded-full border border-dashed border-white/30 flex items-center justify-center"
+                                            >
                                                 <Fingerprint size={24} />
-                                            </div>
+                                            </motion.div>
                                             <span className="text-[9px] font-black uppercase tracking-[0.5em] font-mono">Load Identity Key</span>
                                         </div>
                                 )}
-                            </div>
+                            </motion.div>
                         </div>
 
                         <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden shrink-0 invisible-glass border border-white/5">
@@ -1016,28 +1153,6 @@ const MetaventionsHub: React.FC = () => {
       </div>
     </div>
   );
-
-  async function runVisualIntegrityProbe() {
-    actions.addLog('SYSTEM', 'DIAGNOSTIC: Initializing automated visual integrity probe cycle...');
-    const probes = [
-        { label: 'Header Chroma', selector: 'header' },
-        { label: 'Sovereign Delta Logo', selector: 'header svg' },
-        { label: 'Global Search Index', selector: 'header input' },
-        { label: 'Operator Identity Icon', selector: 'header .rounded-\\[2rem\\]' }, 
-        { label: 'System Kernel Access', selector: 'header .shimmer-edge' } 
-    ];
-
-    for (const probe of probes) {
-        actions.setFocusedSelector(probe.selector);
-        actions.addLog('INFO', `PROBING_NODE: ${probe.label.toUpperCase()} Vector Synchronization...`);
-        audio.playClick();
-        await new Promise(r => setTimeout(r, 2200));
-    }
-    
-    actions.setFocusedSelector(null);
-    actions.addLog('SUCCESS', 'DIAGNOSTIC: Universal visual alignment confirmed. Interface indistinguishable from reality.');
-    audio.playSuccess();
-  }
 };
 
 export default MetaventionsHub;

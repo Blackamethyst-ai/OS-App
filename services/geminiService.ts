@@ -428,26 +428,61 @@ export async function classifyArtifact(data: FileData): Promise<Result<any>> {
 
 /**
  * generateStructuredWorkflow: Typed return fix.
+ * Optimized for Recursive Directory Topologies and Cloud-Infrastructure flows.
  */
 export async function generateStructuredWorkflow(files: FileData[], governance: string, type: string, mapContext: any) {
     const ai = getAI();
+    
+    // Recursive schema for Directory Topology and Flow Sequences
+    const schema: Schema = {
+        type: Type.OBJECT,
+        properties: {
+            title: { type: Type.STRING },
+            type: { type: Type.STRING, enum: ['DIRECTORY', 'SYSTEM_FLOW', 'CODE_LOGIC'] },
+            complexity: { type: Type.STRING },
+            viability: { type: Type.NUMBER },
+            riskVector: { type: Type.STRING, enum: ['LOW', 'MEDIUM', 'HIGH'] },
+            logic: { type: Type.STRING },
+            depth: { type: Type.NUMBER },
+            structure: { 
+                type: Type.ARRAY, 
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        name: { type: Type.STRING },
+                        type: { type: Type.STRING, enum: ['folder', 'file', 'node', 'module'] },
+                        description: { type: Type.STRING },
+                        children: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, type: { type: Type.STRING } } } }
+                    }
+                }
+            },
+            protocols: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        instruction: { type: Type.STRING },
+                        role: { type: Type.STRING },
+                        nodeRef: { type: Type.STRING },
+                        phase: { type: Type.STRING }
+                    }
+                }
+            }
+        },
+        required: ['title', 'type', 'logic', 'viability']
+    };
+
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-pro-preview',
-        contents: `Task: ${type}. Context: ${JSON.stringify(mapContext)}. Create a production-grade structural workflow. JSON {title, formalModel, internalPlanningMonologue, protocols, coherenceScore}.`,
+        contents: `Task: ${type}. Context: ${JSON.stringify(mapContext)}. Forge a detailed structural process. Output JSON according to schema. Ensure directory structures are deep and naming is technical.`,
         config: { 
             systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, 
             responseMimeType: 'application/json',
+            responseSchema: schema,
             thinkingConfig: { thinkingBudget: 16000 }
         }
     }));
-    return safeParseJson<{
-        title: string;
-        formalModel: any;
-        internalPlanningMonologue: string;
-        protocols: any[];
-        coherenceScore: number;
-        taxonomy?: any;
-    }>(response.text);
+    return safeParseJson<any>(response.text);
 }
 
 /**
@@ -682,7 +717,7 @@ export async function generateSpeech(text: string, voice: string) {
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text }] }],
         config: {
-            responseModalalities: [Modality.AUDIO],
+            responseModalities: [Modality.AUDIO],
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } }
         }
     }));
@@ -748,7 +783,7 @@ export async function analyzePowerDynamics(target: string, internalContext: stri
                 type: Type.OBJECT,
                 properties: {
                     centralization: { type: Type.NUMBER },
-                    entropy: { type: Type.NUMBER },
+                    entropy: { type: Number },
                     vitality: { type: Type.NUMBER },
                     opacity: { type: Type.NUMBER },
                     adaptability: { type: Type.NUMBER }
