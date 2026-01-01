@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Save, Loader2, Sparkles } from 'lucide-react';
+import { ShieldCheck, Save, Loader2, Sparkles, Activity, Radio } from 'lucide-react';
 import { useAppStore } from '../store';
 import { neuralVault } from '../services/persistenceService';
 import { AppMode } from '../types';
@@ -11,6 +11,14 @@ const AppFooter: React.FC = () => {
     const { mode, actions } = useAppStore();
     const { addLog } = actions;
     const [isSaving, setIsSaving] = useState(false);
+    const [latency, setLatency] = useState(12);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setLatency(Math.floor(Math.random() * 8 + 12));
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
 
     const handleManualSnapshot = async () => {
         setIsSaving(true);
@@ -103,7 +111,7 @@ const AppFooter: React.FC = () => {
                             <span className="opacity-20 hidden lg:block">//</span>
                             <span className="hidden lg:block">Architecture OS</span>
                             <span className="opacity-20 hidden lg:block">//</span>
-                            <span className="hidden lg:block text-[#9d4edd] font-black uppercase">V9.5 - THE D-Ecosystem</span>
+                            <span className="hidden lg:block text-[#9d4edd] font-black uppercase [text-shadow:0_0_10px_rgba(157,78,221,0.5)]">V9.5 - THE D-Ecosystem</span>
                         </div>
                     </div>
 
@@ -124,24 +132,41 @@ const AppFooter: React.FC = () => {
                          </button>
                     </div>
 
-                    <nav className="flex items-center gap-12">
-                        {[
-                            { label: 'LINKEDIN', href: 'https://www.linkedin.com/in/dico-angelo/' },
-                            { label: 'GITHUB', href: 'https://github.com/Blackamethyst-ai' },
-                            { label: 'X', href: 'https://x.com/dicoangelo' }
-                        ].map((link) => (
-                            <a 
-                                key={link.label}
-                                href={link.href}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-[10px] font-black font-mono text-[var(--text-muted)] hover:text-[var(--cyan)] transition-all tracking-[0.4em] uppercase relative group"
-                            >
-                                {link.label}
-                                <span className="absolute -bottom-1.5 left-0 w-0 h-[1px] bg-[var(--cyan)] transition-all group-hover:w-full shadow-[0_0_15px_var(--cyan)]" />
-                            </a>
-                        ))}
-                    </nav>
+                    <div className="flex items-center gap-10">
+                        {/* Live Telemetry Ticker */}
+                        <div className="flex items-center gap-6 px-6 py-2 bg-black/40 border border-white/5 rounded-2xl shadow-inner group/telemetry">
+                            <div className="flex items-center gap-2">
+                                <Radio size={12} className="text-[#10b981] animate-pulse" />
+                                <span className="text-[9px] font-mono text-[#10b981] font-black tracking-widest uppercase">Live_Link</span>
+                            </div>
+                            <div className="h-4 w-px bg-white/10" />
+                            <div className="flex items-center gap-3 min-w-[120px]">
+                                <Activity size={12} className="text-[#22d3ee]" />
+                                <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest whitespace-nowrap">
+                                    SYS_LATENCY: <span className="text-[#22d3ee] font-black">{latency}ms</span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <nav className="flex items-center gap-8">
+                            {[
+                                { label: 'LINKEDIN', href: 'https://www.linkedin.com/in/dico-angelo/' },
+                                { label: 'GITHUB', href: 'https://github.com/Blackamethyst-ai' },
+                                { label: 'X', href: 'https://x.com/dicoangelo' }
+                            ].map((link) => (
+                                <a 
+                                    key={link.label}
+                                    href={link.href}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] font-black font-mono text-[var(--text-muted)] hover:text-[var(--cyan)] transition-all tracking-[0.4em] uppercase relative group"
+                                >
+                                    {link.label}
+                                    <span className="absolute -bottom-1.5 left-0 w-0 h-[1px] bg-[var(--cyan)] transition-all group-hover:w-full shadow-[0_0_15px_var(--cyan)]" />
+                                </a>
+                            ))}
+                        </nav>
+                    </div>
                 </div>
 
                 {/* Bottom Separator & Rhythmic Status Dots */}

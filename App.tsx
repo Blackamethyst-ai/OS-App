@@ -309,16 +309,29 @@ const App: React.FC = () => {
                 {NAV_CONFIG.map(item => (
                     <motion.button 
                         key={item.id} 
-                        whileHover={{ y: -1, scale: 1.05 }}
+                        whileHover={{ 
+                            y: -1, 
+                            scale: 1.05,
+                            x: [0, -0.5, 0.5, 0] 
+                        }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => { window.location.hash = item.path; audio.playClick(); }} 
                         className="relative h-full px-5 group flex-shrink-0 flex items-center overflow-hidden"
                     >
-                        <span className={`text-[10px] font-black uppercase tracking-[0.3em] font-mono transition-all duration-500 ${mode === item.id ? 'text-[#f1c21b]' : 'text-[var(--text-muted)] group-hover:text-[var(--text-primary)]'}`}>
+                        <span className={`text-[10px] font-black uppercase tracking-[0.3em] font-mono transition-all duration-500 relative z-10 ${mode === item.id ? 'text-[#18E6FF]' : 'text-[var(--text-muted)] group-hover:text-[#18E6FF] group-hover:[text-shadow:0_0_8px_var(--cyan)]'}`}>
                             {item.label}
                         </span>
                         {mode === item.id && (
-                            <motion.div layoutId="activeTabGlow" className="absolute bottom-0 left-0 right-0 h-[2.5px] rounded-full bg-gradient-to-r from-[#7B2CFF] via-[#f1c21b] to-[#18E6FF] shadow-[0_0_20px_rgba(241,194,27,0.7)]" />
+                            <>
+                                <motion.div 
+                                    layoutId="laser-focus" 
+                                    className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#18E6FF] to-transparent shadow-[0_0_15px_var(--cyan)] z-20" 
+                                />
+                                <motion.div 
+                                    layoutId="laser-bleed"
+                                    className="absolute inset-0 bg-gradient-to-t from-[#18E6FF]/10 to-transparent pointer-events-none z-0"
+                                />
+                            </>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-white/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     </motion.button>
