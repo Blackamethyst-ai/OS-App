@@ -22,25 +22,31 @@ export interface DirectoryNode {
     name: string;
     type: 'folder' | 'file' | 'node' | 'module';
     description?: string;
+    size?: string;
+    modified?: string;
     children?: DirectoryNode[];
 }
 
+export interface ProtocolStep {
+    instruction: string;
+    role: string;
+    nodeRef: string;
+    phase: string;
+    estimatedTime?: string;
+    dependencies?: string[];
+}
+
 export interface TechnicalManifest {
+    id: string;
     title: string;
     type: 'DIRECTORY' | 'SYSTEM_FLOW' | 'CODE_LOGIC';
     logic: string;
-    complexity: string;
+    complexity: 'PRODUCTION' | 'EXPERIMENTAL' | 'CRITICAL';
     viability: number;
     riskVector: 'LOW' | 'MEDIUM' | 'HIGH';
     depth: number;
     structure?: DirectoryNode[];
-    protocols: {
-        instruction: string;
-        role: string;
-        nodeRef: string;
-        phase: string;
-    }[];
-    // Fix: Added missing properties for TechnicalManifest
+    protocols: ProtocolStep[];
     internalPlanningMonologue?: string;
     coherenceScore?: number;
     taxonomy?: any;
@@ -374,8 +380,6 @@ export interface KnowledgeLayer {
     memoryTags: string[]; 
     activeModes: AppMode[];
 }
-
-// Fix: Added missing interfaces used in various files
 
 export interface Message {
     role: 'user' | 'model' | 'system' | 'function' | 'AI' | 'USER';
