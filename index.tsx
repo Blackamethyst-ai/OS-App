@@ -1,4 +1,3 @@
-
 import React, { Component, ReactNode, ErrorInfo, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
@@ -20,11 +19,14 @@ interface ErrorBoundaryState {
  */
 // Fix: Directly use the imported Component class to ensure generic types are properly applied and resolve "Property state/props does not exist" errors. Removed override keywords that were causing errors due to inheritance resolution issues.
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Declared state property without override to satisfy inheritance requirements in this environment.
+  // Fix: Explicitly declared props and state properties to resolve type resolution issues in this environment.
+  props: ErrorBoundaryProps;
   state: ErrorBoundaryState = { hasError: false, error: null };
 
   constructor(props: ErrorBoundaryProps) {
     super(props);
+    // Fix: Manually assigning props to satisfy property existence check.
+    this.props = props;
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
