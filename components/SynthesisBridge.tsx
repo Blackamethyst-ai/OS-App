@@ -48,24 +48,35 @@ const TreeView = ({ data }: { data: TechnicalManifest }) => {
     if (!data || !Array.isArray(data.structure)) return null;
     
     const renderNode = (node: DirectoryNode, depth = 0) => {
+        const isFolder = node.type === 'folder';
         return (
             <div key={node.name} className="space-y-1">
                 <div 
-                    className="flex items-center gap-2 py-1 hover:bg-white/5 rounded px-2 transition-colors cursor-default group/node"
-                    style={{ paddingLeft: `${depth * 1.5}rem` }}
+                    className="flex items-center gap-3 py-2 hover:bg-white/5 rounded-xl px-3 transition-colors cursor-default group/node"
+                    style={{ paddingLeft: `${depth * 1.5 + 0.5}rem` }}
                 >
-                    {node.type === 'folder' ? (
-                        <FolderOpen size={12} className="text-[#f1c21b]" />
-                    ) : (
-                        <FileText size={12} className="text-gray-500" />
-                    )}
-                    <span className={cn(
-                        "text-[10px] font-mono tracking-tight",
-                        node.type === 'folder' ? "text-gray-300 font-bold uppercase" : "text-gray-500"
-                    )}>{node.name}</span>
-                    {node.description && (
-                        <span className="text-[8px] text-gray-700 opacity-0 group-hover/node:opacity-100 transition-opacity ml-2 italic">— {node.description}</span>
-                    )}
+                    <div className={cn(
+                        "w-6 h-6 rounded flex items-center justify-center border transition-all",
+                        isFolder ? "bg-[#f1c21b]/10 border-[#f1c21b]/30 text-[#f1c21b]" : "bg-white/5 border-white/10 text-gray-600"
+                    )}>
+                        {isFolder ? <FolderOpen size={12} /> : <FileText size={12} />}
+                    </div>
+                    
+                    <div className="flex flex-col">
+                        <span className={cn(
+                            "text-[10px] font-mono tracking-tight transition-colors",
+                            isFolder ? "text-white font-black uppercase" : "text-gray-400 group-hover/node:text-white"
+                        )}>{node.name}</span>
+                        {node.description && (
+                            <span className="text-[8px] text-gray-600 font-mono line-clamp-1 max-w-[400px] mt-0.5">{node.description}</span>
+                        )}
+                    </div>
+                    
+                    <div className="ml-auto flex items-center gap-3 opacity-0 group-hover/node:opacity-100 transition-opacity">
+                        <span className="text-[7px] font-mono text-gray-700 uppercase">{node.size || '--'}</span>
+                        <div className="h-2 w-px bg-white/5" />
+                        <span className="text-[7px] font-mono text-gray-700 uppercase">{node.modified || '2025.Q1'}</span>
+                    </div>
                 </div>
                 {Array.isArray(node.children) && node.children.map((child: any) => renderNode(child, depth + 1))}
             </div>
@@ -73,20 +84,42 @@ const TreeView = ({ data }: { data: TechnicalManifest }) => {
     };
 
     return (
-        <div className="p-6 bg-black/40 border border-white/5 rounded-[2rem] shadow-inner font-mono overflow-x-auto custom-scrollbar">
-            <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
-                <FolderTree size={16} className="text-[#f1c21b]" />
-                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Directory Topology</span>
+        <div className="p-10 bg-black/60 border border-white/5 rounded-[3rem] shadow-inner font-mono overflow-hidden flex flex-col group/tree">
+            <div className="flex items-center justify-between mb-8 px-2 relative z-10">
+                <div className="flex items-center gap-4">
+                    <div className="p-2.5 bg-[#f1c21b]/10 rounded-xl border border-[#f1c21b]/30 text-[#f1c21b] shadow-xl">
+                        <FolderTree size={18} />
+                    </div>
+                    <div>
+                        <span className="text-[11px] font-black text-white uppercase tracking-[0.4em]">Drive Topology</span>
+                        <p className="text-[7px] text-gray-500 font-mono uppercase tracking-[0.2em] mt-1">Hierarchical Metadata Synthesis</p>
+                    </div>
+                </div>
+                <div className="flex items-center gap-4">
+                    <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">Lattice Integrity: OK</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                </div>
             </div>
-            {data.structure.map((root: any) => renderNode(root))}
+            
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-4 max-h-[500px]">
+                {data.structure.map((root: any) => renderNode(root))}
+            </div>
+
+            <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-center px-2 opacity-40 group-hover/tree:opacity-100 transition-opacity">
+                <div className="flex gap-4 text-[7px] font-mono text-gray-600 uppercase tracking-widest">
+                    <span>Paths: Recursive</span>
+                    <span>Format: Sovereign_Standard</span>
+                </div>
+                <button className="text-[8px] font-black font-mono text-[#f1c21b] hover:underline uppercase tracking-tighter">View Detailed Manifest</button>
+            </div>
         </div>
     );
 };
 
 const ImplementationDeck: React.FC<{
     data: TechnicalManifest;
-    onDeploy: (d: any) => void;
-    onArchive: (d: any) => void;
+    onDeploy: (d: TechnicalManifest) => void;
+    onArchive: (d: TechnicalManifest) => void;
 }> = ({ data, onDeploy, onArchive }) => {
     if (!data) return null;
 
@@ -98,27 +131,27 @@ const ImplementationDeck: React.FC<{
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col gap-8 pb-20"
         >
-            <div className="p-10 bg-[#0a0a0c] border border-white/5 rounded-[3.5rem] relative overflow-hidden shadow-2xl invisible-glass">
-                <div className="absolute top-0 right-0 p-8 opacity-[0.02] rotate-12"><Component size={180} /></div>
+            <div className="p-12 bg-[#0a0a0c] border border-white/5 rounded-[4rem] relative overflow-hidden shadow-2xl invisible-glass backdrop-blur-3xl">
+                <div className="absolute top-0 right-0 p-10 opacity-[0.02] rotate-12 pointer-events-none"><Component size={240} /></div>
                 
-                <div className="flex justify-between items-start mb-10 relative z-10">
+                <div className="flex justify-between items-start mb-12 relative z-10">
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="px-3 py-1 bg-[#10b981]/10 border border-[#10b981]/30 rounded-full flex items-center gap-2">
                                 <ShieldCheck size={10} className="text-[#10b981]" />
                                 <span className="text-[9px] font-black text-[#10b981] uppercase tracking-[0.2em]">Verified Manifest</span>
                             </div>
-                            <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">Blueprint ID: {crypto.randomUUID().split('-')[0].toUpperCase()}</span>
+                            <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">ID_HEX: {crypto.randomUUID().split('-')[0].toUpperCase()}</span>
                         </div>
-                        <h2 className="text-4xl font-black text-white font-mono tracking-tighter uppercase leading-none">{data.title}</h2>
+                        <h2 className="text-5xl font-black text-white font-mono tracking-tighter uppercase leading-none">{data.title}</h2>
                     </div>
 
                     <div className="flex gap-4 shrink-0">
-                        <button onClick={() => onArchive(data)} className="p-4 bg-white/5 border border-white/10 rounded-2xl text-gray-500 hover:text-white transition-all hover:bg-white/10">
+                        <button onClick={() => onArchive(data)} className="p-4 bg-white/5 border border-white/10 rounded-2xl text-gray-500 hover:text-white transition-all hover:bg-white/10 hover:border-white/30 shadow-xl active:scale-95">
                             <Save size={20} />
                         </button>
-                        <div className="px-6 py-3 bg-black/40 border border-white/5 rounded-2xl flex flex-col items-end">
-                            <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">Risk Factor</span>
+                        <div className="px-6 py-3 bg-black/40 border border-white/5 rounded-2xl flex flex-col items-end shadow-inner">
+                            <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">Risk Assessment</span>
                             <span className={cn(
                                 "text-lg font-black font-mono tracking-widest",
                                 data.riskVector === 'LOW' ? "text-[#10b981]" : "text-[#ef4444]"
@@ -127,20 +160,20 @@ const ImplementationDeck: React.FC<{
                     </div>
                 </div>
 
-                <div className="grid grid-cols-4 gap-6 relative z-10 mb-10">
-                    <BlueprintStat label="Stability Score" value={`${data.viability || 98}%`} color="#7B2CFF" />
-                    <BlueprintStat label="Recursive Depth" value={`L${data.depth || 8}`} color="#f97316" />
-                    <BlueprintStat label="Complexity Tier" value={data.complexity || 'PRODUCTION'} color="#f1c21b" />
-                    <BlueprintStat label="Topology Class" value={data.type} color="#18E6FF" />
+                <div className="grid grid-cols-4 gap-8 relative z-10 mb-12">
+                    <BlueprintStat label="Coherence Quotient" value={`${data.viability || 98}%`} color="#7B2CFF" />
+                    <BlueprintStat label="Logical Depth" value={`L${data.depth || 8}`} color="#f97316" />
+                    <BlueprintStat label="Optimization Tier" value={data.complexity || 'PRODUCTION'} color="#f1c21b" />
+                    <BlueprintStat label="Structural Class" value={data.type} color="#18E6FF" />
                 </div>
 
-                <div className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] shadow-inner group/logic relative overflow-hidden mb-10">
-                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] group/logic:opacity-10 transition-opacity"><Microscope size={60} /></div>
+                <div className="p-10 bg-black/40 border border-white/5 rounded-[3rem] shadow-inner group/logic relative overflow-hidden mb-12">
+                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] group/logic:opacity-10 transition-opacity duration-700"><Microscope size={80} /></div>
                     <div className="flex items-center gap-3 mb-6">
-                        <Terminal size={16} className="text-[#7B2CFF]" />
-                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Operational Logic</span>
+                        <Terminal size={18} className="text-[#7B2CFF]" />
+                        <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em]">Operational Directive</span>
                     </div>
-                    <p className="text-xl text-gray-300 font-mono leading-relaxed italic border-l-4 border-[#7B2CFF] pl-10 group-hover/logic:text-white transition-colors duration-500">
+                    <p className="text-2xl text-gray-300 font-mono leading-relaxed italic border-l-4 border-[#7B2CFF] pl-10 group-hover/logic:text-white transition-colors duration-700">
                         "{data.logic}"
                     </p>
                 </div>
@@ -150,9 +183,12 @@ const ImplementationDeck: React.FC<{
 
             <div className="grid grid-cols-12 gap-8">
                 <div className="col-span-8 space-y-4">
-                    <div className="flex items-center gap-4 px-4 mb-6">
-                        <ListChecks size={20} className="text-[#10b981]" />
-                        <span className="text-xs font-black text-white uppercase tracking-[0.4em]">Deployment Sequence</span>
+                    <div className="flex items-center gap-4 px-6 mb-8">
+                        <ListChecks size={24} className="text-[#10b981]" />
+                        <div>
+                            <span className="text-base font-black text-white uppercase tracking-[0.4em]">Implementation Protocol</span>
+                            <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest mt-1">Deterministic execution sequence</p>
+                        </div>
                     </div>
                     {protocols.map((step: any, i: number) => (
                         <motion.div 
@@ -160,50 +196,79 @@ const ImplementationDeck: React.FC<{
                             initial={{ opacity: 0, x: -20 }} 
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: i * 0.1 }}
-                            className="p-8 bg-[#0a0a0c] border border-white/5 rounded-[3.5rem] flex items-center gap-10 group hover:border-[#10b981]/30 transition-all shadow-xl relative overflow-hidden backdrop-blur-3xl"
+                            className="p-10 bg-[#0a0a0c] border border-white/5 rounded-[4rem] flex items-center gap-12 group hover:border-[#10b981]/30 transition-all shadow-xl relative overflow-hidden backdrop-blur-3xl"
                         >
-                            <div className="w-16 h-16 bg-black border border-white/10 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-[#10b981] group-hover:text-black transition-all shadow-lg relative z-10 overflow-hidden">
-                                <span className="text-xl font-black font-mono">{(i+1).toString().padStart(2, '0')}</span>
+                            <div className="w-16 h-16 bg-black border border-white/10 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-[#10b981] group-hover:text-black transition-all shadow-2xl relative z-10 overflow-hidden">
+                                <span className="text-2xl font-black font-mono">{(i+1).toString().padStart(2, '0')}</span>
+                                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-20" />
                             </div>
                             <div className="flex-1 min-w-0 relative z-10">
-                                <div className="text-[10px] font-black text-[#10b981] uppercase tracking-[0.2em] mb-2 opacity-60 group-hover:opacity-100">{step.phase || step.role || 'CORE'}</div>
-                                <p className="text-base text-gray-300 font-mono leading-relaxed group-hover:text-white">{step.instruction}</p>
+                                <div className="text-[10px] font-black text-[#10b981] uppercase tracking-[0.3em] mb-3 opacity-60 group-hover:opacity-100 flex items-center gap-3">
+                                    {step.phase || step.role || 'CORE'}
+                                    <div className="h-px w-8 bg-current opacity-20" />
+                                </div>
+                                <p className="text-lg text-gray-300 font-mono leading-relaxed group-hover:text-white transition-colors">{step.instruction}</p>
                             </div>
-                            <div className="px-5 py-2.5 bg-black/60 border border-white/10 rounded-xl flex items-center gap-3 shrink-0 relative z-10">
-                                <Binary size={14} className="text-gray-600" />
-                                <span className="text-[9px] font-mono text-gray-500 font-black uppercase tracking-widest">{step.nodeRef || 'STABLE'}</span>
+                            <div className="px-6 py-3 bg-black/60 border border-white/10 rounded-2xl flex items-center gap-4 shrink-0 relative z-10 shadow-inner group-hover:border-white/20 transition-all">
+                                <Binary size={16} className="text-gray-600 group-hover:text-[#22d3ee] transition-colors" />
+                                <span className="text-[10px] font-mono text-gray-500 font-black uppercase tracking-[0.2em]">{step.nodeRef || 'STABLE'}</span>
                             </div>
                         </motion.div>
                     ))}
                 </div>
 
-                <div className="col-span-4 flex flex-col gap-6">
-                    <div className="bg-[#0a0a0c] border border-white/5 rounded-[3rem] p-10 flex flex-col gap-10 shadow-2xl h-full invisible-glass backdrop-blur-3xl">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-[#7B2CFF]/10 rounded-2xl text-[#7B2CFF] border border-[#7B2CFF]/20 shadow-xl">
-                                <Compass size={24} />
+                <div className="col-span-4 flex flex-col gap-8">
+                    <div className="bg-[#0a0a0c] border border-white/5 rounded-[4rem] p-12 flex flex-col gap-12 shadow-2xl h-full invisible-glass backdrop-blur-4xl relative overflow-hidden">
+                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(123,44,255,0.03)_0%,transparent_70%)] pointer-events-none" />
+                        
+                        <div className="flex items-center gap-5 relative z-10">
+                            <div className="p-4 bg-[#7B2CFF]/10 rounded-2xl text-[#7B2CFF] border border-[#7B2CFF]/20 shadow-2xl">
+                                <Compass size={32} />
                             </div>
-                            <span className="text-[11px] font-black text-white uppercase tracking-[0.3em]">System Impact</span>
+                            <div>
+                                <span className="text-sm font-black text-white uppercase tracking-[0.3em]">System Impact</span>
+                                <p className="text-[9px] text-gray-500 font-mono uppercase mt-1">Predictive analysis</p>
+                            </div>
                         </div>
-                        <div className="flex-1 flex flex-col gap-10">
-                            <div className="space-y-5">
-                                <div className="flex justify-between items-end">
-                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Coherence</span>
-                                    <span className="text-[14px] font-black font-mono text-[#7B2CFF]">{data.viability}%</span>
+
+                        <div className="flex-1 flex flex-col gap-12 relative z-10">
+                            <div className="space-y-6">
+                                <div className="flex justify-between items-end px-1">
+                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Operational Success Rate</span>
+                                    <span className="text-[16px] font-black font-mono text-[#7B2CFF]">{data.viability}%</span>
                                 </div>
-                                <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                                    <motion.div initial={{ width: 0 }} animate={{ width: `${data.viability}%` }} className="h-full bg-gradient-to-r from-[#7B2CFF] to-[#18E6FF] shadow-[0_0_15px_#7B2CFF]" />
+                                <div className="h-2 w-full bg-black/60 rounded-full overflow-hidden border border-white/5 shadow-inner p-px">
+                                    <motion.div 
+                                        initial={{ width: 0 }} 
+                                        animate={{ width: `${data.viability}%` }} 
+                                        transition={{ duration: 1.5, ease: "circOut" }}
+                                        className="h-full rounded-full bg-gradient-to-r from-[#7B2CFF] to-[#18E6FF] shadow-[0_0_20px_rgba(123,44,255,0.5)]" 
+                                    />
                                 </div>
                             </div>
-                            <div className="mt-auto pt-10 border-t border-white/5 flex flex-col gap-6">
+
+                            <div className="space-y-4 px-2">
+                                {[
+                                    { label: 'Latency Shift', val: '-12ms', color: '#10b981' },
+                                    { label: 'Throughput', val: '+24%', color: '#22d3ee' },
+                                    { label: 'Entropy Cost', val: 'Low', color: '#f1c21b' }
+                                ].map((stat, idx) => (
+                                    <div key={idx} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0">
+                                        <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest">{stat.label}</span>
+                                        <span className="text-[10px] font-black font-mono uppercase" style={{ color: stat.color }}>{stat.val}</span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mt-auto pt-12 border-t border-white/5 flex flex-col gap-6">
                                 <button 
                                     onClick={() => onDeploy(data)}
-                                    className="w-full py-6 bg-[#10b981] hover:bg-[#15d192] text-black rounded-[2rem] text-[11px] font-black uppercase tracking-[0.5em] transition-all flex items-center justify-center gap-5 shadow-[0_30px_70px_rgba(16,185,129,0.3)] active:scale-95 group"
+                                    className="w-full py-7 bg-[#10b981] hover:bg-[#15d192] text-black rounded-[2.5rem] text-[12px] font-black uppercase tracking-[0.5em] transition-all flex items-center justify-center gap-6 shadow-[0_30px_80px_rgba(16,185,129,0.3)] active:scale-95 group shadow-inner"
                                 >
-                                    <PlayCircle size={24} className="group-hover:rotate-90 transition-transform duration-700" /> Commit Protocol
+                                    <PlayCircle size={28} className="group-hover:rotate-90 transition-transform duration-700 fill-current" /> Commit Protocol
                                 </button>
-                                <button className="w-full py-5 border border-white/10 text-gray-500 hover:text-white rounded-[2rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-4 hover:bg-white/5 active:scale-95">
-                                    <Share2 size={18} /> Broadcast Manifest
+                                <button className="w-full py-5 border border-white/10 text-gray-500 hover:text-white rounded-[2.5rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-4 hover:bg-white/5 active:scale-95 group">
+                                    <Share2 size={20} className="group-hover:scale-110 transition-transform" /> Broadcast Manifest
                                 </button>
                             </div>
                         </div>
@@ -216,7 +281,7 @@ const ImplementationDeck: React.FC<{
 
 const SynthesisBridge: React.FC = () => {
     const { actions, knowledge, dashboard } = useAppStore();
-    const { addLog, pushToInvestmentQueue, archiveIntervention, setDashboardState } = actions;
+    const { addLog, archiveIntervention, deployStrategyToLattice } = actions;
     
     const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM' | 'CODE'>('DRIVE');
     const [isGenerating, setIsGenerating] = useState(false);
@@ -236,7 +301,6 @@ const SynthesisBridge: React.FC = () => {
         addLog('SYSTEM', `SYNC: Initializing high-fidelity logic forge for ${processType}...`);
 
         try {
-            // Fix: properly handle promptSelectKey return type
             const hasKey = await promptSelectKey();
             if (!hasKey) { setIsGenerating(false); return; }
             
@@ -254,7 +318,7 @@ const SynthesisBridge: React.FC = () => {
             });
 
             setResult(workflow);
-            setDashboardState({ activeManifest: workflow });
+            actions.setDashboardState({ activeManifest: workflow });
             
             addLog('SUCCESS', `SYNC_COMPLETE: ${workflow.title} stabilized and verified.`);
             audio.playSuccess();
@@ -363,8 +427,8 @@ const SynthesisBridge: React.FC = () => {
                             <ImplementationDeck 
                                 key="active-deck" 
                                 data={result} 
-                                onArchive={(d) => { archiveIntervention({ ...d, id: `strat-${Date.now()}`, timestamp: Date.now() }); audio.playSuccess(); }}
-                                onDeploy={(d) => { pushToInvestmentQueue(d); addLog('SUCCESS', `MANIFEST_ENGAGED: Protocol authorized.`); audio.playSuccess(); }}
+                                onArchive={(d) => { archiveIntervention({ ...d, timestamp: Date.now() }); audio.playSuccess(); }}
+                                onDeploy={(d) => { deployStrategyToLattice(d); addLog('SUCCESS', `MANIFEST_ENGAGED: Protocol authorized for deployment.`); audio.playSuccess(); }}
                             />
                         ) : (
                             <motion.div 

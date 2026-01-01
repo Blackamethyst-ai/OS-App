@@ -5,7 +5,8 @@ import {
     SwarmResult, SwarmStatus, SearchResultItem, Message, 
     PeerPresence, SwarmEvent, TaskPriority, TaskStatus, 
     AspectRatio, ImageSize, StoredArtifact, MetaventionsState,
-    OperationalContext, AutonomousAgent, Frame, ProductionBible
+    OperationalContext, AutonomousAgent, Frame, ProductionBible,
+    TechnicalManifest
 } from './types';
 import { neuralVault } from './services/persistenceService';
 
@@ -109,7 +110,7 @@ interface AppState {
         isGenerating: boolean;
         identityUrl: null | string;
         hubViewUrl: null | string;
-        activeManifest: any | null;
+        activeManifest: TechnicalManifest | null;
         deploymentProgress: number;
         activeStepIndex: number;
         referenceImage: FileData | null;
@@ -130,7 +131,7 @@ interface AppState {
         diagramStatus: string;
         diagramError: string | null;
         generatedCode: string;
-        generatedWorkflow: any;
+        generatedWorkflow: TechnicalManifest | null;
         runtimeResults: Record<number, any>;
         activeStepIndex: number | null;
         isSimulating: boolean;
@@ -310,7 +311,7 @@ interface AppState {
         updateAgent: (id: string, update: Partial<AutonomousAgent>) => void;
         addAgent: (agent: AutonomousAgent) => void;
         hydrateAgents: () => Promise<void>;
-        deployStrategyToLattice: (strategy: any) => void;
+        deployStrategyToLattice: (strategy: TechnicalManifest) => void;
     };
 }
 
@@ -323,7 +324,6 @@ export const useAppStore = create<AppState>((set, get) => ({
         clearanceLevel: 5,
         avatar: null
     },
-    // Set to true by default to move auth to background/manual state
     authenticated: true,
     isProfileOpen: false,
     isCommandPaletteOpen: false,
@@ -744,7 +744,7 @@ export const useAppStore = create<AppState>((set, get) => ({
             const updatedAgents = state.agents.activeAgents.map(a => a.id === id ? { ...a, ...update } : a);
             const targetAgent = updatedAgents.find(a => a.id === id);
             if (targetAgent) {
-                neuralVault.saveAgent(targetAgent); // Unitary Persistence Reflex
+                neuralVault.saveAgent(targetAgent); 
             }
             return { agents: { ...state.agents, activeAgents: updatedAgents } };
         }),
@@ -759,14 +759,76 @@ export const useAppStore = create<AppState>((set, get) => ({
                 set((state) => ({ agents: { ...state.agents, activeAgents: saved } }));
             }
         },
-        deployStrategyToLattice: (strategy: any) => set((state) => {
-            const nodes = [...state.process.nodes, {
-                id: `node-strat-${Date.now()}`,
+        deployStrategyToLattice: (strategy: TechnicalManifest) => set((state) => {
+            const centerX = 500;
+            const centerY = 400;
+            const radius = 250;
+            
+            // Create a root node for the strategy
+            const rootNode = {
+                id: `node-strat-root-${Date.now()}`,
                 type: 'holographic',
-                position: { x: 400, y: 200 },
-                data: { label: strategy.title, subtext: strategy.logic, iconName: 'ShieldCheck', color: '#10b981', status: 'DEPLOYED', drift: 0 }
-            }];
-            return { process: { ...state.process, nodes }, mode: AppMode.PROCESS_MAP };
+                position: { x: centerX, y: centerY - 300 },
+                data: { 
+                    label: strategy.title.toUpperCase(), 
+                    subtext: strategy.type, 
+                    iconName: 'ShieldCheck', 
+                    color: '#10b981', 
+                    status: 'DEPLOYED', 
+                    drift: 0 
+                }
+            };
+
+            // Map protocols to sequential nodes in a loop
+            const protocolNodes = (strategy.protocols || []).map((p, i) => {
+                const angle = (i / strategy.protocols.length) * Math.PI * 2;
+                return {
+                    id: `node-strat-p-${i}-${Date.now()}`,
+                    type: 'holographic',
+                    position: { 
+                        x: centerX + Math.cos(angle) * radius, 
+                        y: centerY + Math.sin(angle) * radius 
+                    },
+                    data: { 
+                        label: p.instruction.substring(0, 20) + '...', 
+                        subtext: p.role, 
+                        iconName: 'Target', 
+                        color: '#9d4edd', 
+                        status: 'INITIALIZED', 
+                        drift: 0 
+                    }
+                };
+            });
+
+            // Create edges connecting the root to all nodes
+            const edges = protocolNodes.map(node => ({
+                id: `edge-${rootNode.id}-${node.id}`,
+                source: rootNode.id,
+                target: node.id,
+                type: 'cinematic',
+                data: { color: '#9d4edd', variant: 'stream' }
+            }));
+
+            // Chain protocol nodes sequentially too
+            for (let i = 0; i < protocolNodes.length; i++) {
+                const nextIdx = (i + 1) % protocolNodes.length;
+                edges.push({
+                    id: `edge-chain-${i}-${nextIdx}-${Date.now()}`,
+                    source: protocolNodes[i].id,
+                    target: protocolNodes[nextIdx].id,
+                    type: 'cinematic',
+                    data: { color: '#22d3ee', variant: 'pulse' }
+                });
+            }
+
+            return { 
+                process: { 
+                    ...state.process, 
+                    nodes: [...state.process.nodes, rootNode, ...protocolNodes],
+                    edges: [...state.process.edges, ...edges]
+                }, 
+                mode: AppMode.PROCESS_MAP 
+            };
         }),
     }
 }));

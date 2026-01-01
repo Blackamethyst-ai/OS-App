@@ -1,3 +1,4 @@
+
 import React, { Component, ReactNode, ErrorInfo, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
@@ -17,10 +18,10 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Metaventions OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Directly use the imported Component class to ensure generic types are properly applied and resolve "Property state/props does not exist" errors
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Explicitly declare state property for type safety to satisfy base class inheritance requirements in the current TypeScript environment
-  override state: ErrorBoundaryState = { hasError: false, error: null };
+// Fix: Directly use the imported Component class to ensure generic types are properly applied and resolve "Property state/props does not exist" errors. Removed override keywords that were causing errors due to inheritance resolution issues.
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Declared state property without override to satisfy inheritance requirements in this environment.
+  state: ErrorBoundaryState = { hasError: false, error: null };
 
   constructor(props: ErrorBoundaryProps) {
     super(props);
@@ -30,7 +31,8 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     return { hasError: true, error };
   }
 
-  override componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+  // Fix: Removed override keyword to resolve "member cannot have an 'override' modifier" error.
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("CRITICAL UI ERROR [Kernel Panic]:", error, errorInfo);
   }
 
@@ -38,8 +40,8 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     window.location.reload();
   };
 
-  override render(): ReactNode {
-    // Fix: Access state and props using 'this' keyword within the class method context
+  // Fix: Removed override keyword and ensured this.props and this.state are accessible via correct class inheritance.
+  render(): ReactNode {
     const { hasError, error } = this.state;
     const { fallback, children } = this.props;
 
