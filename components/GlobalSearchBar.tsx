@@ -46,6 +46,7 @@ const GlobalSearchBar: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [validationError, setValidationError] = useState<string | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
 
   const isBeingInspected = focusedSelector === 'header input';
 
@@ -189,27 +190,38 @@ const GlobalSearchBar: React.FC = () => {
                     type="text"
                     value={search.query || ''}
                     onChange={(e) => setSearchState({ query: e.target.value })}
-                    onFocus={() => setSearchState({ isOpen: true })}
+                    onFocus={() => { setSearchState({ isOpen: true }); setIsFocused(true); }}
+                    onBlur={() => setIsFocused(false)}
                     onKeyDown={handleKeyDown}
                     className={cn(
                         "w-full bg-black/40 border rounded-full px-12 py-2 text-[10px] font-mono text-white outline-none transition-all shadow-inner",
-                        validationError ? "border-red-500/50" : "border-white/10 focus:border-[#9d4edd] group-hover:border-white/20",
-                        isBeingInspected && "border-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.2)]"
+                        validationError ? "border-red-500/50" : (isFocused || isBeingInspected) ? "border-[#f1c21b] shadow-[0_0_15px_rgba(241,194,27,0.3)]" : "border-white/10 group-hover:border-white/20",
+                        isBeingInspected && "scale-105"
                     )}
                     placeholder="Locate intelligence..."
                 />
+                
+                {/* Cognitive Probe Scanline Animation */}
+                {isFocused && (
+                    <motion.div 
+                        initial={{ top: '10%' }}
+                        animate={{ top: ['10%', '90%', '10%'] }}
+                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        className="absolute left-6 right-6 h-[1px] bg-[#f1c21b]/30 pointer-events-none z-10"
+                    />
+                )}
+
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                    {search.isSearching ? <Loader2 className="w-3.5 h-3.5 text-[#9d4edd] animate-spin" /> : <Search className="w-3.5 h-3.5 text-gray-500" />}
+                    {search.isSearching ? <Loader2 className="w-3.5 h-3.5 text-[#f1c21b] animate-spin" /> : <Search className={cn("w-3.5 h-3.5 transition-colors", isFocused ? "text-[#f1c21b]" : "text-gray-500")} />}
                 </div>
 
                 {isBeingInspected && (
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-[#9d4edd] px-2 py-0.5 rounded-full shadow-[0_0_10px_#9d4edd]">
+                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-[#f1c21b] px-2 py-0.5 rounded-full shadow-[0_0_10px_#f1c21b]">
                          <Scan size={8} className="text-black animate-pulse" />
-                         <span className="text-[7px] font-black text-black uppercase tracking-widest">[SCANNING]</span>
+                         <span className="text-[7px] font-black text-black uppercase tracking-widest">[PROBE_ACTIVE]</span>
                     </div>
                 )}
                 
-                {/* Validation Feedback */}
                 <AnimatePresence>
                     {validationError && (
                         <motion.div 
@@ -265,11 +277,11 @@ const GlobalSearchBar: React.FC = () => {
                                             selectedIndex === i ? "bg-white/[0.05]" : "hover:bg-white/[0.02]"
                                         )}
                                      >
-                                         {selectedIndex === i && <motion.div layoutId="search-active" className="absolute left-0 top-0 bottom-0 w-1 bg-[#9d4edd] shadow-[0_0_15px_#9d4edd]" />}
+                                         {selectedIndex === i && <motion.div layoutId="search-active" className="absolute left-0 top-0 bottom-0 w-1 bg-[#f1c21b] shadow-[0_0_15px_#f1c21b]" />}
                                          
                                          <div className={cn(
                                              "w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 transition-all",
-                                             selectedIndex === i ? "bg-[#9d4edd]/20 border-[#9d4edd]/40 text-[#9d4edd]" : "bg-black/40 border-white/5 text-gray-700"
+                                             selectedIndex === i ? "bg-[#f1c21b]/20 border-[#f1c21b]/40 text-[#f1c21b]" : "bg-black/40 border-white/5 text-gray-700"
                                          )}>
                                              {item.category === 'COMMANDS' ? <Terminal size={18} /> : 
                                               item.category === 'MEMORY' ? <Database size={18} /> : 
@@ -285,7 +297,7 @@ const GlobalSearchBar: React.FC = () => {
                                              </div>
                                              <p className="text-[9px] text-gray-500 font-mono line-clamp-1 leading-relaxed">{item.description}</p>
                                          </div>
-                                         <ArrowRight className={cn("w-4 h-4 mt-1 transition-all", selectedIndex === i ? "text-[#9d4edd] translate-x-0" : "text-gray-800 -translate-x-2")} />
+                                         <ArrowRight className={cn("w-4 h-4 mt-1 transition-all", selectedIndex === i ? "text-[#f1c21b] translate-x-0" : "text-gray-800 -translate-x-2")} />
                                      </button>
                                  ))}
                              </div>
@@ -322,8 +334,8 @@ const GlobalSearchBar: React.FC = () => {
                          ) : (
                              <div className="p-16 text-center space-y-8">
                                  <div className="relative inline-block">
-                                     <BrainCircuit size={64} className="text-[#9d4edd] opacity-20 animate-pulse" />
-                                     <div className="absolute inset-0 blur-2xl bg-[#9d4edd]/10 rounded-full" />
+                                     <BrainCircuit size={64} className="text-[#f1c21b] opacity-20 animate-pulse" />
+                                     <div className="absolute inset-0 blur-2xl bg-[#f1c21b]/10 rounded-full" />
                                  </div>
                                  <div className="space-y-2">
                                      <p className="text-[11px] font-black font-mono text-gray-500 uppercase tracking-[0.6em]">System Oracle Idle</p>
@@ -350,7 +362,7 @@ const GlobalSearchBar: React.FC = () => {
                         </div>
                         <div className="flex gap-2">
                             <span className="px-1.5 py-0.5 bg-black rounded text-[7px] font-mono text-gray-500">ESC to Close</span>
-                            <span className="px-1.5 py-0.5 bg-[#9d4edd]/20 text-[#9d4edd] border border-[#9d4edd]/30 rounded text-[7px] font-bold">ENTER to Sync</span>
+                            <span className="px-1.5 py-0.5 bg-[#f1c21b]/20 text-[#f1c21b] border border-[#f1c21b]/30 rounded text-[7px] font-bold">ENTER to Sync</span>
                         </div>
                     </div>
                 </MotionDiv>
