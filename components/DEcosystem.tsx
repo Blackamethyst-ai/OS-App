@@ -118,7 +118,7 @@ const DEcosystem: React.FC = () => {
         };
       });
 
-      // 1. Draw Logical Neural Web (Intensity based on Coherence)
+      // 1. Draw Logical Neural Web
       ctx.globalCompositeOperation = 'lighter';
       ctx.lineWidth = 0.4;
       const coherenceFactor = coherence / 100;
@@ -149,7 +149,6 @@ const DEcosystem: React.FC = () => {
         p.px = p.x;
         p.py = p.y;
 
-        // Interaction Physics: Repulsion from Mouse
         const mdx = p.x - mouseRef.current.x;
         const mdy = p.y - mouseRef.current.y;
         const mdist = Math.sqrt(mdx * mdx + mdy * mdy);
@@ -241,7 +240,6 @@ const DEcosystem: React.FC = () => {
         const isHovered = distToMouse < 60;
         const beat = 1 + Math.sin(time * 8 + (n.angle / 8)) * (isHovered ? 0.25 : 0.12);
         
-        // Glow layer
         const gradient = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, (isHovered ? 80 : 40) * beat);
         gradient.addColorStop(0, `${n.color}22`);
         gradient.addColorStop(1, 'transparent');
@@ -250,7 +248,6 @@ const DEcosystem: React.FC = () => {
         ctx.arc(n.x, n.y, (isHovered ? 80 : 40) * beat, 0, Math.PI * 2);
         ctx.fill();
 
-        // Pulsing core
         ctx.beginPath();
         ctx.arc(n.x, n.y, (isHovered ? 12 : 8) * beat, 0, Math.PI * 2);
         ctx.fillStyle = n.color;
@@ -259,15 +256,19 @@ const DEcosystem: React.FC = () => {
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Functional readout
+        // SECTOR LABEL POSITIONING - FIXED POSITIONING TO REDUCE JUMBLE
         ctx.font = '900 13px Fira Code';
         ctx.fillStyle = isHovered ? '#fff' : 'rgba(255,255,255,0.85)';
         ctx.textAlign = 'center';
-        ctx.fillText(`${n.label}`, n.x, n.y - (isHovered ? 55 : 40));
+        
+        // Calculate dynamic label offset based on radial distance from center to prevent squashing
+        const labelOffsetY = (n.y < centerY) ? -55 : 55;
+        ctx.fillText(`${n.label}`, n.x, n.y + (isHovered ? labelOffsetY * 1.2 : labelOffsetY));
         
         ctx.fillStyle = isHovered ? n.color : 'rgba(255,255,255,0.35)';
         ctx.font = '800 9px Fira Code';
-        ctx.fillText(`${n.load.toFixed(1)}%`, n.x, n.y - (isHovered ? 70 : 55));
+        const loadOffsetY = (n.y < centerY) ? -70 : 70;
+        ctx.fillText(`${n.load.toFixed(1)}%`, n.x, n.y + (isHovered ? loadOffsetY * 1.2 : loadOffsetY));
 
         if (activeTransitNodeRef.current === n.id) {
              ctx.beginPath();
@@ -281,20 +282,17 @@ const DEcosystem: React.FC = () => {
       frameId = requestAnimationFrame(render);
     };
 
-    // Smart Reasoning Rebalancing Logic
     const rebalanceInterval = setInterval(() => {
-        // Intelligent Node Selection: Find the sector with highest "perceived" delta
         const targetId = SECTORS[Math.floor(Math.random() * SECTORS.length)].id;
         setActiveTransitNode(targetId);
         activeTransitNodeRef.current = targetId;
 
         let batchCount = 0;
-        const batchMax = 120; // Increased throughput for larger lattice
+        const batchMax = 120; 
 
         for (let i = 0; i < particles.length; i++) {
             if (batchCount >= batchMax) break;
             if (particles[i].state === 'clustering' && particles[i].targetSectorId !== targetId) {
-                // Stochastic probability of migration based on current node density vs target
                 if (Math.random() > 0.7) {
                     particles[i].targetSectorId = targetId;
                     particles[i].state = 'transit';
@@ -376,12 +374,9 @@ const DEcosystem: React.FC = () => {
             transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
             className="absolute inset-[-6px] border border-dashed border-[#22d3ee]/30 rounded-full"
         />
-        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[6px] font-black font-mono text-[#22d3ee] uppercase tracking-[0.3em] opacity-40">
-           Gravity_Active
-        </div>
       </motion.div>
 
-      {/* NEURAL CORE REACTOR (Denser Visuals) */}
+      {/* NEURAL CORE REACTOR */}
       <div className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none">
         <motion.div 
             animate={{ 
@@ -437,23 +432,6 @@ const DEcosystem: React.FC = () => {
                 </div>
             </div>
         </motion.div>
-      </div>
-
-      {/* Atmospheric HUD (Visual Logic Markers) */}
-      <div className="absolute top-16 left-16 flex flex-col gap-8 pointer-events-none z-50">
-          <motion.div 
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-6"
-          >
-              <div className="p-4 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-3xl shadow-2xl">
-                  <Network size={24} className="text-[#9d4edd]" />
-              </div>
-              <div className="flex flex-col">
-                  <span className="text-[13px] font-black font-mono text-white uppercase tracking-[0.5em]">Core Mesh Fabric</span>
-                  <span className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-2">Recursive Swarm Orchestration active</span>
-              </div>
-          </motion.div>
       </div>
 
       <div className="absolute bottom-16 right-16 flex flex-col items-end gap-5 pointer-events-none z-50">

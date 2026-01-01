@@ -22,7 +22,7 @@ import {
     Terminal, Crosshair, Sparkles, Eye, EyeOff,
     Navigation, Settings, Layout, MousePointer2,
     Search, Gauge, Compass, Atom,
-    Dna
+    Dna, Network
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
@@ -86,6 +86,16 @@ const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) 
             <div className="text-[7px] font-black font-mono text-gray-500 uppercase tracking-widest mb-0.5">{title}</div>
             <div className="text-lg font-black font-mono text-white tracking-tighter leading-none">{value}</div>
         </div>
+    </div>
+);
+
+const SystemsIntegrityWrapper = ({ telemetry }: { telemetry: any }) => (
+    <div className="bg-black/40 border border-white/5 rounded-[2.5rem] p-6 grid grid-cols-2 lg:grid-cols-4 gap-4 shadow-2xl relative overflow-hidden group/integrity">
+        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/20 to-transparent" />
+        <CompactMetric title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="#18E6FF" trend="up" />
+        <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
+        <CompactMetric title="GRAVITY" value="0.98G" detail="SYNC" icon={Atom} color="#22d3ee" trend="up" />
+        <CompactMetric title="COHERENCE" value={`${telemetry.trust.toFixed(1)}%`} detail="SECURE" icon={ShieldCheck} color="#9d4edd" trend="up" />
     </div>
 );
 
@@ -227,7 +237,6 @@ const MetaventionsHub: React.FC = () => {
   const kernel = useAppStore(s => s.kernel);
 
   const [isSyncing, setIsSyncing] = useState(false);
-  const [showBlueprint, setShowBlueprint] = useState(false);
   const [telemetry, setTelemetry] = useState({ cpu: 13.2, net: 0.8, trust: 99.4, entropy: kernel.entropy });
   const voiceCanvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -303,7 +312,7 @@ const MetaventionsHub: React.FC = () => {
 
   const handleGlobalSync = async () => {
       setIsSyncing(true);
-      actions.addLog('SYSTEM', 'HUB_SYNC: Initiating Zenith Fidelity visualization...');
+      actions.addLog('SYSTEM', 'HUB_SYNC: Initializing Zenith Fidelity visualization...');
       audio.playClick();
       try {
           if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsSyncing(false); return; }
@@ -319,7 +328,6 @@ const MetaventionsHub: React.FC = () => {
                   context: "Ecosystem Hub Core"
               })
           ]);
-          // Fix: Changed 'workflow' to 'manifest' to match the variable destructured from Promise.all result
           actions.setDashboardState({ hubViewUrl: imageUrl, activeManifest: manifest });
           actions.addLog('SUCCESS', 'HUB_SYNC: Strategic view established.');
           audio.playSuccess();
@@ -357,7 +365,7 @@ const MetaventionsHub: React.FC = () => {
   };
 
   return (
-    <div key={theme} className="h-full w-full bg-[#020204] flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out relative">
+    <div key={theme} className="h-full w-full bg-[#020204] flex flex-col font-sans overflow-y-auto custom-scrollbar transition-all duration-700 ease-in-out relative">
       
       {/* Background Living Mesh */}
       <div className="absolute inset-0 z-0 pointer-events-none">
@@ -377,14 +385,14 @@ const MetaventionsHub: React.FC = () => {
           <div className="absolute inset-0 opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
       </div>
       
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-10 relative bg-transparent z-10 flex flex-col gap-12">
+      <div className="flex-1 p-10 relative bg-transparent z-10 flex flex-col gap-12 max-w-[2200px] mx-auto w-full">
           {!dashboard.isOculusView && <VisionaryTicker />}
 
           {/* MAIN GRID - VIEWPORT & SIDEBAR */}
           <div className="grid grid-cols-12 gap-10 items-start shrink-0">
               
               <div className={cn(
-                  "crystalline shadow-2xl relative overflow-hidden flex flex-col min-h-[700px] group/soc invisible-glass border border-white/5 transition-all duration-1000",
+                  "crystalline shadow-2xl relative overflow-hidden flex flex-col min-h-[900px] group/soc invisible-glass border border-white/5 transition-all duration-1000",
                   "col-span-9 rounded-[4rem]"
               )}>
                   <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 shrink-0 z-20 relative">
@@ -468,10 +476,10 @@ const MetaventionsHub: React.FC = () => {
                   </div>
               </div>
 
-              {/* Sidebar Panel - BIOMETRIC ANCHOR RESTORED */}
+              {/* Sidebar Panel - BIOMETRIC ANCHOR RESTORED & ELONGATED */}
               <div className="col-span-3 space-y-8 flex flex-col relative z-10 h-full">
-                    {/* Metaventions Biometric Anchor - ORIGINAL SPOT */}
-                    <div className="crystalline rounded-[3.5rem] p-6 h-48 shadow-2xl flex flex-col gap-4 relative overflow-hidden invisible-glass border border-white/5 group/anchor-box">
+                    {/* Metaventions Biometric Anchor */}
+                    <div className="crystalline rounded-[3.5rem] p-8 h-[600px] shadow-2xl flex flex-col gap-6 relative overflow-hidden invisible-glass border border-white/5 group/anchor-box">
                         <div className="flex items-center justify-between relative z-10 px-1">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-[#f1c21b]/10 rounded-xl text-[#f1c21b] border border-[#f1c21b]/20">
@@ -484,7 +492,7 @@ const MetaventionsHub: React.FC = () => {
                                 <input type="file" className="hidden" onChange={handleAnchorSwap} accept="image/*" />
                             </label>
                         </div>
-                        <div className="flex-1 bg-black/40 rounded-3xl border border-white/5 flex items-center justify-center overflow-hidden relative group/anchor shadow-inner z-10">
+                        <div className="flex-1 bg-black/40 rounded-[2.5rem] border border-white/5 flex items-center justify-center overflow-hidden relative group/anchor shadow-inner z-10">
                             {dashboard.referenceImage ? (
                                     <>
                                         <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover grayscale-[30%] group-hover/anchor:grayscale-0 transition-all duration-700" alt="Anchor" />
@@ -493,12 +501,18 @@ const MetaventionsHub: React.FC = () => {
                                         </div>
                                     </>
                             ) : (
-                                    <label className="flex flex-col items-center gap-3 cursor-pointer p-6 group/label opacity-40 hover:opacity-100 transition-all">
-                                        <Scan size={32} className="text-gray-600 group-hover/label:text-[#f1c21b] transition-all" />
-                                        <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Load Identity Key</span>
+                                    <label className="flex flex-col items-center gap-6 cursor-pointer p-10 group/label opacity-40 hover:opacity-100 transition-all">
+                                        <div className="w-20 h-20 rounded-full border border-dashed border-gray-700 flex items-center justify-center group-hover/label:border-[#f1c21b] transition-all">
+                                            <Scan size={32} className="text-gray-600 group-hover/label:text-[#f1c21b] transition-all" />
+                                        </div>
+                                        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest text-center">Load Identity Key</span>
                                         <input type="file" className="hidden" onChange={handleAnchorSwap} />
                                     </label>
                             )}
+                        </div>
+                        <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center text-[8px] font-mono text-gray-700 uppercase tracking-widest">
+                            <span>Auth_Vector: Persistent</span>
+                            <ShieldCheck size={12} className="text-[#10b981]" />
                         </div>
                     </div>
 
@@ -507,30 +521,33 @@ const MetaventionsHub: React.FC = () => {
               </div>
           </div>
 
-          {/* NEW ROW: INTELLIGENCE MATRIX (WIDE SPAN) */}
+          {/* TELEMETRY MATRIX - INTEGRATED SYSTEM WRAPPER */}
+          <SystemsIntegrityWrapper telemetry={telemetry} />
+
+          {/* INTELLIGENCE MATRIX (WIDE SPAN) */}
           <div className="grid grid-cols-12 gap-10 items-stretch shrink-0">
                 <div className="col-span-8">
                     <SwarmBox />
                 </div>
-                <div className="col-span-4 grid grid-cols-2 gap-6">
-                    <CompactMetric title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="#18E6FF" trend="up" />
-                    <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
-                    <CompactMetric title="GRAVITY" value="0.98G" detail="SYNC" icon={Atom} color="#22d3ee" trend="up" />
-                    <CompactMetric title="COHERENCE" value={`${telemetry.trust.toFixed(1)}%`} detail="SECURE" icon={ShieldCheck} color="#9d4edd" trend="up" />
-                    
-                    <div className="col-span-2 h-[280px]">
+                <div className="col-span-4 h-full">
+                    <div className="h-[400px] w-full">
                         <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
                     </div>
                 </div>
           </div>
 
           {/* ECOSYSTEM LATTICE - LONG VERTICAL VIEW */}
-          <div className="w-full h-[1200px] rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
-                <div className="absolute top-12 left-16 z-20 flex flex-col gap-3 pointer-events-none">
-                    <h2 className="text-white text-4xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">The D-Ecosystem</h2>
-                    <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-6 py-2.5 rounded-full border border-white/10 shadow-2xl w-fit">
-                        <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
-                        <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.3em]">Autonomous_Swarm_Lattice // ACTIVE_SYNC</span>
+          <div className="w-full h-[1200px] rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0 bg-black/40 backdrop-blur-3xl">
+                <div className="absolute top-12 left-16 z-20 flex flex-col gap-5 pointer-events-none">
+                    <h2 className="text-white text-5xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">The D-Ecosystem</h2>
+                    <div className="flex items-center gap-6 bg-black/60 backdrop-blur-2xl px-8 py-3.5 rounded-full border border-white/10 shadow-2xl w-fit">
+                        <div className="p-2 bg-[#10b981]/10 rounded-lg">
+                            <Network size={16} className="text-[#10b981] animate-pulse" />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.3em]">Core Mesh Fabric</span>
+                            <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">Autonomous_Swarm_Lattice // ACTIVE_SYNC</span>
+                        </div>
                     </div>
                 </div>
                 <DEcosystem />

@@ -19,7 +19,8 @@ interface ErrorBoundaryState {
  */
 // Fix: Inherit from Component directly to ensure 'props' and 'state' properties are recognized by the TypeScript compiler
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Explicitly declare and initialize state property for type safety and visibility
+  // Fix: Explicitly declare props and state property for type safety and visibility
+  public props: ErrorBoundaryProps;
   public state: ErrorBoundaryState = {
     hasError: false,
     error: null,
