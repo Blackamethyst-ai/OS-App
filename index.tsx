@@ -1,5 +1,5 @@
 
-import React, { ReactNode, ErrorInfo, StrictMode } from 'react';
+import React, { Component, ReactNode, ErrorInfo, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ShieldAlert, RefreshCw, Terminal, Activity } from 'lucide-react';
@@ -18,13 +18,12 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Metaventions OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Use React.Component directly and ensure generic types are applied correctly to resolve "Property state/props does not exist" errors
-class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Initialize state at class level for structural integrity and type safety
-  state: ErrorBoundaryState = { hasError: false, error: null };
-
+// Fix: Use named Component import and ensure generic types are applied correctly to resolve "Property state/props does not exist" errors
+class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Initialize state in constructor to satisfy base class inheritance and type safety
   constructor(props: ErrorBoundaryProps) {
     super(props);
+    this.state = { hasError: false, error: null };
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -40,7 +39,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
   };
 
   render(): ReactNode {
-    // Fix: Accessing state and props from the Component instance which are now correctly inherited from React.Component
+    // Fix: Access state and props using 'this' keyword within the class method context
     const { hasError, error } = this.state;
     const { fallback, children } = this.props;
 

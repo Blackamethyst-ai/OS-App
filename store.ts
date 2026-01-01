@@ -323,7 +323,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         clearanceLevel: 5,
         avatar: null
     },
-    authenticated: false,
+    // Set to true by default to move auth to background/manual state
+    authenticated: true,
     isProfileOpen: false,
     isCommandPaletteOpen: false,
     operationalContext: 'D_ECOSYSTEM_PRODUCTION',
