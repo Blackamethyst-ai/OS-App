@@ -21,10 +21,10 @@ import {
     X, FolderTree, FileText, ChevronRight,
     Terminal, Crosshair, Sparkles, Eye, EyeOff,
     Navigation, Settings, Layout, MousePointer2,
-    Search, Gauge, Compass, Atom,
-    Dna, Network
+    Search, Gauge, Compass
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import DEcosystem from './DEcosystem';
@@ -39,7 +39,8 @@ const VISIONARY_DIRECTIVES = [
     "Identity is the first anchor of any autonomous lattice.",
     "Complexity must be distilled, not merely managed.",
     "The D-Ecosystem thrives on decentralized integrity.",
-    "Vision is the roadmap of implementation."
+    "Vision is the roadmap of implementation.",
+    "Data without structure is noise; structure without data is an empty shell."
 ];
 
 // --- SUB-COMPONENTS ---
@@ -71,6 +72,52 @@ const VisionaryTicker = () => {
     );
 };
 
+const NeuralFileStream = ({ active }: { active: boolean }) => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    useEffect(() => {
+        if (!active) return;
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        let frame = 0;
+        const particles: any[] = Array.from({ length: 40 }, () => ({
+            x: Math.random() * 800,
+            y: Math.random() * 400,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            size: Math.random() * 2 + 1,
+            color: ['#9d4edd', '#22d3ee', '#f1c21b', '#10b981'][Math.floor(Math.random() * 4)]
+        }));
+
+        const animate = () => {
+            frame++;
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            particles.forEach(p => {
+                p.x += p.vx; p.y += p.vy;
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+                
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = p.color;
+                ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        };
+        const handle = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(handle);
+    }, [active]);
+
+    return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-10 opacity-30" />;
+};
+
 const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) => (
     <div className="crystalline border-none rounded-2xl p-4 flex flex-col gap-2 hover:border-white/15 transition-all group shadow-inner relative overflow-hidden invisible-glass hover:scale-[1.02]">
         <div className="flex justify-between items-center relative z-10">
@@ -86,16 +133,7 @@ const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) 
             <div className="text-[7px] font-black font-mono text-gray-500 uppercase tracking-widest mb-0.5">{title}</div>
             <div className="text-lg font-black font-mono text-white tracking-tighter leading-none">{value}</div>
         </div>
-    </div>
-);
-
-const SystemsIntegrityWrapper = ({ telemetry }: { telemetry: any }) => (
-    <div className="bg-black/40 border border-white/5 rounded-[2.5rem] p-6 grid grid-cols-2 lg:grid-cols-4 gap-4 shadow-2xl relative overflow-hidden group/integrity">
-        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/20 to-transparent" />
-        <CompactMetric title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="#18E6FF" trend="up" />
-        <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
-        <CompactMetric title="GRAVITY" value="0.98G" detail="SYNC" icon={Atom} color="#22d3ee" trend="up" />
-        <CompactMetric title="COHERENCE" value={`${telemetry.trust.toFixed(1)}%`} detail="SECURE" icon={ShieldCheck} color="#9d4edd" trend="up" />
+        <div className="absolute bottom-0 right-0 w-full h-0.5 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-20" />
     </div>
 );
 
@@ -138,41 +176,39 @@ const CapitalVelocity = () => (
 
 const SwarmBox = () => {
     const agents = useAppStore(s => s.agents.activeAgents);
+    const hexCount = 6;
 
     return (
-        <div className="crystalline rounded-[3rem] p-8 flex flex-col gap-6 shadow-2xl relative overflow-hidden group/swarm shrink-0 invisible-glass hover:border-white/10 transition-all h-full">
+        <div className="crystalline rounded-[2rem] p-5 flex flex-col gap-4 shadow-2xl relative overflow-hidden group/swarm shrink-0 invisible-glass hover:border-white/10 transition-all">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(157,78,221,0.02)_0%,transparent_70%)] pointer-events-none" />
             
             <div className="flex items-center justify-between px-1 relative z-10">
-                <div className="flex items-center gap-4">
-                    <div className="p-2 bg-[#9d4edd]/10 rounded-xl text-[#9d4edd] border border-[#9d4edd]/20">
-                        <Hexagon size={16} className="animate-pulse" />
-                    </div>
-                    <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Operational Swarm Matrix</span>
+                <div className="flex items-center gap-2.5">
+                    <Hexagon size={12} className="text-[#9d4edd] animate-pulse" />
+                    <span className="text-[8px] font-black font-mono text-white uppercase tracking-[0.4em]">Swarm Matrix</span>
                 </div>
-                <div className="flex items-center gap-2 px-4 py-1 bg-[#10b981]/10 rounded-full border border-[#10b981]/20">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]" />
-                    <span className="text-[8px] font-mono text-[#10b981] font-black uppercase tracking-widest">Stable</span>
+                <div className="flex items-center gap-1.5">
+                    <div className="w-1 h-1 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]" />
+                    <span className="text-[6px] font-mono text-gray-600 uppercase tracking-widest">Active</span>
                 </div>
             </div>
             
-            <div className="grid grid-cols-6 gap-4 relative z-10 px-1">
-                {Array.from({ length: 6 }).map((_, i) => {
+            <div className="grid grid-cols-3 gap-2 relative z-10 px-1">
+                {Array.from({ length: hexCount }).map((_, i) => {
                     const agent = agents[i];
                     const isActive = !!agent;
                     const isThinking = agent?.status === 'THINKING';
 
                     return (
                         <div key={i} className={cn(
-                            "aspect-square flex flex-col items-center justify-center rounded-2xl border transition-all duration-1000 shadow-inner relative overflow-hidden",
+                            "aspect-square flex flex-col items-center justify-center rounded-xl border transition-all duration-700 shadow-inner relative overflow-hidden",
                             isActive 
-                                ? "bg-black/60 border-[#9d4edd]/30 shadow-[0_0_20px_rgba(157,78,221,0.1)]" 
+                                ? "bg-black/60 border-[#9d4edd]/30 shadow-[0_0_10px_rgba(157,78,221,0.1)]" 
                                 : "bg-black/10 border-white/5 opacity-10"
                         )}>
                             {isActive ? (
                                 <>
-                                    <Bot size={20} className={cn(isThinking ? "text-[#f1c21b] animate-pulse" : "text-[#9d4edd]")} />
-                                    <div className="text-[6px] font-mono mt-1 text-gray-500 uppercase">{agent.name}</div>
+                                    <Bot size={14} className={cn(isThinking ? "text-[#f1c21b] animate-pulse" : "text-[#9d4edd]")} />
                                     {isThinking && (
                                         <motion.div 
                                             animate={{ opacity: [0, 0.4, 0] }}
@@ -182,16 +218,18 @@ const SwarmBox = () => {
                                     )}
                                 </>
                             ) : (
-                                <div className="w-1 h-1 rounded-full bg-white/5" />
+                                <div className="w-0.5 h-0.5 rounded-full bg-white/5" />
                             )}
                         </div>
                     );
                 })}
             </div>
 
-            <div className="pt-4 border-t border-white/5 relative z-10 mt-auto flex justify-between items-center text-[7px] font-mono text-gray-600 uppercase tracking-widest">
-                <span>Autonomous_Handshake: Synchronous</span>
-                <span className="text-[#10b981] font-black opacity-80">Lattice_OK</span>
+            <div className="pt-2 border-t border-white/5 relative z-10">
+                <div className="flex justify-between items-center text-[6px] font-mono text-gray-700 uppercase tracking-widest">
+                    <span>LATTICE_OK</span>
+                    <span className="text-[#10b981] font-black opacity-60">The D-Ecosystem</span>
+                </div>
             </div>
         </div>
     );
@@ -237,8 +275,10 @@ const MetaventionsHub: React.FC = () => {
   const kernel = useAppStore(s => s.kernel);
 
   const [isSyncing, setIsSyncing] = useState(false);
+  const [showBlueprint, setShowBlueprint] = useState(false);
   const [telemetry, setTelemetry] = useState({ cpu: 13.2, net: 0.8, trust: 99.4, entropy: kernel.entropy });
   const voiceCanvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -310,32 +350,95 @@ const MetaventionsHub: React.FC = () => {
     return () => cancelAnimationFrame(frameId);
   }, [voice.isActive]);
 
+  const handleUplink = async () => {
+    if (voice.isActive || voice.isConnecting) {
+        liveSession.disconnect();
+        actions.setVoiceState({ isActive: false, isConnecting: false });
+        actions.addLog('SYSTEM', 'COMMS_SEVERED: Neural voice channel terminated.');
+        audio.playError();
+    } else {
+        actions.setVoiceState({ isConnecting: true });
+        try {
+            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); actions.setVoiceState({ isConnecting: false }); return; }
+            await liveSession.primeAudio();
+            actions.setVoiceState({ isActive: true, isConnecting: false });
+            actions.addLog('SUCCESS', 'COMMS_ESTABLISHED: Voice Core online.');
+            audio.playSuccess();
+        } catch (e) {
+            actions.setVoiceState({ isConnecting: false });
+            actions.addLog('ERROR', 'COMMS_FAIL: Voice interface handshake failed.');
+        }
+    }
+  };
+
   const handleGlobalSync = async () => {
       setIsSyncing(true);
-      actions.addLog('SYSTEM', 'HUB_SYNC: Initializing Zenith Fidelity visualization...');
+      actions.addLog('SYSTEM', 'HUB_SYNC: Initiating Zenith Fidelity Indistinguishable Reality visualization & technical synthesis...');
       audio.playClick();
       try {
-          if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsSyncing(false); return; }
+          if (!(await window.aistudio?.hasSelectedApiKey())) { 
+              await promptSelectKey(); 
+              setIsSyncing(false); 
+              return; 
+          }
+          
           const [imageUrl, manifest] = await Promise.all([
               generateArchitectureImage(
-                  "ZENITH MASTERWORK: Sovereign Architect standing at the primary obsidian nexus. CGI holographic PARA drive structures seamlessly fused with a 8K photorealistic environment.",
+                  "ZENITH MASTERWORK: Sovereign Architect standing at the primary obsidian nexus. CGI holographic PARA drive structures seamlessly fused with a 8K photorealistic environment. Arri Alexa optics, physical lighting accuracy, indistinguishable from reality. Cinematic high-fidelity textures.",
                   AspectRatio.RATIO_16_9,
                   ImageSize.SIZE_4K, 
                   dashboard.referenceImage
               ),
               generateStructuredWorkflow([], 'D-Ecosystem Protocol 2025.Q1', 'SYSTEM_ARCHITECTURE', {
-                  description: "High-fidelity PARA Drive Architecture and Cloud-Infrastucture topology.",
+                  description: "High-fidelity PARA Drive Architecture and Cloud-Infrastucture topology for cinematic AI production. Focus on recursive naming, Zettelkasten linking, and self-healing cloud nodes.",
                   context: "Ecosystem Hub Core"
               })
           ]);
-          actions.setDashboardState({ hubViewUrl: imageUrl, activeManifest: manifest });
-          actions.addLog('SUCCESS', 'HUB_SYNC: Strategic view established.');
+
+          actions.setDashboardState({ 
+              hubViewUrl: imageUrl,
+              activeManifest: manifest,
+              deploymentProgress: 0,
+              activeStepIndex: 0
+          });
+          
+          actions.addLog('SUCCESS', 'HUB_SYNC: Strategic view established at Zenith Indistinguishable Reality level.');
           audio.playSuccess();
+
+          let progress = 0;
+          const deployInterval = setInterval(() => {
+            progress += 5;
+            actions.setDashboardState({ deploymentProgress: progress });
+            if (progress >= 100) clearInterval(deployInterval);
+          }, 3000);
+
       } catch (e: any) {
           actions.addLog('ERROR', `SYNC_FAIL: ${e.message}`);
       } finally {
           setIsSyncing(false);
       }
+  };
+
+  const runVisualInspection = async () => {
+      actions.addLog('SYSTEM', 'DIAGNOSTIC: Initializing automated visual integrity probe...');
+      const probes = [
+          { label: 'Header Gradient', selector: 'header' },
+          { label: 'Sovereign Logo', selector: 'header svg' },
+          { label: 'Global Search', selector: 'header input' },
+          { label: 'User Identity', selector: 'header button' },
+          { label: 'Kernel Terminal', selector: 'header button:last-child' }
+      ];
+
+      for (const probe of probes) {
+          actions.setFocusedSelector(probe.selector);
+          actions.addLog('INFO', `INSPECTING: ${probe.label} vector...`);
+          audio.playClick();
+          await new Promise(r => setTimeout(r, 2000));
+      }
+      
+      actions.setFocusedSelector(null);
+      actions.addLog('SUCCESS', 'DIAGNOSTIC: Visual integrity cycle complete. All nodes indistinguishable from reference.');
+      audio.playSuccess();
   };
 
   const handleAnchorSwap = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -348,31 +451,37 @@ const MetaventionsHub: React.FC = () => {
       }
   };
 
-  const handleUplink = async () => {
-    if (voice.isActive || voice.isConnecting) {
-        liveSession.disconnect();
-        actions.setVoiceState({ isActive: false, isConnecting: false });
-        actions.addLog('SYSTEM', 'COMMS: Link severed.');
-    } else {
-        actions.setVoiceState({ isConnecting: true });
-        try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); actions.setVoiceState({ isConnecting: false }); return; }
-            await liveSession.primeAudio();
-            actions.setVoiceState({ isActive: true, isConnecting: false });
-            actions.addLog('SUCCESS', 'COMMS: Link established.');
-        } catch (e) { actions.setVoiceState({ isConnecting: false }); }
-    }
+  const handleDownloadMainAsset = (e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (!dashboard.hubViewUrl) return;
+    const link = document.createElement('a');
+    link.href = dashboard.hubViewUrl;
+    link.download = `The_D_Ecosystem_Sync_${Date.now()}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    audio.playSuccess();
+    actions.addLog('SUCCESS', 'ASSET_STUDIO: Strategic view manifest cached to local storage.');
   };
 
+  const toggleOculus = () => {
+    actions.setDashboardState({ isOculusView: !dashboard.isOculusView });
+    audio.playClick();
+  };
+
+  // Safe access for progress tracker logic to prevent crash on undefined length
+  const manifestProtocols = dashboard.activeManifest?.protocols || [];
+
   return (
-    <div key={theme} className="h-full w-full bg-[#020204] flex flex-col font-sans overflow-y-auto custom-scrollbar transition-all duration-700 ease-in-out relative">
+    <div key={theme} className="h-full w-full bg-[#020204] flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out relative">
       
-      {/* Background Living Mesh */}
+      {/* Living Neural Mesh Background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
           <div className="absolute inset-0 bg-[#020204]" />
           <motion.div 
             animate={{ 
                 opacity: [0.03, 0.08, 0.03],
+                scale: [1, 1.1, 1],
                 background: [
                     "radial-gradient(circle at 20% 30%, #7B2CFF 0%, transparent 50%)",
                     "radial-gradient(circle at 80% 70%, #18E6FF 0%, transparent 50%)",
@@ -383,33 +492,161 @@ const MetaventionsHub: React.FC = () => {
             className="absolute inset-0 blur-[120px]"
           />
           <div className="absolute inset-0 opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.01)_1.5px,transparent_1.5px),linear-gradient(90deg,rgba(255,255,255,0.01)_1.5px,transparent_1.5px)] bg-[size:60px_60px] opacity-20" />
       </div>
       
-      <div className="flex-1 p-10 relative bg-transparent z-10 flex flex-col gap-12 max-w-[2200px] mx-auto w-full">
+      {/* Enhanced Header Banner */}
+      <AnimatePresence>
+        {!dashboard.isOculusView && (
+            <motion.div 
+                initial={{ y: -100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -100, opacity: 0 }}
+                className="h-20 border-b border-white/5 bg-[#0a0a0c]/80 backdrop-blur-3xl z-20 flex items-center justify-between px-10 shrink-0 relative overflow-hidden shadow-2xl"
+            >
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/50 to-transparent" />
+                
+                <div className="flex items-center gap-10 relative z-10">
+                    <div className="relative group cursor-pointer" onClick={() => actions.toggleProfile(true)}>
+                        <div className="w-14 h-14 rounded-[2rem] border-2 border-[#9d4edd]/30 overflow-hidden bg-black/60 flex items-center justify-center shadow-[0_0_30px_rgba(157,78,221,0.15)] group-hover:border-[#9d4edd] group-hover:shadow-[0_0_40px_rgba(157,78,221,0.3)] transition-all duration-700">
+                            {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="User" /> : <User size={24} className="text-gray-700" />}
+                        </div>
+                        <motion.div 
+                            animate={{ scale: [1, 1.15, 1], opacity: [1, 0.5, 1] }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                            className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#0a0a0a] border border-white/10 rounded-full flex items-center justify-center text-[#9d4edd] shadow-2xl"
+                        >
+                            <ShieldCheck size={12} className="text-[#10b981]" />
+                        </motion.div>
+                    </div>
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-4">
+                            <div className="px-3 py-0.5 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-lg backdrop-blur-3xl shadow-inner">
+                                <span className="text-[9px] font-black text-[#9d4edd] uppercase font-mono tracking-[0.4em] leading-none">Identity_Verified_L0</span>
+                            </div>
+                            <div className="h-1 w-8 bg-white/5 rounded-full" />
+                            <span className="text-gray-500 font-mono text-[9px] tracking-widest font-black uppercase opacity-60">Handshake Stable</span>
+                        </div>
+                        <h1 className="text-2xl font-black text-white uppercase font-mono tracking-tighter leading-none mt-1.5 flex items-center gap-3">
+                            The D-Ecosystem
+                            <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 2, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] shadow-[0_0_12px_#9d4edd]" />
+                        </h1>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-16 relative z-10">
+                    <div className="flex items-center gap-12">
+                        <div className="text-right group/stat">
+                            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-1 group-hover:text-white transition-colors">Global Lattice</span>
+                            <div className="flex items-center gap-4 mt-0.5">
+                                <span className="text-2xl font-black font-mono text-white tracking-tighter">99.99%</span>
+                                <div className="w-2.5 h-2.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_15px_#10b981]" />
+                            </div>
+                        </div>
+                        <div className="h-10 w-px bg-white/5" />
+                        <div className="text-right group/stat">
+                            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-1 group-hover:text-white transition-colors">Neural Flux</span>
+                            <div className="flex items-center gap-4 mt-0.5">
+                                <span className="text-2xl font-black font-mono text-white tracking-tighter">{telemetry.entropy.toFixed(1)}</span>
+                                <div className={cn(
+                                    "w-2.5 h-2.5 rounded-full animate-pulse transition-all duration-700",
+                                    telemetry.entropy > 12 ? 'bg-[#ef4444] shadow-[0_0_15px_#ef4444]' : 'bg-[#9d4edd] shadow-[0_0_15px_#9d4edd]'
+                                )} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-10 relative bg-transparent z-10">
+          {/* Visionary Overlay Directive */}
           {!dashboard.isOculusView && <VisionaryTicker />}
 
-          {/* MAIN GRID - VIEWPORT & SIDEBAR */}
-          <div className="grid grid-cols-12 gap-10 items-start shrink-0">
+          <div className="grid grid-cols-12 gap-8 min-h-0 items-start">
               
+              {/* Strategic Operations Center (Primary Display) */}
               <div className={cn(
-                  "crystalline shadow-2xl relative overflow-hidden flex flex-col min-h-[900px] group/soc invisible-glass border border-white/5 transition-all duration-1000",
-                  "col-span-9 rounded-[4rem]"
+                  "crystalline shadow-2xl relative overflow-hidden flex flex-col min-h-[1000px] group/soc invisible-glass border border-white/5 transition-all duration-1000",
+                  dashboard.isOculusView ? "col-span-12 rounded-none border-none" : "col-span-9 rounded-[4rem]"
               )}>
+                  
+                  {/* Protocol Ticker Overlay */}
+                  {!dashboard.isOculusView && (
+                    <div className="absolute top-14 left-0 w-full h-8 z-30 bg-[#0a0a0c]/40 backdrop-blur-md border-y border-white/5 overflow-hidden flex items-center">
+                        <motion.div 
+                            animate={{ x: ['100%', '-100%'] }}
+                            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                            className="whitespace-nowrap flex items-center gap-12"
+                        >
+                            {['INITIALIZING_PARA_DRIVE_V8', 'CLOUD_NODES_STABILIZED', 'DEPIN_EQUITY_LOCKED', 'RECURSIVE_ZETTELKASTEN_SYNC', 'IA_ORCHESTRATION_L0_OK'].map((msg, i) => (
+                                <div key={i} className="flex items-center gap-3">
+                                    <div className="w-1 h-1 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />
+                                    <span className="text-[8px] font-black font-mono text-white/40 uppercase tracking-[0.5em]">{msg}</span>
+                                </div>
+                            ))}
+                        </motion.div>
+                    </div>
+                  )}
+
                   <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 shrink-0 z-20 relative">
                       <div className="flex items-center gap-4">
                           <Target size={18} className="text-[#9d4edd] animate-pulse" />
                           <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Strategic Operations Center</span>
+                          {dashboard.hubViewUrl && (
+                              <div className="flex items-center gap-2 px-3 py-0.5 bg-[#10b981]/10 border border-[#10b981]/30 rounded-full">
+                                  <Sparkles size={10} className="text-[#10b981]" />
+                                  <span className="text-[7px] font-black font-mono text-[#10b981] uppercase tracking-widest">Indistinguishable_Reality_4K</span>
+                              </div>
+                          )}
                       </div>
-                      <div className="flex items-center gap-4">
-                           <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest">Adaptive_View: Active</span>
+                      <div className="flex items-center gap-6">
+                           <button 
+                                onClick={runVisualIntegrityProbe}
+                                className="flex items-center gap-2 px-4 py-1 rounded-full border border-[#22d3ee]/30 bg-black/40 text-[#22d3ee] hover:bg-[#22d3ee]/10 transition-all"
+                           >
+                               <Gauge size={12} />
+                               <span className="text-[8px] font-mono uppercase tracking-widest font-black">Integrity Probe</span>
+                           </button>
+
+                           <button 
+                                onClick={toggleOculus}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-1 rounded-full border transition-all",
+                                    dashboard.isOculusView ? "bg-[#f1c21b] border-[#f1c21b] text-black" : "bg-black/40 border-white/10 text-gray-500 hover:text-white"
+                                )}
+                           >
+                               {dashboard.isOculusView ? <EyeOff size={12} /> : <Eye size={12} />}
+                               <span className="text-[8px] font-mono uppercase tracking-widest font-black">{dashboard.isOculusView ? 'Disable Oculus' : 'Oculus View'}</span>
+                           </button>
+
+                           {dashboard.activeManifest && (
+                               <button 
+                                onClick={() => setShowBlueprint(!showBlueprint)}
+                                className={cn(
+                                    "flex items-center gap-2 px-4 py-1 rounded-full border transition-all",
+                                    showBlueprint ? "bg-[#22d3ee] border-[#22d3ee] text-black shadow-[0_0_15px_#22d3ee]" : "bg-black/40 border-white/10 text-[#22d3ee] hover:bg-[#22d3ee]/10"
+                                )}
+                               >
+                                   <Workflow size={12} />
+                                   <span className="text-[8px] font-mono uppercase tracking-widest font-black">View Blueprint</span>
+                               </button>
+                           )}
                       </div>
                   </div>
                   
                   <div className="flex-1 relative overflow-hidden bg-[#020204] group/view">
+                      {/* Visionary Feature: Neural Particle Interaction */}
+                      <NeuralFileStream active={!!dashboard.activeManifest} />
+
                       <AnimatePresence mode="wait">
                           {isSyncing ? (
                               <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/80 backdrop-blur-3xl">
-                                  <Loader2 size={60} className="text-[#9d4edd] animate-spin mb-6" />
+                                  <div className="relative">
+                                      <Loader2 size={60} className="text-[#9d4edd] animate-spin mb-6" />
+                                      <div className="absolute inset-0 blur-3xl bg-[#9d4edd]/20 animate-pulse" />
+                                  </div>
                                   <span className="text-[12px] font-black font-mono text-white uppercase tracking-[0.8em]">Synthesizing Lattice...</span>
                               </motion.div>
                           ) : (
@@ -420,14 +657,20 @@ const MetaventionsHub: React.FC = () => {
                                             initial={{ scale: 1.05 }}
                                             animate={{ scale: 1 }}
                                             src={dashboard.hubViewUrl} 
-                                            className="w-full h-full object-cover transition-all duration-[30s] group-hover/view:scale-110" 
+                                            className="w-full h-full object-cover grayscale-[20%] opacity-80 transition-all duration-[30s] group-hover/view:scale-110 group-hover/view:grayscale-0 group-hover/view:opacity-100 cursor-pointer" 
                                           />
+                                          {/* Implementation Scanning Reticle */}
                                           <motion.div 
-                                              animate={{ top: ['10%', '80%', '40%', '10%'], left: ['10%', '20%', '70%', '10%'] }}
+                                              animate={{ 
+                                                top: ['10%', '80%', '40%', '10%'],
+                                                left: ['10%', '20%', '70%', '10%']
+                                              }}
                                               transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
                                               className="absolute w-40 h-40 border border-[#9d4edd]/40 rounded-full flex items-center justify-center pointer-events-none z-20"
                                           >
                                               <Crosshair className="text-[#9d4edd] opacity-50" size={32} />
+                                              <div className="absolute inset-0 rounded-full border-t-2 border-l-2 border-[#18E6FF]/30 animate-spin" />
+                                              <div className="absolute -bottom-8 whitespace-nowrap text-[8px] font-mono text-[#9d4edd] uppercase font-black tracking-widest bg-black/40 px-2 py-0.5 rounded">Scanning_Node_Target</div>
                                           </motion.div>
                                       </motion.div>
                                   ) : (
@@ -436,128 +679,365 @@ const MetaventionsHub: React.FC = () => {
                                           <p className="text-xl font-mono uppercase tracking-[1em]">Establishing Viewport...</p>
                                       </div>
                                   )}
+
+                                  {/* Blueprint Overlay Drawer */}
+                                  <AnimatePresence>
+                                      {showBlueprint && dashboard.activeManifest && (
+                                          <motion.div 
+                                            initial={{ x: '100%' }}
+                                            animate={{ x: 0 }}
+                                            exit={{ x: '100%' }}
+                                            className="absolute top-0 right-0 bottom-0 w-1/2 bg-[#050505]/95 backdrop-blur-3xl border-l border-white/10 z-[35] shadow-[0_0_100px_rgba(0,0,0,1)] p-12 flex flex-col gap-10"
+                                          >
+                                              <div className="flex justify-between items-start">
+                                                  <div className="space-y-4">
+                                                      <div className="flex items-center gap-3">
+                                                          <div className="p-2.5 bg-[#22d3ee]/20 rounded-xl text-[#22d3ee] border border-[#22d3ee]/30">
+                                                              <FileSearch size={20} />
+                                                          </div>
+                                                          <span className="text-[10px] font-black text-white font-mono uppercase tracking-[0.4em]">Structured Process Blueprint</span>
+                                                      </div>
+                                                      <h3 className="text-3xl font-black text-white uppercase font-mono tracking-tighter leading-none">{dashboard.activeManifest.title}</h3>
+                                                  </div>
+                                                  <button onClick={() => setShowBlueprint(false)} className="p-3 text-gray-500 hover:text-white transition-colors bg-white/5 rounded-2xl"><X size={24} /></button>
+                                              </div>
+
+                                              <div className="flex-1 overflow-y-auto custom-scrollbar space-y-12 pr-4">
+                                                  <div className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] shadow-inner relative group/logic">
+                                                      <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover/logic:opacity-10 transition-opacity"><Zap size={60} /></div>
+                                                      <div className="flex items-center gap-3 mb-6">
+                                                          <Code size={14} className="text-[#9d4edd]" />
+                                                          <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Protocol Logic</span>
+                                                      </div>
+                                                      <p className="text-xl text-gray-300 font-mono italic leading-relaxed">"{dashboard.activeManifest.logic || dashboard.activeManifest.internalPlanningMonologue}"</p>
+                                                  </div>
+
+                                                  <div className="space-y-6">
+                                                      <div className="flex items-center gap-3 text-[11px] font-black text-gray-500 uppercase tracking-widest px-2">
+                                                          <ListChecks size={16} className="text-[#10b981]" /> Implementation Sequence
+                                                      </div>
+                                                      <div className="space-y-4">
+                                                          {Array.isArray(dashboard.activeManifest?.protocols) && dashboard.activeManifest.protocols.map((p: any, i: number) => (
+                                                              <div key={i} className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-6 group hover:border-white/10 transition-all">
+                                                                  <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center font-mono font-black text-sm text-[#22d3ee] border border-white/5">{i+1}</div>
+                                                                  <span className="text-sm text-gray-300 font-mono group-hover:text-white transition-colors">{p.instruction}</span>
+                                                              </div>
+                                                          ))}
+                                                      </div>
+                                                  </div>
+                                              </div>
+
+                                              <div className="pt-8 border-t border-white/5 flex gap-4">
+                                                  <button onClick={() => actions.deployStrategyToLattice(dashboard.activeManifest)} className="flex-1 py-5 bg-[#22d3ee] text-black font-black text-[10px] uppercase rounded-2xl tracking-[0.4em] shadow-[0_20px_50px_rgba(34,211,238,0.2)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4">
+                                                      <RefreshCw size={16} /> Deploy to Topology
+                                                  </button>
+                                              </div>
+                                          </motion.div>
+                                      )}
+                                  </AnimatePresence>
+
+                                  <div className="absolute top-10 right-10 z-40 opacity-0 group-hover/img-node:opacity-100 transition-all">
+                                      <div className="flex flex-col gap-3">
+                                          <button 
+                                            onClick={handleDownloadMainAsset}
+                                            className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-white shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                                          >
+                                              <Download size={24} />
+                                          </button>
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); actions.openHoloProjector({ id: 'soc-scan', title: 'Holo Inspect', type: 'IMAGE', content: dashboard.hubViewUrl }); }}
+                                            className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-[#18E6FF] shadow-2xl hover:scale-105 active:scale-95 transition-all"
+                                          >
+                                              <Maximize2 size={24} />
+                                          </button>
+                                      </div>
+                                  </div>
                               </motion.div>
                           )}
                       </AnimatePresence>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
+                      
+                      {/* Live Protocol Sequencer Overlay */}
+                      <AnimatePresence>
+                        {dashboard.activeManifest && dashboard.deploymentProgress < 100 && (
+                            <motion.div 
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute bottom-10 right-10 z-[35] w-72 bg-[#050505]/90 backdrop-blur-3xl border border-[#22d3ee]/40 p-8 rounded-[2.5rem] shadow-[0_0_80px_rgba(34,211,238,0.15)] flex flex-col gap-6"
+                            >
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <Activity size={14} className="text-[#22d3ee] animate-pulse" />
+                                        <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Protocol Deployment</span>
+                                    </div>
+                                    <span className="text-[12px] font-black font-mono text-[#22d3ee]">{dashboard.deploymentProgress}%</span>
+                                </div>
+                                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                                    <motion.div 
+                                        className="h-full bg-gradient-to-r from-[#22d3ee] to-[#18E6FF] shadow-[0_0_20px_#22d3ee]" 
+                                        animate={{ width: `${dashboard.deploymentProgress}%` }}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest">Active Process Sequence:</div>
+                                    <div className="p-3 bg-black/60 border border-white/5 rounded-xl font-mono text-[9px] text-[#22d3ee] italic leading-relaxed">
+                                        {manifestProtocols.length > 0 
+                                            ? manifestProtocols[Math.min(manifestProtocols.length - 1, Math.floor((dashboard.deploymentProgress / 100) * manifestProtocols.length))]?.instruction 
+                                            : "Synchronizing Neural Lattice..."}
+                                    </div>
+                                </div>
+                                <div className="flex justify-between items-center text-[7px] font-black text-gray-700 uppercase tracking-[0.4em]">
+                                    <span>Phase_{Math.floor(dashboard.deploymentProgress / 20) + 1}_Engaged</span>
+                                    <span className="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 rounded border border-white/10">
+                                      <div className="w-1 h-1 rounded-full bg-[#9d4edd] animate-pulse" />
+                                      <span className="text-[6px] font-mono text-[#9d4edd]">SOVEREIGN_V1</span>
+                                    </span>
+                                    <Loader2 size={10} className="animate-spin" />
+                                </div>
+                            </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      <div className="absolute bottom-8 left-10 z-20 flex flex-col gap-3">
+                           <div className="text-[8px] font-black font-mono text-[#9d4edd] uppercase tracking-[0.5em] mb-1 px-1 opacity-60">Lattice_Operational_State</div>
+                           <div className="flex gap-2.5">
+                               {[1,2,3].map(i => (
+                                   <div key={i} className="w-10 h-10 bg-black/60 border border-white/10 rounded-xl backdrop-blur-3xl flex items-center justify-center text-gray-500 hover:text-white hover:border-[#9d4edd]/50 transition-all shadow-xl group/node cursor-pointer">
+                                       <Bot size={18} className="group-hover/node:scale-110 transition-transform" />
+                                   </div>
+                               ))}
+                           </div>
+                      </div>
                   </div>
 
-                  <div className="h-28 bg-black/60 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-10 shrink-0 z-20 relative">
+                  <div className="h-32 bg-black/60 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-10 shrink-0 z-20 relative">
                      <div className="flex items-center gap-12">
+                        <div className="flex flex-col">
+                            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Neural Coherence</span>
+                            <span className="text-lg font-black font-mono text-white tracking-tighter uppercase">The D-Ecosystem</span>
+                        </div>
+                        <div className="h-10 w-px bg-white/5" />
+                        <div className="flex flex-col">
+                            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Auth Protocol</span>
+                            <span className="text-base font-black font-mono text-[#10b981] tracking-tighter uppercase">Secure_L0</span>
+                        </div>
+                        
+                        <div className="h-10 w-px bg-white/5" />
                         <div className="flex items-center gap-6">
                             <div className="relative w-14 h-14 flex items-center justify-center shrink-0">
                                 <canvas ref={voiceCanvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
                                 <div className={cn(
-                                    "w-10 h-10 rounded-full border p-1 flex items-center justify-center relative transition-all duration-700 z-10 bg-black/40",
-                                    voice.isActive ? "border-[#9d4edd]" : "border-white/10"
+                                    "w-9 h-9 rounded-full border p-1 glass-action flex items-center justify-center relative transition-all duration-700 z-10",
+                                    voice.isActive ? "border-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.3)] scale-105" : "border-white/10"
                                 )}>
-                                    <Radio size={16} className={voice.isActive ? "text-[#9d4edd] animate-pulse" : "text-gray-700"} />
+                                    <div className="w-full h-full rounded-full overflow-hidden bg-black/20 flex items-center justify-center">
+                                        <Radio size={14} className={voice.isActive ? "text-[#9d4edd] animate-pulse" : "text-gray-700"} />
+                                    </div>
                                 </div>
                             </div>
-                            <button 
-                                onClick={handleUplink}
-                                className={cn(
-                                    "px-6 py-2 rounded-xl text-[10px] font-black font-mono uppercase tracking-widest transition-all flex items-center gap-2 border active:scale-95",
-                                    voice.isActive ? "bg-red-500/10 border-red-500/20 text-red-400" : "text-[#9d4edd] border-[#9d4edd]/30 hover:border-[#9d4edd] hover:text-white"
-                                )}
-                            >
-                                {voice.isActive ? <MicOff size={10} /> : <Mic size={10} />}
-                                {voice.isActive ? 'Sever Link' : 'Establish Comms'}
-                            </button>
+                            <div className="flex flex-col gap-1.5">
+                                <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Active Comms</span>
+                                <button 
+                                    onClick={handleUplink}
+                                    className={cn(
+                                        "px-5 py-1.5 rounded-xl text-[8px] font-black font-mono uppercase tracking-widest transition-all flex items-center gap-2 border glass-action active:scale-95",
+                                        voice.isActive 
+                                            ? "bg-red-500/10 border-red-500/20 text-red-400" 
+                                            : "text-[#9d4edd] border-[#9d4edd]/30 hover:border-[#9d4edd] hover:text-white"
+                                    )}
+                                >
+                                    {voice.isActive ? <MicOff size={10} /> : <Mic size={10} />}
+                                    {voice.isActive ? 'Sever Link' : 'Establish Comms'}
+                                </button>
+                            </div>
                         </div>
                      </div>
-                     <button 
-                        onClick={handleGlobalSync} 
-                        disabled={isSyncing}
-                        className="px-8 py-3 bg-[#f1c21b] hover:bg-[#ffdf6b] text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] transition-all active:scale-95 shadow-xl flex items-center gap-4 group"
-                    >
-                        {isSyncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />}
-                        Establish Zenith View
-                    </button>
+
+                     <div className="flex flex-col items-end gap-3">
+                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest max-w-[280px] text-right leading-relaxed italic opacity-60">
+                            Orchestrating Zenith Fidelity implementation protocols and autonomous agentic workflows.
+                        </p>
+                        <button 
+                            onClick={handleGlobalSync} 
+                            disabled={isSyncing}
+                            className="px-8 py-3 bg-[#f1c21b] hover:bg-[#ffdf6b] text-black rounded-2xl text-[9px] font-black uppercase tracking-[0.4em] transition-all active:scale-95 shadow-xl flex items-center gap-4 group"
+                        >
+                            {isSyncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />}
+                            Establish Zenith View
+                        </button>
+                     </div>
                   </div>
               </div>
 
-              {/* Sidebar Panel - BIOMETRIC ANCHOR RESTORED & ELONGATED */}
-              <div className="col-span-3 space-y-8 flex flex-col relative z-10 h-full">
-                    {/* Metaventions Biometric Anchor */}
-                    <div className="crystalline rounded-[3.5rem] p-8 h-[600px] shadow-2xl flex flex-col gap-6 relative overflow-hidden invisible-glass border border-white/5 group/anchor-box">
-                        <div className="flex items-center justify-between relative z-10 px-1">
-                            <div className="flex items-center gap-3">
-                                <div className="p-2 bg-[#f1c21b]/10 rounded-xl text-[#f1c21b] border border-[#f1c21b]/20">
-                                    <Fingerprint size={14} />
+              {/* Sidebar Panel */}
+              <AnimatePresence>
+                {!dashboard.isOculusView && (
+                    <motion.div 
+                        initial={{ x: 100, opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: 100, opacity: 0 }}
+                        className="col-span-3 space-y-8 flex flex-col relative z-10"
+                    >
+                        
+                        {/* Biometric Anchor - With Reticle Animations */}
+                        <div className="crystalline rounded-[3rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/anchor shrink-0 invisible-glass border border-white/5">
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
+                            
+                            <div className="flex items-center justify-between relative z-10 px-1">
+                                <div className="flex items-center gap-4">
+                                    <div className="relative">
+                                        <Fingerprint size={20} className="text-[#9d4edd]" />
+                                        <motion.div 
+                                            animate={{ rotate: 360 }}
+                                            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                                            className="absolute -inset-2 border border-dashed border-[#9d4edd]/30 rounded-full"
+                                        />
+                                    </div>
+                                    <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Biometric Anchor</span>
                                 </div>
-                                <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Biometric Anchor</span>
+                                <label className="cursor-pointer p-2.5 bg-black/40 hover:bg-black/60 rounded-xl transition-all border border-white/5 group/btn-up shadow-xl active:scale-95">
+                                    <Upload size={14} className="text-gray-500 group-hover/btn-up:text-white" />
+                                    <input type="file" className="hidden" onChange={handleAnchorSwap} accept="image/*" />
+                                </label>
                             </div>
-                            <label className="cursor-pointer p-1.5 glass-action rounded-xl transition-all border-white/10 hover:border-[#f1c21b]/50 group/upload-btn">
-                                <Upload size={12} className="text-gray-500 group-hover/upload-btn:text-[#f1c21b]" />
-                                <input type="file" className="hidden" onChange={handleAnchorSwap} accept="image/*" />
-                            </label>
-                        </div>
-                        <div className="flex-1 bg-black/40 rounded-[2.5rem] border border-white/5 flex items-center justify-center overflow-hidden relative group/anchor shadow-inner z-10">
-                            {dashboard.referenceImage ? (
-                                    <>
-                                        <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover grayscale-[30%] group-hover/anchor:grayscale-0 transition-all duration-700" alt="Anchor" />
-                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover/anchor:opacity-100 transition-all duration-500 flex items-center justify-center backdrop-blur-sm">
-                                            <label className="cursor-pointer px-5 py-2 bg-white/10 hover:bg-white/20 rounded-xl border border-white/20 text-[9px] font-black uppercase tracking-widest text-white transition-all active:scale-95">Rotate Vector</label>
+
+                            <div 
+                                onClick={() => fileInputRef.current?.click()}
+                                className="aspect-video bg-black/60 rounded-[2.5rem] border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer"
+                            >
+                                <input type="file" ref={fileInputRef} className="hidden" onChange={handleAnchorSwap} accept="image/*" />
+                                
+                                <motion.div 
+                                    animate={{ top: ['-100%', '100%'] }}
+                                    transition={{ duration: 2, repeat: isSyncing ? Infinity : 0, ease: "linear" }}
+                                    className={cn(
+                                        "absolute left-0 w-full h-[2px] bg-[#9d4edd] shadow-[0_0_20px_#9d4edd] z-30",
+                                        !isSyncing && "hidden"
+                                    )}
+                                />
+
+                                {dashboard.referenceImage ? (
+                                        <>
+                                            <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover grayscale opacity-40 transition-all duration-1000 group-hover/v-anchor:opacity-90 group-hover/v-anchor:grayscale-0" alt="Anchor" />
+                                            {/* Scanning Overlay during Sync */}
+                                            {isSyncing && (
+                                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40 backdrop-blur-[2px]">
+                                                    <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center relative">
+                                                        <div className="absolute inset-0 border-t-2 border-[#9d4edd] rounded-full animate-spin" />
+                                                        <Target size={24} className="text-[#9d4edd] animate-pulse" />
+                                                    </div>
+                                                </div>
+                                            )}
+                                            <div className="absolute inset-0 bg-white/5 opacity-0 group-hover/v-anchor:opacity-100 transition-all duration-700 flex items-center justify-center">
+                                                <div className="px-8 py-2 bg-black/80 rounded-xl border border-white/10 text-[9px] font-black uppercase tracking-[0.4em] text-white backdrop-blur-3xl shadow-2xl active:scale-95">RE-CALIBRATE</div>
+                                            </div>
+                                        </>
+                                ) : (
+                                        <div className="flex flex-col items-center gap-4 opacity-20 group-hover/anchor:opacity-40 transition-opacity">
+                                            <div className="w-14 h-14 rounded-full border border-dashed border-white/30 flex items-center justify-center">
+                                                <Fingerprint size={24} />
+                                            </div>
+                                            <span className="text-[9px] font-black uppercase tracking-[0.5em] font-mono">Load Identity Key</span>
                                         </div>
-                                    </>
-                            ) : (
-                                    <label className="flex flex-col items-center gap-6 cursor-pointer p-10 group/label opacity-40 hover:opacity-100 transition-all">
-                                        <div className="w-20 h-20 rounded-full border border-dashed border-gray-700 flex items-center justify-center group-hover/label:border-[#f1c21b] transition-all">
-                                            <Scan size={32} className="text-gray-600 group-hover/label:text-[#f1c21b] transition-all" />
-                                        </div>
-                                        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest text-center">Load Identity Key</span>
-                                        <input type="file" className="hidden" onChange={handleAnchorSwap} />
-                                    </label>
-                            )}
+                                )}
+                            </div>
                         </div>
-                        <div className="mt-4 pt-4 border-t border-white/5 flex justify-between items-center text-[8px] font-mono text-gray-700 uppercase tracking-widest">
-                            <span>Auth_Vector: Persistent</span>
-                            <ShieldCheck size={12} className="text-[#10b981]" />
-                        </div>
-                    </div>
 
-                    <DirectoryPeek manifest={dashboard.activeManifest} />
-                    <CapitalVelocity />
-              </div>
+                        <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden shrink-0 invisible-glass border border-white/5">
+                            <div className="grid grid-cols-2 gap-4">
+                                <CompactMetric title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
+                                <CompactMetric title="BANDWIDTH" value={`${telemetry.net}GB/s`} detail="PEAK" icon={Radio} color="var(--amethyst)" trend="up" />
+                                <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
+                                <CompactMetric title="LATENCY" value="2.4ms" detail="OPTIMAL" icon={Zap} color="#f59e0b" trend="up" />
+                            </div>
+                        </div>
+
+                        <DirectoryPeek manifest={dashboard.activeManifest} />
+
+                        <div className="crystalline rounded-[2.5rem] p-8 h-64 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5">
+                            <div className="flex items-center gap-3 mb-6 relative z-10">
+                                <ChartIcon size={14} className="text-[#f1c21b]" />
+                                <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
+                            </div>
+                            <div className="flex-1 h-44 relative z-10">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <RadarChart data={dashboard.topologyData}>
+                                        <PolarGrid stroke="#333" />
+                                        <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
+                                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                        <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
+                                    </RadarChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
+                        </div>
+
+                        <CapitalVelocity />
+
+                        <SwarmBox />
+                        
+                        <div className="flex-1 min-h-[300px]">
+                            <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
+                        </div>
+                    </motion.div>
+                )}
+              </AnimatePresence>
           </div>
 
-          {/* TELEMETRY MATRIX - INTEGRATED SYSTEM WRAPPER */}
-          <SystemsIntegrityWrapper telemetry={telemetry} />
-
-          {/* INTELLIGENCE MATRIX (WIDE SPAN) */}
-          <div className="grid grid-cols-12 gap-10 items-stretch shrink-0">
-                <div className="col-span-8">
-                    <SwarmBox />
-                </div>
-                <div className="col-span-4 h-full">
-                    <div className="h-[400px] w-full">
-                        <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
-                    </div>
-                </div>
-          </div>
-
-          {/* ECOSYSTEM LATTICE - LONG VERTICAL VIEW */}
-          <div className="w-full h-[1200px] rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0 bg-black/40 backdrop-blur-3xl">
-                <div className="absolute top-12 left-16 z-20 flex flex-col gap-5 pointer-events-none">
-                    <h2 className="text-white text-5xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">The D-Ecosystem</h2>
-                    <div className="flex items-center gap-6 bg-black/60 backdrop-blur-2xl px-8 py-3.5 rounded-full border border-white/10 shadow-2xl w-fit">
-                        <div className="p-2 bg-[#10b981]/10 rounded-lg">
-                            <Network size={16} className="text-[#10b981] animate-pulse" />
-                        </div>
-                        <div className="flex flex-col">
-                            <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.3em]">Core Mesh Fabric</span>
-                            <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">Autonomous_Swarm_Lattice // ACTIVE_SYNC</span>
+          <AnimatePresence>
+            {!dashboard.isOculusView && (
+                <motion.div 
+                    initial={{ y: 200, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: 200, opacity: 0 }}
+                    className="w-full h-[850px] mt-20 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0"
+                >
+                    <div className="absolute top-12 left-16 z-20 flex flex-col gap-3 pointer-events-none">
+                        <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">
+                            The D-Ecosystem
+                        </h2>
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-6 py-2.5 rounded-full border border-white/10 shadow-2xl w-fit">
+                                <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
+                                <span className="text-[9px] font-black font-mono text-white uppercase tracking-[0.3em]">Autonomous_Swarm_Lattice // Active</span>
+                            </div>
+                            <div className="flex items-center gap-2 pl-6">
+                              <span className="text-[7px] text-gray-500 font-mono uppercase tracking-[0.4em] block">Active Global Node Synchronization</span>
+                              <span className="text-[6px] px-1.5 py-0.5 bg-[#9d4edd]/10 border border-[#9d4edd]/20 rounded font-black font-mono text-[#9d4edd] uppercase">SOVEREIGN_V1_STABLE</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <DEcosystem />
-          </div>
-
-          {/* SPACER FOR FOOTER CLEARANCE */}
-          <div className="h-40 shrink-0" />
+                    <DEcosystem />
+                    <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
+                </motion.div>
+            )}
+          </AnimatePresence>
       </div>
     </div>
   );
+
+  async function runVisualIntegrityProbe() {
+    actions.addLog('SYSTEM', 'DIAGNOSTIC: Initializing automated visual integrity probe cycle...');
+    const probes = [
+        { label: 'Header Chroma', selector: 'header' },
+        { label: 'Sovereign Delta Logo', selector: 'header svg' },
+        { label: 'Global Search Index', selector: 'header input' },
+        { label: 'Operator Identity Icon', selector: 'header .rounded-\\[2rem\\]' }, 
+        { label: 'System Kernel Access', selector: 'header .shimmer-edge' } 
+    ];
+
+    for (const probe of probes) {
+        actions.setFocusedSelector(probe.selector);
+        actions.addLog('INFO', `PROBING_NODE: ${probe.label.toUpperCase()} Vector Synchronization...`);
+        audio.playClick();
+        await new Promise(r => setTimeout(r, 2200));
+    }
+    
+    actions.setFocusedSelector(null);
+    actions.addLog('SUCCESS', 'DIAGNOSTIC: Universal visual alignment confirmed. Interface indistinguishable from reality.');
+    audio.playSuccess();
+  }
 };
 
 export default MetaventionsHub;
