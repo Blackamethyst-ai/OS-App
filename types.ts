@@ -18,39 +18,32 @@ export interface AgentDNA {
     description: string;
 }
 
-export interface ToolDefinition {
+export interface DirectoryNode {
     name: string;
-    description: string;
-    parameters: {
-        type: 'OBJECT';
-        properties: Record<string, { type: string; description: string; enum?: string[] }>;
-        required?: string[];
-    };
+    type: 'folder' | 'file' | 'node' | 'module';
+    description?: string;
+    children?: DirectoryNode[];
 }
 
-export interface ToolResult {
-    toolName: string;
-    status: 'SUCCESS' | 'ERROR';
-    data: any;
-    uiHint?: 'TABLE' | 'CHART' | 'STAT' | 'MESSAGE' | 'NAV';
-}
-
-export interface AgenticState {
-    isThinking: boolean;
-    activeTool: string | null;
-    lastResult: ToolResult | null;
-    history: { role: 'user' | 'model' | 'tool'; content: string; toolName?: string }[];
-}
-
-export interface SwarmStatus {
-    taskId: string;
-    votes: Record<string, number>;
-    killedAgents: number;
-    currentGap: number;
-    targetGap: number;
-    totalAttempts: number;
-    activeDNA?: string;
-    consensusProgress?: number;
+export interface TechnicalManifest {
+    title: string;
+    type: 'DIRECTORY' | 'SYSTEM_FLOW' | 'CODE_LOGIC';
+    logic: string;
+    complexity: string;
+    viability: number;
+    riskVector: 'LOW' | 'MEDIUM' | 'HIGH';
+    depth: number;
+    structure?: DirectoryNode[];
+    protocols: {
+        instruction: string;
+        role: string;
+        nodeRef: string;
+        phase: string;
+    }[];
+    // Fix: Added missing properties for TechnicalManifest
+    internalPlanningMonologue?: string;
+    coherenceScore?: number;
+    taxonomy?: any;
 }
 
 export enum AppMode {
@@ -103,12 +96,6 @@ export interface Task {
     isSubtasksCollapsed?: boolean;
 }
 
-export interface Vector {
-    mechanism: string;
-    vulnerability: string;
-    severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
-}
-
 export interface AnalysisResult {
     scores: {
         centralization: number;
@@ -120,7 +107,11 @@ export interface AnalysisResult {
     sustainer: string;
     extractor: string;
     destroyer: string;
-    vectors: Vector[];
+    vectors: {
+        mechanism: string;
+        vulnerability: string;
+        severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+    }[];
     insight: string;
     groundingSources?: { title: string; uri: string }[];
 }
@@ -237,13 +228,6 @@ export interface EconomicProtocol {
     yield?: string;
 }
 
-export interface StrategyRefraction {
-    id: string;
-    source: string;
-    logic: string;
-    impact: number;
-}
-
 export interface MetaventionsState {
     layers: {
         id: string;
@@ -278,19 +262,6 @@ export interface AgentWallet {
     assets: { symbol: string; value: string }[];
 }
 
-export interface SuggestedAction {
-    id: string;
-    label: string;
-    command: string;
-    iconName: string;
-    reasoning: string;
-}
-
-export interface NeuralLattice {
-    nodes: KnowledgeNode[];
-    edges: { id: string; source: string; target: string }[];
-}
-
 export interface MentalState {
     skepticism: number;
     excitement: number;
@@ -314,40 +285,14 @@ export interface SwarmResult {
     confidence: number;
     agentId: string;
     executionTime: number;
-    voteLedger: VoteLedger;
-}
-
-export interface VoteLedger {
-    winner: string;
-    count: number;
-    runnerUp: string;
-    runnerUpCount: number;
-    totalRounds: number;
-    killedAgents: number;
-}
-
-export interface FactChunk {
-    id: string;
-    fact: string;
-    confidence: number;
-    source: string;
-}
-
-export interface CompressedAxiom {
-    id: string;
-    statement: string;
-    sourceNodes: string[];
-    reductionFactor: number;
-}
-
-export interface ProtocolStepResult {
-    output: string;
-    agentThought: string;
-    timestamp: number;
-}
-
-export interface ResearchState {
-    tasks: any[];
+    voteLedger: {
+        winner: string;
+        count: number;
+        runnerUp: string;
+        runnerUpCount: number;
+        totalRounds: number;
+        killedAgents: number;
+    };
 }
 
 export enum OperationalContext {
@@ -392,11 +337,6 @@ export enum ImageSize {
     SIZE_4K = '4K'
 }
 
-export interface CustomThemeConfig {
-    primaryColor?: string;
-    backgroundColor?: string;
-}
-
 export interface SearchResultItem {
     id: string;
     title: string;
@@ -405,9 +345,63 @@ export interface SearchResultItem {
     meta?: any;
 }
 
+export interface PeerPresence {
+    id: string;
+    name: string;
+    role: string;
+    activeSector: AppMode;
+    status: 'ACTIVE' | 'IDLE' | 'BUSY';
+    lastSeen: number;
+    color: string;
+}
+
+export interface SwarmEvent {
+    id: string;
+    userId: string;
+    userName: string;
+    action: string;
+    target?: string;
+    timestamp: number;
+}
+
+export interface KnowledgeLayer {
+    id: string;
+    label: string;
+    icon: string;
+    color: string;
+    description: string;
+    systemInstruction: string;
+    memoryTags: string[]; 
+    activeModes: AppMode[];
+}
+
+// Fix: Added missing interfaces used in various files
+
 export interface Message {
-    role: 'user' | 'model' | 'system' | 'function';
-    content: string;
+    role: 'user' | 'model' | 'system' | 'function' | 'AI' | 'USER';
+    content?: string;
+    text?: string;
+    timestamp?: number;
+    toolName?: string;
+}
+
+export interface SwarmStatus {
+    taskId: string;
+    votes: Record<string, number>;
+    killedAgents: number;
+    currentGap: number;
+    targetGap: number;
+    totalAttempts: number;
+    consensusProgress?: number;
+    activeDNA?: string;
+}
+
+export interface SuggestedAction {
+    id: string;
+    label: string;
+    command: string;
+    iconName: string;
+    reasoning: string;
 }
 
 export interface SyntheticPersona {
@@ -438,39 +432,44 @@ export interface SimulationReport {
     actionableFixes: string[];
 }
 
-export interface BookDNA {
-    summary: string;
-    themes: string[];
-    structure: any;
+export interface FactChunk {
+    id: string;
+    fact: string;
+    confidence: number;
+    source: string;
 }
 
-// Collaboration Types
-export interface PeerPresence {
-    id: string;
-    name: string;
-    role: string;
-    activeSector: AppMode;
-    status: 'ACTIVE' | 'IDLE' | 'BUSY';
-    lastSeen: number;
-    color: string;
+export interface ProtocolStepResult {
+    output: string;
+    agentThought: string;
 }
 
-export interface SwarmEvent {
+export interface CompressedAxiom {
     id: string;
-    userId: string;
-    userName: string;
-    action: string;
-    target?: string;
-    timestamp: number;
+    statement: string;
+    reductionFactor: number;
+    sourceNodes: string[];
 }
 
-export interface KnowledgeLayer {
-    id: string;
-    label: string;
-    icon: string;
-    color: string;
-    description: string;
-    systemInstruction: string;
-    memoryTags: string[]; 
-    activeModes: AppMode[];
+export interface ToolResult {
+    toolName: string;
+    status: 'SUCCESS' | 'ERROR';
+    data: any;
+    uiHint?: 'TABLE' | 'STAT' | 'MESSAGE' | 'NAV';
+}
+
+export interface AgenticState {
+    isThinking: boolean;
+    activeTool: string | null;
+    lastResult: ToolResult | null;
+    history: Message[];
+}
+
+export interface VoteLedger {
+    winner: string;
+    count: number;
+    runnerUp: string;
+    runnerUpCount: number;
+    totalRounds: number;
+    killedAgents: number;
 }

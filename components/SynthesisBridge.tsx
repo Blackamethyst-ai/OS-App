@@ -2,29 +2,17 @@ import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-    GitMerge, Activity, Zap, ArrowRight, Loader2, Target, GitBranch, 
-    Microscope, Sparkles, RefreshCw, Radar, HardDrive, Dna, 
-    Binary, Save, Globe, ShieldCheck, DollarSign, Search, 
-    ChevronRight, CheckCircle2, Layers, Landmark, ShieldAlert,
-    Shield, GitCommit, Radio, Gauge, Waves, Fingerprint, PlayCircle,
-    Terminal, ArrowUpRight, Compass, ListChecks, Network, 
-    Database, Server, Layout, FileSearch, Workflow, AlertTriangle,
-    Eye, Maximize2, Info, BarChart3, Library, Trash2, Send,
-    Boxes, Cpu, Component, Share2, ClipboardList, BookOpen, 
-    FolderTree,
-    Cloud,
-    Code,
-    ChevronDown,
-    FileText,
-    FolderOpen,
-    Aperture,
-    Scale
+    GitMerge, Activity, Zap, Loader2, Target, 
+    RefreshCw, HardDrive, Binary, Save, ShieldCheck, 
+    ChevronRight, ListChecks, Compass, Share2, PlayCircle,
+    FolderTree, Cloud, Code, FolderOpen, FileText, Component,
+    Microscope, Terminal, Aperture, BookOpen
 } from 'lucide-react';
-import { GoogleGenAI, Type, Schema, GenerateContentResponse } from '@google/genai';
-import { retryGeminiRequest, promptSelectKey, safeParseJson, generateStructuredWorkflow, compressKnowledge } from '../services/geminiService';
+import { promptSelectKey, generateStructuredWorkflow } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
+import { TechnicalManifest, DirectoryNode } from '../types';
 
 const BlueprintStat = ({ label, value, color }: { label: string, value: string, color: string }) => (
     <div className="flex flex-col gap-1 p-4 bg-white/[0.02] border border-white/5 rounded-2xl relative overflow-hidden group hover:border-white/10 transition-all shadow-inner">
@@ -56,10 +44,10 @@ const DomainCard = ({ id, label, sub, icon: Icon, active, onClick, color }: any)
     </button>
 );
 
-const TreeView = ({ data }: { data: any }) => {
+const TreeView = ({ data }: { data: TechnicalManifest }) => {
     if (!data || !Array.isArray(data.structure)) return null;
     
-    const renderNode = (node: any, depth = 0) => {
+    const renderNode = (node: DirectoryNode, depth = 0) => {
         return (
             <div key={node.name} className="space-y-1">
                 <div 
@@ -96,13 +84,13 @@ const TreeView = ({ data }: { data: any }) => {
 };
 
 const ImplementationDeck: React.FC<{
-    data: any;
+    data: TechnicalManifest;
     onDeploy: (d: any) => void;
     onArchive: (d: any) => void;
 }> = ({ data, onDeploy, onArchive }) => {
     if (!data) return null;
 
-    const protocols = Array.isArray(data.protocols) ? data.protocols : Array.isArray(data.workflowSteps) ? data.workflowSteps : [];
+    const protocols = data.protocols || [];
 
     return (
         <motion.div 
@@ -118,7 +106,7 @@ const ImplementationDeck: React.FC<{
                         <div className="flex items-center gap-3">
                             <div className="px-3 py-1 bg-[#10b981]/10 border border-[#10b981]/30 rounded-full flex items-center gap-2">
                                 <ShieldCheck size={10} className="text-[#10b981]" />
-                                <span className="text-[9px] font-black text-[#10b981] uppercase tracking-[0.2em]">Verified Protocol</span>
+                                <span className="text-[9px] font-black text-[#10b981] uppercase tracking-[0.2em]">Verified Manifest</span>
                             </div>
                             <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">Blueprint ID: {crypto.randomUUID().split('-')[0].toUpperCase()}</span>
                         </div>
@@ -140,10 +128,10 @@ const ImplementationDeck: React.FC<{
                 </div>
 
                 <div className="grid grid-cols-4 gap-6 relative z-10 mb-10">
-                    <BlueprintStat label="Structural Stability" value={`${data.viability || 98}%`} color="#7B2CFF" />
-                    <BlueprintStat label="Neural Latency" value="12.4ms" color="#18E6FF" />
-                    <BlueprintStat label="Complexity Tier" value={data.complexity || 'PRODUCTION'} color="#f1c21b" />
+                    <BlueprintStat label="Stability Score" value={`${data.viability || 98}%`} color="#7B2CFF" />
                     <BlueprintStat label="Recursive Depth" value={`L${data.depth || 8}`} color="#f97316" />
+                    <BlueprintStat label="Complexity Tier" value={data.complexity || 'PRODUCTION'} color="#f1c21b" />
+                    <BlueprintStat label="Topology Class" value={data.type} color="#18E6FF" />
                 </div>
 
                 <div className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] shadow-inner group/logic relative overflow-hidden mb-10">
@@ -152,8 +140,8 @@ const ImplementationDeck: React.FC<{
                         <Terminal size={16} className="text-[#7B2CFF]" />
                         <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.3em]">Operational Logic</span>
                     </div>
-                    <p className="text-xl text-gray-300 font-mono leading-relaxed italic border-l-4 border-[#7B2CFF] pl-10 group-hover/logic:text-white transition-colors duration-500 select-all">
-                        "{data.logic || data.internalPlanningMonologue}"
+                    <p className="text-xl text-gray-300 font-mono leading-relaxed italic border-l-4 border-[#7B2CFF] pl-10 group-hover/logic:text-white transition-colors duration-500">
+                        "{data.logic}"
                     </p>
                 </div>
 
@@ -164,7 +152,7 @@ const ImplementationDeck: React.FC<{
                 <div className="col-span-8 space-y-4">
                     <div className="flex items-center gap-4 px-4 mb-6">
                         <ListChecks size={20} className="text-[#10b981]" />
-                        <span className="text-xs font-black text-white uppercase tracking-[0.4em]">Implementation Sequence</span>
+                        <span className="text-xs font-black text-white uppercase tracking-[0.4em]">Deployment Sequence</span>
                     </div>
                     {protocols.map((step: any, i: number) => (
                         <motion.div 
@@ -176,7 +164,6 @@ const ImplementationDeck: React.FC<{
                         >
                             <div className="w-16 h-16 bg-black border border-white/10 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-[#10b981] group-hover:text-black transition-all shadow-lg relative z-10 overflow-hidden">
                                 <span className="text-xl font-black font-mono">{(i+1).toString().padStart(2, '0')}</span>
-                                <div className="absolute inset-0 bg-white/10 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                             </div>
                             <div className="flex-1 min-w-0 relative z-10">
                                 <div className="text-[10px] font-black text-[#10b981] uppercase tracking-[0.2em] mb-2 opacity-60 group-hover:opacity-100">{step.phase || step.role || 'CORE'}</div>
@@ -196,25 +183,16 @@ const ImplementationDeck: React.FC<{
                             <div className="p-3 bg-[#7B2CFF]/10 rounded-2xl text-[#7B2CFF] border border-[#7B2CFF]/20 shadow-xl">
                                 <Compass size={24} />
                             </div>
-                            <span className="text-[11px] font-black text-white uppercase tracking-[0.3em]">Architectural Impact</span>
+                            <span className="text-[11px] font-black text-white uppercase tracking-[0.3em]">System Impact</span>
                         </div>
                         <div className="flex-1 flex flex-col gap-10">
                             <div className="space-y-5">
                                 <div className="flex justify-between items-end">
-                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Coherence Index</span>
-                                    <span className="text-[14px] font-black font-mono text-[#7B2CFF]">{data.viability || 98}%</span>
+                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Coherence</span>
+                                    <span className="text-[14px] font-black font-mono text-[#7B2CFF]">{data.viability}%</span>
                                 </div>
                                 <div className="h-1.5 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                                    <motion.div initial={{ width: 0 }} animate={{ width: `${data.viability || 98}%` }} className="h-full bg-gradient-to-r from-[#7B2CFF] to-[#18E6FF] shadow-[0_0_15px_#7B2CFF]" />
-                                </div>
-                            </div>
-                            <div className="space-y-5">
-                                <div className="flex justify-between items-end">
-                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Entropy Delta</span>
-                                    <span className="text-[14px] font-black font-mono text-[#10b981]">Minimized</span>
-                                </div>
-                                <div className="p-5 bg-black/60 border border-white/5 rounded-2xl text-[10px] text-gray-400 font-mono leading-relaxed italic">
-                                    "Architecture projection: 42.1% efficiency increase in data flow across localized and global drive nodes."
+                                    <motion.div initial={{ width: 0 }} animate={{ width: `${data.viability}%` }} className="h-full bg-gradient-to-r from-[#7B2CFF] to-[#18E6FF] shadow-[0_0_15px_#7B2CFF]" />
                                 </div>
                             </div>
                             <div className="mt-auto pt-10 border-t border-white/5 flex flex-col gap-6">
@@ -242,7 +220,7 @@ const SynthesisBridge: React.FC = () => {
     
     const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM' | 'CODE'>('DRIVE');
     const [isGenerating, setIsGenerating] = useState(false);
-    const [result, setResult] = useState<any | null>(null);
+    const [result, setResult] = useState<TechnicalManifest | null>(null);
     const [customIntent, setCustomIntent] = useState('');
 
     const PRESETS = [
@@ -258,7 +236,9 @@ const SynthesisBridge: React.FC = () => {
         addLog('SYSTEM', `SYNC: Initializing high-fidelity logic forge for ${processType}...`);
 
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsGenerating(false); return; }
+            // Fix: properly handle promptSelectKey return type
+            const hasKey = await promptSelectKey();
+            if (!hasKey) { setIsGenerating(false); return; }
             
             const activeLayers = (knowledge.activeLayers || []).map(id => KNOWLEDGE_LAYERS[id]?.label || id).join(', ');
 
@@ -266,11 +246,11 @@ const SynthesisBridge: React.FC = () => {
                 ? "Forge a professional PARA+ Drive Organization. STRUCTURE: Projects (Active), Areas (Ongoing Responsibilities), Resources (Topic Interest), Archives (Completed). NAMING RITUAL: [YEAR.MONTH]_[PROJECT_ID]_[NODE_TYPE]. Provide a detailed 'structure' array for recursive tree visualization."
                 : processType === 'SYSTEM'
                 ? "Synthesize a high-fidelity Systems Architecture manifest. Domain: High-Scale AI Production Cloud. Logic: Edge Redundancy -> Load Balanced Ingestion -> Persistent State Store -> Global Inference CDN. Focus on IaC Terraform/HCL steps."
-                : "Forge a React/TypeScript Type-Safety Manifesto. Focus on resolving the 'Property props does not exist on type ErrorBoundary' error by explicitly inheriting from Component<P, S>. Use absolute technical terminology.");
+                : "Forge a React/TypeScript Type-Safety Manifesto. Use absolute technical terminology.");
 
-            const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', processType === 'DRIVE' ? 'DRIVE_ORGANIZATION' : 'SYSTEM_ARCHITECTURE', { 
-                prompt: `${directive}. User Intent: ${customIntent}. Context Layers: ${activeLayers}. Fidelity Target: ${dashboard.architecturalFidelity}%.`,
-                dna: { skepticism: 10, excitement: 90, alignment: 95 }
+            const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', processType === 'DRIVE' ? 'DIRECTORY' : 'SYSTEM_FLOW', { 
+                prompt: `${directive}. User Intent: ${customIntent}. Context Layers: ${activeLayers}.`,
+                fidelity: dashboard.architecturalFidelity
             });
 
             setResult(workflow);
@@ -298,22 +278,12 @@ const SynthesisBridge: React.FC = () => {
                         </div>
                         <div>
                             <h1 className="text-xl font-black text-white uppercase tracking-[0.5em] leading-none">Synthesis Bridge</h1>
-                            <p className="text-[9px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-3">High-Fidelity Process Forge // V9.5-ZENITH</p>
+                            <p className="text-[9px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-3 block uppercase">Structured Process Forge // v9.5</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-12">
-                    <div className="flex items-center gap-4 bg-black/40 px-6 py-2 rounded-2xl border border-white/5">
-                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Forge Fidelity</span>
-                        <div className="flex items-center gap-4">
-                            <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
-                                <motion.div animate={{ width: `${dashboard.architecturalFidelity}%` }} className="h-full bg-[#7B2CFF]" />
-                            </div>
-                            <span className="text-[10px] font-black font-mono text-white">{dashboard.architecturalFidelity}%</span>
-                        </div>
-                    </div>
-                    <div className="h-10 w-px bg-white/5" />
                     <div className="flex flex-col items-end gap-1.5">
                         <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest">Protocol Sync</span>
                         <div className="flex items-center gap-3">
@@ -337,7 +307,7 @@ const SynthesisBridge: React.FC = () => {
                                 active={processType === 'DRIVE'} onClick={() => { setProcessType('DRIVE'); audio.playClick(); }} 
                             />
                             <DomainCard 
-                                id="SYSTEM" label="Infrastructure" sub="CLOUD TOPOLOGY" icon={Server} color="#18E6FF"
+                                id="SYSTEM" label="Infrastructure" sub="CLOUD TOPOLOGY" icon={Cloud} color="#18E6FF"
                                 active={processType === 'SYSTEM'} onClick={() => { setProcessType('SYSTEM'); audio.playClick(); }} 
                             />
                              <DomainCard 
@@ -349,31 +319,8 @@ const SynthesisBridge: React.FC = () => {
 
                     <div className="p-8 bg-[#0a0a0c] border border-white/5 rounded-[3rem] shadow-2xl invisible-glass space-y-8 backdrop-blur-3xl">
                         <div className="flex items-center gap-3 mb-2 px-1">
-                            <Aperture size={16} className="text-gray-500" />
-                            <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Fidelity Tuning</span>
-                        </div>
-                        <div className="space-y-4 px-2">
-                            <div className="flex justify-between items-center text-[9px] font-mono text-gray-600">
-                                <span>ABSTRACT</span>
-                                <span>PRODUCTION</span>
-                            </div>
-                            <input 
-                                type="range" 
-                                min="10" max="100" 
-                                value={dashboard.architecturalFidelity}
-                                onChange={e => setDashboardState({ architecturalFidelity: parseInt(e.target.value) })}
-                                className="w-full h-1 bg-white/5 rounded-full appearance-none accent-[#7B2CFF] cursor-pointer"
-                            />
-                            <p className="text-[8px] text-gray-700 italic uppercase leading-relaxed">
-                                "Higher fidelity targets deeper recursive logic loops and extreme verification."
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="p-8 bg-[#0a0a0c] border border-white/5 rounded-[3rem] shadow-2xl invisible-glass space-y-8 backdrop-blur-3xl">
-                        <div className="flex items-center gap-3 mb-2 px-1">
                             <BookOpen size={16} className="text-gray-500" />
-                            <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Standard Manifests</span>
+                            <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Process Templates</span>
                         </div>
                         <div className="space-y-4">
                             {PRESETS.map(preset => (
@@ -396,16 +343,16 @@ const SynthesisBridge: React.FC = () => {
                         <textarea 
                             value={customIntent}
                             onChange={e => setCustomIntent(e.target.value)}
-                            placeholder="Initialize strategic intent sequence..."
-                            className="w-full h-36 bg-black/40 border border-white/5 rounded-[2rem] p-6 text-xs font-mono text-gray-300 outline-none focus:border-[#7B2CFF]/50 transition-all placeholder:text-gray-800 shadow-inner resize-none uppercase"
+                            placeholder="Input operational requirements..."
+                            className="w-full h-36 bg-black/40 border border-white/5 rounded-[2rem] p-6 text-xs font-mono text-gray-300 outline-none focus:border-[#7B2CFF]/50 transition-all placeholder:text-gray-800 shadow-inner resize-none"
                         />
                         <button 
                             onClick={() => generateBlueprint()}
                             disabled={isGenerating}
-                            className="w-full py-6 bg-[#7B2CFF] hover:bg-[#8e49ff] text-black rounded-[2.5rem] text-[11px] font-black uppercase tracking-[0.5em] transition-all shadow-[0_25px_60px_rgba(123,44,255,0.3)] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-5 group"
+                            className="w-full py-6 bg-[#7B2CFF] hover:bg-[#8e49ff] text-black rounded-[2.5rem] text-[11px] font-black uppercase tracking-[0.5em] transition-all shadow-[0_25px_60px_rgba(123,44,255,0.3)] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-5"
                         >
-                            {isGenerating ? <Loader2 className="w-6 h-6 animate-spin" /> : <Sparkles size={22} className="group-hover:rotate-12 transition-transform" />}
-                            {isGenerating ? 'FORGING...' : 'Synthesize Manifest'}
+                            {isGenerating ? <Loader2 className="w-6 h-6 animate-spin" /> : <RefreshCw size={22} />}
+                            {isGenerating ? 'Synthesizing...' : 'Generate Blueprint'}
                         </button>
                     </div>
                 </div>
@@ -417,7 +364,7 @@ const SynthesisBridge: React.FC = () => {
                                 key="active-deck" 
                                 data={result} 
                                 onArchive={(d) => { archiveIntervention({ ...d, id: `strat-${Date.now()}`, timestamp: Date.now() }); audio.playSuccess(); }}
-                                onDeploy={(d) => { pushToInvestmentQueue(d); addLog('SUCCESS', `MANIFEST_ENGAGED: Protocol authorized for deployment.`); audio.playSuccess(); }}
+                                onDeploy={(d) => { pushToInvestmentQueue(d); addLog('SUCCESS', `MANIFEST_ENGAGED: Protocol authorized.`); audio.playSuccess(); }}
                             />
                         ) : (
                             <motion.div 
@@ -426,12 +373,12 @@ const SynthesisBridge: React.FC = () => {
                                 className="h-full flex flex-col items-center justify-center text-center p-20 gap-12 grayscale opacity-10 group hover:grayscale-0 hover:opacity-25 transition-all duration-1000"
                             >
                                 <div className="relative">
-                                    <Workflow size={200} className="text-white" />
+                                    <Aperture size={200} className="text-white" />
                                     <motion.div animate={{ scale: [1, 1.15, 1], opacity: [0.1, 0.4, 0.1] }} transition={{ duration: 6, repeat: Infinity }} className="absolute inset-0 bg-[#7B2CFF]/20 blur-[150px] rounded-full" />
                                 </div>
                                 <div className="space-y-6">
-                                    <h3 className="text-4xl font-black font-mono text-white uppercase tracking-[1.2em] leading-none">Nexus Standby</h3>
-                                    <p className="text-xs font-mono text-gray-500 max-w-sm mx-auto uppercase tracking-widest leading-loose">Select a standard manifest or input custom strategic intent to initialize structured process synthesis.</p>
+                                    <h3 className="text-4xl font-black font-mono text-white uppercase tracking-[1.2em] leading-none">Bridge Standby</h3>
+                                    <p className="text-xs font-mono text-gray-500 max-w-sm mx-auto uppercase tracking-widest leading-loose">Select a template or input operational intent to forge a structured technical manifest.</p>
                                 </div>
                             </motion.div>
                         )}
@@ -442,10 +389,7 @@ const SynthesisBridge: React.FC = () => {
             <div className="h-10 bg-[#020204]/80 border-t border-white/5 px-12 flex items-center justify-between text-[9px] font-mono text-gray-700 shrink-0 relative z-[60] backdrop-blur-4xl uppercase font-black">
                 <div className="flex gap-16 items-center">
                     <div className="flex items-center gap-3 text-[#10b981] tracking-[0.2em]">
-                        <ShieldCheck size={16} className="shadow-[0_0_100px_#10b981]" /> Sync_Stable
-                    </div>
-                    <div className="flex items-center gap-3 tracking-widest">
-                        <Activity size={16} className="text-[#18E6FF]" /> Load: {Math.floor(Math.random() * 8 + 2)}%
+                        <ShieldCheck size={16} /> Sync_Stable
                     </div>
                 </div>
                 <div className="flex items-center gap-12">
