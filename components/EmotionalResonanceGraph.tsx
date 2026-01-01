@@ -2,9 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { ResonancePoint } from '../types';
 import { useAppStore } from '../store';
 import { Activity, Sliders, RefreshCw, AudioWaveform, Zap, MousePointer2 } from 'lucide-react';
-// Fix: Import motion from framer-motion to resolve "Cannot find name 'motion'" errors
 import { motion } from 'framer-motion';
-// Fix: Import audio service to resolve "Cannot find name 'audio'" errors
 import { audio } from '../services/audioService';
 
 const EmotionalResonanceGraph: React.FC = () => {
@@ -46,7 +44,6 @@ const EmotionalResonanceGraph: React.FC = () => {
             return { frame: i, tension: Math.max(0, Math.min(100, t)), dynamics: Math.max(0, Math.min(100, d)) };
         });
         setImageGenState({ resonanceCurve: newCurve });
-        // Fix: Use audio service for haptic feedback
         audio.playClick();
     };
 
@@ -57,14 +54,12 @@ const EmotionalResonanceGraph: React.FC = () => {
             tension: Math.max(0, Math.min(100, p.tension + amount))
         }));
         setImageGenState({ resonanceCurve: newCurve });
-        // Fix: Use audio service for haptic feedback
         audio.playClick();
     };
 
     const handleMouseDown = (index: number, type: 'tension' | 'dynamics', e: React.MouseEvent) => {
         e.stopPropagation();
         setDragging({ index, type });
-        // Fix: Use audio service for selection feedback
         audio.playHover();
     };
 
@@ -87,7 +82,6 @@ const EmotionalResonanceGraph: React.FC = () => {
     };
 
     const handleMouseUp = () => {
-        // Fix: Provide release feedback via audio service
         if (dragging) audio.playClick();
         setDragging(null);
     };
@@ -224,7 +218,6 @@ const EmotionalResonanceGraph: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-4 px-1">
                         <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden relative">
-                             {/* Fix: Use motion.div for animated spectrum visualizer */}
                              <motion.div animate={{ width: '60%' }} className="h-full bg-[#22d3ee] shadow-[0_0_10px_#22d3ee]" />
                         </div>
                         <span className="text-[10px] font-black font-mono text-[#22d3ee]">Active</span>

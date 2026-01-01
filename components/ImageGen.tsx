@@ -577,7 +577,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
             
             <div className="flex items-center gap-6">
                 <div className="flex items-center gap-4">
-                    <div className="p-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-xl shadow-[0_0_20px_rgba(157,78,221,0.2)]">
+                    <div className="p-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-xl shadow-[0_0_20px_rgba(157,78,221,0.25)]">
                         <Aperture className="w-5 h-5 text-[#9d4edd]" />
                     </div>
                     <div>
@@ -1279,7 +1279,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
         <div className="h-10 bg-[#0a0a0a] border-t border-[#1f1f1f] px-8 flex items-center justify-between text-[8px] font-mono text-gray-600 shrink-0 relative z-[60]">
             <div className="flex gap-10 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
                 <div className="flex items-center gap-3 text-emerald-500 font-bold uppercase tracking-[0.2em]">
-                    <CheckCircle size={14} className="shadow-[0_0_10px_#10b981]" /> Sync_Stable
+                    <CheckCircle size={14} className="shadow-[0_0_100px_#10b981]" /> Sync_Stable
                 </div>
                 <div className="flex items-center gap-3 uppercase tracking-widest">
                     <GitBranch size={14} className="text-[#9d4edd]" /> Production_Lattice: {frames.length} nodes

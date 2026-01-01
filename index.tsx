@@ -17,9 +17,9 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Metaventions OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Directly extend Component with the generic props and state to resolve TS member existence errors
-class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Explicitly declare and initialize state property for type safety
+// Fix: Use React.Component with explicit generic mapping to ensure props and state are correctly inherited from the base class
+class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  // Fix: Explicitly declare and initialize state property for type safety and visibility
   public state: ErrorBoundaryState = {
     hasError: false,
     error: null,
