@@ -1,7 +1,11 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { ResonancePoint } from '../types';
 import { useAppStore } from '../store';
-import { Activity, Sliders, RefreshCw, AudioWaveform, Zap } from 'lucide-react';
+import { Activity, Sliders, RefreshCw, AudioWaveform, Zap, MousePointer2 } from 'lucide-react';
+// Fix: Import motion from framer-motion to resolve "Cannot find name 'motion'" errors
+import { motion } from 'framer-motion';
+// Fix: Import audio service to resolve "Cannot find name 'audio'" errors
+import { audio } from '../services/audioService';
 
 const EmotionalResonanceGraph: React.FC = () => {
     const imageGen = useAppStore(s => s.imageGen);
@@ -12,8 +16,8 @@ const EmotionalResonanceGraph: React.FC = () => {
     const [dragging, setDragging] = useState<{ index: number; type: 'tension' | 'dynamics' } | null>(null);
     
     const width = 600;
-    const height = 220; 
-    const padding = 20;
+    const height = 240; 
+    const padding = 25;
     const pointsCount = 10;
     const xStep = (width - padding * 2) / (pointsCount - 1);
 
@@ -27,21 +31,23 @@ const EmotionalResonanceGraph: React.FC = () => {
             if (algo === 'HERO') {
                 t = 30 + Math.sin(progress * Math.PI * 1.5) * 40; 
                 d = 40 + Math.sin(progress * Math.PI * 2) * 20;
-                if (i === 8) { t = 90; d = 90; }
+                if (i === 8) { t = 95; d = 90; }
             } else if (algo === 'CHAOS') {
                 t = Math.random() * 80 + 10;
                 d = Math.random() * 80 + 10;
             } else if (algo === 'RISING') {
-                t = 20 + progress * 70;
-                d = 30 + progress * 60;
+                t = 15 + progress * 80;
+                d = 20 + progress * 70;
             } else if (algo === 'STEADY') {
-                t = 60 + Math.sin(progress * 10) * 5;
-                d = 40 + Math.cos(progress * 10) * 5;
+                t = 65 + Math.sin(progress * 12) * 8;
+                d = 45 + Math.cos(progress * 12) * 8;
             }
 
             return { frame: i, tension: Math.max(0, Math.min(100, t)), dynamics: Math.max(0, Math.min(100, d)) };
         });
         setImageGenState({ resonanceCurve: newCurve });
+        // Fix: Use audio service for haptic feedback
+        audio.playClick();
     };
 
     const nudgeTension = (amount: number) => {
@@ -51,19 +57,15 @@ const EmotionalResonanceGraph: React.FC = () => {
             tension: Math.max(0, Math.min(100, p.tension + amount))
         }));
         setImageGenState({ resonanceCurve: newCurve });
+        // Fix: Use audio service for haptic feedback
+        audio.playClick();
     };
 
-    const scaleDynamics = (factor: number) => {
-        if (!Array.isArray(resonanceCurve)) return;
-        const newCurve = resonanceCurve.map(p => ({
-            ...p,
-            dynamics: Math.max(0, Math.min(100, 50 + (p.dynamics - 50) * factor))
-        }));
-        setImageGenState({ resonanceCurve: newCurve });
-    };
-
-    const handleMouseDown = (index: number, type: 'tension' | 'dynamics') => {
+    const handleMouseDown = (index: number, type: 'tension' | 'dynamics', e: React.MouseEvent) => {
+        e.stopPropagation();
         setDragging({ index, type });
+        // Fix: Use audio service for selection feedback
+        audio.playHover();
     };
 
     const handleMouseMove = (e: React.MouseEvent) => {
@@ -85,6 +87,8 @@ const EmotionalResonanceGraph: React.FC = () => {
     };
 
     const handleMouseUp = () => {
+        // Fix: Provide release feedback via audio service
+        if (dragging) audio.playClick();
         setDragging(null);
     };
 
@@ -114,47 +118,59 @@ const EmotionalResonanceGraph: React.FC = () => {
     if (!Array.isArray(resonanceCurve)) return null;
 
     return (
-        <div className="w-full h-full bg-[#050505] border border-[#222] rounded-lg overflow-hidden relative group flex flex-col">
-            <div className="flex items-center justify-between px-4 py-1.5 border-b border-[#222] bg-[#0a0a0a] shrink-0">
-                <div className="flex items-center gap-4 text-[9px] font-mono uppercase tracking-widest">
-                    <span className="text-[#9d4edd] flex items-center gap-1"><Activity className="w-3 h-3"/> Tension</span>
-                    <span className="text-[#22d3ee] flex items-center gap-1"><AudioWaveform className="w-3 h-3"/> Dynamics</span>
+        <div className="w-full h-full bg-[#050505] border border-white/5 rounded-2xl overflow-hidden relative group flex flex-col shadow-inner">
+            <div className="flex items-center justify-between px-6 py-2.5 border-b border-white/5 bg-[#0a0a0a] shrink-0">
+                <div className="flex items-center gap-6 text-[9px] font-mono uppercase tracking-[0.2em]">
+                    <span className="text-[#9d4edd] flex items-center gap-2 font-black">
+                        <Activity className="w-3.5 h-3.5"/> Tension_Arc
+                    </span>
+                    <span className="text-[#22d3ee] flex items-center gap-2 font-black">
+                        <AudioWaveform className="w-3.5 h-3.5"/> Dynamics_Field
+                    </span>
                 </div>
                 
-                <div className="flex gap-1">
-                    <button onClick={() => applyAlgorithm('HERO')} className="px-2 py-0.5 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Hero's Journey">Hero</button>
-                    <button onClick={() => applyAlgorithm('RISING')} className="px-2 py-0.5 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Linear Rise">Rise</button>
-                    <button onClick={() => applyAlgorithm('CHAOS')} className="px-2 py-0.5 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Randomize">Chaos</button>
-                    <button onClick={() => applyAlgorithm('STEADY')} className="px-2 py-0.5 hover:bg-[#222] rounded text-[8px] font-mono text-gray-400 hover:text-white uppercase transition-colors" title="Consistent">Flow</button>
+                <div className="flex gap-2">
+                    {['HERO', 'RISING', 'CHAOS', 'STEADY'].map(algo => (
+                        <button 
+                            key={algo}
+                            onClick={() => applyAlgorithm(algo as any)} 
+                            className="px-2.5 py-1 bg-white/5 hover:bg-[#222] rounded-lg text-[8px] font-black font-mono text-gray-500 hover:text-white uppercase transition-all border border-transparent hover:border-white/10"
+                        >
+                            {algo}
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            <div className="flex-1 relative p-4 bg-gradient-to-b from-[#0a0a0a] to-[#050505]">
+            <div className="flex-1 relative p-6 bg-gradient-to-b from-[#0a0a0a] to-[#030303]">
                 <svg 
                     ref={svgRef}
                     width="100%" 
                     height="100%" 
                     viewBox={`0 0 ${width} ${height}`}
                     preserveAspectRatio="none"
-                    className="overflow-visible cursor-crosshair"
+                    className="overflow-visible"
                     onMouseMove={handleMouseMove}
                     onMouseUp={handleMouseUp}
                     onMouseLeave={handleMouseUp}
                 >
                     <defs>
-                        <linearGradient id="grid-fade" x1="0" x2="0" y1="0" y2="1">
-                            <stop offset="0%" stopColor="#333" stopOpacity="0.2"/>
-                            <stop offset="100%" stopColor="#333" stopOpacity="0"/>
+                        <linearGradient id="grid-glow" x1="0" x2="0" y1="0" y2="1">
+                            <stop offset="0%" stopColor="#9d4edd" stopOpacity="0.05"/>
+                            <stop offset="50%" stopColor="#22d3ee" stopOpacity="0.02"/>
+                            <stop offset="100%" stopColor="transparent" stopOpacity="0"/>
                         </linearGradient>
                     </defs>
-                    <rect x={padding} y={padding} width={width - padding*2} height={height - padding*2} fill="url(#grid-fade)" />
                     
-                    <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#333" strokeWidth="1" />
-                    <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="#333" strokeWidth="1" strokeDasharray="4 4" />
-                    <line x1={padding} y1={height/2} x2={width - padding} y2={height/2} stroke="#222" strokeWidth="1" />
+                    <rect x={padding} y={padding} width={width - padding*2} height={height - padding*2} fill="url(#grid-glow)" />
                     
-                    <path d={getPath('tension')} fill="none" stroke="#9d4edd" strokeWidth="2" className="drop-shadow-[0_0_5px_rgba(157,78,221,0.5)]" />
-                    <path d={getPath('dynamics')} fill="none" stroke="#22d3ee" strokeWidth="2" className="drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]" />
+                    {/* Grid lines */}
+                    <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} stroke="#222" strokeWidth="1" />
+                    <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="#222" strokeWidth="1" strokeDasharray="5 10" />
+                    <line x1={padding} y1={height/2} x2={width - padding} y2={height/2} stroke="#1a1a1a" strokeWidth="0.5" />
+                    
+                    <path d={getPath('tension')} fill="none" stroke="#9d4edd" strokeWidth="3" className="drop-shadow-[0_0_12px_rgba(157,78,221,0.6)] transition-all" />
+                    <path d={getPath('dynamics')} fill="none" stroke="#22d3ee" strokeWidth="3" className="drop-shadow-[0_0_12px_rgba(34,211,238,0.6)] transition-all" />
 
                     {resonanceCurve.map((p, i) => {
                         const x = padding + i * xStep;
@@ -163,52 +179,55 @@ const EmotionalResonanceGraph: React.FC = () => {
 
                         return (
                             <g key={i}>
+                                {/* Alignment Line */}
+                                <line x1={x} y1={padding} x2={x} y2={height - padding} stroke="white" strokeOpacity="0.03" strokeWidth="1" />
+                                
                                 <circle 
-                                    cx={x} cy={yTension} r={6} 
-                                    fill="#050505" stroke="#9d4edd" strokeWidth={2}
-                                    className="cursor-ns-resize hover:fill-[#9d4edd] transition-colors"
-                                    onMouseDown={() => handleMouseDown(i, 'tension')}
+                                    cx={x} cy={yTension} r={dragging?.index === i && dragging?.type === 'tension' ? 9 : 7} 
+                                    fill="#050505" stroke="#9d4edd" strokeWidth={2.5}
+                                    className="cursor-ns-resize hover:fill-[#9d4edd] transition-all hover:scale-125"
+                                    onMouseDown={(e) => handleMouseDown(i, 'tension', e)}
                                 />
                                 <circle 
-                                    cx={x} cy={yDynamics} r={4} 
+                                    cx={x} cy={yDynamics} r={dragging?.index === i && dragging?.type === 'dynamics' ? 7 : 5} 
                                     fill="#050505" stroke="#22d3ee" strokeWidth={2}
-                                    className="cursor-ns-resize hover:fill-[#22d3ee] transition-colors"
-                                    onMouseDown={() => handleMouseDown(i, 'dynamics')}
+                                    className="cursor-ns-resize hover:fill-[#22d3ee] transition-all hover:scale-125"
+                                    onMouseDown={(e) => handleMouseDown(i, 'dynamics', e)}
                                 />
-                                <line x1={x} y1={height - padding} x2={x} y2={height - padding + 5} stroke="#333" strokeWidth="1" />
+                                
+                                <text x={x} y={height - padding + 15} textAnchor="middle" fill="#444" fontSize="8" fontFamily="Fira Code" className="uppercase font-black">F{i+1}</text>
                             </g>
                         );
                     })}
                 </svg>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 p-3 border-t border-[#222] bg-[#080808] shrink-0">
-                <div className="flex flex-col gap-1.5">
-                    <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase">
-                        <span>Tension Bias</span>
-                        <span className="text-[#9d4edd]">SHIFT</span>
+            <div className="grid grid-cols-2 gap-6 p-4 border-t border-white/5 bg-[#080808] shrink-0">
+                <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest px-1">
+                        <span>Intensity Magnitude</span>
+                        <span className="text-[#9d4edd]">Logic_Shift</span>
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={() => nudgeTension(-10)} className="px-2 py-0.5 bg-[#1f1f1f] rounded text-[9px] hover:text-white">-</button>
-                        <div className="flex-1 h-4 bg-[#111] rounded flex items-center px-2 relative overflow-hidden">
-                            <div className="w-full h-0.5 bg-[#333]"></div>
-                            <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 bg-[#9d4edd] rounded-full -translate-y-1/2 -translate-x-1/2"></div>
+                        <button onClick={() => nudgeTension(-10)} className="w-8 h-6 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] text-gray-400 hover:text-white transition-all">-</button>
+                        <div className="flex-1 h-6 bg-black border border-white/5 rounded-lg flex items-center px-3 relative overflow-hidden group/slider">
+                            <div className="w-full h-[1px] bg-white/10"></div>
+                            <div className="absolute top-1/2 left-1/2 w-2 h-2 bg-[#9d4edd] rounded-full -translate-y-1/2 -translate-x-1/2 shadow-[0_0_8px_#9d4edd] group-hover/slider:scale-125 transition-transform"></div>
                         </div>
-                        <button onClick={() => nudgeTension(10)} className="px-2 py-0.5 bg-[#1f1f1f] rounded text-[9px] hover:text-white">+</button>
+                        <button onClick={() => nudgeTension(10)} className="w-8 h-6 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] text-gray-400 hover:text-white transition-all">+</button>
                     </div>
                 </div>
-                <div className="flex flex-col gap-1.5">
-                    <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase">
-                        <span>Dynamics Range</span>
-                        <span className="text-[#22d3ee]">AMP</span>
+                <div className="flex flex-col gap-2">
+                    <div className="flex justify-between text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest px-1">
+                        <span>Dynamics Spectrum</span>
+                        <span className="text-[#22d3ee]">Field_Amp</span>
                     </div>
-                    <div className="flex gap-2">
-                        <button onClick={() => scaleDynamics(0.9)} className="px-2 py-0.5 bg-[#1f1f1f] rounded text-[9px] hover:text-white">-</button>
-                        <div className="flex-1 h-4 bg-[#111] rounded flex items-center px-2 relative overflow-hidden">
-                            <div className="w-full h-0.5 bg-[#333]"></div>
-                            <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 bg-[#22d3ee] rounded-full -translate-y-1/2 -translate-x-1/2"></div>
+                    <div className="flex items-center gap-4 px-1">
+                        <div className="flex-1 h-1.5 bg-white/5 rounded-full overflow-hidden relative">
+                             {/* Fix: Use motion.div for animated spectrum visualizer */}
+                             <motion.div animate={{ width: '60%' }} className="h-full bg-[#22d3ee] shadow-[0_0_10px_#22d3ee]" />
                         </div>
-                        <button onClick={() => scaleDynamics(1.1)} className="px-2 py-0.5 bg-[#1f1f1f] rounded text-[9px] hover:text-white">+</button>
+                        <span className="text-[10px] font-black font-mono text-[#22d3ee]">Active</span>
                     </div>
                 </div>
             </div>

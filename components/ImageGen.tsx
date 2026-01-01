@@ -190,6 +190,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
           const bible = JSON.parse(response.text || '{}');
           setProductionBible(bible);
+          actions.setImageGenState({ productionBible: bible });
           actions.addLog('SUCCESS', 'PRODUCTION_BIBLE: Cinematic DNA locked. Theme consistency prioritized.');
           audio.playSuccess();
       } catch (err: any) {
@@ -276,14 +277,16 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
             : imageGen.prompt;
 
         const plan = await generateStoryboardPlan(directorDirective);
-        setFrames(plan.map((p, i) => ({
+        const nextFrames = plan.map((p, i) => ({
             index: i,
             scenePrompt: p.scenePrompt,
             continuity: p.continuity,
             camera: p.camera || 'Cinematic 35mm',
             lighting: p.lighting || 'Masterpiece Key-Light',
-            status: 'pending'
-        })));
+            status: 'pending' as const
+        }));
+        setFrames(nextFrames);
+        actions.setImageGenState({ frames: nextFrames });
         actions.addLog('SUCCESS', 'DIRECTOR: Timeline synchronized. Continuous logic locked.');
         audio.playSuccess();
     } catch (err: any) {
@@ -335,12 +338,16 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
         }
 
         if (url) {
-            setFrames(prev => prev.map((f, i) => i === idx ? { ...f, imageUrl: url, status: 'done' } : f));
+            setFrames(prev => {
+                const next = prev.map((f, i) => i === idx ? { ...f, imageUrl: url, status: 'done' as const } : f);
+                actions.setImageGenState({ frames: next });
+                return next;
+            });
         } else {
             throw new Error("Bitstream dropout.");
         }
     } catch (err: any) {
-        setFrames(prev => prev.map((f, i) => i === idx ? { ...f, status: 'error', error: err.message } : f));
+        setFrames(prev => prev.map((f, i) => i === idx ? { ...f, status: 'error' as const, error: err.message } : f));
     }
   };
 
@@ -350,7 +357,8 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     for (let i = 0; i < frames.length; i++) {
         if (frames[i].status === 'done') continue;
         await renderFrame(i);
-        await new Promise(r => setTimeout(r, 1200)); 
+        // Throttle for stability
+        await new Promise(r => setTimeout(r, 1500)); 
     }
     setIsBatchRendering(false);
     actions.addLog('SUCCESS', 'STUDIO_RENDER: Sequence fabricated and archived.');
@@ -398,7 +406,9 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
         const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
         const response = await fetch(`${downloadLink}&key=${process.env.API_KEY}`);
         const blob = await response.blob();
-        setVideoUrl(URL.createObjectURL(blob));
+        const url = URL.createObjectURL(blob);
+        setVideoUrl(url);
+        actions.setImageGenState({ videoUrl: url });
         actions.addLog('SUCCESS', 'VEO_COMPLETE: Temporal sequence stabilized at 1080p.');
         audio.playSuccess();
     } catch (err: any) {
@@ -466,8 +476,9 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
       }]);
       
       if (audioData) {
-        setFrames(prev => prev.map((f, i) => i === idx ? { ...f, audioUrl: `data:audio/pcm;base64,${audioData}` } : f));
-        return `data:audio/pcm;base64,${audioData}`;
+        const audioUrl = `data:audio/pcm;base64,${audioData}`;
+        setFrames(prev => prev.map((f, i) => i === idx ? { ...f, audioUrl } : f));
+        return audioUrl;
       }
     } catch (err: any) {
         actions.addLog('ERROR', `SOUND_FAIL_NODE_${idx+1}: ${err.message}`);
@@ -475,9 +486,6 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     return null;
   };
 
-  /**
-   * Batch-processes and synthesizes narration for all frames in the storyboard sequence.
-   */
   const generateAllSequenceAudio = async () => {
     if (frames.length === 0) return;
     setIsGeneratingTeaserAudio(true);
@@ -486,8 +494,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     for (let i = 0; i < frames.length; i++) {
         if (frames[i].audioUrl) continue;
         await generateTeaserAudioForIndex(i);
-        // Small delay to prevent rate limiting
-        await new Promise(r => setTimeout(r, 500));
+        await new Promise(r => setTimeout(r, 600));
     }
     
     setIsGeneratingTeaserAudio(false);
@@ -510,9 +517,9 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
           }
           
           if (audioUrl) {
-              await new Promise(r => setTimeout(r, 6000));
+              await new Promise(r => setTimeout(r, 7000));
           } else {
-              await new Promise(r => setTimeout(r, 5000));
+              await new Promise(r => setTimeout(r, 5500));
           }
       }
       setIsAutoPlaying(false);
@@ -561,7 +568,6 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
         className={`h-full w-full bg-[#030303] flex flex-col border border-white/10 rounded-3xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,1)] relative z-10 font-sans group/studio ${className}`}
         style={{ ...style }}
     >
-        
         {/* Cinematic Scanline Overlay */}
         <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.05)_50%)] z-50 bg-[length:100%_4px] opacity-20" />
 
@@ -861,7 +867,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     <div className="flex items-center justify-between shrink-0">
                                         <div className="flex flex-col">
                                             <span className="text-[11px] font-black text-[#9d4edd] font-mono uppercase tracking-[0.4em]">Director's Script</span>
-                                            <span className="text-[7px] text-gray-600 font-mono uppercase mt-0.5 tracking-widest uppercase">V8.1 - THE D-Ecosystem</span>
+                                            <span className="text-[7px] text-gray-600 font-mono uppercase mt-0.5 tracking-widest">V8.1 - THE D-Ecosystem</span>
                                         </div>
                                         <div className="p-2.5 bg-[#9d4edd]/10 rounded-xl border border-[#9d4edd]/30 text-[#9d4edd] shadow-inner">
                                             <Clapperboard size={18} />
@@ -872,7 +878,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         <textarea 
                                             value={imageGen.prompt} 
                                             onChange={e => actions.setImageGenState({ prompt: e.target.value })}
-                                            className="w-full h-full bg-black border border-[#222] p-5 rounded-[2rem] text-sm font-mono text-gray-300 outline-none focus:border-[#9d4edd] resize-none transition-all placeholder:text-gray-800 shadow-inner group-hover/border-[#333]"
+                                            className="w-full h-full bg-black border border-[#222] p-5 rounded-[2rem] text-sm font-mono text-gray-300 outline-none focus:border-[#9d4edd] transition-all placeholder:text-gray-800 shadow-inner group-hover/border-[#333]"
                                             placeholder="Define the narrative arc and visual intent..."
                                         />
                                         <div className="absolute bottom-4 right-6 opacity-20 pointer-events-none">
@@ -897,7 +903,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                                 className="flex-1 py-3.5 bg-[#9d4edd] text-black font-black font-mono text-[9px] uppercase tracking-[0.2em] rounded-[1.2rem] hover:bg-[#b06bf7] transition-all shadow-[0_10px_25px_rgba(157,78,221,0.25)] flex items-center justify-center gap-2.5 disabled:opacity-30 active:scale-95"
                                             >
                                                 {isBatchRendering ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} className="fill-current" />}
-                                                Render
+                                                Batch Render
                                             </button>
                                             <button 
                                                 onClick={exportProductionBundle} 
@@ -973,7 +979,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                                 <div className="absolute top-6 left-6 px-4 py-2 bg-black/70 backdrop-blur-xl border border-white/10 rounded-full text-[10px] font-black font-mono text-white z-10 shadow-2xl uppercase">Node_{i+1}</div>
                                                 <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/frame:opacity-100 transition-opacity flex items-center justify-center gap-5 z-20">
                                                     <button onClick={() => renderFrame(i)} className="p-4 bg-[#9d4edd] text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95"><RefreshCw size={24} /></button>
-                                                    {f.imageUrl && <button onClick={() => actions.openHoloProjector({ id: `f-${i}`, title: `Frame ${i+1}`, type: 'IMAGE', content: f.imageUrl })} className="p-4 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95"><Maximize size={24}/></button>}
+                                                    {f.imageUrl && <button onClick={() => actions.openHoloProjector({ id: `f-${i}`, title: `Frame ${i+1}`, type: 'IMAGE', content: f.imageUrl })} className="p-4 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95"><Maximize2 size={24}/></button>}
                                                 </div>
                                             </div>
                                             <div className="p-8 space-y-6 overflow-y-auto max-h-[300px] custom-scrollbar">
@@ -1008,7 +1014,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     </div>
                                     <div>
                                         <h2 className="text-base font-black font-mono text-white uppercase tracking-[0.5em]">Temporal Loom</h2>
-                                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-1 uppercase">V8.1 - THE D-Ecosystem</p>
+                                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-1">V8.1 - THE D-Ecosystem</p>
                                     </div>
                                 </div>
                                 
@@ -1178,7 +1184,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             <div className="text-center space-y-8 max-w-5xl overflow-y-auto max-h-[300px] custom-scrollbar px-4">
                                                 <div className="flex justify-center items-center gap-8 shrink-0">
                                                     <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent opacity-40" />
-                                                    <span className="text-[12px] font-black text-[#9d4edd] uppercase tracking-[1em] whitespace-nowrap uppercase">V8.1 - THE D-Ecosystem</span>
+                                                    <span className="text-[12px] font-black text-[#9d4edd] uppercase tracking-[1em] whitespace-nowrap">V8.1 - THE D-Ecosystem</span>
                                                     <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent opacity-40" />
                                                 </div>
                                                 <p className="text-4xl font-mono text-white leading-relaxed italic font-medium selection:bg-[#9d4edd]/40 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,1)] pb-4">
