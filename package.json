@@ -1,4 +1,3 @@
-
 {
   "name": "metaventions-ai-v1",
   "private": true,
@@ -25,10 +24,12 @@
     "serve": "^14.2.3",
     "mermaid": "^11.4.1",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^2.5.2"
+    "tailwind-merge": "^2.5.2",
+    "d3": "^7.9.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/d3": "^7.11.0",
     "@vitejs/plugin-react": "^4.3.4",
     "typescript": "^5.7.3",
     "vite": "^6.1.1"

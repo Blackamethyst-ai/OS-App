@@ -382,7 +382,8 @@ export interface KnowledgeLayer {
 }
 
 export interface Message {
-    role: 'user' | 'model' | 'system' | 'function' | 'AI' | 'USER';
+    /* Fix: Added 'tool' role to support agentic capability execution logs */
+    role: 'user' | 'model' | 'system' | 'function' | 'AI' | 'USER' | 'tool';
     content?: string;
     text?: string;
     timestamp?: number;
