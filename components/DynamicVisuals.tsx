@@ -3,11 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import * as d3 from 'd3';
 import { StoredArtifact } from '../types';
 import { 
-    Activity, ShieldCheck, Zap, Info, Search, 
-    Layers, GitBranch, Target, X, ChevronRight,
-    Loader2, Sparkles, Database, FileText, Code,
-    Box, Radar, Globe, Waves, Maximize, CheckCircle2,
-    Share2, Compass, Cpu, Fingerprint
+    Activity, Zap, Info, Target, X, 
+    Loader2, Sparkles, Database, Globe, 
+    Maximize, CheckCircle2, Compass, GitBranch, Fingerprint, Waves
 } from 'lucide-react';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
@@ -41,12 +39,10 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
     const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
     const [isSynthesizing, setIsSynthesizing] = useState(false);
 
-    // Contextual Panel Data
     const activeArtifact = useMemo(() => 
         artifacts.find(a => a.id === centeredId) || null
     , [artifacts, centeredId]);
 
-    // Graph Construction (Circular Hub Model)
     const graphData = useMemo(() => {
         if (artifacts.length === 0) return { nodes: [], links: [] };
 
@@ -56,7 +52,6 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
         const nodes: GraphNode[] = [];
         const links: GraphLink[] = [];
 
-        // 1. Center Hub
         nodes.push({
             id: hubArtifact.id,
             label: hubArtifact.name,
@@ -65,11 +60,9 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
             data: hubArtifact
         });
 
-        // 2. Identify and create Sub-topics based on semantic relationships
-        // We look for common entities or tags to group artifacts
         const otherArtifacts = artifacts.filter(a => a.id !== hubId);
         
-        otherArtifacts.forEach((art, i) => {
+        otherArtifacts.forEach((art) => {
             nodes.push({
                 id: art.id,
                 label: art.name,
@@ -78,9 +71,13 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                 data: art
             });
 
-            // Calculate strength based on shared entities - Robust Array Check
-            const hubEntities = Array.isArray(hubArtifact.analysis?.entities) ? hubArtifact.analysis.entities : [];
-            const artEntities = Array.isArray(art.analysis?.entities) ? art.analysis.entities : [];
+            // Robust array validation to prevent .filter crash
+            const hubEntities = hubArtifact.analysis && Array.isArray(hubArtifact.analysis.entities) 
+                ? hubArtifact.analysis.entities 
+                : [];
+            const artEntities = art.analysis && Array.isArray(art.analysis.entities) 
+                ? art.analysis.entities 
+                : [];
 
             const sharedEntities = hubEntities.filter(e => 
                 artEntities.includes(e)
@@ -108,7 +105,6 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
         const svg = d3.select(svgRef.current);
         svg.selectAll('*').remove();
 
-        // High-Quality Filters (Glows and Gradients)
         const defs = svg.append('defs');
         const filter = defs.append('filter')
             .attr('id', 'nodeGlow')
@@ -121,7 +117,6 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
 
         const g = svg.append('g');
 
-        // Force Simulation Configuration
         const simulation = d3.forceSimulation<GraphNode>(graphData.nodes)
             .force('link', d3.forceLink<GraphNode, GraphLink>(graphData.links)
                 .id(d => d.id)
@@ -131,7 +126,6 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
             .force('collision', d3.forceCollide().radius(80))
             .force('radial', d3.forceRadial(d => d.type === 'HUB' ? 0 : radius, centerX, centerY).strength(0.8));
 
-        // Links (Synaptic Arcs)
         const link = g.append('g')
             .selectAll('path')
             .data(graphData.links)
@@ -141,7 +135,6 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
             .attr('stroke-width', d => d.value * 1.5)
             .attr('class', 'synaptic-link');
 
-        // Node Groups
         const node = g.append('g')
             .selectAll('g')
             .data(graphData.nodes)
@@ -161,7 +154,6 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                 handleNodeSelection(d);
             });
 
-        // Procedural Inner Logic Ring for nodes
         node.append('circle')
             .attr('r', d => d.type === 'HUB' ? 45 : 25)
             .attr('fill', d => d.type === 'HUB' ? '#0a0a0c' : 'rgba(157, 78, 221, 0.05)')
@@ -169,7 +161,6 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
             .attr('stroke-width', d => d.type === 'HUB' ? 3 : 1.5)
             .attr('filter', 'url(#nodeGlow)');
 
-        // Adaptive Label Positioning
         node.append('text')
             .attr('dy', d => d.type === 'HUB' ? 80 : 50)
             .attr('text-anchor', 'middle')
@@ -182,7 +173,6 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
             .attr('text-transform', 'uppercase')
             .attr('letter-spacing', '0.15em')
             .each(function(d) {
-                // Truncate logic if too long
                 const text = d3.select(this);
                 const words = d.label.split(/\s+/);
                 if (words.length > 2 && d.type !== 'HUB') {
@@ -191,14 +181,12 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
             });
 
         simulation.on('tick', () => {
-            // Draw curved paths
             link.attr('d', (d: any) => {
                 const dx = d.target.x - d.source.x;
                 const dy = d.target.y - d.source.y;
                 const dr = Math.sqrt(dx * dx + dy * dy);
                 return `M${d.source.x},${d.source.y}A${dr},${dr} 0 0,1 ${d.target.x},${d.target.y}`;
             });
-
             node.attr('transform', (d: any) => `translate(${d.x},${d.y})`);
         });
 
@@ -206,8 +194,6 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
             audio.playClick();
             setIsSynthesizing(true);
             setCenteredId(d.id);
-            
-            // Re-center simulation
             simulation.alpha(1).restart();
             setTimeout(() => setIsSynthesizing(false), 1200);
         };
@@ -219,14 +205,10 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
 
     return (
         <div ref={containerRef} className="h-full w-full flex bg-[#020204] relative overflow-hidden">
-            {/* Background Grid Pattern */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(circle_at_center,rgba(24,230,255,0.15)_0%,transparent_70%)]" />
             
-            {/* Visualizer (Panel Center-Left) */}
             <div className="flex-1 relative flex items-center justify-center p-10">
                 <svg ref={svgRef} className="w-full h-full cursor-move" />
-                
-                {/* Visual Metadata Tags */}
                 <div className="absolute top-10 left-10 space-y-4 pointer-events-none">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-[#18E6FF]/10 border border-[#18E6FF]/30 rounded-2xl shadow-[0_0_20px_rgba(24,230,255,0.15)]">
@@ -251,7 +233,6 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                 </div>
             </div>
 
-            {/* Contextual Description Panel (Panel Right) */}
             <div className="w-[480px] border-l border-white/5 bg-[#050507]/60 backdrop-blur-3xl flex flex-col shrink-0 z-40 relative shadow-[0_0_100px_rgba(0,0,0,1)]">
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(24,230,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(24,230,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
                 
@@ -313,7 +294,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                                         <span className="text-[8px] font-mono text-[#18E6FF]">{Array.isArray(activeArtifact.analysis?.entities) ? activeArtifact.analysis.entities.length : 0} Entities</span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
-                                        {Array.isArray(activeArtifact.analysis?.entities) && activeArtifact.analysis.entities.map((ent, i) => (
+                                        {activeArtifact.analysis && Array.isArray(activeArtifact.analysis.entities) && activeArtifact.analysis.entities.map((ent, i) => (
                                             <div key={i} className="px-5 py-3 bg-white/[0.02] border border-white/5 rounded-2xl text-[9px] font-mono text-gray-400 flex items-center gap-3 hover:border-white/20 transition-all cursor-default group/ent">
                                                 <div className="w-1 h-1 rounded-full bg-[#18E6FF] shadow-[0_0_8px_#18E6FF] group-hover/ent:scale-150 transition-transform" />
                                                 {renderSafe(ent)}
@@ -333,7 +314,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                             </motion.div>
                         ) : (
                             <div className="h-full flex flex-col items-center justify-center text-center opacity-10 gap-10 grayscale py-20">
-                                <Radar size={120} className="animate-[spin_20s_linear_infinite]" />
+                                <Waves size={120} className="animate-[spin_20s_linear_infinite]" />
                                 <div className="space-y-4">
                                     <p className="text-xl font-mono uppercase tracking-[1em]">Hub Idle</p>
                                     <p className="text-[9px] font-mono uppercase tracking-widest max-w-[240px] mx-auto leading-loose">Select a synaptic node from the lattice to synchronize its strategic context.</p>
@@ -343,22 +324,12 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                     </AnimatePresence>
                 </div>
 
-                {/* Footer Telemetry */}
                 <div className="h-12 bg-black border-t border-white/5 px-10 flex items-center justify-between text-[7px] font-mono text-gray-700 tracking-[0.3em] shrink-0 uppercase font-black">
                     <div className="flex gap-6">
                         <span className="flex items-center gap-2"><CheckCircle2 size={10} className="text-[#10b981]" /> Handshake Verified</span>
                         <span className="flex items-center gap-2"><Globe size={10} className="text-[#18E6FF]" /> Grid_Active</span>
                     </div>
                     <span>Zenith_Vis_v9.5</span>
-                </div>
-            </div>
-
-            {/* Global Interface Legend */}
-            <div className="fixed bottom-24 right-[520px] pointer-events-none opacity-20">
-                <div className="flex flex-col gap-1 items-end font-mono text-[7px] text-white uppercase tracking-widest">
-                    <span>Center: Active Focus</span>
-                    <span>Ring: Semantic Relations</span>
-                    <span>Arcs: Logic Probability</span>
                 </div>
             </div>
         </div>

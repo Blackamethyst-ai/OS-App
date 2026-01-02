@@ -399,9 +399,9 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
         GOVERNANCE: ${governance}
         
         REQUIREMENTS:
-        1. If DIRECTORY: Generate a deep PARA+ recursive file taxonomy.
-        2. If SYSTEM_FLOW: Generate a cloud-infrastructure deployment sequence with specific IaC steps.
-        3. Output professional, production-grade naming conventions.
+        1. If DIRECTORY: Generate a deep PARA 2.0 recursive file taxonomy. Use strict naming rituals like [YYYY.MM]_[CLIENT_ID]_[PROJECT_CODE]_[TYPE]. Folders MUST include: 01_PROJECTS, 02_AREAS, 03_RESOURCES, 04_ARCHIVES.
+        2. If SYSTEM_FLOW: Generate a sovereign cloud-infrastructure deployment sequence. Detail specific IaC steps (Terraform/HCL) for Global Load Balancer, Persistent State Store, and Edge Node Clusters.
+        3. Output professional, imperial-tier technical nomenclature. No fluff.
     `;
 
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
@@ -411,7 +411,7 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
             systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, 
             responseMimeType: 'application/json',
             responseSchema: schema,
-            thinkingConfig: { thinkingBudget: 16000 }
+            thinkingConfig: { thinkingBudget: 32000 }
         }
     }));
     return safeParseJson<TechnicalManifest>(response.text);
