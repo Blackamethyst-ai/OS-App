@@ -8,12 +8,14 @@ import {
     File as FileIcon, Loader2, Search, 
     Database, X, Upload, Activity, FileText, BrainCircuit,
     LayoutGrid, Boxes, Info, Trash2, Radar, Zap, Code,
-    Shield, FileJson, Clock, Tag, Box, Sparkles, FileSearch, Fingerprint
+    Shield, FileJson, Clock, Tag, Box, Sparkles, FileSearch, Fingerprint,
+    Waves
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoredArtifact } from '../types';
 import KnowledgeGraph from './KnowledgeGraph';
 import PowerXRay from './PowerXRay';
+import DynamicVisuals from './DynamicVisuals';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 
@@ -34,7 +36,7 @@ const MemoryCore: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'XRAY' | 'TOOLS'>('GRID');
+    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'XRAY' | 'TOOLS' | 'DYNAMIC'>('GRID');
     
     const [semanticResults, setSemanticResults] = useState<{id: string, score: number}[] | null>(null);
     const [selectedArtifact, setSelectedArtifact] = useState<StoredArtifact | null>(null);
@@ -235,6 +237,7 @@ const MemoryCore: React.FC = () => {
                             { id: 'GRID', icon: LayoutGrid, label: 'The Matrix' },
                             { id: 'TOOLS', icon: Code, label: 'Evolved Skills' },
                             { id: 'GRAPH', icon: BrainCircuit, label: 'Neural Lattice' },
+                            { id: 'DYNAMIC', icon: Waves, label: 'Dynamic Visuals' },
                             { id: 'XRAY', icon: Radar, label: 'Spectral Scan' }
                         ].map(btn => (
                             <button 
@@ -262,6 +265,10 @@ const MemoryCore: React.FC = () => {
                         {viewMode === 'GRAPH' ? (
                             <motion.div key="graph" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
                                 <KnowledgeGraph nodes={graphNodes} onNodeClick={(n) => setSelectedArtifact(artifacts.find(a => a.id === n.id) || null)} />
+                            </motion.div>
+                        ) : viewMode === 'DYNAMIC' ? (
+                            <motion.div key="dynamic" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+                                <DynamicVisuals artifacts={artifacts} onSelect={setSelectedArtifact} />
                             </motion.div>
                         ) : viewMode === 'XRAY' ? (
                             <motion.div key="xray" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
@@ -316,7 +323,7 @@ const MemoryCore: React.FC = () => {
             </div>
 
             <AnimatePresence>
-                {selectedArtifact && viewMode !== 'XRAY' && (
+                {selectedArtifact && viewMode !== 'XRAY' && viewMode !== 'DYNAMIC' && (
                     <motion.div 
                         initial={{ x: '100%' }} 
                         animate={{ x: 0 }} 
