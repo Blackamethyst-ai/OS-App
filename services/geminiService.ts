@@ -346,12 +346,11 @@ export async function classifyArtifact(data: FileData): Promise<Result<any>> {
 }
 
 /**
- * REFINED TECHNICAL PROCESS GENERATOR
+ * ULTRA-FIDELITY TECHNICAL PROCESS GENERATOR
  */
 export async function generateStructuredWorkflow(files: FileData[], governance: string, type: string, mapContext: any): Promise<TechnicalManifest> {
     const ai = getAI();
     
-    // Technical Schema for recursive structures and implementation flows
     const schema: Schema = {
         type: Type.OBJECT,
         properties: {
@@ -370,7 +369,9 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
                         name: { type: Type.STRING },
                         type: { type: Type.STRING, enum: ['folder', 'file', 'node', 'module'] },
                         description: { type: Type.STRING },
-                        children: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, type: { type: Type.STRING } } } }
+                        entropy: { type: Type.NUMBER },
+                        securityAttestation: { type: Type.STRING, enum: ['VERIFIED', 'PENDING', 'UNTRUSTED'] },
+                        children: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { name: { type: Type.STRING }, type: { type: Type.STRING }, entropy: { type: Type.NUMBER } } } }
                     },
                     required: ['name', 'type']
                 }
@@ -383,9 +384,10 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
                         instruction: { type: Type.STRING },
                         role: { type: Type.STRING },
                         nodeRef: { type: Type.STRING },
-                        phase: { type: Type.STRING }
+                        phase: { type: Type.STRING },
+                        logOutput: { type: Type.STRING }
                     },
-                    required: ['instruction', 'role']
+                    required: ['instruction', 'role', 'logOutput']
                 }
             }
         },
@@ -393,14 +395,14 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
     };
 
     const prompt = `
-        TASK: Synthesize high-fidelity technical process.
+        TASK: Synthesize ultra-fidelity technical process.
         DOMAIN: ${type}
         CONTEXT: ${JSON.stringify(mapContext)}
         GOVERNANCE: ${governance}
         
         REQUIREMENTS:
-        1. If DIRECTORY: Generate a deep PARA 2.0 recursive file taxonomy. Use strict naming rituals like [YYYY.MM]_[CLIENT_ID]_[PROJECT_CODE]_[TYPE]. Folders MUST include: 01_PROJECTS, 02_AREAS, 03_RESOURCES, 04_ARCHIVES.
-        2. If SYSTEM_FLOW: Generate a sovereign cloud-infrastructure deployment sequence. Detail specific IaC steps (Terraform/HCL) for Global Load Balancer, Persistent State Store, and Edge Node Clusters.
+        1. If DIRECTORY: Generate a deep PARA 2.0 Imperial taxonomy. STRICT Naming: [YYYY.MM]_[CLIENT]_[PROJECT]_[TYPE]. Folders: 00_INBOX, 01_PROJECTS, 02_AREAS, 03_RESOURCES, 04_ARCHIVES. Include 'entropy' (0-100) based on perceived drift.
+        2. If SYSTEM_FLOW: Generate a sovereign cloud lattice deployment sequence. Include specific logOutput for terminal simulation (e.g., "PROVISIONING_GATEWAY... [OK]").
         3. Output professional, imperial-tier technical nomenclature. No fluff.
     `;
 

@@ -24,6 +24,8 @@ export interface DirectoryNode {
     description?: string;
     size?: string;
     modified?: string;
+    entropy?: number; // 0-100 scale of "unorganized" drift
+    securityAttestation?: 'VERIFIED' | 'PENDING' | 'UNTRUSTED';
     children?: DirectoryNode[];
 }
 
@@ -34,6 +36,7 @@ export interface ProtocolStep {
     phase: string;
     estimatedTime?: string;
     dependencies?: string[];
+    logOutput?: string; // For the terminal simulation
 }
 
 export interface TechnicalManifest {
@@ -50,6 +53,7 @@ export interface TechnicalManifest {
     internalPlanningMonologue?: string;
     coherenceScore?: number;
     taxonomy?: any;
+    deploymentAura?: string; // CSS color or gradient for the UI
 }
 
 export enum AppMode {
