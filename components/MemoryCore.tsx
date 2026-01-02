@@ -18,6 +18,7 @@ import PowerXRay from './PowerXRay';
 import DynamicVisuals from './DynamicVisuals';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
+import { renderSafe } from '../utils/renderSafe';
 
 const CLASSIFICATION_MAP: Record<string, { color: string, bg: string, icon: any }> = {
     'FINANCIAL': { color: '#10b981', bg: 'bg-[#10b981]/10', icon: Zap },
@@ -358,7 +359,7 @@ const MemoryCore: React.FC = () => {
                                 </div>
                                 <div className="p-10 bg-black/60 border border-white/5 rounded-[3.5rem] text-[15px] font-mono text-gray-300 leading-relaxed italic border-l-[6px] border-l-[#9d4edd] shadow-inner relative overflow-hidden group/summary">
                                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover/summary:opacity-10 transition-opacity"><Info size={40} /></div>
-                                    "{selectedArtifact.analysis?.summary || 'Integrity scan pending in background daemon.'}"
+                                    "{renderSafe(selectedArtifact.analysis?.summary) || 'Integrity scan pending in background daemon.'}"
                                 </div>
                             </div>
 
@@ -368,7 +369,7 @@ const MemoryCore: React.FC = () => {
                                         <FileSearch size={16} className="text-[#22d3ee]" /> Structural Intelligence
                                     </div>
                                     <div className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] text-[13px] font-mono text-gray-400 whitespace-pre-wrap leading-relaxed shadow-inner">
-                                        {selectedArtifact.analysis.structural_intelligence}
+                                        {renderSafe(selectedArtifact.analysis.structural_intelligence)}
                                     </div>
                                 </div>
                             )}

@@ -13,6 +13,7 @@ import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import { TechnicalManifest, DirectoryNode } from '../types';
+import { renderSafe } from '../utils/renderSafe';
 
 const BlueprintStat = ({ label, value, color }: { label: string, value: string, color: string }) => (
     <div className="flex flex-col gap-1 p-4 bg-white/[0.02] border border-white/5 rounded-2xl relative overflow-hidden group hover:border-white/10 transition-all shadow-inner">
@@ -174,7 +175,7 @@ const ImplementationDeck: React.FC<{
                         <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.3em]">Operational Directive</span>
                     </div>
                     <p className="text-2xl text-gray-300 font-mono leading-relaxed italic border-l-4 border-[#7B2CFF] pl-10 group-hover/logic:text-white transition-colors duration-700">
-                        "{data.logic}"
+                        "{renderSafe(data.logic || data.internalPlanningMonologue)}"
                     </p>
                 </div>
 
