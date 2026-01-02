@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
+import { renderSafe } from '../utils/renderSafe';
 
 interface GraphNode extends d3.SimulationNodeDatum {
     id: string;
@@ -77,10 +78,13 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                 data: art
             });
 
-            // Calculate strength based on shared entities
-            const sharedEntities = hubArtifact.analysis?.entities.filter(e => 
-                art.analysis?.entities.includes(e)
-            ).length || 0;
+            // Calculate strength based on shared entities - Robust Array Check
+            const hubEntities = Array.isArray(hubArtifact.analysis?.entities) ? hubArtifact.analysis.entities : [];
+            const artEntities = Array.isArray(art.analysis?.entities) ? art.analysis.entities : [];
+
+            const sharedEntities = hubEntities.filter(e => 
+                artEntities.includes(e)
+            ).length;
 
             links.push({
                 source: hubId,
@@ -296,7 +300,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                                         <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Neural Summary & Context</span>
                                     </div>
                                     <p className="text-base text-gray-300 font-mono leading-relaxed italic border-l-2 border-[#9d4edd] pl-8 transition-colors duration-700 select-text">
-                                        "{activeArtifact.analysis?.summary || 'Integrity check in progress. Logic extraction pending node stabilization.'}"
+                                        "{renderSafe(activeArtifact.analysis?.summary) || 'Integrity check in progress. Logic extraction pending node stabilization.'}"
                                     </p>
                                 </div>
 
@@ -306,13 +310,13 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                                             <Fingerprint size={14} />
                                             <span className="text-[9px] font-black uppercase tracking-widest">Semantic Markers</span>
                                         </div>
-                                        <span className="text-[8px] font-mono text-[#18E6FF]">{activeArtifact.analysis?.entities.length || 0} Entities</span>
+                                        <span className="text-[8px] font-mono text-[#18E6FF]">{Array.isArray(activeArtifact.analysis?.entities) ? activeArtifact.analysis.entities.length : 0} Entities</span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
-                                        {activeArtifact.analysis?.entities.map((ent, i) => (
+                                        {Array.isArray(activeArtifact.analysis?.entities) && activeArtifact.analysis.entities.map((ent, i) => (
                                             <div key={i} className="px-5 py-3 bg-white/[0.02] border border-white/5 rounded-2xl text-[9px] font-mono text-gray-400 flex items-center gap-3 hover:border-white/20 transition-all cursor-default group/ent">
                                                 <div className="w-1 h-1 rounded-full bg-[#18E6FF] shadow-[0_0_8px_#18E6FF] group-hover/ent:scale-150 transition-transform" />
-                                                {ent}
+                                                {renderSafe(ent)}
                                             </div>
                                         ))}
                                     </div>
