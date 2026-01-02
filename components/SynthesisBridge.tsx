@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -7,13 +7,14 @@ import {
     ChevronRight, ListChecks, Compass, Share2, PlayCircle,
     FolderTree, Cloud, Code, FolderOpen, FileText, Component,
     Microscope, Terminal, Aperture, BookOpen, Fingerprint,
-    Cpu, Database, Shield, Globe
+    Cpu, Database, Shield, Globe, AlertTriangle, CheckCircle2,
+    Lock, Unlock, ShieldAlert
 } from 'lucide-react';
 import { promptSelectKey, generateStructuredWorkflow } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
-import { TechnicalManifest, DirectoryNode } from '../types';
+import { TechnicalManifest, DirectoryNode, ProtocolStep } from '../types';
 import { renderSafe } from '../utils/renderSafe';
 
 const BlueprintStat = ({ label, value, color }: { label: string, value: string, color: string }) => (
@@ -46,11 +47,69 @@ const DomainCard = ({ id, label, sub, icon: Icon, active, onClick, color }: any)
     </button>
 );
 
+const ImplementationTerminal = ({ protocols, isDeploying }: { protocols: ProtocolStep[], isDeploying: boolean }) => {
+    const [logs, setLogs] = useState<string[]>([]);
+    const logEndRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (isDeploying && protocols.length > 0) {
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < protocols.length) {
+                    setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] ${protocols[i].logOutput || protocols[i].instruction}`]);
+                    i++;
+                } else {
+                    setLogs(prev => [...prev, `[${new Date().toLocaleTimeString()}] PROTOCOL_DEPLOYMENT_FINALIZED. LATTICE_STABLE.`]);
+                    clearInterval(interval);
+                }
+            }, 800);
+            return () => clearInterval(interval);
+        } else if (!isDeploying) {
+            setLogs([]);
+        }
+    }, [isDeploying, protocols]);
+
+    useEffect(() => {
+        logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [logs]);
+
+    return (
+        <div className="h-64 bg-black/80 border border-white/10 rounded-[2.5rem] p-8 font-mono text-[11px] text-[#10b981] overflow-hidden flex flex-col shadow-inner relative group">
+            <div className="absolute top-4 right-8 flex items-center gap-3">
+                <div className={cn("w-2 h-2 rounded-full shadow-[0_0_10px_currentColor]", isDeploying ? "bg-[#10b981] animate-pulse" : "bg-gray-800")} />
+                <span className="text-[9px] font-black text-gray-700 uppercase tracking-widest">Sovereign_Runtime_Feed</span>
+            </div>
+            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1.5 pr-4">
+                {logs.length === 0 ? (
+                    <div className="h-full flex items-center justify-center opacity-20 text-gray-500 uppercase tracking-[0.4em]">Awaiting Authorization</div>
+                ) : (
+                    logs.map((log, i) => (
+                        <motion.div initial={{ opacity: 0, x: -5 }} animate={{ opacity: 1, x: 0 }} key={i} className="flex gap-4">
+                            <span className="text-gray-700 shrink-0">{'>'}</span>
+                            <span className="break-all">{log}</span>
+                        </motion.div>
+                    ))
+                )}
+                <div ref={logEndRef} />
+            </div>
+        </div>
+    );
+};
+
 const TreeView = ({ data }: { data: TechnicalManifest }) => {
     if (!data || !Array.isArray(data.structure)) return null;
     
     const renderNode = (node: DirectoryNode, depth = 0) => {
         const isFolder = node.type === 'folder';
+        const entropy = node.entropy || 0;
+        
+        // Procedural Color Mapping for Entropy Heatmap
+        const getEntropyColor = (val: number) => {
+            if (val > 80) return 'text-red-500';
+            if (val > 40) return 'text-[#f59e0b]';
+            return 'text-[#10b981]';
+        };
+
         return (
             <div key={node.name} className="space-y-1">
                 <div 
@@ -70,11 +129,17 @@ const TreeView = ({ data }: { data: TechnicalManifest }) => {
                             isFolder ? "text-white font-black uppercase" : "text-gray-400 group-hover/node:text-white"
                         )}>{node.name}</span>
                         {node.description && (
-                            <span className="text-[8px] text-gray-600 font-mono line-clamp-1 max-w-[400px] mt-0.5">{node.description}</span>
+                            <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[8px] text-gray-600 font-mono line-clamp-1 max-w-[300px] uppercase">{node.description}</span>
+                                <div className="h-px w-4 bg-white/5" />
+                                <span className={cn("text-[7px] font-black font-mono uppercase tracking-tighter", getEntropyColor(entropy))}>Drift: {entropy}%</span>
+                            </div>
                         )}
                     </div>
                     
                     <div className="ml-auto flex items-center gap-3 opacity-0 group-hover/node:opacity-100 transition-opacity">
+                        {node.securityAttestation === 'VERIFIED' && <ShieldCheck size={10} className="text-[#10b981]" />}
+                        {node.securityAttestation === 'UNTRUSTED' && <ShieldAlert size={10} className="text-red-500" />}
                         <span className="text-[7px] font-mono text-gray-700 uppercase">{node.size || '--'}</span>
                         <div className="h-2 w-px bg-white/5" />
                         <span className="text-[7px] font-mono text-gray-700 uppercase">{node.modified || '2025.Q1'}</span>
@@ -97,9 +162,13 @@ const TreeView = ({ data }: { data: TechnicalManifest }) => {
                         <p className="text-[7px] text-gray-500 font-mono uppercase tracking-[0.2em] mt-1">Hierarchical Metadata Synthesis</p>
                     </div>
                 </div>
-                <div className="flex items-center gap-4">
-                    <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">Lattice Integrity: OK</span>
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                <div className="flex gap-4">
+                    <div className="flex items-center gap-2">
+                        <span className="text-[8px] font-mono text-gray-600 uppercase">Entropy Scan</span>
+                        <div className="flex gap-0.5">
+                             {[1,2,3].map(i => <div key={i} className="w-1 h-3 rounded-full bg-gradient-to-t from-[#10b981] to-[#f1c21b]" />)}
+                        </div>
+                    </div>
                 </div>
             </div>
             
@@ -109,10 +178,10 @@ const TreeView = ({ data }: { data: TechnicalManifest }) => {
 
             <div className="mt-8 pt-6 border-t border-white/5 flex justify-between items-center px-2 opacity-40 group-hover/tree:opacity-100 transition-opacity">
                 <div className="flex gap-4 text-[7px] font-mono text-gray-600 uppercase tracking-widest">
-                    <span>Paths: Recursive</span>
-                    <span>Format: Sovereign_Standard</span>
+                    <span>Structure: PARA_2.0_IMPERIAL</span>
+                    <span>Format: Recursive_Lattice</span>
                 </div>
-                <button className="text-[8px] font-black font-mono text-[#f1c21b] hover:underline uppercase tracking-tighter">View Detailed Manifest</button>
+                <button className="text-[8px] font-black font-mono text-[#f1c21b] hover:underline uppercase tracking-tighter">View Detailed JSON Manifest</button>
             </div>
         </div>
     );
@@ -123,9 +192,16 @@ const ImplementationDeck: React.FC<{
     onDeploy: (d: TechnicalManifest) => void;
     onArchive: (d: TechnicalManifest) => void;
 }> = ({ data, onDeploy, onArchive }) => {
+    const [isDeploying, setIsDeploying] = useState(false);
     if (!data) return null;
 
     const protocols = data.protocols || [];
+
+    const handleCommit = () => {
+        setIsDeploying(true);
+        onDeploy(data);
+        audio.playClick();
+    };
 
     return (
         <motion.div 
@@ -141,9 +217,9 @@ const ImplementationDeck: React.FC<{
                         <div className="flex items-center gap-3">
                             <div className="px-3 py-1 bg-[#10b981]/10 border border-[#10b981]/30 rounded-full flex items-center gap-2">
                                 <ShieldCheck size={10} className="text-[#10b981]" />
-                                <span className="text-[9px] font-black text-[#10b981] uppercase tracking-[0.2em]">Verified Manifest</span>
+                                <span className="text-[9px] font-black text-[#10b981] uppercase tracking-[0.2em]">Imperial Level Verified</span>
                             </div>
-                            <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">ID_HEX: {crypto.randomUUID().split('-')[0].toUpperCase()}</span>
+                            <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest font-black">ID_HEX: {crypto.randomUUID().split('-')[0].toUpperCase()}</span>
                         </div>
                         <h2 className="text-5xl font-black text-white font-mono tracking-tighter uppercase leading-none">{data.title}</h2>
                     </div>
@@ -165,7 +241,7 @@ const ImplementationDeck: React.FC<{
                 <div className="grid grid-cols-4 gap-8 relative z-10 mb-12">
                     <BlueprintStat label="Coherence Quotient" value={`${data.viability || 98}%`} color="#7B2CFF" />
                     <BlueprintStat label="Logical Depth" value={`L${data.depth || 8}`} color="#f97316" />
-                    <BlueprintStat label="Optimization Tier" value={data.complexity || 'PRODUCTION'} color="#f1c21b" />
+                    <BlueprintStat label="Optimization Tier" value={data.complexity || 'IMPERIAL'} color="#f1c21b" />
                     <BlueprintStat label="Structural Class" value={data.type} color="#18E6FF" />
                 </div>
 
@@ -192,31 +268,36 @@ const ImplementationDeck: React.FC<{
                             <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest mt-1">Deterministic execution sequence</p>
                         </div>
                     </div>
-                    {protocols.map((step: any, i: number) => (
-                        <motion.div 
-                            key={i} 
-                            initial={{ opacity: 0, x: -20 }} 
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: i * 0.1 }}
-                            className="p-10 bg-[#0a0a0c] border border-white/5 rounded-[4rem] flex items-center gap-12 group hover:border-[#10b981]/30 transition-all shadow-xl relative overflow-hidden backdrop-blur-3xl"
-                        >
-                            <div className="w-16 h-16 bg-black border border-white/10 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-[#10b981] group-hover:text-black transition-all shadow-2xl relative z-10 overflow-hidden">
-                                <span className="text-2xl font-black font-mono">{(i+1).toString().padStart(2, '0')}</span>
-                                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-20" />
-                            </div>
-                            <div className="flex-1 min-w-0 relative z-10">
-                                <div className="text-[10px] font-black text-[#10b981] uppercase tracking-[0.3em] mb-3 opacity-60 group-hover:opacity-100 flex items-center gap-3">
-                                    {step.phase || step.role || 'CORE'}
-                                    <div className="h-px w-8 bg-current opacity-20" />
+                    
+                    <ImplementationTerminal protocols={protocols} isDeploying={isDeploying} />
+
+                    <div className="space-y-4 pt-4">
+                        {protocols.map((step: any, i: number) => (
+                            <motion.div 
+                                key={i} 
+                                initial={{ opacity: 0, x: -20 }} 
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: i * 0.1 }}
+                                className="p-8 bg-[#0a0a0c] border border-white/5 rounded-[3rem] flex items-center gap-10 group hover:border-[#10b981]/30 transition-all shadow-xl relative overflow-hidden backdrop-blur-3xl"
+                            >
+                                <div className="w-14 h-14 bg-black border border-white/10 rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-[#10b981] group-hover:text-black transition-all shadow-2xl relative z-10 overflow-hidden">
+                                    <span className="text-xl font-black font-mono">{(i+1).toString().padStart(2, '0')}</span>
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-20" />
                                 </div>
-                                <p className="text-lg text-gray-300 font-mono leading-relaxed group-hover:text-white transition-colors">{step.instruction}</p>
-                            </div>
-                            <div className="px-6 py-3 bg-black/60 border border-white/10 rounded-2xl flex items-center gap-4 shrink-0 relative z-10 shadow-inner group-hover:border-white/20 transition-all">
-                                <Binary size={16} className="text-gray-600 group-hover:text-[#22d3ee] transition-colors" />
-                                <span className="text-[10px] font-mono text-gray-500 font-black uppercase tracking-[0.2em]">{step.nodeRef || 'STABLE'}</span>
-                            </div>
-                        </motion.div>
-                    ))}
+                                <div className="flex-1 min-w-0 relative z-10">
+                                    <div className="text-[9px] font-black text-[#10b981] uppercase tracking-[0.3em] mb-2 opacity-60 group-hover:opacity-100 flex items-center gap-3">
+                                        {step.phase || step.role || 'CORE_LOGIC'}
+                                        <div className="h-px w-8 bg-current opacity-20" />
+                                    </div>
+                                    <p className="text-base text-gray-300 font-mono leading-relaxed group-hover:text-white transition-colors uppercase tracking-tight">{step.instruction}</p>
+                                </div>
+                                <div className="px-5 py-2.5 bg-black/60 border border-white/10 rounded-xl flex items-center gap-4 shrink-0 relative z-10 shadow-inner group-hover:border-white/20 transition-all">
+                                    <Binary size={14} className="text-gray-600 group-hover:text-[#22d3ee] transition-colors" />
+                                    <span className="text-[9px] font-mono text-gray-500 font-black uppercase tracking-[0.2em]">{step.nodeRef || 'STABLE'}</span>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
 
                 <div className="col-span-4 flex flex-col gap-8">
@@ -228,15 +309,15 @@ const ImplementationDeck: React.FC<{
                                 <Compass size={32} />
                             </div>
                             <div>
-                                <span className="text-sm font-black text-white uppercase tracking-[0.3em]">System Impact</span>
-                                <p className="text-[9px] text-gray-500 font-mono uppercase mt-1">Predictive analysis</p>
+                                <span className="text-sm font-black text-white uppercase tracking-[0.3em]">Predictive Impact</span>
+                                <p className="text-[9px] text-gray-500 font-mono uppercase mt-1 tracking-widest">Lattice stabilization model</p>
                             </div>
                         </div>
 
                         <div className="flex-1 flex flex-col gap-12 relative z-10">
                             <div className="space-y-6">
                                 <div className="flex justify-between items-end px-1">
-                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Operational Success Rate</span>
+                                    <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Operational Confidence</span>
                                     <span className="text-[16px] font-black font-mono text-[#7B2CFF]">{data.viability}%</span>
                                 </div>
                                 <div className="h-2 w-full bg-black/60 rounded-full overflow-hidden border border-white/5 shadow-inner p-px">
@@ -251,9 +332,9 @@ const ImplementationDeck: React.FC<{
 
                             <div className="space-y-4 px-2">
                                 {[
-                                    { label: 'Latency Shift', val: '-12ms', color: '#10b981' },
-                                    { label: 'Throughput', val: '+24%', color: '#22d3ee' },
-                                    { label: 'Entropy Cost', val: 'Low', color: '#f1c21b' }
+                                    { label: 'Latency Gate', val: '-18ms', color: '#10b981' },
+                                    { label: 'Throughput Lift', val: '+31%', color: '#22d3ee' },
+                                    { label: 'Physical Entropy', val: 'Minimal', color: '#f1c21b' }
                                 ].map((stat, idx) => (
                                     <div key={idx} className="flex justify-between items-center py-3 border-b border-white/5 last:border-0">
                                         <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest">{stat.label}</span>
@@ -264,13 +345,18 @@ const ImplementationDeck: React.FC<{
 
                             <div className="mt-auto pt-12 border-t border-white/5 flex flex-col gap-6">
                                 <button 
-                                    onClick={() => onDeploy(data)}
-                                    className="w-full py-7 bg-[#10b981] hover:bg-[#15d192] text-black rounded-[2.5rem] text-[12px] font-black uppercase tracking-[0.5em] transition-all flex items-center justify-center gap-6 shadow-[0_30px_80px_rgba(16,185,129,0.3)] active:scale-95 group shadow-inner"
+                                    onClick={handleCommit}
+                                    disabled={isDeploying}
+                                    className={cn(
+                                        "w-full py-7 rounded-[2.5rem] text-[12px] font-black uppercase tracking-[0.5em] transition-all flex items-center justify-center gap-6 shadow-inner active:scale-95 group",
+                                        isDeploying ? "bg-gray-800 text-gray-500 cursor-default" : "bg-[#10b981] hover:bg-[#15d192] text-black shadow-[0_30px_80px_rgba(16,185,129,0.3)]"
+                                    )}
                                 >
-                                    <PlayCircle size={28} className="group-hover:rotate-90 transition-transform duration-700 fill-current" /> Commit Protocol
+                                    {isDeploying ? <Loader2 size={24} className="animate-spin" /> : <PlayCircle size={28} className="group-hover:rotate-90 transition-transform duration-700 fill-current" />}
+                                    {isDeploying ? 'Protocol Live' : 'Commit Protocol'}
                                 </button>
                                 <button className="w-full py-5 border border-white/10 text-gray-500 hover:text-white rounded-[2.5rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-4 hover:bg-white/5 active:scale-95 group">
-                                    <Share2 size={20} className="group-hover:scale-110 transition-transform" /> Broadcast Manifest
+                                    <Share2 size={20} className="group-hover:scale-110 transition-transform" /> Sync to Swarm
                                 </button>
                             </div>
                         </div>
@@ -291,17 +377,16 @@ const SynthesisBridge: React.FC = () => {
     const [customIntent, setCustomIntent] = useState('');
 
     const PRESETS = [
-        { id: 'para_drive', label: 'PARA+ Drive Ritual', type: 'DRIVE', description: 'Architect a Tier-1 PARA file hierarchy (Projects, Areas, Resources, Archives). Includes Zettelkasten cross-linking and a strict [YYYY.MM]_[ID] naming convention protocol.', icon: FolderTree },
-        { id: 'depin_infra', label: 'DePIN Node Topology', type: 'SYSTEM', description: 'Forge a decentralized infrastructure manifest. Orchestrate edge data filtering -> persistent event bus -> autonomous indexing -> refractive storage sequence.', icon: Globe },
-        { id: 'cloud_architect', label: 'Self-Healing Cloud', type: 'SYSTEM', description: 'Synthesize a high-fidelity cloud blueprint with active load-balanced ingestion, state-synced persistent store, and global inference failover logic.', icon: Cloud },
-        { id: 'ts_sovereignty', label: 'Type-Safety Manifesto', type: 'CODE', description: 'Imperial protocol for React/TypeScript structural integrity. Enforces explicit generic inheritance and eliminates implicit "any" across the entire lattice.', icon: Shield },
+        { id: 'para_ritual', label: 'PARA 2.0 Imperial Ritual', type: 'DRIVE', description: 'Forge a tier-1 recursive PARA file hierarchy. Includes deep semantic cross-linking and a strict [NODE_TYPE]_[ISO_DATE]_[PROJECT] naming ritual.', icon: FolderTree },
+        { id: 'lattice_infra', label: 'Sovereign Lattice Topology', type: 'SYSTEM', description: 'Synthesize a high-fidelity cloud infrastructure manifest. Edge Refraction -> Federated Load Balancing -> Self-Healing State Store -> Distributed Inference sequence.', icon: Globe },
+        { id: 'ts_fortress', label: 'TypeScript Type Sovereignty', type: 'CODE', description: 'Imperial protocol for architectural safety in React/TS. Focus on explicit generic inheritance, total type coverage, and zero implicit-any lattice integrity.', icon: Shield },
     ];
 
     const generateBlueprint = async (presetPrompt?: string) => {
         setIsGenerating(true);
         setResult(null);
         audio.playClick();
-        addLog('SYSTEM', `SYNC: Initializing high-fidelity logic forge for ${processType}...`);
+        addLog('SYSTEM', `SYNC: Initializing Imperial Logic Forge for ${processType}...`);
 
         try {
             const hasKey = await promptSelectKey();
@@ -310,20 +395,20 @@ const SynthesisBridge: React.FC = () => {
             const activeLayers = (knowledge.activeLayers || []).map(id => KNOWLEDGE_LAYERS[id]?.label || id).join(', ');
 
             const directive = presetPrompt || (processType === 'DRIVE' 
-                ? "Forge a professional PARA+ Drive Organization. STRUCTURE: Projects (Active), Areas (Ongoing Responsibilities), Resources (Topic Interest), Archives (Completed). NAMING RITUAL: [YEAR.MONTH]_[PROJECT_ID]_[NODE_TYPE]. Provide a detailed 'structure' array for recursive tree visualization."
+                ? "Forge a professional PARA 2.0 Imperial Drive Organization. STRUCTURE: Inbox, Projects, Areas, Resources, Archives. NAMING RITUAL: [NODE]_[ISO_DATE]_[PROJECT_ID]. Provide deep metadata for entropy scores."
                 : processType === 'SYSTEM'
-                ? "Synthesize a high-fidelity Systems Architecture manifest. Domain: Sovereign Production Cloud. Logic: Edge Redundancy -> Load Balanced Ingestion -> Persistent State Store -> Global Inference CDN. Focus on IaC Terraform/HCL steps."
-                : "Forge a React/TypeScript Type-Safety Manifesto. Use absolute technical terminology.");
+                ? "Synthesize an ultra-fidelity Systems Architecture manifest. Domain: Sovereign Cloud Lattice. Include specific logOutput for terminal deployment simulation."
+                : "Forge a React/TypeScript Type-Safety Manifesto. Use absolute technical terminology and imperial strictness.");
 
             const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', processType === 'DRIVE' ? 'DIRECTORY' : 'SYSTEM_FLOW', { 
                 prompt: `${directive}. User Intent: ${customIntent}. Context Layers: ${activeLayers}.`,
-                fidelity: dashboard.architecturalFidelity
+                fidelity: 100
             });
 
             setResult(workflow);
             actions.setDashboardState({ activeManifest: workflow });
             
-            addLog('SUCCESS', `SYNC_COMPLETE: ${workflow.title} stabilized and verified.`);
+            addLog('SUCCESS', `SYNC_COMPLETE: ${workflow.title} manifest locked.`);
             audio.playSuccess();
         } catch (e: any) {
             addLog('ERROR', `SYNC_FAIL: ${e.message}`);
@@ -345,16 +430,16 @@ const SynthesisBridge: React.FC = () => {
                         </div>
                         <div>
                             <h1 className="text-xl font-black text-white uppercase tracking-[0.5em] leading-none">Synthesis Bridge</h1>
-                            <p className="text-[9px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-3 block uppercase">Structured Process Forge // v9.5</p>
+                            <p className="text-[9px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-3 block uppercase">Tactical Process Command // v9.5</p>
                         </div>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-12">
                     <div className="flex flex-col items-end gap-1.5">
-                        <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest">Protocol Sync</span>
+                        <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest">Temporal Sync</span>
                         <div className="flex items-center gap-3">
-                            <span className="text-[11px] font-black font-mono text-[#10b981] uppercase tracking-tighter">Handshake OK</span>
+                            <span className="text-[11px] font-black font-mono text-[#10b981] uppercase tracking-tighter">Imperial_Handshake_OK</span>
                             <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_12px_#10b981]" />
                         </div>
                     </div>
@@ -370,15 +455,15 @@ const SynthesisBridge: React.FC = () => {
                         </div>
                         <div className="space-y-4">
                             <DomainCard 
-                                id="DRIVE" label="Drive Protocol" sub="PARA+ STRUCTURE" icon={HardDrive} color="#7B2CFF"
+                                id="DRIVE" label="PARA Protocol" sub="RECURSIVE TAXONOMY" icon={HardDrive} color="#7B2CFF"
                                 active={processType === 'DRIVE'} onClick={() => { setProcessType('DRIVE'); audio.playClick(); }} 
                             />
                             <DomainCard 
-                                id="SYSTEM" label="Infrastructure" sub="CLOUD TOPOLOGY" icon={Cloud} color="#18E6FF"
+                                id="SYSTEM" label="Sovereign Lattice" sub="INFRASTRUCTURE IaC" icon={Cloud} color="#18E6FF"
                                 active={processType === 'SYSTEM'} onClick={() => { setProcessType('SYSTEM'); audio.playClick(); }} 
                             />
                              <DomainCard 
-                                id="CODE" label="Type Sovereignty" sub="ARCH DEBT FIX" icon={Code} color="#f1c21b"
+                                id="CODE" label="Type Sovereignty" sub="TECHNICAL STACK" icon={Shield} color="#f1c21b"
                                 active={processType === 'CODE'} onClick={() => { setProcessType('CODE'); audio.playClick(); }} 
                             />
                         </div>
@@ -410,7 +495,7 @@ const SynthesisBridge: React.FC = () => {
                         <textarea 
                             value={customIntent}
                             onChange={e => setCustomIntent(e.target.value)}
-                            placeholder="Input operational requirements..."
+                            placeholder="Input operational intent vectors..."
                             className="w-full h-36 bg-black/40 border border-white/5 rounded-[2rem] p-6 text-xs font-mono text-gray-300 outline-none focus:border-[#7B2CFF]/50 transition-all placeholder:text-gray-800 shadow-inner resize-none"
                         />
                         <button 
@@ -419,7 +504,7 @@ const SynthesisBridge: React.FC = () => {
                             className="w-full py-6 bg-[#7B2CFF] hover:bg-[#8e49ff] text-black rounded-[2.5rem] text-[11px] font-black uppercase tracking-[0.5em] transition-all shadow-[0_25px_60px_rgba(123,44,255,0.3)] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-5"
                         >
                             {isGenerating ? <Loader2 className="w-6 h-6 animate-spin" /> : <RefreshCw size={22} />}
-                            {isGenerating ? 'Synthesizing...' : 'Generate Blueprint'}
+                            {isGenerating ? 'Fabricating...' : 'Forge Protocol'}
                         </button>
                     </div>
                 </div>
@@ -431,7 +516,7 @@ const SynthesisBridge: React.FC = () => {
                                 key="active-deck" 
                                 data={result} 
                                 onArchive={(d) => { archiveIntervention({ ...d, timestamp: Date.now() }); audio.playSuccess(); }}
-                                onDeploy={(d) => { deployStrategyToLattice(d); addLog('SUCCESS', `MANIFEST_ENGAGED: Protocol authorized for deployment.`); audio.playSuccess(); }}
+                                onDeploy={(d) => { deployStrategyToLattice(d); addLog('SUCCESS', `PROTOCOL_ENGAGED: Structural transformation sequence initiated.`); audio.playSuccess(); }}
                             />
                         ) : (
                             <motion.div 
@@ -445,7 +530,7 @@ const SynthesisBridge: React.FC = () => {
                                 </div>
                                 <div className="space-y-6">
                                     <h3 className="text-4xl font-black font-mono text-white uppercase tracking-[1.2em] leading-none">Bridge Standby</h3>
-                                    <p className="text-xs font-mono text-gray-500 max-w-sm mx-auto uppercase tracking-widest leading-loose">Select a template or input operational intent to forge a structured technical manifest.</p>
+                                    <p className="text-xs font-mono text-gray-500 max-w-sm mx-auto uppercase tracking-widest leading-loose">Select an Imperial Ritual or input operational intent to forge a sovereign technical manifest.</p>
                                 </div>
                             </motion.div>
                         )}
@@ -460,9 +545,9 @@ const SynthesisBridge: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-12">
-                    <span className="tracking-[0.6em] opacity-40 leading-none">STRATEGIC IMPLEMENTATION ENGINE</span>
+                    <span className="tracking-[0.6em] opacity-40 leading-none uppercase">Strategic Command Deck</span>
                     <div className="h-5 w-px bg-white/10" />
-                    <span className="text-gray-500 tracking-widest leading-none">V9.5-ZENITH</span>
+                    <span className="text-gray-500 tracking-widest leading-none">ZENITH_OS_V9.5</span>
                 </div>
             </div>
         </div>
