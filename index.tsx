@@ -1,4 +1,3 @@
-
 import React, { Component, ReactNode, ErrorInfo, StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
@@ -18,20 +17,21 @@ interface ErrorBoundaryState {
  * Root Error Boundary for Metaventions OS.
  * Provides a specialized diagnostic UI during critical kernel panics.
  */
-// Fix: Directly use the imported Component class to ensure generic types are properly applied and resolve "Property state/props does not exist" errors. Removed override keywords that were causing errors due to inheritance resolution issues.
+// Fix: Explicitly use Component from react to ensure generic types are properly applied and resolve "Property state/props does not exist" errors in this environment.
 class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  // Fix: Declared state property without override to satisfy inheritance requirements in this environment.
+  // Fix: Explicitly declare state and props to ensure visibility during render and satisfy inheritance requirements in restricted TypeScript environments.
   state: ErrorBoundaryState = { hasError: false, error: null };
+  props: ErrorBoundaryProps;
 
   constructor(props: ErrorBoundaryProps) {
     super(props);
+    this.props = props;
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return { hasError: true, error };
   }
 
-  // Fix: Removed override keyword to resolve "member cannot have an 'override' modifier" error.
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("CRITICAL UI ERROR [Kernel Panic]:", error, errorInfo);
   }
@@ -40,9 +40,9 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
     window.location.reload();
   };
 
-  // Fix: Removed override keyword and ensured this.props and this.state are accessible via correct class inheritance.
   render(): ReactNode {
     const { hasError, error } = this.state;
+    // Fix: Access children and fallback from the explicitly declared props property.
     const { fallback, children } = this.props;
 
     if (hasError) {

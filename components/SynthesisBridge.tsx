@@ -6,7 +6,8 @@ import {
     RefreshCw, HardDrive, Binary, Save, ShieldCheck, 
     ChevronRight, ListChecks, Compass, Share2, PlayCircle,
     FolderTree, Cloud, Code, FolderOpen, FileText, Component,
-    Microscope, Terminal, Aperture, BookOpen
+    Microscope, Terminal, Aperture, BookOpen, Fingerprint,
+    Cpu, Database, Shield, Globe
 } from 'lucide-react';
 import { promptSelectKey, generateStructuredWorkflow } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
@@ -290,9 +291,10 @@ const SynthesisBridge: React.FC = () => {
     const [customIntent, setCustomIntent] = useState('');
 
     const PRESETS = [
-        { id: 'para_drive', label: 'PARA+ Drive Hierarchy', type: 'DRIVE', description: 'Advanced directory taxonomy [P]rojects, [A]reas, [R]esources, [A]rchives. Optimized for AI cinematography and professional production workflows.', icon: FolderTree },
-        { id: 'cloud_infra', label: 'Cloud-Inertia Topology', type: 'SYSTEM', description: 'High-availability IaC blueprint for low-latency inference delivery. Self-healing node clusters with multi-region failover.', icon: Cloud },
-        { id: 'ts_safety', label: 'Type-Safety Protocol', type: 'CODE', description: 'Manifest for solving structural debt in React/TypeScript. Focus on explicit generic inheritance and child-prop visibility.', icon: Code },
+        { id: 'para_drive', label: 'PARA+ Drive Ritual', type: 'DRIVE', description: 'Architect a Tier-1 PARA file hierarchy (Projects, Areas, Resources, Archives). Includes Zettelkasten cross-linking and a strict [YYYY.MM]_[ID] naming convention protocol.', icon: FolderTree },
+        { id: 'depin_infra', label: 'DePIN Node Topology', type: 'SYSTEM', description: 'Forge a decentralized infrastructure manifest. Orchestrate edge data filtering -> persistent event bus -> autonomous indexing -> refractive storage sequence.', icon: Globe },
+        { id: 'cloud_architect', label: 'Self-Healing Cloud', type: 'SYSTEM', description: 'Synthesize a high-fidelity cloud blueprint with active load-balanced ingestion, state-synced persistent store, and global inference failover logic.', icon: Cloud },
+        { id: 'ts_sovereignty', label: 'Type-Safety Manifesto', type: 'CODE', description: 'Imperial protocol for React/TypeScript structural integrity. Enforces explicit generic inheritance and eliminates implicit "any" across the entire lattice.', icon: Shield },
     ];
 
     const generateBlueprint = async (presetPrompt?: string) => {
@@ -310,7 +312,7 @@ const SynthesisBridge: React.FC = () => {
             const directive = presetPrompt || (processType === 'DRIVE' 
                 ? "Forge a professional PARA+ Drive Organization. STRUCTURE: Projects (Active), Areas (Ongoing Responsibilities), Resources (Topic Interest), Archives (Completed). NAMING RITUAL: [YEAR.MONTH]_[PROJECT_ID]_[NODE_TYPE]. Provide a detailed 'structure' array for recursive tree visualization."
                 : processType === 'SYSTEM'
-                ? "Synthesize a high-fidelity Systems Architecture manifest. Domain: High-Scale AI Production Cloud. Logic: Edge Redundancy -> Load Balanced Ingestion -> Persistent State Store -> Global Inference CDN. Focus on IaC Terraform/HCL steps."
+                ? "Synthesize a high-fidelity Systems Architecture manifest. Domain: Sovereign Production Cloud. Logic: Edge Redundancy -> Load Balanced Ingestion -> Persistent State Store -> Global Inference CDN. Focus on IaC Terraform/HCL steps."
                 : "Forge a React/TypeScript Type-Safety Manifesto. Use absolute technical terminology.");
 
             const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', processType === 'DRIVE' ? 'DIRECTORY' : 'SYSTEM_FLOW', { 
@@ -385,7 +387,7 @@ const SynthesisBridge: React.FC = () => {
                     <div className="p-8 bg-[#0a0a0c] border border-white/5 rounded-[3rem] shadow-2xl invisible-glass space-y-8 backdrop-blur-3xl">
                         <div className="flex items-center gap-3 mb-2 px-1">
                             <BookOpen size={16} className="text-gray-500" />
-                            <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Process Templates</span>
+                            <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Imperial Rituals</span>
                         </div>
                         <div className="space-y-4">
                             {PRESETS.map(preset => (
