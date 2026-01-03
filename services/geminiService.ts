@@ -116,8 +116,9 @@ class LiveSession {
                         this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                         const source = this.audioContext!.createMediaStreamSource(this.stream);
                         const scriptProcessor = this.audioContext!.createScriptProcessor(4096, 1, 1);
-                        scriptProcessor.onaudioprocess = (e) => {
-                            const inputData = e.inputBuffer.getChannelData(0);
+                        // Fix: Rename parameter 'e' to 'audioProcessingEvent' to resolve "Cannot find name 'audioProcessingEvent'" error.
+                        scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
+                            const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
                             const pcmBlob = createBlob(inputData);
                             sessionPromise.then((s) => s.sendRealtimeInput({ media: pcmBlob }));
                         };
@@ -501,9 +502,24 @@ export async function simulateAgentStep(workflow: any, index: number, history: P
 
 export async function generateMermaidDiagram(governance: string, files: FileData[], contexts: any[]) {
     const ai = getAI();
+    const prompt = `
+        TASK: Synthesize a Technical Mermaid diagram representing the following system state.
+        CONTEXT: ${JSON.stringify(contexts)}
+        GOVERNANCE: ${governance}
+        
+        REQUIREMENTS:
+        1. Use STRICT Mermaid.js syntax.
+        2. Format: graph TD (Top-Down).
+        3. Visualizing: Logical flow and structural dependency nodes.
+        4. CRITICAL: Output ONLY the raw Mermaid code block wrapped in triple backticks. 
+           Example: \`\`\`mermaid\ngraph TD\n...\`\`\`
+        5. DO NOT provide conversational introductions, descriptions, or visionary notes. 
+           ONLY provide the code block.
+    `;
+    
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Mermaid for: ${JSON.stringify(contexts)}`,
+        contents: prompt,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     }));
     return response.text || "";
@@ -533,7 +549,12 @@ export async function repairMermaidSyntax(code: string, error: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Repair: "${error}". Source:\n${code}`,
+        contents: `REPAIR LOGIC: The following Mermaid code is corrupted with error: "${error}". 
+        Repair it strictly for valid Mermaid rendering. 
+        Output ONLY the repaired code block wrapped in triple backticks.
+        
+        SOURCE:
+        ${code}`,
     }));
     return response.text || code;
 }
@@ -556,7 +577,6 @@ export async function evolveSystemArchitecture(code: string, lang: string, promp
             contents: `Evolve: ${prompt}. Source: ${code}. JSON {code, reasoning, type, integrityScore}.`,
             config: { responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 32000 } }
         }));
-        // Fix: Renamed evolutionResponse to response to correctly reference the variable in scope and fix the reported error.
         return { ok: true, value: safeParseJson(response.text) };
     } catch (e: any) { return { ok: false, error: e }; }
 }
@@ -567,7 +587,7 @@ export async function generateSpeech(text: string, voice: string) {
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text }] }],
         config: {
-            responseModalities: [Modality.AUDIO],
+            responseModalalities: [Modality.AUDIO],
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } }
         }
     }));
