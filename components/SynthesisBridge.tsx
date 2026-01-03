@@ -10,7 +10,7 @@ import {
     Cpu, Database, Shield, Globe, AlertTriangle, CheckCircle2,
     Lock, Unlock, ShieldAlert, Gauge, Waves, Bot, Trash2,
     BrainCircuit, X, DatabaseZap, Network, Server, Hexagon,
-    Workflow, Boxes, GitBranch
+    Workflow, Boxes, GitBranch, Clock, Link, ShieldX
 } from 'lucide-react';
 import { promptSelectKey, generateStructuredWorkflow } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
@@ -334,15 +334,29 @@ const ImplementationDeck: React.FC<{
                                 transition={{ delay: i * 0.05 }}
                                 className="p-6 bg-[#0a0a0c] border border-white/5 rounded-[2.5rem] flex items-center gap-8 group hover:border-[#10b981]/40 transition-all shadow-2xl relative overflow-hidden backdrop-blur-4xl"
                             >
-                                <div className="w-10 h-10 bg-black border border-white/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[#10b981] group-hover:text-black transition-all shadow-2xl relative z-10 overflow-hidden group-hover:scale-105">
-                                    <span className="text-lg font-black font-mono">{(i+1).toString().padStart(2, '0')}</span>
+                                <div className="w-12 h-12 bg-black border border-white/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[#10b981] group-hover:text-black transition-all shadow-2xl relative z-10 overflow-hidden group-hover:scale-105">
+                                    <span className="text-xl font-black font-mono">{(i+1).toString().padStart(2, '0')}</span>
                                 </div>
                                 <div className="flex-1 min-w-0 relative z-10">
-                                    <div className="text-[8px] font-black text-[#10b981] uppercase tracking-[0.4em] mb-1 opacity-60 group-hover:opacity-100 flex items-center gap-2">
-                                        {step.phase || step.role || 'CORE_LOGIC'}
-                                        <div className="h-px w-8 bg-current opacity-20" />
+                                    <div className="flex justify-between items-center mb-1">
+                                        <div className="text-[9px] font-black text-[#10b981] uppercase tracking-[0.4em] opacity-60 group-hover:opacity-100 flex items-center gap-2">
+                                            {step.phase || step.role || 'CORE_LOGIC'}
+                                            <div className="h-px w-8 bg-current opacity-20" />
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            {step.estimatedTime && <div className="flex items-center gap-1 text-[8px] font-mono text-gray-500"><Clock size={10}/> {step.estimatedTime}</div>}
+                                            {step.securityVector === 'ENCRYPTED' && <div className="flex items-center gap-1 text-[8px] font-mono text-emerald-500"><Shield size={10}/> SECURE</div>}
+                                        </div>
                                     </div>
                                     <p className="text-base text-gray-300 font-mono leading-relaxed group-hover:text-white transition-colors uppercase tracking-tight truncate">{step.instruction}</p>
+                                    
+                                    {step.dependencies && step.dependencies.length > 0 && (
+                                        <div className="mt-2 flex gap-2">
+                                            {step.dependencies.map((dep: string, idx: number) => (
+                                                <span key={idx} className="text-[7px] font-black font-mono text-gray-600 bg-white/5 px-1.5 py-0.5 rounded border border-white/5 uppercase">DEP: {dep}</span>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                             </motion.div>
                         ))}
