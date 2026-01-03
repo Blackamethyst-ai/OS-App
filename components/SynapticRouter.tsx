@@ -24,13 +24,39 @@ const AgentControlCenter = lazy(() => import('./AgentControlCenter'));
 const AutonomousFinance = lazy(() => import('./AutonomousFinance'));
 const NexusAPIExplorer = lazy(() => import('./NexusAPIExplorer'));
 
+// --- CYCLE 1: SPATIAL COORDINATE MAP ---
+const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> = {
+    [AppMode.METAVENTIONS_HUB]: { x: 0, y: 0, z: 0 },
+    [AppMode.DASHBOARD]: { x: 0, y: 0, z: 1 },
+    [AppMode.BIBLIOMORPHIC]: { x: -1, y: 1, z: 0 },
+    [AppMode.PROCESS_MAP]: { x: 1, y: 1, z: 0 },
+    [AppMode.AUTONOMOUS_FINANCE]: { x: -1, y: -1, z: 0 },
+    [AppMode.CODE_STUDIO]: { x: 1, y: -1, z: 0 },
+    [AppMode.AGENT_CONTROL]: { x: 0, y: 1, z: 0 },
+    [AppMode.MEMORY_CORE]: { x: 0, y: -1, z: 0 },
+    [AppMode.IMAGE_GEN]: { x: -1, y: 0, z: 0 },
+    [AppMode.HARDWARE_ENGINEER]: { x: 1, y: 0, z: 0 },
+    [AppMode.VOICE_MODE]: { x: 0, y: 0, z: -1 },
+    [AppMode.SYNTHESIS_BRIDGE]: { x: 0.5, y: 0.5, z: 0.5 },
+    [AppMode.BICAMERAL]: { x: -0.5, y: 0.5, z: 0.5 }
+};
+
 const SynapticRouter: React.FC = () => {
-    // Atomic selectors to prevent unnecessary re-renders during system heartbeat
-    const contextMenu = useAppStore(s => s.contextMenu);
-    const actions = useAppStore(s => s.actions);
-    
+    const { mode, previousMode, contextMenu, actions } = useAppStore();
     const lastSyncedHash = useRef<string>('');
     const [routeInfo, setRouteInfo] = useState({ path: '', sub: '', params: '' });
+
+    // Transition Logic: Calculate Warp Vector
+    const warpDirection = useMemo(() => {
+        if (!previousMode) return { x: 0, y: 0, scale: 0.8 };
+        const curr = SECTOR_COORDINATES[mode] || { x: 0, y: 0, z: 0 };
+        const prev = SECTOR_COORDINATES[previousMode] || { x: 0, y: 0, z: 0 };
+        return {
+            x: (curr.x - prev.x) * 100,
+            y: (curr.y - prev.y) * 100,
+            z: curr.z - prev.z
+        };
+    }, [mode, previousMode]);
 
     useEffect(() => {
         const handleRouting = () => {
@@ -59,15 +85,9 @@ const SynapticRouter: React.FC = () => {
             };
 
             const targetMode = routeMap[mainPath];
-            const currentStore = useAppStore.getState();
-            
-            if (targetMode !== undefined && targetMode !== currentStore.mode) {
+            if (targetMode !== undefined && targetMode !== mode) {
                 actions.setMode(targetMode);
                 audio.playTransition();
-            }
-
-            if (targetMode === AppMode.BIBLIOMORPHIC && subPath && currentStore.bibliomorphic.activeTab !== subPath) {
-                actions.setBibliomorphicState({ activeTab: subPath });
             }
 
             setRouteInfo({ path: mainPath, sub: subPath, params: queryStr || '' });
@@ -77,124 +97,50 @@ const SynapticRouter: React.FC = () => {
         window.addEventListener('hashchange', handleRouting);
         handleRouting(); 
         return () => window.removeEventListener('hashchange', handleRouting);
-    }, [actions]);
+    }, [actions, mode]);
 
-    useEffect(() => {
-        const handleContextMenu = (e: MouseEvent) => {
-            const target = e.target as HTMLElement;
-            if (target.closest('input, textarea, button, a')) return;
-            e.preventDefault();
-            
-            let type: 'TEXT' | 'IMAGE' | 'CODE' | 'GENERAL' = 'GENERAL';
-            let content: any = null;
-
-            const selection = window.getSelection()?.toString();
-            const imgTarget = target.closest('img');
-            const codeTarget = target.closest('pre, code');
-
-            if (selection && selection.trim().length > 0) {
-                type = 'TEXT';
-                content = selection;
-            } else if (imgTarget) {
-                type = 'IMAGE';
-                content = (imgTarget as HTMLImageElement).src;
-            } else if (codeTarget) {
-                type = 'CODE';
-                content = codeTarget.textContent;
-            }
-
-            actions.openContextMenu(e.clientX, e.clientY, type, content);
-            audio.playHover();
-        };
-
-        const handleClick = () => {
-            if (contextMenu.isOpen) actions.closeContextMenu();
-        };
-
-        document.addEventListener('contextmenu', handleContextMenu);
-        document.addEventListener('click', handleClick);
-        return () => {
-            document.removeEventListener('contextmenu', handleContextMenu);
-            document.removeEventListener('click', handleClick);
-        };
-    }, [contextMenu.isOpen, actions]);
-
-    const handleAction = (action: string) => {
-        const { targetContent, contextType } = contextMenu;
-
-        switch (action) {
-            case 'HOLO_VIEW':
-                if (targetContent) {
-                  actions.openHoloProjector({
-                      id: `holo-${Date.now()}`,
-                      type: contextType as any,
-                      title: 'Synaptic Projection',
-                      content: targetContent
-                  });
-                }
-                break;
-            case 'DEEP_SCAN':
-                if (targetContent && contextType === 'IMAGE') {
-                  actions.addLog('SYSTEM', 'DIAGNOSTIC: Initializing Deep Sector Scan...');
-                  actions.openHoloProjector({
-                      id: `scan-${Date.now()}`,
-                      type: 'IMAGE',
-                      title: 'Sovereign Diagnostic Scan',
-                      content: targetContent
-                  });
-                }
-                break;
-            case 'COPY':
-                if (targetContent) {
-                    navigator.clipboard.writeText(targetContent);
-                    actions.addLog('INFO', 'BUFFER: Fragment cached to clipboard.');
-                }
-                break;
-            case 'SEARCH':
-                if (targetContent) {
-                    const safeQuery = String(targetContent || '').substring(0, 100);
-                    actions.setSearchState({ query: safeQuery, isOpen: true });
-                    performGlobalSearch(safeQuery).then(results => {
-                        actions.setSearchState({ results });
-                    });
-                }
-                break;
-            case 'JUMP_CODE':
-                window.location.hash = '/code';
-                if (targetContent) {
-                    const safePrompt = `Refactor this logic:\n\n${String(targetContent || '').substring(0, 500)}`;
-                    actions.setCodeStudioState({ prompt: safePrompt });
-                }
-                break;
-        }
-        actions.closeContextMenu();
-    };
-
-    const mode = useAppStore(s => s.mode);
     const isFixedLayout = useMemo(() => 
         mode === AppMode.METAVENTIONS_HUB || mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.AUTONOMOUS_FINANCE || (mode as any) === 'NEXUS'
     , [mode]);
 
     return (
-        <div className="flex-1 relative overflow-hidden flex flex-col">
+        <div className="flex-1 relative overflow-hidden flex flex-col perspective-2000">
             <Suspense fallback={
                 <div className="h-full w-full flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm">
-                    <div className="relative">
-                        <Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" />
-                        <div className="absolute inset-0 blur-xl bg-[#9d4edd]/20 animate-pulse" />
-                    </div>
-                    <span className="text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em] animate-pulse">
-                        Synchronizing Sector Topology...
-                    </span>
+                    <Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" />
                 </div>
             }>
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="popLayout" initial={false}>
                     <motion.main
                         key={mode}
-                        initial={{ opacity: 0, x: -15, scale: 0.98 }}
-                        animate={{ opacity: 1, x: 0, scale: 1 }}
-                        exit={{ opacity: 0, x: 15, scale: 1.02 }}
-                        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                        layoutId="synaptic-sector"
+                        initial={{ 
+                            opacity: 0, 
+                            scale: 0.8, 
+                            z: -500,
+                            rotateX: warpDirection.y / 10,
+                            rotateY: -warpDirection.x / 10,
+                            filter: 'blur(40px) brightness(0)'
+                        }}
+                        animate={{ 
+                            opacity: 1, 
+                            scale: 1, 
+                            z: 0,
+                            rotateX: 0,
+                            rotateY: 0,
+                            filter: 'blur(0px) brightness(1)'
+                        }}
+                        exit={{ 
+                            opacity: 0, 
+                            scale: 1.2, 
+                            z: 500,
+                            filter: 'blur(60px) brightness(2)'
+                        }}
+                        transition={{ 
+                            duration: 0.85, 
+                            ease: [0.16, 1, 0.3, 1],
+                            opacity: { duration: 0.4 }
+                        }}
                         className={`flex-1 relative z-10 p-6 flex flex-col ${
                             isFixedLayout ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar pb-8'
                         }`}
@@ -222,34 +168,17 @@ const SynapticRouter: React.FC = () => {
                         initial={{ opacity: 0, scale: 0.9, y: 10 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9 }}
-                        className="fixed z-[9999] min-w-[220px] bg-[#0a0a0a]/95 backdrop-blur-2xl border border-[#333] rounded-lg shadow-2xl overflow-hidden p-1.5"
+                        className="fixed z-[9999] min-w-[220px] bg-[#0a0a0a]/95 backdrop-blur-2xl border border-[#333] rounded-lg shadow-2xl overflow-hidden p-1.5 crystalline"
                         style={{ top: contextMenu.y, left: contextMenu.x }}
                     >
-                        <div className="px-3 py-2 border-b border-[#222] mb-2 flex flex-col gap-1">
+                        <div className="px-3 py-2 border-b border-[#222] mb-2">
                             <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-bold text-[#9d4edd] uppercase tracking-wider font-mono">
-                                    Synaptic Context Hub
-                                </span>
-                                <GitBranch className="w-3 h-3 text-[#9d4edd]" />
-                            </div>
-                            <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-600 uppercase truncate">
-                                <Hash className="w-2.5 h-2.5" /> {routeInfo.path.toUpperCase() || 'METAVENTIONS_HUB'}
+                                <span className="text-[9px] font-bold text-[#9d4edd] uppercase tracking-wider font-mono">Context Hub</span>
                             </div>
                         </div>
                         <div className="flex flex-col gap-0.5">
-                            {contextMenu.contextType === 'IMAGE' && (
-                                <MenuItem icon={Scan} label="DEEP_SCAN DIAGNOSTIC" onClick={() => handleAction('DEEP_SCAN')} />
-                            )}
-                            <MenuItem icon={Eye} label="Holo Project" onClick={() => handleAction('HOLO_VIEW')} />
-                            <MenuItem icon={Copy} label="Buffer Copy" onClick={() => handleAction('COPY')} />
-                            <MenuItem icon={Search} label="Grounding Search" onClick={() => handleAction('SEARCH')} />
-                            {contextMenu.contextType === 'CODE' && (
-                                <MenuItem icon={Terminal} label="Forge in Studio" onClick={() => handleAction('JUMP_CODE')} />
-                            )}
-                            <div className="h-px bg-[#222] my-1" />
-                            <MenuItem icon={ArrowUpRight} label="Hub" onClick={() => window.location.hash = '/metaventions-hub'} />
-                            <MenuItem icon={Activity} label="Diagnostics" onClick={() => window.location.hash = '/memory'} />
-                            <MenuItem icon={Terminal} label="Terminal" onClick={() => actions.toggleTerminal(true)} />
+                            <MenuItem icon={Scan} label="Deep Scan" onClick={() => {}} />
+                            <MenuItem icon={Eye} label="Holo Project" onClick={() => {}} />
                         </div>
                     </motion.div>
                 )}

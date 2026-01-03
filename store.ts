@@ -51,6 +51,8 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
 
 interface AppState {
     mode: AppMode;
+    previousMode: AppMode | null;
+    isTransitioning: boolean;
     theme: AppTheme;
     user: UserProfile;
     authenticated: boolean;
@@ -322,6 +324,8 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set, get) => ({
     mode: AppMode.METAVENTIONS_HUB,
+    previousMode: null,
+    isTransitioning: false,
     theme: AppTheme.DARK,
     user: {
         displayName: 'Operator_Core',
@@ -583,7 +587,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
     actions: {
-        setMode: (mode) => set({ mode }),
+        setMode: (mode) => set((state) => ({ 
+            previousMode: state.mode, 
+            mode, 
+            isTransitioning: true 
+        })),
         setTheme: (theme) => set({ theme }),
         setUserProfile: (profile) => set((state) => ({ user: { ...state.user, ...profile } })),
         setAuthenticated: (authenticated) => set({ authenticated }),
