@@ -8,13 +8,15 @@ import {
     FolderTree, Cloud, Code, FolderOpen, FileText, Component,
     Microscope, Terminal, Aperture, BookOpen, Fingerprint,
     Cpu, Database, Shield, Globe, AlertTriangle, CheckCircle2,
-    Lock, Unlock, ShieldAlert, Gauge, Waves
+    Lock, Unlock, ShieldAlert, Gauge, Waves, Bot, Trash2,
+    // Fix: Added missing BrainCircuit and X icon imports to resolve "Cannot find name" errors.
+    BrainCircuit, X
 } from 'lucide-react';
 import { promptSelectKey, generateStructuredWorkflow } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
-import { TechnicalManifest, DirectoryNode, ProtocolStep } from '../types';
+import { TechnicalManifest, DirectoryNode, ProtocolStep, SwarmProposal } from '../types';
 import { renderSafe } from '../utils/renderSafe';
 
 const BlueprintStat = ({ label, value, color, detail }: { label: string, value: string, color: string, detail?: string }) => (
@@ -178,6 +180,71 @@ const TreeView = ({ data }: { data: TechnicalManifest }) => {
     );
 };
 
+const ProposalQueue = () => {
+    const proposals = useAppStore(s => s.synthesis.incomingProposals);
+    const { actions } = useAppStore();
+    const { dismissProposal, addLog, setDashboardState } = actions;
+
+    if (proposals.length === 0) return null;
+
+    return (
+        <div className="p-5 bg-black/40 border border-white/5 rounded-[2.5rem] shadow-2xl invisible-glass space-y-6 backdrop-blur-3xl relative overflow-hidden group/ritual shrink-0">
+             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(157,78,221,0.02)_0%,transparent_70%)]" />
+             <div className="flex items-center justify-between px-2 relative z-10">
+                <div className="flex items-center gap-3">
+                    <BrainCircuit size={16} className="text-[#9d4edd] animate-pulse" />
+                    <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em]">Neural Queue</span>
+                </div>
+                <span className="text-[7px] px-2 py-0.5 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded text-[#9d4edd] font-black uppercase">Swarm_Signals</span>
+             </div>
+
+             <div className="space-y-3 relative z-10">
+                {proposals.map(prop => (
+                    <motion.div 
+                        key={prop.id}
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl group transition-all hover:border-[#9d4edd]/30"
+                    >
+                        <div className="flex justify-between items-start mb-2">
+                             <div className="flex items-center gap-2">
+                                <Bot size={12} className="text-[#9d4edd]" />
+                                <span className="text-[10px] font-black text-white uppercase truncate max-w-[140px]">{prop.agentName}</span>
+                             </div>
+                             <button onClick={() => dismissProposal(prop.id)} className="text-gray-700 hover:text-red-500 transition-colors"><X size={12} /></button>
+                        </div>
+                        <h4 className="text-[11px] font-black text-[#9d4edd] uppercase mb-1">{prop.title}</h4>
+                        <p className="text-[9px] text-gray-500 font-mono leading-relaxed line-clamp-2 uppercase italic mb-3">"{prop.description}"</p>
+                        
+                        <div className="flex gap-2">
+                            <button 
+                                onClick={() => { 
+                                    setDashboardState({ activeManifest: prop.manifest });
+                                    addLog('INFO', `PREVIEW: Reviewing ${prop.type} proposal from Swarm.`);
+                                    audio.playClick();
+                                }}
+                                className="flex-1 py-1.5 bg-black border border-white/10 rounded-lg text-[8px] font-black uppercase text-gray-400 hover:text-white transition-all"
+                            >
+                                Review
+                            </button>
+                            <button 
+                                onClick={() => {
+                                    addLog('SUCCESS', `ATTESTATION: Proposal [${prop.title}] locked for implementation.`);
+                                    dismissProposal(prop.id);
+                                    audio.playSuccess();
+                                }}
+                                className="flex-1 py-1.5 bg-[#9d4edd]/20 border border-[#9d4edd]/40 rounded-lg text-[8px] font-black uppercase text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black transition-all"
+                            >
+                                Attest
+                            </button>
+                        </div>
+                    </motion.div>
+                ))}
+             </div>
+        </div>
+    );
+};
+
 const ImplementationDeck: React.FC<{
     data: TechnicalManifest;
     onDeploy: (d: TechnicalManifest) => void;
@@ -271,8 +338,9 @@ const ImplementationDeck: React.FC<{
                                     <span className="text-lg font-black font-mono">{(i+1).toString().padStart(2, '0')}</span>
                                 </div>
                                 <div className="flex-1 min-w-0 relative z-10">
-                                    <div className="text-[8px] font-black text-[#10b981] uppercase tracking-[0.4em] mb-1 opacity-60 group-hover:opacity-100">
+                                    <div className="text-[8px] font-black text-[#10b981] uppercase tracking-[0.4em] mb-1 opacity-60 group-hover:opacity-100 flex items-center gap-2">
                                         {step.phase || step.role || 'CORE_LOGIC'}
+                                        <div className="h-px w-8 bg-current opacity-20" />
                                     </div>
                                     <p className="text-base text-gray-300 font-mono leading-relaxed group-hover:text-white transition-colors uppercase tracking-tight truncate">{step.instruction}</p>
                                 </div>
@@ -453,6 +521,8 @@ const SynthesisBridge: React.FC = () => {
                         </div>
                     </div>
 
+                    <ProposalQueue />
+
                     <div className="p-5 bg-[#0a0a0c]/60 border border-white/5 rounded-[2.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden group/ritual">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.01)_0%,transparent_70%)]" />
                         <div className="flex items-center gap-3 mb-4 px-1 relative z-10">
@@ -491,7 +561,7 @@ const SynthesisBridge: React.FC = () => {
                             disabled={isGenerating}
                             className="w-full py-4 bg-[#7B2CFF] hover:bg-[#8e49ff] text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.5em] transition-all shadow-[0_15px_40px_rgba(123,44,255,0.2)] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-4 group/gen"
                         >
-                            {isGenerating ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw size={18} className="group-hover/gen:rotate-180 transition-transform duration-700" />}
+                            {isGenerating ? <Loader2 size={15} className="w-5 h-5 animate-spin" /> : <RefreshCw size={18} className="group-hover/gen:rotate-180 transition-transform duration-700" />}
                             {isGenerating ? 'Synthesizing...' : 'Forge Protocol'}
                         </button>
                     </div>
@@ -499,10 +569,10 @@ const SynthesisBridge: React.FC = () => {
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar pr-5">
                     <AnimatePresence mode="wait">
-                        {result ? (
+                        {(result || dashboard.activeManifest) ? (
                             <ImplementationDeck 
                                 key="active-deck" 
-                                data={result} 
+                                data={(result || dashboard.activeManifest) as TechnicalManifest} 
                                 onArchive={(d) => { archiveIntervention({ ...d, timestamp: Date.now() }); audio.playSuccess(); }}
                                 onDeploy={(d) => { deployStrategyToLattice(d); addLog('SUCCESS', `PROTOCOL_ENGAGED: Structural transformation sequence initiated.`); audio.playSuccess(); }}
                             />

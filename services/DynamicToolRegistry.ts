@@ -28,8 +28,11 @@ class DynamicToolRegistry {
                     const context = { 
                         log: state.actions.addLog,
                         mode: state.mode,
+                        setMode: state.actions.setMode,
                         vault: neuralVault,
-                        kernel: state.kernel
+                        kernel: state.kernel,
+                        propose: state.actions.addSwarmProposal,
+                        identity: state.user
                     };
                     
                     const executor = new Function('args', 'os', `
@@ -98,6 +101,23 @@ class DynamicToolRegistry {
                     required: ['description', 'type']
                 },
                 description: 'Generate high-fidelity topologies.'
+            },
+            {
+                name: 'propose_structural_change',
+                parameters: {
+                    type: Type.OBJECT,
+                    properties: {
+                        agentId: { type: Type.STRING },
+                        agentName: { type: Type.STRING },
+                        type: { type: Type.STRING, enum: ['OPTIMIZATION', 'EXPANSION', 'SECURITY'] },
+                        title: { type: Type.STRING },
+                        description: { type: Type.STRING },
+                        impact: { type: Type.STRING },
+                        manifest_summary: { type: Type.STRING }
+                    },
+                    required: ['agentId', 'agentName', 'type', 'title', 'description', 'impact', 'manifest_summary']
+                },
+                description: 'Issue a formal structural change proposal to the user via the Neural Queue.'
             }
         ];
 
