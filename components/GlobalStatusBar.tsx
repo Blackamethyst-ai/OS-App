@@ -62,10 +62,11 @@ const LayerControlMesh = memo(() => {
 
     return (
         <div className="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded-2xl border border-white/10 shadow-inner h-10">
-            {Object.values(allLayers).map((layer) => {
+            {/* Fix: Explicitly cast the values array to KnowledgeLayer[] to resolve 'Property id/label/color does not exist on type unknown' errors in restricted TS environments. */}
+            {(Object.values(allLayers) as KnowledgeLayer[]).map((layer) => {
                 const isActive = activeLayerIds.includes(layer.id);
                 // @ts-ignore
-                const Icon = Icons[layer.icon] || Icons.Layers;
+                const Icon = Icons[layer.icon as keyof typeof Icons] || Icons.Layers;
                 return (
                     <motion.button
                         key={layer.id}
@@ -256,7 +257,7 @@ const GlobalStatusBar: React.FC = () => {
                 {/* IDENTITY & AUDIT (Far Right) */}
                 <div className="flex items-center gap-6 pl-6 shrink-0 relative z-10">
                     <div className="flex flex-col items-center gap-0.5 border-r border-white/5 pr-6 min-w-[80px]">
-                         <div className="flex items-center gap-1.5 text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none mb-1">
+                         <div className="flex items-center gap-1.5 text-[6px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none mb-1">
                             <Fingerprint size={10} className="text-[#9d4edd]" />
                             <span>Auth_Token</span>
                          </div>
