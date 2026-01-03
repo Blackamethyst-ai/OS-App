@@ -75,20 +75,20 @@ const SynapticRouter: React.FC = () => {
     , [mode]);
 
     return (
-        <div className="flex-1 relative overflow-hidden flex flex-col perspective-2000">
+        <div className="flex-1 relative overflow-hidden flex flex-col">
             <Suspense fallback={
                 <div className="h-full w-full flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm">
                     <Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" />
                 </div>
             }>
-                <AnimatePresence mode="wait">
+                <AnimatePresence mode="wait" initial={false}>
                     <motion.main
                         key={mode}
-                        initial={{ opacity: 0, scale: 0.95, filter: 'blur(20px)' }}
-                        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                        exit={{ opacity: 0, scale: 0.98, filter: 'blur(30px)' }}
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.02 }}
                         transition={{ 
-                            duration: 0.5, 
+                            duration: 0.4, 
                             ease: [0.16, 1, 0.3, 1]
                         }}
                         className={`flex-1 relative z-10 p-6 flex flex-col ${
