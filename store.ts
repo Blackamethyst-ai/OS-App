@@ -58,6 +58,7 @@ interface AppState {
     authenticated: boolean;
     isProfileOpen: boolean;
     isCommandPaletteOpen: boolean;
+    isSidebarOpen: boolean;
     operationalContext: string;
     kernel: {
         uptime: number;
@@ -267,6 +268,7 @@ interface AppState {
         setAuthenticated: (auth: boolean) => void;
         toggleProfile: (open?: boolean) => void;
         toggleCommandPalette: (open?: boolean) => void;
+        setSidebarOpen: (open: boolean) => void;
         addLog: (level: 'ERROR' | 'WARN' | 'SUCCESS' | 'INFO' | 'SYSTEM', message: string) => void;
         toggleTerminal: (open?: boolean) => void;
         setSearchState: (update: any) => void;
@@ -336,6 +338,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     authenticated: true,
     isProfileOpen: false,
     isCommandPaletteOpen: false,
+    isSidebarOpen: false,
     operationalContext: 'D_ECOSYSTEM_PRODUCTION',
     kernel: {
         uptime: 0,
@@ -597,6 +600,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         setAuthenticated: (authenticated) => set({ authenticated }),
         toggleProfile: (open) => set((state) => ({ isProfileOpen: open ?? !state.isProfileOpen })),
         toggleCommandPalette: (open) => set((state) => ({ isCommandPaletteOpen: open ?? !state.isCommandPaletteOpen })),
+        setSidebarOpen: (isSidebarOpen) => set({ isSidebarOpen }),
         addLog: (level, message) => set((state) => {
             const id = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
             return {
@@ -769,54 +773,30 @@ export const useAppStore = create<AppState>((set, get) => ({
             neuralVault.saveAgent(agent);
             return { agents: { ...state.agents, activeAgents: next } };
         }),
-        hydrateAgents: async () => {
-            const saved = await neuralVault.getAgents();
+        hydrateAgents: () => neuralVault.getAgents().then(saved => {
             if (saved.length > 0) {
                 set((state) => ({ agents: { ...state.agents, activeAgents: saved } }));
             }
-        },
+        }),
         deployStrategyToLattice: (strategy: TechnicalManifest) => set((state) => {
             const centerX = 500;
             const centerY = 400;
             const radius = 250;
-            
-            // Create a root node for the strategy
             const rootNode = {
                 id: `node-strat-root-${Date.now()}`,
                 type: 'holographic',
                 position: { x: centerX, y: centerY - 300 },
-                data: { 
-                    label: strategy.title.toUpperCase(), 
-                    subtext: strategy.type, 
-                    iconName: 'ShieldCheck', 
-                    color: '#10b981', 
-                    status: 'DEPLOYED', 
-                    drift: 0 
-                }
+                data: { label: strategy.title.toUpperCase(), subtext: strategy.type, iconName: 'ShieldCheck', color: '#10b981', status: 'DEPLOYED', drift: 0 }
             };
-
-            // Map protocols to sequential nodes in a loop
             const protocolNodes = (strategy.protocols || []).map((p, i) => {
                 const angle = (i / strategy.protocols.length) * Math.PI * 2;
                 return {
                     id: `node-strat-p-${i}-${Date.now()}`,
                     type: 'holographic',
-                    position: { 
-                        x: centerX + Math.cos(angle) * radius, 
-                        y: centerY + Math.sin(angle) * radius 
-                    },
-                    data: { 
-                        label: p.instruction.substring(0, 20) + '...', 
-                        subtext: p.role, 
-                        iconName: 'Target', 
-                        color: '#9d4edd', 
-                        status: 'INITIALIZED', 
-                        drift: 0 
-                    }
+                    position: { x: centerX + Math.cos(angle) * radius, y: centerY + Math.sin(angle) * radius },
+                    data: { label: p.instruction.substring(0, 20) + '...', subtext: p.role, iconName: 'Target', color: '#9d4edd', status: 'INITIALIZED', drift: 0 }
                 };
             });
-
-            // Create edges connecting the root to all nodes
             const edges = protocolNodes.map(node => ({
                 id: `edge-${rootNode.id}-${node.id}`,
                 source: rootNode.id,
@@ -824,33 +804,16 @@ export const useAppStore = create<AppState>((set, get) => ({
                 type: 'cinematic',
                 data: { color: '#9d4edd', variant: 'stream' }
             }));
-
-            // Chain protocol nodes sequentially too
             for (let i = 0; i < protocolNodes.length; i++) {
                 const nextIdx = (i + 1) % protocolNodes.length;
-                edges.push({
-                    id: `edge-chain-${i}-${nextIdx}-${Date.now()}`,
-                    source: protocolNodes[i].id,
-                    target: protocolNodes[nextIdx].id,
-                    type: 'cinematic',
-                    data: { color: '#22d3ee', variant: 'pulse' }
-                });
+                edges.push({ id: `edge-chain-${i}-${nextIdx}-${Date.now()}`, source: protocolNodes[i].id, target: protocolNodes[nextIdx].id, type: 'cinematic', data: { color: '#22d3ee', variant: 'pulse' } });
             }
-
             return { 
-                process: { 
-                    ...state.process, 
-                    nodes: [...state.process.nodes, rootNode, ...protocolNodes],
-                    edges: [...state.process.edges, ...edges]
-                }, 
+                process: { ...state.process, nodes: [...state.process.nodes, rootNode, ...protocolNodes], edges: [...state.process.edges, ...edges] }, 
                 mode: AppMode.PROCESS_MAP 
             };
         }),
-        addSwarmProposal: (proposal) => set((state) => ({
-            synthesis: { ...state.synthesis, incomingProposals: [proposal, ...state.synthesis.incomingProposals].slice(0, 5) }
-        })),
-        dismissProposal: (id) => set((state) => ({
-            synthesis: { ...state.synthesis, incomingProposals: state.synthesis.incomingProposals.filter(p => p.id !== id) }
-        })),
+        addSwarmProposal: (proposal) => set((state) => ({ synthesis: { ...state.synthesis, incomingProposals: [proposal, ...state.synthesis.incomingProposals].slice(0, 5) } })),
+        dismissProposal: (id) => set((state) => ({ synthesis: { ...state.synthesis, incomingProposals: state.synthesis.incomingProposals.filter(p => p.id !== id) } })),
     }
 }));
