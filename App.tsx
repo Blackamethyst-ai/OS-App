@@ -274,9 +274,6 @@ const App: React.FC = () => {
         {!authenticated && <AuthModule />}
       </AnimatePresence>
 
-      {/* OS Kernel Layer */}
-      <GlobalStatusBar />
-      
       <FocusOverlay />
       <VoiceCoreOverlay /> 
       <UserProfileOverlay /> 
@@ -416,6 +413,9 @@ const App: React.FC = () => {
             </button>
         </div>
       </header>
+
+      {/* OS Kernel Dock Layer - REPOSITIONED TO TOP PER USER DIRECTIVE */}
+      <GlobalStatusBar />
 
       <div className={cn(
           "flex-1 relative flex flex-col min-h-0 transition-all duration-1000 main-content-layer",
