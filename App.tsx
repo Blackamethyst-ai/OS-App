@@ -106,6 +106,8 @@ const App: React.FC = () => {
   const mode = useAppStore(s => s.mode);
   const theme = useAppStore(s => s.theme);
   const user = useAppStore(s => s.user);
+  const system = useAppStore(s => s.system);
+  const holo = useAppStore(s => s.holo);
   const authenticated = useAppStore(s => s.authenticated);
   const actions = useAppStore(s => s.actions);
   const isHelpOpen = useAppStore(s => s.isHelpOpen);
@@ -252,9 +254,15 @@ const App: React.FC = () => {
     mode === AppMode.METAVENTIONS_HUB || mode === AppMode.DASHBOARD || mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.SYNTHESIS_BRIDGE || mode === AppMode.VOICE_MODE || mode === AppMode.AUTONOMOUS_FINANCE
   , [mode]);
 
+  // MATERIAL SOVEREIGNTY: Deep Refraction Stacking
+  const isDeepRefracted = system.isTerminalOpen || holo.isOpen;
+
   return (
     <div 
-        className="h-screen w-screen font-sans overflow-hidden flex flex-col transition-all duration-700 ease-in-out relative" 
+        className={cn(
+            "h-screen w-screen font-sans overflow-hidden flex flex-col transition-all duration-700 ease-in-out relative",
+            isDeepRefracted && "deep-refraction-active"
+        )} 
         style={{ backgroundColor: 'var(--bg-app)', color: 'var(--text-primary)', ...themeVars as any }}
     >
       <Starfield mode={mode} />
@@ -410,7 +418,7 @@ const App: React.FC = () => {
       </header>
 
       <div className={cn(
-          "flex-1 relative flex flex-col min-h-0 transition-all duration-1000",
+          "flex-1 relative flex flex-col min-h-0 transition-all duration-1000 main-content-layer",
           isFixedLayout ? 'pb-0' : 'pb-1 overflow-y-auto custom-scrollbar'
       )}>
         <SynapticRouter />
