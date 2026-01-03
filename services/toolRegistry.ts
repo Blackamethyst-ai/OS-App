@@ -1,4 +1,4 @@
-import { AppMode, ToolResult, TaskPriority, MentalState, TechnicalManifest } from '../types';
+import { AppMode, ToolResult, TaskPriority, MentalState, TechnicalManifest, SwarmProposal } from '../types';
 import { useAppStore } from '../store';
 import { generateStructuredWorkflow, searchGroundedIntel, convergeStrategicLattices } from './geminiService';
 
@@ -168,6 +168,41 @@ export const OS_TOOLS = {
         } catch (error: any) {
             return { toolName: 'search_intel', status: 'ERROR', data: { error: error.message } };
         }
+    },
+
+    // 8. SWARM PROPOSAL
+    propose_structural_change: async (args: {
+        agentId: string,
+        agentName: string,
+        type: 'OPTIMIZATION' | 'EXPANSION' | 'SECURITY',
+        title: string,
+        description: string,
+        impact: string,
+        manifest_summary: string
+    }): Promise<ToolResult> => {
+        const { addSwarmProposal, addLog } = useAppStore.getState().actions;
+        
+        const proposal: SwarmProposal = {
+            id: `prop-${Date.now()}`,
+            agentId: args.agentId,
+            agentName: args.agentName,
+            type: args.type,
+            title: args.title,
+            description: args.description,
+            impact: args.impact,
+            manifest: { title: args.title, logic: args.manifest_summary, complexity: 'PRODUCTION' },
+            timestamp: Date.now()
+        };
+
+        addSwarmProposal(proposal);
+        addLog('SYSTEM', `SWARM_SIGNAL: [${args.agentName}] issued a structural ${args.type} proposal.`);
+
+        return {
+            toolName: 'propose_structural_change',
+            status: 'SUCCESS',
+            data: { proposalId: proposal.id, status: 'STAGED_FOR_REVIEW' },
+            uiHint: 'STAT'
+        };
     }
 };
 

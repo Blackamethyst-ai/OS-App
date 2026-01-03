@@ -6,7 +6,7 @@ import {
     PeerPresence, SwarmEvent, TaskPriority, TaskStatus, 
     AspectRatio, ImageSize, StoredArtifact, MetaventionsState,
     OperationalContext, AutonomousAgent, Frame, ProductionBible,
-    TechnicalManifest
+    TechnicalManifest, SwarmProposal
 } from './types';
 import { neuralVault } from './services/persistenceService';
 
@@ -18,7 +18,7 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
         context: OperationalContext.STRATEGY_SYNTHESIS,
         status: 'IDLE',
         memoryBuffer: [],
-        capabilities: ['system_navigate', 'search_intel', 'architect_generate_process'],
+        capabilities: ['system_navigate', 'search_intel', 'architect_generate_process', 'propose_structural_change'],
         currentMindset: { skepticism: 10, excitement: 95, alignment: 75 },
         energyLevel: 100,
         tasks: []
@@ -30,7 +30,7 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
         context: OperationalContext.SYSTEM_MONITORING,
         status: 'IDLE',
         memoryBuffer: [],
-        capabilities: ['search_intel', 'update_task_priority'],
+        capabilities: ['search_intel', 'update_task_priority', 'propose_structural_change'],
         currentMindset: { skepticism: 95, excitement: 15, alignment: 90 },
         energyLevel: 100,
         tasks: []
@@ -42,7 +42,7 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
         context: OperationalContext.CODE_GENERATION,
         status: 'IDLE',
         memoryBuffer: [],
-        capabilities: ['search_intel', 'architect_generate_process'],
+        capabilities: ['search_intel', 'architect_generate_process', 'propose_structural_change'],
         currentMindset: { skepticism: 35, excitement: 65, alignment: 85 },
         energyLevel: 100,
         tasks: []
@@ -158,7 +158,7 @@ interface AppState {
         activeColorway: any;
         activeStylePreset: string;
         resonanceCurve: { frame: number; tension: number; dynamics: number }[];
-        productionBible: ProductionBible | null;
+        productionBible: null | ProductionBible;
         frames: Frame[];
         selectedHeroMode: 'NONE' | 'HERO' | 'RISING' | 'CHAOS' | 'STEADY';
         videoUrl: string | null;
@@ -247,6 +247,9 @@ interface AppState {
         contextType: string;
         targetContent: any;
     };
+    synthesis: {
+        incomingProposals: SwarmProposal[];
+    };
     isHelpOpen: boolean;
     isScrubberOpen: boolean;
     isDiagnosticsOpen: boolean;
@@ -312,6 +315,8 @@ interface AppState {
         addAgent: (agent: AutonomousAgent) => void;
         hydrateAgents: () => Promise<void>;
         deployStrategyToLattice: (strategy: TechnicalManifest) => void;
+        addSwarmProposal: (proposal: SwarmProposal) => void;
+        dismissProposal: (id: string) => void;
     };
 }
 
@@ -529,6 +534,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         x: 0, y: 0,
         contextType: 'GENERAL',
         targetContent: null
+    },
+    synthesis: {
+        incomingProposals: []
     },
     isHelpOpen: false,
     isScrubberOpen: false,
@@ -830,5 +838,11 @@ export const useAppStore = create<AppState>((set, get) => ({
                 mode: AppMode.PROCESS_MAP 
             };
         }),
+        addSwarmProposal: (proposal) => set((state) => ({
+            synthesis: { ...state.synthesis, incomingProposals: [proposal, ...state.synthesis.incomingProposals].slice(0, 5) }
+        })),
+        dismissProposal: (id) => set((state) => ({
+            synthesis: { ...state.synthesis, incomingProposals: state.synthesis.incomingProposals.filter(p => p.id !== id) }
+        })),
     }
 }));

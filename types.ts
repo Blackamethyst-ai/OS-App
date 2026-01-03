@@ -58,6 +58,18 @@ export interface TechnicalManifest {
     entropyRating?: number; // Global entropy for the entire system
 }
 
+export interface SwarmProposal {
+    id: string;
+    agentId: string;
+    agentName: string;
+    type: 'OPTIMIZATION' | 'EXPANSION' | 'SECURITY';
+    title: string;
+    description: string;
+    impact: string;
+    manifest: Partial<TechnicalManifest>;
+    timestamp: number;
+}
+
 export enum AppMode {
     DASHBOARD = 'DASHBOARD',
     METAVENTIONS_HUB = 'METAVENTIONS_HUB',
@@ -197,8 +209,8 @@ export interface Frame {
     index: number;
     scenePrompt: string;
     continuity: string;
-    camera: string;
-    lighting: string;
+    camera: string; 
+    lighting: string; 
     status: 'pending' | 'generating' | 'done' | 'error';
     imageUrl?: string;
     audioUrl?: string;
