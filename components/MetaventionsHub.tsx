@@ -30,7 +30,6 @@ import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import DEcosystem from './DEcosystem';
 import ContextVelocityChart from './ContextVelocityChart';
-import HolographicCommandDeck from './HolographicCommandDeck';
 
 // --- VISIONARY CONSTANTS ---
 const VISIONARY_DIRECTIVES = [
@@ -168,7 +167,6 @@ const ProceduralHologram = () => {
 
                 ctx.beginPath();
                 ctx.arc(screenX, screenY, 1.5 * scale, 0, Math.PI * 2);
-                ctx.fillStyle = z2 > 0 ? 'rgba(34, 211, 238, 0.4)' : 'rgba(157, 78, 221, 0.3)';
                 ctx.fill();
 
                 if (i % 10 === 0) {
@@ -684,7 +682,6 @@ const MetaventionsHub: React.FC = () => {
       </div>
       
       <DataStreamTether />
-      <HolographicCommandDeck />
 
       {/* Enhanced Header Banner */}
       <AnimatePresence>
