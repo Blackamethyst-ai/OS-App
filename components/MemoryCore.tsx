@@ -9,7 +9,8 @@ import {
     Database, X, Upload, Activity, FileText, BrainCircuit,
     LayoutGrid, Boxes, Info, Trash2, Radar, Zap, Code,
     Shield, FileJson, Clock, Tag, Box, Sparkles, FileSearch, Fingerprint,
-    Waves, RefreshCw, Cpu, GitBranch, Maximize, Anchor, Scan
+    Waves, RefreshCw, Cpu, GitBranch, Maximize, Anchor,
+    Scan, Compass
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoredArtifact } from '../types';
@@ -312,26 +313,27 @@ const MemoryCore: React.FC = () => {
                 <div className="absolute top-0 left-0 w-full h-[2px] bg-[#9d4edd]/10 z-10 pointer-events-none" />
 
                 <div className="h-16 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl flex items-center justify-between px-10 shrink-0 z-20">
-                    <div className="flex bg-black/20 p-1 rounded-xl border border-white/5 shadow-inner">
+                    <div className="flex bg-black/20 p-1.5 rounded-xl border border-white/5 shadow-inner">
                         {[
-                            { id: 'OCEANIC', icon: Waves, label: 'Ocean' },
-                            { id: 'GRID', icon: LayoutGrid, label: 'Matrix' },
-                            { id: 'TOOLS', icon: Code, label: 'Skills' },
-                            { id: 'GRAPH', icon: BrainCircuit, label: 'Lattice' },
-                            { id: 'XRAY', icon: Scan, label: 'X-Ray' },
+                            { id: 'OCEANIC', icon: Waves, label: 'Neural Ocean' },
+                            { id: 'GRID', icon: LayoutGrid, label: 'The Matrix' },
+                            { id: 'TOOLS', icon: Code, label: 'Evolved Skills' },
+                            { id: 'DYNAMIC', icon: Compass, label: 'Dynamic Insight' },
+                            { id: 'GRAPH', icon: BrainCircuit, label: 'Neural Lattice' },
+                            { id: 'XRAY', icon: Scan, label: 'Power X-Ray' },
                         ].map(btn => (
                             <button 
                                 key={btn.id} 
                                 onClick={() => { setViewMode(btn.id as any); audio.playClick(); }} 
-                                className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${viewMode === btn.id ? 'bg-white text-black shadow-2xl scale-105' : 'text-gray-500 hover:text-white'}`}
+                                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all ${viewMode === btn.id ? 'bg-white text-black shadow-2xl scale-105' : 'text-gray-500 hover:text-white'}`}
                             >
-                                <btn.icon size={12} /> {btn.label}
+                                <btn.icon size={14} /> {btn.label}
                             </button>
                         ))}
                     </div>
                     <div className="flex items-center gap-8">
-                        <label className="flex items-center gap-4 px-8 py-2 bg-[#9d4edd] text-black border border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest cursor-pointer shadow-[0_0_30px_rgba(157,78,221,0.3)] hover:scale-105 active:scale-95 transition-all">
-                            <Upload size={16} /> Ingest Artifact
+                        <label className="flex items-center gap-4 px-8 py-2.5 bg-[#9d4edd] text-black border border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest cursor-pointer shadow-[0_0_30px_rgba(157,78,221,0.3)] hover:scale-105 active:scale-95 transition-all">
+                            <Upload size={18} /> Ingest Artifact
                             <input type="file" multiple className="hidden" onChange={handleFileUpload} />
                         </label>
                     </div>
@@ -352,13 +354,13 @@ const MemoryCore: React.FC = () => {
                             <motion.div key="graph" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
                                 <KnowledgeGraph nodes={graphNodes} onNodeClick={(n) => setSelectedArtifact(artifacts.find(a => a.id === n.id) || null)} />
                             </motion.div>
-                        ) : viewMode === 'XRAY' ? (
-                            <motion.div key="xray" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
-                                <PowerXRay availableSources={artifacts} />
-                            </motion.div>
                         ) : viewMode === 'DYNAMIC' ? (
                             <motion.div key="dynamic" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
                                 <DynamicVisuals artifacts={artifacts} onSelect={setSelectedArtifact} />
+                            </motion.div>
+                        ) : viewMode === 'XRAY' ? (
+                            <motion.div key="xray" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
+                                <PowerXRay availableSources={artifacts} />
                             </motion.div>
                         ) : (
                             <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 overflow-y-auto h-full custom-scrollbar pb-32 bg-black/5">

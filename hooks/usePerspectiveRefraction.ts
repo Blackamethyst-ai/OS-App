@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useMemo } from 'react';
+import React, { useState, useCallback, useRef, useMemo } from 'react';
 
 /**
  * usePerspectiveRefraction: Material Sovereignty Logic
@@ -8,6 +8,7 @@ export const usePerspectiveRefraction = (intensity = 1) => {
     const [tilt, setTilt] = useState({ x: 0, y: 0, glareX: 50, glareY: 50, opacity: 0 });
     const ref = useRef<HTMLDivElement>(null);
 
+    // Fix: Import React to resolve 'Cannot find namespace React' error when using React.MouseEvent.
     const onMouseMove = useCallback((e: React.MouseEvent) => {
         if (!ref.current) return;
 

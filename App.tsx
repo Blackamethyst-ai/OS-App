@@ -23,7 +23,6 @@ import VisualCortexOverlay from './components/VisualCortexOverlay';
 import FlywheelOrbit from './components/FlywheelOrbit';
 import AgenticHUD from './components/AgenticHUD';
 import GlobalStatusBar from './components/GlobalStatusBar';
-import GlobalSidebarHUD from './components/GlobalSidebarHUD';
 import PeerMeshOverlay from './components/PeerMeshOverlay';
 import MetaventionsLogo from './components/MetaventionsLogo';
 import AppFooter from './components/AppFooter';
@@ -115,6 +114,7 @@ const App: React.FC = () => {
   const isScrubberOpen = useAppStore(s => s.isScrubberOpen);
   const isDiagnosticsOpen = useAppStore(s => s.isDiagnosticsOpen);
   const isHUDClosed = useAppStore(s => s.isHUDClosed);
+  const focusedSelector = useAppStore(s => s.focusedSelector);
   
   const { setSector } = useSystemMind(); 
 
@@ -276,7 +276,6 @@ const App: React.FC = () => {
 
       {/* OS Kernel Layer */}
       <GlobalStatusBar />
-      <GlobalSidebarHUD />
       
       <FocusOverlay />
       <VoiceCoreOverlay /> 
@@ -311,7 +310,7 @@ const App: React.FC = () => {
             <div className="flex items-center gap-4 cursor-pointer group relative" onClick={() => window.location.hash = '/metaventions-hub'}>
                 {/* Focal Logo Glow */}
                 <div className="absolute inset-[-30px] bg-[radial-gradient(circle,rgba(157,78,221,0.2)_0%,transparent_75%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                <MetaventionsLogo size={36} showText={true} className={cn("relative z-10 transition-all duration-700 group-hover:scale-110")} />
+                <MetaventionsLogo size={36} showText={true} className={cn("relative z-10 transition-all duration-700 group-hover:scale-110", focusedSelector === 'header' && "scale-125")} />
             </div>
             <div className="h-6 w-px bg-white/5" />
             <nav className="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-[1400px] h-full">
@@ -333,9 +332,11 @@ const App: React.FC = () => {
                         {mode === item.id && (
                             <>
                                 <motion.div 
+                                    layoutId="laser-focus" 
                                     className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#18E6FF] to-transparent shadow-[0_0_15px_var(--cyan)] z-20" 
                                 />
                                 <motion.div 
+                                    layoutId="laser-bleed"
                                     className="absolute inset-0 bg-gradient-to-t from-[#18E6FF]/10 to-transparent pointer-events-none z-0"
                                 />
                             </>
@@ -347,14 +348,29 @@ const App: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-8 h-full">
-            <GlobalSearchBar />
+            {/* Neural Probe Search bar */}
+            <div className={cn(
+                "relative group transition-all duration-500",
+                focusedSelector === 'header input' && "scale-110 ring-2 ring-[#9d4edd]/40 rounded-full"
+            )}>
+                <GlobalSearchBar />
+                <div className="absolute inset-x-0 bottom-[-2px] h-[1px] bg-[#9d4edd]/0 group-focus-within:bg-[#9d4edd]/50 transition-all duration-500 blur-sm" />
+                {focusedSelector === 'header input' && (
+                    <div className="absolute -inset-2 border border-dashed border-[#9d4edd]/30 rounded-full animate-[spin_10s_linear_infinite] pointer-events-none" />
+                )}
+            </div>
+
             <div className="h-6 w-px bg-white/5" />
+
             <div className="flex items-center gap-5">
                 <ThemeSwitcher />
+                
+                {/* Enhanced Biometric Identity Node */}
                 <button 
                     onClick={() => { actions.toggleProfile(true); audio.playClick(); }} 
                     className={cn(
-                        "group/user relative p-1.5 transition-all rounded-full border border-white/5 bg-black/40 hover:border-[#9d4edd]/50 hover:shadow-[0_0_30px_rgba(157,78,221,0.3)]"
+                        "group/user relative p-1.5 transition-all rounded-full border border-white/5 bg-black/40 hover:border-[#9d4edd]/50 hover:shadow-[0_0_30px_rgba(157,78,221,0.3)]",
+                        focusedSelector === 'header button' && "scale-110 border-[#9d4edd]"
                     )}
                 >
                     <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center relative border border-white/5 shadow-inner">
@@ -363,7 +379,16 @@ const App: React.FC = () => {
                         ) : (
                             <User size={18} className="text-gray-600 group-hover/user:text-[#9d4edd] transition-colors" />
                         )}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-[#9d4edd]/20 to-transparent opacity-0 group-hover/user:opacity-100 transition-opacity" />
+                        
+                        {/* Dynamic Scanning Ring */}
+                        <motion.div 
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                            className="absolute inset-[-4px] border border-dashed border-[#9d4edd]/20 rounded-full pointer-events-none"
+                        />
                     </div>
+                    
                     <motion.div 
                         animate={{ scale: [1, 1.2, 1], opacity: [1, 0.6, 1] }}
                         transition={{ duration: 3, repeat: Infinity }}
@@ -373,12 +398,16 @@ const App: React.FC = () => {
                     </motion.div>
                 </button>
             </div>
+
+            {/* Kernel Port Toggle */}
             <button 
                 onClick={() => { actions.toggleCommandPalette(); audio.playClick(); }} 
                 className={cn(
-                    "relative group/eco px-6 py-2.5 bg-[#050505] border border-white/10 hover:border-[#f1c21b]/50 rounded-2xl transition-all duration-700 shadow-2xl overflow-hidden active:scale-95 shimmer-edge"
+                    "relative group/eco px-6 py-2.5 bg-[#050505] border border-white/10 hover:border-[#f1c21b]/50 rounded-2xl transition-all duration-700 shadow-2xl overflow-hidden active:scale-95 shimmer-edge",
+                    focusedSelector === 'header button:last-child' && "scale-110 border-[#f1c21b]"
                 )}
             >
+                <div className="absolute inset-0 bg-gradient-to-r from-[#f1c21b]/10 to-transparent opacity-0 group-hover/eco:opacity-100 transition-opacity" />
                 <span className="relative z-10 text-[10px] font-black font-mono tracking-[0.3em] uppercase flex items-center gap-4 text-gray-500 group-hover:text-[#f1c21b] transition-all">
                     <Terminal size={14} className="group-hover:rotate-12 transition-transform" />
                     SYSTEM_KERNEL
