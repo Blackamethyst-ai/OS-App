@@ -11,7 +11,8 @@ import {
     CheckCircle, Clock, RefreshCw, DraftingCompass, 
     Layers, Grid3X3, ListChecks, Map, ShieldCheck, GitBranch,
     ChevronRight, Binary, HardDrive, Server, Target, Box,
-    Network, Search, Cpu, Database, Brain, FolderTree, Cloud
+    Network, Search, Cpu, Database, Brain, FolderTree, Cloud,
+    Files, Share2, Compass, GitCommit, GitPullRequest, Layout
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useAppStore } from '../store';
@@ -19,6 +20,7 @@ import { useProcessVisualizerLogic, THEME } from '../hooks/useProcessVisualizerL
 import { renderSafe } from '../utils/renderSafe';
 import MermaidDiagram from './MermaidDiagram';
 import { audio } from '../services/audioService';
+import { cn } from '../utils/cn';
 
 const ExecutiveNode = ({ id, data: nodeData, selected, dragging }: NodeProps) => {
     const data = nodeData as any;
@@ -139,21 +141,24 @@ const ProcessVisualizerContent = () => {
         audio.playClick();
         if (type === 'PARA') {
             setProcessState({ workflowType: 'DRIVE_ORGANIZATION' });
-            setArchitecturePrompt("Generate a comprehensive PARA (Projects, Areas, Resources, Archives) drive taxonomy for a production asset studio. Focus on recursive naming and decentralized metadata anchors.");
-        } else {
+            setArchitecturePrompt("Synthesize a recursive PARA 2.0 Imperial taxonomy for production drive organization. Required layers: [00_INBOX], [01_PROJECTS], [02_AREAS], [03_RESOURCES], [04_ARCHIVES]. Focus on strict date-stamped naming conventions and multi-modal indexing nodes.");
+        } else if (type === 'INFRA') {
             setProcessState({ workflowType: 'SYSTEM_ARCHITECTURE' });
-            setArchitecturePrompt("Forge a cloud-native systems architecture blueprint. Focus on edge distribution, event-driven ingestion, and self-healing node clusters for real-time AI processing.");
+            setArchitecturePrompt("Architect a high-fidelity sovereign multi-cloud lattice. Focus on edge data refraction, serverless logic clusters, and a persistent refractive storage layer for real-time AI signal processing. Include IaC provisioning nodes.");
+        } else if (type === 'PIPELINE') {
+            setProcessState({ workflowType: 'SYSTEM_ARCHITECTURE' });
+            setArchitecturePrompt("Forge a cinematic asset production pipeline. Sequence: RAW_INGEST -> SEMANTIC_PROBE -> PROXY_GEN -> NEURAL_RESTORATION -> MASTER_SYNTHESIS. Focus on low-latency handoffs.");
         }
     };
 
     return (
         <div className="h-full w-full bg-transparent flex flex-col relative overflow-hidden font-sans border border-[var(--border-main)] rounded-[2.5rem] shadow-2xl transition-colors duration-500">
-            <div className="h-16 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl z-[60] flex items-center justify-between px-10 shrink-0 relative">
+            <div className="h-16 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl z-[60] flex items-center justify-between px-10 shrink-0 relative overflow-hidden shadow-2xl">
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--cyan)]/40 to-transparent" />
                 
                 <div className="flex items-center gap-10">
                     <div className="flex items-center gap-4">
-                        <div className="p-2.5 bg-[var(--amethyst)]/10 border border-[var(--border-main)] rounded-xl">
+                        <div className="p-2.5 bg-[var(--amethyst)]/10 border border-[var(--border-main)] rounded-xl shadow-[0_0_20px_rgba(157,78,221,0.2)]">
                             <Workflow className="w-5 h-5 text-[var(--amethyst)]" />
                         </div>
                         <div>
@@ -183,10 +188,10 @@ const ProcessVisualizerContent = () => {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <button onClick={handleAutoOrganize} className="p-2 bg-[var(--bg-panel)] border border-[var(--border-main)] hover:border-[var(--cyan)] rounded-xl text-gray-500 hover:text-[var(--cyan)] transition-all active:scale-90 group">
+                    <button onClick={handleAutoOrganize} className="p-2 bg-[var(--bg-panel)] border border-[var(--border-main)] hover:border-[var(--cyan)] rounded-xl text-gray-500 hover:text-[var(--cyan)] transition-all active:scale-90 group shadow-xl">
                         <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />
                     </button>
-                    <button onClick={handleRunGlobalSequence} className="px-6 py-2 bg-[#f1c21b] text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg flex items-center gap-3 active:scale-95 group">
+                    <button onClick={handleRunGlobalSequence} className="px-6 py-2 bg-[#f1c21b] text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(241,194,27,0.3)] flex items-center gap-3 active:scale-95 group">
                         <Zap size={14} className="fill-current"/> Initialize Protocol
                     </button>
                 </div>
@@ -206,59 +211,75 @@ const ProcessVisualizerContent = () => {
 
                     {activeTab === 'architect' && (
                         <motion.div key="architect" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="h-full flex flex-col items-center justify-center p-12">
-                            <div className="w-full max-w-3xl bg-transparent crystalline rounded-[3rem] p-12 border border-white/10 shadow-2xl space-y-8 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 p-8 opacity-[0.03]"><DraftingCompass size={140} /></div>
-                                <div className="flex items-center gap-5 relative z-10">
-                                    <div className="p-4 bg-[var(--cyan)]/10 rounded-2xl border border-[var(--cyan)]/30 text-[var(--cyan)]">
+                            <div className="w-full max-w-3xl bg-transparent crystalline rounded-[3rem] p-12 border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.7)] space-y-10 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-8 opacity-[0.03] rotate-12 pointer-events-none scale-150"><Compass size={140} /></div>
+                                
+                                <div className="flex items-center gap-6 relative z-10">
+                                    <div className="p-4 bg-[var(--cyan)]/10 rounded-2xl border border-[var(--cyan)]/30 text-[var(--cyan)] shadow-xl">
                                         <DraftingCompass size={28} />
                                     </div>
                                     <div>
                                         <h2 className="text-2xl font-black font-mono text-white uppercase tracking-[0.2em]">Logic Architect Lab</h2>
-                                        <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-1">Configure high-fidelity system topologies</p>
+                                        <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-2 block">Forge high-fidelity process topologies</p>
                                     </div>
                                 </div>
                                 
-                                <div className="flex flex-col gap-4 relative z-10">
-                                    <div className="flex gap-2 p-1 bg-black/20 rounded-2xl border border-white/5 w-fit shadow-inner">
-                                        {[
-                                            { id: 'DRIVE_ORGANIZATION', icon: HardDrive, label: 'D-System PARA' },
-                                            { id: 'SYSTEM_ARCHITECTURE', icon: Server, label: 'Infrastructure' }
-                                        ].map(mode => (
-                                            <button 
-                                                key={mode.id}
-                                                onClick={() => { setProcessState({ workflowType: mode.id as any }); audio.playClick(); }}
-                                                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
-                                                    ${processData.workflowType === mode.id ? 'bg-white text-black shadow-lg scale-105' : 'text-gray-500 hover:text-white'}
-                                                `}
-                                            >
-                                                <mode.icon size={12} /> {mode.label}
-                                            </button>
-                                        ))}
+                                <div className="flex flex-col gap-6 relative z-10">
+                                    <div className="space-y-4">
+                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Sector Domain</label>
+                                        <div className="flex gap-2 p-1.5 bg-black/40 rounded-[2rem] border border-white/5 w-fit shadow-inner backdrop-blur-xl">
+                                            {[
+                                                { id: 'DRIVE_ORGANIZATION', icon: HardDrive, label: 'D-System PARA+' },
+                                                { id: 'SYSTEM_ARCHITECTURE', icon: Server, label: 'Cloud Infrastructure' }
+                                            ].map(mode => (
+                                                <button 
+                                                    key={mode.id}
+                                                    onClick={() => { setProcessState({ workflowType: mode.id as any }); audio.playClick(); }}
+                                                    className={cn(
+                                                        "px-8 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3",
+                                                        processData.workflowType === mode.id 
+                                                            ? 'bg-white text-black shadow-2xl scale-105' 
+                                                            : 'text-gray-500 hover:text-white hover:bg-white/5'
+                                                    )}
+                                                >
+                                                    <mode.icon size={14} /> {mode.label}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
 
-                                    <div className="flex gap-4">
-                                        <button onClick={() => handleApplyPreset('PARA')} className="px-4 py-2 bg-white/5 border border-white/10 hover:border-[#9d4edd]/50 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-white flex items-center gap-2 transition-all">
-                                            <FolderTree size={12} /> Load PARA Pattern
-                                        </button>
-                                        <button onClick={() => handleApplyPreset('SYSTEM')} className="px-4 py-2 bg-white/5 border border-white/10 hover:border-[var(--cyan)]/50 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-white flex items-center gap-2 transition-all">
-                                            <Cloud size={12} /> Load Cloud Pattern
-                                        </button>
+                                    <div className="space-y-4">
+                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Pattern Library</label>
+                                        <div className="grid grid-cols-3 gap-3">
+                                            <button onClick={() => handleApplyPreset('PARA')} className="px-5 py-3 bg-[#f1c21b]/10 border border-[#f1c21b]/20 hover:border-[#f1c21b] rounded-2xl text-[9px] font-black uppercase tracking-widest text-[#f1c21b] flex items-center gap-3 transition-all hover:bg-[#f1c21b] hover:text-black shadow-xl">
+                                                <FolderTree size={14} /> PARA 2.0 Imperial
+                                            </button>
+                                            <button onClick={() => handleApplyPreset('INFRA')} className="px-5 py-3 bg-[var(--cyan)]/10 border border-[var(--cyan)]/20 hover:border-[var(--cyan)] rounded-2xl text-[9px] font-black uppercase tracking-widest text-[var(--cyan)] flex items-center gap-3 transition-all hover:bg-[var(--cyan)] hover:text-black shadow-xl">
+                                                <Network size={14} /> Sovereign Lattice
+                                            </button>
+                                            <button onClick={() => handleApplyPreset('PIPELINE')} className="px-5 py-3 bg-[var(--amethyst)]/10 border border-[var(--amethyst)]/20 hover:border-[var(--amethyst)] rounded-2xl text-[9px] font-black uppercase tracking-widest text-[var(--amethyst)] flex items-center gap-3 transition-all hover:bg-[var(--amethyst)] hover:text-black shadow-xl">
+                                                <GitPullRequest size={14} /> Cinematic Pipeline
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <textarea 
-                                    value={architecturePrompt} 
-                                    onChange={(e) => setArchitecturePrompt(e.target.value)} 
-                                    placeholder={`Define operational parameters for ${processData.workflowType === 'DRIVE_ORGANIZATION' ? 'PARA Data Taxonomy' : 'Production Systems Blueprint'}...`}
-                                    className="w-full h-40 bg-black/40 border border-white/10 rounded-[2rem] p-8 text-sm font-mono text-white outline-none focus:border-[var(--cyan)] transition-all placeholder:text-gray-800 shadow-inner relative z-10" 
-                                />
+                                <div className="space-y-4 relative z-10">
+                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Operational Intent</label>
+                                    <textarea 
+                                        value={architecturePrompt} 
+                                        onChange={(e) => setArchitecturePrompt(e.target.value)} 
+                                        placeholder={`Specify structural constraints for ${processData.workflowType === 'DRIVE_ORGANIZATION' ? 'PARA Data Taxonomy' : 'Production Systems Blueprint'}...`}
+                                        className="w-full h-48 bg-black/60 border border-white/10 rounded-[2.5rem] p-8 text-sm font-mono text-white outline-none focus:border-[var(--cyan)] transition-all placeholder:text-gray-800 shadow-inner group-hover/forge:border-white/20" 
+                                    />
+                                </div>
                                 
                                 <button 
                                     onClick={handleGenerateGraph} 
                                     disabled={isGeneratingGraph || !architecturePrompt.trim()} 
-                                    className="w-full bg-[#f1c21b] text-black py-6 rounded-2xl font-black text-[12px] uppercase tracking-[0.5em] flex items-center justify-center gap-5 shadow-xl hover:bg-yellow-400 transition-all disabled:opacity-30 active:scale-95 relative z-10"
+                                    className="w-full bg-[#f1c21b] text-black py-6 rounded-[2.5rem] font-black text-[12px] uppercase tracking-[0.5em] flex items-center justify-center gap-5 shadow-[0_20px_50px_rgba(241,194,27,0.3)] hover:bg-yellow-400 transition-all disabled:opacity-30 active:scale-95 relative z-10 group/gen"
                                 >
-                                    {isGeneratingGraph ? <Loader2 className="animate-spin" size={18} /> : <Sparkles size={18} />} 
+                                    {isGeneratingGraph ? <Loader2 className="animate-spin" size={18} /> : <Sparkles className="w-5 h-5 group-hover/gen:scale-125 transition-transform" />} 
                                     Synthesize System Manifest
                                 </button>
                             </div>
@@ -268,7 +289,7 @@ const ProcessVisualizerContent = () => {
                     {activeTab === 'workflow' && (
                         <motion.div key="workflow" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full overflow-y-auto custom-scrollbar p-10 flex gap-10">
                             <div className="flex-1 space-y-6">
-                                <div className="bg-transparent crystalline rounded-[3rem] p-10 border border-white/10 shadow-xl relative overflow-hidden">
+                                <div className="bg-transparent crystalline rounded-[3rem] p-10 border border-white/10 shadow-2xl relative overflow-hidden glass-refraction">
                                     <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-8">
                                         <div className="flex items-center gap-5">
                                             <div className="p-3 bg-[var(--cyan)]/10 rounded-2xl text-[var(--cyan)] shadow-xl">
@@ -285,13 +306,14 @@ const ProcessVisualizerContent = () => {
                                     <div className="space-y-4">
                                         {processData.generatedWorkflow?.protocols?.map((p: any, i: number) => (
                                             <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
-                                                className="p-6 bg-black/20 border border-white/5 rounded-2xl flex items-center justify-between group hover:border-[var(--cyan)]/40 transition-all shadow-md"
+                                                className="p-6 bg-black/20 border border-white/5 rounded-[2rem] flex items-center justify-between group hover:border-[var(--cyan)]/40 transition-all shadow-md relative overflow-hidden"
                                             >
-                                                <div className="flex items-center gap-6">
-                                                    <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center font-mono font-black text-sm text-[var(--amethyst)] group-hover:bg-[var(--amethyst)] group-hover:text-black transition-all">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-[var(--cyan)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                <div className="flex items-center gap-6 relative z-10">
+                                                    <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center font-mono font-black text-sm text-[var(--amethyst)] group-hover:bg-[var(--amethyst)] group-hover:text-black transition-all shadow-xl">
                                                         {String(i + 1).padStart(2, '0')}
                                                     </div>
-                                                    <div className="space-y-1">
+                                                    <div className="space-y-1.5">
                                                         <div className="text-[13px] font-black text-white uppercase tracking-tight group-hover:text-[var(--cyan)] transition-colors">{p.instruction}</div>
                                                         <div className="flex items-center gap-4">
                                                             <div className="flex items-center gap-1.5 text-[9px] font-mono text-gray-600 uppercase tracking-widest font-black">
@@ -301,7 +323,7 @@ const ProcessVisualizerContent = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => handleExecuteStep(i)} className="p-4 glass-action rounded-2xl text-gray-500 hover:text-white transition-all shadow-xl active:scale-90">
+                                                <button onClick={() => handleExecuteStep(i)} className="p-4 glass-action rounded-2xl text-gray-500 hover:text-white transition-all shadow-xl active:scale-90 relative z-10">
                                                     <ChevronRight size={20} />
                                                 </button>
                                             </motion.div>
@@ -311,7 +333,7 @@ const ProcessVisualizerContent = () => {
                             </div>
 
                             <div className="w-[340px] flex flex-col gap-6 shrink-0">
-                                <div className="bg-transparent crystalline rounded-[2rem] p-8 border border-white/5 shadow-xl relative overflow-hidden group">
+                                <div className="bg-transparent crystalline rounded-[2.5rem] p-8 border border-white/5 shadow-2xl relative overflow-hidden group backdrop-blur-3xl">
                                     <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover:opacity-[0.06] transition-opacity rotate-12"><Brain size={80} /></div>
                                     <div className="flex items-center gap-4 mb-8 relative z-10">
                                         <div className="p-2.5 bg-[var(--cyan)]/10 rounded-xl text-[var(--cyan)]">
@@ -324,7 +346,7 @@ const ProcessVisualizerContent = () => {
                                     </p>
                                 </div>
 
-                                <div className="bg-transparent crystalline rounded-[2.5rem] p-8 border border-white/5 shadow-xl h-64 flex flex-col justify-between group">
+                                <div className="bg-transparent crystalline rounded-[2.5rem] p-8 border border-white/5 shadow-2xl h-64 flex flex-col justify-between group backdrop-blur-3xl">
                                     <div className="space-y-3">
                                         <div className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] flex items-center justify-between group-hover:text-[var(--amethyst)] transition-colors">
                                             <span>Consensus Coherence</span>
@@ -336,7 +358,7 @@ const ProcessVisualizerContent = () => {
                                     </div>
                                     <div className="space-y-4">
                                         <div className="h-2 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 p-0.5 shadow-inner">
-                                            <motion.div initial={{ width: 0 }} animate={{ width: `${processData.coherenceScore || 0}%` }} transition={{ duration: 1.5 }} className="h-full rounded-full bg-gradient-to-r from-[var(--amethyst)] to-[var(--cyan)]" />
+                                            <motion.div initial={{ width: 0 }} animate={{ width: `${processData.coherenceScore || 0}%` }} transition={{ duration: 1.5 }} className="h-full rounded-full bg-gradient-to-r from-[var(--amethyst)] to-[var(--cyan)] shadow-[0_0_15px_var(--cyan)]" />
                                         </div>
                                         <div className="flex justify-between items-center text-[8px] font-black font-mono text-gray-700 uppercase tracking-[0.4em]">
                                             <span>Production Grade Protocol</span>
