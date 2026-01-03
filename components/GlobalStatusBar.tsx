@@ -103,7 +103,7 @@ const GlobalStatusBar: React.FC = () => {
 
     return (
         <div 
-            className="fixed bottom-0 left-0 right-0 z-[500] h-24 pointer-events-none flex flex-col justify-end pb-6"
+            className="fixed bottom-0 left-0 right-0 z-[500] h-20 pointer-events-none flex flex-col justify-end pb-4"
             onMouseEnter={() => setIsRevealed(true)}
             onMouseLeave={() => setIsRevealed(false)}
         >
@@ -111,103 +111,99 @@ const GlobalStatusBar: React.FC = () => {
                 className="mx-10 pointer-events-auto"
                 initial={false}
                 animate={{ 
-                    y: isRevealed || agentState.isThinking || isProbing ? 0 : 70,
-                    opacity: isRevealed || agentState.isThinking || isProbing ? 1 : 0.35
+                    y: isRevealed || agentState.isThinking || isProbing ? 0 : 60,
+                    opacity: isRevealed || agentState.isThinking || isProbing ? 1 : 0.4
                 }}
                 transition={{ type: 'spring', damping: 30, stiffness: 200 }}
             >
-                <div className="flex items-center justify-between px-8 py-3 bg-[#0a0a0c]/95 backdrop-blur-4xl border border-white/5 rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.8)] select-none overflow-hidden relative max-w-[1600px] mx-auto transition-all duration-700 glass-refraction">
+                <div className="flex items-center justify-between px-8 py-2.5 bg-[#0a0a0c]/95 backdrop-blur-4xl border border-white/5 rounded-[2rem] shadow-[0_20px_80px_rgba(0,0,0,0.8)] select-none overflow-hidden relative max-w-[1600px] mx-auto transition-all duration-700 glass-refraction">
                     <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.01)_50%,transparent_75%)] bg-[size:200%_200%] animate-[shimmer_10s_infinite_linear] pointer-events-none" />
                     
                     <div className="flex items-center gap-10 pr-10 border-r border-white/5 shrink-0 relative z-10">
-                        <div className="flex flex-col gap-1.5">
-                            <span className="text-[7px] font-black font-mono text-gray-600 uppercase tracking-[0.4em] leading-none mb-1">Integrity</span>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-[0.4em] leading-none mb-0.5">Integrity</span>
                             <div className="flex items-center gap-3">
-                                <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                                <div className="w-14 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
                                     <motion.div animate={{ width: `${driveHealth}%` }} className="h-full bg-gradient-to-r from-[#10b981] to-[#22d3ee]" />
                                 </div>
-                                <span className="text-[11px] font-black font-mono text-[#10b981] tracking-tighter">{driveHealth.toFixed(1)}%</span>
+                                <span className="text-[10px] font-black font-mono text-[#10b981] tracking-tighter">{driveHealth.toFixed(1)}%</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-8">
-                            <div className="flex flex-col gap-1.5">
-                                <span className="text-[7px] font-black font-mono text-gray-600 uppercase tracking-[0.4em] leading-none mb-1">Optical</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[12px] font-black font-mono text-[#22d3ee] tracking-tighter leading-none">{fps}</span>
-                                    <span className="text-[7px] text-gray-700 font-black uppercase tracking-tighter">FPS</span>
+                        <div className="flex items-center gap-6">
+                            <div className="flex flex-col gap-0.5">
+                                <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-[0.4em] leading-none">Optical</span>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-[11px] font-black font-mono text-[#22d3ee] tracking-tighter leading-none">{fps}</span>
+                                    <span className="text-[6px] text-gray-700 font-black uppercase tracking-tighter">FPS</span>
                                 </div>
                             </div>
-                            <div className="flex flex-col gap-1.5">
-                                <span className="text-[7px] font-black font-mono text-gray-600 uppercase tracking-[0.4em] leading-none mb-1">Lattice</span>
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[12px] font-black font-mono text-[#f59e0b] tracking-tighter leading-none">{memory?.used || 0}</span>
-                                    <span className="text-[7px] text-gray-700 font-black uppercase tracking-tighter">MB</span>
+                            <div className="flex flex-col gap-0.5">
+                                <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-[0.4em] leading-none">Lattice</span>
+                                <div className="flex items-center gap-1.5">
+                                    <span className="text-[11px] font-black font-mono text-[#f59e0b] tracking-tighter leading-none">{memory?.used || 0}</span>
+                                    <span className="text-[6px] text-gray-700 font-black uppercase tracking-tighter">MB</span>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <div className="flex-1 flex justify-center px-12 relative z-10">
-                        <form onSubmit={handleSubmit} className="w-full max-w-[600px] relative flex items-center gap-4 bg-black/40 rounded-2xl px-6 py-2 border border-white/5 focus-within:border-[#9d4edd]/50 focus-within:bg-black/60 transition-all shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] group/input">
+                    <div className="flex-1 flex justify-center px-10 relative z-10">
+                        <form onSubmit={handleSubmit} className="w-full max-w-[500px] relative flex items-center gap-4 bg-black/40 rounded-xl px-5 py-1.5 border border-white/5 focus-within:border-[#9d4edd]/50 focus-within:bg-black/60 transition-all shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] group/input">
                             <div className={cn("shrink-0 transition-all duration-500", agentState.isThinking ? 'text-[#9d4edd] scale-110' : 'text-gray-600 group-focus-within/input:text-white')}>
-                                {agentState.isThinking ? <Loader2 size={16} className="animate-spin" /> : <BrainCircuit size={16} />}
+                                {agentState.isThinking ? <Loader2 size={14} className="animate-spin" /> : <BrainCircuit size={14} />}
                             </div>
                             <input 
                                 value={input}
                                 onChange={e => setInput(e.target.value)}
                                 disabled={agentState.isThinking}
-                                placeholder={agentState.isThinking ? "PROCESSING_COGNITIVE_VECTORS..." : "INITIALIZE DIRECTIVE..."}
-                                className="flex-1 bg-transparent border-none outline-none text-[12px] font-mono text-white placeholder:text-gray-800 uppercase tracking-[0.4em] py-1.5"
+                                placeholder={agentState.isThinking ? "PROCESSING..." : "INITIALIZE..."}
+                                className="flex-1 bg-transparent border-none outline-none text-[11px] font-mono text-white placeholder:text-gray-800 uppercase tracking-[0.3em] py-1.5"
                                 autoComplete="off"
                             />
                             {input && !agentState.isThinking && (
-                                <button type="submit" className="text-[#9d4edd] hover:scale-125 transition-transform drop-shadow-[0_0_8px_rgba(157,78,221,0.5)]"><ArrowRight size={18} /></button>
+                                <button type="submit" className="text-[#9d4edd] hover:scale-125 transition-transform"><ArrowRight size={16} /></button>
                             )}
-                            <div className="absolute inset-0 border border-[#9d4edd]/0 group-focus-within/input:border-[#9d4edd]/20 rounded-2xl pointer-events-none transition-all" />
                         </form>
                     </div>
 
-                    <div className="flex items-center gap-6 pl-10 border-l border-white/5 shrink-0 relative z-10">
+                    <div className="flex items-center gap-5 pl-10 border-l border-white/5 shrink-0 relative z-10">
                         <button 
                             onClick={probeScreen}
                             className={cn(
-                                "p-3 rounded-xl transition-all border relative overflow-hidden group/probe",
-                                isProbing ? "bg-[#9d4edd] text-black border-[#9d4edd] shadow-[0_0_30px_rgba(157,78,221,0.4)]" : "bg-white/5 border-white/5 text-gray-600 hover:text-white hover:bg-white/10"
+                                "p-2.5 rounded-xl transition-all border relative overflow-hidden group/probe",
+                                isProbing ? "bg-[#9d4edd] text-black border-[#9d4edd] shadow-[0_0_20px_rgba(157,78,221,0.3)]" : "bg-white/5 border-white/5 text-gray-600 hover:text-white hover:bg-white/10"
                             )}
-                            title="Retinal Screen Probe"
                         >
-                            <Scan size={18} className={isProbing ? "animate-pulse" : ""} />
-                            {isProbing && <motion.div layoutId="probe-aura" className="absolute inset-0 bg-white/20 animate-pulse" />}
+                            <Scan size={16} />
                         </button>
 
                         <button 
                             onClick={() => setCollabState({ isOverlayOpen: !collaboration.isOverlayOpen })}
                             className={cn(
-                                "flex items-center gap-3.5 px-5 py-2.5 rounded-xl border transition-all relative overflow-hidden group/peers",
-                                collaboration.isOverlayOpen ? "bg-[#22d3ee] text-black border-[#22d3ee] shadow-[0_0_25px_rgba(34,211,238,0.3)]" : "bg-white/5 border-white/5 text-gray-600 hover:text-white hover:bg-white/10"
+                                "flex items-center gap-3 px-4 py-2 rounded-xl border transition-all relative overflow-hidden group/peers",
+                                collaboration.isOverlayOpen ? "bg-[#22d3ee] text-black border-[#22d3ee] shadow-[0_0_20px_rgba(34,211,238,0.2)]" : "bg-white/5 border-white/5 text-gray-600 hover:text-white hover:bg-white/10"
                             )}
                         >
-                            <Users size={16} />
-                            <span className="text-[11px] font-black font-mono uppercase tracking-widest">{peerCount}<span className="opacity-40 ml-1">Nodes</span></span>
+                            <Users size={14} />
+                            <span className="text-[10px] font-black font-mono uppercase tracking-widest">{peerCount}</span>
                         </button>
 
-                        <Suspense fallback={<div className="w-32 h-10 bg-white/5 animate-pulse rounded-xl" />}>
+                        <Suspense fallback={<div className="w-24 h-8 bg-white/5 animate-pulse rounded-xl" />}>
                             <LayerControlMesh />
                         </Suspense>
 
-                        <div className="flex items-center gap-3">
-                            <button onClick={() => setScrubberOpen(!isScrubberOpen)} className={cn("p-3 rounded-xl border transition-all", isScrubberOpen ? "bg-[#9d4edd] text-black shadow-[0_0_25px_rgba(157,78,221,0.3)] border-[#9d4edd]" : "bg-white/5 border-white/5 text-gray-600 hover:text-white")}>
-                                <History size={18} />
+                        <div className="flex items-center gap-2.5">
+                            <button onClick={() => setScrubberOpen(!isScrubberOpen)} className={cn("p-2.5 rounded-xl border transition-all", isScrubberOpen ? "bg-[#9d4edd] text-black border-[#9d4edd]" : "bg-white/5 border-white/5 text-gray-600 hover:text-white")}>
+                                <History size={16} />
                             </button>
-                            <button onClick={() => setDiagnosticsOpen(!isDiagnosticsOpen)} className={cn("p-3 rounded-xl border transition-all relative", isDiagnosticsOpen ? "bg-[#22d3ee] text-black border-[#22d3ee] shadow-[0_0_25px_rgba(34,211,238,0.3)]" : errorCount > 0 ? "bg-red-500/10 border-red-500/30 text-red-500 animate-pulse" : "bg-white/5 border-white/5 text-gray-600 hover:text-white")}>
-                                <Activity size={18} />
-                                {errorCount > 0 && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-black" />}
+                            <button onClick={() => setDiagnosticsOpen(!isDiagnosticsOpen)} className={cn("p-2.5 rounded-xl border transition-all relative", isDiagnosticsOpen ? "bg-[#22d3ee] text-black border-[#22d3ee]" : errorCount > 0 ? "bg-red-500/10 border-red-500/30 text-red-500 animate-pulse" : "bg-white/5 border-white/5 text-gray-600 hover:text-white")}>
+                                <Activity size={16} />
                             </button>
                         </div>
 
-                        <div className="text-right pl-6 border-l border-white/5 min-w-[100px]">
-                            <div className="text-[8px] text-gray-600 font-mono uppercase tracking-[0.3em] font-black mb-1">Runtime</div>
-                            <div className="text-[13px] font-mono font-black text-white tracking-tighter leading-none">{formatUptime(kernel.uptime)}</div>
+                        <div className="text-right pl-6 border-l border-white/5 min-w-[90px]">
+                            <div className="text-[7px] text-gray-600 font-mono uppercase tracking-[0.2em] font-black mb-0.5">Runtime</div>
+                            <div className="text-[12px] font-mono font-black text-white tracking-tighter leading-none">{formatUptime(kernel.uptime)}</div>
                         </div>
                     </div>
                 </div>
