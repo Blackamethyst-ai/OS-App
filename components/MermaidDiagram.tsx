@@ -35,6 +35,44 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
 
   useEffect(() => { setActiveCode(code); }, [code]);
 
+  /**
+   * ROBUST EXTRACTION ENGINE
+   * Extracts valid Mermaid code from theatrical/verbose Markdown inputs.
+   */
+  const extractMermaidCode = (text: string): string => {
+    if (!text) return "";
+    
+    // 1. Try to find strictly fenced mermaid blocks
+    const fencedMermaid = text.match(/```mermaid\s*([\s\S]*?)```/i);
+    if (fencedMermaid) return fencedMermaid[1].trim();
+
+    // 2. Try to find generic fenced blocks that look like diagrams
+    const fencedGeneric = text.match(/```\s*([\s\S]*?)```/);
+    if (fencedGeneric) {
+        const content = fencedGeneric[1].trim();
+        if (/^(graph|flowchart|sequenceDiagram|gantt|classDiagram|stateDiagram|erDiagram|journey|gitGraph|pie|mindmap|timeline)/i.test(content)) {
+            return content;
+        }
+    }
+
+    // 3. Heuristic search for naked diagram start
+    const lines = text.split('\n');
+    const startIdx = lines.findIndex(l => /^(graph|flowchart|sequenceDiagram|gantt|classDiagram|stateDiagram|erDiagram|journey|gitGraph|pie|mindmap|timeline)/i.test(l.trim()));
+    
+    if (startIdx !== -1) {
+        const remainingLines = lines.slice(startIdx);
+        // Search for natural terminators like Markdown headers, separators, or long sequences of whitespace
+        const endIdx = remainingLines.findIndex(l => l.includes('***') || l.includes('###') || (l.trim() === '' && remainingLines[remainingLines.indexOf(l)+1]?.trim() === ''));
+        if (endIdx !== -1 && endIdx > 0) {
+            return remainingLines.slice(0, endIdx).join('\n').trim();
+        }
+        return remainingLines.join('\n').trim();
+    }
+
+    // 4. Default to stripping ticks if present, or returning raw
+    return text.replace(/```mermaid/gi, '').replace(/```/g, '').trim();
+  };
+
   useEffect(() => {
     if (!activeCode) return;
     let isMounted = true;
@@ -43,7 +81,12 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
       setProcessState({ diagramStatus: 'OK', diagramError: null });
       try {
         const id = `mermaid-${Date.now()}`;
-        const cleanCode = (activeCode || '').replace(/```mermaid/g, '').replace(/```/g, '').trim();
+        const cleanCode = extractMermaidCode(activeCode);
+        
+        if (!cleanCode) {
+            throw new Error("EMPTY_BUFFER: No valid diagram markers detected in signal.");
+        }
+
         const { svg } = await mermaid.render(id, cleanCode);
         if (isMounted) { setSvgData(svg); setTransform({ x: 0, y: 0, scale: 0.8 }); }
       } catch (err: any) {
