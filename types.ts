@@ -37,6 +37,7 @@ export interface ProtocolStep {
     estimatedTime?: string;
     dependencies?: string[];
     logOutput?: string; // For the terminal simulation
+    securityVector?: 'ENCRYPTED' | 'OPEN' | 'VULNERABLE';
 }
 
 export interface TechnicalManifest {
@@ -54,6 +55,7 @@ export interface TechnicalManifest {
     coherenceScore?: number;
     taxonomy?: any;
     deploymentAura?: string; // CSS color or gradient for the UI
+    entropyRating?: number; // Global entropy for the entire system
 }
 
 export enum AppMode {
@@ -361,8 +363,8 @@ export interface PeerPresence {
     role: string;
     activeSector: AppMode;
     status: 'ACTIVE' | 'IDLE' | 'BUSY';
-    lastSeen: number;
     color: string;
+    lastSeen: number;
 }
 
 export interface SwarmEvent {
@@ -386,7 +388,6 @@ export interface KnowledgeLayer {
 }
 
 export interface Message {
-    /* Fix: Added 'tool' role to support agentic capability execution logs */
     role: 'user' | 'model' | 'system' | 'function' | 'AI' | 'USER' | 'tool';
     content?: string;
     text?: string;
