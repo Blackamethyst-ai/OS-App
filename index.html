@@ -17,6 +17,13 @@
           --obsidian: #020204;
           --plasma-green: #10b981;
           
+          /* --- MATERIAL SOVEREIGNTY: LUMINOUS INTENSITY SCALES --- */
+          --luminous-high: rgba(255, 255, 255, 0.12);
+          --luminous-med: rgba(255, 255, 255, 0.06);
+          --luminous-low: rgba(255, 255, 255, 0.02);
+          --refractive-index: 1.8;
+          --specular-rim: rgba(255, 255, 255, 0.15);
+          
           /* --- OPTICAL DEPTH SYSTEM --- */
           --bg-app: var(--obsidian);
           --bg-header: rgba(2, 2, 4, 0.85);
@@ -37,15 +44,30 @@
 
        .font-mono { font-family: 'Fira Code', monospace; }
        
-       /* --- CRYSTALLINE REFRACTION ARCHITECTURE --- */
+       /* --- MATERIAL SOVEREIGNTY: APPLE-STYLE CRYSTALLINE GLASS --- */
        .crystalline {
-          background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
           backdrop-filter: blur(40px) saturate(180%) !important;
           -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
-          border: 1px solid rgba(255, 255, 255, 0.08);
+          border: 0.5px solid var(--specular-rim) !important;
           box-shadow: 
-            inset 0 0 40px rgba(123, 44, 255, 0.05),
-            0 20px 80px -20px rgba(0, 0, 0, 0.8);
+            inset 0 1px 1px rgba(255, 255, 255, 0.1),
+            0 25px 50px -12px rgba(0, 0, 0, 0.7);
+          transition: border-color 0.4s var(--ease-out-expo), box-shadow 0.4s var(--ease-out-expo);
+       }
+
+       .crystalline:hover {
+          border-color: rgba(255, 255, 255, 0.25) !important;
+          box-shadow: 
+            inset 0 1px 1px rgba(255, 255, 255, 0.2),
+            0 40px 80px -20px rgba(0, 0, 0, 0.85);
+       }
+
+       /* --- DEEP REFRACTION STACKING --- */
+       .deep-refraction-active .main-content-layer {
+          filter: blur(8px) saturate(110%) brightness(0.6);
+          transform: scale(0.98);
+          transition: all 0.8s var(--ease-out-expo);
        }
 
        .glass-refraction {

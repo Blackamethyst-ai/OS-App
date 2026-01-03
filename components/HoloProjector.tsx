@@ -4,11 +4,15 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Scan, Download, Terminal, BrainCircuit, Loader2, Copy, FileText, Code, Image as ImageIcon, Wand2, Edit, Check, Zap } from 'lucide-react';
 import { promptSelectKey, transformArtifact, retryGeminiRequest } from '../services/geminiService';
 import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
+import { usePerspectiveRefraction } from '../hooks/usePerspectiveRefraction';
 
 const HoloProjector: React.FC = () => {
     const { holo, actions } = useAppStore();
     const { closeHoloProjector, setHoloAnalysis, setHoloAnalyzing, openHoloProjector, addLog } = actions;
     const [isTransforming, setIsTransforming] = useState(false);
+
+    // Material Sovereignty Physics
+    const { ref: tiltRef, style: tiltStyle, onMouseMove, onMouseLeave } = usePerspectiveRefraction(0.8);
 
     const handleAnalyze = async () => {
         if (!holo.activeArtifact) return;
@@ -107,7 +111,11 @@ const HoloProjector: React.FC = () => {
                     animate={{ opacity: 1, scale: 1, rotateX: 0 }}
                     exit={{ opacity: 0, scale: 0.8, rotateX: -10 }}
                     onClick={(e) => e.stopPropagation()}
-                    className="relative w-[90vw] h-[85vh] bg-[#050505] border border-[#333] rounded-xl overflow-hidden flex flex-col shadow-[0_0_100px_rgba(157,78,221,0.15)] group"
+                    ref={tiltRef}
+                    onMouseMove={onMouseMove}
+                    onMouseLeave={onMouseLeave}
+                    style={tiltStyle}
+                    className="relative w-[90vw] h-[85vh] bg-[#050505] border border-[#333] rounded-xl overflow-hidden flex flex-col shadow-[0_0_100px_rgba(157,78,221,0.15)] group crystalline"
                 >
                     <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(157,78,221,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
                     
@@ -133,7 +141,7 @@ const HoloProjector: React.FC = () => {
                                 Save Asset
                             </button>
                             <button onClick={closeHoloProjector} className="p-2 text-gray-500 hover:text-white transition-colors">
-                                <X className="w-5 h-5" />
+                                <X size={5} className="w-5 h-5" />
                             </button>
                         </div>
                     </div>
@@ -185,7 +193,7 @@ const HoloProjector: React.FC = () => {
                                         <span className="text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider flex items-center gap-2">
                                             <Terminal className="w-3 h-3" /> Diagnostic Result
                                         </span>
-                                        <button onClick={() => setHoloAnalysis(null)} className="text-gray-500 hover:text-white transition-colors"><X className="w-3 h-3"/></button>
+                                        <button onClick={() => setHoloAnalysis(null)} className="text-gray-500 hover:text-white transition-colors"><X size={3} className="w-3 h-3"/></button>
                                     </div>
                                     <div className="flex-1 p-6 overflow-y-auto custom-scrollbar text-[11px] font-mono text-gray-400 leading-relaxed whitespace-pre-wrap border-l-4 border-l-[#9d4edd]/20">
                                         {holo.analysisResult}

@@ -3,6 +3,7 @@ import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Terminal, Image as ImageIcon, Code, FileText, X, Maximize2, Trash2, Cpu, Activity, Download, Copy, ExternalLink, Zap, BrainCircuit, Radio, Loader2, GitBranch, Scan } from 'lucide-react';
 import { cn } from '../utils/cn';
+import { usePerspectiveRefraction } from '../hooks/usePerspectiveRefraction';
 
 // --- SYSTEM TERMINAL ---
 const SystemTerminal: React.FC = () => {
@@ -10,6 +11,9 @@ const SystemTerminal: React.FC = () => {
     const { toggleTerminal, addLog } = actions;
     const bottomRef = useRef<HTMLDivElement>(null);
     const [cmd, setCmd] = useState('');
+
+    // Material Sovereignty Physics
+    const { ref: tiltRef, style: tiltStyle, onMouseMove, onMouseLeave } = usePerspectiveRefraction(1.2);
 
     const isBeingInspected = focusedSelector === 'header button:last-child';
 
@@ -50,8 +54,12 @@ const SystemTerminal: React.FC = () => {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: '-100%', opacity: 0 }}
                     transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+                    ref={tiltRef}
+                    onMouseMove={onMouseMove}
+                    onMouseLeave={onMouseLeave}
+                    style={tiltStyle}
                     className={cn(
-                        "fixed top-0 left-0 right-0 h-96 bg-[#050505]/95 backdrop-blur-md border-b z-[9999] shadow-2xl font-mono text-xs flex flex-col transition-all duration-700",
+                        "fixed top-0 left-0 right-0 h-96 bg-[#050505]/95 backdrop-blur-md border-b z-[9999] shadow-2xl font-mono text-xs flex flex-col transition-all duration-700 crystalline",
                         isBeingInspected ? "border-[#22d3ee] shadow-[0_0_40px_rgba(34,211,238,0.3)]" : "border-[#9d4edd]"
                     )}
                 >
