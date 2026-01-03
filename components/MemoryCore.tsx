@@ -27,7 +27,6 @@ const CLASSIFICATION_MAP: Record<string, { color: string, bg: string, icon: any 
     'LOGIC': { color: '#22d3ee', bg: 'bg-[#22d3ee]/10', icon: Code },
     'RESEARCH': { color: '#3b82f6', bg: 'bg-[#3b82f6]/10', icon: Radar },
     'TOOL_MANIFEST': { color: '#f97316', bg: 'bg-[#f97316]/10', icon: Box },
-    // Fix: Added missing GitBranch import from lucide-react to satisfy CLASSIFICATION_MAP icon assignment.
     'CONSENSUS_LEDGER': { color: '#18E6FF', bg: 'bg-[#18E6FF]/10', icon: GitBranch },
     'RESEARCH_FINDING': { color: '#ec4899', bg: 'bg-[#ec4899]/10', icon: Sparkles }
 };
@@ -439,7 +438,6 @@ const MemoryCore: React.FC = () => {
                             </button>
                             <div className="flex gap-4">
                                 <button onClick={() => openHoloProjector({ id: selectedArtifact.id, title: selectedArtifact.name, type: selectedArtifact.type === 'TOOL_MANIFEST' ? 'CODE' : 'TEXT', content: selectedArtifact.analysis?.summary || selectedArtifact.name })} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all flex items-center justify-center gap-3">
-                                    {/* Fix: Added missing Maximize import from lucide-react to resolve "Cannot find name 'Maximize'" error on line 441. */}
                                     <Maximize size={16} /> Holo View
                                 </button>
                                 <button onClick={async () => { if (confirm('Irreversible purge?')) { await neuralVault.deleteArtifact(selectedArtifact.id); setSelectedArtifact(null); loadArtifacts(); audio.playError(); } }} className="px-6 py-4 bg-transparent border border-red-500/10 rounded-2xl text-red-500/60 hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center">
