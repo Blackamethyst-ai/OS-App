@@ -11,10 +11,7 @@ import {
     CheckCircle, Clock, RefreshCw, DraftingCompass, 
     Layers, Grid3X3, ListChecks, Map, ShieldCheck, GitBranch,
     ChevronRight, Binary, HardDrive, Server, Target, Box,
-    Network, Search, Cpu, Database, Brain, 
-    // Fixed: Replaced FileTree with FolderTree
-    FolderTree, 
-    Cloud
+    Network, Search, Cpu, Database, Brain, FolderTree, Cloud
 } from 'lucide-react';
 import * as Icons from 'lucide-react';
 import { useAppStore } from '../store';
