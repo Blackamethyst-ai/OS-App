@@ -9,7 +9,6 @@ import {
     Microscope, Terminal, Aperture, BookOpen, Fingerprint,
     Cpu, Database, Shield, Globe, AlertTriangle, CheckCircle2,
     Lock, Unlock, ShieldAlert, Gauge, Waves, Bot, Trash2,
-    // Fix: Added missing BrainCircuit and X icon imports to resolve "Cannot find name" errors.
     BrainCircuit, X
 } from 'lucide-react';
 import { promptSelectKey, generateStructuredWorkflow } from '../services/geminiService';
@@ -34,7 +33,7 @@ const DomainCard = ({ label, sub, icon: Icon, color, active, onClick }: any) => 
     <button 
         onClick={onClick}
         className={cn(
-            "w-full p-3.5 rounded-2xl border transition-all text-left flex items-center gap-3 relative overflow-hidden group/domain",
+            "w-full p-3 rounded-2xl border transition-all text-left flex items-center gap-3 relative overflow-hidden group/domain shrink-0",
             active ? "bg-white/[0.03] border-current shadow-xl" : "bg-transparent border-white/5 opacity-50 hover:opacity-100"
         )}
         style={{ color: active ? color : undefined }}
@@ -190,7 +189,7 @@ const ProposalQueue = () => {
     return (
         <div className="p-5 bg-black/40 border border-white/5 rounded-[2.5rem] shadow-2xl invisible-glass space-y-6 backdrop-blur-3xl relative overflow-hidden group/ritual shrink-0">
              <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(157,78,221,0.02)_0%,transparent_70%)]" />
-             <div className="flex items-center justify-between px-2 relative z-10">
+             <div className="flex items-center justify-between px-2 relative z-10 shrink-0">
                 <div className="flex items-center gap-3">
                     <BrainCircuit size={16} className="text-[#9d4edd] animate-pulse" />
                     <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em]">Neural Queue</span>
@@ -198,7 +197,7 @@ const ProposalQueue = () => {
                 <span className="text-[7px] px-2 py-0.5 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded text-[#9d4edd] font-black uppercase">Swarm_Signals</span>
              </div>
 
-             <div className="space-y-3 relative z-10">
+             <div className="space-y-3 relative z-10 overflow-y-auto custom-scrollbar max-h-[300px] pr-1">
                 {proposals.map(prop => (
                     <motion.div 
                         key={prop.id}
@@ -499,9 +498,9 @@ const SynthesisBridge: React.FC = () => {
 
             <div className="flex-1 flex overflow-hidden p-10 gap-8 relative z-10">
                 <div className="w-[380px] flex flex-col gap-4 shrink-0 overflow-y-auto custom-scrollbar pr-2">
-                    <div className="p-5 bg-[#0a0a0c]/60 border border-white/5 rounded-[2.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden group/sector">
+                    <div className="p-5 bg-[#0a0a0c]/60 border border-white/5 rounded-[2.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden group/sector shrink-0">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(123,44,255,0.02)_0%,transparent_70%)]" />
-                        <div className="flex items-center gap-3 mb-4 px-1 relative z-10">
+                        <div className="flex items-center gap-3 mb-4 px-1 relative z-10 shrink-0">
                             <Target size={18} className="text-[#7B2CFF] animate-pulse" />
                             <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Forge Sector</span>
                         </div>
@@ -523,13 +522,13 @@ const SynthesisBridge: React.FC = () => {
 
                     <ProposalQueue />
 
-                    <div className="p-5 bg-[#0a0a0c]/60 border border-white/5 rounded-[2.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden group/ritual">
+                    <div className="p-5 bg-[#0a0a0c]/60 border border-white/5 rounded-[2.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden group/ritual shrink-0">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.01)_0%,transparent_70%)]" />
-                        <div className="flex items-center gap-3 mb-4 px-1 relative z-10">
+                        <div className="flex items-center gap-3 mb-4 px-1 relative z-10 shrink-0">
                             <BookOpen size={18} className="text-gray-500" />
                             <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Imperial Rituals</span>
                         </div>
-                        <div className="space-y-3 relative z-10">
+                        <div className="space-y-3 relative z-10 overflow-y-auto max-h-[320px] custom-scrollbar pr-1">
                             {PRESETS.map(preset => (
                                 <button 
                                     key={preset.id}
@@ -543,13 +542,13 @@ const SynthesisBridge: React.FC = () => {
                                         <preset.icon size={14} className="text-[#7B2CFF] group-hover:scale-110 transition-transform" />
                                         <div className="text-[10px] font-black text-white uppercase font-mono truncate tracking-tight">{preset.label}</div>
                                     </div>
-                                    <div className="text-[8px] text-gray-600 font-mono line-clamp-1 uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">{preset.description}</div>
+                                    <div className="text-[8px] text-gray-600 font-mono line-clamp-2 uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity leading-relaxed">{preset.description}</div>
                                 </button>
                             ))}
                         </div>
                     </div>
 
-                    <div className="space-y-4 pt-1">
+                    <div className="space-y-4 pt-1 shrink-0">
                         <textarea 
                             value={customIntent}
                             onChange={e => setCustomIntent(e.target.value)}
