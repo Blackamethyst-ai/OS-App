@@ -28,6 +28,34 @@ const BlueprintStat = ({ label, value, color, detail }: { label: string, value: 
     </div>
 );
 
+const DomainCard = ({ label, sub, icon: Icon, color, active, onClick }: any) => (
+    <button 
+        onClick={onClick}
+        className={cn(
+            "w-full p-6 rounded-[2rem] border transition-all text-left flex flex-col gap-3 relative overflow-hidden group/domain",
+            active ? "bg-white/[0.03] border-current shadow-2xl" : "bg-transparent border-white/5 opacity-50 hover:opacity-100"
+        )}
+        style={{ color: active ? color : undefined }}
+    >
+        <div className="absolute inset-0 bg-current opacity-0 group-hover/domain:opacity-5 transition-opacity" />
+        <div className="flex justify-between items-start relative z-10">
+            <div className={cn(
+                "w-10 h-10 rounded-2xl border flex items-center justify-center transition-all duration-700",
+                active ? "bg-current border-current text-black shadow-lg" : "bg-black/40 border-white/10 text-gray-600"
+            )}>
+                <Icon size={20} className="group-hover/domain:scale-110 transition-transform" />
+            </div>
+            {active && (
+                <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse shadow-[0_0_10px_currentColor]" />
+            )}
+        </div>
+        <div className="relative z-10">
+            <div className="text-[11px] font-black text-white uppercase font-mono tracking-widest leading-none">{label}</div>
+            <div className="text-[8px] text-gray-600 font-mono uppercase tracking-widest mt-1.5">{sub}</div>
+        </div>
+    </button>
+);
+
 const ImplementationTerminal = ({ protocols, isDeploying }: { protocols: ProtocolStep[], isDeploying: boolean }) => {
     const [logs, setLogs] = useState<string[]>([]);
     const logEndRef = useRef<HTMLDivElement>(null);
@@ -364,35 +392,6 @@ const ImplementationDeck: React.FC<{
     );
 };
 
-// Fix: Added missing DomainCard sub-component to resolve "Cannot find name 'DomainCard'" errors.
-const DomainCard = ({ label, sub, icon: Icon, color, active, onClick }: any) => (
-    <button 
-        onClick={onClick}
-        className={cn(
-            "w-full p-6 rounded-[2rem] border transition-all text-left flex flex-col gap-3 relative overflow-hidden group/domain",
-            active ? "bg-white/[0.03] border-current shadow-2xl" : "bg-transparent border-white/5 opacity-50 hover:opacity-100"
-        )}
-        style={{ color: active ? color : undefined }}
-    >
-        <div className="absolute inset-0 bg-current opacity-0 group-hover/domain:opacity-5 transition-opacity" />
-        <div className="flex justify-between items-start relative z-10">
-            <div className={cn(
-                "w-10 h-10 rounded-2xl border flex items-center justify-center transition-all duration-700",
-                active ? "bg-current border-current text-black shadow-lg" : "bg-black/40 border-white/10 text-gray-600"
-            )}>
-                <Icon size={20} className="group-hover/domain:scale-110 transition-transform" />
-            </div>
-            {active && (
-                <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse shadow-[0_0_10px_currentColor]" />
-            )}
-        </div>
-        <div className="relative z-10">
-            <div className="text-[11px] font-black text-white uppercase font-mono tracking-widest leading-none">{label}</div>
-            <div className="text-[8px] text-gray-600 font-mono uppercase tracking-widest mt-1.5">{sub}</div>
-        </div>
-    </button>
-);
-
 const SynthesisBridge: React.FC = () => {
     const { actions, knowledge, dashboard } = useAppStore();
     const { addLog, archiveIntervention, deployStrategyToLattice } = actions;
@@ -476,7 +475,7 @@ const SynthesisBridge: React.FC = () => {
 
             <div className="flex-1 flex overflow-hidden p-12 gap-12 relative z-10">
                 <div className="w-[420px] flex flex-col gap-10 shrink-0 overflow-y-auto custom-scrollbar pr-4">
-                    <div className="p-10 bg-[#0a0a0c] border border-white/5 rounded-[3rem] shadow-2xl invisible-glass space-y-10 backdrop-blur-4xl relative overflow-hidden group/sector">
+                    <div className="p-10 bg-[#0a0a0c] border border-white/5 rounded-[3.5rem] shadow-2xl invisible-glass space-y-10 backdrop-blur-4xl relative overflow-hidden group/sector">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(123,44,255,0.03)_0%,transparent_70%)]" />
                         <div className="flex items-center gap-4 mb-4 px-2 relative z-10">
                             <Target size={20} className="text-[#7B2CFF] animate-pulse" />
@@ -498,7 +497,7 @@ const SynthesisBridge: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="p-10 bg-[#0a0a0c] border border-white/5 rounded-[3rem] shadow-2xl invisible-glass space-y-10 backdrop-blur-4xl relative overflow-hidden group/ritual">
+                    <div className="p-10 bg-[#0a0a0c] border border-white/5 rounded-[3.5rem] shadow-2xl invisible-glass space-y-10 backdrop-blur-4xl relative overflow-hidden group/ritual">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.02)_0%,transparent_70%)]" />
                         <div className="flex items-center gap-4 mb-4 px-2 relative z-10">
                             <BookOpen size={20} className="text-gray-500" />
