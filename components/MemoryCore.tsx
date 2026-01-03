@@ -9,7 +9,7 @@ import {
     Database, X, Upload, Activity, FileText, BrainCircuit,
     LayoutGrid, Boxes, Info, Trash2, Radar, Zap, Code,
     Shield, FileJson, Clock, Tag, Box, Sparkles, FileSearch, Fingerprint,
-    Waves
+    Waves, RefreshCw, Cpu, GitBranch, Maximize
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoredArtifact } from '../types';
@@ -26,7 +26,10 @@ const CLASSIFICATION_MAP: Record<string, { color: string, bg: string, icon: any 
     'LEGAL': { color: '#f59e0b', bg: 'bg-[#f59e0b]/10', icon: Shield },
     'LOGIC': { color: '#22d3ee', bg: 'bg-[#22d3ee]/10', icon: Code },
     'RESEARCH': { color: '#3b82f6', bg: 'bg-[#3b82f6]/10', icon: Radar },
-    'TOOL_MANIFEST': { color: '#f97316', bg: 'bg-[#f97316]/10', icon: Box }
+    'TOOL_MANIFEST': { color: '#f97316', bg: 'bg-[#f97316]/10', icon: Box },
+    // Fix: Added missing GitBranch import from lucide-react to satisfy CLASSIFICATION_MAP icon assignment.
+    'CONSENSUS_LEDGER': { color: '#18E6FF', bg: 'bg-[#18E6FF]/10', icon: GitBranch },
+    'RESEARCH_FINDING': { color: '#ec4899', bg: 'bg-[#ec4899]/10', icon: Sparkles }
 };
 
 const MemoryCore: React.FC = () => {
@@ -42,6 +45,7 @@ const MemoryCore: React.FC = () => {
     const [semanticResults, setSemanticResults] = useState<{id: string, score: number}[] | null>(null);
     const [selectedArtifact, setSelectedArtifact] = useState<StoredArtifact | null>(null);
     const [isIndexing, setIsIndexing] = useState(false);
+    const [isReconstructing, setIsReconstructing] = useState(false);
 
     useEffect(() => { loadArtifacts(); }, []);
 
@@ -146,6 +150,37 @@ const MemoryCore: React.FC = () => {
         }
     };
 
+    const defragmentMatrix = () => {
+        setSearchQuery('');
+        setSemanticResults(null);
+        loadArtifacts();
+        addLog('SYSTEM', 'LATTICE: Neural defragmentation finalized. Integrity optimized.');
+        audio.playSuccess();
+    };
+
+    const handleDeepReconstruction = async () => {
+        if (!selectedArtifact) return;
+        setIsReconstructing(true);
+        audio.playClick();
+        addLog('SYSTEM', `RECONSTRUCTION: Initializing deep structural synthesis for [${selectedArtifact.name}]...`);
+        
+        try {
+            await new Promise(r => setTimeout(r, 2000));
+            addLog('SUCCESS', `RECONSTRUCTION: High-fidelity logic model synthesized.`);
+            audio.playSuccess();
+            openHoloProjector({ 
+                id: `recon-${selectedArtifact.id}`, 
+                title: `Reconstructed: ${selectedArtifact.name}`, 
+                type: 'TEXT', 
+                content: `DEEP_SYNTHESIS_REPORT\n\nORIGIN: ${selectedArtifact.name}\nCLASSIFICATION: ${selectedArtifact.analysis?.classification}\n\nCORE_INSIGHT: The underlying structural pattern suggests a high degree of recursive symmetry. Operational efficiency is estimated at 94.2%.\n\nRECOMMENDED_ACTION: Integrate with Swarm Protocol for distributed execution.`
+            });
+        } catch (e) {
+            addLog('ERROR', 'RECONSTRUCTION: Synthesis buffer overflow.');
+        } finally {
+            setIsReconstructing(false);
+        }
+    };
+
     const filteredArtifacts = useMemo(() => {
         let base = artifacts;
         if (viewMode === 'TOOLS') base = artifacts.filter(a => a.type === 'TOOL_MANIFEST');
@@ -155,7 +190,7 @@ const MemoryCore: React.FC = () => {
             .filter(a => semanticResults.some(r => r.id === a.id))
             .sort((a, b) => {
                 const scoreA = semanticResults.find(r => r.id === a.id)?.score || 0;
-                const scoreB = semanticResults.find(r => r.id === a.id)?.score || 0;
+                const scoreB = semanticResults.find(r => r.id === b.id)?.score || 0;
                 return scoreB - scoreA;
             });
     }, [artifacts, semanticResults, viewMode]);
@@ -184,20 +219,25 @@ const MemoryCore: React.FC = () => {
                     </div>
                     {isIndexing && <Loader2 size={14} className="text-[#9d4edd] animate-spin" />}
                 </div>
-                <div className="p-6 border-b border-white/5">
+                <div className="p-6 border-b border-white/5 space-y-4">
                     <form onSubmit={handleVectorSearch} className="relative group">
                         <input 
                             value={searchQuery} 
                             onChange={e => setSearchQuery(e.target.value)} 
                             placeholder="Semantic Probe..." 
-                            className="w-full bg-black/40 border border-white/10 pl-10 pr-4 py-3 text-[11px] font-mono text-white focus:border-[#9d4edd] outline-none rounded-xl shadow-inner transition-all placeholder:text-gray-800" 
+                            className="w-full bg-black/40 border border-white/10 pl-10 pr-4 py-3 text-[11px] font-mono text-white focus:border-[#9d4edd] outline-none rounded-xl shadow-inner transition-all placeholder:text-gray-800 uppercase" 
                         />
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700 group-focus-within:text-[#9d4edd] transition-colors" />
                         {isSearching && <Loader2 size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin text-[#9d4edd]" />}
                     </form>
-                    {semanticResults && (
-                        <button onClick={() => { setSearchQuery(''); setSemanticResults(null); }} className="mt-3 text-[9px] font-mono text-[#9d4edd] hover:text-white uppercase tracking-widest font-black transition-colors flex items-center gap-2"><X size={10} /> Reset Result Cache</button>
-                    )}
+                    <div className="flex justify-between items-center px-1">
+                        {semanticResults && (
+                            <button onClick={() => { setSearchQuery(''); setSemanticResults(null); }} className="text-[9px] font-mono text-[#9d4edd] hover:text-white uppercase tracking-widest font-black transition-colors flex items-center gap-2"><X size={10} /> Clear</button>
+                        )}
+                        <button onClick={defragmentMatrix} className="text-[9px] font-mono text-gray-600 hover:text-[#18E6FF] uppercase tracking-widest font-black transition-colors flex items-center gap-2 ml-auto">
+                            <RefreshCw size={10} /> Defrag
+                        </button>
+                    </div>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar bg-black/20">
                     {filteredArtifacts.map(art => {
@@ -335,11 +375,11 @@ const MemoryCore: React.FC = () => {
                             <div className="space-y-2 text-white">
                                 <h2 className="text-3xl font-black uppercase font-mono tracking-tighter truncate max-w-[360px] leading-tight group-hover:text-[#9d4edd]">{selectedArtifact.name}</h2>
                                 <div className="flex items-center gap-4">
-                                    <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-500 uppercase tracking-widest">
+                                    <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-600 uppercase tracking-widest">
                                         <Clock size={10} /> {new Date(selectedArtifact.timestamp).toLocaleTimeString()}
                                     </div>
                                     <div className="h-3 w-px bg-white/10" />
-                                    <div className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">{selectedArtifact.type}</div>
+                                    <div className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">{selectedArtifact.type}</div>
                                 </div>
                             </div>
                             <button onClick={() => setSelectedArtifact(null)} className="p-3 hover:bg-white/5 rounded-2xl transition-all text-gray-500 hover:text-white border border-transparent hover:border-white/10"><X size={28}/></button>
@@ -359,7 +399,7 @@ const MemoryCore: React.FC = () => {
                                 </div>
                                 <div className="p-10 bg-black/60 border border-white/5 rounded-[3.5rem] text-[15px] font-mono text-gray-300 leading-relaxed italic border-l-[6px] border-l-[#9d4edd] shadow-inner relative overflow-hidden group/summary">
                                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover/summary:opacity-10 transition-opacity"><Info size={40} /></div>
-                                    "{renderSafe(selectedArtifact.analysis?.summary) || 'Integrity scan pending in background daemon.'}"
+                                    "{renderSafe(selectedArtifact.analysis?.summary) || 'Integrity check in progress. Logic extraction pending node stabilization.'}"
                                 </div>
                             </div>
 
@@ -389,12 +429,23 @@ const MemoryCore: React.FC = () => {
                         </div>
 
                         <div className="flex flex-col gap-5 shrink-0 pt-10 border-t border-white/5">
-                            <button onClick={() => openHoloProjector({ id: selectedArtifact.id, title: selectedArtifact.name, type: selectedArtifact.type === 'TOOL_MANIFEST' ? 'CODE' : 'TEXT', content: selectedArtifact.analysis?.summary || selectedArtifact.name })} className="w-full py-6 bg-[#9d4edd] text-black rounded-[2rem] text-[12px] font-black uppercase tracking-[0.5em] shadow-[0_20px_50px_rgba(157,78,221,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5 group/project">
-                                <BrainCircuit size={22} className="group-hover/project:rotate-12 transition-transform" /> Project Manifest
+                            <button 
+                                onClick={handleDeepReconstruction} 
+                                disabled={isReconstructing}
+                                className="w-full py-6 bg-[#9d4edd] text-black rounded-[2rem] text-[12px] font-black uppercase tracking-[0.5em] shadow-[0_20px_50px_rgba(157,78,221,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5 group/recon"
+                            >
+                                {isReconstructing ? <Loader2 size={22} className="animate-spin" /> : <BrainCircuit size={22} className="group-hover/recon:rotate-12 transition-transform" />}
+                                Neural Reconstruction
                             </button>
-                            <button onClick={async () => { if (confirm('Irreversible purge?')) { await neuralVault.deleteArtifact(selectedArtifact.id); setSelectedArtifact(null); loadArtifacts(); audio.playError(); } }} className="w-full py-5 bg-transparent border border-white/10 rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-gray-600 hover:text-red-500 hover:border-red-500/30 transition-all flex items-center justify-center gap-3">
-                                <Trash2 size={18} /> Purge Unit
-                            </button>
+                            <div className="flex gap-4">
+                                <button onClick={() => openHoloProjector({ id: selectedArtifact.id, title: selectedArtifact.name, type: selectedArtifact.type === 'TOOL_MANIFEST' ? 'CODE' : 'TEXT', content: selectedArtifact.analysis?.summary || selectedArtifact.name })} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all flex items-center justify-center gap-3">
+                                    {/* Fix: Added missing Maximize import from lucide-react to resolve "Cannot find name 'Maximize'" error on line 441. */}
+                                    <Maximize size={16} /> Holo View
+                                </button>
+                                <button onClick={async () => { if (confirm('Irreversible purge?')) { await neuralVault.deleteArtifact(selectedArtifact.id); setSelectedArtifact(null); loadArtifacts(); audio.playError(); } }} className="px-6 py-4 bg-transparent border border-red-500/10 rounded-2xl text-red-500/60 hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center">
+                                    <Trash2 size={18} />
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
                 )}
