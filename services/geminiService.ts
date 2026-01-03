@@ -385,7 +385,10 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
                         role: { type: Type.STRING },
                         nodeRef: { type: Type.STRING },
                         phase: { type: Type.STRING },
-                        logOutput: { type: Type.STRING }
+                        estimatedTime: { type: Type.STRING },
+                        dependencies: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        logOutput: { type: Type.STRING },
+                        securityVector: { type: Type.STRING, enum: ['ENCRYPTED', 'OPEN', 'VULNERABLE'] }
                     },
                     required: ['instruction', 'role', 'logOutput']
                 }
@@ -403,7 +406,8 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
         REQUIREMENTS:
         1. If DIRECTORY (Drive Organization): Generate a deep PARA 2.0 Imperial taxonomy. STRICT Naming Convention: [YYYY.MM]_[CLIENT]_[PROJECT]_[TYPE]. Folders must include: 00_INBOX, 01_PROJECTS, 02_AREAS, 03_RESOURCES, 04_ARCHIVES. Include 'entropy' (0-100) and securityAttestation.
         2. If SYSTEM_FLOW (Architecture): Generate a high-fidelity sovereign multi-cloud lattice deployment sequence. Focus on edge data refraction, self-healing nodes, and serverless clusters. Include specific logOutput for terminal simulation (e.g., "PROVISIONING_GATEWAY... [OK]").
-        3. Output professional, imperial-tier technical nomenclature only.
+        3. For all Protocols: Include estimatedTime, dependencies, and securityVector.
+        4. Output professional, imperial-tier technical nomenclature only.
     `;
 
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
