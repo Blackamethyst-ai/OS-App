@@ -116,7 +116,6 @@ class LiveSession {
                         this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                         const source = this.audioContext!.createMediaStreamSource(this.stream);
                         const scriptProcessor = this.audioContext!.createScriptProcessor(4096, 1, 1);
-                        // Fix: Rename parameter 'e' to 'audioProcessingEvent' to resolve "Cannot find name 'audioProcessingEvent'" error.
                         scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
                             const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
                             const pcmBlob = createBlob(inputData);
@@ -402,9 +401,9 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
         GOVERNANCE: ${governance}
         
         REQUIREMENTS:
-        1. If DIRECTORY: Generate a deep PARA 2.0 Imperial taxonomy. STRICT Naming: [YYYY.MM]_[CLIENT]_[PROJECT]_[TYPE]. Folders: 00_INBOX, 01_PROJECTS, 02_AREAS, 03_RESOURCES, 04_ARCHIVES. Include 'entropy' (0-100) based on perceived drift.
-        2. If SYSTEM_FLOW: Generate a sovereign cloud lattice deployment sequence. Include specific logOutput for terminal simulation (e.g., "PROVISIONING_GATEWAY... [OK]").
-        3. Output professional, imperial-tier technical nomenclature. No fluff.
+        1. If DIRECTORY (Drive Organization): Generate a deep PARA 2.0 Imperial taxonomy. STRICT Naming Convention: [YYYY.MM]_[CLIENT]_[PROJECT]_[TYPE]. Folders must include: 00_INBOX, 01_PROJECTS, 02_AREAS, 03_RESOURCES, 04_ARCHIVES. Include 'entropy' (0-100) and securityAttestation.
+        2. If SYSTEM_FLOW (Architecture): Generate a high-fidelity sovereign multi-cloud lattice deployment sequence. Focus on edge data refraction, self-healing nodes, and serverless clusters. Include specific logOutput for terminal simulation (e.g., "PROVISIONING_GATEWAY... [OK]").
+        3. Output professional, imperial-tier technical nomenclature only.
     `;
 
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({

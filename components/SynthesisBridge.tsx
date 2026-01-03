@@ -9,7 +9,8 @@ import {
     Microscope, Terminal, Aperture, BookOpen, Fingerprint,
     Cpu, Database, Shield, Globe, AlertTriangle, CheckCircle2,
     Lock, Unlock, ShieldAlert, Gauge, Waves, Bot, Trash2,
-    BrainCircuit, X
+    BrainCircuit, X, DatabaseZap, Network, Server, Hexagon,
+    Workflow, Boxes, GitBranch
 } from 'lucide-react';
 import { promptSelectKey, generateStructuredWorkflow } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
@@ -426,9 +427,11 @@ const SynthesisBridge: React.FC = () => {
     const [customIntent, setCustomIntent] = useState('');
 
     const PRESETS = [
-        { id: 'para_ritual', label: 'PARA 2.0 Imperial Ritual', type: 'DRIVE', description: 'Architect a Tier-1 recursive PARA file hierarchy with semantic linking and strict convention protocols.', icon: FolderTree },
-        { id: 'lattice_infra', label: 'Cloud Topology', type: 'SYSTEM', description: 'Forge a high-fidelity cloud manifest featuring edge data refraction and self-healing node clusters.', icon: Globe },
-        { id: 'ts_fortress', label: 'Type Sovereignty', type: 'CODE', description: 'Imperial protocol for React/TypeScript structural integrity. Enforces generic inheritance.', icon: Shield },
+        { id: 'para_ritual', label: 'PARA 2.0 Imperial Ritual', type: 'DRIVE', description: 'Architect a Tier-1 recursive PARA file hierarchy with semantic linking and strict convention protocols.', icon: FolderTree, complexity: 'IMPERIAL' },
+        { id: 'vault_indexing', label: 'Asset Indexing Pipeline', type: 'DRIVE', description: 'Forge an automated multi-modal workflow for indexing raw production assets into the Neural Vault.', icon: DatabaseZap, complexity: 'PRODUCTION' },
+        { id: 'lattice_infra', label: 'Multi-Cloud Lattice', type: 'SYSTEM', description: 'Forge a high-fidelity sovereign cloud manifest featuring edge refraction and self-healing node clusters.', icon: Globe, complexity: 'SOVEREIGN' },
+        { id: 'serverless_mesh', label: 'Edge Ingestion Mesh', type: 'SYSTEM', description: 'Architect an event-driven serverless mesh for real-time AI signal processing and distributed logic.', icon: Network, complexity: 'CRITICAL' },
+        { id: 'ts_fortress', label: 'Type Sovereignty', type: 'CODE', description: 'Imperial protocol for React/TypeScript structural integrity. Enforces generic inheritance.', icon: Shield, complexity: 'STABLE' },
     ];
 
     const generateBlueprint = async (presetPrompt?: string) => {
@@ -524,9 +527,12 @@ const SynthesisBridge: React.FC = () => {
 
                     <div className="p-5 bg-[#0a0a0c]/60 border border-white/5 rounded-[2.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden group/ritual shrink-0">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.01)_0%,transparent_70%)]" />
-                        <div className="flex items-center gap-3 mb-4 px-1 relative z-10 shrink-0">
-                            <BookOpen size={18} className="text-gray-500" />
-                            <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Imperial Rituals</span>
+                        <div className="flex items-center justify-between mb-4 px-1 relative z-10 shrink-0">
+                            <div className="flex items-center gap-3">
+                                <BookOpen size={18} className="text-gray-500" />
+                                <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Imperial Rituals</span>
+                            </div>
+                            <span className="text-[7px] font-mono text-gray-700 uppercase tracking-widest">v9.5_Manifest</span>
                         </div>
                         <div className="space-y-3 relative z-10 overflow-y-auto max-h-[320px] custom-scrollbar pr-1">
                             {PRESETS.map(preset => (
@@ -534,13 +540,16 @@ const SynthesisBridge: React.FC = () => {
                                     key={preset.id}
                                     onClick={() => { setProcessType(preset.type as any); setCustomIntent(preset.description); generateBlueprint(preset.description); }}
                                     className={cn(
-                                        "w-full p-4 rounded-xl text-left transition-all group border shadow-xl flex flex-col gap-1.5 relative overflow-hidden",
+                                        "w-full p-4 rounded-xl text-left transition-all group border shadow-xl flex flex-col gap-2 relative overflow-hidden",
                                         "bg-white/[0.02] border-white/5 hover:border-white/10 hover:bg-white/[0.04]"
                                     )}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <preset.icon size={14} className="text-[#7B2CFF] group-hover:scale-110 transition-transform" />
-                                        <div className="text-[10px] font-black text-white uppercase font-mono truncate tracking-tight">{preset.label}</div>
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center gap-3">
+                                            <preset.icon size={14} className="text-[#7B2CFF] group-hover:scale-110 transition-transform" />
+                                            <div className="text-[10px] font-black text-white uppercase font-mono truncate tracking-tight">{preset.label}</div>
+                                        </div>
+                                        <span className="text-[6px] font-black font-mono text-gray-700 uppercase border border-white/5 px-1.5 py-0.5 rounded">{preset.complexity}</span>
                                     </div>
                                     <div className="text-[8px] text-gray-600 font-mono line-clamp-2 uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity leading-relaxed">{preset.description}</div>
                                 </button>
