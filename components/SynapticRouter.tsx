@@ -24,39 +24,10 @@ const AgentControlCenter = lazy(() => import('./AgentControlCenter'));
 const AutonomousFinance = lazy(() => import('./AutonomousFinance'));
 const NexusAPIExplorer = lazy(() => import('./NexusAPIExplorer'));
 
-// --- CYCLE 1: SPATIAL COORDINATE MAP ---
-const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> = {
-    [AppMode.METAVENTIONS_HUB]: { x: 0, y: 0, z: 0 },
-    [AppMode.DASHBOARD]: { x: 0, y: 0, z: 1 },
-    [AppMode.BIBLIOMORPHIC]: { x: -1, y: 1, z: 0 },
-    [AppMode.PROCESS_MAP]: { x: 1, y: 1, z: 0 },
-    [AppMode.AUTONOMOUS_FINANCE]: { x: -1, y: -1, z: 0 },
-    [AppMode.CODE_STUDIO]: { x: 1, y: -1, z: 0 },
-    [AppMode.AGENT_CONTROL]: { x: 0, y: 1, z: 0 },
-    [AppMode.MEMORY_CORE]: { x: 0, y: -1, z: 0 },
-    [AppMode.IMAGE_GEN]: { x: -1, y: 0, z: 0 },
-    [AppMode.HARDWARE_ENGINEER]: { x: 1, y: 0, z: 0 },
-    [AppMode.VOICE_MODE]: { x: 0, y: 0, z: -1 },
-    [AppMode.SYNTHESIS_BRIDGE]: { x: 0.5, y: 0.5, z: 0.5 },
-    [AppMode.BICAMERAL]: { x: -0.5, y: 0.5, z: 0.5 }
-};
-
 const SynapticRouter: React.FC = () => {
-    const { mode, previousMode, contextMenu, actions } = useAppStore();
+    const { mode, actions } = useAppStore();
     const lastSyncedHash = useRef<string>('');
     const [routeInfo, setRouteInfo] = useState({ path: '', sub: '', params: '' });
-
-    // Transition Logic: Calculate Warp Vector
-    const warpDirection = useMemo(() => {
-        if (!previousMode) return { x: 0, y: 0, scale: 0.8 };
-        const curr = SECTOR_COORDINATES[mode] || { x: 0, y: 0, z: 0 };
-        const prev = SECTOR_COORDINATES[previousMode] || { x: 0, y: 0, z: 0 };
-        return {
-            x: (curr.x - prev.x) * 100,
-            y: (curr.y - prev.y) * 100,
-            z: curr.z - prev.z
-        };
-    }, [mode, previousMode]);
 
     useEffect(() => {
         const handleRouting = () => {
@@ -110,36 +81,15 @@ const SynapticRouter: React.FC = () => {
                     <Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" />
                 </div>
             }>
-                <AnimatePresence mode="popLayout" initial={false}>
+                <AnimatePresence mode="wait">
                     <motion.main
                         key={mode}
-                        layoutId="synaptic-sector"
-                        initial={{ 
-                            opacity: 0, 
-                            scale: 0.8, 
-                            z: -500,
-                            rotateX: warpDirection.y / 10,
-                            rotateY: -warpDirection.x / 10,
-                            filter: 'blur(40px) brightness(0)'
-                        }}
-                        animate={{ 
-                            opacity: 1, 
-                            scale: 1, 
-                            z: 0,
-                            rotateX: 0,
-                            rotateY: 0,
-                            filter: 'blur(0px) brightness(1)'
-                        }}
-                        exit={{ 
-                            opacity: 0, 
-                            scale: 1.2, 
-                            z: 500,
-                            filter: 'blur(60px) brightness(2)'
-                        }}
+                        initial={{ opacity: 0, scale: 0.95, filter: 'blur(20px)' }}
+                        animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+                        exit={{ opacity: 0, scale: 0.98, filter: 'blur(30px)' }}
                         transition={{ 
-                            duration: 0.85, 
-                            ease: [0.16, 1, 0.3, 1],
-                            opacity: { duration: 0.4 }
+                            duration: 0.5, 
+                            ease: [0.16, 1, 0.3, 1]
                         }}
                         className={`flex-1 relative z-10 p-6 flex flex-col ${
                             isFixedLayout ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar pb-8'
@@ -161,37 +111,8 @@ const SynapticRouter: React.FC = () => {
                     </motion.main>
                 </AnimatePresence>
             </Suspense>
-
-            <AnimatePresence>
-                {contextMenu.isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="fixed z-[9999] min-w-[220px] bg-[#0a0a0a]/95 backdrop-blur-2xl border border-[#333] rounded-lg shadow-2xl overflow-hidden p-1.5 crystalline"
-                        style={{ top: contextMenu.y, left: contextMenu.x }}
-                    >
-                        <div className="px-3 py-2 border-b border-[#222] mb-2">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-bold text-[#9d4edd] uppercase tracking-wider font-mono">Context Hub</span>
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-0.5">
-                            <MenuItem icon={Scan} label="Deep Scan" onClick={() => {}} />
-                            <MenuItem icon={Eye} label="Holo Project" onClick={() => {}} />
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 };
-
-const MenuItem: React.FC<{ icon: any, label: string, onClick: () => void }> = ({ icon: Icon, label, onClick }) => (
-    <button onClick={onClick} className="w-full flex items-center gap-3 px-3 py-2 text-xs font-mono text-gray-300 hover:bg-white/5 hover:text-white rounded transition-all group text-left">
-        <Icon className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#9d4edd] transition-colors" />
-        {label}
-    </button>
-);
 
 export default SynapticRouter;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { neuralVault } from '../services/persistenceService';
 import { 
     promptSelectKey, classifyArtifact, generateEmbedding, fileToGenerativePart
@@ -9,7 +9,7 @@ import {
     Database, X, Upload, Activity, FileText, BrainCircuit,
     LayoutGrid, Boxes, Info, Trash2, Radar, Zap, Code,
     Shield, FileJson, Clock, Tag, Box, Sparkles, FileSearch, Fingerprint,
-    Waves, RefreshCw, Cpu, GitBranch, Maximize
+    Waves, RefreshCw, Cpu, GitBranch, Maximize, Anchor
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoredArtifact } from '../types';
@@ -19,16 +19,59 @@ import DynamicVisuals from './DynamicVisuals';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import { renderSafe } from '../utils/renderSafe';
+import { usePerspectiveRefraction } from '../hooks/usePerspectiveRefraction';
 
-const CLASSIFICATION_MAP: Record<string, { color: string, bg: string, icon: any }> = {
-    'FINANCIAL': { color: '#10b981', bg: 'bg-[#10b981]/10', icon: Zap },
-    'ARCHITECTURAL': { color: '#9d4edd', bg: 'bg-[#9d4edd]/10', icon: LayoutGrid },
-    'LEGAL': { color: '#f59e0b', bg: 'bg-[#f59e0b]/10', icon: Shield },
-    'LOGIC': { color: '#22d3ee', bg: 'bg-[#22d3ee]/10', icon: Code },
-    'RESEARCH': { color: '#3b82f6', bg: 'bg-[#3b82f6]/10', icon: Radar },
-    'TOOL_MANIFEST': { color: '#f97316', bg: 'bg-[#f97316]/10', icon: Box },
-    'CONSENSUS_LEDGER': { color: '#18E6FF', bg: 'bg-[#18E6FF]/10', icon: GitBranch },
-    'RESEARCH_FINDING': { color: '#ec4899', bg: 'bg-[#ec4899]/10', icon: Sparkles }
+// --- OCEANIC SUB-COMPONENT (NEURAL FLUIDITY) ---
+const OceanicArtifact: React.FC<{ art: StoredArtifact, index: number, onSelect: (a: StoredArtifact) => void }> = ({ art, index, onSelect }) => {
+    const { ref, style, onMouseMove, onMouseLeave } = usePerspectiveRefraction(0.7);
+    const classification = art.analysis?.classification || 'RAW';
+    
+    return (
+        <motion.div
+            layout
+            initial={{ opacity: 0, scale: 0.8, y: 50 }}
+            animate={{ 
+                opacity: 1, 
+                scale: 1, 
+                y: [0, -15, 0],
+                rotate: [0, 1, -1, 0]
+            }}
+            transition={{ 
+                opacity: { duration: 0.5 },
+                y: { duration: 4 + Math.random() * 2, repeat: Infinity, ease: "easeInOut" },
+                rotate: { duration: 5 + Math.random() * 3, repeat: Infinity, ease: "easeInOut" }
+            }}
+            ref={ref}
+            onMouseMove={onMouseMove}
+            onMouseLeave={onMouseLeave}
+            style={style}
+            onClick={() => onSelect(art)}
+            className="p-6 bg-transparent crystalline rounded-[2.5rem] cursor-pointer group shadow-2xl relative overflow-hidden border border-white/5 invisible-glass h-64 flex flex-col justify-between"
+        >
+            <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
+            <div className="flex justify-between items-start relative z-10">
+                <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 text-gray-500 group-hover:text-[#9d4edd] transition-colors">
+                    <Database size={16} />
+                </div>
+                <div className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">
+                    Mass: {art.analysis?.ambiguityScore || 40}u
+                </div>
+            </div>
+            
+            <div className="relative z-10">
+                <h3 className="text-xs font-black text-white uppercase font-mono tracking-tighter mb-1 truncate leading-tight group-hover:text-[#18E6FF] transition-colors">{art.name}</h3>
+                <div className="flex items-center gap-2">
+                    <span className="text-[8px] font-mono text-gray-500 uppercase">{classification}</span>
+                    <div className="w-1 h-1 rounded-full bg-[#10b981] animate-pulse" />
+                </div>
+            </div>
+
+            <div className="pt-4 border-t border-white/5 flex justify-between items-center relative z-10">
+                <span className="text-[8px] font-mono text-gray-700">ID_{art.id.substring(0,4)}</span>
+                <Sparkles size={12} className="text-white/10 group-hover:text-[#9d4edd] transition-all" />
+            </div>
+        </motion.div>
+    );
 };
 
 const MemoryCore: React.FC = () => {
@@ -39,7 +82,7 @@ const MemoryCore: React.FC = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'XRAY' | 'TOOLS' | 'DYNAMIC'>('GRID');
+    const [viewMode, setViewMode] = useState<'GRID' | 'GRAPH' | 'OCEANIC' | 'TOOLS' | 'DYNAMIC'>('OCEANIC');
     
     const [semanticResults, setSemanticResults] = useState<{id: string, score: number}[] | null>(null);
     const [selectedArtifact, setSelectedArtifact] = useState<StoredArtifact | null>(null);
@@ -201,7 +244,7 @@ const MemoryCore: React.FC = () => {
             type: 'CONCEPT' as const,
             strength: a.analysis?.ambiguityScore ? 100 - a.analysis.ambiguityScore : 70,
             connections: Array.isArray(a.tags) ? a.tags.map(t => String(t)) : [],
-            color: CLASSIFICATION_MAP[a.analysis?.classification || '']?.color || '#333',
+            color: '#9d4edd',
             data: a.analysis
         }));
     }, [filteredArtifacts]);
@@ -241,18 +284,17 @@ const MemoryCore: React.FC = () => {
                 <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar bg-black/20">
                     {filteredArtifacts.map(art => {
                         const semResult = semanticResults?.find(r => r.id === art.id);
-                        const visual = CLASSIFICATION_MAP[art.analysis?.classification || ''] || { color: '#333', bg: 'bg-white/5', icon: FileIcon };
                         return (
                             <button 
                                 key={art.id} 
                                 onClick={() => { setSelectedArtifact(art); audio.playClick(); }} 
                                 className={`w-full text-left p-4 rounded-2xl border transition-all flex flex-col gap-2 relative overflow-hidden group ${selectedArtifact?.id === art.id ? 'border-[#9d4edd]/50 bg-[#9d4edd]/5 shadow-xl' : 'border-transparent hover:bg-white/5'}`}
                             >
-                                <div className="absolute left-0 top-0 w-1 h-full opacity-40" style={{ backgroundColor: visual.color }} />
+                                <div className="absolute left-0 top-0 w-1 h-full bg-[#9d4edd] opacity-40" />
                                 <div className="text-[11px] font-black text-white truncate uppercase tracking-tighter font-mono group-hover:text-[#9d4edd] transition-colors">{art.name}</div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-[8px] text-gray-600 font-mono uppercase tracking-widest flex items-center gap-1.5">
-                                        <visual.icon size={10} style={{ color: visual.color }} />
+                                        <FileIcon size={10} />
                                         {art.analysis?.classification || 'RAW_FRAGMENT'}
                                     </span>
                                     {semResult && (
@@ -262,23 +304,20 @@ const MemoryCore: React.FC = () => {
                             </button>
                         );
                     })}
-                    {filteredArtifacts.length === 0 && !isLoading && (
-                        <div className="py-20 text-center opacity-10 flex flex-col items-center gap-6 grayscale">
-                            <Radar size={48} className="animate-pulse" /><span className="text-[10px] font-mono uppercase tracking-[0.5em]">Lattice Standby</span>
-                        </div>
-                    )}
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col relative bg-transparent">
+            <div className="flex-1 flex flex-col relative bg-transparent overflow-hidden">
+                {/* Viewport Scanline */}
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-[#9d4edd]/10 z-10 pointer-events-none" />
+
                 <div className="h-16 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl flex items-center justify-between px-10 shrink-0 z-20">
                     <div className="flex bg-black/20 p-1.5 rounded-xl border border-white/5 shadow-inner">
                         {[
+                            { id: 'OCEANIC', icon: Waves, label: 'Neural Ocean' },
                             { id: 'GRID', icon: LayoutGrid, label: 'The Matrix' },
                             { id: 'TOOLS', icon: Code, label: 'Evolved Skills' },
                             { id: 'GRAPH', icon: BrainCircuit, label: 'Neural Lattice' },
-                            { id: 'DYNAMIC', icon: Waves, label: 'Dynamic Visuals' },
-                            { id: 'XRAY', icon: Radar, label: 'Spectral Scan' }
                         ].map(btn => (
                             <button 
                                 key={btn.id} 
@@ -290,9 +329,6 @@ const MemoryCore: React.FC = () => {
                         ))}
                     </div>
                     <div className="flex items-center gap-8">
-                        <div className="flex items-center gap-3 text-gray-600 text-[10px] font-mono uppercase tracking-widest">
-                            <Activity size={14} className="text-[#10b981] animate-pulse" /> Indexed: {artifacts.length} Fragments
-                        </div>
                         <label className="flex items-center gap-4 px-8 py-2.5 bg-[#9d4edd] text-black border border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest cursor-pointer shadow-[0_0_30px_rgba(157,78,221,0.3)] hover:scale-105 active:scale-95 transition-all">
                             <Upload size={18} /> Ingest Artifact
                             <input type="file" multiple className="hidden" onChange={handleFileUpload} />
@@ -302,7 +338,16 @@ const MemoryCore: React.FC = () => {
 
                 <div className="flex-1 overflow-hidden relative">
                     <AnimatePresence mode="wait">
-                        {viewMode === 'GRAPH' ? (
+                        {viewMode === 'OCEANIC' ? (
+                            <motion.div key="oceanic" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-12 h-full overflow-y-auto custom-scrollbar bg-black/5 relative">
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(24,230,255,0.03)_0%,transparent_70%)] pointer-events-none" />
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 pb-32">
+                                    {filteredArtifacts.map((art, i) => (
+                                        <OceanicArtifact key={art.id} art={art} index={i} onSelect={setSelectedArtifact} />
+                                    ))}
+                                </div>
+                            </motion.div>
+                        ) : viewMode === 'GRAPH' ? (
                             <motion.div key="graph" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
                                 <KnowledgeGraph nodes={graphNodes} onNodeClick={(n) => setSelectedArtifact(artifacts.find(a => a.id === n.id) || null)} />
                             </motion.div>
@@ -310,14 +355,9 @@ const MemoryCore: React.FC = () => {
                             <motion.div key="dynamic" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
                                 <DynamicVisuals artifacts={artifacts} onSelect={setSelectedArtifact} />
                             </motion.div>
-                        ) : viewMode === 'XRAY' ? (
-                            <motion.div key="xray" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
-                                <PowerXRay availableSources={artifacts} />
-                            </motion.div>
                         ) : (
                             <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 overflow-y-auto h-full custom-scrollbar pb-32 bg-black/5">
                                 {filteredArtifacts.map(art => {
-                                    const visual = CLASSIFICATION_MAP[art.analysis?.classification || ''] || { color: '#333', bg: 'bg-white/5', icon: FileIcon };
                                     return (
                                         <motion.div 
                                             layout
@@ -328,27 +368,14 @@ const MemoryCore: React.FC = () => {
                                                 selectedArtifact?.id === art.id ? 'border-white/40 ring-4 ring-white/5 bg-white/[0.03]' : 'hover:border-white/20'
                                             )}
                                         >
-                                            <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover:opacity-[0.08] transition-all rotate-12 pointer-events-none">
-                                                <visual.icon size={100} />
-                                            </div>
-
-                                            <div className="aspect-square glass-action rounded-[2.5rem] flex flex-col items-center justify-center transition-all mb-8 shadow-inner relative overflow-hidden">
-                                                <visual.icon size={64} style={{ color: visual.color }} className="group-hover:scale-110 transition-transform duration-1000 shadow-[0_0_20px_currentColor]" />
-                                                <div className="absolute bottom-4 flex gap-1">
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
-                                                    <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse delay-75" />
-                                                </div>
-                                            </div>
                                             <div className="text-sm font-black text-white uppercase truncate font-mono mb-2 tracking-tighter group-hover:text-[#9d4edd] transition-colors">{art.name}</div>
-                                            
                                             <div className="flex flex-wrap gap-2 mb-4 h-6 overflow-hidden">
                                                 {Array.isArray(art.tags) && art.tags.slice(0, 3).map(tag => (
                                                     <span key={String(tag)} className="text-[7px] font-black font-mono text-gray-500 border border-white/5 bg-white/5 px-2 py-0.5 rounded uppercase tracking-tighter">{String(tag)}</span>
                                                 ))}
                                             </div>
-
                                             <div className="flex justify-between items-center border-t border-white/5 pt-4">
-                                                <div className={cn("px-2 py-0.5 rounded text-[8px] font-black font-mono uppercase tracking-widest", visual.bg)} style={{ color: visual.color }}>
+                                                <div className="px-2 py-0.5 rounded text-[8px] font-black font-mono uppercase tracking-widest bg-[#9d4edd]/10 text-[#9d4edd]">
                                                     {art.analysis?.classification || 'RAW'}
                                                 </div>
                                                 <span className="text-[8px] text-gray-700 font-mono uppercase">ID_{art.id.substring(0,4)}</span>
@@ -363,7 +390,7 @@ const MemoryCore: React.FC = () => {
             </div>
 
             <AnimatePresence>
-                {selectedArtifact && viewMode !== 'XRAY' && viewMode !== 'DYNAMIC' && (
+                {selectedArtifact && (
                     <motion.div 
                         initial={{ x: '100%' }} 
                         animate={{ x: 0 }} 
@@ -387,42 +414,13 @@ const MemoryCore: React.FC = () => {
                         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-12 pr-4">
                             <div className="aspect-video glass-action rounded-[3rem] flex items-center justify-center shadow-2xl group/prev relative overflow-hidden border border-white/5 bg-black/40">
                                 {selectedArtifact.type === 'TOOL_MANIFEST' ? <Code size={100} className="text-[#f97316] drop-shadow-[0_0_20px_rgba(249,115,22,0.3)]" /> : <FileText size={100} className="text-white opacity-40 group-hover:scale-110 group-hover:opacity-100 transition-all duration-1000" />}
-                                <div className="absolute bottom-6 right-8 flex gap-3">
-                                     <div className="px-3 py-1 bg-[#9d4edd]/20 border border-[#9d4edd]/30 rounded-lg text-[8px] font-black text-[#9d4edd] uppercase">Forensic Scan Valid</div>
-                                </div>
                             </div>
-
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4 text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] px-2">
                                     <Sparkles size={16} className="text-[#9d4edd]" /> Technical Summary
                                 </div>
-                                <div className="p-10 bg-black/60 border border-white/5 rounded-[3.5rem] text-[15px] font-mono text-gray-300 leading-relaxed italic border-l-[6px] border-l-[#9d4edd] shadow-inner relative overflow-hidden group/summary">
-                                    <div className="absolute top-0 right-0 p-4 opacity-5 group-hover/summary:opacity-10 transition-opacity"><Info size={40} /></div>
-                                    "{renderSafe(selectedArtifact.analysis?.summary) || 'Integrity check in progress. Logic extraction pending node stabilization.'}"
-                                </div>
-                            </div>
-
-                            {selectedArtifact.analysis?.structural_intelligence && (
-                                <div className="space-y-6">
-                                    <div className="flex items-center gap-4 text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] px-2">
-                                        <FileSearch size={16} className="text-[#22d3ee]" /> Structural Intelligence
-                                    </div>
-                                    <div className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] text-[13px] font-mono text-gray-400 whitespace-pre-wrap leading-relaxed shadow-inner">
-                                        {renderSafe(selectedArtifact.analysis.structural_intelligence)}
-                                    </div>
-                                </div>
-                            )}
-
-                            <div className="space-y-6">
-                                <div className="flex items-center gap-4 text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] px-2">
-                                    <Tag size={16} className="text-[#22d3ee]" /> Semantic Markers
-                                </div>
-                                <div className="flex flex-wrap gap-3 px-2">
-                                    {Array.isArray(selectedArtifact.tags) && selectedArtifact.tags.length > 0 ? selectedArtifact.tags.map(tag => (
-                                        <span key={String(tag)} className="px-5 py-2 bg-white/5 rounded-xl border border-white/10 text-[9px] font-black font-mono text-[#22d3ee] uppercase tracking-widest hover:border-[#22d3ee]/40 transition-colors">#{String(tag)}</span>
-                                    )) : (
-                                        <span className="text-[10px] font-mono text-gray-700 italic">No semantic markers extracted.</span>
-                                    )}
+                                <div className="p-10 bg-black/60 border border-white/5 rounded-[3.5rem] text-[15px] font-mono text-gray-300 leading-relaxed italic border-l-[6px] border-l-[#9d4edd] shadow-inner">
+                                    "{renderSafe(selectedArtifact.analysis?.summary) || 'Integrity check in progress.'}"
                                 </div>
                             </div>
                         </div>
@@ -433,7 +431,7 @@ const MemoryCore: React.FC = () => {
                                 disabled={isReconstructing}
                                 className="w-full py-6 bg-[#9d4edd] text-black rounded-[2rem] text-[12px] font-black uppercase tracking-[0.5em] shadow-[0_20px_50px_rgba(157,78,221,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5 group/recon"
                             >
-                                {isReconstructing ? <Loader2 size={22} className="animate-spin" /> : <BrainCircuit size={22} className="group-hover/recon:rotate-12 transition-transform" />}
+                                {isReconstructing ? <Loader2 size={22} className="animate-spin" /> : <BrainCircuit size={22} />}
                                 Neural Reconstruction
                             </button>
                             <div className="flex gap-4">

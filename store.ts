@@ -53,6 +53,7 @@ interface AppState {
     mode: AppMode;
     previousMode: AppMode | null;
     isTransitioning: boolean;
+    isSidebarHUDOpen: boolean;
     theme: AppTheme;
     user: UserProfile;
     authenticated: boolean;
@@ -267,6 +268,7 @@ interface AppState {
         setAuthenticated: (auth: boolean) => void;
         toggleProfile: (open?: boolean) => void;
         toggleCommandPalette: (open?: boolean) => void;
+        toggleSidebarHUD: (open?: boolean) => void;
         addLog: (level: 'ERROR' | 'WARN' | 'SUCCESS' | 'INFO' | 'SYSTEM', message: string) => void;
         toggleTerminal: (open?: boolean) => void;
         setSearchState: (update: any) => void;
@@ -326,6 +328,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     mode: AppMode.METAVENTIONS_HUB,
     previousMode: null,
     isTransitioning: false,
+    isSidebarHUDOpen: false,
     theme: AppTheme.DARK,
     user: {
         displayName: 'Operator_Core',
@@ -597,6 +600,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         setAuthenticated: (authenticated) => set({ authenticated }),
         toggleProfile: (open) => set((state) => ({ isProfileOpen: open ?? !state.isProfileOpen })),
         toggleCommandPalette: (open) => set((state) => ({ isCommandPaletteOpen: open ?? !state.isCommandPaletteOpen })),
+        toggleSidebarHUD: (open) => set((state) => ({ isSidebarHUDOpen: open ?? !state.isSidebarHUDOpen })),
         addLog: (level, message) => set((state) => {
             const id = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
             return {
