@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { neuralVault } from '../services/persistenceService';
-import { KnowledgeLayer, AppMode } from '../types';
+import { KnowledgeLayer } from '../types';
 import * as Icons from 'lucide-react';
 import { 
     Activity, Clock, Cpu, Shield, Zap, Hammer, Coins, 
@@ -15,7 +15,6 @@ import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { useVisualCortex } from '../hooks/useVisualCortex';
 import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor';
 import { audio } from '../services/audioService';
-// Fix: Imported the missing 'cn' utility to resolve "Cannot find name 'cn'" errors.
 import { cn } from '../utils/cn';
 
 const LayerControlMesh = () => {
@@ -46,12 +45,12 @@ const LayerControlMesh = () => {
                         }}
                         whileHover={{ scale: 1.1, y: -2 }}
                         whileTap={{ scale: 0.9 }}
-                        className={`
-                            flex items-center justify-center w-8 h-8 rounded-lg border transition-all duration-500
-                            ${isActive 
+                        className={cn(
+                            "flex items-center justify-center w-8 h-8 rounded-lg border transition-all duration-500",
+                            isActive 
                                 ? 'bg-white/10 border-[var(--layer-color)] text-white shadow-[0_0_15px_var(--layer-color)]' 
-                                : 'bg-transparent border-transparent text-gray-600 hover:text-gray-300 hover:bg-white/5'}
-                        `}
+                                : 'bg-transparent border-transparent text-gray-600 hover:text-gray-300 hover:bg-white/5'
+                        )}
                         style={{ '--layer-color': layer.color } as React.CSSProperties}
                         title={layer.label}
                     >
@@ -150,7 +149,7 @@ const GlobalStatusBar: React.FC = () => {
 
                     <div className="flex-1 flex justify-center px-12 relative z-10">
                         <form onSubmit={handleSubmit} className="w-full max-w-[600px] relative flex items-center gap-4 bg-black/40 rounded-2xl px-6 py-2 border border-white/5 focus-within:border-[#9d4edd]/50 focus-within:bg-black/60 transition-all shadow-[inset_0_2px_10px_rgba(0,0,0,0.5)] group/input">
-                            <div className={`shrink-0 transition-all duration-500 ${agentState.isThinking ? 'text-[#9d4edd] scale-110' : 'text-gray-600 group-focus-within/input:text-white'}`}>
+                            <div className={cn("shrink-0 transition-all duration-500", agentState.isThinking ? 'text-[#9d4edd] scale-110' : 'text-gray-600 group-focus-within/input:text-white')}>
                                 {agentState.isThinking ? <Loader2 size={16} className="animate-spin" /> : <BrainCircuit size={16} />}
                             </div>
                             <input 
