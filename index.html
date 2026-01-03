@@ -10,140 +10,86 @@
     <script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
     <style>
        :root {
-          /* --- SOVEREIGN BRAND VECTORS // BRIDGE FLAGSHIP SYNC --- */
+          /* --- SOVEREIGN BRAND VECTORS // ZENITH SYNC --- */
           --amethyst: #7B2CFF;
           --cyan: #18E6FF;
-          --azure-blue: #3b82f6;
           --executive-gold: #f1c21b;
+          --obsidian: #020204;
+          --plasma-green: #10b981;
           
-          /* --- NEURAL DARK THEME (VOID CORE) --- */
-          --void-black: #020204;
-          --obsidian-surface: #0a0a0c;
-          --stellar-white: #FFFFFF;
-          
-          /* --- NEURAL LIGHT THEME (HIGH CLARITY) --- */
-          --clarity-white: #F8FAFC;
-          --clarity-surface: #F1F5F9;
-          --clarity-border: rgba(15, 23, 42, 0.08);
-
-          /* --- GLOBAL UI MAPPING (Standardized) --- */
-          --bg-app: var(--void-black);
-          --bg-header: rgba(2, 2, 4, 0.7);
-          --bg-panel: rgba(255, 255, 255, 0.012);
-          --bg-card: rgba(255, 255, 255, 0.006);
-          --text-primary: var(--stellar-white);
-          --text-secondary: #94A3B8;
-          --text-muted: #64748b;
-          --border-main: rgba(255, 255, 255, 0.08);
-          --border-strong: rgba(255, 255, 255, 0.15);
-          
-          /* --- ANIMATION DELAYS --- */
+          /* --- OPTICAL DEPTH SYSTEM --- */
+          --bg-app: var(--obsidian);
+          --bg-header: rgba(2, 2, 4, 0.85);
+          --bg-panel: rgba(255, 255, 255, 0.015);
+          --border-main: rgba(255, 255, 255, 0.06);
           --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
-       }
-
-       [data-theme='light'] {
-          --bg-app: var(--clarity-white);
-          --bg-header: rgba(255, 255, 255, 0.8);
-          --bg-panel: rgba(15, 23, 42, 0.02);
-          --bg-card: rgba(15, 23, 42, 0.01);
-          --text-primary: #0F172A;
-          --text-secondary: #475569;
-          --text-muted: #94A3B8;
-          --border-main: var(--clarity-border);
-          --border-strong: rgba(15, 23, 42, 0.12);
        }
 
        body { 
           font-family: 'Inter', sans-serif; 
           background-color: var(--bg-app); 
-          color: var(--text-primary); 
+          color: white; 
           margin: 0; 
           padding: 0; 
-          transition: background-color 0.8s var(--ease-out-expo), color 0.4s ease;
           -webkit-font-smoothing: antialiased;
           overflow: hidden;
        }
 
        .font-mono { font-family: 'Fira Code', monospace; }
        
-       /* --- CRYSTALLINE GLASS ARCHITECTURE --- */
+       /* --- CRYSTALLINE REFRACTION ARCHITECTURE --- */
        .crystalline {
-          background: var(--bg-panel) !important;
-          backdrop-filter: blur(45px) saturate(210%) brightness(1.05) !important;
-          -webkit-backdrop-filter: blur(45px) saturate(210%) brightness(1.05) !important;
-          border: 0.5px solid var(--border-main);
+          background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%) !important;
+          backdrop-filter: blur(40px) saturate(180%) !important;
+          -webkit-backdrop-filter: blur(40px) saturate(180%) !important;
+          border: 1px solid rgba(255, 255, 255, 0.08);
           box-shadow: 
-            inset 0 1px 0 rgba(255, 255, 255, 0.05),
-            0 25px 50px -12px rgba(0, 0, 0, 0.5);
-          transition: all 0.5s var(--ease-out-expo);
+            inset 0 0 40px rgba(123, 44, 255, 0.05),
+            0 20px 80px -20px rgba(0, 0, 0, 0.8);
+       }
+
+       .glass-refraction {
+          position: relative;
+          overflow: hidden;
+       }
+       .glass-refraction::before {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(105deg, transparent 40%, rgba(24, 230, 255, 0.05) 45%, rgba(24, 230, 255, 0.1) 50%, rgba(24, 230, 255, 0.05) 55%, transparent 60%);
+          background-size: 200% 200%;
+          animation: refraction-sweep 8s infinite linear;
+          pointer-events: none;
+          z-index: 1;
+       }
+
+       @keyframes refraction-sweep {
+          0% { background-position: -200% -200%; }
+          100% { background-position: 200% 200%; }
        }
 
        .invisible-glass {
           background: rgba(255, 255, 255, 0.003) !important;
-          backdrop-filter: blur(30px) saturate(160%) !important;
-          -webkit-backdrop-filter: blur(30px) saturate(160%) !important;
-          border: 0.5px solid var(--border-main);
+          backdrop-filter: blur(25px) saturate(140%) !important;
+          border: 1px solid rgba(255, 255, 255, 0.05);
        }
 
-       .glass-action {
-          background: rgba(255, 255, 255, 0.03);
-          backdrop-filter: blur(20px) saturate(180%);
-          border: 0.5px solid var(--border-main);
-          transition: all 0.3s var(--ease-out-expo);
-       }
-       
-       .glass-action:hover {
-          background: rgba(255, 255, 255, 0.08);
-          border-color: var(--border-strong);
-          transform: translateY(-1px);
-          box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.2);
-       }
-
-       /* --- BRAND ELEMENT SYSTEM --- */
-       .brand-gradient-text {
-          background: linear-gradient(90deg, var(--amethyst), var(--cyan));
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-       }
-
-       .brand-inner-glow {
-          box-shadow: inset 0 0 40px rgba(123, 44, 255, 0.05);
-       }
-
-       .custom-scrollbar::-webkit-scrollbar { width: 4px; height: 4px; }
-       .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+       .custom-scrollbar::-webkit-scrollbar { width: 3px; height: 3px; }
        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(24, 230, 255, 0.2);
+          background: linear-gradient(to bottom, var(--amethyst), var(--cyan));
           border-radius: 10px;
        }
-       .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--cyan); }
-
-       .no-scrollbar::-webkit-scrollbar { display: none; }
-       .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-       @keyframes subtle-pulse {
-          0%, 100% { opacity: 0.4; }
-          50% { opacity: 0.7; }
+       
+       .shimmer-text {
+          background: linear-gradient(90deg, #fff, var(--cyan), #fff);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          animation: shimmer 4s linear infinite;
        }
-       .animate-pulse-subtle { animation: subtle-pulse 4s infinite ease-in-out; }
 
-       .shimmer-edge {
-          position: relative;
-          overflow: hidden;
-       }
-       .shimmer-edge::after {
-          content: "";
-          position: absolute;
-          top: 0;
-          left: -150%;
-          width: 50%;
-          height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08), transparent);
-          animation: shimmer 5s infinite linear;
-       }
        @keyframes shimmer {
-          0% { left: -150%; }
-          100% { left: 250%; }
+          to { background-position: 200% center; }
        }
     </style>
     <script type="importmap">
@@ -161,16 +107,15 @@
     "idb": "https://esm.sh/idb@8.0.3",
     "jszip": "https://esm.sh/jszip@3.10.1",
     "html-to-image": "https://esm.sh/html-to-image@1.11.13?external=react,react-dom",
-    "redux": "https://esm.sh/redux@4.2.1",
-    "path": "https://esm.sh/path@0.12.7",
-    "vite": "https://esm.sh/vite@7.3.0",
-    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@5.1.2",
-    "mermaid": "https://esm.sh/mermaid@11.12.2",
-    "clsx": "https://esm.sh/clsx@2.1.1",
-    "tailwind-merge": "https://esm.sh/tailwind-merge@3.4.0",
     "d3": "https://esm.sh/d3@7.9.0",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "react/": "https://esm.sh/react@^19.2.3/"
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "mermaid": "https://esm.sh/mermaid@^11.12.2",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "vite": "https://esm.sh/vite@^7.3.0",
+    "tailwind-merge": "https://esm.sh/tailwind-merge@^3.4.0",
+    "clsx": "https://esm.sh/clsx@^2.1.1",
+    "path": "https://esm.sh/path@^0.12.7"
   }
 }
 </script>

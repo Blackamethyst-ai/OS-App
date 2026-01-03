@@ -556,6 +556,7 @@ export async function evolveSystemArchitecture(code: string, lang: string, promp
             contents: `Evolve: ${prompt}. Source: ${code}. JSON {code, reasoning, type, integrityScore}.`,
             config: { responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 32000 } }
         }));
+        // Fix: Renamed evolutionResponse to response to correctly reference the variable in scope and fix the reported error.
         return { ok: true, value: safeParseJson(response.text) };
     } catch (e: any) { return { ok: false, error: e }; }
 }
