@@ -1,0 +1,53 @@
+import { useEffect, useRef } from 'react';
+import { useAppStore } from '../store';
+import { neuralVault } from '../services/persistenceService';
+import { AppMode } from '../types';
+
+export const useAutoSave = () => {
+    const lastSave = useRef<number>(Date.now());
+    const mode = useAppStore(s => s.mode);
+
+    const saveCheckpoint = (state: any, label: string) => {
+        let activeData = null;
+        switch (state.mode) {
+            case AppMode.PROCESS_MAP: activeData = state.process; break;
+            case AppMode.CODE_STUDIO: activeData = state.codeStudio; break;
+            case AppMode.HARDWARE_ENGINEER: activeData = state.hardware; break;
+            case AppMode.BIBLIOMORPHIC: activeData = state.bibliomorphic; break;
+            case AppMode.DASHBOARD: activeData = state.dashboard; break;
+            case AppMode.IMAGE_GEN: activeData = state.imageGen; break;
+            case AppMode.METAVENTIONS_HUB: activeData = state.metaventions; break;
+            case AppMode.AUTONOMOUS_FINANCE: activeData = state.metaventions; break;
+            case AppMode.AGENT_CONTROL: activeData = state.agents; break;
+            case AppMode.SYNTHESIS_BRIDGE: activeData = state.metaventions; break;
+            case AppMode.MEMORY_CORE: activeData = state.memory; break;
+            case AppMode.VOICE_MODE: activeData = state.voice; break;
+            case AppMode.BICAMERAL: activeData = state.bicameral; break;
+        }
+
+        if (activeData) {
+            neuralVault.createCheckpoint(state.mode, activeData, label);
+            lastSave.current = Date.now();
+        }
+    };
+
+    // 1. Periodic Auto-Save
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = Date.now();
+            // Trigger save every 60s if focused
+            if (now - lastSave.current > 60000 && document.visibilityState === 'visible') {
+                const state = useAppStore.getState();
+                saveCheckpoint(state, 'Auto-Save');
+            }
+        }, 10000); 
+
+        return () => clearInterval(interval);
+    }, []);
+
+    // 2. Mode Switch Save
+    useEffect(() => {
+        const state = useAppStore.getState();
+        saveCheckpoint(state, `Mode Switch: ${mode}`);
+    }, [mode]);
+};

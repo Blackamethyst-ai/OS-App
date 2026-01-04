@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -30,6 +31,18 @@
           --bg-panel: rgba(255, 255, 255, 0.015);
           --border-main: rgba(255, 255, 255, 0.06);
           --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+       }
+
+       /* --- AGGRESSIVE GLOBAL SCROLLBAR REMOVAL --- */
+       * {
+          scrollbar-width: none !important; /* Firefox */
+          -ms-overflow-style: none !important;  /* IE and Edge */
+       }
+
+       *::-webkit-scrollbar {
+          display: none !important; /* Chrome, Safari and Opera */
+          width: 0 !important;
+          height: 0 !important;
        }
 
        body { 
@@ -95,12 +108,6 @@
           backdrop-filter: blur(25px) saturate(140%) !important;
           border: 1px solid rgba(255, 255, 255, 0.05);
        }
-
-       .custom-scrollbar::-webkit-scrollbar { width: 3px; height: 3px; }
-       .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: linear-gradient(to bottom, var(--amethyst), var(--cyan));
-          border-radius: 10px;
-       }
        
        .shimmer-text {
           background: linear-gradient(90deg, #fff, var(--cyan), #fff);
@@ -112,6 +119,14 @@
 
        @keyframes shimmer {
           to { background-position: 200% center; }
+       }
+
+       .no-scrollbar::-webkit-scrollbar {
+          display: none !important;
+       }
+       .no-scrollbar {
+          -ms-overflow-style: none !important;
+          scrollbar-width: none !important;
        }
     </style>
     <script type="importmap">
@@ -130,18 +145,21 @@
     "jszip": "https://esm.sh/jszip@3.10.1",
     "html-to-image": "https://esm.sh/html-to-image@1.11.13?external=react,react-dom",
     "d3": "https://esm.sh/d3@7.9.0",
+    "three": "https://esm.sh/three@0.170.0",
+    "@react-three/fiber": "https://esm.sh/@react-three/fiber@9.0.0-rc.0?external=react,react-dom,three",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
     "react/": "https://esm.sh/react@^19.2.3/",
     "mermaid": "https://esm.sh/mermaid@^11.12.2",
     "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
-    "vite": "https://esm.sh/vite@^7.3.0",
+    "vite": "https://esm.sh/vite@^^7.3.0",
     "tailwind-merge": "https://esm.sh/tailwind-merge@^3.4.0",
     "clsx": "https://esm.sh/clsx@^2.1.1",
     "path": "https://esm.sh/path@^0.12.7"
   }
 }
 </script>
-  </head>
+  <link rel="stylesheet" href="/index.css">
+</head>
   <body>
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>

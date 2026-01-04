@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAppStore } from './store';
 import { useSystemMind } from './stores/useSystemMind'; 
@@ -27,6 +28,7 @@ import PeerMeshOverlay from './components/PeerMeshOverlay';
 import MetaventionsLogo from './components/MetaventionsLogo';
 import AppFooter from './components/AppFooter';
 import AuthModule from './components/AuthModule';
+import SynapticContextHub from './components/SynapticContextHub';
 
 import { useAutoSave } from './hooks/useAutoSave'; 
 import { useDaemonSwarm } from './hooks/useDaemonSwarm'; 
@@ -35,7 +37,7 @@ import { useResearchAgent } from './hooks/useResearchAgent';
 import { useVisualCortex } from './hooks/useVisualCortex';
 import { 
     Target, X, User, ExternalLink, Activity, ShieldCheck, Terminal, Cpu,
-    Zap, ListTodo
+    Zap, ListTodo, Search
 } from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
 import { collabService } from './services/collabService';
@@ -126,7 +128,7 @@ const OperationalSidebar = () => {
                 </button>
             </div>
             
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-10 relative z-10">
+            <div className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-10 relative z-10">
                 <div className="space-y-4">
                     <div className="flex justify-between items-center text-[10px] font-black text-gray-500 uppercase tracking-widest px-1">
                         <span>Research Signal Swarm</span>
@@ -163,6 +165,7 @@ const App: React.FC = () => {
   const user = useAppStore(s => s.user);
   const system = useAppStore(s => s.system);
   const holo = useAppStore(s => s.holo);
+  const search = useAppStore(s => s.search);
   const authenticated = useAppStore(s => s.authenticated);
   const actions = useAppStore(s => s.actions);
   const isHelpOpen = useAppStore(s => s.isHelpOpen);
@@ -209,6 +212,17 @@ const App: React.FC = () => {
   }, []);
 
   useEffect(() => { setSector(mode); }, [mode, setSector]);
+
+  // Global Context Menu Hijack
+  useEffect(() => {
+    const handleContextMenu = (e: MouseEvent) => {
+        e.preventDefault();
+        actions.openContextMenu(e.clientX, e.clientY, 'GLOBAL', null);
+        audio.playClick();
+    };
+    window.addEventListener('contextmenu', handleContextMenu);
+    return () => window.removeEventListener('contextmenu', handleContextMenu);
+  }, [actions]);
 
   const handleRestore = (state: any) => {
     switch(mode) {
@@ -330,6 +344,8 @@ const App: React.FC = () => {
         {!authenticated && <AuthModule />}
       </AnimatePresence>
 
+      <SynapticContextHub />
+
       <FocusOverlay />
       <VoiceCoreOverlay /> 
       <UserProfileOverlay /> 
@@ -350,7 +366,7 @@ const App: React.FC = () => {
         {isHelpOpen && <HelpCenter onClose={() => actions.setHelpOpen(false)} />}
       </AnimatePresence>
 
-      <header className="flex-shrink-0 h-[70px] border-b border-[var(--border-main)] z-[100] px-10 flex items-center justify-between backdrop-blur-3xl bg-[var(--bg-header)] shadow-2xl relative transition-all duration-500">
+      <header className="flex-shrink-0 h-[76px] z-[100] px-10 flex items-center justify-between backdrop-blur-3xl bg-[var(--bg-header)] shadow-2xl relative transition-all duration-500 border-b border-[var(--border-main)]">
         {/* Procedural Header Gradient Sweep */}
         <motion.div 
             animate={{ backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'] }}
@@ -358,124 +374,127 @@ const App: React.FC = () => {
             className="absolute top-0 left-0 w-full h-[1.5px] bg-[length:200%_auto] bg-gradient-to-r from-[#7B2CFF] via-[#f1c21b] to-[#18E6FF] opacity-80" 
         />
 
-        <div className="flex items-center gap-12 h-full">
-            <div className="flex items-center gap-4 cursor-pointer group relative" onClick={() => window.location.hash = '/metaventions-hub'}>
-                {/* Focal Logo Glow */}
-                <div className="absolute inset-[-30px] bg-[radial-gradient(circle,rgba(157,78,221,0.2)_0%,transparent_75%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+        <div className="flex items-center gap-12 h-full w-full max-w-[2800px] mx-auto">
+            <div className="flex items-center gap-4 cursor-pointer group relative shrink-0" onClick={() => window.location.hash = '/metaventions-hub'}>
                 <MetaventionsLogo size={36} showText={true} className={cn("relative z-10 transition-all duration-700 group-hover:scale-110", focusedSelector === 'header' && "scale-125")} />
             </div>
-            <div className="h-6 w-px bg-white/5" />
-            <nav className="flex items-center gap-2 overflow-x-auto no-scrollbar max-w-[1400px] h-full">
-                {NAV_CONFIG.map(item => (
-                    <motion.button 
-                        key={item.id} 
-                        whileHover={{ 
-                            y: -1, 
-                            scale: 1.05,
-                            x: [0, -0.5, 0.5, 0] 
-                        }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => { window.location.hash = item.path; audio.playClick(); }} 
-                        className="relative h-full px-5 group flex-shrink-0 flex items-center overflow-hidden"
-                    >
-                        <span className={`text-[10px] font-black uppercase tracking-[0.3em] font-mono transition-all duration-500 relative z-10 ${mode === item.id ? 'text-[#18E6FF]' : 'text-[var(--text-muted)] group-hover:text-[#18E6FF] group-hover:[text-shadow:0_0_8px_var(--cyan)]'}`}>
-                            {item.label}
-                        </span>
-                        {mode === item.id && (
-                            <>
+            
+            <div className="h-8 w-px bg-white/5 shrink-0" />
+
+            {/* SYNAPTIC COMMAND BAR: Fluid integration of Tabs and Search */}
+            <motion.div 
+                layout
+                className="flex-1 h-[48px] bg-black/20 border border-white/5 rounded-2xl flex items-center px-2 relative group/cmdbar focus-within:border-[#9d4edd]/30 focus-within:bg-black/40 transition-all duration-500 overflow-hidden"
+            >
+                <nav className="flex items-center h-full overflow-x-auto no-scrollbar flex-1 min-w-0">
+                    {NAV_CONFIG.map(item => (
+                        <motion.button 
+                            layout
+                            key={item.id} 
+                            whileHover={{ 
+                                y: -1, 
+                                scale: 1.05,
+                                x: [0, -0.5, 0.5, 0] 
+                            }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => { window.location.hash = item.path; audio.playClick(); }} 
+                            className="relative h-full px-4 group flex-shrink-0 flex items-center overflow-visible transition-all duration-300"
+                        >
+                            <span className={cn(
+                                "text-[9px] font-black uppercase tracking-[0.2em] font-mono transition-all duration-500 relative z-10",
+                                mode === item.id ? 'text-[#18E6FF]' : 'text-[var(--text-muted)] group-hover:text-[#18E6FF]'
+                            )}>
+                                {item.label}
+                            </span>
+                            {mode === item.id && (
                                 <motion.div 
-                                    layoutId="laser-focus" 
-                                    className="absolute bottom-0 left-0 right-0 h-[3px] bg-gradient-to-r from-transparent via-[#18E6FF] to-transparent shadow-[0_0_15px_var(--cyan)] z-20" 
+                                    layoutId="nav-underline"
+                                    className="absolute bottom-[-4px] left-2 right-2 h-[3px] z-20 rounded-full"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ 
+                                        opacity: 1,
+                                        boxShadow: [
+                                            "0 0 10px rgba(24, 230, 255, 0.7), 0 0 20px rgba(24, 230, 255, 0.4)",
+                                            "0 0 20px rgba(123, 44, 255, 0.9), 0 0 40px rgba(123, 44, 255, 0.5)",
+                                            "0 0 10px rgba(24, 230, 255, 0.7), 0 0 20px rgba(24, 230, 255, 0.4)"
+                                        ],
+                                        background: [
+                                            "linear-gradient(90deg, #7B2CFF, #18E6FF)",
+                                            "linear-gradient(90deg, #18E6FF, #7B2CFF)",
+                                            "linear-gradient(90deg, #7B2CFF, #18E6FF)"
+                                        ]
+                                    }}
+                                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                                 />
-                                <motion.div 
-                                    layoutId="laser-bleed"
-                                    className="absolute inset-0 bg-gradient-to-t from-[#18E6FF]/10 to-transparent pointer-events-none z-0"
-                                />
-                            </>
+                            )}
+                        </motion.button>
+                    ))}
+                </nav>
+
+                <div className="h-6 w-px bg-white/5 shrink-0 mx-2" />
+
+                {/* LOCATE INTELLIGENCE: Connected and Flexible */}
+                <div className={cn(
+                    "relative flex items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                    search.isOpen ? "w-[400px]" : "w-64"
+                )}>
+                    <GlobalSearchBar isIntegrated />
+                </div>
+            </motion.div>
+
+            <div className="h-8 w-px bg-white/5 shrink-0" />
+
+            <div className="flex items-center gap-6 shrink-0 h-full">
+                <div className="flex items-center gap-4">
+                    <ThemeSwitcher />
+                    <button 
+                        onClick={() => { actions.toggleProfile(true); audio.playClick(); }} 
+                        className={cn(
+                            "group/user relative p-1.5 transition-all rounded-full border border-white/5 bg-black/40 hover:border-[#9d4edd]/50 hover:shadow-[0_0_30px_rgba(157,78,221,0.3)]",
+                            focusedSelector === 'header button' && "scale-110 border-[#9d4edd]"
                         )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-white/[0.03] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                    </motion.button>
-                ))}
-            </nav>
-        </div>
+                    >
+                        <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center relative border border-white/5">
+                            {user.avatar ? (
+                                <img src={user.avatar} className="w-full h-full object-cover" alt="Identity" />
+                            ) : (
+                                <User size={18} className="text-gray-600 group-hover/user:text-[#9d4edd]" />
+                            )}
+                        </div>
+                        <motion.div 
+                            animate={{ scale: [1, 1.2, 1] }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                            className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#0a0a0a] border border-[#10b981]/50 rounded-full flex items-center justify-center z-10"
+                        >
+                            <ShieldCheck size={12} className="text-[#10b981]" />
+                        </motion.div>
+                    </button>
+                </div>
 
-        <div className="flex items-center gap-8 h-full">
-            {/* Neural Probe Search bar */}
-            <div className={cn(
-                "relative group transition-all duration-500",
-                focusedSelector === 'header input' && "scale-110 ring-2 ring-[#9d4edd]/40 rounded-full"
-            )}>
-                <GlobalSearchBar />
-                <div className="absolute inset-x-0 bottom-[-2px] h-[1px] bg-[#9d4edd]/0 group-focus-within:bg-[#9d4edd]/50 transition-all duration-500 blur-sm" />
-                {focusedSelector === 'header input' && (
-                    <div className="absolute -inset-2 border border-dashed border-[#9d4edd]/30 rounded-full animate-[spin_10s_linear_infinite] pointer-events-none" />
-                )}
-            </div>
-
-            <div className="h-6 w-px bg-white/5" />
-
-            <div className="flex items-center gap-5">
-                <ThemeSwitcher />
-                
-                {/* Enhanced Biometric Identity Node */}
                 <button 
-                    onClick={() => { actions.toggleProfile(true); audio.playClick(); }} 
+                    onClick={() => { actions.toggleCommandPalette(); audio.playClick(); }} 
                     className={cn(
-                        "group/user relative p-1.5 transition-all rounded-full border border-white/5 bg-black/40 hover:border-[#9d4edd]/50 hover:shadow-[0_0_30px_rgba(157,78,221,0.3)]",
-                        focusedSelector === 'header button' && "scale-110 border-[#9d4edd]"
+                        "relative group/eco px-6 py-2.5 bg-[#050505] border border-white/10 hover:border-[#f1c21b]/50 rounded-2xl transition-all duration-700 shadow-2xl overflow-hidden active:scale-95 shimmer-edge",
+                        focusedSelector === 'header button:last-child' && "scale-110 border-[#f1c21b]"
                     )}
                 >
-                    <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center relative border border-white/5 shadow-inner">
-                        {user.avatar ? (
-                            <img src={user.avatar} className="w-full h-full object-cover grayscale-[30%] group-hover/user:grayscale-0 transition-all duration-1000" alt="Identity" />
-                        ) : (
-                            <User size={18} className="text-gray-600 group-hover/user:text-[#9d4edd] transition-colors" />
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-[#9d4edd]/20 to-transparent opacity-0 group-hover/user:opacity-100 transition-opacity" />
-                        
-                        {/* Dynamic Scanning Ring */}
-                        <motion.div 
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                            className="absolute inset-[-4px] border border-dashed border-[#9d4edd]/20 rounded-full pointer-events-none"
-                        />
-                    </div>
-                    
-                    <motion.div 
-                        animate={{ scale: [1, 1.2, 1], opacity: [1, 0.6, 1] }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                        className="absolute -bottom-1 -right-1 w-5 h-5 bg-[#0a0a0a] border border-[#10b981]/50 rounded-full flex items-center justify-center shadow-2xl z-10"
-                    >
-                        <ShieldCheck size={12} className="text-[#10b981]" />
-                    </motion.div>
+                    <span className="relative z-10 text-[10px] font-black font-mono tracking-[0.3em] uppercase flex items-center gap-4 text-gray-500 group-hover:text-[#f1c21b] transition-all">
+                        <Terminal size={14} />
+                        SYSTEM_KERNEL
+                        <div className="w-1.5 h-1.5 rounded-full bg-[#f1c21b] animate-pulse" />
+                    </span>
                 </button>
             </div>
-
-            {/* Kernel Port Toggle */}
-            <button 
-                onClick={() => { actions.toggleCommandPalette(); audio.playClick(); }} 
-                className={cn(
-                    "relative group/eco px-6 py-2.5 bg-[#050505] border border-white/10 hover:border-[#f1c21b]/50 rounded-2xl transition-all duration-700 shadow-2xl overflow-hidden active:scale-95 shimmer-edge",
-                    focusedSelector === 'header button:last-child' && "scale-110 border-[#f1c21b]"
-                )}
-            >
-                <div className="absolute inset-0 bg-gradient-to-r from-[#f1c21b]/10 to-transparent opacity-0 group-hover/eco:opacity-100 transition-opacity" />
-                <span className="relative z-10 text-[10px] font-black font-mono tracking-[0.3em] uppercase flex items-center gap-4 text-gray-500 group-hover:text-[#f1c21b] transition-all">
-                    <Terminal size={14} className="group-hover:rotate-12 transition-transform" />
-                    SYSTEM_KERNEL
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#f1c21b] animate-pulse shadow-[0_0_10px_#f1c21b]" />
-                </span>
-            </button>
         </div>
       </header>
 
-      {/* OS Kernel Dock Layer - REPOSITIONED TO TOP PER USER DIRECTIVE */}
+      {/* OS Kernel Dock Layer */}
       <GlobalStatusBar />
 
       <div className="flex-1 flex overflow-hidden relative">
           <div className={cn(
               "flex-1 relative flex flex-col min-h-0 transition-all duration-1000 main-content-layer",
-              isFixedLayout ? 'pb-0' : 'pb-1 overflow-y-auto custom-scrollbar'
+              isFixedLayout ? 'pb-0' : 'pb-1 overflow-y-auto no-scrollbar'
           )}>
             <SynapticRouter />
           </div>
