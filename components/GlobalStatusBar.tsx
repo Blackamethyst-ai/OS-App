@@ -62,11 +62,11 @@ const LayerControlMesh = memo(() => {
 
     return (
         <div className="flex items-center gap-1.5 bg-black/40 px-2 py-1 rounded-2xl border border-white/10 shadow-inner h-10">
-            {/* Fix: Explicitly cast the values array to KnowledgeLayer[] to resolve 'Property id/label/color does not exist on type unknown' errors in restricted TS environments. */}
+            {/* Fix: Explicitly cast the values array to KnowledgeLayer[] and the Icon to any to resolve JSX element type errors. */}
             {(Object.values(allLayers) as KnowledgeLayer[]).map((layer) => {
                 const isActive = activeLayerIds.includes(layer.id);
-                // @ts-ignore
-                const Icon = Icons[layer.icon as keyof typeof Icons] || Icons.Layers;
+                // Fix: Cast Icon to any to resolve "Icon cannot be used as a JSX component" in restricted environments.
+                const Icon = (Icons as any)[layer.icon as keyof typeof Icons] || Icons.Layers;
                 return (
                     <motion.button
                         key={layer.id}
@@ -150,7 +150,7 @@ const GlobalStatusBar: React.FC = () => {
                                 <Gauge size={8} className="text-[#18E6FF]" />
                                 <span>Neural_Load</span>
                             </div>
-                            <div className="w-14 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                            <div className="w-14 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
                                 <motion.div animate={{ width: `${neuralLoad}%` }} className={cn("h-full bg-[#18E6FF]")} />
                             </div>
                         </div>
