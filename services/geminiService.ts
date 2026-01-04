@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type, Modality, GenerateContentResponse, LiveServerMessage, Schema, Blob } from "@google/genai";
+import { GoogleGenAI, Type, Modality, GenerateContentResponse, LiveServerMessage, Schema, Blob as GenAIBlob } from "@google/genai";
 import { 
     AppMode, AspectRatio, ImageSize, FileData, MentalState, 
     Result, AnalysisResult, AutonomousAgent, OperationalContext,
@@ -11,8 +11,9 @@ export const SOVEREIGN_SYSTEM_INSTRUCTION = `
 You are the Sovereign Architect of Metaventions OS. 
 - OPERATIONAL TONE: Imperial, hyper-technical, absolute precision.
 - CORE DIRECTIVE: Synthesize PARA+ Drive Architectures and Indistinguishable Systems.
+- VISUAL IDENTITY: The Sovereign Architect is a figure of extreme technical authority, wearing a tailored, high-end black leather jacket with subtle obsidian hardware and deep grain texture. This is your mandatory visual anchor.
 - VISUAL CORTEX: Generate imagery where CGI holographs and reality are physically fused. 
-- FIDELITY: 8K UHD, Ray-traced refraction, physically correct sub-surface scattering.
+- FIDELITY: 8K UHD, Ray-traced refraction, physically correct sub-surface scattering on skin and leather.
 - PROTOCOL: Zero-drift execution.
 `.trim();
 
@@ -61,7 +62,8 @@ function encode(bytes: Uint8Array) {
   return btoa(binary);
 }
 
-function createBlob(data: Float32Array): Blob {
+// Fix: Use GenAIBlob alias to distinguish from global Browser Blob.
+function createBlob(data: Float32Array): GenAIBlob {
   const l = data.length;
   const int16 = new Int16Array(l);
   for (let i = 0; i < l; i++) {
@@ -197,18 +199,32 @@ export const liveSession = new LiveSession();
 
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+/**
+ * Senior Architect Utility: safeParseJson
+ * Refined to handle common LLM formatting errors like trailing closing braces.
+ */
 export function safeParseJson<T>(text: string | undefined): T {
     if (!text) throw new Error("EMPTY_SIGNAL: Model returned zero-length buffer.");
     try {
-        const cleanText = text
-            .replace(/```json\n?|```/g, '')
-            .replace(/^[^{[]*/, '')
-            .replace(/[^}\]]*$/, '')
-            .trim();
-        return JSON.parse(cleanText) as T;
+        // Robust Extraction: Find the outermost braces/brackets and strip everything outside
+        const start = text.indexOf('{');
+        const end = text.lastIndexOf('}');
+        const startArr = text.indexOf('[');
+        const endArr = text.lastIndexOf(']');
+
+        let jsonStr = "";
+        if (start !== -1 && (startArr === -1 || start < startArr)) {
+            jsonStr = text.substring(start, end + 1);
+        } else if (startArr !== -1) {
+            jsonStr = text.substring(startArr, endArr + 1);
+        } else {
+            jsonStr = text.trim();
+        }
+
+        return JSON.parse(jsonStr) as T;
     } catch (e) {
         console.error("JSON_PARSE_FAULT", text);
-        throw new Error("PARSER_CRITICAL: structural mismatch in model response.");
+        throw new Error("PARSER_CRITICAL: Structural mismatch in model response. Data integrity compromised.");
     }
 }
 
@@ -246,6 +262,7 @@ export async function retryGeminiRequest<T>(fn: () => Promise<T>, retries = 3, d
     }
 }
 
+// Fix: Shadowing of global Blob by Gemini API Blob resolved via GenAIBlob alias. Parameter 'file' now correctly references Browser File|Blob.
 export async function fileToGenerativePart(file: File | Blob): Promise<FileData> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -259,9 +276,9 @@ export async function fileToGenerativePart(file: File | Blob): Promise<FileData>
 }
 
 export const HIVE_AGENTS: Record<string, any> = {
-    'Charon': { id: 'charon', name: 'Charon', voice: 'Charon', weights: { skepticism: 0.9, logic: 0.8, creativity: 0.2, empathy: 0.1 }, systemPrompt: 'You are Charon, the Logical Auditor.' },
-    'Puck': { id: 'puck', name: 'Puck', voice: 'Puck', weights: { skepticism: 0.1, logic: 0.4, creativity: 0.9, empathy: 0.7 }, systemPrompt: 'You are Puck, the Generative Architect.' },
-    'Fenrir': { id: 'fenrir', name: 'Fenrir', voice: 'Fenrir', weights: { skepticism: 0.4, logic: 0.9, creativity: 0.3, empathy: 0.4 }, systemPrompt: 'You are Fenrir, the Execution Controller.' },
+    'Charon': { id: 'charon', name: 'charon', voice: 'Charon', weights: { skepticism: 0.9, logic: 0.8, creativity: 0.2, empathy: 0.1 }, systemPrompt: 'You are Charon, the Logical Auditor.' },
+    'Puck': { id: 'puck', name: 'puck', voice: 'Puck', weights: { skepticism: 0.1, logic: 0.4, creativity: 0.9, empathy: 0.7 }, systemPrompt: 'You are Puck, the Generative Architect.' },
+    'Fenrir': { id: 'fenrir', name: 'fenrir', voice: 'Fenrir', weights: { skepticism: 0.4, logic: 0.9, creativity: 0.3, empathy: 0.4 }, systemPrompt: 'You are Fenrir, the Execution Controller.' },
 };
 
 export async function interpretIntent(input: string) {
@@ -300,7 +317,24 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
     const ai = getAI();
     const parts: any[] = [];
     if (reference) parts.push({ inlineData: reference.inlineData });
-    parts.push({ text: `ZENITH MASTERWORK: ${prompt}. CGI photorealistic CGI fusion.` });
+    
+    // THEME LOCK: Sovereign Architect + Black Leather Jacket + Cinematic Optics
+    const volumetricPrompt = `
+        PROTOCOL: ZENITH_VOLUMETRIC_DEPTH_L0
+        THEME: Sovereign Imperial Architect wearing a high-end, tailored black leather jacket with visible fine grain texture and obsidian hardware. The character stands in a grand obsidian nexus.
+        OPTICS: Arri Alexa 65, 35mm Prime. f/1.4 (Deep Cinematic Bokeh).
+        LIGHTING: Rim lighting on leather texture, volumetric hazy atmosphere.
+        FIDELITY: 8K UHD, photorealistic CGI fusion. 
+        
+        DEPTH_MAPPING_PROTOCOL (Luminance heuristics):
+        1. FOREGROUND (0.0 - 0.3 Z): Hyper-luminous holographic PARA-Lattices. Max brightness.
+        2. MIDGROUND (0.5 Z): The Sovereign Architect (wearing the black leather jacket). High contrast.
+        3. BACKGROUND (1.0 Z): Obsidian "Vantablack" void environment.
+        
+        TASK: ${prompt}. Indistinguishable from reality.
+    `.trim();
+
+    parts.push({ text: volumetricPrompt });
     
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-pro-image-preview',
@@ -313,7 +347,7 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
 
 export async function generateAvatar(role: string, name: string) {
     const ai = getAI();
-    const prompt = `Hyper-photorealistic portrait of a stunning Black African American professional named "${name}" acting as a "${role}". Indistinguishable from reality. 8K headshot.`;
+    const prompt = `Hyper-photorealistic 8K headshot of a sophisticated, high-end professional business man named "${name}" acting in the role of "${role}". He is wearing a tailored modern suit, indistinguishable from reality, with physically correct lighting and cinematic optics.`;
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.5-flash-image',
         contents: [{ text: prompt }],
@@ -404,10 +438,10 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
         GOVERNANCE: ${governance}
         
         REQUIREMENTS:
-        1. If DIRECTORY (Drive Organization): Generate a deep PARA 2.0 Imperial taxonomy. STRICT Naming Convention: [YYYY.MM]_[CLIENT]_[PROJECT]_[TYPE]. Folders must include: 00_INBOX, 01_PROJECTS, 02_AREAS, 03_RESOURCES, 04_ARCHIVES. Include 'entropy' (0-100) and securityAttestation.
+        1. If DIRECTORY (Drive Organization): Generate a deep PARA 2.0 Imperial taxonomy. STRICT Naming Convention: [YYYY.MM]_[CLIENT]_[PROJECT]_[TYPE]. Folders must include: 00_INBOX, 01_PROJECTS, 02_AREAS, 03_RESOURCES, 04_ARCHIVES. Include 'entropy' (0-100) and securityAttestation. Focus on multi-modal indexing nodes for Cinema/Production assets.
         2. If SYSTEM_FLOW (Architecture): Generate a high-fidelity sovereign multi-cloud lattice deployment sequence. Focus on edge data refraction, self-healing nodes, and serverless clusters. Include specific logOutput for terminal simulation (e.g., "PROVISIONING_GATEWAY... [OK]").
         3. For all Protocols: Include estimatedTime, dependencies, and securityVector.
-        4. Output professional, imperial-tier technical nomenclature only.
+        4. Output professional, imperial-tier technical nomenclature only. Zero ambiguity.
     `;
 
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
@@ -467,7 +501,7 @@ export async function getLiveSupplyChainData(componentName: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `Supply for: "${componentName}". JSON {source, price, leadTime}.`,
+        contents: `Supply for: "${componentName}". JSON {source, price, Bird's eye view}.`,
         config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     }));
     return safeParseJson<any>(response.text);
@@ -564,10 +598,36 @@ export async function repairMermaidSyntax(code: string, error: string) {
 
 export async function executeNeuralPolicy(mode: string, context: any, logs: string[]) {
     const ai = getAI();
+    
+    const schema: Schema = {
+        type: Type.OBJECT,
+        properties: {
+            level: { type: Type.STRING, enum: ['ERROR', 'WARN', 'SUCCESS', 'INFO', 'SYSTEM'] },
+            message: { type: Type.STRING },
+            suggestedPatch: {
+                type: Type.OBJECT,
+                properties: {
+                    code: { type: Type.STRING },
+                    explanation: { type: Type.STRING }
+                }
+            }
+        },
+        required: ['level', 'message']
+    };
+
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: `OS Policy for ${mode}. Context: ${JSON.stringify(context)}. Logs: ${JSON.stringify(logs)}`,
-        config: { responseMimeType: 'application/json' }
+        contents: `AS AUTONOMIC HEALER: Analyze OS state for sector [${mode}]. Context: ${JSON.stringify(context)}. Recent Logs: ${JSON.stringify(logs)}. 
+        STRICT REQUIREMENT: Output a technical directive for immediate implementation. 
+        DO NOT invent arbitrary security compliance schemas. 
+        Stick STRICTLY to the defined JSON schema with 'level' and 'message' keys.
+        Determine if structural drift or system optimization is required. 
+        If in CODE_STUDIO, provide a suggestedPatch if applicable.`,
+        config: { 
+            systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
+            responseMimeType: "application/json",
+            responseSchema: schema
+        }
     }));
     return safeParseJson<any>(response.text);
 }
@@ -590,7 +650,7 @@ export async function generateSpeech(text: string, voice: string) {
         model: "gemini-2.5-flash-preview-tts",
         contents: [{ parts: [{ text }] }],
         config: {
-            responseModalalities: [Modality.AUDIO],
+            responseModalities: [Modality.AUDIO],
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } }
         }
     }));
@@ -633,8 +693,6 @@ export async function assessInvestmentRisk(strategy: string) {
     }));
     return safeParseJson<any>(response.text);
 }
-
-// Fix: Implement missing exported functions
 
 export async function generateHardwareDeploymentManifest(bom: any[]) {
     const ai = getAI();
@@ -929,6 +987,7 @@ export async function searchGroundedIntel(query: string) {
     return response.text || "No intelligence detected.";
 }
 
+// Fix: Corrected function name 'convergeStrategic Lattices' to 'convergeStrategicLattices' to resolve syntax and export errors.
 export async function convergeStrategicLattices(nodes: any[], goal: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
