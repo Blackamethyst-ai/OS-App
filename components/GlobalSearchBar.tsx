@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useAppStore } from '../store';
 import { performGlobalSearch, promptSelectKey } from '../services/geminiService';
@@ -15,7 +16,6 @@ import { cn } from '../utils/cn';
 
 const MotionDiv = motion.div as any;
 
-// Mock Internal Commands based on AppMode
 const SYSTEM_COMMANDS = [
     { id: 'nav-eco', title: 'Open Ecosystem Hub', description: 'Switch focus to Dashboard sector.', category: 'COMMANDS', type: 'NAV', target: AppMode.METAVENTIONS_HUB },
     { id: 'nav-logic', title: 'Open Logic Studio', description: 'Switch focus to Code sector.', category: 'COMMANDS', type: 'NAV', target: AppMode.CODE_STUDIO },
@@ -39,7 +39,11 @@ const FilterChip = ({ label, active, onClick, icon: Icon }: any) => (
     </button>
 );
 
-const GlobalSearchBar: React.FC = () => {
+interface GlobalSearchBarProps {
+    isIntegrated?: boolean;
+}
+
+const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false }) => {
   const { search, actions, focusedSelector } = useAppStore();
   const { setSearchState, setMode, addLog, toggleTerminal } = actions;
   const inputRef = useRef<HTMLInputElement>(null);
@@ -50,7 +54,6 @@ const GlobalSearchBar: React.FC = () => {
 
   const isBeingInspected = focusedSelector === 'header input';
 
-  // --- Search Persistence Logic ---
   const addToHistory = useCallback((q: string) => {
       const cleanQ = q?.trim();
       if (!cleanQ) return;
@@ -65,7 +68,6 @@ const GlobalSearchBar: React.FC = () => {
       audio.playClick();
   };
 
-  // --- Heuristic & Vector Search Logic ---
   const executeSearch = useCallback(async (q: string) => {
       if (!q.trim() || q.length < 2) {
           setSearchState({ results: [], isSearching: false });
@@ -76,7 +78,6 @@ const GlobalSearchBar: React.FC = () => {
       let finalResults: any[] = [];
 
       try {
-          // 1. Local Command Logic (Category: COMMANDS)
           if (search.filter === 'ALL' || search.filter === 'COMMANDS') {
               const cmdMatches = SYSTEM_COMMANDS.filter(cmd => 
                 cmd.title.toLowerCase().includes(q.toLowerCase()) || 
@@ -85,7 +86,6 @@ const GlobalSearchBar: React.FC = () => {
               finalResults.push(...cmdMatches.map(c => ({ ...c, type: 'CMD' })));
           }
 
-          // 2. Vector Memory Logic (Category: MEMORY)
           if (search.filter === 'ALL' || search.filter === 'MEMORY') {
               const queryVector = await (window as any).geminiInternal?.generateEmbedding?.(q) || [];
               if (queryVector.length > 0) {
@@ -106,7 +106,6 @@ const GlobalSearchBar: React.FC = () => {
               }
           }
 
-          // 3. Grounded Intelligence (Category: WORLD)
           if (search.filter === 'ALL' || search.filter === 'WORLD') {
               if (q.length > 3) {
                   const worldResults = await performGlobalSearch(q);
@@ -122,7 +121,6 @@ const GlobalSearchBar: React.FC = () => {
       }
   }, [search.filter, setSearchState]);
 
-  // --- Adaptive Debouncing ---
   useEffect(() => {
       if (!search.query || search.query.length < 2) {
           setSearchState({ results: [], isOpen: search.isOpen });
@@ -144,7 +142,6 @@ const GlobalSearchBar: React.FC = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [setSearchState]);
 
-  // Keyboard Navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
       if (!search.isOpen) return;
 
@@ -182,8 +179,8 @@ const GlobalSearchBar: React.FC = () => {
   };
 
   return (
-    <div ref={containerRef} className="relative z-50 flex items-center h-full">
-        <form onSubmit={e => e.preventDefault()} className="flex items-center w-80 relative">
+    <div ref={containerRef} className="relative z-50 flex items-center h-full w-full">
+        <form onSubmit={e => e.preventDefault()} className="flex items-center w-full relative">
             <div className="relative w-full group">
                 <input
                     ref={inputRef}
@@ -194,34 +191,20 @@ const GlobalSearchBar: React.FC = () => {
                     onBlur={() => setIsFocused(false)}
                     onKeyDown={handleKeyDown}
                     className={cn(
-                        "w-full bg-black/40 border rounded-full px-12 py-2 text-[10px] font-mono text-white outline-none transition-all shadow-inner",
-                        validationError ? "border-red-500/50" : (isFocused || isBeingInspected) ? "border-[#f1c21b] shadow-[0_0_15px_rgba(241,194,27,0.3)]" : "border-white/10 group-hover:border-white/20",
-                        isBeingInspected && "scale-105"
+                        "w-full px-12 py-2 text-[10px] font-mono text-white outline-none transition-all",
+                        isIntegrated 
+                            ? "bg-transparent border-none" 
+                            : "bg-black/40 border border-white/10 rounded-full shadow-inner group-hover:border-white/20",
+                        validationError && !isIntegrated ? "border-red-500/50" : "",
+                        (isFocused || isBeingInspected) && !isIntegrated ? "border-[#f1c21b] shadow-[0_0_15px_rgba(241,194,27,0.3)]" : ""
                     )}
                     placeholder="Locate intelligence..."
                 />
                 
-                {/* Cognitive Probe Scanline Animation */}
-                {isFocused && (
-                    <motion.div 
-                        initial={{ top: '10%' }}
-                        animate={{ top: ['10%', '90%', '10%'] }}
-                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                        className="absolute left-6 right-6 h-[1px] bg-[#f1c21b]/30 pointer-events-none z-10"
-                    />
-                )}
-
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
                     {search.isSearching ? <Loader2 className="w-3.5 h-3.5 text-[#f1c21b] animate-spin" /> : <Search className={cn("w-3.5 h-3.5 transition-colors", isFocused ? "text-[#f1c21b]" : "text-gray-500")} />}
                 </div>
 
-                {isBeingInspected && (
-                    <div className="absolute -top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 bg-[#f1c21b] px-2 py-0.5 rounded-full shadow-[0_0_10px_#f1c21b]">
-                         <Scan size={8} className="text-black animate-pulse" />
-                         <span className="text-[7px] font-black text-black uppercase tracking-widest">[PROBE_ACTIVE]</span>
-                    </div>
-                )}
-                
                 <AnimatePresence>
                     {validationError && (
                         <motion.div 
@@ -254,7 +237,6 @@ const GlobalSearchBar: React.FC = () => {
                     exit={{ opacity: 0, y: 10, scale: 0.98 }} 
                     className="absolute top-full right-0 mt-4 w-[420px] bg-[#0a0a0a]/98 backdrop-blur-4xl border border-white/10 rounded-2xl shadow-[0_40px_100px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col"
                 >
-                    {/* Header: Filters */}
                     <div className="p-4 border-b border-white/5 bg-white/[0.02] flex items-center justify-between gap-4">
                         <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
                             <FilterChip label="ALL" icon={Layers} active={search.filter === 'ALL'} onClick={() => setSearchState({ filter: 'ALL' })} />
@@ -341,27 +323,17 @@ const GlobalSearchBar: React.FC = () => {
                                      <p className="text-[11px] font-black font-mono text-gray-500 uppercase tracking-[0.6em]">System Oracle Idle</p>
                                      <p className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">Awaiting Command Vector Influx</p>
                                  </div>
-                                 <div className="flex flex-wrap justify-center gap-2 max-w-xs mx-auto">
-                                     {['Lattice Topology', 'Vault Archetypes', 'Grounded World Search'].map(tag => (
-                                         <span key={tag} className="text-[7px] font-black font-mono text-gray-800 border border-white/5 px-2 py-0.5 rounded uppercase">{tag}</span>
-                                     ))}
-                                 </div>
                              </div>
                          )}
                     </div>
                     
-                    {/* Footer HUD info */}
                     <div className="p-3 bg-white/[0.01] border-t border-white/5 flex justify-between items-center px-6">
                         <div className="flex gap-4 items-center">
                             <span className="flex items-center gap-1.5 text-[8px] font-mono text-gray-600">
                                 <Zap size={10} className="text-[#f1c21b]" /> Debounce: 400ms
                             </span>
-                            <span className="flex items-center gap-1.5 text-[8px] font-mono text-gray-600">
-                                <Terminal size={10} className="text-[#9d4edd]" /> Heuristics: OK
-                            </span>
                         </div>
                         <div className="flex gap-2">
-                            <span className="px-1.5 py-0.5 bg-black rounded text-[7px] font-mono text-gray-500">ESC to Close</span>
                             <span className="px-1.5 py-0.5 bg-[#f1c21b]/20 text-[#f1c21b] border border-[#f1c21b]/30 rounded text-[7px] font-bold">ENTER to Sync</span>
                         </div>
                     </div>

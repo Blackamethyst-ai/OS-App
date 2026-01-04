@@ -52,6 +52,7 @@ const HolographicCommandDeck: React.FC = () => {
         return () => clearInterval(interval);
     }, []);
 
+    // Fix: Using 'as const' to ensure 'type: spring' is inferred as a specific literal rather than a general string.
     const containerVariants = {
         idle: { 
             y: 35, 
@@ -67,7 +68,7 @@ const HolographicCommandDeck: React.FC = () => {
             scale: 1,
             transition: { type: 'spring', stiffness: 500, damping: 25 }
         }
-    };
+    } as const;
 
     return (
         <div className="fixed bottom-0 left-0 right-0 h-40 z-[400] flex items-end justify-center pb-12 pointer-events-none">

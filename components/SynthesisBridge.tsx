@@ -10,13 +10,14 @@ import {
     Cpu, Database, Shield, Globe, AlertTriangle, CheckCircle2,
     Lock, Unlock, ShieldAlert, Gauge, Waves, Bot, Trash2,
     BrainCircuit, X, DatabaseZap, Network, Server, Hexagon,
-    Workflow, Boxes, GitBranch, Clock, Link, ShieldX
+    Workflow, Boxes, GitBranch, Clock, Link, ShieldX,
+    Github, TerminalSquare, Share, CloudUpload
 } from 'lucide-react';
 import { promptSelectKey, generateStructuredWorkflow } from '../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
-import { TechnicalManifest, DirectoryNode, ProtocolStep, SwarmProposal } from '../types';
+import { TechnicalManifest, DirectoryNode, ProtocolStep } from '../types';
 import { renderSafe } from '../utils/renderSafe';
 
 const BlueprintStat = ({ label, value, color, detail }: { label: string, value: string, color: string, detail?: string }) => (
@@ -304,7 +305,7 @@ const ImplementationDeck: React.FC<{
                 <div className="p-6 bg-black/60 border border-white/5 rounded-[2.5rem] shadow-inner group/logic relative overflow-hidden mb-6">
                     <div className="flex items-center gap-2 mb-4">
                         <Terminal size={14} className="text-[#7B2CFF]" />
-                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-[0.4em]">Directive</span>
+                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-0.4em">Directive</span>
                     </div>
                     <p className="text-xl text-gray-300 font-mono leading-tight italic border-l-2 border-[#7B2CFF] pl-6 group-hover:text-white transition-colors duration-1000">
                         "{renderSafe(data.logic || data.internalPlanningMonologue)}"
@@ -339,7 +340,7 @@ const ImplementationDeck: React.FC<{
                                 </div>
                                 <div className="flex-1 min-w-0 relative z-10">
                                     <div className="flex justify-between items-center mb-1">
-                                        <div className="text-[9px] font-black text-[#10b981] uppercase tracking-[0.4em] opacity-60 group-hover:opacity-100 flex items-center gap-2">
+                                        <div className="text-[9px] font-black text-[#10b981] uppercase tracking-[0.4em] opacity-60 group-hover:opacity-100 flex items-center gap-4">
                                             {step.phase || step.role || 'CORE_LOGIC'}
                                             <div className="h-px w-8 bg-current opacity-20" />
                                         </div>
@@ -435,17 +436,18 @@ const SynthesisBridge: React.FC = () => {
     const { actions, knowledge, dashboard } = useAppStore();
     const { addLog, archiveIntervention, deployStrategyToLattice } = actions;
     
-    const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM' | 'CODE'>('DRIVE');
+    const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM' | 'CODE' | 'OPS'>('DRIVE');
     const [isGenerating, setIsGenerating] = useState(false);
     const [result, setResult] = useState<TechnicalManifest | null>(null);
     const [customIntent, setCustomIntent] = useState('');
 
     const PRESETS = [
-        { id: 'para_ritual', label: 'PARA 2.0 Imperial Ritual', type: 'DRIVE', description: 'Architect a Tier-1 recursive PARA file hierarchy with semantic linking and strict convention protocols.', icon: FolderTree, complexity: 'IMPERIAL' },
+        { id: 'para_ritual', label: 'PARA 2.0 Imperial Ritual', type: 'DRIVE', description: 'Architect a Tier-1 recursive PARA file hierarchy with semantic linking and strict date-stamped naming conventions.', icon: FolderTree, complexity: 'IMPERIAL' },
         { id: 'vault_indexing', label: 'Asset Indexing Pipeline', type: 'DRIVE', description: 'Forge an automated multi-modal workflow for indexing raw production assets into the Neural Vault.', icon: DatabaseZap, complexity: 'PRODUCTION' },
-        { id: 'lattice_infra', label: 'Multi-Cloud Lattice', type: 'SYSTEM', description: 'Forge a high-fidelity sovereign cloud manifest featuring edge refraction and self-healing node clusters.', icon: Globe, complexity: 'SOVEREIGN' },
-        { id: 'serverless_mesh', label: 'Edge Ingestion Mesh', type: 'SYSTEM', description: 'Architect an event-driven serverless mesh for real-time AI signal processing and distributed logic.', icon: Network, complexity: 'CRITICAL' },
-        { id: 'ts_fortress', label: 'Type Sovereignty', type: 'CODE', description: 'Imperial protocol for React/TypeScript structural integrity. Enforces generic inheritance.', icon: Shield, complexity: 'STABLE' },
+        { id: 'git_sync', label: 'Git Sovereignty Protocol', type: 'OPS', description: 'Establishing a secure git lifecycle for Metaventions assets: Stage, Atomic Commit, Signed Push.', icon: Github, complexity: 'SOVEREIGN' },
+        { id: 'lattice_infra', label: 'Decentralized Lattice', type: 'SYSTEM', description: 'Forge a high-fidelity sovereign cloud manifest featuring edge refraction and self-healing node clusters.', icon: Globe, complexity: 'SOVEREIGN' },
+        { id: 'distributed_ops', label: 'Distributed Systems Blueprint', type: 'SYSTEM', description: 'Architect a globally distributed operational process for multi-agent sync and cross-sector coordination.', icon: Network, complexity: 'CRITICAL' },
+        { id: 'ts_fortress', label: 'Type Sovereignty', type: 'CODE', description: 'Imperial protocol for React/TypeScript structural integrity. Enforces generic inheritance and strict typing.', icon: Shield, complexity: 'STABLE' },
     ];
 
     const generateBlueprint = async (presetPrompt?: string) => {
@@ -463,12 +465,15 @@ const SynthesisBridge: React.FC = () => {
             const directive = presetPrompt || (processType === 'DRIVE' 
                 ? "Forge a professional PARA 2.0 Imperial Drive Organization. STRUCTURE: Inbox, Projects, Areas, Resources, Archives. NAMING: [TYPE]_[DATE]_[PROJECT]. Provide deep metadata for entropy scores."
                 : processType === 'SYSTEM'
-                ? "Synthesize an ultra-fidelity Systems Architecture manifest. Domain: Sovereign Cloud Lattice. Include IaC Terraform/HCL execution steps and terminal logOutput."
+                ? "Synthesize an ultra-fidelity Systems Architecture manifest. Domain: Decentralized Lattice. Include IaC Terraform/HCL execution steps and terminal logOutput."
+                : processType === 'OPS'
+                ? "Generate a structured GitHub Sync Protocol. STEPS: 1. Status Audit, 2. Atomic Staging, 3. Signed Commit, 4. Upstream Push. Include CLI command sequences."
                 : "Forge a React/TypeScript Type-Safety Manifesto. Use absolute technical nomenclature and eliminate all implicit 'any' types.");
 
             const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', processType === 'DRIVE' ? 'DIRECTORY' : 'SYSTEM_FLOW', { 
                 prompt: `${directive}. User Intent: ${customIntent}. Context Layers: ${activeLayers}.`,
-                fidelity: 100
+                domain: 'Decentralized Lattice',
+                fidelity: 90
             });
 
             setResult(workflow);
@@ -521,14 +526,18 @@ const SynthesisBridge: React.FC = () => {
                             <Target size={18} className="text-[#7B2CFF] animate-pulse" />
                             <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Forge Sector</span>
                         </div>
-                        <div className="space-y-3 relative z-10">
+                        <div className="space-y-2 relative z-10">
                             <DomainCard 
                                 id="DRIVE" label="PARA Protocol" sub="DATA TAXONOMY" icon={HardDrive} color="#7B2CFF"
                                 active={processType === 'DRIVE'} onClick={() => { setProcessType('DRIVE'); audio.playClick(); }} 
                             />
                             <DomainCard 
-                                id="SYSTEM" label="Cloud Lattice" sub="INFRASTRUCTURE" icon={Cloud} color="#18E6FF"
+                                id="SYSTEM" label="Systems Lattice" sub="ARCHITECTURE" icon={Cloud} color="#18E6FF"
                                 active={processType === 'SYSTEM'} onClick={() => { setProcessType('SYSTEM'); audio.playClick(); }} 
+                            />
+                             <DomainCard 
+                                id="OPS" label="Git Sovereign" sub="OPERATIONS" icon={Github} color="#10b981"
+                                active={processType === 'OPS'} onClick={() => { setProcessType('OPS'); audio.playClick(); }} 
                             />
                              <DomainCard 
                                 id="CODE" label="Type Sovereignty" sub="TECHNICAL STACK" icon={Shield} color="#f1c21b"

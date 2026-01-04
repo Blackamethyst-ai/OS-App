@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, Suspense, lazy, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -162,37 +163,8 @@ const SynapticRouter: React.FC = () => {
                     </motion.main>
                 </AnimatePresence>
             </Suspense>
-
-            <AnimatePresence>
-                {contextMenu.isOpen && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9 }}
-                        className="fixed z-[9999] min-w-[220px] bg-[#0a0a0a]/95 backdrop-blur-2xl border border-[#333] rounded-lg shadow-2xl overflow-hidden p-1.5 crystalline"
-                        style={{ top: contextMenu.y, left: contextMenu.x }}
-                    >
-                        <div className="px-3 py-2 border-b border-[#222] mb-2">
-                            <div className="flex items-center justify-between">
-                                <span className="text-[9px] font-bold text-[#9d4edd] uppercase tracking-wider font-mono">Context Hub</span>
-                            </div>
-                        </div>
-                        <div className="flex flex-col gap-0.5">
-                            <MenuItem icon={Scan} label="Deep Scan" onClick={() => {}} />
-                            <MenuItem icon={Eye} label="Holo Project" onClick={() => {}} />
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     );
 };
-
-const MenuItem: React.FC<{ icon: any, label: string, onClick: () => void }> = ({ icon: Icon, label, onClick }) => (
-    <button onClick={onClick} className="w-full flex items-center gap-3 px-3 py-2 text-xs font-mono text-gray-300 hover:bg-white/5 hover:text-white rounded transition-all group text-left">
-        <Icon className="w-3.5 h-3.5 text-gray-500 group-hover:text-[#9d4edd] transition-colors" />
-        {label}
-    </button>
-);
 
 export default SynapticRouter;
