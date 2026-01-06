@@ -210,7 +210,7 @@ const App: React.FC = () => {
                 // No key found anywhere. Prompt the user.
                 setTimeout(() => {
                     actions.addLog('WARN', 'SECURITY: Neural Uplink Credentials missing.');
-                    actions.toggleProfile(true);
+                    // actions.toggleProfile(true); // User requested manual entry via Sovereign Gate
                 }, 1000);
             } else {
                 console.log("🔐 AUTH EXTENSION: Key detected.", { env: hasEnvKey, local: hasLocalKey });
