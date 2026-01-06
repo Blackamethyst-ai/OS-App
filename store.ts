@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import { 
-    AppMode, AppTheme, UserProfile, FileData, Task, 
-    KnowledgeNode, ScienceHypothesis, AtomicTask, 
-    SwarmResult, SwarmStatus, SearchResultItem, Message, 
-    PeerPresence, SwarmEvent, TaskPriority, TaskStatus, 
+import {
+    AppMode, AppTheme, UserProfile, FileData, Task,
+    KnowledgeNode, ScienceHypothesis, AtomicTask,
+    SwarmResult, SwarmStatus, SearchResultItem, Message,
+    PeerPresence, SwarmEvent, TaskPriority, TaskStatus,
     AspectRatio, ImageSize, StoredArtifact, MetaventionsState,
     OperationalContext, AutonomousAgent, Frame, ProductionBible,
     TechnicalManifest, SwarmProposal
@@ -335,7 +335,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         clearanceLevel: 5,
         avatar: null
     },
-    authenticated: true,
+    authenticated: false,
     isProfileOpen: false,
     isCommandPaletteOpen: false,
     isSidebarOpen: false,
@@ -590,10 +590,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     },
 
     actions: {
-        setMode: (mode) => set((state) => ({ 
-            previousMode: state.mode, 
-            mode, 
-            isTransitioning: true 
+        setMode: (mode) => set((state) => ({
+            previousMode: state.mode,
+            mode,
+            isTransitioning: true
         })),
         setTheme: (theme) => set({ theme }),
         setUserProfile: (profile) => set((state) => ({ user: { ...state.user, ...profile } })),
@@ -613,21 +613,21 @@ export const useAppStore = create<AppState>((set, get) => ({
         toggleTerminal: (open) => set((state) => ({
             system: { ...state.system, isTerminalOpen: open ?? !state.system.isTerminalOpen }
         })),
-        setSearchState: (update) => set((state) => ({ 
-            search: { ...state.search, ...(typeof update === 'function' ? update(state.search) : update) } 
+        setSearchState: (update) => set((state) => ({
+            search: { ...state.search, ...(typeof update === 'function' ? update(state.search) : update) }
         })),
-        setVoiceState: (update) => set((state) => ({ 
-            voice: { ...state.voice, ...(typeof update === 'function' ? update(state.voice) : update) } 
+        setVoiceState: (update) => set((state) => ({
+            voice: { ...state.voice, ...(typeof update === 'function' ? update(state.voice) : update) }
         })),
-        setVisualCortexState: (update) => set((state) => ({ 
-            visualCortex: { ...state.visualCortex, ...(typeof update === 'function' ? update(state.visualCortex) : update) } 
+        setVisualCortexState: (update) => set((state) => ({
+            visualCortex: { ...state.visualCortex, ...(typeof update === 'function' ? update(state.visualCortex) : update) }
         })),
         openHoloProjector: (artifact) => set({ holo: { isOpen: true, activeArtifact: artifact, analysisResult: null, isAnalyzing: false } }),
         closeHoloProjector: () => set((state) => ({ holo: { ...state.holo, isOpen: false, activeArtifact: null } })),
         setHoloAnalysis: (result) => set((state) => ({ holo: { ...state.holo, analysisResult: result } })),
         setHoloAnalyzing: (busy) => set((state) => ({ holo: { ...state.holo, isAnalyzing: busy } })),
-        setDashboardState: (update) => set((state) => ({ 
-            dashboard: { ...state.dashboard, ...(typeof update === 'function' ? update(state.dashboard) : update) } 
+        setDashboardState: (update) => set((state) => ({
+            dashboard: { ...state.dashboard, ...(typeof update === 'function' ? update(state.dashboard) : update) }
         })),
         toggleKnowledgeLayer: (id) => set((state) => {
             const active = state.knowledge.activeLayers.includes(id)
@@ -638,8 +638,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         optimizeLayer: (id) => set((state) => ({
             knowledge: { activeLayers: [...state.knowledge.activeLayers, id] }
         })),
-        setProcessState: (update) => set((state) => ({ 
-            process: { ...state.process, ...(typeof update === 'function' ? update(state.process) : update) } 
+        setProcessState: (update) => set((state) => ({
+            process: { ...state.process, ...(typeof update === 'function' ? update(state.process) : update) }
         })),
         updateProcessNode: (id, update) => set((state) => ({
             process: {
@@ -647,26 +647,26 @@ export const useAppStore = create<AppState>((set, get) => ({
                 nodes: state.process.nodes.map(n => n.id === id ? { ...n, data: { ...n.data, ...update } } : n)
             }
         })),
-        setImageGenState: (update) => set((state) => ({ 
-            imageGen: { ...state.imageGen, ...(typeof update === 'function' ? update(state.imageGen) : update) } 
+        setImageGenState: (update) => set((state) => ({
+            imageGen: { ...state.imageGen, ...(typeof update === 'function' ? update(state.imageGen) : update) }
         })),
-        setCodeStudioState: (update) => set((state) => ({ 
-            codeStudio: { ...state.codeStudio, ...(typeof update === 'function' ? update(state.codeStudio) : update) } 
+        setCodeStudioState: (update) => set((state) => ({
+            codeStudio: { ...state.codeStudio, ...(typeof update === 'function' ? update(state.codeStudio) : update) }
         })),
-        setHardwareState: (update) => set((state) => ({ 
-            hardware: { ...state.hardware, ...(typeof update === 'function' ? update(state.hardware) : update) } 
+        setHardwareState: (update) => set((state) => ({
+            hardware: { ...state.hardware, ...(typeof update === 'function' ? update(state.hardware) : update) }
         })),
-        setMemoryState: (update) => set((state) => ({ 
-            memory: { ...state.memory, ...(typeof update === 'function' ? update(state.memory) : update) } 
+        setMemoryState: (update) => set((state) => ({
+            memory: { ...state.memory, ...(typeof update === 'function' ? update(state.memory) : update) }
         })),
-        setBibliomorphicState: (update) => set((state) => ({ 
-            bibliomorphic: { ...state.bibliomorphic, ...(typeof update === 'function' ? update(state.bibliomorphic) : update) } 
+        setBibliomorphicState: (update) => set((state) => ({
+            bibliomorphic: { ...state.bibliomorphic, ...(typeof update === 'function' ? update(state.bibliomorphic) : update) }
         })),
-        setDiscoveryState: (update) => set((state) => ({ 
-            discovery: { ...state.discovery, ...(typeof update === 'function' ? update(state.discovery) : update) } 
+        setDiscoveryState: (update) => set((state) => ({
+            discovery: { ...state.discovery, ...(typeof update === 'function' ? update(state.discovery) : update) }
         })),
-        addResearchTask: (task) => set((state) => ({ 
-            research: { ...state.research, tasks: [...state.research.tasks, task] } 
+        addResearchTask: (task) => set((state) => ({
+            research: { ...state.research, tasks: [...state.research.tasks, task] }
         })),
         updateResearchTask: (id, update) => set((state) => ({
             research: {
@@ -683,11 +683,11 @@ export const useAppStore = create<AppState>((set, get) => ({
                 tasks: state.research.tasks.map(t => t.id === id ? { ...t, status: 'CANCELLED' } : t)
             }
         })),
-        setBicameralState: (update) => set((state) => ({ 
-            bicameral: { ...state.bicameral, ...(typeof update === 'function' ? update(state.bicameral) : update) } 
+        setBicameralState: (update) => set((state) => ({
+            bicameral: { ...state.bicameral, ...(typeof update === 'function' ? update(state.bicameral) : update) }
         })),
-        setCollabState: (update) => set((state) => ({ 
-            collaboration: { ...state.collaboration, ...(typeof update === 'function' ? update(state.collaboration) : update) } 
+        setCollabState: (update) => set((state) => ({
+            collaboration: { ...state.collaboration, ...(typeof update === 'function' ? update(state.collaboration) : update) }
         })),
         addSwarmEvent: (event) => set((state) => {
             const id = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
@@ -702,8 +702,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         closeContextMenu: () => set((state) => ({ contextMenu: { ...state.contextMenu, isOpen: false } })),
         addTask: (task) => set((state) => {
             const id = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
-            return { 
-                tasks: [...state.tasks, { id, timestamp: Date.now(), subtasks: [], ...task }] 
+            return {
+                tasks: [...state.tasks, { id, timestamp: Date.now(), subtasks: [], ...task }]
             };
         }),
         updateTask: (id, update) => set((state) => ({
@@ -735,8 +735,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         removeStrategy: (id) => set((state) => ({
             metaventions: { ...state.metaventions, strategyLibrary: state.metaventions.strategyLibrary.filter(s => s.id !== id) }
         })),
-        setMetaventionsState: (update) => set((state) => ({ 
-            metaventions: { ...state.metaventions, ...(typeof update === 'function' ? update(state.metaventions) : update) } 
+        setMetaventionsState: (update) => set((state) => ({
+            metaventions: { ...state.metaventions, ...(typeof update === 'function' ? update(state.metaventions) : update) }
         })),
         pushToInvestmentQueue: (metavention: any) => set((state) => ({
             marketData: {
@@ -757,14 +757,14 @@ export const useAppStore = create<AppState>((set, get) => ({
                 metaventions: { ...mv, strategyLog: [...(mv?.strategyLog || []), `Allocated $${amount.toLocaleString()} to [${id}]`] }
             };
         }),
-        setAgentState: (update) => set((state) => ({ 
-            agents: { ...state.agents, ...(typeof update === 'function' ? update(state.agents) : update) } 
+        setAgentState: (update) => set((state) => ({
+            agents: { ...state.agents, ...(typeof update === 'function' ? update(state.agents) : update) }
         })),
         updateAgent: (id, update) => set((state) => {
             const updatedAgents = state.agents.activeAgents.map(a => a.id === id ? { ...a, ...update } : a);
             const targetAgent = updatedAgents.find(a => a.id === id);
             if (targetAgent) {
-                neuralVault.saveAgent(targetAgent); 
+                neuralVault.saveAgent(targetAgent);
             }
             return { agents: { ...state.agents, activeAgents: updatedAgents } };
         }),
@@ -808,9 +808,9 @@ export const useAppStore = create<AppState>((set, get) => ({
                 const nextIdx = (i + 1) % protocolNodes.length;
                 edges.push({ id: `edge-chain-${i}-${nextIdx}-${Date.now()}`, source: protocolNodes[i].id, target: protocolNodes[nextIdx].id, type: 'cinematic', data: { color: '#22d3ee', variant: 'pulse' } });
             }
-            return { 
-                process: { ...state.process, nodes: [...state.process.nodes, rootNode, ...protocolNodes], edges: [...state.process.edges, ...edges] }, 
-                mode: AppMode.PROCESS_MAP 
+            return {
+                process: { ...state.process, nodes: [...state.process.nodes, rootNode, ...protocolNodes], edges: [...state.process.edges, ...edges] },
+                mode: AppMode.PROCESS_MAP
             };
         }),
         addSwarmProposal: (proposal) => set((state) => ({ synthesis: { ...state.synthesis, incomingProposals: [proposal, ...state.synthesis.incomingProposals].slice(0, 5) } })),

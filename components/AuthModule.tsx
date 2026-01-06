@@ -8,14 +8,18 @@ const AuthModule: React.FC = () => {
     const { setAuthenticated, setUserProfile } = actions;
     const [view, setView] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
     const [isLoading, setIsLoading] = useState(false);
-    const [credentials, setCredentials] = useState({ username: '', password: '', role: 'OPERATOR' });
+    const [credentials, setCredentials] = useState({ username: '', password: '', role: 'OPERATOR', apiKey: '' });
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         // Simulate network handshake
         await new Promise(r => setTimeout(r, 1500));
-        
+
+        if (credentials.apiKey) {
+            localStorage.setItem('gemini_api_key', credentials.apiKey);
+        }
+
         if (view === 'REGISTER') {
             setUserProfile({
                 displayName: credentials.username,
@@ -24,7 +28,7 @@ const AuthModule: React.FC = () => {
                 avatar: null
             });
         }
-        
+
         setAuthenticated(true);
         setIsLoading(false);
     };
@@ -37,13 +41,13 @@ const AuthModule: React.FC = () => {
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#9d4edd]/5 rounded-full blur-[120px]"></div>
             </div>
 
-            <motion.div 
+            <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 className="w-full max-w-md bg-[#0a0a0a] border border-[#222] rounded-3xl p-8 shadow-2xl relative overflow-hidden z-10"
             >
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent"></div>
-                
+
                 <div className="text-center mb-10">
                     <div className="w-20 h-20 bg-[#111] rounded-full border border-[#333] flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(157,78,221,0.2)]">
                         <Shield className="w-10 h-10 text-[#9d4edd]" />
@@ -56,11 +60,11 @@ const AuthModule: React.FC = () => {
                     <div className="space-y-4">
                         <div className="relative group">
                             <label className="text-[9px] font-mono text-gray-500 uppercase tracking-widest block mb-2 px-1">Designation</label>
-                            <input 
+                            <input
                                 type="text"
                                 required
                                 value={credentials.username}
-                                onChange={e => setCredentials({...credentials, username: e.target.value})}
+                                onChange={e => setCredentials({ ...credentials, username: e.target.value })}
                                 className="w-full bg-[#050505] border border-[#333] rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all"
                                 placeholder="Operator ID..."
                             />
@@ -69,23 +73,35 @@ const AuthModule: React.FC = () => {
 
                         <div className="relative group">
                             <label className="text-[9px] font-mono text-gray-500 uppercase tracking-widest block mb-2 px-1">Neural Key</label>
-                            <input 
+                            <input
                                 type="password"
                                 required
                                 value={credentials.password}
-                                onChange={e => setCredentials({...credentials, password: e.target.value})}
+                                onChange={e => setCredentials({ ...credentials, password: e.target.value })}
                                 className="w-full bg-[#050505] border border-[#333] rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all"
                                 placeholder="Passphrase..."
                             />
                             <Lock className="absolute left-3.5 bottom-3.5 w-4 h-4 text-gray-600 group-focus-within:text-[#9d4edd] transition-colors" />
                         </div>
 
+                        <div className="relative group">
+                            <label className="text-[9px] font-mono text-gray-500 uppercase tracking-widest block mb-2 px-1">Gemini Uplink (API Key)</label>
+                            <input
+                                type="password"
+                                value={credentials.apiKey || ''}
+                                onChange={e => setCredentials({ ...credentials, apiKey: e.target.value })}
+                                className="w-full bg-[#050505] border border-[#333] rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all"
+                                placeholder="sk-..."
+                            />
+                            <Key className="absolute left-3.5 bottom-3.5 w-4 h-4 text-gray-600 group-focus-within:text-[#9d4edd] transition-colors" />
+                        </div>
+
                         {view === 'REGISTER' && (
                             <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="relative group">
                                 <label className="text-[9px] font-mono text-gray-500 uppercase tracking-widest block mb-2 px-1">Role Protocol</label>
-                                <select 
+                                <select
                                     value={credentials.role}
-                                    onChange={e => setCredentials({...credentials, role: e.target.value})}
+                                    onChange={e => setCredentials({ ...credentials, role: e.target.value })}
                                     className="w-full bg-[#050505] border border-[#333] rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all appearance-none cursor-pointer"
                                 >
                                     <option value="OPERATOR">OPERATOR</option>
@@ -97,7 +113,7 @@ const AuthModule: React.FC = () => {
                         )}
                     </div>
 
-                    <button 
+                    <button
                         disabled={isLoading}
                         className="w-full py-4 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black font-mono text-xs uppercase tracking-[0.2em] rounded-xl transition-all shadow-[0_0_40px_rgba(157,78,221,0.3)] flex items-center justify-center gap-3 disabled:opacity-50"
                     >
