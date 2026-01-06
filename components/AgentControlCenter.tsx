@@ -214,7 +214,7 @@ const AgentControlCenter: React.FC = () => {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-                model: 'gemini-3-flash-preview',
+                model: 'gemini-2.0-flash',
                 contents: `Ground current search: ${query}. Extract strategic technical context for autonomic buffer.`,
                 config: { tools: [{ googleSearch: {} }] }
             }));
@@ -287,7 +287,7 @@ const AgentControlCenter: React.FC = () => {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-                model: 'gemini-3-pro-preview',
+                model: 'gemini-1.5-pro',
                 contents: directive,
                 config: { 
                     systemInstruction: `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\nACT AS NODE: ${activeAgent.name}.`,

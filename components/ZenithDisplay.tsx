@@ -132,7 +132,7 @@ const IntelRibbon = () => {
       try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-          model: 'gemini-3-flash-preview',
+          model: 'gemini-2.0-flash',
           contents: "List the top 4 real-time technical or financial trends for Sovereign AI, GPU clusters, and DePIN infrastructure in early 2025. Terse, one-word or short phrase each. Separated by pipes.",
           config: { tools: [{ googleSearch: {} }] }
         }));

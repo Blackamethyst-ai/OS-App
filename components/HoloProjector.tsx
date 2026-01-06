@@ -31,7 +31,7 @@ const HoloProjector: React.FC = () => {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
             let prompt = "Analyze this artifact in extreme technical detail. Identify key architectural features, potential optimizations, security vulnerabilities, and aesthetic patterns. Output a professional diagnostic report.";
-            let model = 'gemini-3-flash-preview';
+            let model = 'gemini-2.0-flash';
             let content: any = null;
 
             if (holo.activeArtifact.type === 'IMAGE') {

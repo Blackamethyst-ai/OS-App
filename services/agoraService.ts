@@ -88,7 +88,7 @@ export async function runDebateTurn(
         if (godModeDirective) prompt += `\n\nDIRECTIVE OVERRIDE: ${godModeDirective}`;
 
         const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-2.0-flash',
             contents: {
                 parts: [{ inlineData: contextFile.inlineData }, { text: prompt }]
             },
@@ -131,7 +131,7 @@ export async function synthesizeReport(history: DebateTurn[]): Promise<Simulatio
         };
 
         const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-            model: 'gemini-3-flash-preview',
+            model: 'gemini-2.0-flash',
             contents: `Synthesize Report: focus on PARA integrity and structural entropy.\n\nTranscript:\n${script}`,
             config: { responseMimeType: 'application/json', responseSchema: schema }
         }));
