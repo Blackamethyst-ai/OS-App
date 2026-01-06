@@ -358,7 +358,7 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
 
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         // Using "Nano Banana" generation model (per docs)
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.0-flash-exp',
         contents: { parts },
         config: { imageConfig: { aspectRatio, imageSize: quality as any } }
     }));
@@ -370,7 +370,7 @@ export async function generateAvatar(role: string, name: string) {
     const ai = getAI();
     const prompt = `Hyper-photorealistic 8K headshot of a sophisticated, high-end professional business man named "${name}" acting in the role of "${role}". He is wearing a tailored modern suit, indistinguishable from reality, with physically correct lighting and cinematic optics.`;
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-2.0-flash-exp',
         contents: [{ text: prompt }],
         config: { imageConfig: { aspectRatio: '1:1' } }
     }));
@@ -583,7 +583,7 @@ export async function generateSpeech(text: string, voice: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         // Using TTS model variant per docs
-        model: "gemini-2.0-flash",
+        model: "gemini-2.0-flash-exp",
         contents: [{ parts: [{ text }] }],
         config: {
             responseModalities: [Modality.AUDIO],
