@@ -1,6 +1,6 @@
 import { GoogleGenAI, Type, Modality, GenerateContentResponse, LiveServerMessage, Schema, Blob as GenAIBlob } from "@google/genai";
-import { 
-    AppMode, AspectRatio, ImageSize, FileData, MentalState, 
+import {
+    AppMode, AspectRatio, ImageSize, FileData, MentalState,
     Result, AnalysisResult, AutonomousAgent, OperationalContext,
     ScienceHypothesis, KnowledgeNode, SwarmStatus, SwarmResult,
     AtomicTask, ProtocolStepResult, StoredArtifact,
@@ -27,61 +27,66 @@ export const AGENT_DNA_BUILDER: AgentDNA[] = [
 // --- UTILITIES ---
 
 function decode(base64: string) {
-  const binaryString = atob(base64);
-  const len = binaryString.length;
-  const bytes = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
+    const binaryString = atob(base64);
+    const len = binaryString.length;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+    }
+    return bytes;
 }
 
 async function decodeAudioData(
-  data: Uint8Array,
-  ctx: AudioContext,
-  sampleRate: number,
-  numChannels: number,
+    data: Uint8Array,
+    ctx: AudioContext,
+    sampleRate: number,
+    numChannels: number,
 ): Promise<AudioBuffer> {
-  const dataInt16 = new Int16Array(data.buffer);
-  const frameCount = dataInt16.length / numChannels;
-  const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
+    const dataInt16 = new Int16Array(data.buffer);
+    const frameCount = dataInt16.length / numChannels;
+    const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
 
-  for (let channel = 0; channel < numChannels; channel++) {
-    const channelData = buffer.getChannelData(channel);
-    for (let i = 0; i < frameCount; i++) {
-      channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+    for (let channel = 0; channel < numChannels; channel++) {
+        const channelData = buffer.getChannelData(channel);
+        for (let i = 0; i < frameCount; i++) {
+            channelData[i] = dataInt16[i * numChannels + channel] / 32768.0;
+        }
     }
-  }
-  return buffer;
+    return buffer;
 }
 
 function encode(bytes: Uint8Array) {
-  let binary = '';
-  const len = bytes.byteLength;
-  for (let i = 0; i < len; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
 }
 
 function createBlob(data: Float32Array): GenAIBlob {
-  const l = data.length;
-  const int16 = new Int16Array(l);
-  for (let i = 0; i < l; i++) {
-    int16[i] = data[i] * 32768;
-  }
-  return {
-    data: encode(new Uint8Array(int16.buffer)),
-    mimeType: 'audio/pcm;rate=16000',
-  };
+    const l = data.length;
+    const int16 = new Int16Array(l);
+    for (let i = 0; i < l; i++) {
+        int16[i] = data[i] * 32768;
+    }
+    return {
+        data: encode(new Uint8Array(int16.buffer)),
+        mimeType: 'audio/pcm;rate=16000',
+    };
 }
 
 // --- CRITICAL FIX: SAFE AI INSTANCE ---
 // This replaces the broken process.env call with the Vite-compatible import.meta.env
 const getAI = () => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    // Try multiple sources for the API key to be robust across Vercel/Local/Vite environments
+    const apiKey = process.env.GEMINI_API_KEY ||
+        process.env.API_KEY ||
+        (import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) ||
+        (import.meta.env && import.meta.env.GEMINI_API_KEY);
+
     if (!apiKey) {
-        console.error("⚠️ CRITICAL: VITE_GEMINI_API_KEY is missing. Check Vercel Settings.");
+        console.error("⚠️ CRITICAL: GEMINI_API_KEY is missing. Check Vercel Settings.");
         // We return a dummy to prevent immediate crash, but calls will fail gracefully
         return new GoogleGenAI({ apiKey: "MISSING_KEY" });
     }
@@ -99,7 +104,7 @@ class LiveSession {
     private stream: MediaStream | null = null;
     private nextStartTime = 0;
     private activeSources = new Set<AudioBufferSourceNode>();
-    
+
     public onToolCall: (name: string, args: any) => Promise<any> = async () => ({});
 
     async primeAudio() {
@@ -125,10 +130,10 @@ class LiveSession {
         const ai = getAI();
         await this.primeAudio();
         this.nextStartTime = 0;
-        
+
         const sessionPromise = ai.live.connect({
             // Keeping your requested high-end model
-            model: 'gemini-2.0-flash-live-001', 
+            model: 'gemini-2.0-flash-live-001',
             callbacks: {
                 onopen: async () => {
                     try {
@@ -152,8 +157,8 @@ class LiveSession {
                     if (message.toolCall) {
                         for (const fc of message.toolCall.functionCalls) {
                             const result = await this.onToolCall(fc.name, fc.args);
-                            sessionPromise.then(s => s.sendToolResponse({ 
-                                functionResponses: { id: fc.id, name: fc.name, response: { result } } 
+                            sessionPromise.then(s => s.sendToolResponse({
+                                functionResponses: { id: fc.id, name: fc.name, response: { result } }
                             }));
                         }
                     }
@@ -170,14 +175,14 @@ class LiveSession {
                         this.activeSources.add(source);
                     }
                     if (message.serverContent?.interrupted) {
-                        this.activeSources.forEach(s => { try { s.stop(); } catch(e) {} });
+                        this.activeSources.forEach(s => { try { s.stop(); } catch (e) { } });
                         this.activeSources.clear();
                         this.nextStartTime = 0;
                     }
                     if (config.callbacks?.onmessage) await config.callbacks.onmessage(message);
                 },
-                onerror: config.callbacks?.onerror || (() => {}),
-                onclose: config.callbacks?.onclose || (() => {}),
+                onerror: config.callbacks?.onerror || (() => { }),
+                onclose: config.callbacks?.onclose || (() => { }),
             },
             config: {
                 ...config,
@@ -189,14 +194,14 @@ class LiveSession {
         this.session = await sessionPromise;
     }
 
-    disconnect() { 
-        if (this.session) this.session.close(); 
+    disconnect() {
+        if (this.session) this.session.close();
         if (this.stream) this.stream.getTracks().forEach(t => t.stop());
-        this.activeSources.forEach(s => { try { s.stop(); } catch(e) {} });
+        this.activeSources.forEach(s => { try { s.stop(); } catch (e) { } });
         this.activeSources.clear();
-        this.session = null; 
+        this.session = null;
     }
-    
+
     isConnected() { return !!this.session; }
     getInputFrequencies() {
         if (!this.inputAnalyser) return null;
@@ -284,11 +289,11 @@ export async function interpretIntent(input: string) {
     const ai = getAI();
     // Using your requested cutting-edge model
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.0-flash', 
+        model: 'gemini-2.0-flash',
         contents: `Analyze user intent: "${input}". Output JSON {action: "NAVIGATE" | "FOCUS_ELEMENT" | "RESEARCH" | "EXECUTE", target?: string, parameters?: object, reasoning: string}.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     }));
-    return safeParseJson<{action: string, target?: string, parameters?: any, reasoning: string}>(response.text);
+    return safeParseJson<{ action: string, target?: string, parameters?: any, reasoning: string }>(response.text);
 }
 
 export async function predictNextActions(mode: string, context: any, lastLog?: string) {
@@ -317,7 +322,7 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
     const ai = getAI();
     const parts: any[] = [];
     if (reference) parts.push({ inlineData: reference.inlineData });
-    
+
     const volumetricPrompt = `
         PROTOCOL: ZENITH_VOLUMETRIC_DEPTH_L0
         THEME: Sovereign Imperial Architect wearing a high-end, tailored black leather jacket with visible fine grain texture and obsidian hardware. The character stands in a grand obsidian nexus.
@@ -328,10 +333,10 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
     `.trim();
 
     parts.push({ text: volumetricPrompt });
-    
+
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         // Using "Nano Banana" generation model (per docs)
-        model: 'gemini-2.0-flash-exp', 
+        model: 'gemini-2.0-flash',
         contents: { parts },
         config: { imageConfig: { aspectRatio, imageSize: quality as any } }
     }));
@@ -343,7 +348,7 @@ export async function generateAvatar(role: string, name: string) {
     const ai = getAI();
     const prompt = `Hyper-photorealistic 8K headshot of a sophisticated, high-end professional business man named "${name}" acting in the role of "${role}". He is wearing a tailored modern suit, indistinguishable from reality, with physically correct lighting and cinematic optics.`;
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.0-flash-exp',
+        model: 'gemini-2.0-flash',
         contents: [{ text: prompt }],
         config: { imageConfig: { aspectRatio: '1:1' } }
     }));
@@ -392,17 +397,16 @@ export async function classifyArtifact(data: FileData): Promise<Result<any>> {
 export async function generateStructuredWorkflow(files: FileData[], governance: string, type: string, mapContext: any): Promise<TechnicalManifest> {
     const ai = getAI();
     const prompt = `TASK: Synthesize ultra-fidelity technical process. DOMAIN: ${type}. CONTEXT: ${JSON.stringify(mapContext)}. GOVERNANCE: ${governance}`;
-    
+
     // Omitting full schema definition for brevity in this copy-paste, but keep your original schema object here if needed
     // or assume standard JSON output mode is sufficient for the cutting edge models
-    
+
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.0-flash',
         contents: prompt,
-        config: { 
-            systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, 
-            responseMimeType: 'application/json',
-            thinkingConfig: { thinkingBudget: 32000 }
+        config: {
+            systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
+            responseMimeType: 'application/json'
         }
     }));
     return safeParseJson<TechnicalManifest>(response.text);
@@ -431,7 +435,7 @@ export async function researchComponents(query: string) {
 export async function generateXRayVariant(data: FileData) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.0-flash-exp',
+        model: 'gemini-2.0-flash',
         contents: { parts: [{ inlineData: data.inlineData }, { text: "Thermal X-ray variant." }] },
     }));
     const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
@@ -441,7 +445,7 @@ export async function generateXRayVariant(data: FileData) {
 export async function generateIsometricSchematic(data: FileData) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.0-flash-exp',
+        model: 'gemini-2.0-flash',
         contents: { parts: [{ inlineData: data.inlineData }, { text: "3D isometric view." }] },
     }));
     const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
@@ -458,7 +462,7 @@ export async function getLiveSupplyChainData(componentName: string) {
     return safeParseJson<any>(response.text);
 }
 
-export async function generateCode(prompt: string, lang: string, model: string = 'gemini-1.5-pro') {
+export async function generateCode(prompt: string, lang: string, model: string = 'gemini-2.0-flash') {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: model as any,
@@ -533,7 +537,7 @@ export async function executeNeuralPolicy(mode: string, context: any, logs: stri
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.0-flash',
         contents: `AS AUTONOMIC HEALER: Analyze OS state for sector [${mode}]. Output JSON {level, message, suggestedPatch}.`,
-        config: { 
+        config: {
             systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
             responseMimeType: "application/json"
         }
@@ -545,9 +549,9 @@ export async function evolveSystemArchitecture(code: string, lang: string, promp
     try {
         const ai = getAI();
         const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-            model: 'gemini-1.5-pro',
+            model: 'gemini-2.0-flash',
             contents: `Evolve: ${prompt}. Source: ${code}. JSON {code, reasoning, type, integrityScore}.`,
-            config: { responseMimeType: 'application/json', thinkingConfig: { thinkingBudget: 32000 } }
+            config: { responseMimeType: 'application/json' }
         }));
         return { ok: true, value: safeParseJson(response.text) };
     } catch (e: any) { return { ok: false, error: e }; }
@@ -557,7 +561,7 @@ export async function generateSpeech(text: string, voice: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         // Using TTS model variant per docs
-        model: "gemini-2.0-flash", 
+        model: "gemini-2.0-flash",
         contents: [{ parts: [{ text }] }],
         config: {
             responseModalities: [Modality.AUDIO],
@@ -572,7 +576,7 @@ export async function generateAudioOverview(files: FileData[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.0-flash',
-        contents: { parts: [ ...files.map(f => ({ inlineData: f.inlineData })), { text: "Synthesize brief." } ] },
+        contents: { parts: [...files.map(f => ({ inlineData: f.inlineData })), { text: "Synthesize brief." }] },
     }));
     const transcript = response.text || "Brief complete.";
     const audioData = await generateSpeech(transcript, "Puck");
@@ -648,7 +652,7 @@ export async function analyzePowerDynamics(target: string, context: string) {
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.0-flash',
         contents: `Analyze power dynamics for: "${target}". Internal context: ${context}.`,
-        config: { 
+        config: {
             tools: [{ googleSearch: {} }],
             responseMimeType: 'application/json',
         }
@@ -680,7 +684,7 @@ export async function executeResearchQuery(query: string): Promise<FactChunk[]> 
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.0-flash',
         contents: `Execute deep research: "${query}".`,
-        config: { 
+        config: {
             tools: [{ googleSearch: {} }],
             responseMimeType: 'application/json',
         }
@@ -738,7 +742,7 @@ export async function smartOrganizeArtifact(artifact: any, existingStructure: an
 export async function generateAutopoieticFramework(goal: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.0-flash',
         contents: `Forge autopoietic framework for: "${goal}".`,
     }));
     return response.text || "";
@@ -747,7 +751,7 @@ export async function generateAutopoieticFramework(goal: string) {
 export async function generateSystemArchitecture(prompt: string, type: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.0-flash',
         contents: `Construct system architecture topology for: "${prompt}". Type: ${type}. JSON {nodes, edges}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -758,7 +762,7 @@ export async function calculateEntropy(nodes: any[], edges: any[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.0-flash',
-        contents: `Calculate system entropy for: ${JSON.stringify({nodes, edges})}. JSON {score, reasoning}.`,
+        contents: `Calculate system entropy for: ${JSON.stringify({ nodes, edges })}. JSON {score, reasoning}.`,
         config: { responseMimeType: 'application/json' }
     }));
     return safeParseJson<any>(response.text);
@@ -767,7 +771,7 @@ export async function calculateEntropy(nodes: any[], edges: any[]) {
 export async function decomposeNode(nodeLabel: string, neighbors: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.0-flash',
         contents: `Decompose node: "${nodeLabel}" with neighbors: "${neighbors}". JSON {nodes, edges, optimizations}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -777,7 +781,7 @@ export async function decomposeNode(nodeLabel: string, neighbors: string) {
 export async function generateInfrastructureCode(summary: string, provider: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.0-flash',
         contents: `Forge IaC for: "${summary}" using ${provider}.`,
     }));
     return response.text || "";
@@ -797,7 +801,7 @@ export async function calculateOptimalLayout(nodes: any[], edges: any[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.0-flash',
-        contents: `Calculate optimal graph layout for: ${JSON.stringify({nodes, edges})}. JSON Record<nodeId, {x, y}>.`,
+        contents: `Calculate optimal graph layout for: ${JSON.stringify({ nodes, edges })}. JSON Record<nodeId, {x, y}>.`,
         config: { responseMimeType: 'application/json' }
     }));
     return safeParseJson<any>(response.text);
@@ -806,7 +810,7 @@ export async function calculateOptimalLayout(nodes: any[], edges: any[]) {
 export async function generateSwarmArchitecture(prompt: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.0-flash',
         contents: `Forge swarm architecture for: "${prompt}". JSON {nodes, edges}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -817,7 +821,7 @@ export async function generateProcessFromContext(artifacts: StoredArtifact[], ty
     const ai = getAI();
     const context = artifacts.map(a => a.analysis?.summary).join('\n');
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.0-flash',
         contents: `Context: ${context}. Type: ${type}. Prompt: ${prompt}. Forge process. JSON {title, nodes, edges}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -847,7 +851,7 @@ export async function searchGroundedIntel(query: string) {
 export async function convergeStrategicLattices(nodes: any[], goal: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.0-flash',
         contents: `Converge lattices: ${JSON.stringify(nodes)} for goal: "${goal}". JSON {nodes, coherence_index, unified_goal}.`,
         config: { responseMimeType: 'application/json' }
     }));
