@@ -108,7 +108,7 @@ const Starfield: React.FC<StarfieldProps> = ({ mode }) => {
     const resizeObserver = new ResizeObserver(() => {
       handleResize();
     });
-    resizeObserver.observe(document.body);
+    resizeObserver.observe(document.documentElement);
 
     initStars();
     update();
