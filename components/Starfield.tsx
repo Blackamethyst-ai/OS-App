@@ -17,7 +17,7 @@ interface StarfieldProps {
 
 const Starfield: React.FC<StarfieldProps> = ({ mode }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
+
   // Performance-optimized density mapping
   const starCount = useMemo(() => {
     switch (mode) {
@@ -44,10 +44,10 @@ const Starfield: React.FC<StarfieldProps> = ({ mode }) => {
       h = window.innerHeight;
       canvas.width = w;
       canvas.height = h;
-      
+
       stars.length = 0;
       const colors = ['#ffffff', '#9d4edd', '#22d3ee', '#f59e0b'];
-      
+
       for (let i = 0; i < starCount; i++) {
         stars.push({
           x: Math.random() * w - w / 2,
@@ -64,16 +64,16 @@ const Starfield: React.FC<StarfieldProps> = ({ mode }) => {
     const update = () => {
       ctx.fillStyle = '#030303';
       ctx.fillRect(0, 0, w, h);
-      
+
       const cx = w / 2;
       const cy = h / 2;
-      
+
       // Speed varies slightly by mode
       const speed = mode === AppMode.IMAGE_GEN ? 0.5 : 0.2;
 
       for (const star of stars) {
         star.z -= speed;
-        
+
         if (star.z <= 0) {
           star.z = w;
           star.x = Math.random() * w - cx;
@@ -89,13 +89,13 @@ const Starfield: React.FC<StarfieldProps> = ({ mode }) => {
         const opacity = Math.min(1, (w - star.z) / (w * 0.8));
         ctx.globalAlpha = opacity;
         ctx.fillStyle = star.color;
-        
+
         // Draw star
         ctx.beginPath();
         ctx.arc(x, y, star.size * (1 - star.z / w) * 1.5, 0, Math.PI * 2);
         ctx.fill();
       }
-      
+
       ctx.globalAlpha = 1;
       animationFrameId = requestAnimationFrame(update);
     };
@@ -104,19 +104,24 @@ const Starfield: React.FC<StarfieldProps> = ({ mode }) => {
       initStars();
     };
 
-    window.addEventListener('resize', handleResize);
+    // Standardized Resize Observer
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(document.body);
+
     initStars();
     update();
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       cancelAnimationFrame(animationFrameId);
     };
   }, [starCount, mode]);
 
   return (
-    <canvas 
-      ref={canvasRef} 
+    <canvas
+      ref={canvasRef}
       className="fixed inset-0 z-[-1] pointer-events-none opacity-40 transition-opacity duration-1000"
     />
   );

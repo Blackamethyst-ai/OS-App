@@ -121,15 +121,33 @@ const UserProfileOverlay: React.FC = () => {
         }
     };
 
+    // Adaptive Layout Logic
+    const [isCompact, setIsCompact] = useState(false);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!isProfileOpen) return;
+
+        const resizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                // Trigger compact mode if height < 700px (standard laptop/small window)
+                setIsCompact(entry.contentRect.height < 700);
+            }
+        });
+
+        if (document.body) resizeObserver.observe(document.body);
+        return () => resizeObserver.disconnect();
+    }, [isProfileOpen]);
+
     const ThemeButton = ({ mode, icon: Icon, label }: { mode: AppTheme, icon: any, label: string }) => (
         <button
             onClick={() => { actions.setTheme(mode); audio.playClick(); }}
             className={`flex-1 py-3 rounded-lg border flex flex-col items-center justify-center gap-2 transition-all ${theme === mode
                 ? 'bg-[#9d4edd] text-black border-[#9d4edd] shadow-lg scale-105'
                 : 'bg-[#111] text-gray-500 border-[#333] hover:border-gray-500 hover:text-gray-300'
-                }`}
+                } ${isCompact ? 'py-2 gap-1' : ''}`}
         >
-            <Icon className="w-5 h-5" />
+            <Icon className={isCompact ? "w-4 h-4" : "w-5 h-5"} />
             <span className="text-[10px] font-mono uppercase font-bold">{label}</span>
         </button>
     );
@@ -139,11 +157,13 @@ const UserProfileOverlay: React.FC = () => {
             {isProfileOpen && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md">
                     <motion.div
+                        ref={containerRef}
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-[500px] bg-[#0a0a0a] border border-[#333] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] relative group"
+                        className={`bg-[#0a0a0a] border border-[#333] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] relative group transition-all duration-500 ease-in-out ${isCompact ? 'w-[600px] h-auto' : 'w-[500px]'
+                            }`}
                     >
                         {/* Background Cybernetic Grid */}
                         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(157,78,221,0.02)_50%,transparent_75%,transparent)] bg-[size:20px_20px] pointer-events-none"></div>
@@ -160,17 +180,18 @@ const UserProfileOverlay: React.FC = () => {
                             </button>
                         </div>
 
-                        {/* Main Content */}
-                        <div className="p-8 flex flex-col gap-8 relative z-10 max-h-[80vh] overflow-y-auto custom-scrollbar">
+                        {/* Main Content - Adaptive Grid */}
+                        <div className={`flex gap-8 relative z-10 custom-scrollbar transition-all ${isCompact ? 'p-6 flex-row items-start' : 'p-8 flex-col'}`}>
 
-                            {/* Avatar Section */}
-                            <div className="flex justify-center gap-6 items-center">
+                            {/* Avatar Section - Modular Resizing */}
+                            <div className={`flex items-center transition-all ${isCompact ? 'flex-col gap-3 shrink-0' : 'justify-center gap-6'}`}>
                                 <div className="relative group/avatar cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                    <div className="w-32 h-32 rounded-full border-2 border-[#333] group-hover/avatar:border-[#9d4edd] overflow-hidden bg-[#050505] flex items-center justify-center transition-all shadow-[0_0_30px_rgba(0,0,0,0.5)] relative">
+                                    <div className={`rounded-full border-2 border-[#333] group-hover/avatar:border-[#9d4edd] overflow-hidden bg-[#050505] flex items-center justify-center transition-all shadow-[0_0_30px_rgba(0,0,0,0.5)] relative ${isCompact ? 'w-24 h-24' : 'w-32 h-32'
+                                        }`}>
                                         {editAvatar ? (
                                             <img src={editAvatar} alt="Avatar" className="w-full h-full object-cover" />
                                         ) : (
-                                            <User className="w-12 h-12 text-gray-700" />
+                                            <User className={isCompact ? "w-8 h-8 text-gray-700" : "w-12 h-12 text-gray-700"} />
                                         )}
 
                                         {isGenerating && (
@@ -195,13 +216,13 @@ const UserProfileOverlay: React.FC = () => {
                                     </div>
                                 </div>
 
-                                <div className="flex flex-col gap-3">
+                                <div className={`flex gap-3 ${isCompact ? 'flex-col w-full' : 'flex-col'}`}>
                                     <button
                                         onClick={() => fileInputRef.current?.click()}
                                         className="px-4 py-2 bg-[#1f1f1f] hover:bg-[#333] border border-[#333] hover:border-white rounded text-[10px] font-mono text-gray-300 hover:text-white uppercase tracking-wider transition-all flex items-center gap-2 w-full justify-center"
                                     >
                                         <Upload className="w-3 h-3" />
-                                        Upload Image
+                                        {isCompact ? 'Upload' : 'Upload Image'}
                                     </button>
 
                                     <button
@@ -210,15 +231,15 @@ const UserProfileOverlay: React.FC = () => {
                                         className="px-4 py-2 bg-[#9d4edd]/10 hover:bg-[#9d4edd]/20 border border-[#9d4edd]/50 rounded text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider transition-all flex items-center gap-2 disabled:opacity-50 w-full justify-center"
                                     >
                                         <Sparkles className="w-3 h-3" />
-                                        AI Generate
+                                        {isCompact ? 'Generate' : 'AI Generate'}
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Details Form */}
-                            <div className="space-y-4">
+                            {/* Details Form Area */}
+                            <div className="space-y-4 flex-1 w-full">
                                 <div>
-                                    <label className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-2">Designation (Display Name)</label>
+                                    <label className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-2">Designation</label>
                                     <div className="relative">
                                         <input
                                             type="text"
@@ -254,7 +275,7 @@ const UserProfileOverlay: React.FC = () => {
 
                                     <div className="flex-1">
                                         <div className="flex justify-between items-center mb-2">
-                                            <label className="text-[9px] font-mono text-gray-500 uppercase tracking-wider">Clearance Level</label>
+                                            <label className="text-[9px] font-mono text-gray-500 uppercase tracking-wider">Clearance</label>
                                             <span className="text-[10px] font-mono text-[#42be65] font-bold">Lvl {editClearance}</span>
                                         </div>
                                         <div className="h-10 bg-[#111] border border-[#222] rounded-lg p-2 flex items-center gap-1">
@@ -268,49 +289,46 @@ const UserProfileOverlay: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            {/* Neural Uplink Credentials */}
-                            <div>
-                                <label className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-2">Neural Uplink Credentials (API Key)</label>
-                                <div className="relative">
-                                    <input
-                                        type="password"
-                                        value={editApiKey}
-                                        onChange={(e) => setEditApiKey(e.target.value)}
-                                        className="w-full bg-[#050505] border border-[#333] p-3 pl-10 text-white font-mono text-sm focus:border-[#9d4edd] outline-none rounded-lg transition-colors"
-                                        placeholder="AI Studio Key (Optional)"
-                                    />
-                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">
-                                        <Key className="w-4 h-4" />
-                                    </div>
-                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] text-gray-600 font-mono">
-                                        ENCRYPTED_LOCAL_STORAGE
+                                {/* Neural Uplink Credentials */}
+                                <div>
+                                    <label className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-2">Neural Uplink (API Key)</label>
+                                    <div className="relative">
+                                        <input
+                                            type="password"
+                                            value={editApiKey}
+                                            onChange={(e) => setEditApiKey(e.target.value)}
+                                            className="w-full bg-[#050505] border border-[#333] p-3 pl-10 text-white font-mono text-sm focus:border-[#9d4edd] outline-none rounded-lg transition-colors"
+                                            placeholder="AI Studio Key (Optional)"
+                                        />
+                                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">
+                                            <Key className="w-4 h-4" />
+                                        </div>
+                                        <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] text-gray-600 font-mono">
+                                            ENCRYPTED
+                                        </div>
                                     </div>
                                 </div>
-                                <p className="text-[9px] text-gray-600 mt-2 font-mono">
-                                    * Required for deployed instances. Keys are stored locally on this device.
-                                </p>
-                            </div>
 
-                            {/* Theme Selector */}
-                            <div>
-                                <label className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-2">Visual Interface Theme</label>
-                                <div className="flex gap-4">
-                                    <ThemeButton mode={AppTheme.DARK} icon={Moon} label="Dark Mode" />
-                                    <ThemeButton mode={AppTheme.CONTRAST} icon={Contrast} label="High Contrast" />
-                                    <ThemeButton mode={AppTheme.MIDNIGHT} icon={Activity} label="Midnight" />
+                                {/* Theme Selector */}
+                                <div>
+                                    <label className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-2">Theme</label>
+                                    <div className="flex gap-4">
+                                        <ThemeButton mode={AppTheme.DARK} icon={Moon} label="Dark" />
+                                        <ThemeButton mode={AppTheme.CONTRAST} icon={Contrast} label="High Con.." />
+                                        <ThemeButton mode={AppTheme.MIDNIGHT} icon={Activity} label="Midnight" />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <button
-                                onClick={handleSave}
-                                disabled={isSaving || !(editName || '').trim()}
-                                className="w-full py-4 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-bold font-mono text-xs uppercase tracking-[0.2em] rounded-lg transition-all shadow-[0_0_20px_rgba(157,78,221,0.4)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
-                            >
-                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                                {isSaving ? 'ENCODING...' : 'SAVE IDENTITY'}
-                            </button>
+                                <button
+                                    onClick={handleSave}
+                                    disabled={isSaving || !(editName || '').trim()}
+                                    className="w-full py-4 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-bold font-mono text-xs uppercase tracking-[0.2em] rounded-lg transition-all shadow-[0_0_20px_rgba(157,78,221,0.4)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                                >
+                                    {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                    {isSaving ? 'ENCODING...' : 'SAVE IDENTITY'}
+                                </button>
+                            </div>
 
                         </div>
                     </motion.div>
