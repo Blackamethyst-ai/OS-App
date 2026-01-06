@@ -95,6 +95,7 @@ const DataStreamTether = () => (
             strokeWidth="1"
         />
         <motion.circle
+            cx="1200"
             r="2"
             fill="#18E6FF"
             filter="url(#packetGlow)"

@@ -445,7 +445,7 @@ const App: React.FC = () => {
                         {/* LOCATE INTELLIGENCE: Connected and Flexible */}
                         <div className={cn(
                             "relative flex items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
-                            search.isOpen ? "w-[400px]" : "w-64"
+                            search.isOpen ? "w-[300px] lg:w-[400px]" : "w-12 md:w-64"
                         )}>
                             <GlobalSearchBar isIntegrated />
                         </div>
@@ -483,7 +483,7 @@ const App: React.FC = () => {
                         <button
                             onClick={() => { actions.toggleCommandPalette(); audio.playClick(); }}
                             className={cn(
-                                "relative group/eco px-6 py-2.5 bg-[#050505] border border-white/10 hover:border-[#f1c21b]/50 rounded-2xl transition-all duration-700 shadow-2xl overflow-hidden active:scale-95 shimmer-edge",
+                                "relative group/eco px-6 py-2.5 bg-[#050505] border border-white/10 hover:border-[#f1c21b]/50 rounded-2xl transition-all duration-700 shadow-2xl overflow-hidden active:scale-95 shimmer-edge hidden xl:flex",
                                 focusedSelector === 'header button:last-child' && "scale-110 border-[#f1c21b]"
                             )}
                         >
