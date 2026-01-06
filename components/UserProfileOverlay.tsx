@@ -3,7 +3,7 @@ import { useAppStore } from '../store';
 import { neuralVault } from '../services/persistenceService';
 import { generateAvatar, promptSelectKey } from '../services/geminiService';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, X, Camera, Save, ShieldCheck, Loader2, Fingerprint, ScanFace, Sparkles, ChevronDown, Upload, Sun, Moon, Contrast, Activity } from 'lucide-react';
+import { User, X, Camera, Save, ShieldCheck, Loader2, Fingerprint, ScanFace, Sparkles, ChevronDown, Upload, Sun, Moon, Contrast, Activity, Key } from 'lucide-react';
 import { audio } from '../services/audioService';
 import { AppTheme } from '../types';
 
@@ -14,16 +14,17 @@ const UserProfileOverlay: React.FC = () => {
     const user = useAppStore(s => s.user);
     const theme = useAppStore(s => s.theme);
     const actions = useAppStore(s => s.actions);
-    
+
     // Local state for editing
     const [editName, setEditName] = useState(user.displayName || '');
     const [editRole, setEditRole] = useState(user.role);
     const [editClearance, setEditClearance] = useState(user.clearanceLevel);
     const [editAvatar, setEditAvatar] = useState<string | null>(user.avatar);
-    
+    const [editApiKey, setEditApiKey] = useState('');
+
     const [isSaving, setIsSaving] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false);
-    
+
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     // Sync local state when store updates (e.g. initial load)
@@ -32,12 +33,14 @@ const UserProfileOverlay: React.FC = () => {
         setEditAvatar(user.avatar);
         setEditRole(user.role);
         setEditClearance(user.clearanceLevel);
+        const existingKey = localStorage.getItem('gemini_api_key');
+        if (existingKey) setEditApiKey(existingKey);
     }, [user, isProfileOpen]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const file = e.target.files[0];
-            
+
             // Validation: Size < 5MB
             if (file.size > 5 * 1024 * 1024) {
                 actions.addLog('ERROR', 'UPLOAD_FAIL: Image exceeds 5MB limit.');
@@ -89,16 +92,23 @@ const UserProfileOverlay: React.FC = () => {
                 role: editRole,
                 clearanceLevel: editClearance
             };
-            
+
             // 1. Update Store
             actions.setUserProfile(newProfile);
-            
+
             // 2. Persist to DB
             await neuralVault.saveProfile(newProfile);
-            
+
+            // 3. Save API Key (BYOK)
+            if (editApiKey.trim()) {
+                localStorage.setItem('gemini_api_key', editApiKey.trim());
+            } else {
+                localStorage.removeItem('gemini_api_key');
+            }
+
             actions.addLog('SUCCESS', `PROFILE_UPDATE: Identity confirmed for [${editName}]`);
             audio.playSuccess();
-            
+
             setTimeout(() => {
                 setIsSaving(false);
                 actions.toggleProfile(false);
@@ -114,11 +124,10 @@ const UserProfileOverlay: React.FC = () => {
     const ThemeButton = ({ mode, icon: Icon, label }: { mode: AppTheme, icon: any, label: string }) => (
         <button
             onClick={() => { actions.setTheme(mode); audio.playClick(); }}
-            className={`flex-1 py-3 rounded-lg border flex flex-col items-center justify-center gap-2 transition-all ${
-                theme === mode 
-                ? 'bg-[#9d4edd] text-black border-[#9d4edd] shadow-lg scale-105' 
+            className={`flex-1 py-3 rounded-lg border flex flex-col items-center justify-center gap-2 transition-all ${theme === mode
+                ? 'bg-[#9d4edd] text-black border-[#9d4edd] shadow-lg scale-105'
                 : 'bg-[#111] text-gray-500 border-[#333] hover:border-gray-500 hover:text-gray-300'
-            }`}
+                }`}
         >
             <Icon className="w-5 h-5" />
             <span className="text-[10px] font-mono uppercase font-bold">{label}</span>
@@ -153,7 +162,7 @@ const UserProfileOverlay: React.FC = () => {
 
                         {/* Main Content */}
                         <div className="p-8 flex flex-col gap-8 relative z-10 max-h-[80vh] overflow-y-auto custom-scrollbar">
-                            
+
                             {/* Avatar Section */}
                             <div className="flex justify-center gap-6 items-center">
                                 <div className="relative group/avatar cursor-pointer" onClick={() => fileInputRef.current?.click()}>
@@ -163,31 +172,31 @@ const UserProfileOverlay: React.FC = () => {
                                         ) : (
                                             <User className="w-12 h-12 text-gray-700" />
                                         )}
-                                        
+
                                         {isGenerating && (
                                             <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
                                                 <Loader2 className="w-8 h-8 text-[#9d4edd] animate-spin" />
                                             </div>
                                         )}
                                     </div>
-                                    
+
                                     {/* Tech Ring Animation */}
                                     <div className="absolute -inset-3 border border-dashed border-[#9d4edd]/30 rounded-full animate-[spin_10s_linear_infinite] pointer-events-none opacity-0 group-hover/avatar:opacity-100 transition-opacity"></div>
-                                    
-                                    <input 
+
+                                    <input
                                         ref={fileInputRef}
-                                        type="file" 
-                                        className="hidden" 
-                                        accept="image/*" 
+                                        type="file"
+                                        className="hidden"
+                                        accept="image/*"
                                         onChange={handleFileChange}
                                     />
                                     <div className="absolute bottom-0 right-0 bg-[#1f1f1f] p-1.5 rounded-full border border-[#333] shadow-lg group-hover/avatar:border-[#9d4edd]">
                                         <Camera className="w-3 h-3 text-white" />
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex flex-col gap-3">
-                                    <button 
+                                    <button
                                         onClick={() => fileInputRef.current?.click()}
                                         className="px-4 py-2 bg-[#1f1f1f] hover:bg-[#333] border border-[#333] hover:border-white rounded text-[10px] font-mono text-gray-300 hover:text-white uppercase tracking-wider transition-all flex items-center gap-2 w-full justify-center"
                                     >
@@ -195,7 +204,7 @@ const UserProfileOverlay: React.FC = () => {
                                         Upload Image
                                     </button>
 
-                                    <button 
+                                    <button
                                         onClick={handleGenerateAvatar}
                                         disabled={isGenerating || !(editName || '').trim()}
                                         className="px-4 py-2 bg-[#9d4edd]/10 hover:bg-[#9d4edd]/20 border border-[#9d4edd]/50 rounded text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider transition-all flex items-center gap-2 disabled:opacity-50 w-full justify-center"
@@ -211,8 +220,8 @@ const UserProfileOverlay: React.FC = () => {
                                 <div>
                                     <label className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-2">Designation (Display Name)</label>
                                     <div className="relative">
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             value={editName}
                                             onChange={(e) => setEditName(e.target.value)}
                                             className="w-full bg-[#050505] border border-[#333] p-3 pl-10 text-white font-mono text-sm focus:border-[#9d4edd] outline-none rounded-lg transition-colors"
@@ -242,14 +251,14 @@ const UserProfileOverlay: React.FC = () => {
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="flex-1">
                                         <div className="flex justify-between items-center mb-2">
                                             <label className="text-[9px] font-mono text-gray-500 uppercase tracking-wider">Clearance Level</label>
                                             <span className="text-[10px] font-mono text-[#42be65] font-bold">Lvl {editClearance}</span>
                                         </div>
                                         <div className="h-10 bg-[#111] border border-[#222] rounded-lg p-2 flex items-center gap-1">
-                                            {[1,2,3,4,5].map(l => (
+                                            {[1, 2, 3, 4, 5].map(l => (
                                                 <button
                                                     key={l}
                                                     onClick={() => setEditClearance(l)}
@@ -259,6 +268,29 @@ const UserProfileOverlay: React.FC = () => {
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            {/* Neural Uplink Credentials */}
+                            <div>
+                                <label className="text-[10px] font-mono text-gray-500 uppercase tracking-wider block mb-2">Neural Uplink Credentials (API Key)</label>
+                                <div className="relative">
+                                    <input
+                                        type="password"
+                                        value={editApiKey}
+                                        onChange={(e) => setEditApiKey(e.target.value)}
+                                        className="w-full bg-[#050505] border border-[#333] p-3 pl-10 text-white font-mono text-sm focus:border-[#9d4edd] outline-none rounded-lg transition-colors"
+                                        placeholder="AI Studio Key (Optional)"
+                                    />
+                                    <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">
+                                        <Key className="w-4 h-4" />
+                                    </div>
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[8px] text-gray-600 font-mono">
+                                        ENCRYPTED_LOCAL_STORAGE
+                                    </div>
+                                </div>
+                                <p className="text-[9px] text-gray-600 mt-2 font-mono">
+                                    * Required for deployed instances. Keys are stored locally on this device.
+                                </p>
                             </div>
 
                             {/* Theme Selector */}
@@ -271,12 +303,12 @@ const UserProfileOverlay: React.FC = () => {
                                 </div>
                             </div>
 
-                            <button 
+                            <button
                                 onClick={handleSave}
                                 disabled={isSaving || !(editName || '').trim()}
                                 className="w-full py-4 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-bold font-mono text-xs uppercase tracking-[0.2em] rounded-lg transition-all shadow-[0_0_20px_rgba(157,78,221,0.4)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                             >
-                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin"/> : <Save className="w-4 h-4" />}
+                                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                 {isSaving ? 'ENCODING...' : 'SAVE IDENTITY'}
                             </button>
 
