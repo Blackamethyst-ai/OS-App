@@ -5,6 +5,7 @@ import { useSystemMind } from './stores/useSystemMind';
 import { AppMode, AppTheme } from './types';
 import Starfield from './components/Starfield';
 import BackgroundEffect from './components/BackgroundEffect';
+import { ThemeReactor } from './components/ThemeReactor';
 
 import CommandPalette from './components/CommandPalette';
 import GlobalSearchBar from './components/GlobalSearchBar';
@@ -344,6 +345,7 @@ const App: React.FC = () => {
         >
             <Starfield mode={mode} />
             <BackgroundEffect isDarkMode={theme !== AppTheme.LIGHT} />
+            <ThemeReactor />
 
             <div className="absolute inset-0 pointer-events-none z-[200] opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
 
