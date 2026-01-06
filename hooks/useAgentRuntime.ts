@@ -41,7 +41,7 @@ export const useAgentRuntime = () => {
             // 2. Initial Thought Generation
             // Fixed: Explicitly typed retryGeminiRequest as GenerateContentResponse to resolve "unknown" type errors
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-                model: 'gemini-3-pro-preview',
+                model: 'gemini-1.5-pro',
                 contents: userPrompt,
                 config: { 
                     systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
@@ -72,7 +72,7 @@ export const useAgentRuntime = () => {
                 // 4. Final Synthesis with Tool Result
                 // Fixed: Explicitly typed retryGeminiRequest as GenerateContentResponse to resolve "unknown" type errors
                 const finalResponse = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-                    model: 'gemini-3-pro-preview',
+                    model: 'gemini-1.5-pro',
                     contents: [
                         { role: 'user', parts: [{ text: userPrompt }] },
                         { role: 'model', parts: [{ functionCall: call }] },

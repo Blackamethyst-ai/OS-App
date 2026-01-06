@@ -23,7 +23,7 @@ export async function generateDecompositionMap(goal: string): Promise<AtomicTask
     };
 
     const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
+        model: 'gemini-1.5-pro',
         contents: `Decompose this directive into atomic tasks: "${goal}". Return JSON.`,
         config: {
             responseMimeType: 'application/json',
@@ -42,7 +42,7 @@ export async function consensusEngine(
     const ai = getAI();
     const TARGET_GAP = 3; 
     const MAX_ROUNDS = 15;
-    const MODEL = 'gemini-3-flash-preview';
+    const MODEL = 'gemini-2.0-flash';
 
     let votes: Record<string, number> = {}; 
     let answerMap: Record<string, string> = {}; 

@@ -169,7 +169,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
           parts.push({ text: "Synthesize a comprehensive Production Bible for this film series. Ensure extreme realism and consistent theme application. Output JSON {theme, atmosphere, visualLogic, narrativeArc, opticProfile, cinematicNotes[]}." });
 
           const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-              model: 'gemini-3-flash-preview',
+              model: 'gemini-2.0-flash',
               contents: { parts },
               config: { 
                   responseMimeType: 'application/json',
@@ -209,7 +209,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
       try {
           const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
           const usePro = imageGen.quality !== ImageSize.SIZE_1K;
-          const model = usePro ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image';
+          const model = usePro ? 'gemini-2.0-flash-exp' : 'gemini-2.0-flash-exp';
           
           const contextualPrompt = productionBible 
             ? `PRODUCTION_BIBLE_CONTEXT: ${productionBible.theme}. OPTICS: ${productionBible.opticProfile}. AESTHETIC: ${productionBible.visualLogic}. DIRECTIVE: ${imageGen.prompt}`
@@ -300,7 +300,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const usePro = imageGen.quality !== ImageSize.SIZE_1K;
-        const model = usePro ? 'gemini-3-pro-image-preview' : 'gemini-2.5-flash-image';
+        const model = usePro ? 'gemini-2.0-flash-exp' : 'gemini-2.0-flash-exp';
         
         const resCurve = imageGen.resonanceCurve?.[idx];
         const resonance = resCurve 

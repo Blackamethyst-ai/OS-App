@@ -459,7 +459,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         prompt: '',
         generatedCode: '',
         language: 'typescript',
-        model: 'gemini-3-pro-preview',
+        model: 'gemini-1.5-pro',
         isLoading: false,
         error: null,
         activeTab: 'IDE',
