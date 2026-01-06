@@ -135,7 +135,7 @@ const UserProfileOverlay: React.FC = () => {
             }
         });
 
-        if (document.body) resizeObserver.observe(document.body);
+        if (document.documentElement) resizeObserver.observe(document.documentElement);
         return () => resizeObserver.disconnect();
     }, [isProfileOpen]);
 
