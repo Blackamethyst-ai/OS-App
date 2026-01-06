@@ -34,26 +34,26 @@ const AuthModule: React.FC = () => {
     };
 
     return (
-        <div className="fixed inset-0 z-[1000] bg-black flex items-center justify-center font-sans overflow-hidden">
-            {/* Background elements */}
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center font-sans overflow-hidden bg-black/40 backdrop-blur-xl transition-all duration-1000">
+            {/* Background elements - Subtle pulsing lattice */}
             <div className="absolute inset-0 opacity-20 pointer-events-none">
                 <div className="absolute top-0 left-0 w-full h-full bg-[linear-gradient(rgba(157,78,221,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.1)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#9d4edd]/5 rounded-full blur-[120px]"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-[#9d4edd]/5 rounded-full blur-[120px] animate-pulse"></div>
             </div>
 
             <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="w-full max-w-md bg-[#0a0a0a] border border-[#222] rounded-3xl p-8 shadow-2xl relative overflow-hidden z-10"
+                className="w-full max-w-md bg-[#0a0a0a]/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-8 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden z-10"
             >
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent"></div>
 
                 <div className="text-center mb-10">
-                    <div className="w-20 h-20 bg-[#111] rounded-full border border-[#333] flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(157,78,221,0.2)]">
+                    <div className="w-20 h-20 bg-[#111]/50 rounded-full border border-white/10 flex items-center justify-center mx-auto mb-6 shadow-[0_0_30px_rgba(157,78,221,0.2)]">
                         <Shield className="w-10 h-10 text-[#9d4edd]" />
                     </div>
                     <h1 className="text-2xl font-black font-mono text-white tracking-[0.2em] uppercase">Sovereign Gate</h1>
-                    <p className="text-[10px] text-gray-500 font-mono mt-2 uppercase tracking-widest">Biometric Authentication Required</p>
+                    <p className="text-[10px] text-gray-400 font-mono mt-2 uppercase tracking-widest">Biometric Authentication Required</p>
                 </div>
 
                 <form onSubmit={handleAuth} className="space-y-6">
@@ -65,7 +65,7 @@ const AuthModule: React.FC = () => {
                                 required
                                 value={credentials.username}
                                 onChange={e => setCredentials({ ...credentials, username: e.target.value })}
-                                className="w-full bg-[#050505] border border-[#333] rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all"
+                                className="w-full bg-black/50 border border-white/10 rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all placeholder-white/20"
                                 placeholder="Operator ID..."
                             />
                             <Fingerprint className="absolute left-3.5 bottom-3.5 w-4 h-4 text-gray-600 group-focus-within:text-[#9d4edd] transition-colors" />
@@ -78,7 +78,7 @@ const AuthModule: React.FC = () => {
                                 required
                                 value={credentials.password}
                                 onChange={e => setCredentials({ ...credentials, password: e.target.value })}
-                                className="w-full bg-[#050505] border border-[#333] rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all"
+                                className="w-full bg-black/50 border border-white/10 rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all placeholder-white/20"
                                 placeholder="Passphrase..."
                             />
                             <Lock className="absolute left-3.5 bottom-3.5 w-4 h-4 text-gray-600 group-focus-within:text-[#9d4edd] transition-colors" />
@@ -90,7 +90,7 @@ const AuthModule: React.FC = () => {
                                 type="password"
                                 value={credentials.apiKey || ''}
                                 onChange={e => setCredentials({ ...credentials, apiKey: e.target.value })}
-                                className="w-full bg-[#050505] border border-[#333] rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all"
+                                className="w-full bg-black/50 border border-white/10 rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all placeholder-white/20"
                                 placeholder="sk-..."
                             />
                             <Key className="absolute left-3.5 bottom-3.5 w-4 h-4 text-gray-600 group-focus-within:text-[#9d4edd] transition-colors" />
@@ -102,7 +102,7 @@ const AuthModule: React.FC = () => {
                                 <select
                                     value={credentials.role}
                                     onChange={e => setCredentials({ ...credentials, role: e.target.value })}
-                                    className="w-full bg-[#050505] border border-[#333] rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all appearance-none cursor-pointer"
+                                    className="w-full bg-black/50 border border-white/10 rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all appearance-none cursor-pointer"
                                 >
                                     <option value="OPERATOR">OPERATOR</option>
                                     <option value="ARCHITECT">ARCHITECT</option>
@@ -113,16 +113,26 @@ const AuthModule: React.FC = () => {
                         )}
                     </div>
 
-                    <button
-                        disabled={isLoading}
-                        className="w-full py-4 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black font-mono text-xs uppercase tracking-[0.2em] rounded-xl transition-all shadow-[0_0_40px_rgba(157,78,221,0.3)] flex items-center justify-center gap-3 disabled:opacity-50"
-                    >
-                        {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : view === 'LOGIN' ? 'Authorize Uplink' : 'Forge Identity'}
-                        {!isLoading && <ChevronRight className="w-4 h-4" />}
-                    </button>
+                    <div className="flex flex-col gap-3">
+                        <button
+                            disabled={isLoading}
+                            className="w-full py-4 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black font-mono text-xs uppercase tracking-[0.2em] rounded-xl transition-all shadow-[0_0_40px_rgba(157,78,221,0.3)] flex items-center justify-center gap-3 disabled:opacity-50"
+                        >
+                            {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : view === 'LOGIN' ? 'Authorize Uplink' : 'Forge Identity'}
+                            {!isLoading && <ChevronRight className="w-4 h-4" />}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => setAuthenticated(true)}
+                            className="w-full py-3 bg-transparent hover:bg-white/5 text-gray-500 hover:text-white font-mono text-[10px] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2"
+                        >
+                            <span>Initialize Guest Protocol</span>
+                        </button>
+                    </div>
                 </form>
 
-                <div className="mt-8 flex justify-between items-center text-[10px] font-mono text-gray-600 uppercase border-t border-[#1f1f1f] pt-6">
+                <div className="mt-8 flex justify-between items-center text-[10px] font-mono text-gray-600 uppercase border-t border-white/5 pt-6">
                     <button onClick={() => setView(view === 'LOGIN' ? 'REGISTER' : 'LOGIN')} className="hover:text-white transition-colors">
                         {view === 'LOGIN' ? 'Forge New Identity' : 'Existing Uplink'}
                     </button>
