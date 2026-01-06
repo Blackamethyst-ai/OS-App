@@ -209,7 +209,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
       try {
           const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
           const usePro = imageGen.quality !== ImageSize.SIZE_1K;
-          const model = usePro ? 'gemini-2.0-flash-exp' : 'gemini-2.0-flash-exp';
+          const model = usePro ? 'gemini-2.0-flash' : 'gemini-2.0-flash';
           
           const contextualPrompt = productionBible 
             ? `PRODUCTION_BIBLE_CONTEXT: ${productionBible.theme}. OPTICS: ${productionBible.opticProfile}. AESTHETIC: ${productionBible.visualLogic}. DIRECTIVE: ${imageGen.prompt}`
@@ -300,7 +300,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
         const usePro = imageGen.quality !== ImageSize.SIZE_1K;
-        const model = usePro ? 'gemini-2.0-flash-exp' : 'gemini-2.0-flash-exp';
+        const model = usePro ? 'gemini-2.0-flash' : 'gemini-2.0-flash';
         
         const resCurve = imageGen.resonanceCurve?.[idx];
         const resonance = resCurve 

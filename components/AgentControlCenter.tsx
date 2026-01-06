@@ -287,7 +287,7 @@ const AgentControlCenter: React.FC = () => {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-                model: 'gemini-1.5-pro',
+                model: 'gemini-2.0-flash',
                 contents: directive,
                 config: { 
                     systemInstruction: `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\nACT AS NODE: ${activeAgent.name}.`,

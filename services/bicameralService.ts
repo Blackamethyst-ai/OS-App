@@ -23,7 +23,7 @@ export async function generateDecompositionMap(goal: string): Promise<AtomicTask
     };
 
     const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-        model: 'gemini-1.5-pro',
+        model: 'gemini-2.0-flash',
         contents: `Decompose this directive into atomic tasks: "${goal}". Return JSON.`,
         config: {
             responseMimeType: 'application/json',
