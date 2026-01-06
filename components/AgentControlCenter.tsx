@@ -14,7 +14,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { AutonomousAgent, OperationalContext, MentalState, TaskStatus, AtomicTask } from '../types';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest } from '../services/geminiService';
+import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest, getAI } from '../services/geminiService';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 
@@ -211,7 +211,7 @@ const AgentControlCenter: React.FC = () => {
 
         try {
             if (!(await window.aistudio?.hasSelectedApiKey())) { setIsGrounding(false); return; }
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = getAI();
 
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
                 model: 'gemini-2.0-flash',
@@ -284,7 +284,7 @@ const AgentControlCenter: React.FC = () => {
 
         try {
             if (!(await window.aistudio?.hasSelectedApiKey())) return;
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = getAI();
 
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
                 model: 'gemini-2.0-flash',

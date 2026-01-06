@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Scan, Download, Terminal, BrainCircuit, Loader2, Copy, FileText, Code, Image as ImageIcon, Wand2, Edit, Check, Zap } from 'lucide-react';
-import { promptSelectKey, transformArtifact, retryGeminiRequest } from '../services/geminiService';
+import { promptSelectKey, transformArtifact, retryGeminiRequest, getAI } from '../services/geminiService';
 import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
 import { usePerspectiveRefraction } from '../hooks/usePerspectiveRefraction';
 
@@ -28,8 +28,8 @@ const HoloProjector: React.FC = () => {
                 return;
             }
 
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            
+            const ai = getAI();
+
             let prompt = "Analyze this artifact in extreme technical detail. Identify key architectural features, potential optimizations, security vulnerabilities, and aesthetic patterns. Output a professional diagnostic report.";
             let model = 'gemini-2.0-flash';
             let content: any = null;
@@ -71,7 +71,7 @@ const HoloProjector: React.FC = () => {
     const handleTransform = async (instruction: string) => {
         if (!holo.activeArtifact) return;
         setIsTransforming(true);
-        
+
         try {
             const hasKey = await window.aistudio?.hasSelectedApiKey();
             if (!hasKey) await promptSelectKey();
@@ -118,7 +118,7 @@ const HoloProjector: React.FC = () => {
                     className="relative w-[90vw] h-[85vh] bg-[#050505] border border-[#333] rounded-xl overflow-hidden flex flex-col shadow-[0_0_100px_rgba(157,78,221,0.15)] group crystalline"
                 >
                     <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(157,78,221,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(157,78,221,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
-                    
+
                     <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 flex items-center justify-between px-6 z-10 shrink-0">
                         <div className="flex items-center gap-4">
                             <div className="p-2 bg-[#9d4edd]/10 border border-[#9d4edd] rounded">
@@ -133,7 +133,7 @@ const HoloProjector: React.FC = () => {
                         </div>
                         <div className="flex items-center gap-3">
                             <button onClick={handleAnalyze} disabled={holo.isAnalyzing} className="flex items-center gap-2 px-4 py-2 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[10px] font-mono uppercase tracking-wider transition-all disabled:opacity-50">
-                                {holo.isAnalyzing ? <Loader2 className="w-3 h-3 animate-spin"/> : <BrainCircuit className="w-3 h-3" />}
+                                {holo.isAnalyzing ? <Loader2 className="w-3 h-3 animate-spin" /> : <BrainCircuit className="w-3 h-3" />}
                                 Deep Scan
                             </button>
                             <button onClick={saveAsset} className="flex items-center gap-2 px-4 py-2 bg-[#111] hover:bg-white/10 border border-[#333] rounded text-[10px] font-mono uppercase tracking-wider transition-all">
@@ -149,10 +149,10 @@ const HoloProjector: React.FC = () => {
                     <div className="flex-1 flex overflow-hidden relative z-10">
                         <div className="flex-1 flex items-center justify-center p-8 bg-black/50 relative overflow-auto custom-scrollbar flex-col">
                             {holo.activeArtifact.type === 'IMAGE' && (
-                                <img 
-                                    src={holo.activeArtifact.content as string} 
-                                    className="max-w-full max-h-full object-contain border border-[#333] shadow-2xl rounded-lg" 
-                                    alt="Holo Artifact" 
+                                <img
+                                    src={holo.activeArtifact.content as string}
+                                    className="max-w-full max-h-full object-contain border border-[#333] shadow-2xl rounded-lg"
+                                    alt="Holo Artifact"
                                 />
                             )}
                             {holo.activeArtifact.type === 'CODE' && (
@@ -193,7 +193,7 @@ const HoloProjector: React.FC = () => {
                                         <span className="text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider flex items-center gap-2">
                                             <Terminal className="w-3 h-3" /> Diagnostic Result
                                         </span>
-                                        <button onClick={() => setHoloAnalysis(null)} className="text-gray-500 hover:text-white transition-colors"><X size={3} className="w-3 h-3"/></button>
+                                        <button onClick={() => setHoloAnalysis(null)} className="text-gray-500 hover:text-white transition-colors"><X size={3} className="w-3 h-3" /></button>
                                     </div>
                                     <div className="flex-1 p-6 overflow-y-auto custom-scrollbar text-[11px] font-mono text-gray-400 leading-relaxed whitespace-pre-wrap border-l-4 border-l-[#9d4edd]/20">
                                         {holo.analysisResult}
@@ -206,7 +206,7 @@ const HoloProjector: React.FC = () => {
                     {(holo.activeArtifact.type === 'CODE' || holo.activeArtifact.type === 'TEXT') && (
                         <div className="h-12 border-t border-[#1f1f1f] bg-[#0a0a0a] flex items-center justify-center gap-4 px-4 relative z-20">
                             <span className="text-[9px] font-mono text-gray-500 uppercase tracking-widest absolute left-4">Transformation Matrix</span>
-                            
+
                             {holo.activeArtifact.type === 'CODE' && (
                                 <>
                                     <button onClick={() => handleTransform('Refactor code for cleanliness and performance. Keep functionality.')} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase tracking-wider transition-all">

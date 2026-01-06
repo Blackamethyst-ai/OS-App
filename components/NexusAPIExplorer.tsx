@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Search, Globe, Loader2, Sparkles, Code, GitBranch, 
-    ChevronRight, Zap, ExternalLink, Box, Database, 
+import {
+    Search, Globe, Loader2, Sparkles, Code, GitBranch,
+    ChevronRight, Zap, ExternalLink, Box, Database,
     Layers, Cpu, BookOpen, ShieldCheck, Terminal, Trash2, X, Activity,
     Filter, Share2, PlayCircle, Fingerprint, Waypoints, Gauge,
     Cloud, BrainCircuit, HardDrive, LayoutGrid, Network,
@@ -46,8 +46,8 @@ const NexusAPIExplorer: React.FC = () => {
 
     const filtered = useMemo(() => {
         return GOOGLE_APIS.filter(api => {
-            const matchesQuery = api.title.toLowerCase().includes(query.toLowerCase()) || 
-                                 api.description.toLowerCase().includes(query.toLowerCase());
+            const matchesQuery = api.title.toLowerCase().includes(query.toLowerCase()) ||
+                api.description.toLowerCase().includes(query.toLowerCase());
             const matchesCat = activeCat === 'ALL' || api.category === activeCat;
             return matchesQuery && matchesCat;
         });
@@ -58,7 +58,7 @@ const NexusAPIExplorer: React.FC = () => {
         setIsSearchingLive(true);
         audio.playClick();
         addLog('SYSTEM', `NEXUS_QUERY: Scanning global service mesh for "${query}"...`);
-        
+
         try {
             if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsSearchingLive(false); return; }
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
@@ -88,8 +88,8 @@ const NexusAPIExplorer: React.FC = () => {
 
         try {
             if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsForging(false); return; }
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            
+            const ai = getAI();
+
             const prompt = `
                 ACT AS: Nexus Forge AI.
                 TARGET: ${selectedApi.title}
@@ -123,11 +123,11 @@ const NexusAPIExplorer: React.FC = () => {
         if (!selectedApi || !generatedSchema) return;
         setIsCommitting(true);
         audio.playClick();
-        
+
         try {
             const manifest = JSON.parse(generatedSchema);
             const id = manifest.name || `nexus_tool_${Date.now()}`;
-            
+
             const code = `
                 // Dynamic Nexus Executor for ${selectedApi.title}
                 os.log('SYSTEM', 'EXECUTING: ${id} protocol...');
@@ -136,7 +136,7 @@ const NexusAPIExplorer: React.FC = () => {
             `;
 
             await dynamicRegistry.registerDynamicTool(id, manifest, code);
-            
+
             const newAgent = {
                 id: `node-${Date.now()}`,
                 name: selectedApi.title.split(' ')[0] + ' Bot',
@@ -181,7 +181,7 @@ const NexusAPIExplorer: React.FC = () => {
         <div className="h-full w-full flex gap-8 p-10 overflow-hidden bg-transparent relative z-10 font-sans">
             <div className="w-[450px] bg-black/40 border border-white/5 rounded-[3rem] overflow-hidden flex flex-col shadow-2xl relative">
                 <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
-                
+
                 <div className="p-8 border-b border-white/5 bg-white/[0.01] space-y-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
@@ -193,7 +193,7 @@ const NexusAPIExplorer: React.FC = () => {
                                 <p className="text-[8px] text-gray-500 font-mono uppercase tracking-widest mt-1">Registry Protocol v9.5</p>
                             </div>
                         </div>
-                        <button 
+                        <button
                             onClick={handleLiveSearch}
                             disabled={isSearchingLive || !query.trim()}
                             className="p-2.5 bg-black border border-white/10 rounded-xl hover:border-[#22d3ee] transition-all text-gray-500 hover:text-[#22d3ee] disabled:opacity-20 active:scale-95 shadow-lg"
@@ -204,7 +204,7 @@ const NexusAPIExplorer: React.FC = () => {
 
                     <div className="relative group">
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700 group-focus-within:text-[#9d4edd] transition-colors" />
-                        <input 
+                        <input
                             value={query}
                             onChange={e => setQuery(e.target.value)}
                             placeholder="Probe Global Endpoints..."
@@ -214,8 +214,8 @@ const NexusAPIExplorer: React.FC = () => {
 
                     <div className="flex gap-1.5 overflow-x-auto no-scrollbar pb-2">
                         {CATEGORIES.map(cat => (
-                            <button 
-                                key={cat} 
+                            <button
+                                key={cat}
                                 onClick={() => setActiveCat(cat)}
                                 className={cn(
                                     "px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border",
@@ -270,7 +270,7 @@ const NexusAPIExplorer: React.FC = () => {
                         </button>
                     ))}
                 </div>
-                
+
                 <div className="h-10 bg-black/80 border-t border-white/5 px-8 flex justify-between items-center text-[6px] font-mono text-gray-700 tracking-[0.2em] shrink-0 uppercase font-black">
                     <div className="flex gap-6">
                         <span>Lattice_Endpoints: {GOOGLE_APIS.length + liveSearchResults.length}</span>
@@ -282,10 +282,10 @@ const NexusAPIExplorer: React.FC = () => {
 
             <div className="flex-1 bg-black/40 border border-white/5 rounded-[4rem] flex flex-col relative overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.8)] group/forge">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.03)_0%,transparent_80%)] pointer-events-none" />
-                
+
                 <AnimatePresence mode="wait">
                     {selectedApi ? (
-                        <motion.div 
+                        <motion.div
                             key={selectedApi.title}
                             initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
@@ -315,7 +315,7 @@ const NexusAPIExplorer: React.FC = () => {
                                         <p className="text-sm text-gray-300 font-mono leading-relaxed italic border-l-4 border-[#9d4edd] pl-8">"{selectedApi.description}"</p>
                                     </div>
                                 </div>
-                                
+
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-3 text-10px font-black text-gray-500 uppercase tracking-widest px-2">
                                         <Waypoints size={14} className="text-[#22d3ee]" /> Integration Schematic
@@ -378,8 +378,8 @@ const NexusAPIExplorer: React.FC = () => {
 
                             <div className="mt-12 flex gap-6 shrink-0">
                                 {!generatedSchema ? (
-                                    <button 
-                                        onClick={forgeCapability} 
+                                    <button
+                                        onClick={forgeCapability}
                                         disabled={isForging}
                                         className="flex-1 py-6 bg-[#9d4edd] text-black rounded-[2rem] text-11px font-black uppercase tracking-[0.5em] hover:bg-[#b06bf7] transition-all shadow-[0_30px_80px_rgba(157,78,221,0.4)] flex items-center justify-center gap-5 active:scale-95 disabled:opacity-50"
                                     >
@@ -387,13 +387,13 @@ const NexusAPIExplorer: React.FC = () => {
                                     </button>
                                 ) : (
                                     <>
-                                        <button 
+                                        <button
                                             onClick={forgeCapability}
                                             className="px-10 py-6 bg-white/5 border border-white/10 hover:border-white/30 text-gray-500 hover:text-white rounded-[2rem] text-10px font-black uppercase tracking-widest transition-all"
                                         >
                                             Re-Forge
                                         </button>
-                                        <button 
+                                        <button
                                             onClick={handleCommitToOS}
                                             disabled={isCommitting}
                                             className="flex-1 py-6 bg-[#10b981] text-black font-black font-mono text-11px uppercase tracking-[0.5em] rounded-[2rem] shadow-[0_30px_80px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5"

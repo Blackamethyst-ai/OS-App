@@ -1,6 +1,6 @@
 import { GoogleGenAI, Schema, Type, GenerateContentResponse } from "@google/genai";
 import { FileData, SyntheticPersona, DebateTurn, SimulationReport, MentalState } from '../types';
-import { HIVE_AGENTS, constructHiveContext, retryGeminiRequest } from './geminiService';
+import { HIVE_AGENTS, constructHiveContext, retryGeminiRequest, getAI } from './geminiService';
 
 // 1. GENESIS: Select Hive Agents relevant to the content
 export async function generatePersonas(file: FileData, baselineMindset?: MentalState): Promise<SyntheticPersona[]> {
@@ -19,8 +19,8 @@ export async function generatePersonas(file: FileData, baselineMindset?: MentalS
 
         return selection.map((agent) => {
             // Use baseline from DNA Builder if provided, otherwise compute from agent defaults
-            let mindset: MentalState = baselineMindset 
-                ? { ...baselineMindset } 
+            let mindset: MentalState = baselineMindset
+                ? { ...baselineMindset }
                 : { skepticism: 50, excitement: 50, alignment: 50 };
 
             if (!baselineMindset) {
@@ -48,13 +48,13 @@ export async function generatePersonas(file: FileData, baselineMindset?: MentalS
 
 // 2. THE TURN: Execute round with DNA weighting
 export async function runDebateTurn(
-    activePersona: SyntheticPersona, 
-    history: DebateTurn[], 
+    activePersona: SyntheticPersona,
+    history: DebateTurn[],
     contextFile: FileData,
     godModeDirective?: string
 ): Promise<DebateTurn> {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = getAI();
         const script = history.slice(-5).map(h => `${h.personaId === activePersona.id ? 'YOU' : 'OTHER'}: ${h.text}`).join('\n');
 
         const schema: Schema = {
@@ -116,9 +116,9 @@ export async function runDebateTurn(
 // 3. SYNTHESIS: Generate report
 export async function synthesizeReport(history: DebateTurn[]): Promise<SimulationReport> {
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = getAI();
         const script = history.map(h => `[${h.personaId}]: ${h.text}`).join('\n');
-        
+
         const schema: Schema = {
             type: Type.OBJECT,
             properties: {
