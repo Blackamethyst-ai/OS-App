@@ -306,26 +306,35 @@ const CapitalVelocity = () => (
         </div>
         <div className="space-y-6 relative z-10">
             {[
-                { label: 'Compute Units', val: 92, color: '#f1c21b' },
-                { label: 'Treasury Flow', val: 78, color: '#22d3ee' },
-                { label: 'System Reach', val: 84, color: '#10b981' }
-            ].map((cat) => (
-                <div key={cat.label} className="space-y-2.5">
-                    <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-widest font-black">
-                        <span className="text-gray-500">{cat.label}</span>
-                        <span className="text-white">{cat.val}%</span>
+                { label: 'Compute Units', val: 92 },
+                { label: 'Treasury Flow', val: 78 },
+                { label: 'System Reach', val: 84 }
+            ].map((cat) => {
+                // Mathematical Color Interpolation based on "Loading State"
+                let barColor = '#ef4444'; // default warning/low
+                if (cat.val >= 90) barColor = '#10b981'; // Green (Optimal)
+                else if (cat.val >= 70) barColor = '#22d3ee'; // Cyan (Nominal)
+                else if (cat.val >= 50) barColor = '#f1c21b'; // Yellow (Caution)
+                else if (cat.val >= 30) barColor = '#f97316'; // Orange (Critical)
+
+                return (
+                    <div key={cat.label} className="space-y-2.5">
+                        <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-widest font-black">
+                            <span className="text-gray-500">{cat.label}</span>
+                            <span className="text-white">{cat.val}%</span>
+                        </div>
+                        <div className="h-1 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 p-px shadow-inner">
+                            <motion.div
+                                initial={{ width: 0, backgroundColor: '#333' }}
+                                animate={{ width: `${cat.val}%`, backgroundColor: barColor }}
+                                transition={{ duration: 1.5, ease: "circOut" }}
+                                className="h-full rounded-full transition-colors duration-1000"
+                                style={{ boxShadow: `0 0 10px ${barColor}40` }}
+                            />
+                        </div>
                     </div>
-                    <div className="h-1 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 p-px shadow-inner">
-                        <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${cat.val}%` }}
-                            transition={{ duration: 1.5, ease: "circOut" }}
-                            className="h-full rounded-full"
-                            style={{ backgroundColor: cat.color, boxShadow: `0 0 10px ${cat.color}40` }}
-                        />
-                    </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     </div>
 );
