@@ -1,12 +1,10 @@
 import { GoogleGenAI, Schema, Type, GenerateContentResponse } from "@google/genai";
 import { AtomicTask, SwarmResult, SwarmStatus, VoteLedger } from '../types';
-import { retryGeminiRequest } from './geminiService';
-
-const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+import { retryGeminiRequest, getAI } from './geminiService';
 
 export async function generateDecompositionMap(goal: string): Promise<AtomicTask[]> {
     const ai = getAI();
-    
+
     const schema: Schema = {
         type: Type.ARRAY,
         items: {
@@ -36,16 +34,16 @@ export async function generateDecompositionMap(goal: string): Promise<AtomicTask
 }
 
 export async function consensusEngine(
-    task: AtomicTask, 
+    task: AtomicTask,
     onStatusUpdate: (status: SwarmStatus) => void
 ): Promise<SwarmResult> {
     const ai = getAI();
-    const TARGET_GAP = 3; 
+    const TARGET_GAP = 3;
     const MAX_ROUNDS = 15;
     const MODEL = 'gemini-2.0-flash';
 
-    let votes: Record<string, number> = {}; 
-    let answerMap: Record<string, string> = {}; 
+    let votes: Record<string, number> = {};
+    let answerMap: Record<string, string> = {};
     let killedAgents = 0;
     let rounds = 0;
 
@@ -75,7 +73,7 @@ export async function consensusEngine(
             const result = JSON.parse(response.text || "{}");
             let rawOutput = result.output?.trim() || "";
             rawOutput = rawOutput.replace(/^```[a-z]*\n/i, '').replace(/\n```$/, '').trim();
-            
+
             if (!rawOutput) throw new Error("Empty output");
             const key = rawOutput.toLowerCase().replace(/\s+/g, ' ').substring(0, 200);
             if (!answerMap[key]) answerMap[key] = rawOutput;

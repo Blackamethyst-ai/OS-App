@@ -78,7 +78,7 @@ function createBlob(data: Float32Array): GenAIBlob {
 
 // --- CRITICAL FIX: SAFE AI INSTANCE ---
 // This replaces the broken process.env call with the Vite-compatible import.meta.env
-const getAI = () => {
+export const getAI = () => {
     // Try multiple sources for the API key to be robust across Vercel/Local/Vite environments
     const apiKey = process.env.GEMINI_API_KEY ||
         process.env.API_KEY ||

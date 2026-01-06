@@ -5,7 +5,7 @@ import { GoogleGenAI, FunctionDeclaration, GenerateContentResponse } from "@goog
 import { dynamicRegistry } from '../services/DynamicToolRegistry';
 import { AgenticState, ToolResult } from '../types';
 import { useAppStore } from '../store';
-import { SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest } from '../services/geminiService';
+import { SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest, getAI } from '../services/geminiService';
 
 /**
  * SOVEREIGN AGENTIC RUNTIME V3
@@ -35,7 +35,7 @@ export const useAgentRuntime = () => {
             // 1. Initialise Registry
             await dynamicRegistry.initialize();
 
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = getAI();
             const toolManifests = dynamicRegistry.getCombinedManifests();
 
             // 2. Initial Thought Generation

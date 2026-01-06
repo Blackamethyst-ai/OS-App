@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Target, Activity, Loader2, Cpu, Globe, Lock, GitBranch, Zap, Radio, Sparkles } from 'lucide-react';
 import { useAppStore } from '../store';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { retryGeminiRequest } from '../services/geminiService';
+import { retryGeminiRequest, getAI } from '../services/geminiService';
 import { cn } from '../utils/cn';
 import TacticalScanner from './TacticalScanner';
 
@@ -70,7 +70,7 @@ const ZenithPlane = ({ imageUrl }: { imageUrl: string }) => {
   const mesh = useRef<THREE.Mesh>(null);
   const texture = useLoader(THREE.TextureLoader, imageUrl);
   const { viewport } = useThree();
-  
+
   const scale = useMemo(() => [viewport.width, viewport.height, 1] as [number, number, number], [viewport.width, viewport.height]);
 
   const shader = useMemo(() => getParallaxShader(), []);
@@ -87,14 +87,14 @@ const ZenithPlane = ({ imageUrl }: { imageUrl: string }) => {
     if (mesh.current) {
       const { x, y } = state.mouse;
       const mat = mesh.current.material as THREE.ShaderMaterial;
-      
+
       const imageAspect = 16 / 9;
       const viewportAspect = viewport.width / viewport.height;
-      
+
       if (viewportAspect > imageAspect) {
-          mat.uniforms.uAspect.value.set(1.0, imageAspect / viewportAspect);
+        mat.uniforms.uAspect.value.set(1.0, imageAspect / viewportAspect);
       } else {
-          mat.uniforms.uAspect.value.set(viewportAspect / imageAspect, 1.0);
+        mat.uniforms.uAspect.value.set(viewportAspect / imageAspect, 1.0);
       }
 
       mat.uniforms.uMouse.value.x = THREE.MathUtils.lerp(mat.uniforms.uMouse.value.x, x, 0.05);
@@ -130,7 +130,7 @@ const IntelRibbon = () => {
     const fetchIntel = async () => {
       setIsUpdating(true);
       try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        const ai = getAI();
         const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
           model: 'gemini-2.0-flash',
           contents: "List the top 4 real-time technical or financial trends for Sovereign AI, GPU clusters, and DePIN infrastructure in early 2025. Terse, one-word or short phrase each. Separated by pipes.",
@@ -153,24 +153,24 @@ const IntelRibbon = () => {
     <div className="absolute top-0 left-0 right-0 h-6 bg-black/60 backdrop-blur-xl border-b border-white/5 z-40 overflow-hidden flex items-center group/ribbon">
       <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-[#0a0a0a] to-transparent z-10" />
       <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-[#0a0a0a] to-transparent z-10" />
-      
+
       <div className="flex items-center gap-4 px-6 shrink-0 z-20">
         <div className="flex items-center gap-2">
-            <Globe size={10} className={cn("text-[#18E6FF]", isUpdating && "animate-spin")} />
-            <span className="text-[7px] font-black font-mono text-gray-500 uppercase tracking-widest">Reality_Grounded</span>
+          <Globe size={10} className={cn("text-[#18E6FF]", isUpdating && "animate-spin")} />
+          <span className="text-[7px] font-black font-mono text-gray-500 uppercase tracking-widest">Reality_Grounded</span>
         </div>
         <div className="h-2 w-px bg-white/10" />
       </div>
 
-      <motion.div 
+      <motion.div
         animate={{ x: ['10%', '-100%'] }}
         transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
         className="whitespace-nowrap flex items-center gap-16 relative z-10"
       >
         {intel.map((item, i) => (
           <div key={i} className="flex items-center gap-3">
-             <div className="w-1 h-1 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />
-             <span className="text-[9px] font-black font-mono text-white/40 uppercase tracking-[0.4em] group-hover/ribbon:text-white/80 transition-colors">{item}</span>
+            <div className="w-1 h-1 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />
+            <span className="text-[9px] font-black font-mono text-white/40 uppercase tracking-[0.4em] group-hover/ribbon:text-white/80 transition-colors">{item}</span>
           </div>
         ))}
       </motion.div>
@@ -179,50 +179,50 @@ const IntelRibbon = () => {
 };
 
 const AgentMonologues = () => {
-    const [activeMonologue, setActiveMonologue] = useState<{agent: string, text: string} | null>(null);
-    const MONOLOGUES = [
-        { agent: "PUCK", text: "Dreaming new architectural symmetries..." },
-        { agent: "CHARON", text: "Auditing PARA integrity... 0.04ms" },
-        { agent: "FENRIR", text: "Optimizing code execution latency." },
-        { agent: "PUCK", text: "Synthesizing visual logic buffers." },
-        { agent: "CHARON", text: "Security attestation level 0 confirmed." },
-        { agent: "FENRIR", text: "Compiling strategic implementation deck." }
-    ];
+  const [activeMonologue, setActiveMonologue] = useState<{ agent: string, text: string } | null>(null);
+  const MONOLOGUES = [
+    { agent: "PUCK", text: "Dreaming new architectural symmetries..." },
+    { agent: "CHARON", text: "Auditing PARA integrity... 0.04ms" },
+    { agent: "FENRIR", text: "Optimizing code execution latency." },
+    { agent: "PUCK", text: "Synthesizing visual logic buffers." },
+    { agent: "CHARON", text: "Security attestation level 0 confirmed." },
+    { agent: "FENRIR", text: "Compiling strategic implementation deck." }
+  ];
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (Math.random() > 0.6) {
-                setActiveMonologue(MONOLOGUES[Math.floor(Math.random() * MONOLOGUES.length)]);
-                setTimeout(() => setActiveMonologue(null), 4000);
-            }
-        }, 8000);
-        return () => clearInterval(interval);
-    }, []);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (Math.random() > 0.6) {
+        setActiveMonologue(MONOLOGUES[Math.floor(Math.random() * MONOLOGUES.length)]);
+        setTimeout(() => setActiveMonologue(null), 4000);
+      }
+    }, 8000);
+    return () => clearInterval(interval);
+  }, []);
 
-    return (
-        <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
-            <AnimatePresence>
-                {activeMonologue && (
-                    <motion.div 
-                        initial={{ opacity: 0, x: 200, y: 300 }}
-                        animate={{ 
-                            opacity: [0, 0.4, 0.4, 0],
-                            x: [200, 150, 100, 50],
-                            y: [300, 290, 310, 300]
-                        }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 4, ease: "easeInOut" }}
-                        className="absolute text-right"
-                    >
-                        <div className="flex flex-col gap-1 pr-12">
-                             <span className="text-[7px] font-mono text-[#9d4edd] uppercase tracking-widest font-black">[{activeMonologue.agent}_MONOLOGUE]</span>
-                             <span className="text-[10px] font-mono text-white/20 italic tracking-tight uppercase whitespace-nowrap">{activeMonologue.text}</span>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-        </div>
-    );
+  return (
+    <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
+      <AnimatePresence>
+        {activeMonologue && (
+          <motion.div
+            initial={{ opacity: 0, x: 200, y: 300 }}
+            animate={{
+              opacity: [0, 0.4, 0.4, 0],
+              x: [200, 150, 100, 50],
+              y: [300, 290, 310, 300]
+            }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 4, ease: "easeInOut" }}
+            className="absolute text-right"
+          >
+            <div className="flex flex-col gap-1 pr-12">
+              <span className="text-[7px] font-mono text-[#9d4edd] uppercase tracking-widest font-black">[{activeMonologue.agent}_MONOLOGUE]</span>
+              <span className="text-[10px] font-mono text-white/20 italic tracking-tight uppercase whitespace-nowrap">{activeMonologue.text}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 };
 
 const TacticalOverlay = () => (
@@ -231,22 +231,22 @@ const TacticalOverlay = () => (
 
     <div className="flex justify-between items-start">
       <div className="space-y-6">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
           className="flex items-center gap-4 px-6 py-2.5 bg-[#0a0a0a]/80 backdrop-blur-3xl border border-[#9d4edd]/50 rounded-2xl shadow-[0_0_40px_rgba(157,78,221,0.15)] pointer-events-auto cursor-pointer group/id"
         >
           <div className="relative">
-             <ShieldCheck size={18} className="text-[#10b981] animate-pulse" />
-             <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 rounded-full bg-[#10b981]/20" />
+            <ShieldCheck size={18} className="text-[#10b981] animate-pulse" />
+            <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 rounded-full bg-[#10b981]/20" />
           </div>
           <span className="text-[11px] font-black text-white font-mono uppercase tracking-[0.5em] leading-none group-hover/id:text-[#10b981] transition-colors">Identity_Verified_L0</span>
         </motion.div>
-        
+
         <div className="flex flex-col gap-4 pl-2 relative">
           <div className="absolute left-[-24px] top-0 bottom-0 w-[1.5px] bg-gradient-to-b from-[#9d4edd] via-[#18E6FF] to-transparent opacity-40" />
-          
-          <motion.h2 
+
+          <motion.h2
             initial={{ opacity: 0, filter: 'blur(10px)' }}
             animate={{ opacity: 1, filter: 'blur(0px)' }}
             transition={{ duration: 1.2 }}
@@ -259,70 +259,70 @@ const TacticalOverlay = () => (
 
           <div className="flex items-center gap-8 mt-4">
             <div className="flex items-center gap-3">
-                <Cpu size={12} className="text-[#18E6FF]" />
-                <span className="text-[10px] font-mono text-gray-400 uppercase tracking-[0.6em] font-black drop-shadow-md">Core_Lattice_Authorized</span>
+              <Cpu size={12} className="text-[#18E6FF]" />
+              <span className="text-[10px] font-mono text-gray-400 uppercase tracking-[0.6em] font-black drop-shadow-md">Core_Lattice_Authorized</span>
             </div>
             <div className="h-[1px] w-24 bg-gradient-to-r from-white/20 to-transparent" />
           </div>
         </div>
       </div>
-      
+
       <div className="flex flex-col items-end gap-5">
-        <motion.div 
-            whileHover={{ scale: 1.05 }}
-            className="px-8 py-4 bg-black/70 border border-white/10 rounded-3xl flex items-center gap-6 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.6)] pointer-events-auto cursor-pointer group/sync"
+        <motion.div
+          whileHover={{ scale: 1.05 }}
+          className="px-8 py-4 bg-black/70 border border-white/10 rounded-3xl flex items-center gap-6 backdrop-blur-3xl shadow-[0_30px_60px_rgba(0,0,0,0.6)] pointer-events-auto cursor-pointer group/sync"
         >
           <div className="flex flex-col items-end gap-1">
-              <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest leading-none">Sync_Vector</span>
-              <span className="text-11px font-mono text-[#18E6FF] font-black uppercase tracking-widest group-hover/sync:animate-pulse">Zenith_Active</span>
+            <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest leading-none">Sync_Vector</span>
+            <span className="text-11px font-mono text-[#18E6FF] font-black uppercase tracking-widest group-hover/sync:animate-pulse">Zenith_Active</span>
           </div>
           <Target size={22} className="text-[#18E6FF] animate-[spin_8s_linear_infinite]" />
         </motion.div>
 
         <div className="flex flex-col items-end gap-2 pr-2">
-            <div className="flex gap-2">
-                {[1,2,3,4].map(i => (
-                    <motion.div 
-                        key={i} 
-                        animate={{ opacity: [0.1, 0.4, 0.1] }} 
-                        transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
-                        className="w-1.5 h-1.5 rounded-full bg-[#9d4edd]" 
-                    />
-                ))}
-            </div>
-            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.4em]">Handshake: OK</span>
+          <div className="flex gap-2">
+            {[1, 2, 3, 4].map(i => (
+              <motion.div
+                key={i}
+                animate={{ opacity: [0.1, 0.4, 0.1] }}
+                transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
+                className="w-1.5 h-1.5 rounded-full bg-[#9d4edd]"
+              />
+            ))}
+          </div>
+          <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.4em]">Handshake: OK</span>
         </div>
       </div>
     </div>
-    
+
     <div className="flex justify-between items-end pb-4">
       <div className="flex gap-20 ml-2">
         <div className="space-y-2">
           <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block opacity-60 font-black">Cluster_Node</span>
           <div className="flex items-center gap-3">
-              <Globe size={14} className="text-gray-500" />
-              <span className="text-base font-black font-mono text-white uppercase tracking-[0.2em]">Manhattan_01</span>
+            <Globe size={14} className="text-gray-500" />
+            <span className="text-base font-black font-mono text-white uppercase tracking-[0.2em]">Manhattan_01</span>
           </div>
         </div>
         <div className="space-y-2">
           <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block opacity-60 font-black">Neural_Architecture</span>
           <div className="flex items-center gap-3">
-              <GitBranch size={14} className="text-[#9d4edd]" />
-              <span className="text-base font-black font-mono text-white uppercase tracking-[0.2em]">Recursive_Logic</span>
+            <GitBranch size={14} className="text-[#9d4edd]" />
+            <span className="text-base font-black font-mono text-white uppercase tracking-[0.2em]">Recursive_Logic</span>
           </div>
         </div>
       </div>
-      
+
       <div className="text-right flex flex-col items-end gap-8 mr-2">
         <div className="flex items-center gap-6">
-           <div className="flex flex-col items-end gap-1.5">
-              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest font-black opacity-60 leading-none">System_Attestation</span>
-              <div className="flex items-center gap-3">
-                  <span className="text-[13px] font-black font-mono text-[#10b981] uppercase tracking-[0.2em]">Optimal_L0</span>
-                  <Lock size={12} className="text-[#10b981]" />
-              </div>
-           </div>
-           <div className="w-4 h-4 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_20px_#10b981]" />
+          <div className="flex flex-col items-end gap-1.5">
+            <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest font-black opacity-60 leading-none">System_Attestation</span>
+            <div className="flex items-center gap-3">
+              <span className="text-[13px] font-black font-mono text-[#10b981] uppercase tracking-[0.2em]">Optimal_L0</span>
+              <Lock size={12} className="text-[#10b981]" />
+            </div>
+          </div>
+          <div className="w-4 h-4 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_20px_#10b981]" />
         </div>
       </div>
     </div>
@@ -336,8 +336,8 @@ export const ZenithDisplay = ({ currentZenithImage }: { currentZenithImage: stri
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-2xl z-50">
           <div className="flex flex-col items-center gap-8">
             <div className="relative">
-                <Loader2 size={16} className="text-[#9d4edd] animate-spin" />
-                <div className="absolute inset-0 blur-2xl bg-[#9d4edd]/30 rounded-full animate-pulse" />
+              <Loader2 size={16} className="text-[#9d4edd] animate-spin" />
+              <div className="absolute inset-0 blur-2xl bg-[#9d4edd]/30 rounded-full animate-pulse" />
             </div>
             <span className="text-[#9d4edd] font-mono text-xs animate-pulse tracking-[1em] uppercase font-black">Establishing_Zenith_Link...</span>
           </div>
@@ -350,8 +350,8 @@ export const ZenithDisplay = ({ currentZenithImage }: { currentZenithImage: stri
           <TacticalOverlay />
           <AgentMonologues />
           <TacticalScanner />
-          
-          <Canvas 
+
+          <Canvas
             camera={{ position: [0, 0, 5], fov: 40 }}
             gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
             dpr={[1, 2]}
@@ -361,11 +361,11 @@ export const ZenithDisplay = ({ currentZenithImage }: { currentZenithImage: stri
               <ZenithPlane imageUrl={currentZenithImage} />
             </React.Suspense>
           </Canvas>
-          
+
           <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.5)_100%)] z-20" />
           <div className="absolute inset-0 pointer-events-none opacity-[0.03] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] z-20 mix-blend-overlay" />
-          
-          <motion.div 
+
+          <motion.div
             animate={{ top: ['-10%', '110%'] }}
             transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
             className="absolute left-0 right-0 h-[1px] bg-white/5 z-20 pointer-events-none"
