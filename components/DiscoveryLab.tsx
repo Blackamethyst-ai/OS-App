@@ -3,13 +3,13 @@ import { useAppStore } from '../store';
 import { generateHypotheses, simulateExperiment, generateTheory, promptSelectKey, compressKnowledge, fileToGenerativePart, classifyArtifact, smartOrganizeArtifact } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
 import { ScienceHypothesis, KnowledgeNode, CompressedAxiom } from '../types';
-import { 
-    FlaskConical, BrainCircuit, Search, Loader2, Beaker, 
-    Activity, Zap, Sparkles, Database, Layers, GitBranch, 
+import {
+    FlaskConical, BrainCircuit, Search, Loader2, Beaker,
+    Activity, Zap, Sparkles, Database, Layers, GitBranch,
     ChevronRight, ArrowRight, Minimize2, Trash2, CheckCircle2, Filter, Target, X, Unlock, Lock, FileUp, Upload, ShieldCheck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import SuperLattice from './visualizations/SuperLattice';
+import SuperLattice from './Visualizations/SuperLattice';
 
 const DiscoveryLab: React.FC = () => {
     const { discovery, research, actions } = useAppStore();
@@ -19,7 +19,7 @@ const DiscoveryLab: React.FC = () => {
     const [isUploading, setIsUploading] = useState(false);
     const [axioms, setAxioms] = useState<CompressedAxiom[]>([]);
     const [filterTaskId, setFilterTaskId] = useState<string | null>(null);
-    
+
     const activeKnowledge = useMemo(() => {
         let nodes: KnowledgeNode[] = [];
         const researchTasks = research?.tasks || [];
@@ -61,7 +61,7 @@ const DiscoveryLab: React.FC = () => {
             setIsUploading(true);
             const files = Array.from(e.target.files) as File[];
             addLog('SYSTEM', `DISCOVERY_INGEST: Buffering ${files.length} primary sources...`);
-            
+
             for (const file of files) {
                 try {
                     const hasKey = await window.aistudio?.hasSelectedApiKey();
@@ -130,11 +130,11 @@ const DiscoveryLab: React.FC = () => {
                         <p className="text-[9px] text-gray-500 font-mono">Autonomous Science Protocol</p>
                     </div>
                 </div>
-                
+
                 <div className="flex items-center gap-4">
                     <AnimatePresence>
                         {filterTaskId && (
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
@@ -153,7 +153,7 @@ const DiscoveryLab: React.FC = () => {
                             {isUploading ? 'INDEXING...' : 'Ingest Sources'}
                             <input type="file" multiple className="hidden" onChange={handleFileUpload} />
                         </label>
-                        <button 
+                        <button
                             onClick={handleCompress}
                             disabled={isCompressing || activeKnowledge.length < 5}
                             className="px-4 py-2 bg-[#9d4edd]/10 border border-[#9d4edd]/30 text-[#9d4edd] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#9d4edd] hover:text-black transition-all flex items-center gap-2"
@@ -173,11 +173,11 @@ const DiscoveryLab: React.FC = () => {
                 <div className="w-1/3 flex flex-col gap-4">
                     <div className="bg-[#050505]/80 backdrop-blur-xl border border-[#333] rounded-xl p-4 shadow-xl">
                         <div className="flex gap-2">
-                            <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleResearchDispatch()} placeholder="Enter research vector..." className="flex-1 bg-[#111] border border-[#333] p-2 text-xs text-white font-mono rounded outline-none focus:border-[#22d3ee]"/>
+                            <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleResearchDispatch()} placeholder="Enter research vector..." className="flex-1 bg-[#111] border border-[#333] p-2 text-xs text-white font-mono rounded outline-none focus:border-[#22d3ee]" />
                             <button onClick={() => handleResearchDispatch()} className="p-2 bg-[#22d3ee] text-black rounded hover:bg-[#67e8f9] transition-all shadow-lg"><ArrowRight className="w-4 h-4" /></button>
                         </div>
                     </div>
-                    
+
                     <div className="flex-1 bg-[#050505]/80 backdrop-blur-xl border border-[#333] rounded-xl overflow-hidden flex flex-col shadow-2xl">
                         <div className="p-3 border-b border-[#333] bg-[#0a0a0a]/50 flex justify-between items-center text-[10px] font-mono text-gray-500 uppercase tracking-widest">
                             <div className="flex items-center gap-2"><Activity size={14} className="text-[#f59e0b]" /> Active Probes</div>
@@ -187,8 +187,8 @@ const DiscoveryLab: React.FC = () => {
                         </div>
                         <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
                             {(research?.tasks || []).map(task => (
-                                <div 
-                                    key={task.id} 
+                                <div
+                                    key={task.id}
                                     onClick={() => setFilterTaskId(task.id === filterTaskId ? null : task.id)}
                                     className={`bg-[#111] border p-3 rounded-lg group cursor-pointer transition-all hover:border-[#22d3ee] ${filterTaskId === task.id ? 'border-[#22d3ee] bg-[#22d3ee]/5 shadow-[0_0_15px_rgba(34,211,238,0.15)]' : 'border-[#222]'}`}
                                 >
@@ -198,7 +198,7 @@ const DiscoveryLab: React.FC = () => {
                                     </div>
                                     <div className="h-1 bg-[#333] rounded-full overflow-hidden mb-1"><div className="h-full bg-[#f59e0b]" style={{ width: `${task.progress}%` }} /></div>
                                     <div className="flex justify-between items-center">
-                                        <div className="text-[8px] text-gray-600 font-mono truncate max-w-[140px]">{Array.isArray(task.logs) ? task.logs[task.logs.length-1] : 'Idle'}</div>
+                                        <div className="text-[8px] text-gray-600 font-mono truncate max-w-[140px]">{Array.isArray(task.logs) ? task.logs[task.logs.length - 1] : 'Idle'}</div>
                                         {filterTaskId === task.id && <span className="text-[7px] font-black text-[#22d3ee] animate-pulse">LOCK_ACTIVE</span>}
                                     </div>
                                 </div>

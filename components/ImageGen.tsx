@@ -6,7 +6,7 @@ import { AspectRatio, ImageSize, FileData, SOVEREIGN_DEFAULT_COLORWAY } from '..
 import {
     promptSelectKey, fileToGenerativePart, generateStoryboardPlan,
     constructCinematicPrompt, retryGeminiRequest,
-    generateAudioOverview
+    generateAudioOverview, getAI
 } from '../services/geminiService';
 import {
     ImageIcon, Loader2, RefreshCw, Download, Plus, Film, Wand2,
