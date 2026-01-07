@@ -1,9 +1,9 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    GitMerge, Activity, Zap, Loader2, Target, 
-    RefreshCw, HardDrive, Binary, Save, ShieldCheck, 
+import {
+    GitMerge, Activity, Zap, Loader2, Target,
+    RefreshCw, HardDrive, Binary, Save, ShieldCheck,
     ChevronRight, ListChecks, Compass, Share2, PlayCircle,
     FolderTree, Cloud, Code, FolderOpen, FileText, Component,
     Microscope, Terminal, Aperture, BookOpen, Fingerprint,
@@ -32,7 +32,7 @@ const BlueprintStat = ({ label, value, color, detail }: { label: string, value: 
 );
 
 const DomainCard = ({ label, sub, icon: Icon, color, active, onClick }: any) => (
-    <button 
+    <button
         onClick={onClick}
         className={cn(
             "w-full p-3 rounded-2xl border transition-all text-left flex items-center gap-3 relative overflow-hidden group/domain shrink-0",
@@ -84,11 +84,11 @@ const ImplementationTerminal = ({ protocols, isDeploying }: { protocols: Protoco
     }, [logs]);
 
     return (
-        <div className="h-64 bg-black/90 border border-white/5 rounded-[2.5rem] p-6 font-mono text-[9px] text-[#10b981] overflow-hidden flex flex-col shadow-2xl relative group">
+        <div className="h-64 bg-black/90 border border-white/5 rounded-[2.5rem] p-6 font-mono text-[9px] text-[var(--plasma-green)] overflow-hidden flex flex-col shadow-2xl relative group">
             <div className="absolute inset-0 opacity-[0.02] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] pointer-events-none" />
             <div className="absolute top-4 right-8 flex items-center gap-3">
                 <span className="text-[7px] font-black text-gray-700 uppercase tracking-widest">Sovereign_Handshake</span>
-                <div className={cn("w-1.5 h-1.5 rounded-full", isDeploying ? "bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" : "bg-gray-800")} />
+                <div className={cn("w-1.5 h-1.5 rounded-full", isDeploying ? "bg-[var(--plasma-green)] animate-pulse shadow-[0_0_8px_var(--plasma-green)]" : "bg-gray-800")} />
             </div>
             <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1 pr-4 relative z-10">
                 {logs.length === 0 ? (
@@ -112,11 +112,11 @@ const ImplementationTerminal = ({ protocols, isDeploying }: { protocols: Protoco
 
 const TreeView = ({ data }: { data: TechnicalManifest }) => {
     if (!data || !Array.isArray(data.structure)) return null;
-    
+
     const renderNode = (node: DirectoryNode, depth = 0) => {
         const isFolder = node.type === 'folder';
         const entropy = node.entropy || 0;
-        
+
         const getEntropyColor = (val: number) => {
             if (val > 75) return 'text-red-500';
             if (val > 35) return 'text-[#f59e0b]';
@@ -125,7 +125,7 @@ const TreeView = ({ data }: { data: TechnicalManifest }) => {
 
         return (
             <div key={node.name} className="space-y-0.5">
-                <div 
+                <div
                     className="flex items-center gap-3 py-1.5 hover:bg-white/5 rounded-xl px-4 transition-all cursor-default group/node border border-transparent hover:border-white/5"
                     style={{ paddingLeft: `${depth * 1.5 + 0.8}rem` }}
                 >
@@ -135,14 +135,14 @@ const TreeView = ({ data }: { data: TechnicalManifest }) => {
                     )}>
                         {isFolder ? <FolderOpen size={10} /> : <FileText size={10} />}
                     </div>
-                    
+
                     <div className="flex flex-col min-w-0">
                         <span className={cn(
                             "text-[10px] font-mono tracking-tight transition-colors truncate",
                             isFolder ? "text-white font-black uppercase" : "text-gray-400 group-hover/node:text-white"
                         )}>{node.name}</span>
                     </div>
-                    
+
                     <div className="ml-auto flex items-center gap-2 opacity-0 group-hover/node:opacity-100 transition-opacity">
                         <span className={cn("text-[6px] font-black font-mono uppercase tracking-widest shrink-0", getEntropyColor(entropy))}>Drift_{entropy}%</span>
                     </div>
@@ -166,7 +166,7 @@ const TreeView = ({ data }: { data: TechnicalManifest }) => {
                     </div>
                 </div>
             </div>
-            
+
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 max-h-[400px] relative z-10">
                 {data.structure.map((root: any) => renderNode(root))}
             </div>
@@ -190,36 +190,36 @@ const ProposalQueue = () => {
 
     return (
         <div className="p-5 bg-black/40 border border-white/5 rounded-[2.5rem] shadow-2xl invisible-glass space-y-6 backdrop-blur-3xl relative overflow-hidden group/ritual shrink-0">
-             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(157,78,221,0.02)_0%,transparent_70%)]" />
-             <div className="flex items-center justify-between px-2 relative z-10 shrink-0">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(157,78,221,0.02)_0%,transparent_70%)]" />
+            <div className="flex items-center justify-between px-2 relative z-10 shrink-0">
                 <div className="flex items-center gap-3">
-                    <BrainCircuit size={16} className="text-[#9d4edd] animate-pulse" />
+                    <BrainCircuit size={16} className="text-[var(--amethyst)] animate-pulse" />
                     <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em]">Neural Queue</span>
                 </div>
-                <span className="text-[7px] px-2 py-0.5 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded text-[#9d4edd] font-black uppercase">Swarm_Signals</span>
-             </div>
+                <span className="text-[7px] px-2 py-0.5 bg-[var(--amethyst)]/10 border border-[var(--amethyst)]/30 rounded text-[var(--amethyst)] font-black uppercase">Swarm_Signals</span>
+            </div>
 
-             <div className="space-y-3 relative z-10 overflow-y-auto custom-scrollbar max-h-[300px] pr-1">
+            <div className="space-y-3 relative z-10 overflow-y-auto custom-scrollbar max-h-[300px] pr-1">
                 {proposals.map(prop => (
-                    <motion.div 
+                    <motion.div
                         key={prop.id}
                         initial={{ opacity: 0, x: -10 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl group transition-all hover:border-[#9d4edd]/30"
+                        className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl group transition-all hover:border-[var(--amethyst)]/30"
                     >
                         <div className="flex justify-between items-start mb-2">
-                             <div className="flex items-center gap-2">
-                                <Bot size={12} className="text-[#9d4edd]" />
+                            <div className="flex items-center gap-2">
+                                <Bot size={12} className="text-[var(--amethyst)]" />
                                 <span className="text-[10px] font-black text-white uppercase truncate max-w-[140px]">{prop.agentName}</span>
-                             </div>
-                             <button onClick={() => dismissProposal(prop.id)} className="text-gray-700 hover:text-red-500 transition-colors"><X size={12} /></button>
+                            </div>
+                            <button onClick={() => dismissProposal(prop.id)} className="text-gray-700 hover:text-red-500 transition-colors"><X size={12} /></button>
                         </div>
                         <h4 className="text-[11px] font-black text-[#9d4edd] uppercase mb-1">{prop.title}</h4>
                         <p className="text-[9px] text-gray-500 font-mono leading-relaxed line-clamp-2 uppercase italic mb-3">"{prop.description}"</p>
-                        
+
                         <div className="flex gap-2">
-                            <button 
-                                onClick={() => { 
+                            <button
+                                onClick={() => {
                                     setDashboardState({ activeManifest: prop.manifest });
                                     addLog('INFO', `PREVIEW: Reviewing ${prop.type} proposal from Swarm.`);
                                     audio.playClick();
@@ -228,20 +228,20 @@ const ProposalQueue = () => {
                             >
                                 Review
                             </button>
-                            <button 
+                            <button
                                 onClick={() => {
                                     addLog('SUCCESS', `ATTESTATION: Proposal [${prop.title}] locked for implementation.`);
                                     dismissProposal(prop.id);
                                     audio.playSuccess();
                                 }}
-                                className="flex-1 py-1.5 bg-[#9d4edd]/20 border border-[#9d4edd]/40 rounded-lg text-[8px] font-black uppercase text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black transition-all"
+                                className="flex-1 py-1.5 bg-[var(--amethyst)]/20 border border-[var(--amethyst)]/40 rounded-lg text-[8px] font-black uppercase text-[var(--amethyst)] hover:bg-[var(--amethyst)] hover:text-black transition-all"
                             >
                                 Attest
                             </button>
                         </div>
                     </motion.div>
                 ))}
-             </div>
+            </div>
         </div>
     );
 };
@@ -261,14 +261,14 @@ const ImplementationDeck: React.FC<{
     };
 
     return (
-        <motion.div 
-            initial={{ opacity: 0, y: 30 }} 
+        <motion.div
+            initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             className="flex flex-col gap-6 pb-32"
         >
             <div className="p-8 crystalline rounded-[3.5rem] relative overflow-hidden shadow-2xl glass-refraction">
                 <div className="absolute top-0 right-0 p-10 opacity-[0.01] rotate-12 pointer-events-none scale-150"><Component size={140} /></div>
-                
+
                 <div className="flex justify-between items-start mb-8 relative z-10">
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
@@ -323,20 +323,20 @@ const ImplementationDeck: React.FC<{
                             <span className="text-base font-black text-white uppercase tracking-[0.4em]">Protocol Execution</span>
                         </div>
                     </div>
-                    
+
                     <ImplementationTerminal protocols={data.protocols || []} isDeploying={isDeploying} />
 
                     <div className="space-y-3 pt-2">
                         {(data.protocols || []).map((step: any, i: number) => (
-                            <motion.div 
-                                key={i} 
-                                initial={{ opacity: 0, x: -10 }} 
+                            <motion.div
+                                key={i}
+                                initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.05 }}
                                 className="p-6 bg-[#0a0a0c] border border-white/5 rounded-[2.5rem] flex items-center gap-8 group hover:border-[#10b981]/40 transition-all shadow-2xl relative overflow-hidden backdrop-blur-4xl"
                             >
                                 <div className="w-12 h-12 bg-black border border-white/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[#10b981] group-hover:text-black transition-all shadow-2xl relative z-10 overflow-hidden group-hover:scale-105">
-                                    <span className="text-xl font-black font-mono">{(i+1).toString().padStart(2, '0')}</span>
+                                    <span className="text-xl font-black font-mono">{(i + 1).toString().padStart(2, '0')}</span>
                                 </div>
                                 <div className="flex-1 min-w-0 relative z-10">
                                     <div className="flex justify-between items-center mb-1">
@@ -345,12 +345,12 @@ const ImplementationDeck: React.FC<{
                                             <div className="h-px w-8 bg-current opacity-20" />
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            {step.estimatedTime && <div className="flex items-center gap-1 text-[8px] font-mono text-gray-500"><Clock size={10}/> {step.estimatedTime}</div>}
-                                            {step.securityVector === 'ENCRYPTED' && <div className="flex items-center gap-1 text-[8px] font-mono text-emerald-500"><Shield size={10}/> SECURE</div>}
+                                            {step.estimatedTime && <div className="flex items-center gap-1 text-[8px] font-mono text-gray-500"><Clock size={10} /> {step.estimatedTime}</div>}
+                                            {step.securityVector === 'ENCRYPTED' && <div className="flex items-center gap-1 text-[8px] font-mono text-emerald-500"><Shield size={10} /> SECURE</div>}
                                         </div>
                                     </div>
                                     <p className="text-base text-gray-300 font-mono leading-relaxed group-hover:text-white transition-colors uppercase tracking-tight truncate">{step.instruction}</p>
-                                    
+
                                     {step.dependencies && step.dependencies.length > 0 && (
                                         <div className="mt-2 flex gap-2">
                                             {step.dependencies.map((dep: string, idx: number) => (
@@ -367,7 +367,7 @@ const ImplementationDeck: React.FC<{
                 <div className="col-span-4 flex flex-col gap-6">
                     <div className="bg-[#0a0a0c] border border-white/5 rounded-[3rem] p-8 flex flex-col gap-8 shadow-2xl h-full invisible-glass backdrop-blur-4xl relative overflow-hidden">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(123,44,255,0.02)_0%,transparent_70%)] pointer-events-none" />
-                        
+
                         <div className="flex items-center gap-4 relative z-10">
                             <div className="p-3 bg-[#7B2CFF]/10 rounded-2xl text-[#7B2CFF] border border-[#7B2CFF]/30">
                                 <Compass size={24} />
@@ -384,11 +384,11 @@ const ImplementationDeck: React.FC<{
                                     <span className="text-lg font-black font-mono text-[#7B2CFF] leading-none">{data.viability}%</span>
                                 </div>
                                 <div className="h-1.5 w-full bg-black/60 rounded-full overflow-hidden border border-white/5 shadow-inner p-px">
-                                    <motion.div 
-                                        initial={{ width: 0 }} 
-                                        animate={{ width: `${data.viability}%` }} 
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${data.viability}%` }}
                                         transition={{ duration: 2, ease: "circOut" }}
-                                        className="h-full rounded-full bg-gradient-to-r from-[#7B2CFF] to-[#18E6FF]" 
+                                        className="h-full rounded-full bg-gradient-to-r from-[#7B2CFF] to-[#18E6FF]"
                                     />
                                 </div>
                             </div>
@@ -409,7 +409,7 @@ const ImplementationDeck: React.FC<{
                             </div>
 
                             <div className="mt-auto pt-8 border-t border-white/5 flex flex-col gap-4">
-                                <button 
+                                <button
                                     onClick={handleCommit}
                                     disabled={isDeploying}
                                     className={cn(
@@ -435,7 +435,7 @@ const ImplementationDeck: React.FC<{
 const SynthesisBridge: React.FC = () => {
     const { actions, knowledge, dashboard } = useAppStore();
     const { addLog, archiveIntervention, deployStrategyToLattice } = actions;
-    
+
     const [processType, setProcessType] = useState<'DRIVE' | 'SYSTEM' | 'CODE' | 'OPS'>('DRIVE');
     const [isGenerating, setIsGenerating] = useState(false);
     const [result, setResult] = useState<TechnicalManifest | null>(null);
@@ -459,18 +459,18 @@ const SynthesisBridge: React.FC = () => {
         try {
             const hasKey = await promptSelectKey();
             if (!hasKey) { setIsGenerating(false); return; }
-            
+
             const activeLayers = (knowledge.activeLayers || []).map(id => KNOWLEDGE_LAYERS[id]?.label || id).join(', ');
 
-            const directive = presetPrompt || (processType === 'DRIVE' 
+            const directive = presetPrompt || (processType === 'DRIVE'
                 ? "Forge a professional PARA 2.0 Imperial Drive Organization. STRUCTURE: Inbox, Projects, Areas, Resources, Archives. NAMING: [TYPE]_[DATE]_[PROJECT]. Provide deep metadata for entropy scores."
                 : processType === 'SYSTEM'
-                ? "Synthesize an ultra-fidelity Systems Architecture manifest. Domain: Decentralized Lattice. Include IaC Terraform/HCL execution steps and terminal logOutput."
-                : processType === 'OPS'
-                ? "Generate a structured GitHub Sync Protocol. STEPS: 1. Status Audit, 2. Atomic Staging, 3. Signed Commit, 4. Upstream Push. Include CLI command sequences."
-                : "Forge a React/TypeScript Type-Safety Manifesto. Use absolute technical nomenclature and eliminate all implicit 'any' types.");
+                    ? "Synthesize an ultra-fidelity Systems Architecture manifest. Domain: Decentralized Lattice. Include IaC Terraform/HCL execution steps and terminal logOutput."
+                    : processType === 'OPS'
+                        ? "Generate a structured GitHub Sync Protocol. STEPS: 1. Status Audit, 2. Atomic Staging, 3. Signed Commit, 4. Upstream Push. Include CLI command sequences."
+                        : "Forge a React/TypeScript Type-Safety Manifesto. Use absolute technical nomenclature and eliminate all implicit 'any' types.");
 
-            const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', processType === 'DRIVE' ? 'DIRECTORY' : 'SYSTEM_FLOW', { 
+            const workflow = await generateStructuredWorkflow([], 'SOVEREIGN_CORE', processType === 'DRIVE' ? 'DIRECTORY' : 'SYSTEM_FLOW', {
                 prompt: `${directive}. User Intent: ${customIntent}. Context Layers: ${activeLayers}.`,
                 domain: 'Decentralized Lattice',
                 fidelity: 90
@@ -478,7 +478,7 @@ const SynthesisBridge: React.FC = () => {
 
             setResult(workflow);
             actions.setDashboardState({ activeManifest: workflow });
-            
+
             addLog('SUCCESS', `SYNC_COMPLETE: ${workflow.title} manifest locked and verified.`);
             audio.playSuccess();
         } catch (e: any) {
@@ -493,13 +493,13 @@ const SynthesisBridge: React.FC = () => {
         <div className="h-full w-full bg-transparent flex flex-col font-sans overflow-hidden transition-all duration-700">
             {/* Command Header HUD */}
             <div className="h-20 border-b border-white/5 bg-[#0a0a0c]/90 backdrop-blur-3xl z-30 flex items-center justify-between px-12 shrink-0 relative overflow-hidden shadow-2xl">
-                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#7B2CFF]/60 to-transparent" />
-                
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--amethyst)]/60 to-transparent" />
+
                 <div className="flex items-center gap-10">
                     <div className="flex items-center gap-5">
-                        <div className="p-3 bg-[#7B2CFF]/10 border border-[#7B2CFF]/40 rounded-2xl shadow-xl relative overflow-hidden group">
+                        <div className="p-3 bg-[var(--amethyst)]/10 border border-[var(--amethyst)]/40 rounded-2xl shadow-xl relative overflow-hidden group">
                             <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <GitMerge size={24} className="text-[#7B2CFF] group-hover:rotate-180 transition-transform duration-700" />
+                            <GitMerge size={24} className="text-[var(--amethyst)] group-hover:rotate-180 transition-transform duration-700" />
                         </div>
                         <div>
                             <h1 className="text-xl font-black text-white uppercase tracking-[0.4em] leading-none">Synthesis Bridge</h1>
@@ -511,8 +511,8 @@ const SynthesisBridge: React.FC = () => {
                 <div className="flex items-center gap-12">
                     <div className="flex flex-col items-end gap-1.5">
                         <div className="flex items-center gap-4 bg-black/40 px-5 py-1 rounded-full border border-white/5 shadow-inner">
-                            <span className="text-[10px] font-black font-mono text-[#10b981] uppercase tracking-widest shimmer-text leading-none">Stable Link</span>
-                            <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_12px_#10b981]" />
+                            <span className="text-[10px] font-black font-mono text-[var(--plasma-green)] uppercase tracking-widest shimmer-text leading-none">Stable Link</span>
+                            <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_12px_var(--plasma-green)]" />
                         </div>
                     </div>
                 </div>
@@ -523,25 +523,25 @@ const SynthesisBridge: React.FC = () => {
                     <div className="p-5 bg-[#0a0a0c]/60 border border-white/5 rounded-[2.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden group/sector shrink-0">
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(123,44,255,0.02)_0%,transparent_70%)]" />
                         <div className="flex items-center gap-3 mb-4 px-1 relative z-10 shrink-0">
-                            <Target size={18} className="text-[#7B2CFF] animate-pulse" />
+                            <Target size={18} className="text-[var(--amethyst)] animate-pulse" />
                             <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Forge Sector</span>
                         </div>
                         <div className="space-y-2 relative z-10">
-                            <DomainCard 
-                                id="DRIVE" label="PARA Protocol" sub="DATA TAXONOMY" icon={HardDrive} color="#7B2CFF"
-                                active={processType === 'DRIVE'} onClick={() => { setProcessType('DRIVE'); audio.playClick(); }} 
+                            <DomainCard
+                                id="DRIVE" label="PARA Protocol" sub="DATA TAXONOMY" icon={HardDrive} color="var(--amethyst)"
+                                active={processType === 'DRIVE'} onClick={() => { setProcessType('DRIVE'); audio.playClick(); }}
                             />
-                            <DomainCard 
-                                id="SYSTEM" label="Systems Lattice" sub="ARCHITECTURE" icon={Cloud} color="#18E6FF"
-                                active={processType === 'SYSTEM'} onClick={() => { setProcessType('SYSTEM'); audio.playClick(); }} 
+                            <DomainCard
+                                id="SYSTEM" label="Systems Lattice" sub="ARCHITECTURE" icon={Cloud} color="var(--cyan)"
+                                active={processType === 'SYSTEM'} onClick={() => { setProcessType('SYSTEM'); audio.playClick(); }}
                             />
-                             <DomainCard 
-                                id="OPS" label="Git Sovereign" sub="OPERATIONS" icon={Github} color="#10b981"
-                                active={processType === 'OPS'} onClick={() => { setProcessType('OPS'); audio.playClick(); }} 
+                            <DomainCard
+                                id="OPS" label="Git Sovereign" sub="OPERATIONS" icon={Github} color="var(--plasma-green)"
+                                active={processType === 'OPS'} onClick={() => { setProcessType('OPS'); audio.playClick(); }}
                             />
-                             <DomainCard 
-                                id="CODE" label="Type Sovereignty" sub="TECHNICAL STACK" icon={Shield} color="#f1c21b"
-                                active={processType === 'CODE'} onClick={() => { setProcessType('CODE'); audio.playClick(); }} 
+                            <DomainCard
+                                id="CODE" label="Type Sovereignty" sub="TECHNICAL STACK" icon={Shield} color="var(--executive-gold)"
+                                active={processType === 'CODE'} onClick={() => { setProcessType('CODE'); audio.playClick(); }}
                             />
                         </div>
                     </div>
@@ -559,7 +559,7 @@ const SynthesisBridge: React.FC = () => {
                         </div>
                         <div className="space-y-3 relative z-10 overflow-y-auto max-h-[320px] custom-scrollbar pr-1">
                             {PRESETS.map(preset => (
-                                <button 
+                                <button
                                     key={preset.id}
                                     onClick={() => { setProcessType(preset.type as any); setCustomIntent(preset.description); generateBlueprint(preset.description); }}
                                     className={cn(
@@ -569,7 +569,7 @@ const SynthesisBridge: React.FC = () => {
                                 >
                                     <div className="flex justify-between items-center">
                                         <div className="flex items-center gap-3">
-                                            <preset.icon size={14} className="text-[#7B2CFF] group-hover:scale-110 transition-transform" />
+                                            <preset.icon size={14} className="text-[var(--amethyst)] group-hover:scale-110 transition-transform" />
                                             <div className="text-[10px] font-black text-white uppercase font-mono truncate tracking-tight">{preset.label}</div>
                                         </div>
                                         <span className="text-[6px] font-black font-mono text-gray-700 uppercase border border-white/5 px-1.5 py-0.5 rounded">{preset.complexity}</span>
@@ -581,16 +581,16 @@ const SynthesisBridge: React.FC = () => {
                     </div>
 
                     <div className="space-y-4 pt-1 shrink-0">
-                        <textarea 
+                        <textarea
                             value={customIntent}
                             onChange={e => setCustomIntent(e.target.value)}
                             placeholder="Input operational requirements..."
-                            className="w-full h-32 bg-black/60 border border-white/5 rounded-[2rem] p-5 text-[10px] font-mono text-gray-300 outline-none focus:border-[#7B2CFF]/60 transition-all placeholder:text-gray-800 shadow-inner resize-none"
+                            className="w-full h-32 bg-black/60 border border-white/5 rounded-[2rem] p-5 text-[10px] font-mono text-gray-300 outline-none focus:border-[var(--amethyst)]/60 transition-all placeholder:text-gray-800 shadow-inner resize-none"
                         />
-                        <button 
+                        <button
                             onClick={() => generateBlueprint()}
                             disabled={isGenerating}
-                            className="w-full py-4 bg-[#7B2CFF] hover:bg-[#8e49ff] text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.5em] transition-all shadow-[0_15px_40px_rgba(123,44,255,0.2)] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-4 group/gen"
+                            className="w-full py-4 bg-[var(--amethyst)] hover:brightness-125 text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.5em] transition-all shadow-[0_15px_40px_rgba(var(--amethyst),0.2)] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-4 group/gen"
                         >
                             {isGenerating ? <Loader2 size={15} className="w-5 h-5 animate-spin" /> : <RefreshCw size={18} className="group-hover/gen:rotate-180 transition-transform duration-700" />}
                             {isGenerating ? 'Synthesizing...' : 'Forge Protocol'}
@@ -601,16 +601,16 @@ const SynthesisBridge: React.FC = () => {
                 <div className="flex-1 overflow-y-auto custom-scrollbar pr-5">
                     <AnimatePresence mode="wait">
                         {(result || dashboard.activeManifest) ? (
-                            <ImplementationDeck 
-                                key="active-deck" 
-                                data={(result || dashboard.activeManifest) as TechnicalManifest} 
+                            <ImplementationDeck
+                                key="active-deck"
+                                data={(result || dashboard.activeManifest) as TechnicalManifest}
                                 onArchive={(d) => { archiveIntervention({ ...d, timestamp: Date.now() }); audio.playSuccess(); }}
                                 onDeploy={(d) => { deployStrategyToLattice(d); addLog('SUCCESS', `PROTOCOL_ENGAGED: Structural transformation sequence initiated.`); audio.playSuccess(); }}
                             />
                         ) : (
-                            <motion.div 
-                                initial={{ opacity: 0, scale: 0.95 }} 
-                                animate={{ opacity: 1, scale: 1 }} 
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
                                 className="h-full flex flex-col items-center justify-center text-center p-20 gap-10 grayscale opacity-10 group hover:grayscale-0 hover:opacity-25 transition-all duration-1000"
                             >
                                 <div className="relative">
@@ -631,7 +631,7 @@ const SynthesisBridge: React.FC = () => {
             <div className="h-10 bg-[#020204]/95 border-t border-white/5 px-12 flex items-center justify-between text-[9px] font-mono text-gray-700 shrink-0 relative z-[60] backdrop-blur-4xl uppercase font-black tracking-widest">
                 <div className="flex gap-16 items-center">
                     <div className="flex items-center gap-3 text-[#10b981] group cursor-pointer leading-none">
-                        <ShieldCheck size={16} className="group-hover:scale-110 transition-transform" /> 
+                        <ShieldCheck size={16} className="group-hover:scale-110 transition-transform" />
                         <span className="shimmer-text">Sync_Stable</span>
                     </div>
                 </div>
