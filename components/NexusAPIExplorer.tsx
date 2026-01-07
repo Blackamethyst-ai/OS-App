@@ -160,7 +160,7 @@ const NexusAPIExplorer: React.FC = () => {
                         label: selectedApi.title,
                         subtext: 'MCP_INJECTED',
                         iconName: 'Zap',
-                        color: '#22d3ee',
+                        color: 'var(--cyan)',
                         status: 'ACTIVE'
                     }
                 }
@@ -187,8 +187,8 @@ const NexusAPIExplorer: React.FC = () => {
                 <div className="p-8 border-b border-white/5 bg-white/[0.01] space-y-6">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-2xl shadow-xl">
-                                <Globe className="w-5 h-5 text-[#9d4edd]" />
+                            <div className="p-3 bg-[var(--amethyst)]/10 border border-[var(--amethyst)]/40 rounded-2xl shadow-xl">
+                                <Globe className="w-5 h-5 text-[var(--amethyst)]" />
                             </div>
                             <div>
                                 <h2 className="text-sm font-black text-white uppercase tracking-[0.4em]">Nexus Matrix</h2>
@@ -198,19 +198,19 @@ const NexusAPIExplorer: React.FC = () => {
                         <button
                             onClick={handleLiveSearch}
                             disabled={isSearchingLive || !query.trim()}
-                            className="p-2.5 bg-black border border-white/10 rounded-xl hover:border-[#22d3ee] transition-all text-gray-500 hover:text-[#22d3ee] disabled:opacity-20 active:scale-95 shadow-lg"
+                            className="p-2.5 bg-black border border-white/10 rounded-xl hover:border-[var(--cyan)] transition-all text-gray-500 hover:text-[var(--cyan)] disabled:opacity-20 active:scale-95 shadow-lg"
                         >
                             {isSearchingLive ? <Loader2 size={16} className="animate-spin" /> : <Zap size={16} />}
                         </button>
                     </div>
 
                     <div className="relative group">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700 group-focus-within:text-[#9d4edd] transition-colors" />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700 group-focus-within:text-[var(--amethyst)] transition-colors" />
                         <input
                             value={query}
                             onChange={e => setQuery(e.target.value)}
                             placeholder="Probe Global Endpoints..."
-                            className="w-full bg-black/60 border border-white/5 pl-12 pr-4 py-4 text-xs font-mono text-white focus:border-[#9d4edd] outline-none rounded-2xl shadow-inner transition-all placeholder:text-gray-800 uppercase"
+                            className="w-full bg-black/60 border border-white/5 pl-12 pr-4 py-4 text-xs font-mono text-white focus:border-[var(--amethyst)] outline-none rounded-2xl shadow-inner transition-all placeholder:text-gray-800 uppercase"
                         />
                     </div>
 
@@ -221,7 +221,7 @@ const NexusAPIExplorer: React.FC = () => {
                                 onClick={() => setActiveCat(cat)}
                                 className={cn(
                                     "px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap border",
-                                    activeCat === cat ? "bg-[#9d4edd] text-black border-[#9d4edd] shadow-lg" : "bg-black/40 border-white/5 text-gray-600 hover:text-white"
+                                    activeCat === cat ? "bg-[var(--amethyst)] text-black border-[var(--amethyst)] shadow-lg" : "bg-black/40 border-white/5 text-gray-600 hover:text-white"
                                 )}
                             >
                                 {cat}
@@ -240,17 +240,17 @@ const NexusAPIExplorer: React.FC = () => {
                                 onClick={() => { setSelectedApi(api); setGeneratedSchema(null); audio.playClick(); }}
                                 className={cn(
                                     "w-full text-left p-5 rounded-3xl transition-all flex items-center justify-between group border border-dashed relative overflow-hidden",
-                                    selectedApi?.title === api.title ? "bg-[#22d3ee]/10 border-[#22d3ee] shadow-xl" : "bg-[#22d3ee]/5 border-[#22d3ee]/30 hover:border-[#22d3ee]"
+                                    selectedApi?.title === api.title ? "bg-[var(--cyan)]/10 border-[var(--cyan)] shadow-xl" : "bg-[var(--cyan)]/5 border-[var(--cyan)]/30 hover:border-[var(--cyan)]"
                                 )}
                             >
                                 <div className="flex-1 min-w-0 pr-4 relative z-10">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <div className="w-1 h-1 rounded-full bg-[#22d3ee] animate-pulse" />
+                                        <div className="w-1 h-1 rounded-full bg-[var(--cyan)] animate-pulse" />
                                         <span className="text-11px font-black text-white uppercase truncate">{api.title}</span>
                                     </div>
                                     <div className="text-8px text-gray-500 font-mono truncate uppercase tracking-tighter opacity-60 group-hover:opacity-100">{api.description}</div>
                                 </div>
-                                <Sparkles size={14} className="text-[#22d3ee] shrink-0 animate-pulse" />
+                                <Sparkles size={14} className="text-[var(--cyan)] shrink-0 animate-pulse" />
                             </motion.button>
                         ))}
                     </AnimatePresence>
@@ -261,14 +261,14 @@ const NexusAPIExplorer: React.FC = () => {
                             onClick={() => { setSelectedApi(api); setGeneratedSchema(null); audio.playClick(); }}
                             className={cn(
                                 "w-full text-left p-5 rounded-3xl transition-all flex items-center justify-between group border relative overflow-hidden",
-                                selectedApi?.title === api.title ? "bg-[#9d4edd]/10 border-[#9d4edd] shadow-xl" : "bg-transparent border-transparent hover:bg-white/[0.03] hover:border-white/5"
+                                selectedApi?.title === api.title ? "bg-[var(--amethyst)]/10 border-[var(--amethyst)] shadow-xl" : "bg-transparent border-transparent hover:bg-white/[0.03] hover:border-white/5"
                             )}
                         >
                             <div className="flex-1 min-w-0 pr-4 relative z-10">
                                 <div className="text-11px font-black text-gray-200 group-hover:text-white transition-colors truncate uppercase tracking-tighter">{api.title}</div>
                                 <div className="text-8px text-gray-600 font-mono truncate uppercase mt-1 tracking-tighter">{api.description}</div>
                             </div>
-                            <ChevronRight size={14} className={cn("shrink-0 transition-transform group-hover:translate-x-1", selectedApi?.title === api.title ? "text-[#9d4edd]" : "text-gray-800")} />
+                            <ChevronRight size={14} className={cn("shrink-0 transition-transform group-hover:translate-x-1", selectedApi?.title === api.title ? "text-[var(--amethyst)]" : "text-gray-800")} />
                         </button>
                     ))}
                 </div>
@@ -276,14 +276,14 @@ const NexusAPIExplorer: React.FC = () => {
                 <div className="h-10 bg-black/80 border-t border-white/5 px-8 flex justify-between items-center text-[6px] font-mono text-gray-700 tracking-[0.2em] shrink-0 uppercase font-black">
                     <div className="flex gap-6">
                         <span>Lattice_Endpoints: {GOOGLE_APIS.length + liveSearchResults.length}</span>
-                        <span className="text-[#10b981]">Auth: SECURE</span>
+                        <span className="text-[var(--plasma-green)]">Auth: SECURE</span>
                     </div>
                     <span>Nexus_Core_</span>
                 </div>
             </div>
 
-            <div className="flex-1 bg-black/40 border border-white/5 rounded-[4rem] flex flex-col relative overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.8)] group/forge">
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.03)_0%,transparent_80%)] pointer-events-none" />
+            <div className="flex-1 bg-[var(--bg-app)]/40 border border-white/5 rounded-[4rem] flex flex-col relative overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.8)] group/forge">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_srgb,var(--amethyst),transparent_97%)_0%,transparent_80%)] pointer-events-none" />
 
                 <AnimatePresence mode="wait">
                     {selectedApi ? (
@@ -298,7 +298,7 @@ const NexusAPIExplorer: React.FC = () => {
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
                                         <div className="px-3 py-1 bg-white/5 border border-white/10 rounded-full">
-                                            <span className="text-9px font-black text-[#9d4edd] uppercase tracking-[0.3em]">{selectedApi.category} Protocol</span>
+                                            <span className="text-9px font-black text-[var(--amethyst)] uppercase tracking-[0.3em]">{selectedApi.category} Protocol</span>
                                         </div>
                                         <div className="h-1 w-12 bg-white/5 rounded-full" />
                                     </div>
@@ -310,30 +310,30 @@ const NexusAPIExplorer: React.FC = () => {
                             <div className="grid grid-cols-2 gap-10 mb-12">
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-3 text-10px font-black text-gray-500 uppercase tracking-widest px-2">
-                                        <Terminal size={14} className="text-[#9d4edd]" /> Capability Blueprint
+                                        <Terminal size={14} className="text-[var(--amethyst)]" /> Capability Blueprint
                                     </div>
                                     <div className="p-8 bg-black/60 border border-white/5 rounded-[2.5rem] shadow-inner relative overflow-hidden group/summary">
                                         <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover/summary:opacity-10 transition-opacity"><Info size={60} /></div>
-                                        <p className="text-sm text-gray-300 font-mono leading-relaxed italic border-l-4 border-[#9d4edd] pl-8">"{selectedApi.description}"</p>
+                                        <p className="text-sm text-gray-300 font-mono leading-relaxed italic border-l-4 border-[var(--amethyst)] pl-8">"{selectedApi.description}"</p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-6">
                                     <div className="flex items-center gap-3 text-10px font-black text-gray-500 uppercase tracking-widest px-2">
-                                        <Waypoints size={14} className="text-[#22d3ee]" /> Integration Schematic
+                                        <Waypoints size={14} className="text-[var(--cyan)]" /> Integration Schematic
                                     </div>
                                     <div className="bg-black/40 border border-white/5 rounded-[2.5rem] p-8 flex items-center justify-around relative shadow-inner">
-                                        <SchematicNode label="Nexus" color="#9d4edd" icon={Globe} />
+                                        <SchematicNode label="Nexus" color="var(--amethyst)" icon={Globe} />
                                         <div className="flex-1 px-4 flex flex-col items-center gap-2">
                                             <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                                            <motion.div animate={{ x: [-20, 20] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} className="w-1.5 h-1.5 rounded-full bg-[#10b981] shadow-[0_0_10px_#10b981]" />
+                                            <motion.div animate={{ x: [-20, 20] }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }} className="w-1.5 h-1.5 rounded-full bg-[var(--plasma-green)] shadow-[0_0_10px_var(--plasma-green)]" />
                                         </div>
-                                        <SchematicNode label="Kernel" color="#22d3ee" icon={Cpu} />
+                                        <SchematicNode label="Kernel" color="var(--cyan)" icon={Cpu} />
                                         <div className="flex-1 px-4 flex flex-col items-center gap-2">
                                             <div className="w-full h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                                            <motion.div animate={{ x: [20, -20] }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }} className="w-1.5 h-1.5 rounded-full bg-[#f1c21b] shadow-[0_0_100px_#f1c21b]" />
+                                            <motion.div animate={{ x: [20, -20] }} transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }} className="w-1.5 h-1.5 rounded-full bg-[var(--executive-gold)] shadow-[0_0_100px_var(--executive-gold)]" />
                                         </div>
-                                        <SchematicNode label="Swarm" color="#10b981" icon={Bot} />
+                                        <SchematicNode label="Swarm" color="var(--plasma-green)" icon={Bot} />
                                     </div>
                                 </div>
                             </div>
@@ -341,13 +341,13 @@ const NexusAPIExplorer: React.FC = () => {
                             <div className="flex-1 flex flex-col min-h-0">
                                 <div className="flex justify-between items-end mb-4 px-2">
                                     <div className="flex items-center gap-3">
-                                        <Code size={18} className="text-[#22d3ee]" />
+                                        <Code size={18} className="text-[var(--cyan)]" />
                                         <span className="text-10px font-black text-gray-500 uppercase tracking-[0.4em]">MCP Capability Manifest</span>
                                     </div>
                                     {generatedSchema && (
                                         <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse" />
-                                            <span className="text-9px font-mono text-[#10b981] font-bold uppercase">Ready for Injection</span>
+                                            <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] animate-pulse" />
+                                            <span className="text-9px font-mono text-[var(--plasma-green)] font-bold uppercase">Ready for Injection</span>
                                         </div>
                                     )}
                                 </div>
@@ -357,14 +357,14 @@ const NexusAPIExplorer: React.FC = () => {
                                         {isForging ? (
                                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 flex flex-col items-center justify-center bg-black/60 backdrop-blur-3xl z-20">
                                                 <div className="relative mb-6">
-                                                    <Loader2 size={40} className="text-[#9d4edd] animate-spin" />
-                                                    <div className="absolute inset-0 blur-2xl bg-[#9d4edd]/30 animate-pulse" />
+                                                    <Loader2 size={40} className="text-[var(--amethyst)] animate-spin" />
+                                                    <div className="absolute inset-0 blur-2xl bg-[var(--amethyst)]/30 animate-pulse" />
                                                 </div>
                                                 <p className="text-11px font-mono text-white animate-pulse tracking-[0.8em] uppercase">Synthesizing Protocol Logic...</p>
                                             </motion.div>
                                         ) : generatedSchema ? (
                                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full">
-                                                <pre className="p-10 font-mono text-11px text-gray-400 overflow-auto custom-scrollbar h-full selection:bg-[#9d4edd]/40 leading-relaxed">
+                                                <pre className="p-10 font-mono text-11px text-gray-400 overflow-auto custom-scrollbar h-full selection:bg-[var(--amethyst)]/40 leading-relaxed">
                                                     {generatedSchema}
                                                 </pre>
                                             </motion.div>
@@ -383,7 +383,7 @@ const NexusAPIExplorer: React.FC = () => {
                                     <button
                                         onClick={forgeCapability}
                                         disabled={isForging}
-                                        className="flex-1 py-6 bg-[#9d4edd] text-black rounded-[2rem] text-11px font-black uppercase tracking-[0.5em] hover:bg-[#b06bf7] transition-all shadow-[0_30px_80px_rgba(157,78,221,0.4)] flex items-center justify-center gap-5 active:scale-95 disabled:opacity-50"
+                                        className="flex-1 py-6 bg-[var(--amethyst)] text-black rounded-[2rem] text-11px font-black uppercase tracking-[0.5em] hover:bg-[#b06bf7] transition-all shadow-[0_30px_80px_color-mix(in_srgb,var(--amethyst),transparent_60%)] flex items-center justify-center gap-5 active:scale-95 disabled:opacity-50"
                                     >
                                         <Sparkles size={20} /> Forge Protocol
                                     </button>
@@ -398,7 +398,7 @@ const NexusAPIExplorer: React.FC = () => {
                                         <button
                                             onClick={handleCommitToOS}
                                             disabled={isCommitting}
-                                            className="flex-1 py-6 bg-[#10b981] text-black font-black font-mono text-11px uppercase tracking-[0.5em] rounded-[2rem] shadow-[0_30px_80px_rgba(16,185,129,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5"
+                                            className="flex-1 py-6 bg-[var(--plasma-green)] text-black font-black font-mono text-11px uppercase tracking-[0.5em] rounded-[2rem] shadow-[0_30px_80px_color-mix(in_srgb,var(--plasma-green),transparent_60%)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5"
                                         >
                                             {isCommitting ? <Loader2 size={20} className="animate-spin" /> : <PlayCircle size={22} />}
                                             Commit to OS Swarm
