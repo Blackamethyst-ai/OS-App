@@ -194,21 +194,30 @@ const VoiceMode: React.FC = () => {
     const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
 
-    const currentAgentMetadata = useMemo(() => (HIVE_AGENTS as any)[voice.voiceName] || HIVE_AGENTS['Puck'], [voice.voiceName]);
+    const currentAgentMetadata = useMemo(() =>
+        Object.values(HIVE_AGENTS).find((a: any) => a.name === voice.voiceName) || HIVE_AGENTS['dr_ira'] || Object.values(HIVE_AGENTS)[0],
+        [voice.voiceName]);
     const agentAvatar = voice.agentAvatars[voice.voiceName] || null;
 
-    // Branded Theme derivation - Now theme-aware
+    // Branded Theme derivation
     const agentColor = useMemo(() => {
-        // These colors will adapt to the theme's primary accent
+        // Map Agent IDs/Names to Colors
         const colors: Record<string, string> = {
+            'Dr. Ira': 'var(--plasma-green)',
+            'Mike': 'var(--amethyst)',
+            'Caleb': 'var(--cyan)',
+            'Noah': '#f472b6', // Pink
+            'Helen': '#fbbf24', // Amber
+            'Perri': '#a78bfa', // Violet
+            'Paramdeep': '#34d399', // Emerald
+            'Bilal': '#60a5fa', // Blue
             'Puck': 'var(--amethyst)',
             'Charon': 'var(--plasma-green)',
             'Fenrir': 'var(--cyan)',
-            'Kore': 'var(--executive-gold)',
             'Zephyr': '#3b82f6'
         };
-        return colors[voice.voiceName] || 'var(--amethyst)';
-    }, [voice.voiceName]);
+        return colors[voice.voiceName] || colors[currentAgentMetadata?.name] || 'var(--amethyst)';
+    }, [voice.voiceName, currentAgentMetadata]);
 
     useEffect(() => {
         if (!agentAvatar && !isGeneratingAvatar) {
@@ -217,7 +226,7 @@ const VoiceMode: React.FC = () => {
                 try {
                     const hasKey = apiKeyService.hasGeminiKey();
                     if (hasKey) {
-                        const url = await generateAvatar(currentAgentMetadata.id.toUpperCase(), currentAgentMetadata.name);
+                        const url = await generateAvatar(currentAgentMetadata.id.toUpperCase(), currentAgentMetadata.name, currentAgentMetadata.gender);
                         setVoiceState(prev => ({ agentAvatars: { ...prev.agentAvatars, [voice.voiceName]: url } }));
                     }
                 } catch (e) { console.warn(e); } finally { setIsGeneratingAvatar(false); }
@@ -298,31 +307,32 @@ const VoiceMode: React.FC = () => {
                     <div className="h-8 w-px bg-white/5" />
                     <div className="flex items-center gap-3">
                         <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Selected Build</span>
-                        <div className="flex gap-1.5 p-1 bg-black/40 border border-white/5 rounded-xl">
-                            {[
-                                { name: 'Puck', color: 'var(--amethyst)' },
-                                { name: 'Charon', color: 'var(--plasma-green)' },
-                                { name: 'Fenrir', color: 'var(--cyan)' },
-                                { name: 'Zephyr', color: '#3b82f6' }
-                            ].map(agent => (
-                                <button
-                                    key={agent.name}
-                                    onClick={() => { setVoiceState({ voiceName: agent.name }); audio.playClick(); }}
-                                    disabled={voice.isActive}
-                                    className={cn(
-                                        "px-3 py-1.5 rounded-lg text-[8px] font-black font-mono uppercase tracking-widest transition-all flex items-center gap-2",
-                                        voice.voiceName === agent.name
-                                            ? "bg-white text-black shadow-lg"
-                                            : "text-gray-600 hover:text-white disabled:opacity-30"
-                                    )}
-                                >
-                                    <div
-                                        className="w-1.5 h-1.5 rounded-full shadow-[0_0_6px_currentColor]"
-                                        style={{ backgroundColor: voice.voiceName === agent.name ? 'black' : agent.color, color: agent.color }}
-                                    />
-                                    {agent.name}
-                                </button>
-                            ))}
+                        <div className="flex gap-1.5 p-1 bg-black/40 border border-white/5 rounded-xl overflow-x-auto max-w-[400px] custom-scrollbar">
+                            {Object.values(HIVE_AGENTS).map((agent: any) => {
+                                const color = agent.name === 'Dr. Ira' ? 'var(--plasma-green)' :
+                                    agent.name === 'Mike' ? 'var(--amethyst)' :
+                                        agent.name === 'Caleb' ? 'var(--cyan)' :
+                                            '#888'; // Fallback
+                                return (
+                                    <button
+                                        key={agent.id}
+                                        onClick={() => { setVoiceState({ voiceName: agent.name }); audio.playClick(); }}
+                                        disabled={voice.isActive}
+                                        className={cn(
+                                            "px-3 py-1.5 rounded-lg text-[8px] font-black font-mono uppercase tracking-widest transition-all flex items-center gap-2 whitespace-nowrap",
+                                            voice.voiceName === agent.name
+                                                ? "bg-white text-black shadow-lg"
+                                                : "text-gray-600 hover:text-white disabled:opacity-30"
+                                        )}
+                                    >
+                                        <div
+                                            className="w-1.5 h-1.5 rounded-full shadow-[0_0_6px_currentColor]"
+                                            style={{ backgroundColor: voice.voiceName === agent.name ? 'black' : color, color }}
+                                        />
+                                        {agent.name}
+                                    </button>
+                                )
+                            })}
                         </div>
                     </div>
                 </div>

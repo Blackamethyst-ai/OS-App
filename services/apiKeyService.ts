@@ -10,6 +10,7 @@ export interface ApiKeyConfig {
     gemini?: string;
     claude?: string;
     grok?: string;
+    eleven_labs?: string;
 }
 
 const STORAGE_KEY = 'os_app_api_keys_encrypted';
@@ -144,7 +145,7 @@ class ApiKeyService {
     /**
      * Get API key for a provider (only works when unlocked)
      */
-    getKey(provider: 'gemini' | 'claude' | 'grok'): string | undefined {
+    getKey(provider: 'gemini' | 'claude' | 'grok' | 'eleven_labs'): string | undefined {
         if (!this.isUnlocked) return undefined;
         return this.keys[provider];
     }
@@ -160,7 +161,7 @@ class ApiKeyService {
     /**
      * Set API key for a provider
      */
-    async setKey(provider: 'gemini' | 'claude' | 'grok', key: string) {
+    async setKey(provider: 'gemini' | 'claude' | 'grok' | 'eleven_labs', key: string) {
         if (!this.isUnlocked) return;
 
         this.keys[provider] = key;
@@ -171,7 +172,7 @@ class ApiKeyService {
     /**
      * Remove API key for a provider
      */
-    async removeKey(provider: 'gemini' | 'claude' | 'grok') {
+    async removeKey(provider: 'gemini' | 'claude' | 'grok' | 'eleven_labs') {
         if (!this.isUnlocked) return;
 
         delete this.keys[provider];
@@ -184,7 +185,7 @@ class ApiKeyService {
      */
     hasAnyKey(): boolean {
         if (!this.isUnlocked) return false;
-        return !!(this.keys.gemini || this.keys.claude || this.keys.grok);
+        return !!(this.keys.gemini || this.keys.claude || this.keys.grok || this.keys.eleven_labs);
     }
 
     /**
@@ -203,7 +204,8 @@ class ApiKeyService {
             return [
                 { provider: 'gemini', configured: false, masked: '' },
                 { provider: 'claude', configured: false, masked: '' },
-                { provider: 'grok', configured: false, masked: '' }
+                { provider: 'grok', configured: false, masked: '' },
+                { provider: 'eleven_labs', configured: false, masked: '' }
             ];
         }
 
@@ -222,6 +224,11 @@ class ApiKeyService {
                 provider: 'grok',
                 configured: !!this.keys.grok,
                 masked: this.keys.grok ? `${this.keys.grok.slice(0, 6)}...${this.keys.grok.slice(-4)}` : ''
+            },
+            {
+                provider: 'eleven_labs',
+                configured: !!this.keys.eleven_labs,
+                masked: this.keys.eleven_labs ? `${this.keys.eleven_labs.slice(0, 6)}...${this.keys.eleven_labs.slice(-4)}` : ''
             }
         ];
     }
@@ -301,6 +308,23 @@ class ApiKeyService {
                 return { valid: true };
             }
             return { valid: false, error: msg };
+        }
+    }
+
+    /**
+     * Validate ElevenLabs API Key via user endpoint
+     */
+    async validateElevenLabsKey(key: string): Promise<{ valid: boolean; error?: string }> {
+        try {
+            const response = await fetch('https://api.elevenlabs.io/v1/user', {
+                method: 'GET',
+                headers: { 'xi-api-key': key }
+            });
+
+            if (response.ok) return { valid: true };
+            return { valid: false, error: 'Invalid API Key' };
+        } catch (e: any) {
+            return { valid: false, error: e.message || 'Validation failed' };
         }
     }
 }

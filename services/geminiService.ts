@@ -115,7 +115,14 @@ class LiveSession {
     private nextStartTime = 0;
     private activeSources = new Set<AudioBufferSourceNode>();
 
-    public onToolCall: (name: string, args: any) => Promise<any> = async () => ({});
+    public onAgentSwitch: ((agentName: string) => void) | null = null;
+    public onToolCall: (name: string, args: any) => Promise<any> = async (name, args) => {
+        if (name === 'switch_agent') {
+            if (this.onAgentSwitch) this.onAgentSwitch(args.agentName);
+            return { status: 'switching_initiated', target: args.agentName };
+        }
+        return {};
+    };
 
     async primeAudio() {
         if (!this.audioContext) {
@@ -139,6 +146,14 @@ class LiveSession {
         const ai = getAI();
         await this.primeAudio();
         this.nextStartTime = 0;
+
+        // Resolve Agent Config robustly (ID or Name)
+        const agent = Object.values(HIVE_AGENTS).find(a =>
+            a.id === agentName.toLowerCase() ||
+            a.name.toLowerCase() === agentName.toLowerCase()
+        ) || HIVE_AGENTS[agentName.toLowerCase()] || HIVE_AGENTS['zephyr'];
+
+        const voiceName = agent?.voice || 'Zephyr';
 
         const sessionPromise = ai.live.connect({
             model: 'gemini-2.0-flash-exp',
@@ -196,7 +211,24 @@ class LiveSession {
                 ...config,
                 systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION + (config.systemInstruction ? `\n\nLOCAL_OVERRIDE: ${config.systemInstruction}` : ""),
                 responseModalities: [Modality.AUDIO],
-                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: ['Puck', 'Charon', 'Kore', 'Fenrir', 'Zephyr'].includes(agentName) ? agentName : 'Zephyr' } } },
+                speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
+                tools: [
+                    ...(config.tools || []),
+                    { googleSearch: {} },
+                    {
+                        functionDeclarations: [{
+                            name: "switch_agent",
+                            description: "Switch the active voice session to another agent. Use this when the user asks to speak to someone else (e.g. Dr. Ira, Caleb) or needs different expertise.",
+                            parameters: {
+                                type: "OBJECT",
+                                properties: {
+                                    agentName: { type: "STRING", description: "The name of the agent to switch to (e.g. 'Dr. Ira', 'Caleb', 'Mike', 'Noah')." }
+                                },
+                                required: ["agentName"]
+                            }
+                        }]
+                    }
+                ]
             }
         });
         this.session = await sessionPromise;
@@ -330,9 +362,18 @@ export async function fileToGenerativePart(file: File | Blob): Promise<FileData>
 }
 
 export const HIVE_AGENTS: Record<string, any> = {
-    'Charon': { id: 'charon', name: 'charon', voice: 'Charon', weights: { skepticism: 0.9, logic: 0.8, creativity: 0.2, empathy: 0.1 }, systemPrompt: 'You are Charon, the Logical Auditor.' },
-    'Puck': { id: 'puck', name: 'puck', voice: 'Puck', weights: { skepticism: 0.1, logic: 0.4, creativity: 0.9, empathy: 0.7 }, systemPrompt: 'You are Puck, the Generative Architect.' },
-    'Fenrir': { id: 'fenrir', name: 'fenrir', voice: 'Fenrir', weights: { skepticism: 0.4, logic: 0.9, creativity: 0.3, empathy: 0.4 }, systemPrompt: 'You are Fenrir, the Execution Controller.' },
+    'dr_ira': { id: 'dr_ira', name: 'Dr. Ira', gender: 'male', voice: 'Charon', weights: { skepticism: 0.9, logic: 0.8, creativity: 0.2, empathy: 0.1 }, systemPrompt: 'You are Dr. Ira, the Logistical Audit Sentinel.' },
+    'mike': { id: 'mike', name: 'Mike', gender: 'male', voice: 'Puck', weights: { skepticism: 0.1, logic: 0.4, creativity: 0.9, empathy: 0.7 }, systemPrompt: 'You are Mike, the Implementation Architect.' },
+    'caleb': { id: 'caleb', name: 'Caleb', gender: 'male', voice: 'Fenrir', weights: { skepticism: 0.4, logic: 0.9, creativity: 0.3, empathy: 0.4 }, systemPrompt: 'You are Caleb, the Execution Lead.' },
+    'paramdeep': { id: 'paramdeep', name: 'Paramdeep', gender: 'male', voice: 'Zephyr', weights: { skepticism: 0.6, logic: 0.8, creativity: 0.5, empathy: 0.6 }, systemPrompt: 'You are Paramdeep, the Systems Strategist.' },
+    'bilal': { id: 'bilal', name: 'Bilal', gender: 'male', voice: 'Zephyr', weights: { skepticism: 0.2, logic: 0.6, creativity: 0.8, empathy: 0.8 }, systemPrompt: 'You are Bilal, the Kinetic Operator.' },
+    'noah': { id: 'noah', name: 'Noah', gender: 'female', voice: 'Kore', weights: { skepticism: 0.3, logic: 0.7, creativity: 0.8, empathy: 0.6 }, systemPrompt: 'You are Noah, the Voice of Resonance.' },
+    'helen': { id: 'helen', name: 'Helen', gender: 'female', voice: 'Aoede', weights: { skepticism: 0.5, logic: 0.5, creativity: 0.9, empathy: 0.9 }, systemPrompt: 'You are Helen, the Narrative Weaver.' },
+    'perri': { id: 'perri', name: 'Perri', gender: 'female', voice: 'Kore', weights: { skepticism: 0.2, logic: 0.8, creativity: 0.7, empathy: 0.8 }, systemPrompt: 'You are Perri, the Visual Synthesizer.' },
+    'Puck': { id: 'Puck', name: 'Puck', gender: 'male', voice: 'Puck', systemPrompt: 'You are Puck.' },
+    'Charon': { id: 'Charon', name: 'Charon', gender: 'male', voice: 'Charon', systemPrompt: 'You are Charon.' },
+    'Fenrir': { id: 'Fenrir', name: 'Fenrir', gender: 'male', voice: 'Fenrir', systemPrompt: 'You are Fenrir.' },
+    'Zephyr': { id: 'Zephyr', name: 'Zephyr', gender: 'male', voice: 'Zephyr', systemPrompt: 'You are Zephyr.' }
 };
 
 export async function interpretIntent(input: string) {
@@ -396,9 +437,9 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
     return imagePart ? `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}` : "";
 }
 
-export async function generateAvatar(role: string, name: string) {
+export async function generateAvatar(role: string, name: string, gender: string = 'male') {
     const ai = getAI();
-    const prompt = `Hyper-photorealistic 8K headshot of a sophisticated, high-end professional business man named "${name}" acting in the role of "${role}". He is wearing a tailored modern suit, indistinguishable from reality, with physically correct lighting and cinematic optics.`;
+    const prompt = `Hyper-photorealistic 8K headshot of a sophisticated, high-end professional ${gender === 'female' ? 'business woman' : 'business man'} named "${name}" acting in the role of "${role}". ${gender === 'female' ? 'She' : 'He'} is wearing a tailored modern suit, indistinguishable from reality, with physically correct lighting and cinematic optics. Dark, moody, premium aesthetic.`;
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.0-flash-exp',
         contents: [{ text: prompt }],
@@ -631,13 +672,13 @@ export async function generateAudioOverview(files: FileData[]) {
         contents: { parts: [...files.map(f => ({ inlineData: f.inlineData })), { text: "Synthesize brief." }] },
     }));
     const transcript = response.text || "Brief complete.";
-    const audioData = await generateSpeech(transcript, "Puck");
+    const audioData = await generateSpeech(transcript, "Puck"); // Use Puck voice for generic summaries
     return { audioData, transcript };
 }
 
 export function constructHiveContext(agentId: string, shared: string, mentalState: MentalState) {
-    const agent = HIVE_AGENTS[agentId] || HIVE_AGENTS['Puck'];
-    return `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\n${agent.systemPrompt}\n${shared}\nDNA: S:${mentalState.skepticism} E:${mentalState.excitement} A:${mentalState.alignment}`;
+    const agent = HIVE_AGENTS[agentId] || HIVE_AGENTS['mike'];
+    return `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\n${agent.systemPrompt}\n${shared}\nDNA: S:${mentalState.skepticism} E:${mentalState.excitement} A:${mentalState.alignment}\n\nCRITICAL: You have access to a 'switch_agent' tool. If the user asks to speak to another agent (e.g. "Put Dr. Ira on", "Switch to Caleb"), YOU MUST call this tool immediately with the target name. Do not say you cannot do it. Just call the tool.`;
 }
 
 export async function searchRealWorldOpportunities(domain: string) {

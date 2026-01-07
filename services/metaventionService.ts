@@ -44,7 +44,8 @@ class MetaventionService {
           "id": "generated-uuid",
           "title": "Protocol Title",
           "context": "Context description",
-          "logic": "Detailed logic steps",
+          "logic": "Strategic rationale",
+          "steps": ["Actionable Step 1", "Actionable Step 2", "Actionable Step 3"],
           "physicalImpact": "Expected impact description",
           "timestamp": number
         }`;

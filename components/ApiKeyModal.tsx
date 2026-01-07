@@ -19,6 +19,7 @@ const PROVIDERS = [
     { id: 'gemini' as const, name: 'Gemini', color: '#4285F4', description: 'Google AI - Required for core features' },
     { id: 'claude' as const, name: 'Claude', color: '#cc785c', description: 'Anthropic - Coming soon' },
     { id: 'grok' as const, name: 'Grok', color: '#1DA1F2', description: 'xAI - Coming soon' },
+    { id: 'eleven_labs' as const, name: 'ElevenLabs', color: '#1f2937', description: 'Neural Voice Synthesis (Creator)' },
 ];
 
 const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
