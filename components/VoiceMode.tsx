@@ -195,16 +195,17 @@ const VoiceMode: React.FC = () => {
     const currentAgentMetadata = useMemo(() => (HIVE_AGENTS as any)[voice.voiceName] || HIVE_AGENTS['Puck'], [voice.voiceName]);
     const agentAvatar = voice.agentAvatars[voice.voiceName] || null;
 
-    // Branded Theme derivation
+    // Branded Theme derivation - Now theme-aware
     const agentColor = useMemo(() => {
+        // These colors will adapt to the theme's primary accent
         const colors: Record<string, string> = {
-            'Puck': '#9d4edd',
-            'Charon': '#10b981',
-            'Fenrir': '#22d3ee',
-            'Kore': '#f59e0b',
+            'Puck': 'var(--amethyst)',
+            'Charon': 'var(--plasma-green)',
+            'Fenrir': 'var(--cyan)',
+            'Kore': 'var(--executive-gold)',
             'Zephyr': '#3b82f6'
         };
-        return colors[voice.voiceName] || '#9d4edd';
+        return colors[voice.voiceName] || 'var(--amethyst)';
     }, [voice.voiceName]);
 
     useEffect(() => {
@@ -263,7 +264,7 @@ const VoiceMode: React.FC = () => {
 
     return (
         <div
-            className="h-full w-full bg-[#030305] flex flex-col relative overflow-hidden font-sans border border-[#1f1f1f] rounded-[2.5rem] shadow-2xl transition-all duration-1000"
+            className="h-full w-full bg-[var(--bg-app)] flex flex-col relative overflow-hidden font-sans border border-[var(--border-main)] rounded-[2.5rem] shadow-2xl transition-all duration-1000"
             style={{ '--agent-theme': agentColor } as any}
         >
             {/* Branded Ambient Glow */}
@@ -285,7 +286,7 @@ const VoiceMode: React.FC = () => {
                         <div className="flex flex-col">
                             <div className="flex items-center gap-3 mb-1">
                                 <h1 className="text-xs font-black font-mono uppercase tracking-[0.4em] text-white leading-none">Voice Core</h1>
-                                <div className={cn("w-1.5 h-1.5 rounded-full transition-all shadow-[0_0_10px_currentColor]", voice.isActive ? "bg-[#10b981] animate-pulse" : "bg-gray-800")} />
+                                <div className={cn("w-1.5 h-1.5 rounded-full transition-all shadow-[0_0_10px_currentColor]", voice.isActive ? "bg-[var(--plasma-green)] animate-pulse" : "bg-gray-800")} />
                             </div>
                             <div className="text-[7px] font-mono text-gray-600 uppercase tracking-widest leading-none uppercase">
                                 {voice.isConnecting ? 'Initializing Neural Tunnel...' : voice.isActive ? 'Handshake Finalized' : 'V1.0 - THE D-Ecosystem'}
@@ -397,7 +398,7 @@ const VoiceMode: React.FC = () => {
                                 {voice.isConnecting ? 'Syncing...' : voice.isActive ? 'Sever Link' : 'Initialize Hub'}
                             </span>
                             <div className="flex gap-1">
-                                {[1, 2, 3].map(i => <div key={i} className={cn("w-1 h-1 rounded-full", voice.isActive ? "bg-[#10b981] animate-pulse" : "bg-gray-800")} style={{ animationDelay: `${i * 0.2}s` }} />)}
+                                {[1, 2, 3].map(i => <div key={i} className={cn("w-1 h-1 rounded-full", voice.isActive ? "bg-[var(--plasma-green)] animate-pulse" : "bg-gray-800")} style={{ animationDelay: `${i * 0.2}s` }} />)}
                             </div>
                         </div>
                     </div>
@@ -422,7 +423,7 @@ const VoiceMode: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-6">
                         <div className="flex items-center gap-2">
-                            <ShieldCheck size={12} className="text-[#10b981]" />
+                            <ShieldCheck size={12} className="text-[var(--plasma-green)]" />
                             <span className="text-[8px] font-mono text-gray-600 uppercase">Handshake_L0_Valid</span>
                         </div>
                         <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">{voice.transcripts.length} packets synchronized</span>
