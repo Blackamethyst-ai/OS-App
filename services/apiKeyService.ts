@@ -1,8 +1,10 @@
 /**
  * API KEY SERVICE
- * Manages API keys for multiple providers with localStorage persistence.
- * Replaces the window.aistudio dependency for standalone operation.
+ * Manages API keys for multiple providers with encrypted localStorage persistence.
+ * Uses AES-GCM encryption with a master password for security.
  */
+
+import { encrypt, decrypt, hashPassword, verifyPassword } from '../utils/cryptoService';
 
 export interface ApiKeyConfig {
     gemini?: string;
@@ -10,55 +12,140 @@ export interface ApiKeyConfig {
     grok?: string;
 }
 
-const STORAGE_KEY = 'os_app_api_keys';
+const STORAGE_KEY = 'os_app_api_keys_encrypted';
+const PASSWORD_HASH_KEY = 'os_app_master_hash';
+const SESSION_KEY = 'os_app_session_unlocked';
 
 class ApiKeyService {
     private keys: ApiKeyConfig = {};
     private listeners: Set<() => void> = new Set();
+    private masterPassword: string | null = null;
+    private isUnlocked: boolean = false;
 
     constructor() {
-        this.loadFromStorage();
+        // Check if there's an existing vault
+        this.checkVaultStatus();
     }
 
     /**
-     * Load keys from localStorage
+     * Check if a vault exists (master password has been set)
      */
-    private loadFromStorage() {
+    hasVault(): boolean {
+        return !!localStorage.getItem(PASSWORD_HASH_KEY);
+    }
+
+    /**
+     * Check if the vault is currently unlocked
+     */
+    isVaultUnlocked(): boolean {
+        return this.isUnlocked && this.masterPassword !== null;
+    }
+
+    /**
+     * Check vault status on load
+     */
+    private checkVaultStatus() {
+        // If there's no vault, we're in "setup" mode
+        if (!this.hasVault()) {
+            this.isUnlocked = false;
+            return;
+        }
+        // Vault exists but needs to be unlocked
+        this.isUnlocked = false;
+    }
+
+    /**
+     * Create a new vault with a master password
+     */
+    async createVault(password: string): Promise<boolean> {
         try {
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                this.keys = JSON.parse(stored);
-            }
-            // Also check for legacy key format
-            const legacyKey = localStorage.getItem('gemini_api_key');
-            if (legacyKey && !this.keys.gemini) {
-                this.keys.gemini = legacyKey;
-                this.saveToStorage();
-            }
+            // Hash the password for verification
+            const hash = await hashPassword(password);
+            localStorage.setItem(PASSWORD_HASH_KEY, hash);
+
+            // Encrypt empty keys object
+            this.keys = {};
+            this.masterPassword = password;
+            this.isUnlocked = true;
+            await this.saveToStorage();
+
+            this.notifyListeners();
+            return true;
         } catch (e) {
-            console.error('[ApiKeyService] Failed to load keys:', e);
+            console.error('[ApiKeyService] Failed to create vault:', e);
+            return false;
         }
     }
 
     /**
-     * Save keys to localStorage
+     * Unlock the vault with master password
      */
-    private saveToStorage() {
+    async unlockVault(password: string): Promise<boolean> {
         try {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(this.keys));
-            // Also maintain legacy key for backwards compatibility
-            if (this.keys.gemini) {
-                localStorage.setItem('gemini_api_key', this.keys.gemini);
-            }
+            const storedHash = localStorage.getItem(PASSWORD_HASH_KEY);
+            if (!storedHash) return false;
+
+            const isValid = await verifyPassword(password, storedHash);
+            if (!isValid) return false;
+
+            this.masterPassword = password;
+            await this.loadFromStorage();
+            this.isUnlocked = true;
+            this.notifyListeners();
+            return true;
         } catch (e) {
-            console.error('[ApiKeyService] Failed to save keys:', e);
+            console.error('[ApiKeyService] Failed to unlock vault:', e);
+            return false;
         }
     }
 
     /**
-     * Get API key for a provider
+     * Lock the vault (clear session)
+     */
+    lockVault() {
+        this.masterPassword = null;
+        this.keys = {};
+        this.isUnlocked = false;
+        this.notifyListeners();
+    }
+
+    /**
+     * Load and decrypt keys from localStorage
+     */
+    private async loadFromStorage() {
+        if (!this.masterPassword) return;
+
+        try {
+            const encrypted = localStorage.getItem(STORAGE_KEY);
+            if (encrypted) {
+                const decrypted = await decrypt(encrypted, this.masterPassword);
+                this.keys = JSON.parse(decrypted);
+            }
+        } catch (e) {
+            console.error('[ApiKeyService] Failed to load/decrypt keys:', e);
+            this.keys = {};
+        }
+    }
+
+    /**
+     * Encrypt and save keys to localStorage
+     */
+    private async saveToStorage() {
+        if (!this.masterPassword) return;
+
+        try {
+            const encrypted = await encrypt(JSON.stringify(this.keys), this.masterPassword);
+            localStorage.setItem(STORAGE_KEY, encrypted);
+        } catch (e) {
+            console.error('[ApiKeyService] Failed to encrypt/save keys:', e);
+        }
+    }
+
+    /**
+     * Get API key for a provider (only works when unlocked)
      */
     getKey(provider: 'gemini' | 'claude' | 'grok'): string | undefined {
+        if (!this.isUnlocked) return undefined;
         return this.keys[provider];
     }
 
@@ -66,24 +153,29 @@ class ApiKeyService {
      * Get Gemini key (most common usage)
      */
     getGeminiKey(): string | undefined {
+        if (!this.isUnlocked) return undefined;
         return this.keys.gemini;
     }
 
     /**
      * Set API key for a provider
      */
-    setKey(provider: 'gemini' | 'claude' | 'grok', key: string) {
+    async setKey(provider: 'gemini' | 'claude' | 'grok', key: string) {
+        if (!this.isUnlocked) return;
+
         this.keys[provider] = key;
-        this.saveToStorage();
+        await this.saveToStorage();
         this.notifyListeners();
     }
 
     /**
      * Remove API key for a provider
      */
-    removeKey(provider: 'gemini' | 'claude' | 'grok') {
+    async removeKey(provider: 'gemini' | 'claude' | 'grok') {
+        if (!this.isUnlocked) return;
+
         delete this.keys[provider];
-        this.saveToStorage();
+        await this.saveToStorage();
         this.notifyListeners();
     }
 
@@ -91,13 +183,15 @@ class ApiKeyService {
      * Check if any API key is configured
      */
     hasAnyKey(): boolean {
+        if (!this.isUnlocked) return false;
         return !!(this.keys.gemini || this.keys.claude || this.keys.grok);
     }
 
     /**
-     * Check if Gemini key is configured (replaces window.aistudio.hasSelectedApiKey)
+     * Check if Gemini key is configured
      */
     hasGeminiKey(): boolean {
+        if (!this.isUnlocked) return false;
         return !!this.keys.gemini;
     }
 
@@ -105,6 +199,14 @@ class ApiKeyService {
      * Get all configured keys (masked for display)
      */
     getKeyStatus(): { provider: string; configured: boolean; masked: string }[] {
+        if (!this.isUnlocked) {
+            return [
+                { provider: 'gemini', configured: false, masked: '' },
+                { provider: 'claude', configured: false, masked: '' },
+                { provider: 'grok', configured: false, masked: '' }
+            ];
+        }
+
         return [
             {
                 provider: 'gemini',
@@ -134,6 +236,44 @@ class ApiKeyService {
 
     private notifyListeners() {
         this.listeners.forEach(listener => listener());
+    }
+
+    /**
+     * Change master password
+     */
+    async changeMasterPassword(currentPassword: string, newPassword: string): Promise<boolean> {
+        try {
+            const storedHash = localStorage.getItem(PASSWORD_HASH_KEY);
+            if (!storedHash) return false;
+
+            const isValid = await verifyPassword(currentPassword, storedHash);
+            if (!isValid) return false;
+
+            // Update password hash
+            const newHash = await hashPassword(newPassword);
+            localStorage.setItem(PASSWORD_HASH_KEY, newHash);
+
+            // Re-encrypt all keys with new password
+            this.masterPassword = newPassword;
+            await this.saveToStorage();
+
+            return true;
+        } catch (e) {
+            console.error('[ApiKeyService] Failed to change password:', e);
+            return false;
+        }
+    }
+
+    /**
+     * Reset vault (delete all keys and password)
+     */
+    resetVault() {
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(PASSWORD_HASH_KEY);
+        this.keys = {};
+        this.masterPassword = null;
+        this.isUnlocked = false;
+        this.notifyListeners();
     }
 
     /**
