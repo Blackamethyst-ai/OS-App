@@ -1,0 +1,107 @@
+/* ============================================
+   RESPONSIVE VIEWPORT SCALING
+   Automatically scales app for different screen sizes
+   ============================================ */
+
+:root {
+  --app-scale: 1;
+}
+
+/* Large external monitors (2560px+) - full size */
+@media (min-width: 2560px) {
+  :root { --app-scale: 1; }
+}
+
+/* Standard desktop (1920px-2559px) - full size */
+@media (min-width: 1920px) and (max-width: 2559px) {
+  :root { --app-scale: 1; }
+}
+
+/* Large laptop / small external (1600px-1919px) */
+@media (min-width: 1600px) and (max-width: 1919px) {
+  :root { --app-scale: 0.9; }
+}
+
+/* 14" MacBook Pro and similar (1440px-1599px) */
+@media (min-width: 1440px) and (max-width: 1599px) {
+  :root { --app-scale: 0.8; }
+}
+
+/* Small laptops (1280px-1439px) */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  :root { --app-scale: 0.75; }
+}
+
+/* Tablets and small screens (1024px-1279px) */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  :root { --app-scale: 0.67; }
+}
+
+/* Very small screens (<1024px) */
+@media (max-width: 1023px) {
+  :root { --app-scale: 0.6; }
+}
+
+/* Apply scaling to root container */
+#root {
+  transform: scale(var(--app-scale));
+  transform-origin: top left;
+  width: calc(100vw / var(--app-scale));
+  height: calc(100vh / var(--app-scale));
+  overflow: hidden;
+}
+
+/* Ensure body doesn't show scrollbars from scaled content */
+html, body {
+  overflow: hidden;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* ============================================
+   CUSTOM SCROLLBAR (for internal scrollable areas)
+   ============================================ */
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ============================================
+   GLASS DRAWER EDGE EFFECT
+   ============================================ */
+
+.glass-drawer-edge {
+  position: relative;
+}
+
+.glass-drawer-edge::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(157, 78, 221, 0.3) 20%,
+    rgba(157, 78, 221, 0.5) 50%,
+    rgba(157, 78, 221, 0.3) 80%,
+    transparent
+  );
+}
