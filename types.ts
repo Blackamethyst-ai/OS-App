@@ -500,4 +500,5 @@ export type ModelTier = 'fast' | 'balanced' | 'powerful' | 'creative' | 'local';
 
 export interface AppPreferences {
     modelTier: ModelTier;
+    autonomyEnabled: boolean;
 }

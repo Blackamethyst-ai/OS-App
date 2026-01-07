@@ -591,7 +591,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         economicProtocols: []
     },
     preferences: {
-        modelTier: 'balanced'
+        modelTier: 'balanced',
+        autonomyEnabled: false
     },
 
     actions: {
