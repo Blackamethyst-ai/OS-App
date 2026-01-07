@@ -171,14 +171,14 @@ const DiscoveryLab: React.FC = () => {
 
             <div className="flex-1 relative z-10 p-6 flex gap-6 overflow-hidden">
                 <div className="w-1/3 flex flex-col gap-4">
-                    <div className="bg-[#050505]/80 backdrop-blur-xl border border-[#333] rounded-xl p-4 shadow-xl">
+                    <div className="bg-[#050505]/80 backdrop-blur-xl border border-[var(--border-main)] rounded-[2rem] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                         <div className="flex gap-2">
                             <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleResearchDispatch()} placeholder="Enter research vector..." className="flex-1 bg-[#111] border border-[#333] p-2 text-xs text-white font-mono rounded outline-none focus:border-[#22d3ee]" />
                             <button onClick={() => handleResearchDispatch()} className="p-2 bg-[#22d3ee] text-black rounded hover:bg-[#67e8f9] transition-all shadow-lg"><ArrowRight className="w-4 h-4" /></button>
                         </div>
                     </div>
 
-                    <div className="flex-1 bg-[#050505]/80 backdrop-blur-xl border border-[#333] rounded-xl overflow-hidden flex flex-col shadow-2xl">
+                    <div className="flex-1 bg-[#050505]/80 backdrop-blur-xl border border-[var(--border-main)] rounded-[2rem] overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                         <div className="p-3 border-b border-[#333] bg-[#0a0a0a]/50 flex justify-between items-center text-[10px] font-mono text-gray-500 uppercase tracking-widest">
                             <div className="flex items-center gap-2"><Activity size={14} className="text-[#f59e0b]" /> Active Probes</div>
                             {filterTaskId && (

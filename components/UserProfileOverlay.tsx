@@ -162,7 +162,7 @@ const UserProfileOverlay: React.FC = () => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         onClick={(e) => e.stopPropagation()}
-                        className={`bg-[#0a0a0a] border border-[#333] rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.8)] relative group transition-all duration-500 ease-in-out ${isCompact ? 'w-[600px] h-auto' : 'w-[500px]'
+                        className={`bg-[#0a0a0a] border border-[var(--border-main)] rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,1)] relative group transition-all duration-500 ease-in-out ${isCompact ? 'w-[600px] h-auto' : 'w-[500px]'
                             }`}
                     >
                         {/* Background Cybernetic Grid */}

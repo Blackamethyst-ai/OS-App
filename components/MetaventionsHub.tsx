@@ -764,8 +764,8 @@ const MetaventionsHub: React.FC = () => {
                         onDragLeave={() => setIsDraggingOver(false)}
                         onDrop={handleDrop}
                         className={cn(
-                            "crystalline shadow-2xl relative overflow-hidden flex flex-col min-h-[1000px] group/soc invisible-glass border border-white/5 transition-all duration-1000",
-                            dashboard.isOculusView ? "col-span-12 rounded-none border-none" : "col-span-9 rounded-[4rem]",
+                            "crystalline shadow-[0_0_100px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col min-h-[1000px] group/soc invisible-glass border border-[var(--border-main)] transition-all duration-1000",
+                            dashboard.isOculusView ? "col-span-12 rounded-none border-none" : "col-span-9 rounded-[3rem]",
                             isDraggingOver && "border-[#9d4edd] shadow-[0_0_80px_rgba(157,78,221,0.2)]"
                         )}>
                         {!dashboard.isOculusView && (

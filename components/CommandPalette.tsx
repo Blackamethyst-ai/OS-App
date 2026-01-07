@@ -239,7 +239,7 @@ const CommandPalette: React.FC = () => {
                         exit={{ opacity: 0, scale: 0.95, y: -10 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 220 }}
                         onClick={(e: any) => e.stopPropagation()}
-                        className="w-full max-w-2xl crystalline border border-white/20 rounded-3xl shadow-[0_60px_150px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col shimmer-edge"
+                        className="w-full max-w-2xl crystalline border border-[var(--border-main)] rounded-[2rem] shadow-[0_60px_150px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col shimmer-edge"
                     >
                         <div className="flex items-center px-8 py-6 border-b border-white/10 bg-white/[0.03]">
                             <Command className="w-6 h-6 text-[#9d4edd] mr-5 animate-pulse" />
