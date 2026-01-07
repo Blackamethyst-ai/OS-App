@@ -229,6 +229,28 @@ export const liveSession = new LiveSession();
 
 // --- CORE GENERATION FUNCTIONS ---
 
+/**
+ * Generic text generation entry point for ModelRouter
+ */
+export async function generateText(prompt: string, model: string = 'gemini-2.0-flash', systemInstruction?: string): Promise<string> {
+    const ai = getAI();
+    try {
+        const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+            model: model,
+            contents: prompt,
+            config: {
+                systemInstruction: systemInstruction || SOVEREIGN_SYSTEM_INSTRUCTION
+            }
+        }), 3, 1000, model);
+
+        return response.text || "";
+    } catch (e) {
+        console.error("Gemini Generation Error:", e);
+        throw e;
+    }
+}
+
+
 export function safeParseJson<T>(text: string | undefined): T {
     if (!text) throw new Error("EMPTY_SIGNAL: Model returned zero-length buffer.");
     try {

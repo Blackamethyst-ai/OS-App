@@ -1,6 +1,6 @@
-export type Result<T, E = Error> = 
-  | { ok: true; value: T } 
-  | { ok: false; error: E };
+export type Result<T, E = Error> =
+    | { ok: true; value: T }
+    | { ok: false; error: E };
 
 export interface HiveAgent {
     id: string;
@@ -194,7 +194,7 @@ export interface KnowledgeNode {
     connections: string[];
     strength: number;
     color?: string;
-    data?: any; 
+    data?: any;
     artifactRef?: any;
 }
 
@@ -209,8 +209,8 @@ export interface Frame {
     index: number;
     scenePrompt: string;
     continuity: string;
-    camera: string; 
-    lighting: string; 
+    camera: string;
+    lighting: string;
     status: 'pending' | 'generating' | 'done' | 'error';
     imageUrl?: string;
     audioUrl?: string;
@@ -395,7 +395,7 @@ export interface KnowledgeLayer {
     color: string;
     description: string;
     systemInstruction: string;
-    memoryTags: string[]; 
+    memoryTags: string[];
     activeModes: AppMode[];
 }
 
@@ -494,4 +494,10 @@ export interface VoteLedger {
     runnerUpCount: number;
     totalRounds: number;
     killedAgents: number;
+}
+
+export type ModelTier = 'fast' | 'balanced' | 'powerful' | 'creative' | 'local';
+
+export interface AppPreferences {
+    modelTier: ModelTier;
 }
