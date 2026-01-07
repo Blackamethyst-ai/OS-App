@@ -196,7 +196,7 @@ const VoiceManager: React.FC = () => {
             }
         };
 
-        const initiateConnection = async (name: string) => {
+        const initiateConnection = async (name: string, retryCount = 0) => {
             const agentName = name || 'Puck';
             const agentId = Object.keys(HIVE_AGENTS).find(k => HIVE_AGENTS[k].name === agentName) || 'Puck';
             const sharedContext = `
@@ -207,53 +207,65 @@ const VoiceManager: React.FC = () => {
                 NAV_COHERENCE: User-facing labels are: ECOSYSTEM (Dashboard), RESEARCH (Lab), TOPOLOGY (Process Map), TREASURY (Finance), LOGIC (Code Studio), SWARM (Agent Control), MEMORY (Vault), CINEMA (Image Gen), HARDWARE (Infra), VOICE CORE (Voice Mode), SYNTHESIS (Bridge), NEXUS.
                 MENTAL_STATE: Your current DNA weights are S:${voice.mentalState.skepticism}, E:${voice.mentalState.excitement}, A:${voice.mentalState.alignment}.
              `;
-            await liveSession.primeAudio();
-            await liveSession.connect(agentName, {
-                systemInstruction: constructHiveContext(agentId, sharedContext, voice.mentalState),
-                tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool, switchAgentTool] }],
-                outputAudioTranscription: {},
-                inputAudioTranscription: {},
-                callbacks: {
-                    onmessage: async (message: LiveServerMessage) => {
-                        if (message.serverContent?.outputTranscription) {
-                            partialTranscriptRef.current += message.serverContent.outputTranscription.text;
-                            setVoiceState({ partialTranscript: { role: 'model', text: partialTranscriptRef.current } });
-                        } else if (message.serverContent?.inputTranscription) {
-                            partialTranscriptRef.current += message.serverContent.inputTranscription.text;
-                            setVoiceState({ partialTranscript: { role: 'user', text: partialTranscriptRef.current } });
-                        }
-                        if (message.serverContent?.turnComplete) {
-                            const finalText = partialTranscriptRef.current;
-                            if (finalText) {
-                                setVoiceState(prev => ({
-                                    transcripts: [...prev.transcripts, { role: prev.partialTranscript?.role || 'user', text: finalText, timestamp: Date.now() }],
-                                    partialTranscript: null
-                                }));
+
+            try {
+                await liveSession.primeAudio();
+                await liveSession.connect(agentName, {
+                    systemInstruction: constructHiveContext(agentId, sharedContext, voice.mentalState),
+                    tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool, switchAgentTool] }],
+                    outputAudioTranscription: {},
+                    inputAudioTranscription: {},
+                    callbacks: {
+                        onmessage: async (message: LiveServerMessage) => {
+                            if (message.serverContent?.outputTranscription) {
+                                partialTranscriptRef.current += message.serverContent.outputTranscription.text;
+                                setVoiceState({ partialTranscript: { role: 'model', text: partialTranscriptRef.current } });
+                            } else if (message.serverContent?.inputTranscription) {
+                                partialTranscriptRef.current += message.serverContent.inputTranscription.text;
+                                setVoiceState({ partialTranscript: { role: 'user', text: partialTranscriptRef.current } });
                             }
-                            partialTranscriptRef.current = "";
-                        }
-                    },
-                    onopen: () => {
-                        if (mounted) {
-                            setVoiceState({ isConnecting: false });
-                            addLog('SUCCESS', `VOICE_CORE: Neural handshake finalized.`);
-                            lastConnectedNameRef.current = name; // Update Ref
-                        }
-                    },
-                    onerror: (err: any) => {
-                        connectionAttemptRef.current = false;
-                        setVoiceState({ isActive: false, isConnecting: false });
-                        lastConnectedNameRef.current = null;
-                    },
-                    onclose: () => {
-                        if (mounted) {
+                            if (message.serverContent?.turnComplete) {
+                                const finalText = partialTranscriptRef.current;
+                                if (finalText) {
+                                    setVoiceState(prev => ({
+                                        transcripts: [...prev.transcripts, { role: prev.partialTranscript?.role || 'user', text: finalText, timestamp: Date.now() }],
+                                        partialTranscript: null
+                                    }));
+                                }
+                                partialTranscriptRef.current = "";
+                            }
+                        },
+                        onopen: () => {
+                            if (mounted) {
+                                setVoiceState({ isConnecting: false });
+                                addLog('SUCCESS', `VOICE_CORE: Neural handshake finalized.`);
+                                lastConnectedNameRef.current = name;
+                            }
+                        },
+                        onerror: (err: any) => {
                             connectionAttemptRef.current = false;
                             setVoiceState({ isActive: false, isConnecting: false });
                             lastConnectedNameRef.current = null;
+                        },
+                        onclose: () => {
+                            if (mounted) {
+                                connectionAttemptRef.current = false;
+                                setVoiceState({ isActive: false, isConnecting: false });
+                                lastConnectedNameRef.current = null;
+                            }
                         }
                     }
+                });
+            } catch (e) {
+                if (retryCount < 3) {
+                    addLog('WARN', `VOICE_CORE: Connection failed. Retrying in 2s... (${retryCount + 1}/3)`);
+                    setTimeout(() => initiateConnection(name, retryCount + 1), 2000);
+                } else {
+                    connectionAttemptRef.current = false;
+                    setVoiceState({ isActive: false, isConnecting: false });
+                    addLog('ERROR', 'VOICE_CORE: Connection failed after multiple attempts.');
                 }
-            });
+            }
         };
 
         syncSession();
