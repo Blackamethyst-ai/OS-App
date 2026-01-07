@@ -1,4 +1,5 @@
 import { apiKeyService } from '../services/apiKeyService';
+import { modelRouter } from '../services/modelRouter';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import {
@@ -18,6 +19,7 @@ import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest, getAI } from '../services/geminiService';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
+import { ModelSelector } from './ModelSelector';
 
 /**
  * LIVING SKILL CONSTELLATION
@@ -189,7 +191,7 @@ const RelationalMemory: React.FC<{ history: any[] }> = ({ history }) => {
 };
 
 const AgentControlCenter: React.FC = () => {
-    const { agents, actions } = useAppStore();
+    const { agents, actions, preferences } = useAppStore();
     const { updateAgent, addLog } = actions;
     const [selectedAgentId, setSelectedAgentId] = useState<string | null>(agents.activeAgents[0]?.id || null);
     const [input, setInput] = useState('');
@@ -284,20 +286,17 @@ const AgentControlCenter: React.FC = () => {
         });
 
         try {
-            if (!(apiKeyService.hasGeminiKey())) return;
-            const ai = getAI();
-
-            const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-                model: 'gemini-2.0-flash',
-                contents: directive,
-                config: {
-                    systemInstruction: `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\nACT AS NODE: ${activeAgent.name}.`
-                }
-            }));
+            // ROUTER UPDATE: Use modelRouter to select best model (Flash vs Sonnet vs Pro)
+            // This prevents "Quota Exceeded" on high-end models for simple tasks
+            const responseText = await modelRouter.generateContent(
+                directive,
+                { tier: preferences.modelTier }, // Uses user preference (Flash/Efficient default)
+                `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\nACT AS NODE: ${activeAgent.name}.`
+            );
 
             updateAgent(activeAgent.id, {
                 status: 'IDLE',
-                memoryBuffer: [...activeAgent.memoryBuffer, { timestamp: Date.now(), role: 'AI', text: response.text || "Execution protocol finalized." }]
+                memoryBuffer: [...activeAgent.memoryBuffer, { timestamp: Date.now(), role: 'AI', text: responseText }]
             });
             audio.playSuccess();
         } catch (e: any) {
@@ -347,7 +346,11 @@ const AgentControlCenter: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-12">
+                <div className="flex items-center gap-8">
+                    <ModelSelector />
+
+                    <div className="h-8 w-px bg-white/5" />
+
                     <div className="text-right">
                         <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest block mb-1">Swarm_Sync_Status</span>
                         <div className="flex items-center gap-4">

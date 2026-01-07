@@ -6,7 +6,7 @@ import {
     PeerPresence, SwarmEvent, TaskPriority, TaskStatus,
     AspectRatio, ImageSize, StoredArtifact, MetaventionsState,
     OperationalContext, AutonomousAgent, Frame, ProductionBible,
-    TechnicalManifest, SwarmProposal
+    TechnicalManifest, SwarmProposal, AppPreferences, ModelTier
 } from './types';
 import { neuralVault } from './services/persistenceService';
 
@@ -260,9 +260,11 @@ interface AppState {
     focusedSelector: string | null;
     tasks: Task[];
     metaventions: MetaventionsState;
+    preferences: AppPreferences;
 
     actions: {
         setMode: (mode: AppMode) => void;
+        setPreferences: (prefs: Partial<AppPreferences>) => void;
         setTheme: (theme: AppTheme) => void;
         setUserProfile: (profile: Partial<UserProfile>) => void;
         setAuthenticated: (auth: boolean) => void;
@@ -588,12 +590,18 @@ export const useAppStore = create<AppState>((set, get) => ({
         wallets: [],
         economicProtocols: []
     },
+    preferences: {
+        modelTier: 'balanced'
+    },
 
     actions: {
         setMode: (mode) => set((state) => ({
             previousMode: state.mode,
             mode,
             isTransitioning: true
+        })),
+        setPreferences: (update) => set((state) => ({
+            preferences: { ...state.preferences, ...update }
         })),
         setTheme: (theme) => set({ theme }),
         setUserProfile: (profile) => set((state) => ({ user: { ...state.user, ...profile } })),
