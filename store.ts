@@ -12,8 +12,8 @@ import { neuralVault } from './services/persistenceService';
 
 const INITIAL_AGENTS: AutonomousAgent[] = [
     {
-        id: 'puck',
-        name: 'Puck',
+        id: 'mike',
+        name: 'Mike',
         role: 'Implementation Architect',
         context: OperationalContext.STRATEGY_SYNTHESIS,
         status: 'IDLE',
@@ -24,8 +24,8 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
         tasks: []
     },
     {
-        id: 'charon',
-        name: 'Charon',
+        id: 'dr_ira',
+        name: 'Dr. Ira',
         role: 'Audit Sentinel',
         context: OperationalContext.SYSTEM_MONITORING,
         status: 'IDLE',
@@ -36,14 +36,38 @@ const INITIAL_AGENTS: AutonomousAgent[] = [
         tasks: []
     },
     {
-        id: 'fenrir',
-        name: 'Fenrir',
+        id: 'caleb',
+        name: 'Caleb',
         role: 'Execution Lead',
         context: OperationalContext.CODE_GENERATION,
         status: 'IDLE',
         memoryBuffer: [],
-        capabilities: ['search_intel', 'architect_generate_process', 'propose_structural_change'],
+        capabilities: ['search_intel', 'architect_generate_process', 'perform_code_review'],
         currentMindset: { skepticism: 35, excitement: 65, alignment: 85 },
+        energyLevel: 100,
+        tasks: []
+    },
+    {
+        id: 'paramdeep',
+        name: 'Paramdeep',
+        role: 'Systems Strategist',
+        context: OperationalContext.DATA_ANALYSIS,
+        status: 'IDLE',
+        memoryBuffer: [],
+        capabilities: ['analyze_data', 'optimize_flow', 'predict_vectors'],
+        currentMindset: { skepticism: 60, excitement: 80, alignment: 95 },
+        energyLevel: 100,
+        tasks: []
+    },
+    {
+        id: 'bilal',
+        name: 'Bilal',
+        role: 'Kinetic Operator',
+        context: OperationalContext.GENERAL_PURPOSE,
+        status: 'IDLE',
+        memoryBuffer: [],
+        capabilities: ['quick_response', 'route_tasks', 'manage_uplink'],
+        currentMindset: { skepticism: 20, excitement: 90, alignment: 80 },
         energyLevel: 100,
         tasks: []
     }
@@ -584,8 +608,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         isAnalyzing: false,
         strategyLog: [],
         strategyLibrary: [
-            { id: 'PARA_DRIVE_SYSTEM', title: 'PARA+ Drive Architecture', context: 'D-System File Management', logic: 'Recursive multi-modal indexing with adaptive TTL for Projects and Areas.', physicalImpact: '40% reduction in data retrieval latency.', timestamp: Date.now() },
-            { id: 'PARA_NAMING_CONVENTION', title: 'PARA Naming Protocol', context: 'Drive Organization', logic: 'Date-stamped project identifiers with [P] [A] [R] [A] prefixes for zero-ambiguity indexing.', physicalImpact: 'Instant semantic recall across all storage nodes.', timestamp: Date.now() }
+            { id: 'PARA_DRIVE_SYSTEM', title: 'PARA+ Drive Architecture', context: 'D-System File Management', logic: 'Recursive multi-modal indexing with adaptive TTL for Projects and Areas.', steps: ['Audit Drive', 'Create P.A.R.A Structure', 'Migrate Archives'], physicalImpact: '40% reduction in data retrieval latency.', timestamp: Date.now() },
+            { id: 'PARA_NAMING_CONVENTION', title: 'PARA Naming Protocol', context: 'Drive Organization', logic: 'Date-stamped project identifiers with [P] [A] [R] [A] prefixes for zero-ambiguity indexing.', steps: ['Scan Hierarchy', 'Apply Prefix', 'Sync Metadata'], physicalImpact: 'Instant semantic recall across all storage nodes.', timestamp: Date.now() }
         ],
         wallets: [],
         economicProtocols: []

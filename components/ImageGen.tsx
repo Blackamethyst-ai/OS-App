@@ -209,14 +209,14 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
         try {
             const ai = getAI();
-            const usePro = imageGen.quality !== ImageSize.SIZE_1K;
-            const model = usePro ? 'gemini-2.0-flash' : 'gemini-2.0-flash';
+            // Select model based on Quality Tier: 1K = Fast (Flash), others = Pro
+            const model = imageGen.quality === ImageSize.SIZE_1K ? 'imagen-3.0-fast-generate-001' : 'imagen-3.0-generate-001';
 
             const contextualPrompt = productionBible
                 ? `PRODUCTION_BIBLE_CONTEXT: ${productionBible.theme}. OPTICS: ${productionBible.opticProfile}. AESTHETIC: ${productionBible.visualLogic}. DIRECTIVE: ${imageGen.prompt}`
                 : imageGen.prompt;
 
-            const finalPrompt = await constructCinematicPrompt(
+            let finalPrompt = await constructCinematicPrompt(
                 contextualPrompt || "A cinematic still shot on 35mm.",
                 imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY,
                 imageGen.characterRefs.length > 0,
@@ -226,34 +226,40 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                 imageGen.activeStylePreset
             );
 
-            const parts: any[] = [];
-            imageGen.characterRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
-            imageGen.worldRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
-            imageGen.styleRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
-            parts.push({ text: finalPrompt });
+            // 1. ANALYSIS LAYER: If references exist, transcribe them to prompt vectors
+            const allRefs = [...imageGen.characterRefs, ...imageGen.worldRefs, ...imageGen.styleRefs];
+            if (allRefs.length > 0) {
+                actions.addLog('SYSTEM', 'OPTIC_LINK: Transcoding visual references to semantic tokens...');
+                const analysisParts: any[] = allRefs.map(r => ({ inlineData: r.inlineData }));
+                analysisParts.push({ text: "Analyze these reference images. Extract key visual traits (lighting, style, character features, composition) to guide an image generation model. Output a dense visual description." });
 
-            const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-                model: model as any,
-                contents: { parts },
-                config: {
-                    imageConfig: {
-                        aspectRatio: imageGen.aspectRatio,
-                        imageSize: imageGen.quality as any
-                    }
-                }
-            }));
+                const analysis = await retryGeminiRequest(() => ai.models.generateContent({
+                    model: 'gemini-2.0-flash', // Vision model for analysis
+                    contents: { parts: analysisParts }
+                }));
 
-            let url = '';
-            for (const part of response.candidates?.[0]?.content?.parts || []) {
-                if (part.inlineData) {
-                    url = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-                    break;
+                if (analysis.text) {
+                    finalPrompt += `\n\nREFERENCE_CONTEXT: ${analysis.text}`;
+                    actions.addLog('INFO', 'OPTIC_LINK: References merged into synthesis vector.');
                 }
             }
 
-            if (url) {
+            // 2. GENERATION LAYER: Imagen 3.0
+            const response = await ai.models.generateImages({
+                model,
+                prompt: finalPrompt,
+                config: {
+                    numberOfImages: 1,
+                    aspectRatio: imageGen.aspectRatio as any
+                }
+            });
+
+            const generatedImage = response.generatedImages?.[0]?.image;
+
+            if (generatedImage) {
+                const url = `data:${generatedImage.mimeType};base64,${generatedImage.imageBytes}`;
                 actions.setImageGenState({ generatedImage: { url, prompt: finalPrompt, aspectRatio: imageGen.aspectRatio, size: imageGen.quality }, isLoading: false });
-                actions.addLog('SUCCESS', `ASSET_STUDIO: Render finalized at ${imageGen.quality}.`);
+                actions.addLog('SUCCESS', `ASSET_STUDIO: Render finalized via Imagen 3.0.`);
                 audio.playSuccess();
             } else {
                 throw new Error("Empty buffer from cinematic core.");
@@ -300,15 +306,14 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
         try {
             const ai = getAI();
-            const usePro = imageGen.quality !== ImageSize.SIZE_1K;
-            const model = usePro ? 'gemini-2.0-flash' : 'gemini-2.0-flash';
+            const model = imageGen.quality === ImageSize.SIZE_1K ? 'imagen-3.0-fast-generate-001' : 'imagen-3.0-generate-001';
 
             const resCurve = imageGen.resonanceCurve?.[idx];
             const resonance = resCurve
                 ? `[Intensity: ${resCurve.tension}%] [Texture: ${resCurve.dynamics}%]`
                 : "";
 
-            const finalPrompt = await constructCinematicPrompt(
+            let finalPrompt = await constructCinematicPrompt(
                 `BIBLE: ${productionBible?.theme}. SCENE_${idx}: ${frame.scenePrompt} ${resonance}`,
                 imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY,
                 imageGen.characterRefs.length > 0,
@@ -318,24 +323,32 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                 imageGen.activeStylePreset
             );
 
-            const parts: any[] = [];
-            imageGen.characterRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
-            imageGen.worldRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
-            imageGen.styleRefs.forEach(ref => parts.push({ inlineData: ref.inlineData }));
-            parts.push({ text: finalPrompt });
+            // 1. ANALYSIS LAYER (Inline)
+            const allRefs = [...imageGen.characterRefs, ...imageGen.worldRefs, ...imageGen.styleRefs];
+            if (allRefs.length > 0) {
+                const analysisParts: any[] = allRefs.map(r => ({ inlineData: r.inlineData }));
+                analysisParts.push({ text: `Describe these references to help generate: ${frame.scenePrompt}` });
 
-            const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-                model: model as any,
-                contents: { parts },
-                config: { imageConfig: { aspectRatio: imageGen.aspectRatio, imageSize: imageGen.quality as any } }
-            }));
-
-            let url = '';
-            for (const part of response.candidates?.[0]?.content?.parts || []) {
-                if (part.inlineData) { url = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`; break; }
+                const analysis = await retryGeminiRequest(() => ai.models.generateContent({
+                    model: 'gemini-2.0-flash',
+                    contents: { parts: analysisParts }
+                }));
+                if (analysis.text) finalPrompt += `\n\nREF_GUIDE: ${analysis.text}`;
             }
 
-            if (url) {
+            const response = await ai.models.generateImages({
+                model,
+                prompt: finalPrompt,
+                config: {
+                    numberOfImages: 1,
+                    aspectRatio: imageGen.aspectRatio as any
+                }
+            });
+
+            const generatedImage = response.generatedImages?.[0]?.image;
+
+            if (generatedImage) {
+                const url = `data:${generatedImage.mimeType};base64,${generatedImage.imageBytes}`;
                 setFrames(prev => prev.map((f, i) => i === idx ? { ...f, imageUrl: url, status: 'done' } : f));
             } else {
                 throw new Error("Bitstream dropout.");
@@ -347,11 +360,16 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
     const renderSequence = async () => {
         setIsBatchRendering(true);
-        actions.addLog('SYSTEM', 'STUDIO_RENDER: Batch-processing high-fidelity sequence...');
-        for (let i = 0; i < frames.length; i++) {
-            if (frames[i].status === 'done') continue;
-            await renderFrame(i);
-            await new Promise(r => setTimeout(r, 1200));
+        actions.addLog('SYSTEM', `STUDIO_RENDER: Initializing ${imageGen.quality === ImageSize.SIZE_1K ? 'FLASH' : 'CINEMATIC'} batch-process...`);
+
+        const pendingFrames = frames.filter(f => f.status !== 'done');
+        const isFlash = imageGen.quality === ImageSize.SIZE_1K;
+        const batchSize = isFlash ? 3 : 1; // Parallelize Flash renders
+
+        for (let i = 0; i < pendingFrames.length; i += batchSize) {
+            const batch = pendingFrames.slice(i, i + batchSize);
+            await Promise.all(batch.map(f => renderFrame(f.index)));
+            if (!isFlash) await new Promise(r => setTimeout(r, 1000)); // Spacer for high-res
         }
         setIsBatchRendering(false);
         actions.addLog('SUCCESS', 'STUDIO_RENDER: Sequence fabricated and archived.');
@@ -642,8 +660,8 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     ${productionBible ? 'bg-[var(--plasma-green)]/10 border-[var(--plasma-green)]/40 text-[var(--plasma-green)]' : 'bg-[#111] border-[#333] text-gray-500 hover:text-white'}
                                 `}
                                 >
-                                    {isSynthesizingBible ? <Loader2 size={16} className="animate-spin" /> : productionBible ? <ShieldCheck size={18} /> : <Binary size={18} />}
-                                    {productionBible ? 'Production Bible Locked' : 'Forge Production Bible'}
+                                    {isSynthesizingBible ? <Loader2 size={16} className="animate-spin" /> : productionBible ? <RefreshCw size={16} /> : <Binary size={18} />}
+                                    {productionBible ? 'Reforge Production Bible' : 'Forge Production Bible'}
                                 </button>
 
                                 <AnimatePresence>
@@ -683,18 +701,45 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                 <div className="grid grid-cols-2 gap-4 shrink-0">
                                     <div className="space-y-3">
                                         <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Optics (Aspect)</label>
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <div className="grid grid-cols-3 gap-2">
                                             {Object.values(AspectRatio).map(r => (
-                                                <button key={r} onClick={() => actions.setImageGenState({ aspectRatio: r })} className={`py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.aspectRatio === r ? 'bg-[var(--amethyst)] border-[var(--amethyst)] text-black shadow-lg shadow-[var(--amethyst)]/20' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{r}</button>
+                                                <button
+                                                    key={r}
+                                                    onClick={() => actions.setImageGenState({ aspectRatio: r })}
+                                                    className={`p-2 rounded-xl border transition-all flex flex-col items-center gap-2 group/ratio ${imageGen.aspectRatio === r ? 'bg-[var(--amethyst)] border-[var(--amethyst)] shadow-lg shadow-[var(--amethyst)]/20' : 'bg-black border border-[#222] hover:bg-white/5'}`}
+                                                >
+                                                    <div
+                                                        style={{ aspectRatio: r.replace(':', '/') }}
+                                                        className={`w-6 rounded-sm border ${imageGen.aspectRatio === r ? 'bg-black border-white/20' : 'bg-white/10 border-white/10 group-hover/ratio:bg-white/20'}`}
+                                                    />
+                                                    <span className={`text-[8px] font-black uppercase ${imageGen.aspectRatio === r ? 'text-black' : 'text-gray-600'}`}>{r}</span>
+                                                </button>
                                             ))}
                                         </div>
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Fidelity (Tier)</label>
+                                        <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Render Engine</label>
                                         <div className="flex flex-col gap-2">
-                                            {[ImageSize.SIZE_1K, ImageSize.SIZE_2K, ImageSize.SIZE_4K].map(s => (
-                                                <button key={s} onClick={() => actions.setImageGenState({ quality: s })} className={`w-full py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.quality === s ? 'bg-[var(--cyan)] border-[var(--cyan)] text-black shadow-lg shadow-[var(--cyan)]/20' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{s}</button>
-                                            ))}
+                                            <button
+                                                onClick={() => actions.setImageGenState({ quality: ImageSize.SIZE_1K })}
+                                                className={`w-full py-3 px-4 rounded-xl text-[10px] font-black border transition-all flex items-center justify-between group ${imageGen.quality === ImageSize.SIZE_1K ? 'bg-[var(--cyan)] border-[var(--cyan)] text-black shadow-lg shadow-[var(--cyan)]/20' : 'bg-black border border-[#222] text-gray-500 hover:text-white'}`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Zap size={12} className={imageGen.quality === ImageSize.SIZE_1K ? 'fill-current' : ''} />
+                                                    <span>FLASH RENDER</span>
+                                                </div>
+                                                <span className="opacity-50 text-[8px]">FAST</span>
+                                            </button>
+                                            <button
+                                                onClick={() => actions.setImageGenState({ quality: ImageSize.SIZE_4K })}
+                                                className={`w-full py-3 px-4 rounded-xl text-[10px] font-black border transition-all flex items-center justify-between group ${imageGen.quality === ImageSize.SIZE_4K ? 'bg-[var(--amethyst)] border-[var(--amethyst)] text-black shadow-lg shadow-[var(--amethyst)]/20' : 'bg-black border border-[#222] text-gray-500 hover:text-white'}`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Aperture size={12} />
+                                                    <span>PRO UPSCALE</span>
+                                                </div>
+                                                <span className="opacity-50 text-[8px]">4K</span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>

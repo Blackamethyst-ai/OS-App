@@ -11,8 +11,9 @@ import {
     Fingerprint, Gauge, Waves, ChevronRight, PlayCircle, Boxes, Dna,
     Plus, GitBranch, Share2, PowerOff, Scissors, Command, Waypoints,
     Workflow, ListTodo, Circle, SearchCode, History as HistoryIcon,
-    ShieldAlert, ChevronDown, MousePointer2, User, Trash2, Atom
+    ShieldAlert, ChevronDown, MousePointer2, User, Trash2, Atom, Headphones
 } from 'lucide-react';
+import { elevenLabs, ELEVEN_LABS_VOICES } from '../services/elevenLabsService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AutonomousAgent, OperationalContext, MentalState, TaskStatus, AtomicTask } from '../types';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
@@ -198,7 +199,23 @@ const AgentControlCenter: React.FC = () => {
     const [viewMode, setViewMode] = useState<'MEMORY' | 'SKILLS' | 'TASKS'>('MEMORY');
     const [taskInput, setTaskInput] = useState('');
     const [isGrounding, setIsGrounding] = useState(false);
+    const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
+
+    // Map Agent IDs to ElevenLabs Voices
+    const getAgentVoice = (agentId: string) => {
+        const map: Record<string, string> = {
+            'mike': ELEVEN_LABS_VOICES.MIKE,
+            'dr_ira': ELEVEN_LABS_VOICES.DR_IRA,
+            'caleb': ELEVEN_LABS_VOICES.CALEB,
+            'paramdeep': ELEVEN_LABS_VOICES.PARAMDEEP,
+            'bilal': ELEVEN_LABS_VOICES.BILAL,
+            'noah': ELEVEN_LABS_VOICES.NOAH,
+            'helen': ELEVEN_LABS_VOICES.HELEN,
+            'perri': ELEVEN_LABS_VOICES.PERRI
+        };
+        return map[agentId.toLowerCase()] || ELEVEN_LABS_VOICES.MIKE;
+    };
 
     const activeAgent = agents.activeAgents.find(a => a.id === selectedAgentId);
 
@@ -236,6 +253,11 @@ const AgentControlCenter: React.FC = () => {
 
             addLog('SUCCESS', `SWARM_SEARCH: Context lattice for [${activeAgent.name}] synchronized.`);
             audio.playSuccess();
+
+            // Voice Output
+            if (isVoiceEnabled && apiKeyService.getKey('eleven_labs')) {
+                elevenLabs.speak(resultText.substring(0, 400), getAgentVoice(activeAgent.id));
+            }
         } catch (e: any) {
             updateAgent(activeAgent.id, { status: 'IDLE' });
             addLog('ERROR', `SEARCH_FAIL: ${e.message}`);
@@ -362,6 +384,12 @@ const AgentControlCenter: React.FC = () => {
                 memoryBuffer: [...activeAgent.memoryBuffer, { timestamp: Date.now(), role: 'AI', text: responseText }]
             });
             audio.playSuccess();
+
+            // Voice Output
+            if (isVoiceEnabled && apiKeyService.getKey('eleven_labs')) {
+                // Determine stability based on keywords (e.g. if 'Analyze' -> more stable)
+                elevenLabs.speak(responseText, getAgentVoice(activeAgent.id));
+            }
         } catch (e: any) {
             updateAgent(activeAgent.id, { status: 'IDLE' });
             addLog('ERROR', `EXEC_FAIL: ${e.message}`);
@@ -426,6 +454,29 @@ const AgentControlCenter: React.FC = () => {
                         <div className="flex flex-col text-left">
                             <span className="text-[8px] font-black font-mono uppercase tracking-widest leading-none">Neuro-Link</span>
                             <span className="text-[10px] font-black font-mono uppercase leading-none">{preferences.autonomyEnabled ? "Autonomy: ON" : "Manual Mode"}</span>
+                        </div>
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (!apiKeyService.getKey('eleven_labs')) {
+                                window.dispatchEvent(new CustomEvent('show-api-key-modal'));
+                                return;
+                            }
+                            setIsVoiceEnabled(!isVoiceEnabled);
+                            audio.playClick();
+                        }}
+                        className={cn(
+                            "flex items-center gap-3 px-4 py-2 rounded-xl border transition-all active:scale-95",
+                            isVoiceEnabled
+                                ? "bg-[#9d4edd]/10 border-[#9d4edd]/40 text-[#9d4edd] shadow-[0_0_20px_rgba(157,78,221,0.2)]"
+                                : "bg-black/40 border-white/10 text-gray-500 hover:text-white hover:bg-white/5"
+                        )}
+                        title={apiKeyService.getKey('eleven_labs') ? "Toggle Neural Voice" : "Configure ElevenLabs"}
+                    >
+                        <Headphones size={14} className={isVoiceEnabled ? "fill-current" : ""} />
+                        <div className="flex flex-col text-left">
+                            <span className="text-[8px] font-black font-mono uppercase tracking-widest leading-none">Voice_Link</span>
+                            <span className="text-[10px] font-black font-mono uppercase leading-none">{isVoiceEnabled ? "Audio: ON" : "Muted"}</span>
                         </div>
                     </button>
                     <ModelSelector />

@@ -17,7 +17,7 @@ const LAYERS = [
 ];
 
 export const StrategicConsole: React.FC = () => {
-    const { actions } = useAppStore();
+    const { actions, agents } = useAppStore();
     const [selectedLayer, setSelectedLayer] = useState<string>(LAYERS[0].id);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [analysis, setAnalysis] = useState<LayerAnalysis | null>(null);
@@ -49,7 +49,28 @@ export const StrategicConsole: React.FC = () => {
         try {
             const protocol = await metaventionService.generateStrategy(selectedLayer, JSON.stringify(analysis));
             actions.addLog('SUCCESS', `PROTOCOL_SYNTHESIS: [${protocol.title}] ready for deployment.`);
-            // In a real app, we'd add this to the store's strategy library
+
+            // Auto-deploy to swarm
+            if (protocol.steps && protocol.steps.length > 0) {
+                const activeNodes = agents.activeAgents.filter(a => a.status !== 'SLEEPING');
+                if (activeNodes.length > 0) {
+                    protocol.steps.forEach((step, i) => {
+                        const agent = activeNodes[i % activeNodes.length];
+                        const newTask = {
+                            id: `m-task-${Date.now()}-${i}`,
+                            description: `STRATUM_OP: ${step}`,
+                            instruction: step,
+                            isolated_input: '',
+                            weight: 2,
+                            status: 'PENDING' as const
+                        };
+                        // Direct store mutation via action
+                        actions.updateAgent(agent.id, { tasks: [...agent.tasks, newTask] });
+                    });
+                    actions.addLog('INFO', `SWARM_SYNC: ${protocol.steps.length} vectors distributed to neural lattice.`);
+                }
+            }
+
             setAnalysis(null); // Reset after generation
             audio.playSuccess();
         } catch (e) {
