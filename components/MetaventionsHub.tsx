@@ -57,7 +57,7 @@ const VolumetricFog = () => (
                 rotate: [0, 15, 0]
             }}
             transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-            className="absolute -inset-[100%] bg-[radial-gradient(circle_at_30%_40%,rgba(157,78,221,0.08)_0%,transparent_50%)]"
+            className="absolute -inset-[100%] bg-[radial-gradient(circle_at_30%_40%,color-mix(in_srgb,var(--amethyst),transparent_92%)_0%,transparent_50%)]"
         />
         <motion.div
             animate={{
@@ -67,7 +67,7 @@ const VolumetricFog = () => (
                 rotate: [0, -15, 0]
             }}
             transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-            className="absolute -inset-[100%] bg-[radial-gradient(circle_at_70%_60%,rgba(34,211,238,0.05)_0%,transparent_40%)]"
+            className="absolute -inset-[100%] bg-[radial-gradient(circle_at_70%_60%,color-mix(in_srgb,var(--cyan),transparent_95%)_0%,transparent_40%)]"
         />
     </div>
 );
@@ -76,9 +76,9 @@ const DataStreamTether = () => (
     <svg className="fixed inset-0 w-full h-full pointer-events-none z-30 opacity-40">
         <defs>
             <linearGradient id="streamGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#9d4edd" stopOpacity="0" />
-                <stop offset="50%" stopColor="#22d3ee" stopOpacity="1" />
-                <stop offset="100%" stopColor="#9d4edd" stopOpacity="0" />
+                <stop offset="0%" stopColor="var(--amethyst)" stopOpacity="0" />
+                <stop offset="50%" stopColor="var(--cyan)" stopOpacity="1" />
+                <stop offset="100%" stopColor="var(--amethyst)" stopOpacity="0" />
             </linearGradient>
             <filter id="packetGlow">
                 <feGaussianBlur stdDeviation="2" result="blur" />
@@ -97,7 +97,7 @@ const DataStreamTether = () => (
         <motion.circle
             cx="1200"
             r="2"
-            fill="#18E6FF"
+            fill="var(--cyan)"
             filter="url(#packetGlow)"
             animate={{ cx: [1200, 800] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
@@ -673,18 +673,18 @@ const MetaventionsHub: React.FC = () => {
     const manifestProtocols = dashboard.activeManifest?.protocols || [];
 
     return (
-        <div className="h-full w-full bg-[#020204] flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out relative">
+        <div className="h-full w-full bg-[var(--bg-app)] flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out relative">
             <div className="absolute inset-0 z-0 pointer-events-none">
-                <div className="absolute inset-0 bg-[#020204]" />
+                <div className="absolute inset-0 bg-[var(--bg-app)]" />
                 <VolumetricFog />
                 <motion.div
                     animate={{
                         opacity: [0.03, 0.08, 0.03],
                         scale: [1, 1.1, 1],
                         background: [
-                            "radial-gradient(circle at 20% 30%, #7B2CFF 0%, transparent 50%)",
-                            "radial-gradient(circle at 80% 70%, #18E6FF 0%, transparent 50%)",
-                            "radial-gradient(circle at 20% 30%, #7B2CFF 0%, transparent 50%)"
+                            "radial-gradient(circle at 20% 30%, var(--amethyst) 0%, transparent 50%)",
+                            "radial-gradient(circle at 80% 70%, var(--cyan) 0%, transparent 50%)",
+                            "radial-gradient(circle at 20% 30%, var(--amethyst) 0%, transparent 50%)"
                         ]
                     }}
                     transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
