@@ -2,9 +2,9 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import * as d3 from 'd3';
 import { StoredArtifact } from '../types';
-import { 
-    Activity, Zap, Info, Target, X, 
-    Loader2, Sparkles, Database, Globe, 
+import {
+    Activity, Zap, Info, Target, X,
+    Loader2, Sparkles, Database, Globe,
     Maximize, CheckCircle2, Compass, GitBranch, Fingerprint, Waves
 } from 'lucide-react';
 import { audio } from '../services/audioService';
@@ -25,6 +25,7 @@ interface GraphLink extends d3.SimulationLinkDatum<GraphNode> {
     source: string | GraphNode;
     target: string | GraphNode;
     value: number;
+    type?: string;
 }
 
 interface DynamicVisualsProps {
@@ -39,9 +40,9 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
     const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null);
     const [isSynthesizing, setIsSynthesizing] = useState(false);
 
-    const activeArtifact = useMemo(() => 
+    const activeArtifact = useMemo(() =>
         artifacts.find(a => a.id === centeredId) || null
-    , [artifacts, centeredId]);
+        , [artifacts, centeredId]);
 
     const graphData = useMemo(() => {
         if (artifacts.length === 0) return { nodes: [], links: [] };
@@ -61,7 +62,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
         });
 
         const otherArtifacts = artifacts.filter(a => a.id !== hubId);
-        
+
         otherArtifacts.forEach((art) => {
             nodes.push({
                 id: art.id,
@@ -72,14 +73,14 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
             });
 
             // Robust array validation to prevent .filter crash
-            const hubEntities = hubArtifact.analysis && Array.isArray(hubArtifact.analysis.entities) 
-                ? hubArtifact.analysis.entities 
+            const hubEntities = hubArtifact.analysis && Array.isArray(hubArtifact.analysis.entities)
+                ? hubArtifact.analysis.entities
                 : [];
-            const artEntities = art.analysis && Array.isArray(art.analysis.entities) 
-                ? art.analysis.entities 
+            const artEntities = art.analysis && Array.isArray(art.analysis.entities)
+                ? art.analysis.entities
                 : [];
 
-            const sharedEntities = hubEntities.filter(e => 
+            const sharedEntities = hubEntities.filter(e =>
                 artEntities.includes(e)
             ).length;
 
@@ -124,7 +125,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
             .force('charge', d3.forceManyBody().strength(-1500))
             .force('center', d3.forceCenter(centerX, centerY))
             .force('collision', d3.forceCollide().radius(80))
-            .force('radial', d3.forceRadial(d => d.type === 'HUB' ? 0 : radius, centerX, centerY).strength(0.8));
+            .force('radial', d3.forceRadial((d: GraphNode) => d.type === 'HUB' ? 0 : radius, centerX, centerY).strength(0.8));
 
         const link = g.append('g')
             .selectAll('path')
@@ -172,7 +173,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
             .attr('pointer-events', 'none')
             .attr('text-transform', 'uppercase')
             .attr('letter-spacing', '0.15em')
-            .each(function(d) {
+            .each(function (d) {
                 const text = d3.select(this);
                 const words = d.label.split(/\s+/);
                 if (words.length > 2 && d.type !== 'HUB') {
@@ -206,7 +207,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
     return (
         <div ref={containerRef} className="h-full w-full flex bg-[#020204] relative overflow-hidden">
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(circle_at_center,rgba(24,230,255,0.15)_0%,transparent_70%)]" />
-            
+
             <div className="flex-1 relative flex items-center justify-center p-10">
                 <svg ref={svgRef} className="w-full h-full cursor-move" />
                 <div className="absolute top-10 left-10 space-y-4 pointer-events-none">
@@ -235,7 +236,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
 
             <div className="w-[480px] border-l border-white/5 bg-[#050507]/60 backdrop-blur-3xl flex flex-col shrink-0 z-40 relative shadow-[0_0_100px_rgba(0,0,0,1)]">
                 <div className="absolute inset-0 bg-[linear-gradient(rgba(24,230,255,0.01)_1px,transparent_1px),linear-gradient(90deg,rgba(24,230,255,0.01)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-                
+
                 <div className="h-20 border-b border-white/5 flex items-center justify-between px-10 bg-white/[0.01] shrink-0">
                     <div className="flex items-center gap-3">
                         <Zap size={16} className="text-[#f1c21b]" />
@@ -247,7 +248,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-10 space-y-12">
                     <AnimatePresence mode="wait">
                         {activeArtifact ? (
-                            <motion.div 
+                            <motion.div
                                 key={activeArtifact.id}
                                 initial={{ opacity: 0, x: 30 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -261,7 +262,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                                         <span className="text-[9px] font-black uppercase tracking-widest">Primary Focus Node</span>
                                     </div>
                                     <h3 className="text-4xl font-black text-white uppercase font-mono tracking-tighter leading-[1.1]">{activeArtifact.name}</h3>
-                                    
+
                                     <div className="flex flex-wrap gap-3">
                                         <div className="px-4 py-1.5 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-full text-[8px] font-black text-[#9d4edd] uppercase tracking-widest">
                                             {activeArtifact.analysis?.classification || 'RAW_FRAGMENT'}
@@ -304,7 +305,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                                 </div>
 
                                 <div className="pt-10 border-t border-white/5">
-                                    <button 
+                                    <button
                                         onClick={() => onSelect(activeArtifact)}
                                         className="w-full py-6 bg-[#18E6FF] text-black font-black font-mono text-[10px] uppercase tracking-[0.5em] rounded-[2.5rem] transition-all shadow-[0_20px_50px_rgba(24,230,255,0.3)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-4 group/btn"
                                     >

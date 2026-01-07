@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { GOOGLE_APIS, GoogleApiDefinition } from '../data/googleApis';
 import { useAppStore } from '../store';
-import { retryGeminiRequest, promptSelectKey } from '../services/geminiService';
+import { retryGeminiRequest, promptSelectKey, getAI } from '../services/geminiService';
 import { dynamicRegistry } from '../services/DynamicToolRegistry';
 import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
 import { audio } from '../services/audioService';
