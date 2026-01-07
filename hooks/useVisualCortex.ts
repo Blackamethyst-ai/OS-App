@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import { useEffect, useCallback } from 'react';
 import { useAppStore } from '../store';
 import { fileToGenerativePart, analyzeVisualInput, promptSelectKey } from '../services/geminiService';
@@ -19,7 +20,7 @@ export const useVisualCortex = () => {
         audio.playClick();
 
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
+            if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); return; }
             
             let fileData;
             if (file instanceof File) {

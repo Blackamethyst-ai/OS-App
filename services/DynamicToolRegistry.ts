@@ -2,10 +2,13 @@ import { FunctionDeclaration, Type } from "@google/genai";
 import { OS_TOOLS } from './toolRegistry';
 import { neuralVault } from './persistenceService';
 import { useAppStore } from '../store';
+import { validateAndSanitize } from '../utils/validateToolCode';
 
 /**
  * DynamicToolRegistry: Orchestrates evolutionary capability expansion.
  * Bridges static OS features with dynamic autonomic logic.
+ * 
+ * SECURITY: All tool code is validated before execution to prevent injection.
  */
 class DynamicToolRegistry {
     private dynamicManifests: FunctionDeclaration[] = [];
@@ -17,15 +20,29 @@ class DynamicToolRegistry {
     async initialize() {
         const tools = await neuralVault.getDynamicTools();
         this.dynamicManifests = tools.map(t => t.manifest);
-        
+
         this.dynamicLogic = {};
         tools.forEach(tool => {
             // Refined executor: Ensures no React hooks are mistakenly invoked in sandboxed logic
             this.dynamicLogic[tool.id] = async (args: any) => {
                 try {
+                    // SECURITY: Validate code before execution
+                    const validation = validateAndSanitize(tool.code);
+                    if (!validation.valid) {
+                        console.error(`[DynamicToolRegistry] SECURITY_BLOCK: ${tool.id}`, validation.errors);
+                        return {
+                            toolName: tool.id,
+                            status: 'ERROR',
+                            data: {
+                                error: 'SECURITY_VIOLATION: Tool code contains forbidden patterns.',
+                                details: validation.errors
+                            }
+                        };
+                    }
+
                     const state = useAppStore.getState();
                     // Pass store methods as a clean context object to avoid hook detection
-                    const context = { 
+                    const context = {
                         log: state.actions.addLog,
                         mode: state.mode,
                         setMode: state.actions.setMode,
@@ -34,13 +51,13 @@ class DynamicToolRegistry {
                         propose: state.actions.addSwarmProposal,
                         identity: state.user
                     };
-                    
+
                     const executor = new Function('args', 'os', `
                         return (async () => { 
-                            ${tool.code} 
+                            ${validation.sanitizedCode} 
                         })();
                     `);
-                    
+
                     const result = await executor(args, context);
 
                     return {
@@ -59,7 +76,7 @@ class DynamicToolRegistry {
                 }
             };
         });
-        
+
         console.debug(`[DynamicToolRegistry] Hydrated ${this.dynamicManifests.length} evolved protocols.`);
     }
 
@@ -139,11 +156,21 @@ class DynamicToolRegistry {
 
     /**
      * FORGE: Commits new capability to the vault.
+     * SECURITY: Validates code before saving to prevent storage of malicious tools.
      */
-    async registerDynamicTool(id: string, manifest: any, code: string) {
-        await neuralVault.saveDynamicTool(id, manifest, code);
+    async registerDynamicTool(id: string, manifest: any, code: string): Promise<{ success: boolean; errors?: string[] }> {
+        // SECURITY: Validate before saving
+        const validation = validateAndSanitize(code);
+        if (!validation.valid) {
+            console.error(`[DynamicToolRegistry] FORGE_BLOCKED: ${id}`, validation.errors);
+            useAppStore.getState().actions.addLog('ERROR', `TOOL_FORGE_BLOCKED: [${id}] contains forbidden patterns.`);
+            return { success: false, errors: validation.errors };
+        }
+
+        await neuralVault.saveDynamicTool(id, manifest, validation.sanitizedCode);
         await this.initialize();
         useAppStore.getState().actions.addLog('SUCCESS', `TOOL_FORGE: Capability [${id}] crystallized.`);
+        return { success: true };
     }
 }
 

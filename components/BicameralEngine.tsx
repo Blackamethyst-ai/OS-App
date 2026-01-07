@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '../store';
 import { generateDecompositionMap, consensusEngine } from '../services/bicameralService';
@@ -26,7 +27,7 @@ const BicameralEngine: React.FC = () => {
         if (!goal?.trim()) return;
         
         try {
-            const hasKey = await window.aistudio?.hasSelectedApiKey();
+            const hasKey = apiKeyService.hasGeminiKey();
             if (!hasKey) { await promptSelectKey(); return; }
 
             audio.playClick();

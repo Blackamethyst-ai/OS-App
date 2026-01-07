@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { liveSession, promptSelectKey, HIVE_AGENTS, generateAvatar } from '../services/geminiService';
@@ -214,7 +215,7 @@ const VoiceMode: React.FC = () => {
             const fetchAvatar = async () => {
                 setIsGeneratingAvatar(true);
                 try {
-                    const hasKey = await window.aistudio?.hasSelectedApiKey();
+                    const hasKey = apiKeyService.hasGeminiKey();
                     if (hasKey) {
                         const url = await generateAvatar(currentAgentMetadata.id.toUpperCase(), currentAgentMetadata.name);
                         setVoiceState(prev => ({ agentAvatars: { ...prev.agentAvatars, [voice.voiceName]: url } }));
@@ -255,7 +256,7 @@ const VoiceMode: React.FC = () => {
             await liveSession.primeAudio();
             setVoiceState({ isConnecting: true });
             try {
-                if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setVoiceState({ isConnecting: false }); return; }
+                if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); setVoiceState({ isConnecting: false }); return; }
                 setVoiceState({ isActive: true });
                 addLog('SUCCESS', `COMMS: Unified uplink established with ${voice.voiceName}.`);
                 audio.playSuccess();

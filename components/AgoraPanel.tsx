@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SyntheticPersona, DebateTurn, SimulationReport, FileData, AppMode, MentalState } from '../types';
@@ -184,7 +185,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
         }
 
         try {
-            const hasKey = await window.aistudio?.hasSelectedApiKey();
+            const hasKey = apiKeyService.hasGeminiKey();
             if (!hasKey) await promptSelectKey();
             setIsVoiceActive(true);
 

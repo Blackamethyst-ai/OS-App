@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useRef, useEffect, useState, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { generateCode, promptSelectKey, validateSyntax } from '../services/geminiService';
@@ -39,7 +40,7 @@ const CodeStudio: React.FC = () => {
       const code = codeStudio.generatedCode;
       if (!code) { setSyntaxErrors([]); return; }
       const timer = setTimeout(async () => {
-          const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
+          const hasKey = apiKeyService.hasGeminiKey();
           if (hasKey) {
               const errors = await validateSyntax(code, codeStudio.language);
               setSyntaxErrors(errors);
@@ -52,7 +53,7 @@ const CodeStudio: React.FC = () => {
     if (!codeStudio.prompt?.trim()) return;
     setCodeStudioState({ isLoading: true, error: null }); 
     try {
-      if (!(await (window as any).aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
+      if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); return; }
       const generated = await generateCode(codeStudio.prompt, codeStudio.language, codeStudio.model);
       setCodeStudioState({ generatedCode: generated, isLoading: false, lastEditTimestamp: Date.now() });
       audio.playSuccess();

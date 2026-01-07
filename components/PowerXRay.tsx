@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Zap, Skull, Crown, Activity, Radar, Crosshair, Terminal, AlertTriangle, ShieldCheck, Waves, TrendingUp, BarChart3, Radio, Loader2, GitCommit, ExternalLink, Globe, Check, Layers } from "lucide-react";
@@ -187,7 +188,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
     audio.playClick();
 
     try {
-      const hasKey = await window.aistudio?.hasSelectedApiKey();
+      const hasKey = apiKeyService.hasGeminiKey();
       if (!hasKey) {
         await promptSelectKey();
         setLoading(false);

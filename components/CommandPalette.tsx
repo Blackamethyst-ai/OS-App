@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { interpretIntent, predictNextActions, promptSelectKey } from '../services/geminiService';
@@ -110,7 +111,7 @@ const CommandPalette: React.FC = () => {
             const fetchSuggestions = async () => {
                 setIsPredicting(true);
                 try {
-                    const hasKey = await window.aistudio?.hasSelectedApiKey();
+                    const hasKey = apiKeyService.hasGeminiKey();
                     if (hasKey) {
                         const lastLog = system.logs.length > 0 ? system.logs[system.logs.length - 1].message : undefined;
                         const suggestions = await predictNextActions(mode, {}, lastLog);
@@ -158,7 +159,7 @@ const CommandPalette: React.FC = () => {
         }
 
         try {
-            const hasKey = await window.aistudio?.hasSelectedApiKey();
+            const hasKey = apiKeyService.hasGeminiKey();
             if (!hasKey) { await promptSelectKey(); setIsLoading(false); return; }
 
             if (lowInput.startsWith("research")) {

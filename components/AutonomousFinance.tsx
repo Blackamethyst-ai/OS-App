@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -127,7 +128,7 @@ const AutonomousFinance: React.FC = () => {
         audio.playClick();
         addLog('SYSTEM', 'FINANCE_SCAN: Grounding DePIN yield vectors via Reality Oracles...');
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); return; }
+            if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); return; }
             const results = await searchRealWorldOpportunities('Stable High Yield AI Infrastructure 2025');
             const sanitized = results.map((r: any, i: number) => ({ 
                 ...r, 

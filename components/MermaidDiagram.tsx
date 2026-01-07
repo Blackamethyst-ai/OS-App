@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useEffect, useRef, useState } from 'react';
 import { RefreshCw, Image as ImageIcon, FileCode, Maximize, ZoomIn, ZoomOut, Move, Download, AlertCircle, Target, Sparkles, Loader2 } from 'lucide-react';
 import mermaid from 'mermaid';
@@ -104,7 +105,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
       if (!error) return;
       setIsRepairing(true);
       try {
-          const hasKey = await window.aistudio?.hasSelectedApiKey();
+          const hasKey = apiKeyService.hasGeminiKey();
           if (!hasKey) { await promptSelectKey(); setIsRepairing(false); return; }
           const repairedCode = await repairMermaidSyntax(activeCode, error);
           setActiveCode(repairedCode);

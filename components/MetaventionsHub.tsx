@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useAppStore } from '../store';
@@ -519,7 +520,7 @@ const MetaventionsHub: React.FC = () => {
         } else {
             actions.setVoiceState({ isConnecting: true });
             try {
-                if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); actions.setVoiceState({ isConnecting: false }); return; }
+                if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); actions.setVoiceState({ isConnecting: false }); return; }
                 await liveSession.primeAudio();
                 actions.setVoiceState({ isActive: true, isConnecting: false });
                 actions.addLog('SUCCESS', 'COMMS_ESTABLISHED: Voice Core online.');
@@ -536,7 +537,7 @@ const MetaventionsHub: React.FC = () => {
         actions.addLog('SYSTEM', 'HUB_SYNC: Initiating Zenith Fidelity volumetric rendering & technical synthesis...');
         audio.playClick();
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsSyncing(false); return; }
+            if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); setIsSyncing(false); return; }
             const [imageUrl, manifest] = await Promise.all([
                 generateArchitectureImage(
                     "ZENITH MASTERWORK: Sovereign Architect standing at the primary obsidian nexus. CGI holographic PARA drive structures seamlessly fused with a 4K photorealistic environment. Optics: f/1.4 cinematic bokeh, physically correct lighting. Indistinguishable from reality. 8K textures.",
@@ -612,7 +613,7 @@ const MetaventionsHub: React.FC = () => {
             actions.addLog('SYSTEM', `VAULT_INGEST: Capturing [${file.name}] logic vectors for recursive synthesis...`);
 
             try {
-                if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsSyncing(false); return; }
+                if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); setIsSyncing(false); return; }
                 const fileData = await fileToGenerativePart(file);
 
                 // Auto-detect domain based on file name or generic synthesis
