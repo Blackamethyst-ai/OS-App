@@ -244,6 +244,69 @@ const AgentControlCenter: React.FC = () => {
         }
     };
 
+    // --- NEURO-LINK AUTONOMY LOOP ---
+    useEffect(() => {
+        if (!preferences.autonomyEnabled) return;
+
+        const interval = setInterval(async () => {
+            // Find an agent with pending work who isn't busy
+            const availableAgent = agents.activeAgents.find(a =>
+                a.status === 'IDLE' && a.tasks.some(t => t.status === 'PENDING')
+            );
+
+            if (!availableAgent) return;
+
+            const pendingTask = availableAgent.tasks.find(t => t.status === 'PENDING');
+            if (!pendingTask) return;
+
+            // 1. Claim Task
+            const tasksInProgress = availableAgent.tasks.map(t =>
+                t.id === pendingTask.id ? { ...t, status: 'IN_PROGRESS' as const } : t
+            );
+            updateAgent(availableAgent.id, {
+                status: 'THINKING',
+                tasks: tasksInProgress
+            });
+            addLog('SYSTEM', `AUTONOMY: [${availableAgent.name}] executing: ${pendingTask.description}`);
+
+            try {
+                // 2. Execute via Model Router (Powerful Tier for Autonomous Tasks)
+                const result = await modelRouter.generateContent(
+                    `Task: ${pendingTask.description}. \nProvide a concise execution output or solution.`,
+                    { tier: 'powerful' },
+                    `${SOVEREIGN_SYSTEM_INSTRUCTION}\n\nAct as ${availableAgent.name}.`
+                );
+
+                // 3. Resolve Task
+                const tasksDone = availableAgent.tasks.map(t =>
+                    t.id === pendingTask.id ? { ...t, status: 'COMPLETED' as const } : t
+                );
+
+                updateAgent(availableAgent.id, {
+                    status: 'IDLE',
+                    tasks: tasksDone,
+                    memoryBuffer: [...availableAgent.memoryBuffer, {
+                        timestamp: Date.now(),
+                        role: 'AI',
+                        text: `[AUTONOMOUS_EXECUTION] Task: ${pendingTask.description}\nResult: ${result}`
+                    }]
+                });
+                addLog('SUCCESS', `AUTONOMY: Task [${pendingTask.description.substring(0, 20)}...] complted.`);
+                audio.playSuccess();
+            } catch (e) {
+                // Fail Gracefully
+                const tasksFailed = availableAgent.tasks.map(t =>
+                    t.id === pendingTask.id ? { ...t, status: 'FAILED' as const } : t
+                );
+                updateAgent(availableAgent.id, { status: 'IDLE', tasks: tasksFailed });
+                addLog('ERROR', `AUTONOMY_FAIL: ${e}`);
+            }
+
+        }, 5000); // Check every 5s
+
+        return () => clearInterval(interval);
+    }, [preferences.autonomyEnabled, agents.activeAgents]);
+
     const handleAddTask = () => {
         if (!activeAgent || !taskInput.trim()) return;
         const newTask: AtomicTask = {
@@ -346,7 +409,25 @@ const AgentControlCenter: React.FC = () => {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-8">
+                <div className="flex items-center gap-6">
+                    <button
+                        onClick={() => {
+                            actions.setPreferences({ autonomyEnabled: !preferences.autonomyEnabled });
+                            preferences.autonomyEnabled ? audio.playClick() : audio.playSuccess();
+                        }}
+                        className={cn(
+                            "flex items-center gap-3 px-4 py-2 rounded-xl border transition-all active:scale-95",
+                            preferences.autonomyEnabled
+                                ? "bg-[#10b981]/10 border-[#10b981]/40 text-[#10b981] shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                                : "bg-black/40 border-white/10 text-gray-500 hover:text-white hover:bg-white/5"
+                        )}
+                    >
+                        <Zap size={14} className={preferences.autonomyEnabled ? "fill-current animate-pulse" : ""} />
+                        <div className="flex flex-col text-left">
+                            <span className="text-[8px] font-black font-mono uppercase tracking-widest leading-none">Neuro-Link</span>
+                            <span className="text-[10px] font-black font-mono uppercase leading-none">{preferences.autonomyEnabled ? "Autonomy: ON" : "Manual Mode"}</span>
+                        </div>
+                    </button>
                     <ModelSelector />
 
                     <div className="h-8 w-px bg-white/5" />

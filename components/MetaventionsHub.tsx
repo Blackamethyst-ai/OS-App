@@ -298,49 +298,58 @@ const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) 
     </div>
 );
 
-const CapitalVelocity = () => (
-    <div className="crystalline rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/cap shrink-0 invisible-glass hover:border-white/10 transition-all">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.01)_0%,transparent_70%)] pointer-events-none" />
-        <div className="flex items-center gap-4 relative z-10">
-            <div className="p-2 bg-[#10b981]/10 rounded-xl text-[#10b981] border border-[#10b981]/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
-                <DollarSign size={16} />
-            </div>
-            <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Capital Velocity</span>
-        </div>
-        <div className="space-y-6 relative z-10">
-            {[
-                { label: 'Compute Units', val: 92 },
-                { label: 'Treasury Flow', val: 78 },
-                { label: 'System Reach', val: 84 }
-            ].map((cat) => {
-                // Mathematical Color Interpolation based on "Loading State"
-                let barColor = '#ef4444'; // default warning/low
-                if (cat.val >= 90) barColor = '#10b981'; // Green (Optimal)
-                else if (cat.val >= 70) barColor = '#22d3ee'; // Cyan (Nominal)
-                else if (cat.val >= 50) barColor = '#f1c21b'; // Yellow (Caution)
-                else if (cat.val >= 30) barColor = '#f97316'; // Orange (Critical)
+const CapitalVelocity = ({ telemetry }: { telemetry: any }) => {
+    const agents = useAppStore(s => s.agents);
 
-                return (
-                    <div key={cat.label} className="space-y-2.5">
-                        <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-widest font-black">
-                            <span className="text-gray-500">{cat.label}</span>
-                            <span className="text-white">{cat.val}%</span>
+    // Derived values
+    const computeVal = Math.min(100, Math.floor(telemetry ? telemetry.cpu * 3 : 45));
+    const flowVal = 50 + (agents.activeAgents.filter(a => a.status === 'THINKING').length * 20);
+    const reachVal = Math.min(100, 20 + (agents.activeAgents.length * 15));
+
+    return (
+        <div className="crystalline rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/cap shrink-0 invisible-glass hover:border-white/10 transition-all">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.01)_0%,transparent_70%)] pointer-events-none" />
+            <div className="flex items-center gap-4 relative z-10">
+                <div className="p-2 bg-[#10b981]/10 rounded-xl text-[#10b981] border border-[#10b981]/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                    <DollarSign size={16} />
+                </div>
+                <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Capital Velocity</span>
+            </div>
+            <div className="space-y-6 relative z-10">
+                {[
+                    { label: 'Compute Units', val: computeVal },
+                    { label: 'Treasury Flow', val: flowVal },
+                    { label: 'System Reach', val: reachVal }
+                ].map((cat) => {
+                    // Mathematical Color Interpolation based on "Loading State"
+                    let barColor = '#ef4444'; // default warning/low
+                    if (cat.val >= 90) barColor = '#10b981'; // Green (Optimal)
+                    else if (cat.val >= 70) barColor = '#22d3ee'; // Cyan (Nominal)
+                    else if (cat.val >= 50) barColor = '#f1c21b'; // Yellow (Caution)
+                    else if (cat.val >= 30) barColor = '#f97316'; // Orange (Critical)
+
+                    return (
+                        <div key={cat.label} className="space-y-2.5">
+                            <div className="flex justify-between items-center text-[9px] font-mono uppercase tracking-widest font-black">
+                                <span className="text-gray-500">{cat.label}</span>
+                                <span className="text-white">{cat.val}%</span>
+                            </div>
+                            <div className="h-1 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 p-px shadow-inner">
+                                <motion.div
+                                    initial={{ width: 0, backgroundColor: '#333' }}
+                                    animate={{ width: `${cat.val}%`, backgroundColor: barColor }}
+                                    transition={{ duration: 1.5, ease: "circOut" }}
+                                    className="h-full rounded-full transition-colors duration-1000"
+                                    style={{ boxShadow: `0 0 10px ${barColor}40` }}
+                                />
+                            </div>
                         </div>
-                        <div className="h-1 w-full bg-black/40 rounded-full overflow-hidden border border-white/5 p-px shadow-inner">
-                            <motion.div
-                                initial={{ width: 0, backgroundColor: '#333' }}
-                                animate={{ width: `${cat.val}%`, backgroundColor: barColor }}
-                                transition={{ duration: 1.5, ease: "circOut" }}
-                                className="h-full rounded-full transition-colors duration-1000"
-                                style={{ boxShadow: `0 0 10px ${barColor}40` }}
-                            />
-                        </div>
-                    </div>
-                );
-            })}
+                    );
+                })}
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 const SwarmBox = () => {
     const agents = useAppStore(s => s.agents.activeAgents);
@@ -440,6 +449,23 @@ const MetaventionsHub: React.FC = () => {
     const user = useAppStore(s => s.user);
     const voice = useAppStore(s => s.voice);
     const kernel = useAppStore(s => s.kernel);
+    const agents = useAppStore(s => s.agents);
+
+    const sectorLoads = useMemo(() => {
+        const activeCount = agents.activeAgents.length;
+        const thinkingCount = agents.activeAgents.filter(a => a.status === 'THINKING').length;
+        const taskCount = agents.activeAgents.reduce((acc, a) => acc + a.tasks.filter(t => t.status === 'IN_PROGRESS').length, 0);
+
+        return {
+            'agents': 20 + (activeCount * 10),
+            'voice': voice.isActive ? 85 : 5,
+            'vision': dashboard.isOculusView ? 90 : 10,
+            'process': 10 + (taskCount * 20) + (thinkingCount * 30),
+            'code': 20 + (thinkingCount * 10),
+            'swarm': 30 + (activeCount * 5),
+            'treasury': 50
+        };
+    }, [agents, voice.isActive, dashboard.isOculusView]);
 
     const [isSyncing, setIsSyncing] = useState(false);
     const [showBlueprint, setShowBlueprint] = useState(false);
@@ -449,15 +475,18 @@ const MetaventionsHub: React.FC = () => {
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setTelemetry(prev => ({
-                ...prev,
-                cpu: Math.max(5, Math.min(25, prev.cpu + (Math.random() * 2 - 1))),
-                entropy: Math.max(1, Math.min(15, prev.entropy + (Math.random() * 0.4 - 0.2)))
-            }));
-        }, 2000);
-        return () => clearInterval(interval);
-    }, []);
+        // REAL TELEMETRY: Derived from active agent states
+        const thinkingCount = agents.activeAgents.filter(a => a.status === 'THINKING').length;
+        const totalTasks = agents.activeAgents.reduce((acc, a) => acc + a.tasks.length, 0);
+        const failedTasks = agents.activeAgents.reduce((acc, a) => acc + a.tasks.filter(t => t.status === 'FAILED').length, 0);
+
+        setTelemetry({
+            cpu: 5 + (thinkingCount * 12.5) + (Math.random() * 2), // Jitter for realism
+            net: 0.8 + (thinkingCount * 0.4),
+            trust: 100 - (failedTasks * 0.5),
+            entropy: Math.max(1, totalTasks * 1.5)
+        });
+    }, [agents]);
 
     useEffect(() => {
         const canvas = voiceCanvasRef.current;
@@ -1102,7 +1131,7 @@ const MetaventionsHub: React.FC = () => {
                                     </div>
                                     <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
                                 </div>
-                                <CapitalVelocity />
+                                <CapitalVelocity telemetry={telemetry} />
                                 <SwarmBox />
                                 <div className="flex-1 min-h-[300px]">
                                     <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
@@ -1127,7 +1156,7 @@ const MetaventionsHub: React.FC = () => {
                                     </div>
                                 </div>
                             </div>
-                            <DEcosystem />
+                            <DEcosystem sectorOverrides={sectorLoads} />
                             <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
                         </motion.div>
                     )}

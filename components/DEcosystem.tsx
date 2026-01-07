@@ -70,12 +70,21 @@ class Particle {
   }
 }
 
-const DEcosystem: React.FC = () => {
+interface DEcosystemProps {
+  sectorOverrides?: Record<string, number>;
+}
+
+const DEcosystem: React.FC<DEcosystemProps> = ({ sectorOverrides = {} }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [coherence, setCoherence] = useState(98.1);
   const [activeTransitNode, setActiveTransitNode] = useState<string | null>(null);
   const activeTransitNodeRef = useRef<string | null>(null);
+  const overridesRef = useRef(sectorOverrides);
+
+  useEffect(() => {
+    overridesRef.current = sectorOverrides;
+  }, [sectorOverrides]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -99,10 +108,14 @@ const DEcosystem: React.FC = () => {
       const time = performance.now() / 1000;
 
       const baseDist = Math.min(canvas.width / dpr, canvas.height / dpr) * 0.42;
+      const currentOverrides = overridesRef.current;
+
       const nodes = SECTORS.map(s => {
         const rad = s.angle * (Math.PI / 180);
+        const override = currentOverrides[s.id];
         return {
           ...s,
+          load: override !== undefined ? override : s.load,
           x: centerX + Math.cos(rad) * baseDist,
           y: centerY + Math.sin(rad) * baseDist
         };
