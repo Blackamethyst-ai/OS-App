@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -60,7 +61,7 @@ const NexusAPIExplorer: React.FC = () => {
         addLog('SYSTEM', `NEXUS_QUERY: Scanning global service mesh for "${query}"...`);
 
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsSearchingLive(false); return; }
+            if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); setIsSearchingLive(false); return; }
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
                 model: 'gemini-2.0-flash',
@@ -87,7 +88,7 @@ const NexusAPIExplorer: React.FC = () => {
         addLog('SYSTEM', `NEXUS_FORGE: Fabricating autonomic tool manifest for [${selectedApi.title}]...`);
 
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsForging(false); return; }
+            if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); setIsForging(false); return; }
             const ai = getAI();
 
             const prompt = `

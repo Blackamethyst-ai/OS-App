@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
@@ -133,7 +134,7 @@ export const useProcessVisualizerLogic = () => {
     }, [visualTheme]);
 
     const checkApiKey = async () => {
-        const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
+        const hasKey = apiKeyService.hasGeminiKey();
         if (!hasKey) { await promptSelectKey(); return false; }
         return true;
     };

@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { Task, TaskStatus, TaskPriority, SubTask } from '../types';
@@ -144,7 +145,7 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
         e.stopPropagation();
         setIsBreakingDown(true);
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsBreakingDown(false); return; }
+            if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); setIsBreakingDown(false); return; }
             const subs = await decomposeTaskToSubtasks(task.title, task.description);
             const newSubs: SubTask[] = subs.map(t => ({ id: crypto.randomUUID(), title: t, completed: false }));
             updateTask(task.id, { subtasks: [...task.subtasks, ...newSubs] });

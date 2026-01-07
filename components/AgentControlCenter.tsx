@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import {
@@ -210,7 +211,7 @@ const AgentControlCenter: React.FC = () => {
         addLog('SYSTEM', `SWARM_SEARCH: [${activeAgent.name}] querying Reality Oracles...`);
 
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { setIsGrounding(false); return; }
+            if (!(apiKeyService.hasGeminiKey())) { setIsGrounding(false); return; }
             const ai = getAI();
 
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
@@ -283,7 +284,7 @@ const AgentControlCenter: React.FC = () => {
         });
 
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) return;
+            if (!(apiKeyService.hasGeminiKey())) return;
             const ai = getAI();
 
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({

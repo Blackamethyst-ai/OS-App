@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -21,7 +22,7 @@ const HoloProjector: React.FC = () => {
         addLog('SYSTEM', 'HOLO_SCAN: Dispatching multi-modal diagnostic...');
 
         try {
-            const hasKey = await window.aistudio?.hasSelectedApiKey();
+            const hasKey = apiKeyService.hasGeminiKey();
             if (!hasKey) {
                 await promptSelectKey();
                 setHoloAnalyzing(false);
@@ -73,7 +74,7 @@ const HoloProjector: React.FC = () => {
         setIsTransforming(true);
 
         try {
-            const hasKey = await window.aistudio?.hasSelectedApiKey();
+            const hasKey = apiKeyService.hasGeminiKey();
             if (!hasKey) await promptSelectKey();
 
             const transformed = await transformArtifact(

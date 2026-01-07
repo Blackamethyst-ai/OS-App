@@ -38,13 +38,15 @@ import { useResearchAgent } from './hooks/useResearchAgent';
 import { useVisualCortex } from './hooks/useVisualCortex';
 import {
     Target, X, User, ExternalLink, Activity, ShieldCheck, Terminal, Cpu,
-    Zap, ListTodo, Search
+    Zap, ListTodo, Search, Key
 } from 'lucide-react';
 import { promptSelectKey } from './services/geminiService';
+import { apiKeyService } from './services/apiKeyService';
 import { collabService } from './services/collabService';
 import { audio } from './services/audioService';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from './utils/cn';
+import ApiKeyModal from './components/ApiKeyModal';
 
 const NAV_CONFIG = [
     { id: AppMode.METAVENTIONS_HUB, label: 'ECOSYSTEM', path: '/metaventions-hub' },
@@ -178,6 +180,9 @@ const App: React.FC = () => {
 
     const { setSector } = useSystemMind();
 
+    // API Key Modal state
+    const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+
     useAutoSave();
     useDaemonSwarm();
     useVoiceControl();
@@ -187,7 +192,20 @@ const App: React.FC = () => {
     useEffect(() => {
         collabService.init();
         actions.hydrateAgents();
-        return () => collabService.disconnect();
+
+        // Listen for API key modal events
+        const handleShowModal = () => setIsApiKeyModalOpen(true);
+        window.addEventListener('show-api-key-modal', handleShowModal);
+
+        // Auto-show modal if no key configured
+        if (!apiKeyService.hasGeminiKey()) {
+            setTimeout(() => setIsApiKeyModalOpen(true), 1500);
+        }
+
+        return () => {
+            collabService.disconnect();
+            window.removeEventListener('show-api-key-modal', handleShowModal);
+        };
     }, []);
 
     useEffect(() => {
@@ -376,6 +394,12 @@ const App: React.FC = () => {
             <OverlayOS />
             <HoloProjector />
             <VoiceManager />
+
+            {/* API Key Configuration Modal */}
+            <ApiKeyModal
+                isOpen={isApiKeyModalOpen}
+                onClose={() => setIsApiKeyModalOpen(false)}
+            />
 
             <AnimatePresence>
                 {!isHUDClosed && <AgenticHUD />}

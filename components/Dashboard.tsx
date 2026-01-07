@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
 import { 
@@ -96,7 +97,7 @@ const ExecutiveBanner = () => {
         } else {
             setVoiceState({ isConnecting: true });
             try {
-                if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setVoiceState({ isConnecting: false }); return; }
+                if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); setVoiceState({ isConnecting: false }); return; }
                 await liveSession.primeAudio();
                 setVoiceState({ isActive: true, isConnecting: false });
                 addLog('SUCCESS', 'UPLINK_ESTABLISHED: Active Voice Core synchronized.');
@@ -269,7 +270,7 @@ const Dashboard: React.FC = () => {
     setDashboardState({ isGenerating: true });
     audio.playClick();
     try {
-      if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setDashboardState({ isGenerating: false }); return; }
+      if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); setDashboardState({ isGenerating: false }); return; }
       const prompt = `Hyper-realistic wide cinematic shot of the operator interacting with translucent floating holographic data lattices. Precise identity match.`;
       const url = await generateArchitectureImage(prompt, AspectRatio.RATIO_16_9, ImageSize.SIZE_4K, dashboard.referenceImage);
       setDashboardState({ identityUrl: url });

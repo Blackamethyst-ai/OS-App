@@ -1,3 +1,4 @@
+import { apiKeyService } from './apiKeyService';
 import { useAppStore } from '../store';
 import { executeNeuralPolicy, repairMermaidSyntax } from './geminiService';
 import { AppMode } from '../types';
@@ -34,7 +35,7 @@ export const neuralAutomata = async () => {
         }
 
         const recentLogs = state.system.logs.slice(-5).map(l => l.message);
-        const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
+        const hasKey = apiKeyService.hasGeminiKey();
         if (!hasKey) return; 
 
         // Fixed: explicitly typed the decision result from executeNeuralPolicy to resolve unknown property errors

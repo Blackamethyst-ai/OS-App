@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { neuralVault } from '../services/persistenceService';
@@ -62,7 +63,7 @@ const UserProfileOverlay: React.FC = () => {
         setIsGenerating(true);
         audio.playClick();
         try {
-            const hasKey = await window.aistudio?.hasSelectedApiKey();
+            const hasKey = apiKeyService.hasGeminiKey();
             if (!hasKey) {
                 await promptSelectKey();
                 setIsGenerating(false);

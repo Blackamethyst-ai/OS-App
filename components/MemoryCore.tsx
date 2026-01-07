@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { neuralVault } from '../services/persistenceService';
 import { 
@@ -140,7 +141,7 @@ const MemoryCore: React.FC = () => {
         audio.playClick();
 
         try {
-            if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); setIsSearching(false); return; }
+            if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); setIsSearching(false); return; }
             const queryVector = await generateEmbedding(searchQuery);
             if (queryVector.length === 0) {
                 addLog('ERROR', 'VECTOR_CORE: Failed to generate search embedding.');
@@ -169,7 +170,7 @@ const MemoryCore: React.FC = () => {
             
             for (const file of files) {
                 try {
-                    if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); break; }
+                    if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); break; }
                     
                     const fileData = await fileToGenerativePart(file);
                     const analysisRes = await classifyArtifact(fileData);

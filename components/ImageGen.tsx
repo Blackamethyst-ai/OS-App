@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import JSZip from 'jszip';
@@ -103,7 +104,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     const [videoMotionBias, setVideoMotionBias] = useState(50); // Neural motion intensity
 
     const checkApiKey = async () => {
-        const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
+        const hasKey = apiKeyService.hasGeminiKey();
         if (!hasKey) {
             await promptSelectKey();
             return false;

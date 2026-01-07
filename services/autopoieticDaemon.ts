@@ -1,3 +1,4 @@
+import { apiKeyService } from './apiKeyService';
 import { useAppStore } from '../store';
 import { evolveSystemArchitecture } from './geminiService';
 import { AppMode } from '../types';
@@ -34,7 +35,7 @@ export const autopoieticDaemon = async () => {
     setCodeStudioState({ isEvolving: true });
 
     try {
-        const hasKey = await (window as any).aistudio?.hasSelectedApiKey();
+        const hasKey = apiKeyService.hasGeminiKey();
         if (!hasKey) {
             setCodeStudioState({ isEvolving: false });
             return;

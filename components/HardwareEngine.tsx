@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { 
@@ -195,7 +196,7 @@ const HardwareEngine: React.FC = () => {
             setIsometricImage(null);
             addLog('SYSTEM', `INGEST_INIT: Processing Blueprint [${file.name}]...`);
             try {
-                if (!(await window.aistudio?.hasSelectedApiKey())) { await promptSelectKey(); }
+                if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); }
                 // Fixed: explicitly typed return values for analyzeSchematic to resolve unknown property errors
                 const [scan, xray, iso] = await Promise.all([
                     analyzeSchematic(data) as Promise<{components: {name: string, confidence: number}[], summary: string}>, 

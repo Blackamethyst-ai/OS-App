@@ -5,9 +5,9 @@ import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { neuralVault } from '../services/persistenceService';
 import { KnowledgeLayer } from '../types';
 import * as Icons from 'lucide-react';
-import { 
-    Activity, Clock, Cpu, Shield, Zap, Hammer, Coins, 
-    Telescope, History, AlertOctagon, BrainCircuit, 
+import {
+    Activity, Clock, Cpu, Shield, Zap, Hammer, Coins,
+    Telescope, History, AlertOctagon, BrainCircuit,
     ArrowRight, Loader2, Terminal, HardDrive, Globe, Users,
     Eye, Scan, Monitor, Save, Gauge, Database, Fingerprint,
     Bot, RefreshCw, ShieldAlert, CheckCircle2, Target, Radio,
@@ -18,6 +18,7 @@ import { useVisualCortex } from '../hooks/useVisualCortex';
 import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
+import ApiUsageIndicator from './ApiUsageIndicator';
 
 const ActionSquircle = memo(({ icon: Icon, color, onClick, isActive, glowColor }: any) => (
     <motion.button
@@ -32,9 +33,9 @@ const ActionSquircle = memo(({ icon: Icon, color, onClick, isActive, glowColor }
         )}>
             <Icon size={16} className="transition-colors duration-300" style={{ color: isActive ? '#fff' : color }} />
         </div>
-        <div 
-            className="absolute inset-0 blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-500 rounded-full" 
-            style={{ backgroundColor: glowColor || color }} 
+        <div
+            className="absolute inset-0 blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-500 rounded-full"
+            style={{ backgroundColor: glowColor || color }}
         />
     </motion.button>
 ));
@@ -44,7 +45,7 @@ const LayerControlMesh = memo(() => {
     const { toggleKnowledgeLayer, addLog } = actions;
     const activeLayerIds = knowledge.activeLayers || [];
     const [dynamicLayers, setDynamicLayers] = useState<KnowledgeLayer[]>([]);
-    
+
     // Fix: Move async fetch to useEffect to avoid suspension flicker
     useEffect(() => {
         let mounted = true;
@@ -53,7 +54,7 @@ const LayerControlMesh = memo(() => {
         });
         return () => { mounted = false; };
     }, []);
-    
+
     // Fix: Explicitly type allLayers to Record<string, KnowledgeLayer> to ensure Object.values returns KnowledgeLayer[] and resolve unknown property errors.
     const allLayers = useMemo<Record<string, KnowledgeLayer>>(() => ({
         ...KNOWLEDGE_LAYERS,
@@ -79,8 +80,8 @@ const LayerControlMesh = memo(() => {
                         whileTap={{ scale: 0.9 }}
                         className={cn(
                             "flex items-center justify-center w-7 h-7 rounded-lg border transition-all duration-500",
-                            isActive 
-                                ? 'bg-white/10 border-[var(--layer-color)] text-white shadow-[0_0_10px_var(--layer-color)]' 
+                            isActive
+                                ? 'bg-white/10 border-[var(--layer-color)] text-white shadow-[0_0_10px_var(--layer-color)]'
                                 : 'bg-black/20 border-white/5 text-gray-600 hover:text-gray-300 hover:bg-white/5'
                         )}
                         style={{ '--layer-color': layer.color } as React.CSSProperties}
@@ -95,23 +96,23 @@ const LayerControlMesh = memo(() => {
 });
 
 const GlobalStatusBar: React.FC = () => {
-    const { 
+    const {
         kernel, system, collaboration, actions,
         isScrubberOpen, isDiagnosticsOpen, isSidebarOpen
     } = useAppStore();
-    const { 
-        setScrubberOpen, setDiagnosticsOpen, setCollabState, 
-        setSidebarOpen, addLog, toggleTerminal, hydrateAgents 
+    const {
+        setScrubberOpen, setDiagnosticsOpen, setCollabState,
+        setSidebarOpen, addLog, toggleTerminal, hydrateAgents
     } = actions;
 
     const { execute, state: agentState } = useAgentRuntime();
     const { probeScreen, isProbing } = useVisualCortex();
     const { fps, memory } = usePerformanceMonitor();
-    
+
     const [input, setInput] = useState('');
     const [driveHealth, setDriveHealth] = useState(99.6);
     const [neuralLoad, setNeuralLoad] = useState(12.4);
-    
+
     const peerCount = collaboration.peers.length;
 
     useEffect(() => {
@@ -141,7 +142,7 @@ const GlobalStatusBar: React.FC = () => {
         <div className="w-full max-w-[2400px] mx-auto px-8 pt-4 pb-2 pointer-events-auto z-[100] shrink-0 sticky top-[70px]">
             <div className="flex items-center justify-between px-8 py-2.5 bg-[#0a0a0c]/98 backdrop-blur-5xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative overflow-hidden group glass-refraction h-[72px]">
                 <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.01)_50%,transparent_75%,transparent)] bg-[size:200%_200%] animate-[shimmer_10s_infinite_linear] pointer-events-none" />
-                
+
                 {/* TELEMETRY SECTION (Fixed Widths to prevent flicker jumps) */}
                 <div className="flex items-center gap-10 shrink-0 relative z-10 max-w-[40%]">
                     <div className="flex items-center gap-6">
@@ -181,6 +182,9 @@ const GlobalStatusBar: React.FC = () => {
                                 </div>
                             </div>
                         </div>
+
+                        {/* API Usage Indicator */}
+                        <ApiUsageIndicator />
                     </div>
                 </div>
 
@@ -188,7 +192,7 @@ const GlobalStatusBar: React.FC = () => {
                 <div className="flex-1 flex items-center px-6 relative z-10 max-w-[30%]">
                     <form onSubmit={handleSubmit} className="w-full relative flex items-center gap-3 bg-black/60 rounded-xl px-4 py-2 border border-white/5 focus-within:border-[#9d4edd]/50 transition-all shadow-inner group/input">
                         <SearchCode size={14} className={cn("shrink-0 transition-all", agentState.isThinking ? 'text-[#9d4edd] animate-pulse' : 'text-gray-700')} />
-                        <input 
+                        <input
                             value={input}
                             onChange={e => setInput(e.target.value)}
                             disabled={agentState.isThinking}
@@ -205,51 +209,51 @@ const GlobalStatusBar: React.FC = () => {
 
                 {/* ACTION SUITE (Middle Right) */}
                 <div className="flex items-center gap-1 px-6 border-x border-white/5 relative z-10 shrink-0">
-                    <ActionSquircle 
-                        icon={Terminal} 
-                        color="#9d4edd" 
-                        onClick={() => toggleTerminal()} 
-                        isActive={system.isTerminalOpen} 
+                    <ActionSquircle
+                        icon={Terminal}
+                        color="#9d4edd"
+                        onClick={() => toggleTerminal()}
+                        isActive={system.isTerminalOpen}
                         label="Terminal"
                     />
-                    <ActionSquircle 
-                        icon={Scan} 
-                        color="#18E6FF" 
-                        onClick={probeScreen} 
-                        isActive={isProbing} 
+                    <ActionSquircle
+                        icon={Scan}
+                        color="#18E6FF"
+                        onClick={probeScreen}
+                        isActive={isProbing}
                         label="Oculus Probe"
                     />
-                    <ActionSquircle 
-                        icon={Bot} 
-                        color="#10b981" 
+                    <ActionSquircle
+                        icon={Bot}
+                        color="#10b981"
                         onClick={() => {
                             hydrateAgents();
                             addLog('SYSTEM', 'SWARM: Synchronizing active node presence.');
-                        }} 
+                        }}
                         label="Refresh Swarm"
                     />
-                    <ActionSquircle 
-                        icon={RefreshCw} 
-                        color="#f1c21b" 
+                    <ActionSquircle
+                        icon={RefreshCw}
+                        color="#f1c21b"
                         onClick={() => {
                             setDriveHealth(99.6);
                             setNeuralLoad(12.4);
                             addLog('SYSTEM', 'LATTICE: Global recalibration sequence active.');
-                        }} 
+                        }}
                         label="Sync Hub"
                     />
-                    <ActionSquircle 
-                        icon={ShieldAlert} 
-                        color="#ef4444" 
-                        onClick={() => setDiagnosticsOpen(!isDiagnosticsOpen)} 
-                        isActive={isDiagnosticsOpen} 
+                    <ActionSquircle
+                        icon={ShieldAlert}
+                        color="#ef4444"
+                        onClick={() => setDiagnosticsOpen(!isDiagnosticsOpen)}
+                        isActive={isDiagnosticsOpen}
                         label="Diagnostics"
                     />
-                    <ActionSquircle 
-                        icon={PanelRight} 
-                        color="#9d4edd" 
-                        onClick={() => setSidebarOpen(!isSidebarOpen)} 
-                        isActive={isSidebarOpen} 
+                    <ActionSquircle
+                        icon={PanelRight}
+                        color="#9d4edd"
+                        onClick={() => setSidebarOpen(!isSidebarOpen)}
+                        isActive={isSidebarOpen}
                         label="Ops Sidebar"
                     />
                 </div>
@@ -257,15 +261,15 @@ const GlobalStatusBar: React.FC = () => {
                 {/* IDENTITY & AUDIT (Far Right) */}
                 <div className="flex items-center gap-6 pl-6 shrink-0 relative z-10">
                     <div className="flex flex-col items-center gap-0.5 border-r border-white/5 pr-6 min-w-[80px]">
-                         <div className="flex items-center gap-1.5 text-[6px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none mb-1">
+                        <div className="flex items-center gap-1.5 text-[6px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none mb-1">
                             <Fingerprint size={10} className="text-[#9d4edd]" />
                             <span>Auth_Token</span>
-                         </div>
-                         <span className="text-[9px] font-mono text-gray-400 font-bold tracking-tighter uppercase leading-none">0xFD2..9A</span>
+                        </div>
+                        <span className="text-[9px] font-mono text-gray-400 font-bold tracking-tighter uppercase leading-none">0xFD2..9A</span>
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <button 
+                        <button
                             onClick={() => {
                                 setCollabState({ isOverlayOpen: !collaboration.isOverlayOpen });
                                 audio.playClick();
@@ -278,13 +282,13 @@ const GlobalStatusBar: React.FC = () => {
 
                         <LayerControlMesh />
 
-                        <button 
+                        <button
                             onClick={() => {
                                 setScrubberOpen(!isScrubberOpen);
                                 audio.playClick();
-                            }} 
+                            }}
                             className={cn(
-                                "p-2.5 rounded-xl border transition-all bg-black/40 border-white/5 text-gray-500 hover:text-white shadow-inner h-10 w-10 flex items-center justify-center", 
+                                "p-2.5 rounded-xl border transition-all bg-black/40 border-white/5 text-gray-500 hover:text-white shadow-inner h-10 w-10 flex items-center justify-center",
                                 isScrubberOpen ? "bg-[#9d4edd]/20 border-[#9d4edd] text-white shadow-[0_0_15px_#9d4edd33]" : ""
                             )}
                         >

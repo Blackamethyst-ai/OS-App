@@ -1,3 +1,4 @@
+import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { generateHypotheses, simulateExperiment, generateTheory, promptSelectKey, compressKnowledge, fileToGenerativePart, classifyArtifact, smartOrganizeArtifact } from '../services/geminiService';
@@ -49,7 +50,7 @@ const DiscoveryLab: React.FC = () => {
     const handleResearchDispatch = async (customQuery?: string) => {
         const query = customQuery || input;
         if (!query.trim()) return;
-        const hasKey = await window.aistudio?.hasSelectedApiKey();
+        const hasKey = apiKeyService.hasGeminiKey();
         if (!hasKey) { await promptSelectKey(); return; }
         addResearchTask({ id: crypto.randomUUID(), query, status: 'QUEUED', progress: 0, logs: ['Initiating Science Protocol...'], timestamp: Date.now() });
         if (!customQuery) setInput('');
@@ -64,7 +65,7 @@ const DiscoveryLab: React.FC = () => {
 
             for (const file of files) {
                 try {
-                    const hasKey = await window.aistudio?.hasSelectedApiKey();
+                    const hasKey = apiKeyService.hasGeminiKey();
                     if (!hasKey) { await promptSelectKey(); break; }
 
                     const fileData = await fileToGenerativePart(file);
