@@ -38,6 +38,13 @@ const FrequencyRing = ({ freqs, color, size, active }: { freqs: Uint8Array | nul
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        // Resolve CSS variables to actual color values for Canvas API
+        let resolvedColor = color;
+        if (color.startsWith('var(')) {
+            const varName = color.slice(4, -1); // Extract --var-name from var(--var-name)
+            resolvedColor = getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#18E6FF';
+        }
+
         let frameId: number;
         const render = () => {
             const dpr = window.devicePixelRatio || 1;
@@ -52,7 +59,7 @@ const FrequencyRing = ({ freqs, color, size, active }: { freqs: Uint8Array | nul
 
             // Base Aura
             const gradient = ctx.createRadialGradient(cx, cy, size * 0.2, cx, cy, size * 0.5);
-            gradient.addColorStop(0, `${color}${active ? '33' : '11'}`);
+            gradient.addColorStop(0, `${resolvedColor}${active ? '33' : '11'}`);
             gradient.addColorStop(1, 'transparent');
             ctx.fillStyle = gradient;
             ctx.beginPath();
@@ -78,7 +85,7 @@ const FrequencyRing = ({ freqs, color, size, active }: { freqs: Uint8Array | nul
                     ctx.beginPath();
                     ctx.moveTo(x1, y1);
                     ctx.lineTo(x2, y2);
-                    ctx.strokeStyle = color;
+                    ctx.strokeStyle = resolvedColor;
                     ctx.lineWidth = 1.5;
                     ctx.lineCap = 'round';
                     ctx.globalAlpha = 0.4 + val * 0.6;
@@ -96,7 +103,7 @@ const FrequencyRing = ({ freqs, color, size, active }: { freqs: Uint8Array | nul
                 // Idle pulse ring
                 ctx.beginPath();
                 ctx.arc(cx, cy, size * 0.32, 0, Math.PI * 2);
-                ctx.strokeStyle = `${color}44`;
+                ctx.strokeStyle = `${resolvedColor}44`;
                 ctx.lineWidth = 0.5;
                 ctx.setLineDash([2, 6]);
                 ctx.stroke();

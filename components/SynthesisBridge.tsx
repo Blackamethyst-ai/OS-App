@@ -520,7 +520,8 @@ const SynthesisBridge: React.FC = () => {
 
             <div className="flex-1 flex overflow-hidden p-10 gap-8 relative z-10">
                 <div className="w-[380px] flex flex-col gap-4 shrink-0 overflow-y-auto custom-scrollbar pr-2">
-                    <div className="p-5 bg-[#0a0a0c]/60 border border-white/5 rounded-[2.5rem] shadow-2xl backdrop-blur-3xl relative overflow-hidden group/sector shrink-0">
+                    <div className="p-5 bg-[#0a0a0c]/60 border border-[var(--border-main)] rounded-[2.5rem] shadow-[0_30px_80px_rgba(0,0,0,0.7)] backdrop-blur-3xl relative overflow-hidden group/sector shrink-0">
+                        <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--amethyst)]/40 to-transparent" />
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(123,44,255,0.02)_0%,transparent_70%)]" />
                         <div className="flex items-center gap-3 mb-4 px-1 relative z-10 shrink-0">
                             <Target size={18} className="text-[var(--amethyst)] animate-pulse" />
