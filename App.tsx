@@ -271,7 +271,9 @@ const App: React.FC = () => {
                 '--text-muted': '#64748B',
                 '--border-main': 'rgba(15, 23, 42, 0.08)',
                 '--cyan': '#18E6FF',
-                '--amethyst': '#7B2CFF'
+                '--amethyst': '#7B2CFF',
+                '--plasma-green': '#10b981',
+                '--executive-gold': '#f1c21b'
             };
             case AppTheme.AMBER: return {
                 '--bg-app': '#0C0600',
@@ -284,7 +286,9 @@ const App: React.FC = () => {
                 '--text-muted': '#92400e',
                 '--border-main': 'rgba(245, 158, 11, 0.15)',
                 '--cyan': '#f59e0b',
-                '--amethyst': '#78350f'
+                '--amethyst': '#b45309',
+                '--plasma-green': '#84cc16',
+                '--executive-gold': '#fbbf24'
             };
             case AppTheme.MIDNIGHT: return {
                 '--bg-app': '#020617',
@@ -297,7 +301,9 @@ const App: React.FC = () => {
                 '--text-muted': '#64748b',
                 '--border-main': 'rgba(59, 130, 246, 0.15)',
                 '--cyan': '#38bdf8',
-                '--amethyst': '#6366f1'
+                '--amethyst': '#6366f1',
+                '--plasma-green': '#22c55e',
+                '--executive-gold': '#eab308'
             };
             case AppTheme.NEON_CYBER: return {
                 '--bg-app': '#020204',
@@ -310,7 +316,9 @@ const App: React.FC = () => {
                 '--text-muted': '#7B2CFF',
                 '--border-main': 'rgba(24, 230, 255, 0.2)',
                 '--cyan': '#18E6FF',
-                '--amethyst': '#7B2CFF'
+                '--amethyst': '#7B2CFF',
+                '--plasma-green': '#00ff88',
+                '--executive-gold': '#ffdd00'
             };
             default: return {
                 '--bg-app': '#020204',
@@ -323,7 +331,9 @@ const App: React.FC = () => {
                 '--text-muted': '#94A3B8',
                 '--border-main': 'rgba(255, 255, 255, 0.08)',
                 '--cyan': '#18E6FF',
-                '--amethyst': '#7B2CFF'
+                '--amethyst': '#7B2CFF',
+                '--plasma-green': '#10b981',
+                '--executive-gold': '#f1c21b'
             };
         }
     }, [theme]);
