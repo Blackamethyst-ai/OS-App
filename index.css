@@ -1,66 +1,151 @@
 /* ============================================
-   RESPONSIVE VIEWPORT SCALING
-   Automatically scales app for different screen sizes
+   RESPONSIVE DESIGN SYSTEM
+   Uses CSS clamp() for fluid sizing across all viewports
    ============================================ */
 
 :root {
-  --app-scale: 1;
+  /* Base scale factor - adjusts all sizing */
+  --scale: 1;
+
+  /* Fluid sizing tokens using clamp() */
+  /* Format: clamp(min, preferred, max) */
+
+  /* Sidebar widths - scale with viewport */
+  --sidebar-sm: clamp(200px, 18vw, 280px);
+  --sidebar-md: clamp(260px, 22vw, 340px);
+  --sidebar-lg: clamp(320px, 26vw, 420px);
+  --sidebar-xl: clamp(380px, 30vw, 520px);
+
+  /* Panel widths */
+  --panel-sm: clamp(280px, 25vw, 380px);
+  --panel-md: clamp(340px, 30vw, 480px);
+  --panel-lg: clamp(400px, 35vw, 600px);
+
+  /* Modal widths */
+  --modal-sm: clamp(320px, 40vw, 500px);
+  --modal-md: clamp(400px, 50vw, 650px);
+  --modal-lg: clamp(500px, 60vw, 800px);
+
+  /* Container max widths */
+  --container-max: clamp(1200px, 90vw, 2400px);
+
+  /* Font scaling */
+  --text-xs: clamp(8px, 0.7vw, 10px);
+  --text-sm: clamp(10px, 0.85vw, 12px);
+  --text-base: clamp(12px, 1vw, 14px);
+  --text-lg: clamp(14px, 1.2vw, 18px);
+  --text-xl: clamp(18px, 1.5vw, 24px);
+  --text-2xl: clamp(24px, 2vw, 36px);
+
+  /* Spacing scaling */
+  --space-xs: clamp(4px, 0.3vw, 6px);
+  --space-sm: clamp(8px, 0.6vw, 12px);
+  --space-md: clamp(12px, 1vw, 20px);
+  --space-lg: clamp(20px, 1.5vw, 32px);
+  --space-xl: clamp(32px, 2.5vw, 48px);
 }
 
-/* Large external monitors (2560px+) - full size */
-@media (min-width: 2560px) {
-  :root { --app-scale: 1; }
+/* Dynamically adjust scale based on viewport */
+@media (max-width: 1600px) {
+  :root {
+    --scale: 0.9;
+  }
 }
 
-/* Standard desktop (1920px-2559px) - full size */
-@media (min-width: 1920px) and (max-width: 2559px) {
-  :root { --app-scale: 1; }
+@media (max-width: 1440px) {
+  :root {
+    --scale: 0.85;
+  }
 }
 
-/* Large laptop / small external (1600px-1919px) */
-@media (min-width: 1600px) and (max-width: 1919px) {
-  :root { --app-scale: 0.9; }
+@media (max-width: 1280px) {
+  :root {
+    --scale: 0.75;
+  }
 }
 
-/* 14" MacBook Pro and similar (1440px-1599px) */
-@media (min-width: 1440px) and (max-width: 1599px) {
-  :root { --app-scale: 0.8; }
+@media (max-width: 1024px) {
+  :root {
+    --scale: 0.67;
+  }
 }
 
-/* Small laptops (1280px-1439px) */
-@media (min-width: 1280px) and (max-width: 1439px) {
-  :root { --app-scale: 0.75; }
+/* ============================================
+   BASE RESPONSIVE OVERRIDES
+   Override fixed Tailwind classes with fluid values
+   ============================================ */
+
+/* These classes override the inline Tailwind fixed widths */
+[class*="w-[320px]"] {
+  width: var(--sidebar-md) !important;
 }
 
-/* Tablets and small screens (1024px-1279px) */
-@media (min-width: 1024px) and (max-width: 1279px) {
-  :root { --app-scale: 0.67; }
+[class*="w-[340px]"] {
+  width: var(--sidebar-md) !important;
 }
 
-/* Very small screens (<1024px) */
-@media (max-width: 1023px) {
-  :root { --app-scale: 0.6; }
+[class*="w-[380px]"] {
+  width: var(--sidebar-lg) !important;
 }
 
-/* Apply scaling to root container */
+[class*="w-[420px]"] {
+  width: var(--sidebar-lg) !important;
+}
+
+[class*="w-[480px]"] {
+  width: var(--sidebar-xl) !important;
+}
+
+[class*="w-[500px]"] {
+  width: var(--modal-sm) !important;
+}
+
+[class*="w-[520px]"] {
+  width: var(--modal-md) !important;
+}
+
+[class*="w-[600px]"] {
+  width: var(--modal-md) !important;
+}
+
+/* Panel overrides */
+[class*="w-[280px]"] {
+  width: var(--sidebar-sm) !important;
+}
+
+/* Container max-width overrides */
+[class*="max-w-[2000px]"],
+[class*="max-w-[2400px]"],
+[class*="max-w-[2800px]"] {
+  max-width: var(--container-max) !important;
+}
+
+/* ============================================
+   GLOBAL RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+html {
+  /* Base font size scales with viewport */
+  font-size: clamp(14px, calc(12px + 0.25vw), 16px);
+}
+
+body {
+  overflow-x: hidden;
+}
+
 #root {
-  transform: scale(var(--app-scale));
-  transform-origin: top left;
-  width: calc(100vw / var(--app-scale));
-  height: calc(100vh / var(--app-scale));
-  overflow: hidden;
-}
-
-/* Ensure body doesn't show scrollbars from scaled content */
-html, body {
-  overflow: hidden;
-  width: 100vw;
-  height: 100vh;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* ============================================
    CUSTOM SCROLLBAR (for internal scrollable areas)
    ============================================ */
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+}
 
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
@@ -96,12 +181,54 @@ html, body {
   left: 0;
   bottom: 0;
   width: 1px;
-  background: linear-gradient(
-    to bottom,
-    transparent,
-    rgba(157, 78, 221, 0.3) 20%,
-    rgba(157, 78, 221, 0.5) 50%,
-    rgba(157, 78, 221, 0.3) 80%,
-    transparent
-  );
+  background: linear-gradient(to bottom,
+      transparent,
+      rgba(157, 78, 221, 0.3) 20%,
+      rgba(157, 78, 221, 0.5) 50%,
+      rgba(157, 78, 221, 0.3) 80%,
+      transparent);
+}
+
+/* ============================================
+   UTILITY RESPONSIVE CLASSES
+   ============================================ */
+
+.fluid-sidebar-sm {
+  width: var(--sidebar-sm);
+}
+
+.fluid-sidebar-md {
+  width: var(--sidebar-md);
+}
+
+.fluid-sidebar-lg {
+  width: var(--sidebar-lg);
+}
+
+.fluid-sidebar-xl {
+  width: var(--sidebar-xl);
+}
+
+.fluid-panel-sm {
+  width: var(--panel-sm);
+}
+
+.fluid-panel-md {
+  width: var(--panel-md);
+}
+
+.fluid-panel-lg {
+  width: var(--panel-lg);
+}
+
+.fluid-modal-sm {
+  width: var(--modal-sm);
+}
+
+.fluid-modal-md {
+  width: var(--modal-md);
+}
+
+.fluid-modal-lg {
+  width: var(--modal-lg);
 }
