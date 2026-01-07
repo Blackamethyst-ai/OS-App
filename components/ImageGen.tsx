@@ -622,7 +622,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                     {activeTab === 'SINGLE' && (
                         <motion.div key="single" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="w-full h-full flex gap-10 p-10 overflow-hidden">
                             {/* Sidebar: Global References */}
-                            <div className="w-[420px] flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar pr-4">
+                            <div className="w-[420px] flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar pr-4 border-r border-[var(--border-main)]">
 
                                 <div className="text-[10px] font-black text-[#9d4edd] font-mono uppercase tracking-[0.4em] flex items-center gap-2 px-1 shrink-0">
                                     <Award size={14} /> Production Matrix
@@ -819,7 +819,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                             </div>
 
                             {/* Right Sidebar: Active Studio Crew */}
-                            <div className="w-[320px] flex flex-col gap-6 shrink-0 h-full overflow-y-auto custom-scrollbar">
+                            <div className="w-[320px] flex flex-col gap-6 shrink-0 h-full overflow-y-auto custom-scrollbar border-r border-[var(--border-main)]">
                                 <div className="p-6 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2rem] flex flex-col gap-6 shadow-2xl shrink-0">
                                     <div className="flex items-center gap-3 mb-2 px-1">
                                         <Users size={16} className="text-[#22d3ee]" />
@@ -998,7 +998,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                     {activeTab === 'VIDEO' && (
                         <motion.div key="video" initial={{ opacity: 0, scale: 1.02 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="w-full h-full flex gap-8 p-10 overflow-hidden">
                             {/* High-Fidelity Motion Controls */}
-                            <div className="w-[420px] flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar pr-2">
+                            <div className="w-[420px] flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar pr-2 border-r border-[var(--border-main)]">
                                 <div className="p-10 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/5 rounded-[3rem] flex flex-col gap-8 shadow-2xl relative overflow-hidden shrink-0 group/panel">
                                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover/panel:opacity-[0.08] transition-opacity rotate-12"><Video size={140} /></div>
 

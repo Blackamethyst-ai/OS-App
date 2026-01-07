@@ -179,7 +179,7 @@ const NexusAPIExplorer: React.FC = () => {
 
     return (
         <div className="h-full w-full flex gap-8 p-10 overflow-hidden bg-[var(--bg-app)] relative z-10 font-sans border border-[var(--border-main)] rounded-[2rem]">
-            <div className="w-[450px] bg-black/40 border border-[var(--border-main)] rounded-[3rem] overflow-hidden flex flex-col shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative">
+            <div className="w-[450px] bg-black/40 border border-[var(--border-main)] border-r-2 border-r-[var(--border-main)] rounded-[3rem] overflow-hidden flex flex-col shadow-[0_40px_100px_rgba(0,0,0,0.8)] relative">
                 <div className="absolute top-0 left-0 w-[2px] h-full bg-gradient-to-b from-[var(--amethyst)] via-[var(--amethyst)]/50 to-transparent rounded-l-[3rem]" />
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-[var(--amethyst)] via-[var(--amethyst)]/30 to-transparent" />
                 <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
