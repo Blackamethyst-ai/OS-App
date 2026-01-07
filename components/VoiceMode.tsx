@@ -226,7 +226,9 @@ const VoiceMode: React.FC = () => {
                 try {
                     const hasKey = apiKeyService.hasGeminiKey();
                     if (hasKey) {
-                        const url = await generateAvatar(currentAgentMetadata.id.toUpperCase(), currentAgentMetadata.name, currentAgentMetadata.gender);
+                        let url = await generateAvatar(currentAgentMetadata.id.toUpperCase(), currentAgentMetadata.name, currentAgentMetadata.gender);
+                        // If generation fails (Rate Limit), use a fallback to prevent infinite loop
+                        if (!url) url = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjwvc3ZnPg=="; // Transparent 1x1
                         setVoiceState(prev => ({ agentAvatars: { ...prev.agentAvatars, [voice.voiceName]: url } }));
                     }
                 } catch (e) { console.warn(e); } finally { setIsGeneratingAvatar(false); }
