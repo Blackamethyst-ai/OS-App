@@ -187,6 +187,7 @@ const VoiceMode: React.FC = () => {
     const { voice, user, actions } = useAppStore();
     const { setVoiceState, addLog } = actions;
     const [showTuning, setShowTuning] = useState(false);
+    const [isTranscriptExpanded, setIsTranscriptExpanded] = useState(false);
     const [userFreqs, setUserFreqs] = useState<Uint8Array | null>(null);
     const [agentFreqs, setAgentFreqs] = useState<Uint8Array | null>(null);
     const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
@@ -297,17 +298,28 @@ const VoiceMode: React.FC = () => {
                     <div className="flex items-center gap-3">
                         <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Selected Build</span>
                         <div className="flex gap-1.5 p-1 bg-black/40 border border-white/5 rounded-xl">
-                            {['Puck', 'Charon', 'Fenrir', 'Zephyr'].map(name => (
+                            {[
+                                { name: 'Puck', color: 'var(--amethyst)' },
+                                { name: 'Charon', color: 'var(--plasma-green)' },
+                                { name: 'Fenrir', color: 'var(--cyan)' },
+                                { name: 'Zephyr', color: '#3b82f6' }
+                            ].map(agent => (
                                 <button
-                                    key={name}
-                                    onClick={() => { setVoiceState({ voiceName: name }); audio.playClick(); }}
+                                    key={agent.name}
+                                    onClick={() => { setVoiceState({ voiceName: agent.name }); audio.playClick(); }}
                                     disabled={voice.isActive}
                                     className={cn(
-                                        "px-3 py-1 rounded-lg text-[8px] font-black font-mono uppercase tracking-widest transition-all",
-                                        voice.voiceName === name ? "bg-white text-black shadow-lg" : "text-gray-600 hover:text-white disabled:opacity-30"
+                                        "px-3 py-1.5 rounded-lg text-[8px] font-black font-mono uppercase tracking-widest transition-all flex items-center gap-2",
+                                        voice.voiceName === agent.name
+                                            ? "bg-white text-black shadow-lg"
+                                            : "text-gray-600 hover:text-white disabled:opacity-30"
                                     )}
                                 >
-                                    {name}
+                                    <div
+                                        className="w-1.5 h-1.5 rounded-full shadow-[0_0_6px_currentColor]"
+                                        style={{ backgroundColor: voice.voiceName === agent.name ? 'black' : agent.color, color: agent.color }}
+                                    />
+                                    {agent.name}
                                 </button>
                             ))}
                         </div>
@@ -415,7 +427,11 @@ const VoiceMode: React.FC = () => {
             </div>
 
             {/* Transcript Log HUD */}
-            <div className="h-48 bg-black/60 border-t border-white/5 p-8 relative flex flex-col overflow-hidden backdrop-blur-4xl shadow-[0_-20px_50px_rgba(0,0,0,0.4)]">
+            <motion.div
+                animate={{ height: isTranscriptExpanded ? '50%' : 192 }}
+                transition={{ duration: 0.3 }}
+                className="bg-black/60 border-t border-white/5 p-8 relative flex flex-col overflow-hidden backdrop-blur-4xl shadow-[0_-20px_50px_rgba(0,0,0,0.4)]"
+            >
                 <div className="flex items-center justify-between mb-6 px-4 shrink-0">
                     <div className="flex items-center gap-4">
                         <div className="p-1.5 bg-white/5 rounded-lg"><Terminal size={14} className="text-gray-500" /></div>
@@ -427,6 +443,21 @@ const VoiceMode: React.FC = () => {
                             <span className="text-[8px] font-mono text-gray-600 uppercase">Handshake_L0_Valid</span>
                         </div>
                         <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">{voice.transcripts.length} packets synchronized</span>
+                        <button
+                            onClick={() => { setVoiceState({ transcripts: [], partialTranscript: null }); audio.playClick(); }}
+                            disabled={voice.transcripts.length === 0}
+                            className="p-1.5 bg-white/5 rounded-lg text-gray-600 hover:text-red-400 transition-colors disabled:opacity-30"
+                            title="Clear History"
+                        >
+                            <RotateCcw size={12} />
+                        </button>
+                        <button
+                            onClick={() => { setIsTranscriptExpanded(!isTranscriptExpanded); audio.playClick(); }}
+                            className="p-1.5 bg-white/5 rounded-lg text-gray-600 hover:text-white transition-colors"
+                            title={isTranscriptExpanded ? "Collapse" : "Expand"}
+                        >
+                            {isTranscriptExpanded ? <ChevronDown size={12} /> : <ChevronUp size={12} />}
+                        </button>
                     </div>
                 </div>
 
@@ -476,7 +507,7 @@ const VoiceMode: React.FC = () => {
                         </div>
                     )}
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };
