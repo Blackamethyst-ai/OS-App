@@ -50,7 +50,7 @@ interface ImageGenProps {
     style?: React.CSSProperties;
 }
 
-const MetadataTag = ({ label, value, color = "#9d4edd" }: { label: string, value: string, color?: string }) => (
+const MetadataTag = ({ label, value, color = "var(--amethyst)" }: { label: string, value: string, color?: string }) => (
     <div className="flex flex-col gap-0.5 px-3 py-1.5 bg-white/[0.03] border border-white/5 rounded-lg group hover:border-white/10 transition-colors shrink-0">
         <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest">{label}</span>
         <span className="text-[9px] font-black font-mono uppercase truncate" style={{ color }}>{value}</span>
@@ -66,7 +66,7 @@ const CrewSlot = ({ role, status, icon: Icon, color }: { role: string, status: s
             <div className="text-[8px] font-mono text-gray-400 uppercase tracking-widest leading-none mb-1">{role}</div>
             <div className="text-[10px] font-black font-mono text-gray-200 uppercase truncate">{status}</div>
         </div>
-        <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_8px_#10b981]" />
+        <div className="w-1.5 h-1.5 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_8px_var(--plasma-green)]" />
     </div>
 );
 
@@ -542,8 +542,8 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                             <button onClick={() => removeRef(i, type)} className="absolute top-1 right-1 p-1 bg-black/60 rounded text-white opacity-0 group-hover/ref:opacity-100 transition-opacity"><X size={10} /></button>
                         </div>
                     ))}
-                    <label className="aspect-square rounded-lg border border-dashed border-white/5 flex flex-col items-center justify-center cursor-pointer hover:border-[#9d4edd]/40 group/add">
-                        <Plus size={16} className="text-gray-700 group-hover/add:text-[#9d4edd] transition-colors" />
+                    <label className="aspect-square rounded-lg border border-dashed border-white/5 flex flex-col items-center justify-center cursor-pointer hover:border-[var(--amethyst)]/40 group/add">
+                        <Plus size={16} className="text-gray-700 group-hover/add:text-[var(--amethyst)] transition-colors" />
                         <input type="file" multiple className="hidden" onChange={(e) => handleRefUpload(e, type)} />
                     </label>
                 </div>
@@ -558,7 +558,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
     return (
         <div
-            className={`h-full w-full bg-[#030303] flex flex-col border border-white/10 rounded-3xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,1)] relative z-10 font-sans group/studio ${className}`}
+            className={`h-full w-full bg-[var(--bg-app)] flex flex-col border border-white/10 rounded-3xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,1)] relative z-10 font-sans group/studio ${className}`}
             style={{ ...style }}
         >
 
@@ -567,12 +567,12 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
             {/* Global Studio Header */}
             <div className="h-20 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur-2xl z-[60] flex items-center justify-between px-8 shrink-0 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/40 to-transparent" />
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--amethyst)]/40 to-transparent" />
 
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-xl shadow-[0_0_20px_rgba(157,78,221,0.2)]">
-                            <Aperture className="w-5 h-5 text-[#9d4edd]" />
+                        <div className="p-3 bg-[var(--amethyst)]/10 border border-[var(--amethyst)]/40 rounded-xl shadow-[0_0_20px_color-mix(in_srgb,var(--amethyst),transparent_80%)]">
+                            <Aperture className="w-5 h-5 text-[var(--amethyst)]" />
                         </div>
                         <div>
                             <h1 className="text-lg font-black font-mono uppercase tracking-[0.4em] text-white leading-none">V8.1 - THE D-Ecosystem</h1>
@@ -591,7 +591,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                 key={tab.id}
                                 onClick={() => { setActiveTab(tab.id as any); audio.playClick(); }}
                                 className={`px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all
-                                ${activeTab === tab.id ? 'bg-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/30' : 'text-gray-500 hover:text-gray-300'}
+                                ${activeTab === tab.id ? 'bg-[var(--amethyst)] text-black shadow-lg shadow-[var(--amethyst)]/30' : 'text-gray-500 hover:text-gray-300'}
                             `}
                             >
                                 <tab.icon size={14} className={activeTab === tab.id ? 'fill-current' : ''} />
@@ -605,9 +605,9 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                     <div className="flex flex-col items-end gap-1.5 shrink-0">
                         <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">Spectral Integrity</span>
                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-mono font-bold text-[#10b981] uppercase">Optimal</span>
+                            <span className="text-[10px] font-mono font-bold text-[var(--plasma-green)] uppercase">Optimal</span>
                             <div className="flex gap-0.5">
-                                {[1, 1, 1, 1].map((v, i) => <div key={i} className={`w-1 h-3 rounded-full ${v ? 'bg-[#10b981]' : 'bg-[#222]'}`} />)}
+                                {[1, 1, 1, 1].map((v, i) => <div key={i} className={`w-1 h-3 rounded-full ${v ? 'bg-[var(--plasma-green)]' : 'bg-[#222]'}`} />)}
                             </div>
                         </div>
                     </div>
@@ -624,7 +624,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                             {/* Sidebar: Global References */}
                             <div className="w-[420px] flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar pr-4 border-r border-[var(--border-main)]">
 
-                                <div className="text-[10px] font-black text-[#9d4edd] font-mono uppercase tracking-[0.4em] flex items-center gap-2 px-1 shrink-0">
+                                <div className="text-[10px] font-black text-[var(--amethyst)] font-mono uppercase tracking-[0.4em] flex items-center gap-2 px-1 shrink-0">
                                     <Award size={14} /> Production Matrix
                                 </div>
 
@@ -638,7 +638,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     onClick={synthesizeProductionBible}
                                     disabled={isSynthesizingBible || (imageGen.characterRefs.length === 0 && imageGen.worldRefs.length === 0 && imageGen.styleRefs.length === 0)}
                                     className={`w-full py-5 border rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 shadow-2xl shrink-0
-                                    ${productionBible ? 'bg-[#10b981]/10 border-[#10b981]/40 text-[#10b981]' : 'bg-[#111] border-[#333] text-gray-500 hover:text-white'}
+                                    ${productionBible ? 'bg-[var(--plasma-green)]/10 border-[var(--plasma-green)]/40 text-[var(--plasma-green)]' : 'bg-[#111] border-[#333] text-gray-500 hover:text-white'}
                                 `}
                                 >
                                     {isSynthesizingBible ? <Loader2 size={16} className="animate-spin" /> : productionBible ? <ShieldCheck size={18} /> : <Binary size={18} />}
@@ -647,13 +647,13 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
                                 <AnimatePresence>
                                     {productionBible && (
-                                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="p-6 bg-[#0a0a0a] border border-[#10b981]/20 rounded-3xl space-y-4 shadow-inner shrink-0 overflow-hidden">
-                                            <div className="flex items-center justify-between text-[#10b981]">
+                                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="p-6 bg-[#0a0a0a] border border-[var(--plasma-green)]/20 rounded-3xl space-y-4 shadow-inner shrink-0 overflow-hidden">
+                                            <div className="flex items-center justify-between text-[var(--plasma-green)]">
                                                 <div className="flex items-center gap-2">
                                                     <FileJson size={14} />
                                                     <span className="text-[10px] font-black uppercase tracking-widest">Active Manifest</span>
                                                 </div>
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--plasma-green)] animate-pulse" />
                                             </div>
                                             <div className="space-y-3">
                                                 <p className="text-[11px] text-gray-300 font-mono italic leading-relaxed">"{productionBible.theme}. {productionBible.visualLogic}"</p>
@@ -668,13 +668,13 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                 </AnimatePresence>
 
                                 <div className="flex flex-col gap-4 mt-2 shrink-0">
-                                    <span className="text-[10px] font-black text-[#9d4edd] font-mono uppercase tracking-[0.4em] flex items-center gap-2 px-1">
+                                    <span className="text-[10px] font-black text-[var(--amethyst)] font-mono uppercase tracking-[0.4em] flex items-center gap-2 px-1">
                                         <Focus size={14} /> Master Directive
                                     </span>
                                     <textarea
                                         value={imageGen.prompt}
                                         onChange={e => actions.setImageGenState({ prompt: e.target.value })}
-                                        className="w-full h-40 bg-[#0a0a0a] border border-[#222] p-6 rounded-[2.5rem] text-sm font-mono text-gray-300 outline-none focus:border-[#9d4edd] resize-none transition-all placeholder:text-gray-800 shadow-inner group-hover:border-[#333]"
+                                        className="w-full h-40 bg-[#0a0a0a] border border-[#222] p-6 rounded-[2.5rem] text-sm font-mono text-gray-300 outline-none focus:border-[var(--amethyst)] resize-none transition-all placeholder:text-gray-800 shadow-inner group-hover:border-[#333]"
                                         placeholder="Input core narrative intent sequence..."
                                     />
                                 </div>
@@ -684,7 +684,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Optics (Aspect)</label>
                                         <div className="grid grid-cols-2 gap-2">
                                             {Object.values(AspectRatio).map(r => (
-                                                <button key={r} onClick={() => actions.setImageGenState({ aspectRatio: r })} className={`py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.aspectRatio === r ? 'bg-[#9d4edd] border-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/20' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{r}</button>
+                                                <button key={r} onClick={() => actions.setImageGenState({ aspectRatio: r })} className={`py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.aspectRatio === r ? 'bg-[var(--amethyst)] border-[var(--amethyst)] text-black shadow-lg shadow-[var(--amethyst)]/20' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{r}</button>
                                             ))}
                                         </div>
                                     </div>
@@ -692,7 +692,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest pl-2">Fidelity (Tier)</label>
                                         <div className="flex flex-col gap-2">
                                             {[ImageSize.SIZE_1K, ImageSize.SIZE_2K, ImageSize.SIZE_4K].map(s => (
-                                                <button key={s} onClick={() => actions.setImageGenState({ quality: s })} className={`w-full py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{s}</button>
+                                                <button key={s} onClick={() => actions.setImageGenState({ quality: s })} className={`w-full py-3 rounded-xl text-[10px] font-black border transition-all ${imageGen.quality === s ? 'bg-[var(--cyan)] border-[var(--cyan)] text-black shadow-lg shadow-[var(--cyan)]/20' : 'bg-black border border-[#222] text-gray-600 hover:text-white'}`}>{s}</button>
                                             ))}
                                         </div>
                                     </div>
@@ -701,7 +701,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                 <button
                                     onClick={generateSingleImage}
                                     disabled={imageGen.isLoading || (!imageGen.prompt?.trim() && imageGen.characterRefs.length === 0)}
-                                    className="w-full py-6 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black font-mono text-xs uppercase tracking-[0.5em] rounded-[2.5rem] transition-all shadow-[0_30px_60px_rgba(157,78,221,0.4)] flex items-center justify-center gap-5 group/btn active:scale-95 disabled:opacity-50 shrink-0 mb-10"
+                                    className="w-full py-6 bg-[var(--amethyst)] hover:bg-[#b06bf7] text-black font-black font-mono text-xs uppercase tracking-[0.5em] rounded-[2.5rem] transition-all shadow-[0_30px_60px_color-mix(in_srgb,var(--amethyst),transparent_60%)] flex items-center justify-center gap-5 group/btn active:scale-95 disabled:opacity-50 shrink-0 mb-10"
                                 >
                                     {imageGen.isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap size={22} className="group-hover/btn:scale-125 transition-transform" />}
                                     {imageGen.isLoading ? 'Processing Scene...' : 'Render Master Frame'}
@@ -711,14 +711,14 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                             {/* Viewport Area */}
                             <div className="flex-1 flex flex-col gap-6 min-w-0 h-full">
                                 <div className="flex-1 bg-[#050505] border border-[#1f1f1f] rounded-[3.5rem] overflow-hidden relative flex items-center justify-center shadow-2xl group/viewport">
-                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(157,78,221,0.02)_0%,transparent_80%)] pointer-events-none" />
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,color-mix(in_srgb,var(--amethyst),transparent_98%)_0%,transparent_80%)] pointer-events-none" />
 
                                     <AnimatePresence mode="wait">
                                         {imageGen.isLoading ? (
                                             <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-10">
                                                 <div className="relative">
-                                                    <Loader2 size={80} className="text-[#9d4edd] animate-spin" />
-                                                    <div className="absolute inset-0 blur-3xl bg-[#9d4edd]/20 animate-pulse" />
+                                                    <Loader2 size={80} className="text-[var(--amethyst)] animate-spin" />
+                                                    <div className="absolute inset-0 blur-3xl bg-[var(--amethyst)]/20 animate-pulse" />
                                                 </div>
                                                 <div className="text-center space-y-3">
                                                     <p className="text-sm font-black font-mono text-white uppercase tracking-[0.8em]">Inverting spectral logic...</p>
@@ -749,12 +749,12 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                                 {/* Technical Overlays */}
                                                 <div className="absolute top-14 left-14 flex flex-col gap-4">
                                                     <MetadataTag label="Production Node" value="A100_VOLTA_HUB" />
-                                                    <MetadataTag label="Optic Profile" value={imageGen.quality === ImageSize.SIZE_1K ? "FLASH_Cinematic" : "PRO_HighFidelity"} color="#22d3ee" />
+                                                    <MetadataTag label="Optic Profile" value={imageGen.quality === ImageSize.SIZE_1K ? "FLASH_Cinematic" : "PRO_HighFidelity"} color="var(--cyan)" />
                                                 </div>
                                                 <div className="absolute bottom-14 right-14 flex flex-col items-end gap-4">
                                                     <div className="px-5 py-3 bg-black/70 backdrop-blur-2xl border border-white/10 rounded-2xl flex items-center gap-4 shadow-2xl">
                                                         <span className="text-[11px] font-mono text-gray-400 uppercase tracking-widest font-black">RES: {imageGen.quality} // {imageGen.aspectRatio}</span>
-                                                        <div className={`w-2.5 h-2.5 rounded-full ${viewLayer !== 'NORMAL' ? 'bg-[#9d4edd]' : 'bg-[#10b981]'} animate-pulse shadow-[0_0_10px_currentColor]`} />
+                                                        <div className={`w-2.5 h-2.5 rounded-full ${viewLayer !== 'NORMAL' ? 'bg-[var(--amethyst)]' : 'bg-[var(--plasma-green)]'} animate-pulse shadow-[0_0_10px_currentColor]`} />
                                                     </div>
                                                 </div>
                                             </motion.div>
@@ -762,7 +762,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             <div className="flex flex-col items-center opacity-10 group-hover/viewport:opacity-20 transition-all duration-1000 text-center space-y-8">
                                                 <div className="w-40 h-40 rounded-full border-2 border-dashed border-gray-700 flex items-center justify-center relative">
                                                     <Aperture size={80} className="text-gray-500" />
-                                                    <div className="absolute inset-0 rounded-full border border-[#9d4edd]/20 animate-ping" />
+                                                    <div className="absolute inset-0 rounded-full border border-[var(--amethyst)]/20 animate-ping" />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <p className="text-xl font-mono uppercase tracking-[0.6em]">Viewport Standby</p>
@@ -780,22 +780,22 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     <div className="flex-1 flex items-center gap-8 px-10">
                                         <button
                                             onClick={() => toggleViewLayer('GRAIN')}
-                                            className={`flex items-center gap-3 text-[11px] font-black font-mono transition-all group ${viewLayer === 'GRAIN' ? 'text-[#9d4edd]' : 'text-gray-500 hover:text-white'}`}
+                                            className={`flex items-center gap-3 text-[11px] font-black font-mono transition-all group ${viewLayer === 'GRAIN' ? 'text-[var(--amethyst)]' : 'text-gray-500 hover:text-white'}`}
                                         >
                                             <ZoomIn size={18} className={`${viewLayer === 'GRAIN' ? 'scale-125' : 'group-hover:scale-125'} transition-transform`} />
                                             <span className="tracking-widest">INSPECT_GRAIN</span>
-                                            {viewLayer === 'GRAIN' && <motion.div layoutId="layer-dot" className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />}
+                                            {viewLayer === 'GRAIN' && <motion.div layoutId="layer-dot" className="w-1.5 h-1.5 rounded-full bg-[var(--amethyst)] shadow-[0_0_8px_var(--amethyst)]" />}
                                         </button>
 
                                         <div className="h-6 w-px bg-white/5" />
 
                                         <button
                                             onClick={() => toggleViewLayer('DEPTH')}
-                                            className={`flex items-center gap-3 text-[11px] font-black font-mono transition-all group ${viewLayer === 'DEPTH' ? 'text-[#22d3ee]' : 'text-gray-500 hover:text-white'}`}
+                                            className={`flex items-center gap-3 text-[11px] font-black font-mono transition-all group ${viewLayer === 'DEPTH' ? 'text-[var(--cyan)]' : 'text-gray-500 hover:text-white'}`}
                                         >
                                             <Scan size={18} className={`${viewLayer === 'DEPTH' ? 'scale-125' : 'group-hover:scale-125'} transition-transform`} />
                                             <span className="tracking-widest">DEPTH_MAP</span>
-                                            {viewLayer === 'DEPTH' && <motion.div layoutId="layer-dot" className="w-1.5 h-1.5 rounded-full bg-[#22d3ee] shadow-[0_0_8px_#22d3ee]" />}
+                                            {viewLayer === 'DEPTH' && <motion.div layoutId="layer-dot" className="w-1.5 h-1.5 rounded-full bg-[var(--cyan)] shadow-[0_0_8px_var(--cyan)]" />}
                                         </button>
                                     </div>
 
@@ -810,7 +810,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         </button>
                                         <button
                                             onClick={() => imageGen.generatedImage && downloadAsset(imageGen.generatedImage.url, `master_frame_${Date.now()}.png`)}
-                                            className="px-6 py-2.5 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(157,78,221,0.25)] active:scale-95"
+                                            className="px-6 py-2.5 bg-[var(--amethyst)]/10 border border-[var(--amethyst)]/40 text-[var(--amethyst)] hover:bg-[var(--amethyst)] hover:text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 shadow-[0_0_20px_color-mix(in_srgb,var(--amethyst),transparent_75%)] active:scale-95"
                                         >
                                             <Download size={14} /> Secure Buffer
                                         </button>
@@ -822,14 +822,14 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                             <div className="w-[320px] flex flex-col gap-6 shrink-0 h-full overflow-y-auto custom-scrollbar border-r border-[var(--border-main)]">
                                 <div className="p-6 bg-[#0a0a0a] border border-[#1f1f1f] rounded-[2rem] flex flex-col gap-6 shadow-2xl shrink-0">
                                     <div className="flex items-center gap-3 mb-2 px-1">
-                                        <Users size={16} className="text-[#22d3ee]" />
+                                        <Users size={16} className="text-[var(--cyan)]" />
                                         <h2 className="text-[10px] font-black font-mono text-white uppercase tracking-[0.4em]">Active Studio Crew</h2>
                                     </div>
                                     <div className="space-y-3">
-                                        <CrewSlot role="Director" status="Narrative Mapping" icon={DirectorIcon} color="#9d4edd" />
-                                        <CrewSlot role="DP / Optics" status="Anamorphic Tuning" icon={Aperture} color="#22d3ee" />
+                                        <CrewSlot role="Director" status="Narrative Mapping" icon={DirectorIcon} color="var(--amethyst)" />
+                                        <CrewSlot role="DP / Optics" status="Anamorphic Tuning" icon={Aperture} color="var(--cyan)" />
                                         <CrewSlot role="Lighting Head" status="Ray-Tracing L0" icon={Sun} color="#f59e0b" />
-                                        <CrewSlot role="Editor" status="Continuity Lock" icon={Scissors} color="#10b981" />
+                                        <CrewSlot role="Editor" status="Continuity Lock" icon={Scissors} color="var(--plasma-green)" />
                                     </div>
                                     <div className="pt-4 border-t border-white/5 mt-2 flex flex-col gap-4 px-1">
                                         <div className="flex justify-between text-[8px] font-mono text-gray-600 uppercase tracking-widest">
@@ -837,13 +837,13 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             <span>34%</span>
                                         </div>
                                         <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                                            <motion.div animate={{ width: '34%' }} className="h-full bg-[#9d4edd]" />
+                                            <motion.div animate={{ width: '34%' }} className="h-full bg-[var(--amethyst)]" />
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="flex-1 min-h-[200px] bg-gradient-to-br from-[#9d4edd]/5 to-transparent border border-white/5 rounded-[2rem] p-8 flex flex-col justify-center text-center relative overflow-hidden group/award shrink-0 mb-10">
-                                    <Award size={48} className="mx-auto text-[#f1c21b] mb-6 group-hover/award:scale-125 transition-transform duration-700" />
+                                <div className="flex-1 min-h-[200px] bg-gradient-to-br from-[var(--amethyst)]/5 to-transparent border border-white/5 rounded-[2rem] p-8 flex flex-col justify-center text-center relative overflow-hidden group/award shrink-0 mb-10">
+                                    <Award size={48} className="mx-auto text-[var(--executive-gold)] mb-6 group-hover/award:scale-125 transition-transform duration-700" />
                                     <h3 className="text-xs font-black font-mono text-white uppercase tracking-widest mb-4">Award-Ready Fidelity</h3>
                                     <p className="text-[10px] text-gray-500 font-mono leading-relaxed px-4">Assets optimized for large-scale projection and cinematic delivery chains.</p>
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom,rgba(241,194,27,0.05)_0%,transparent_70%)] opacity-0 group-hover/award:opacity-100 transition-opacity" />
@@ -860,10 +860,10 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     <div className="flex-1 overflow-y-auto custom-scrollbar p-6 border-b border-[#1f1f1f] bg-white/[0.01] flex flex-col gap-5">
                                         <div className="flex items-center justify-between shrink-0">
                                             <div className="flex flex-col">
-                                                <span className="text-[11px] font-black text-[#9d4edd] font-mono uppercase tracking-[0.4em]">Director's Script</span>
+                                                <span className="text-[11px] font-black text-[var(--amethyst)] font-mono uppercase tracking-[0.4em]">Director's Script</span>
                                                 <span className="text-[7px] text-gray-600 font-mono uppercase mt-0.5 tracking-widest uppercase">V8.1 - THE D-Ecosystem</span>
                                             </div>
-                                            <div className="p-2.5 bg-[#9d4edd]/10 rounded-xl border border-[#9d4edd]/30 text-[#9d4edd] shadow-inner">
+                                            <div className="p-2.5 bg-[var(--amethyst)]/10 rounded-xl border border-[var(--amethyst)]/30 text-[var(--amethyst)] shadow-inner">
                                                 <Clapperboard size={18} />
                                             </div>
                                         </div>
@@ -872,7 +872,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             <textarea
                                                 value={imageGen.prompt}
                                                 onChange={e => actions.setImageGenState({ prompt: e.target.value })}
-                                                className="w-full h-full bg-black border border-[#222] p-5 rounded-[2rem] text-sm font-mono text-gray-300 outline-none focus:border-[#9d4edd] resize-none transition-all placeholder:text-gray-800 shadow-inner group-hover/border-[#333]"
+                                                className="w-full h-full bg-black border border-[#222] p-5 rounded-[2rem] text-sm font-mono text-gray-300 outline-none focus:border-[var(--amethyst)] resize-none transition-all placeholder:text-gray-800 shadow-inner group-hover/border-[#333]"
                                                 placeholder="Define the narrative arc and visual intent..."
                                             />
                                             <div className="absolute bottom-4 right-6 opacity-20 pointer-events-none">
@@ -884,7 +884,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             <button
                                                 onClick={handlePlanSequence}
                                                 disabled={isPlanning || (!imageGen.prompt?.trim() && !productionBible)}
-                                                className="w-full py-4 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 disabled:opacity-30 active:scale-95 shadow-xl group"
+                                                className="w-full py-4 bg-[var(--amethyst)]/10 border border-[var(--amethyst)]/40 text-[var(--amethyst)] hover:bg-[var(--amethyst)] hover:text-black rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 disabled:opacity-30 active:scale-95 shadow-xl group"
                                             >
                                                 {isPlanning ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} className="group-hover:scale-110 transition-transform" />}
                                                 Initialize Synthesis
@@ -894,7 +894,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                                 <button
                                                     onClick={renderSequence}
                                                     disabled={isBatchRendering || frames.length === 0}
-                                                    className="flex-1 py-3.5 bg-[#9d4edd] text-black font-black font-mono text-[9px] uppercase tracking-[0.2em] rounded-[1.2rem] hover:bg-[#b06bf7] transition-all shadow-[0_10px_25px_rgba(157,78,221,0.25)] flex items-center justify-center gap-2.5 disabled:opacity-30 active:scale-95"
+                                                    className="flex-1 py-3.5 bg-[var(--amethyst)] text-black font-black font-mono text-[9px] uppercase tracking-[0.2em] rounded-[1.2rem] hover:bg-[#b06bf7] transition-all shadow-[0_10px_25px_rgba(157,78,221,0.25)] flex items-center justify-center gap-2.5 disabled:opacity-30 active:scale-95"
                                                 >
                                                     {isBatchRendering ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} className="fill-current" />}
                                                     Render
@@ -916,12 +916,12 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         <div className="flex-1 flex flex-col space-y-5 min-h-[300px]">
                                             <div className="flex justify-between items-center px-1 shrink-0">
                                                 <div className="flex items-center gap-3">
-                                                    <Activity size={16} className="text-[#22d3ee] animate-pulse" />
+                                                    <Activity size={16} className="text-[var(--cyan)] animate-pulse" />
                                                     <span className="text-[10px] font-black text-gray-500 font-mono uppercase tracking-[0.3em]">Resonance Curve</span>
                                                 </div>
                                                 <div className="flex gap-1.5 p-1 bg-black/40 rounded-xl border border-white/5">
                                                     {[ImageSize.SIZE_1K, ImageSize.SIZE_2K].map(s => (
-                                                        <button key={s} onClick={() => actions.setImageGenState({ quality: s })} className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase transition-all ${imageGen.quality === s ? 'bg-[#22d3ee] border-[#22d3ee] text-black shadow-lg shadow-[#22d3ee]/20' : 'bg-transparent border-transparent text-gray-600 hover:text-gray-300'}`}>{s}</button>
+                                                        <button key={s} onClick={() => actions.setImageGenState({ quality: s })} className={`px-3 py-1.5 rounded-lg border text-[8px] font-black uppercase transition-all ${imageGen.quality === s ? 'bg-[var(--cyan)] border-[var(--cyan)] text-black shadow-lg shadow-[var(--cyan)]/20' : 'bg-transparent border-transparent text-gray-600 hover:text-gray-300'}`}>{s}</button>
                                                     ))}
                                                 </div>
                                             </div>
@@ -934,15 +934,15 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             <div className="p-3 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col gap-1">
                                                 <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Coherence</span>
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-[10px] font-black text-[#10b981] font-mono uppercase tracking-tighter">LOCKED</span>
-                                                    <CheckCircle2 size={12} className="text-[#10b981]" />
+                                                    <span className="text-[10px] font-black text-[var(--plasma-green)] font-mono uppercase tracking-tighter">LOCKED</span>
+                                                    <CheckCircle2 size={12} className="text-[var(--plasma-green)]" />
                                                 </div>
                                             </div>
                                             <div className="p-3 bg-white/[0.02] border border-white/5 rounded-2xl flex flex-col gap-1">
                                                 <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Acoustic Sync</span>
                                                 <div className="flex items-center justify-between">
-                                                    <span className="text-[10px] font-black text-[#22d3ee] font-mono uppercase tracking-tighter">READY</span>
-                                                    <Speaker size={12} className="text-[#22d3ee]" />
+                                                    <span className="text-[10px] font-black text-[var(--cyan)] font-mono uppercase tracking-tighter">READY</span>
+                                                    <Speaker size={12} className="text-[var(--cyan)]" />
                                                 </div>
                                             </div>
                                         </div>
@@ -958,7 +958,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: i * 0.05 }}
                                                 className={`bg-[#0a0a0a] border rounded-[2.5rem] overflow-hidden transition-all duration-700 relative group shrink-0
-                                                ${f.status === 'done' ? 'border-emerald-500/20 bg-emerald-950/5' : f.status === 'generating' ? 'border-[#9d4edd] shadow-[0_0_30px_rgba(157,78,221,0.1)] animate-pulse' : 'border-[#1f1f1f] hover:border-[#333]'}
+                                                ${f.status === 'done' ? 'border-emerald-500/20 bg-emerald-950/5' : f.status === 'generating' ? 'border-[var(--amethyst)] shadow-[0_0_30px_rgba(157,78,221,0.1)] animate-pulse' : 'border-[#1f1f1f] hover:border-[#333]'}
                                             `}
                                             >
                                                 <div className="aspect-video bg-black relative overflow-hidden group/frame">
@@ -972,19 +972,19 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                                     )}
                                                     <div className="absolute top-6 left-6 px-4 py-2 bg-black/70 backdrop-blur-xl border border-white/10 rounded-full text-[10px] font-black font-mono text-white z-10 shadow-2xl uppercase">Node_{i + 1}</div>
                                                     <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/frame:opacity-100 transition-opacity flex items-center justify-center gap-5 z-20">
-                                                        <button onClick={() => renderFrame(i)} className="p-4 bg-[#9d4edd] text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95"><RefreshCw size={24} /></button>
+                                                        <button onClick={() => renderFrame(i)} className="p-4 bg-[var(--amethyst)] text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95"><RefreshCw size={24} /></button>
                                                         {f.imageUrl && <button onClick={() => actions.openHoloProjector({ id: `f-${i}`, title: `Frame ${i + 1}`, type: 'IMAGE', content: f.imageUrl })} className="p-4 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95"><Maximize size={24} /></button>}
                                                     </div>
                                                 </div>
                                                 <div className="p-8 space-y-6 overflow-y-auto max-h-[300px] custom-scrollbar">
                                                     <div className="flex justify-between items-center text-[9px] font-black font-mono text-gray-600 uppercase tracking-widest">
                                                         <span>Scene Protocol</span>
-                                                        {f.status === 'done' && <CheckCircle size={16} className="text-[#10b981]" />}
+                                                        {f.status === 'done' && <CheckCircle size={16} className="text-[var(--plasma-green)]" />}
                                                     </div>
                                                     <textarea
                                                         value={f.scenePrompt}
                                                         onChange={e => { const n = [...frames]; n[i].scenePrompt = e.target.value; setFrames(n); }}
-                                                        className="w-full h-24 bg-black/60 border border-white/5 p-5 rounded-2xl text-xs font-mono text-gray-300 outline-none focus:border-[#9d4edd] transition-all resize-none shadow-inner"
+                                                        className="w-full h-24 bg-black/60 border border-white/5 p-5 rounded-2xl text-xs font-mono text-gray-300 outline-none focus:border-[var(--amethyst)] transition-all resize-none shadow-inner"
                                                     />
                                                 </div>
                                             </motion.div>
@@ -1065,8 +1065,8 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                                 <div className="space-y-2">
                                                     <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Coherence</label>
                                                     <div className="flex items-center gap-2 h-9 bg-black border border-white/5 rounded-xl px-3">
-                                                        <ShieldCheck size={14} className="text-[#10b981]" />
-                                                        <span className="text-[9px] font-mono text-[#10b981] font-black uppercase">Max_Stable</span>
+                                                        <ShieldCheck size={14} className="text-[var(--plasma-green)]" />
+                                                        <span className="text-[9px] font-mono text-[var(--plasma-green)] font-black uppercase">Max_Stable</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1104,7 +1104,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-12 relative z-10">
                                             <div className="relative">
                                                 <div className="w-40 h-40 rounded-full border-4 border-t-[#d946ef] border-white/5 animate-spin" />
-                                                <div className="absolute inset-0 blur-3xl bg-[#9d4edd]/20 animate-pulse" />
+                                                <div className="absolute inset-0 blur-3xl bg-[var(--amethyst)]/20 animate-pulse" />
                                             </div>
                                             <div className="text-center space-y-4">
                                                 <p className="text-3xl font-black font-mono text-white uppercase tracking-[1em] animate-pulse">{videoProgressMsg}</p>
@@ -1169,7 +1169,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
                                                     <div className="absolute top-10 left-10 flex items-center gap-6">
                                                         <div className="flex items-center gap-3 px-5 py-2.5 bg-black/70 backdrop-blur-2xl border border-white/10 rounded-full text-[11px] font-black font-mono text-white shadow-2xl">
-                                                            <Target size={16} className="text-[#9d4edd] animate-pulse" />
+                                                            <Target size={16} className="text-[var(--amethyst)] animate-pulse" />
                                                             <span className="tracking-[0.2em] uppercase">Node_Protocol_{String(teaserIdx + 1).padStart(2, '0')}</span>
                                                         </div>
                                                     </div>
@@ -1177,11 +1177,11 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
                                                 <div className="text-center space-y-8 max-w-5xl overflow-y-auto max-h-[300px] custom-scrollbar px-4">
                                                     <div className="flex justify-center items-center gap-8 shrink-0">
-                                                        <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent opacity-40" />
-                                                        <span className="text-[12px] font-black text-[#9d4edd] uppercase tracking-[1em] whitespace-nowrap uppercase">V8.1 - THE D-Ecosystem</span>
-                                                        <div className="h-px w-32 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent opacity-40" />
+                                                        <div className="h-px w-32 bg-gradient-to-r from-transparent via-[var(--amethyst)] to-transparent opacity-40" />
+                                                        <span className="text-[12px] font-black text-[var(--amethyst)] uppercase tracking-[1em] whitespace-nowrap uppercase">V8.1 - THE D-Ecosystem</span>
+                                                        <div className="h-px w-32 bg-gradient-to-r from-transparent via-[var(--amethyst)] to-transparent opacity-40" />
                                                     </div>
-                                                    <p className="text-4xl font-mono text-white leading-relaxed italic font-medium selection:bg-[#9d4edd]/40 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,1)] pb-4">
+                                                    <p className="text-4xl font-mono text-white leading-relaxed italic font-medium selection:bg-[var(--amethyst)]/40 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,1)] pb-4">
                                                         "{frames[teaserIdx].scenePrompt}"
                                                     </p>
                                                 </div>
@@ -1202,7 +1202,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         <button
                                             onClick={() => { setIsAutoPlaying(!isAutoPlaying); if (!isAutoPlaying) playFullSequence(); audio.playClick(); }}
                                             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-[0_0_40px_rgba(0,0,0,0.4)] active:scale-95 shrink-0
-                                            ${isAutoPlaying ? 'bg-white text-black shadow-white/20' : 'bg-[#9d4edd] text-black shadow-[#9d4edd]/50'}
+                                            ${isAutoPlaying ? 'bg-white text-black shadow-white/20' : 'bg-[var(--amethyst)] text-black shadow-[var(--amethyst)]/50'}
                                         `}
                                         >
                                             {isAutoPlaying ? <Pause size={24} /> : <Play size={24} fill="currentColor" className="ml-1" />}
@@ -1215,7 +1215,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             <button
                                                 onClick={generateAllSequenceAudio}
                                                 disabled={isGeneratingTeaserAudio || frames.length === 0}
-                                                className={`p-3 rounded-2xl transition-all shadow-2xl bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10 flex items-center gap-2`}
+                                                className={`p-3 rounded-2xl transition-all shadow-2xl bg-white/5 text-gray-500 hover:text-[var(--amethyst)] hover:bg-[var(--amethyst)]/10 flex items-center gap-2`}
                                                 title="Synthesize All Narrations"
                                             >
                                                 <Speaker size={18} />
@@ -1224,7 +1224,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             <button
                                                 onClick={() => generateTeaserAudioForIndex(teaserIdx)}
                                                 disabled={isGeneratingTeaserAudio || !frames[teaserIdx]?.imageUrl}
-                                                className={`p-3 rounded-2xl transition-all shadow-2xl ${isGeneratingTeaserAudio ? 'bg-[#9d4edd] text-black animate-pulse shadow-[#9d4edd]/30' : 'bg-white/5 text-gray-500 hover:text-[#9d4edd] hover:bg-[#9d4edd]/10'}`}
+                                                className={`p-3 rounded-2xl transition-all shadow-2xl ${isGeneratingTeaserAudio ? 'bg-[var(--amethyst)] text-black animate-pulse shadow-[var(--amethyst)]/30' : 'bg-white/5 text-gray-500 hover:text-[var(--amethyst)] hover:bg-[var(--amethyst)]/10'}`}
                                                 title="Regenerate Active Node Audio"
                                             >
                                                 <Volume2 size={18} />
@@ -1234,7 +1234,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         <button
                                             onClick={exportProductionBundle}
                                             disabled={isExportingBundle || frames.filter(f => f.imageUrl).length === 0}
-                                            className="flex items-center gap-3 px-5 py-2.5 bg-[#9d4edd]/10 border border-[#9d4edd]/40 text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black rounded-full transition-all group/bundle active:scale-95 disabled:opacity-30"
+                                            className="flex items-center gap-3 px-5 py-2.5 bg-[var(--amethyst)]/10 border border-[var(--amethyst)]/40 text-[var(--amethyst)] hover:bg-[var(--amethyst)] hover:text-black rounded-full transition-all group/bundle active:scale-95 disabled:opacity-30"
                                         >
                                             {isExportingBundle ? <Loader2 size={14} className="animate-spin" /> : <FileArchive size={14} className="group-hover/bundle:scale-110 transition-transform" />}
                                             <span className="text-[8px] font-black uppercase tracking-widest whitespace-nowrap">Secure Bundle</span>
@@ -1250,7 +1250,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         key={i}
                                         onClick={() => { setTeaserIdx(i); setIsAutoPlaying(false); audio.playClick(); }}
                                         className={`relative w-56 h-full rounded-2xl border-2 overflow-hidden transition-all duration-700 shrink-0 group/tn
-                                        ${teaserIdx === i ? 'border-[#9d4edd] ring-8 ring-[#9d4edd]/10 scale-105 shadow-[0_0_40px_rgba(157,78,221,0.4)] z-10' : 'border-transparent opacity-30 hover:opacity-100 hover:border-white/20'}
+                                        ${teaserIdx === i ? 'border-[var(--amethyst)] ring-8 ring-[var(--amethyst)]/10 scale-105 shadow-[0_0_40px_rgba(157,78,221,0.4)] z-10' : 'border-transparent opacity-30 hover:opacity-100 hover:border-white/20'}
                                     `}
                                     >
                                         {f.imageUrl ? (
@@ -1259,8 +1259,8 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                             <div className="w-full h-full bg-[#050505] flex items-center justify-center text-[11px] font-mono text-gray-700 uppercase tracking-widest">Node_{i + 1}</div>
                                         )}
                                         <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-black/80 rounded-lg text-[8px] font-black font-mono text-white opacity-60 uppercase tracking-widest shadow-2xl">F_{i + 1}</div>
-                                        {teaserIdx === i && <div className="absolute inset-0 bg-[#9d4edd]/10 pointer-events-none" />}
-                                        {f.audioUrl && <div className="absolute top-2 right-2 p-1 bg-[#10b981]/80 rounded-full border border-white/20 shadow-[0_0_10px_#10b981]"><Volume2 size={8} className="text-white" /></div>}
+                                        {teaserIdx === i && <div className="absolute inset-0 bg-[var(--amethyst)]/10 pointer-events-none" />}
+                                        {f.audioUrl && <div className="absolute top-2 right-2 p-1 bg-[var(--plasma-green)]/80 rounded-full border border-white/20 shadow-[0_0_10px_var(--plasma-green)]"><Volume2 size={8} className="text-white" /></div>}
                                     </button>
                                 ))}
                             </div>
@@ -1273,13 +1273,13 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
             <div className="h-10 bg-[#0a0a0a] border-t border-[#1f1f1f] px-8 flex items-center justify-between text-[8px] font-mono text-gray-600 shrink-0 relative z-[60]">
                 <div className="flex gap-10 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
                     <div className="flex items-center gap-3 text-emerald-500 font-bold uppercase tracking-[0.2em]">
-                        <CheckCircle size={14} className="shadow-[0_0_10px_#10b981]" /> Sync_Stable
+                        <CheckCircle size={14} className="shadow-[0_0_10px_var(--plasma-green)]" /> Sync_Stable
                     </div>
                     <div className="flex items-center gap-3 uppercase tracking-widest">
-                        <GitBranch size={14} className="text-[#9d4edd]" /> Production_Lattice: {frames.length} nodes
+                        <GitBranch size={14} className="text-[var(--amethyst)]" /> Production_Lattice: {frames.length} nodes
                     </div>
                     <div className="flex items-center gap-3 uppercase tracking-widest">
-                        <Activity size={14} className="text-[#22d3ee]" /> Focus: {activeTab}
+                        <Activity size={14} className="text-[var(--cyan)]" /> Focus: {activeTab}
                     </div>
                 </div>
                 <div className="flex items-center gap-8 shrink-0">
