@@ -355,7 +355,7 @@ const SwarmBox = () => {
     const agents = useAppStore(s => s.agents.activeAgents);
     const hexCount = 6;
     return (
-        <div className="crystalline rounded-[2rem] p-5 flex flex-col gap-4 shadow-2xl relative overflow-hidden group/swarm shrink-0 invisible-glass hover:border-white/10 transition-all">
+        <div className="crystalline rounded-xl p-4 flex flex-col gap-3 shadow-2xl relative overflow-hidden group/swarm shrink-0 invisible-glass hover:border-white/10 transition-all">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(157,78,221,0.02)_0%,transparent_70%)] pointer-events-none" />
             <div className="flex items-center justify-between px-1 relative z-10">
                 <div className="flex items-center gap-2.5">
@@ -1059,9 +1059,9 @@ const MetaventionsHub: React.FC = () => {
                     </div>
                     <AnimatePresence>
                         {!dashboard.isOculusView && (
-                            <motion.div initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }} className="col-span-3 space-y-8 flex flex-col relative z-10">
+                            <motion.div initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }} className="col-span-3 space-y-4 flex flex-col relative z-10">
                                 <StrategicConsole />
-                                <div className="crystalline rounded-[3rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/anchor shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
+                                <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/anchor shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
                                     <div className="absolute inset-0 opacity-0 group-hover/anchor:opacity-20 bg-[linear-gradient(45deg,transparent_45%,rgba(255,255,255,0.8)_50%,transparent_55%)] bg-[length:200%_200%] animate-[shimmer_5s_infinite_linear] pointer-events-none" />
                                     <div className="flex items-center justify-between relative z-10 px-1">
@@ -1077,7 +1077,7 @@ const MetaventionsHub: React.FC = () => {
                                             <input type="file" className="hidden" onChange={handleAnchorSwap} accept="image/*" />
                                         </label>
                                     </div>
-                                    <motion.div onClick={() => fileInputRef.current?.click()} whileHover="scanning" className="aspect-video bg-black/60 rounded-[2.5rem] border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer">
+                                    <motion.div onClick={() => fileInputRef.current?.click()} whileHover="scanning" className="h-32 bg-black/60 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer">
                                         <input type="file" ref={fileInputRef} className="hidden" onChange={handleAnchorSwap} accept="image/*" />
                                         <motion.div variants={{ scanning: { top: ['0%', '100%', '0%'], opacity: 1 } }} animate={isSyncing ? "scanning" : { opacity: 0 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute left-0 right-0 h-[2px] bg-[#18E6FF] shadow-[0_0_20px_#18E6FF] z-30 pointer-events-none" />
                                         {dashboard.referenceImage ? (
@@ -1114,7 +1114,7 @@ const MetaventionsHub: React.FC = () => {
                                     </div>
                                 </div>
                                 <DirectoryPeek manifest={dashboard.activeManifest} />
-                                <div className="crystalline rounded-[2.5rem] p-8 h-64 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5">
+                                <div className="crystalline rounded-xl p-5 h-48 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5">
                                     <div className="flex items-center gap-3 mb-6 relative z-10">
                                         <ChartIcon size={14} className="text-[#f1c21b]" />
                                         <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
@@ -1142,7 +1142,7 @@ const MetaventionsHub: React.FC = () => {
                 </div>
                 <AnimatePresence>
                     {!dashboard.isOculusView && (
-                        <motion.div initial={{ y: 200, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 200, opacity: 0 }} className="w-full h-[850px] mt-20 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
+                        <motion.div initial={{ y: 200, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 200, opacity: 0 }} className="w-full h-[850px] mt-8 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
                             <div className="absolute top-12 left-16 z-20 flex flex-col gap-3 pointer-events-none">
                                 <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">The D-Ecosystem</h2>
                                 <div className="space-y-2">
