@@ -880,39 +880,7 @@ const MetaventionsHub: React.FC = () => {
 
                             {/* Main Display Area Content */}
                             <div className="absolute inset-0 p-8 flex flex-col gap-6 overflow-y-auto custom-scrollbar z-10">
-                                {!dashboard.activeManifest && !isSyncing && (
-                                    <div className="grid grid-cols-2 gap-6 h-full">
-                                        <div className="crystalline rounded-xl p-5 relative overflow-hidden shadow-2xl group/topology invisible-glass border border-white/5 bg-black/40">
-                                            <div className="flex items-center gap-3 mb-6 relative z-10">
-                                                <ChartIcon size={14} className="text-[#f1c21b]" />
-                                                <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
-                                            </div>
-                                            <div className="flex-1 h-64 relative z-10">
-                                                <ResponsiveContainer width="100%" height="100%">
-                                                    <RadarChart data={dashboard.topologyData}>
-                                                        <PolarGrid stroke="#333" />
-                                                        <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
-                                                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                                        <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
-                                                    </RadarChart>
-                                                </ResponsiveContainer>
-                                            </div>
-                                            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
-                                        </div>
-                                        <div className="flex flex-col gap-6">
-                                            <CapitalVelocity telemetry={telemetry} />
-                                            <div className="flex-1 bg-black/40 rounded-xl border border-white/5 p-6 flex flex-col items-center justify-center text-center gap-4">
-                                                <div className="w-16 h-16 rounded-full border border-white/10 flex items-center justify-center">
-                                                    <Upload size={24} className="text-gray-600" />
-                                                </div>
-                                                <div>
-                                                    <h4 className="text-[10px] font-black font-mono text-gray-400 uppercase tracking-widest">Drag & Drop Manifest</h4>
-                                                    <p className="text-[8px] font-mono text-gray-600 mt-1">Initialize Production Sequence</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+
 
                                 <AnimatePresence mode="wait">
                                     {isSyncing ? (
@@ -1160,6 +1128,47 @@ const MetaventionsHub: React.FC = () => {
                         )}
                     </AnimatePresence>
                 </div>
+
+                {/* Gap Filler - Topology & Metrics in the void between Main Layout and D-Ecosystem */}
+                <AnimatePresence>
+                    {!dashboard.isOculusView && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: 30 }}
+                            className="grid grid-cols-12 gap-8 mt-6 mb-2" // Fills the void
+                        >
+                            {/* Network Topology on Left to fill void */}
+                            <div className="col-span-9 grid grid-cols-2 gap-8">
+                                <div className="crystalline rounded-xl p-6 h-64 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5 bg-black/20">
+                                    <div className="flex items-center gap-3 mb-2 relative z-10">
+                                        <ChartIcon size={14} className="text-[#f1c21b]" />
+                                        <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
+                                    </div>
+                                    <div className="flex-1 h-48 relative z-10">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RadarChart data={dashboard.topologyData}>
+                                                <PolarGrid stroke="#333" />
+                                                <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
+                                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                                <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
+                                            </RadarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
+                                </div>
+                                <div className="h-64">
+                                    <CapitalVelocity telemetry={telemetry} />
+                                </div>
+                            </div>
+                            {/* Right side spacer or additional metrics if needed - keeping it aligned with sidebar width */}
+                            <div className="col-span-3">
+                                {/* Optional: Power Status could go here in future */}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 <AnimatePresence>
                     {!dashboard.isOculusView && (
                         <motion.div initial={{ y: 200, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 200, opacity: 0 }} className="w-full h-[850px] mt-8 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
