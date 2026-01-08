@@ -25,51 +25,12 @@ import { motion, AnimatePresence } from 'framer-motion';
 import EmotionalResonanceGraph from './EmotionalResonanceGraph';
 import { audio } from '../services/audioService';
 
-interface Frame {
-    index: number;
-    scenePrompt: string;
-    continuity: string;
-    camera: string;
-    lighting: string;
-    status: 'pending' | 'generating' | 'done' | 'error';
-    imageUrl?: string;
-    audioUrl?: string;
-    error?: string;
-}
-
-interface ProductionBible {
-    theme: string;
-    atmosphere: string;
-    visualLogic: string;
-    narrativeArc: string;
-    opticProfile: string;
-    cinematicNotes: string[];
-}
-
-interface ImageGenProps {
-    className?: string;
-    style?: React.CSSProperties;
-}
-
-const MetadataTag = ({ label, value, color = "var(--amethyst)" }: { label: string, value: string, color?: string }) => (
-    <div className="flex flex-col gap-0.5 px-3 py-1.5 bg-white/[0.03] border border-white/5 rounded-lg group hover:border-white/10 transition-colors shrink-0">
-        <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest">{label}</span>
-        <span className="text-[9px] font-black font-mono uppercase truncate" style={{ color }}>{value}</span>
-    </div>
-);
-
-const CrewSlot = ({ role, status, icon: Icon, color }: { role: string, status: string, icon: any, color: string }) => (
-    <div className="flex items-center gap-3 p-3 bg-white/[0.02] border border-white/5 rounded-xl hover:bg-white/[0.04] transition-all shrink-0">
-        <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}15`, color }}>
-            <Icon size={14} />
-        </div>
-        <div className="flex-1 min-w-0">
-            <div className="text-[8px] font-mono text-gray-400 uppercase tracking-widest leading-none mb-1">{role}</div>
-            <div className="text-[10px] font-black font-mono text-gray-200 uppercase truncate">{status}</div>
-        </div>
-        <div className="w-1.5 h-1.5 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_8px_var(--plasma-green)]" />
-    </div>
-);
+// Import types and shared components from extracted module
+import {
+    Frame, ProductionBible, ImageGenProps,
+    MetadataTag, CrewSlot,
+    ActiveTab, ViewLayer, RefType
+} from './ImageGenParts/types';
 
 const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     const imageGen = useAppStore(s => s.imageGen);
