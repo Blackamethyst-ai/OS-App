@@ -73,7 +73,7 @@ const ContextVelocityChart: React.FC<ContextVelocityChartProps> = ({ onDrillDown
 
   return (
     <div className="w-full h-full crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col relative overflow-hidden group/chart shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700 backdrop-blur-3xl">
-      <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.02)_0%,transparent_70%)] pointer-events-none" />
 
       <div className="flex justify-between items-center mb-6 shrink-0 relative z-10">
         <div className="flex flex-col gap-1.5">

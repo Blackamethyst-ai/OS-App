@@ -1078,7 +1078,7 @@ const MetaventionsHub: React.FC = () => {
 
                         {/* Metrics Belt: Network Topology + Capital Velocity + Context Velocity - 3-column equal */}
                         {!dashboard.isOculusView && (
-                            <div className="grid grid-cols-3 gap-6">
+                            <div className="grid grid-cols-3 gap-6 h-[320px]">
                                 {/* Network Topology */}
                                 <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col relative overflow-hidden group/topology shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(241,194,27,0.02)_0%,transparent_70%)] pointer-events-none" />
@@ -1103,10 +1103,7 @@ const MetaventionsHub: React.FC = () => {
                                 <CapitalVelocity telemetry={telemetry} />
 
                                 {/* Context Velocity */}
-                                <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col relative overflow-hidden shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
-                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.02)_0%,transparent_70%)] pointer-events-none" />
-                                    <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
-                                </div>
+                                <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
                             </div>
                         )}
 
