@@ -30,7 +30,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
     const [passwordError, setPasswordError] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const [activeProvider, setActiveProvider] = useState<'gemini' | 'claude' | 'grok'>('gemini');
+    const [activeProvider, setActiveProvider] = useState<'gemini' | 'claude' | 'grok' | 'eleven_labs'>('gemini');
     const [inputValue, setInputValue] = useState('');
     const [showKey, setShowKey] = useState(false);
     const [isValidating, setIsValidating] = useState(false);
