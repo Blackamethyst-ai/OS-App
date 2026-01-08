@@ -1129,34 +1129,36 @@ const MetaventionsHub: React.FC = () => {
                     </AnimatePresence>
                 </div>
 
-                {/* VISUALLY SEPARATE METRICS ROW - COMPLETED OUTSIDE ZENITH/SOC */}
+                {/* VISUALLY SEPARATE METRICS ROW - ALGIGNED WITH GRID */}
                 <AnimatePresence>
                     {!dashboard.isOculusView && (
                         <motion.div
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="flex items-end justify-between px-10 py-2 mb-4 relative z-20"
+                            className="grid grid-cols-12 gap-6 relative z-20 mb-6"
                         >
-                            {/* Network Topology Standalone */}
-                            <div className="crystalline rounded-xl p-6 w-[450px] h-56 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5 bg-black/40 backdrop-blur-sm">
-                                <div className="flex items-center gap-3 mb-4 relative z-10">
-                                    <ChartIcon size={14} className="text-[#f1c21b]" />
-                                    <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
+                            {/* Network Topology - Aligned under SOC (Left) */}
+                            <div className="col-span-9 flex items-end px-2">
+                                <div className="crystalline rounded-xl p-5 w-[420px] h-52 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5 bg-black/40 backdrop-blur-sm">
+                                    <div className="flex items-center gap-3 mb-4 relative z-10">
+                                        <ChartIcon size={14} className="text-[#f1c21b]" />
+                                        <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
+                                    </div>
+                                    <div className="flex-1 h-32 relative z-10">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RadarChart data={dashboard.topologyData}>
+                                                <PolarGrid stroke="#333" />
+                                                <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
+                                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                                <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
+                                            </RadarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
                                 </div>
-                                <div className="flex-1 h-36 relative z-10">
-                                    <ResponsiveContainer width="100%" height="100%">
-                                        <RadarChart data={dashboard.topologyData}>
-                                            <PolarGrid stroke="#333" />
-                                            <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
-                                            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                            <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
-                                        </RadarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
                             </div>
 
-                            {/* Capital Velocity Standalone - Right Side Aligned */}
-                            <div className="w-[500px]">
+                            {/* Capital Velocity - Aligned under Sidebar (Right) */}
+                            <div className="col-span-3">
                                 <CapitalVelocity telemetry={telemetry} />
                             </div>
                         </motion.div>
