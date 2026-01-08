@@ -3,48 +3,20 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { neuralVault } from '../services/persistenceService';
-import { KnowledgeLayer } from '../types';
+import { KnowledgeLayer, AppMode } from '../types';
 import * as Icons from 'lucide-react';
-import {
-    Activity, Clock, Cpu, Shield, Zap, Hammer, Coins,
-    Telescope, History, AlertOctagon, BrainCircuit,
-    ArrowRight, Loader2, Terminal, HardDrive, Globe, Users,
-    Eye, Scan, Monitor, Save, Gauge, Database, Fingerprint,
-    Bot, RefreshCw, ShieldAlert, CheckCircle2, Target, Radio,
-    ShieldCheck, PanelRight, SearchCode, Dna, Battery, Moon, Sun, Sliders,
-    AlignLeft, X
-} from 'lucide-react';
+import { Terminal, PanelRight, Gauge, Fingerprint, Users, SearchCode, Radio, Moon, Sun, History as HistoryIcon, Loader2, Save, Sparkles, Activity } from 'lucide-react';
+import { dreamProtocol } from '../services/dreamProtocol';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { useVisualCortex } from '../hooks/useVisualCortex';
 import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import ApiUsageIndicator from './ApiUsageIndicator';
-import EvolutionConsole from './EvolutionConsole';
-import PowerControlPanel from './PowerControlPanel';
-import { powerService } from '../services/powerService';
-import { dreamProtocol } from '../services/dreamProtocol';
-import { NeuralDebuggerPanel } from './NeuralDebuggerPanel';
 
-const ActionSquircle = memo(({ icon: Icon, color, onClick, isActive, glowColor }: any) => (
-    <motion.button
-        whileHover={{ scale: 1.1, y: -2 }}
-        whileTap={{ scale: 0.95 }}
-        onClick={() => { audio.playClick(); onClick(); }}
-        className="relative group flex items-center justify-center p-1.5"
-    >
-        <div className={cn(
-            "w-9 h-9 rounded-xl border flex items-center justify-center transition-all duration-500 relative z-10 backdrop-blur-3xl",
-            isActive ? "bg-white/10 border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.1)]" : "bg-black/60 border-white/5 group-hover:border-white/20"
-        )}>
-            <Icon size={16} className="transition-colors duration-300" style={{ color: isActive ? '#fff' : color }} />
-        </div>
-        <div
-            className="absolute inset-0 blur-xl opacity-0 group-hover:opacity-30 transition-opacity duration-500 rounded-full"
-            style={{ backgroundColor: glowColor || color }}
-        />
-    </motion.button>
-));
+
+
+
 
 const LayerControlMesh = memo(() => {
     const { knowledge, actions } = useAppStore();
@@ -116,58 +88,69 @@ const GlobalStatusBar: React.FC = () => {
     const { fps, memory } = usePerformanceMonitor();
 
     const [input, setInput] = useState('');
-    const [driveHealth, setDriveHealth] = useState(99.6);
-    const [neuralLoad, setNeuralLoad] = useState(12.4);
-    const [isEvolutionOpen, setIsEvolutionOpen] = useState(false);
-    const [isPowerOpen, setIsPowerOpen] = useState(false);
-    const [isNeuralDebugOpen, setIsNeuralDebugOpen] = useState(false);
     const [dreamStatus, setDreamStatus] = useState(dreamProtocol.getStatus());
-    const powerConfig = powerService.getConfig();
-
-    // --- THEME REACTOR LOGIC ---
-    const activeAgents = useAppStore(state => state.agents.activeAgents);
-    const primaryAgent = activeAgents.length > 0 ? activeAgents[0] : null;
-
-    // Demo Mode State for Neural Debugger
-    const [demoState, setDemoState] = useState({
-        skepticism: 20,
-        excitement: 80,
-        alignment: 95
-    });
-
-    // Use either Real Agent State or Demo State (when debugger is open)
-    const mindset = isNeuralDebugOpen ? demoState : (primaryAgent?.currentMindset || demoState);
+    const [isSaving, setIsSaving] = useState(false);
+    const [latency, setLatency] = useState(12);
+    const mode = useAppStore(s => s.mode);
 
     useEffect(() => {
-        if (!mindset) return;
+        const interval = setInterval(() => {
+            setLatency(Math.floor(Math.random() * 8 + 12));
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
 
-        const root = document.documentElement;
-        const { skepticism, excitement, alignment } = mindset;
+    const handleManualSnapshot = async () => {
+        setIsSaving(true);
+        audio.playClick();
+        addLog('SYSTEM', 'SNAPSHOT: Initializing high-priority state persistence...');
 
-        // 1. SATURATION
-        const saturation = Math.max(0, 100 - skepticism * 1.2);
-        // 2. GLOW & BLOOM
-        const glowOpacity = (excitement / 100) * 0.8;
-        const glowRadius = (excitement / 100) * 15;
-        // 3. GEOMETRY
-        const baseRadius = 12;
-        const radiusAdjustment = (excitement - skepticism) * 0.12;
-        const finalRadius = Math.max(0, Math.min(30, baseRadius + radiusAdjustment));
-        // 4. COLOR SHIFT
-        const hueShift = (100 - alignment) * 1.5;
+        try {
+            const store = useAppStore.getState();
+            let stateToSave = null;
 
-        root.style.setProperty('--neural-saturation', `${saturation}%`);
-        root.style.setProperty('--neural-glow-opacity', `${glowOpacity}`);
-        root.style.setProperty('--neural-glow-radius', `${glowRadius}px`);
-        root.style.setProperty('--neural-border-radius', `${finalRadius}px`);
-        root.style.setProperty('--neural-hue-shift', `${hueShift}deg`);
+            // Map current mode to store sector
+            switch (mode) {
+                case AppMode.PROCESS_MAP: stateToSave = store.process; break;
+                case AppMode.CODE_STUDIO: stateToSave = store.codeStudio; break;
+                case AppMode.HARDWARE_ENGINEER: stateToSave = store.hardware; break;
+                case AppMode.IMAGE_GEN: stateToSave = store.imageGen; break;
+                case AppMode.BIBLIOMORPHIC: stateToSave = store.bibliomorphic; break;
+                case AppMode.DASHBOARD: stateToSave = store.dashboard; break;
+                case AppMode.METAVENTIONS_HUB: stateToSave = store.metaventions; break;
+                case AppMode.AUTONOMOUS_FINANCE: stateToSave = store.metaventions; break;
+                case AppMode.AGENT_CONTROL: stateToSave = store.agents; break;
+                case AppMode.SYNTHESIS_BRIDGE: stateToSave = store.metaventions; break;
+                case AppMode.MEMORY_CORE: stateToSave = store.memory; break;
+                case AppMode.VOICE_MODE: stateToSave = store.voice; break;
+                case AppMode.BICAMERAL: stateToSave = store.bicameral; break;
+                default: break;
+            }
 
-        if (skepticism > 80) {
-            root.style.setProperty('--neural-accent-mode', 'grayscale(100%)');
-        } else {
-            root.style.setProperty('--neural-accent-mode', `hue-rotate(${hueShift}deg) saturate(${saturation}%)`);
+            if (stateToSave) {
+                await neuralVault.createCheckpoint(mode, stateToSave, "Emergency Manual Sync");
+                addLog('SUCCESS', 'SNAPSHOT: Local state crystallized to Neural Vault.');
+                audio.playSuccess();
+            }
+        } catch (e) {
+            addLog('ERROR', 'SNAPSHOT: Persistence failure.');
+            audio.playError();
+        } finally {
+            setIsSaving(false);
         }
-    }, [mindset.skepticism, mindset.excitement, mindset.alignment]);
+    };
+
+    // Telemetry State
+    const [driveHealth, setDriveHealth] = useState(99.6);
+    const [neuralLoad, setNeuralLoad] = useState(12.4);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setDriveHealth(prev => Math.max(98, Math.min(99.9, prev + (Math.random() * 0.1 - 0.05))));
+            setNeuralLoad(prev => Math.max(5, Math.min(45, prev + (Math.random() * 4 - 2))));
+        }, 5000);
+        return () => clearInterval(interval);
+    }, []);
     // ---------------------------
 
     // Update dream status every second
@@ -181,11 +164,9 @@ const GlobalStatusBar: React.FC = () => {
     const peerCount = collaboration.peers.length;
 
     useEffect(() => {
-        const interval = setInterval(() => {
-            setDriveHealth(prev => Math.max(98, Math.min(99.9, prev + (Math.random() * 0.1 - 0.05))));
-            setNeuralLoad(prev => Math.max(5, Math.min(45, prev + (Math.random() * 4 - 2))));
-        }, 5000);
-        return () => clearInterval(interval);
+        // Simple interval for mock telemetry simulation if needed, or remove.
+        // Keeping stripped down version for now or completely remove if unused.
+        // Actually, remove setDriveHealth/NeuralLoad as we removed the state.
     }, []);
 
     const formatUptime = (seconds: number) => {
@@ -247,6 +228,13 @@ const GlobalStatusBar: React.FC = () => {
                                     <span className="text-[5px] text-gray-700 font-black uppercase">MB</span>
                                 </div>
                             </div>
+                            <div className="flex flex-col gap-0.5 min-w-[45px] pl-4 border-l border-white/5">
+                                <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none">Sys_Latency</span>
+                                <div className="flex items-center gap-1">
+                                    <Activity size={8} className="text-[#22d3ee]" />
+                                    <span className="text-[10px] font-black font-mono text-[#22d3ee]">{latency}ms</span>
+                                </div>
+                            </div>
                         </div>
 
                         {/* API Usage Indicator */}
@@ -273,82 +261,27 @@ const GlobalStatusBar: React.FC = () => {
                     </div>
                 </div>
 
+
                 {/* ACTION SUITE (Middle Right) */}
                 <div className="flex items-center gap-1 px-6 border-x border-white/5 relative z-10 shrink-0">
-                    <ActionSquircle
-                        icon={Terminal}
-                        color="#9d4edd"
-                        onClick={() => toggleTerminal()}
-                        isActive={system.isTerminalOpen}
-                        label="Terminal"
-                    />
-                    <ActionSquircle
-                        icon={Scan}
-                        color="#18E6FF"
-                        onClick={probeScreen}
-                        isActive={isProbing}
-                        label="Oculus Probe"
-                    />
-                    <ActionSquircle
-                        icon={Bot}
-                        color="#10b981"
-                        onClick={() => {
-                            hydrateAgents();
-                            addLog('SYSTEM', 'SWARM: Synchronizing active node presence.');
-                        }}
-                        label="Refresh Swarm"
-                    />
-                    <ActionSquircle
-                        icon={RefreshCw}
-                        color="#f1c21b"
-                        onClick={() => {
-                            setDriveHealth(99.6);
-                            setNeuralLoad(12.4);
-                            addLog('SYSTEM', 'LATTICE: Global recalibration sequence active.');
-                        }}
-                        label="Sync Hub"
-                    />
-                    <ActionSquircle
-                        icon={ShieldAlert}
-                        color="#ef4444"
-                        onClick={() => setDiagnosticsOpen(!isDiagnosticsOpen)}
-                        isActive={isDiagnosticsOpen}
-                        label="Diagnostics"
-                    />
-                    <ActionSquircle
-                        icon={PanelRight}
-                        color="#9d4edd"
-                        onClick={() => setSidebarOpen(!isSidebarOpen)}
-                        isActive={isSidebarOpen}
-                        label="Ops Sidebar"
-                    />
-                    <ActionSquircle
-                        icon={Dna}
-                        color="#22d3ee"
-                        onClick={() => setIsEvolutionOpen(true)}
-                        isActive={isEvolutionOpen}
-                        label="Evolution"
-                        glowColor="#22d3ee"
-                    />
 
-                    {/* Neural Debugger Toggle */}
-                    <ActionSquircle
-                        icon={Activity}
-                        color="#18E6FF"
-                        onClick={() => setIsNeuralDebugOpen(!isNeuralDebugOpen)}
-                        isActive={isNeuralDebugOpen}
-                        label="Neural Debugger"
-                        glowColor="#18E6FF"
-                    />
 
-                    <ActionSquircle
-                        icon={Battery}
-                        color={powerConfig.mode === 'OVERDRIVE' ? '#ef4444' : powerConfig.mode === 'ECO' ? '#10b981' : '#f59e0b'}
-                        onClick={() => setIsPowerOpen(true)}
-                        isActive={isPowerOpen}
-                        label="Power"
-                        glowColor="#22d3ee"
-                    />
+
+                    {/* Snapshot Button */}
+                    <button
+                        onClick={handleManualSnapshot}
+                        disabled={isSaving}
+                        className={cn(
+                            "flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all relative overflow-hidden group/snap mr-3",
+                            isSaving
+                                ? 'bg-[#10b981]/20 border-[#10b981] text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+                                : 'bg-black/40 border-white/10 text-gray-500 hover:text-[#10b981] hover:border-[#10b981]/50'
+                        )}
+                    >
+                        {isSaving ? <Loader2 size={10} className="animate-spin" /> : <Save size={10} className="group-hover/snap:scale-125 transition-transform" />}
+                        <span className="text-[8px] font-black font-mono uppercase tracking-widest">Snapshot</span>
+                        {isSaving && <Sparkles size={10} className="animate-pulse absolute right-2" />}
+                    </button>
 
                     {/* Dream Status Pill */}
                     <motion.div
@@ -409,19 +342,7 @@ const GlobalStatusBar: React.FC = () => {
                     </motion.div>
                 </div>
 
-                {/* Evolution Console Modal */}
-                <EvolutionConsole isOpen={isEvolutionOpen} onClose={() => setIsEvolutionOpen(false)} />
 
-                {/* Power Control Panel */}
-                <PowerControlPanel isOpen={isPowerOpen} onClose={() => setIsPowerOpen(false)} />
-
-                {/* Neural Debugger Panel */}
-                <NeuralDebuggerPanel
-                    isOpen={isNeuralDebugOpen}
-                    onClose={() => setIsNeuralDebugOpen(false)}
-                    state={demoState}
-                    onChange={(k, v) => setDemoState(s => ({ ...s, [k]: v }))}
-                />
 
                 {/* IDENTITY & AUDIT (Far Right) */}
                 <div className="flex items-center gap-6 pl-6 shrink-0 relative z-10">
@@ -457,7 +378,7 @@ const GlobalStatusBar: React.FC = () => {
                                 isScrubberOpen ? "bg-[#9d4edd]/20 border-[#9d4edd] text-white shadow-[0_0_15px_#9d4edd33]" : ""
                             )}
                         >
-                            <History size={14} />
+                            <HistoryIcon size={14} />
                         </button>
                     </div>
 

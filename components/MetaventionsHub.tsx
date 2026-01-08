@@ -34,6 +34,7 @@ import { cn } from '../utils/cn';
 import { renderSafe } from '../utils/renderSafe';
 import DEcosystem from './DEcosystem';
 import ContextVelocityChart from './ContextVelocityChart';
+
 import { ZenithDisplay } from './ZenithDisplay';
 import { StrategicConsole } from './StrategicConsole';
 
@@ -1128,6 +1129,7 @@ const MetaventionsHub: React.FC = () => {
                     <AnimatePresence>
                         {!dashboard.isOculusView && (
                             <motion.div initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }} className="col-span-3 space-y-4 flex flex-col relative z-10">
+
                                 <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/anchor shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700 min-h-[300px]">
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
                                     <div className="absolute inset-0 opacity-0 group-hover/anchor:opacity-20 bg-[linear-gradient(45deg,transparent_45%,rgba(255,255,255,0.8)_50%,transparent_55%)] bg-[length:200%_200%] animate-[shimmer_5s_infinite_linear] pointer-events-none" />
