@@ -217,13 +217,14 @@ const EvolutionConsole: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
                         </div>
 
                         {/* Stats Bar */}
-                        <div className="grid grid-cols-6 gap-4 p-6 bg-black/20 border-b border-white/5">
+                        <div className="grid grid-cols-7 gap-4 p-6 bg-black/20 border-b border-white/5">
                             {[
                                 { label: 'Friction Signals', value: stats.totalFrictionSignals, icon: AlertTriangle, color: '#f59e0b' },
                                 { label: 'Hypotheses', value: stats.totalHypotheses, icon: GitBranch, color: '#9d4edd' },
                                 { label: 'Pending', value: stats.pendingEvolutions, icon: Zap, color: '#22d3ee' },
                                 { label: 'Approved', value: stats.approvedEvolutions, icon: Check, color: '#10b981' },
-                                { label: 'Deployed', value: stats.deployedEvolutions, icon: Cpu, color: '#3b82f6' },
+                                { label: 'Ready to Deploy', value: (stats as any).pendingDeployments || 0, icon: Cpu, color: '#f43f5e' },
+                                { label: 'Deployed', value: stats.deployedEvolutions, icon: Activity, color: '#3b82f6' },
                                 { label: 'Cycles', value: stats.totalCycles, icon: RefreshCw, color: '#ec4899' }
                             ].map((stat) => (
                                 <div key={stat.label} className="bg-black/40 rounded-xl p-4 border border-white/5">

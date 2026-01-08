@@ -322,15 +322,74 @@ Output ONLY the code, no markdown fences.`;
     }
 
     /**
-     * Approve an evolution (for future hot-reload deployment)
+     * Approve an evolution and stage for real deployment
+     * The approved code is saved to localStorage where it can be 
+     * written to a real file by an external agent (Claude)
      */
     approveEvolution(id: string) {
         const evolution = this.hypotheses.find(h => h.id === id);
         if (evolution) {
             evolution.status = 'APPROVED';
-            useAppStore.getState().actions.addLog('SUCCESS', `🧬 SELF-EVOLUTION: "${evolution.fileName}" approved for deployment`);
-            // Future: Actually inject the code into the runtime
+
+            // Stage for real deployment - save to localStorage
+            const pending = this.getPendingDeployments();
+            pending.push({
+                id: evolution.id,
+                fileName: evolution.fileName,
+                fileType: evolution.fileType,
+                code: evolution.generatedCode,
+                hypothesis: evolution.hypothesis,
+                approvedAt: Date.now()
+            });
+            localStorage.setItem('evolution_pending_deployments', JSON.stringify(pending));
+
+            useAppStore.getState().actions.addLog('SUCCESS',
+                `🧬 SELF-EVOLUTION: "${evolution.fileName}" approved and staged for deployment. Say "deploy evolutions" to write to filesystem.`
+            );
         }
+    }
+
+    /**
+     * Get pending deployments (approved but not yet written to filesystem)
+     */
+    getPendingDeployments(): Array<{
+        id: string;
+        fileName: string;
+        fileType: string;
+        code: string;
+        hypothesis: string;
+        approvedAt: number;
+    }> {
+        try {
+            return JSON.parse(localStorage.getItem('evolution_pending_deployments') || '[]');
+        } catch {
+            return [];
+        }
+    }
+
+    /**
+     * Mark an evolution as deployed (called after file is written)
+     */
+    markDeployed(id: string) {
+        const evolution = this.hypotheses.find(h => h.id === id);
+        if (evolution) {
+            evolution.status = 'DEPLOYED';
+        }
+
+        // Remove from pending
+        const pending = this.getPendingDeployments().filter(p => p.id !== id);
+        localStorage.setItem('evolution_pending_deployments', JSON.stringify(pending));
+
+        useAppStore.getState().actions.addLog('SUCCESS',
+            `🧬 SELF-EVOLUTION: "${evolution?.fileName}" deployed to filesystem. Vite HMR will pick it up.`
+        );
+    }
+
+    /**
+     * Clear all pending deployments
+     */
+    clearPendingDeployments() {
+        localStorage.setItem('evolution_pending_deployments', JSON.stringify([]));
     }
 
     /**
@@ -361,6 +420,7 @@ Output ONLY the code, no markdown fences.`;
             pendingEvolutions: this.hypotheses.filter(h => h.status === 'PROPOSED').length,
             approvedEvolutions: this.hypotheses.filter(h => h.status === 'APPROVED').length,
             deployedEvolutions: this.hypotheses.filter(h => h.status === 'DEPLOYED').length,
+            pendingDeployments: this.getPendingDeployments().length,
             totalCycles: this.cycles.length,
             isEvolving: this.isEvolving
         };
