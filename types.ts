@@ -5,9 +5,12 @@ export type Result<T, E = Error> =
 export interface HiveAgent {
     id: string;
     name: string;
+    gender: 'male' | 'female';
     voice: string;
     systemPrompt: string;
-    weights: { skepticism: number; logic: number; creativity: number; empathy: number };
+    weights?: { skepticism: number; logic: number; creativity: number; empathy: number };
+    expertise?: string[];
+    archetype?: string;
 }
 
 export interface AgentDNA {

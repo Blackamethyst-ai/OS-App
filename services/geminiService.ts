@@ -4,7 +4,7 @@ import {
     Result, AnalysisResult, AutonomousAgent, OperationalContext,
     ScienceHypothesis, KnowledgeNode, SwarmStatus, SwarmResult,
     AtomicTask, ProtocolStepResult, StoredArtifact,
-    AgentDNA, TechnicalManifest, FactChunk
+    AgentDNA, TechnicalManifest, FactChunk, HiveAgent
 } from '../types';
 import { apiKeyService, promptForApiKey } from './apiKeyService';
 
@@ -407,7 +407,7 @@ export async function fileToGenerativePart(file: File | Blob): Promise<FileData>
     });
 }
 
-export const HIVE_AGENTS: Record<string, any> = {
+export const HIVE_AGENTS: Record<string, HiveAgent> = {
     'dr_ira': {
         id: 'dr_ira',
         name: 'Dr. Ira',
