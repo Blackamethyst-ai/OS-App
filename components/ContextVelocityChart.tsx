@@ -72,7 +72,7 @@ const ContextVelocityChart: React.FC<ContextVelocityChartProps> = ({ onDrillDown
   }, [agents, voice.isActive, dashboard.isOculusView]);
 
   return (
-    <div className="w-full h-full min-h-[300px] bg-[var(--bg-card-top)] rounded-[3rem] border border-[var(--border-main)] p-8 flex flex-col transition-all duration-700 shadow-2xl overflow-hidden backdrop-blur-3xl relative group/chart">
+    <div className="w-full h-full crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col relative overflow-hidden group/chart shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700 backdrop-blur-3xl">
       <div className="absolute inset-0 bg-black/10 pointer-events-none" />
 
       <div className="flex justify-between items-center mb-6 shrink-0 relative z-10">
