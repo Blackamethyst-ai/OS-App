@@ -5,7 +5,6 @@ import { useSystemMind } from './stores/useSystemMind';
 import { AppMode, AppTheme } from './types';
 import Starfield from './components/Starfield';
 import BackgroundEffect from './components/BackgroundEffect';
-import { ThemeReactor } from './components/ThemeReactor';
 
 import CommandPalette from './components/CommandPalette';
 import GlobalSearchBar from './components/GlobalSearchBar';
@@ -30,7 +29,6 @@ import MetaventionsLogo from './components/MetaventionsLogo';
 import AppFooter from './components/AppFooter';
 import AuthModule from './components/AuthModule';
 import SynapticContextHub from './components/SynapticContextHub';
-import DreamProtocolWidget from './components/DreamProtocolWidget';
 
 import { useAutoSave } from './hooks/useAutoSave';
 import { useDaemonSwarm } from './hooks/useDaemonSwarm';
@@ -381,7 +379,7 @@ const App: React.FC = () => {
         >
             <Starfield mode={mode} />
             <BackgroundEffect isDarkMode={theme !== AppTheme.LIGHT} />
-            <ThemeReactor />
+
 
             <div className="absolute inset-0 pointer-events-none z-[200] opacity-[0.04] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] mix-blend-overlay"></div>
 
@@ -402,7 +400,7 @@ const App: React.FC = () => {
             <OverlayOS />
             <HoloProjector />
             <VoiceManager />
-            <DreamProtocolWidget />
+            {/* DreamProtocolWidget is now integrated into GlobalStatusBar pill */}
 
             {/* API Key Configuration Modal */}
             <ApiKeyModal
@@ -546,8 +544,13 @@ const App: React.FC = () => {
             <div className="flex-1 flex overflow-hidden relative">
                 <div className={cn(
                     "flex-1 relative flex flex-col min-h-0 transition-all duration-1000 main-content-layer",
-                    isFixedLayout ? 'pb-0' : 'pb-1 overflow-y-auto no-scrollbar'
-                )}>
+                    isFixedLayout ? 'pb-0 overflow-hidden' : 'pb-1 overflow-y-auto no-scrollbar'
+                )}
+                    style={{
+                        '--soc-height': '1000px',
+                        '--metrics-belt-gap': '-2rem',
+                    } as React.CSSProperties}
+                >
                     <SynapticRouter />
                 </div>
 

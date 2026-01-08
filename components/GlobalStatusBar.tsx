@@ -11,7 +11,8 @@ import {
     ArrowRight, Loader2, Terminal, HardDrive, Globe, Users,
     Eye, Scan, Monitor, Save, Gauge, Database, Fingerprint,
     Bot, RefreshCw, ShieldAlert, CheckCircle2, Target, Radio,
-    ShieldCheck, PanelRight, SearchCode, Dna, Battery
+    ShieldCheck, PanelRight, SearchCode, Dna, Battery, Moon, Sun, Sliders,
+    AlignLeft, X
 } from 'lucide-react';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { useVisualCortex } from '../hooks/useVisualCortex';
@@ -22,6 +23,8 @@ import ApiUsageIndicator from './ApiUsageIndicator';
 import EvolutionConsole from './EvolutionConsole';
 import PowerControlPanel from './PowerControlPanel';
 import { powerService } from '../services/powerService';
+import { dreamProtocol } from '../services/dreamProtocol';
+import { NeuralDebuggerPanel } from './NeuralDebuggerPanel';
 
 const ActionSquircle = memo(({ icon: Icon, color, onClick, isActive, glowColor }: any) => (
     <motion.button
@@ -117,7 +120,63 @@ const GlobalStatusBar: React.FC = () => {
     const [neuralLoad, setNeuralLoad] = useState(12.4);
     const [isEvolutionOpen, setIsEvolutionOpen] = useState(false);
     const [isPowerOpen, setIsPowerOpen] = useState(false);
+    const [isNeuralDebugOpen, setIsNeuralDebugOpen] = useState(false);
+    const [dreamStatus, setDreamStatus] = useState(dreamProtocol.getStatus());
     const powerConfig = powerService.getConfig();
+
+    // --- THEME REACTOR LOGIC ---
+    const activeAgents = useAppStore(state => state.agents.activeAgents);
+    const primaryAgent = activeAgents.length > 0 ? activeAgents[0] : null;
+
+    // Demo Mode State for Neural Debugger
+    const [demoState, setDemoState] = useState({
+        skepticism: 20,
+        excitement: 80,
+        alignment: 95
+    });
+
+    // Use either Real Agent State or Demo State (when debugger is open)
+    const mindset = isNeuralDebugOpen ? demoState : (primaryAgent?.currentMindset || demoState);
+
+    useEffect(() => {
+        if (!mindset) return;
+
+        const root = document.documentElement;
+        const { skepticism, excitement, alignment } = mindset;
+
+        // 1. SATURATION
+        const saturation = Math.max(0, 100 - skepticism * 1.2);
+        // 2. GLOW & BLOOM
+        const glowOpacity = (excitement / 100) * 0.8;
+        const glowRadius = (excitement / 100) * 15;
+        // 3. GEOMETRY
+        const baseRadius = 12;
+        const radiusAdjustment = (excitement - skepticism) * 0.12;
+        const finalRadius = Math.max(0, Math.min(30, baseRadius + radiusAdjustment));
+        // 4. COLOR SHIFT
+        const hueShift = (100 - alignment) * 1.5;
+
+        root.style.setProperty('--neural-saturation', `${saturation}%`);
+        root.style.setProperty('--neural-glow-opacity', `${glowOpacity}`);
+        root.style.setProperty('--neural-glow-radius', `${glowRadius}px`);
+        root.style.setProperty('--neural-border-radius', `${finalRadius}px`);
+        root.style.setProperty('--neural-hue-shift', `${hueShift}deg`);
+
+        if (skepticism > 80) {
+            root.style.setProperty('--neural-accent-mode', 'grayscale(100%)');
+        } else {
+            root.style.setProperty('--neural-accent-mode', `hue-rotate(${hueShift}deg) saturate(${saturation}%)`);
+        }
+    }, [mindset.skepticism, mindset.excitement, mindset.alignment]);
+    // ---------------------------
+
+    // Update dream status every second
+    useEffect(() => {
+        const dreamInterval = setInterval(() => {
+            setDreamStatus(dreamProtocol.getStatus());
+        }, 1000);
+        return () => clearInterval(dreamInterval);
+    }, []);
 
     const peerCount = collaboration.peers.length;
 
@@ -145,12 +204,13 @@ const GlobalStatusBar: React.FC = () => {
     };
 
     return (
-        <div className="w-full max-w-[2400px] mx-auto px-8 pt-4 pb-2 pointer-events-auto z-[100] shrink-0 sticky top-[70px]">
+        <div className="w-full px-2 pt-4 pb-2 pointer-events-auto z-[100] shrink-0 sticky top-[70px]">
             <div className="flex items-center justify-between px-8 py-2.5 bg-[#0a0a0c]/98 backdrop-blur-5xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.8)] relative overflow-hidden group glass-refraction h-[72px]">
                 <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.01)_50%,transparent_75%,transparent)] bg-[size:200%_200%] animate-[shimmer_10s_infinite_linear] pointer-events-none" />
 
                 {/* TELEMETRY SECTION (Fixed Widths to prevent flicker jumps) */}
-                <div className="flex items-center gap-10 shrink-0 relative z-10 max-w-[40%]">
+                {/* TELEMETRY SECTION */}
+                <div className="flex items-center gap-10 shrink-0 relative z-10 flex-1 min-w-0">
                     <div className="flex items-center gap-6">
                         <div className="flex flex-col items-center gap-1 min-w-[80px]">
                             <div className="flex items-center gap-1.5 text-[6px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none">
@@ -195,7 +255,7 @@ const GlobalStatusBar: React.FC = () => {
                 </div>
 
                 {/* CENTRAL COMMAND INPUT */}
-                <div className="flex-1 flex items-center px-6 relative z-10 max-w-[30%]">
+                <div className="flex-1 flex items-center px-6 relative z-10 min-w-0">
                     <form onSubmit={handleSubmit} className="w-full relative flex items-center gap-3 bg-black/60 rounded-xl px-4 py-2 border border-white/5 focus-within:border-[#9d4edd]/50 transition-all shadow-inner group/input">
                         <SearchCode size={14} className={cn("shrink-0 transition-all", agentState.isThinking ? 'text-[#9d4edd] animate-pulse' : 'text-gray-700')} />
                         <input
@@ -270,6 +330,17 @@ const GlobalStatusBar: React.FC = () => {
                         label="Evolution"
                         glowColor="#22d3ee"
                     />
+
+                    {/* Neural Debugger Toggle */}
+                    <ActionSquircle
+                        icon={Activity}
+                        color="#18E6FF"
+                        onClick={() => setIsNeuralDebugOpen(!isNeuralDebugOpen)}
+                        isActive={isNeuralDebugOpen}
+                        label="Neural Debugger"
+                        glowColor="#18E6FF"
+                    />
+
                     <ActionSquircle
                         icon={Battery}
                         color={powerConfig.mode === 'OVERDRIVE' ? '#ef4444' : powerConfig.mode === 'ECO' ? '#10b981' : '#f59e0b'}
@@ -278,6 +349,64 @@ const GlobalStatusBar: React.FC = () => {
                         label="Power"
                         glowColor="#22d3ee"
                     />
+
+                    {/* Dream Status Pill */}
+                    <motion.div
+                        whileHover={{ scale: 1.02 }}
+                        onClick={() => dreamProtocol.triggerDream()}
+                        className={cn(
+                            "flex items-center gap-2.5 px-3 py-1.5 rounded-xl border cursor-pointer transition-all duration-500 ml-1",
+                            dreamStatus.isDreaming
+                                ? "bg-[#9d4edd]/20 border-[#9d4edd]/50 shadow-[0_0_15px_rgba(157,78,221,0.3)]"
+                                : "bg-black/60 border-white/10 hover:border-white/20"
+                        )}
+                    >
+                        <motion.div
+                            animate={dreamStatus.isDreaming ? {
+                                scale: [1, 1.2, 1],
+                                rotate: [0, 10, -10, 0]
+                            } : {}}
+                            transition={{ duration: 2, repeat: Infinity }}
+                            className={cn(
+                                "p-1 rounded-lg",
+                                dreamStatus.isDreaming
+                                    ? "bg-[#9d4edd]/30 text-[#9d4edd]"
+                                    : "bg-white/5 text-gray-500"
+                            )}
+                        >
+                            {dreamStatus.isDreaming ? <Moon size={12} /> : <Sun size={12} />}
+                        </motion.div>
+                        <div className="flex flex-col">
+                            <span className={cn(
+                                "text-[8px] font-black font-mono uppercase tracking-widest leading-none",
+                                dreamStatus.isDreaming ? "text-[#9d4edd]" : "text-gray-500"
+                            )}>
+                                {dreamStatus.isDreaming ? 'DREAMING' : 'AWAKE'}
+                            </span>
+                            <span className="text-[6px] font-mono text-gray-600 leading-none mt-0.5">
+                                {dreamStatus.isDreaming
+                                    ? `${dreamStatus.currentSession?.insights.length || 0} insights`
+                                    : `Idle: ${Math.floor(dreamStatus.idleTime / 60000)}m ${Math.floor((dreamStatus.idleTime % 60000) / 1000)}s`
+                                }
+                            </span>
+                        </div>
+                        {dreamStatus.isDreaming && (
+                            <motion.div
+                                animate={{ opacity: [0.5, 1, 0.5] }}
+                                transition={{ duration: 1.5, repeat: Infinity }}
+                                className="flex gap-0.5"
+                            >
+                                {[0, 1, 2].map(i => (
+                                    <motion.div
+                                        key={i}
+                                        animate={{ scale: [1, 1.5, 1] }}
+                                        transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                                        className="w-1 h-1 rounded-full bg-[#9d4edd]"
+                                    />
+                                ))}
+                            </motion.div>
+                        )}
+                    </motion.div>
                 </div>
 
                 {/* Evolution Console Modal */}
@@ -285,6 +414,14 @@ const GlobalStatusBar: React.FC = () => {
 
                 {/* Power Control Panel */}
                 <PowerControlPanel isOpen={isPowerOpen} onClose={() => setIsPowerOpen(false)} />
+
+                {/* Neural Debugger Panel */}
+                <NeuralDebuggerPanel
+                    isOpen={isNeuralDebugOpen}
+                    onClose={() => setIsNeuralDebugOpen(false)}
+                    state={demoState}
+                    onChange={(k, v) => setDemoState(s => ({ ...s, [k]: v }))}
+                />
 
                 {/* IDENTITY & AUDIT (Far Right) */}
                 <div className="flex items-center gap-6 pl-6 shrink-0 relative z-10">

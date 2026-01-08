@@ -37,6 +37,7 @@ import ContextVelocityChart from './ContextVelocityChart';
 import { ZenithDisplay } from './ZenithDisplay';
 import { StrategicConsole } from './StrategicConsole';
 
+
 const VISIONARY_DIRECTIVES = [
     "Architecture is the frozen music of logic.",
     "Metaventions: Sovereign architecture secured.",
@@ -307,7 +308,7 @@ const CapitalVelocity = ({ telemetry }: { telemetry: any }) => {
     const reachVal = Math.min(100, 20 + (agents.activeAgents.length * 15));
 
     return (
-        <div className="crystalline rounded-[2.5rem] p-8 shadow-2xl flex flex-col gap-6 relative overflow-hidden group/cap shrink-0 invisible-glass hover:border-white/10 transition-all">
+        <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/cap shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.01)_0%,transparent_70%)] pointer-events-none" />
             <div className="flex items-center gap-4 relative z-10">
                 <div className="p-2 bg-[#10b981]/10 rounded-xl text-[#10b981] border border-[#10b981]/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
@@ -355,7 +356,7 @@ const SwarmBox = () => {
     const agents = useAppStore(s => s.agents.activeAgents);
     const hexCount = 6;
     return (
-        <div className="crystalline rounded-xl p-4 flex flex-col gap-3 shadow-2xl relative overflow-hidden group/swarm shrink-0 invisible-glass hover:border-white/10 transition-all">
+        <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/swarm shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(157,78,221,0.02)_0%,transparent_70%)] pointer-events-none" />
             <div className="flex items-center justify-between px-1 relative z-10">
                 <div className="flex items-center gap-2.5">
@@ -790,284 +791,347 @@ const MetaventionsHub: React.FC = () => {
             <div className="flex-1 overflow-y-auto custom-scrollbar p-10 relative bg-transparent z-10">
                 {!dashboard.isOculusView && <VisionaryTicker />}
                 <div className="grid grid-cols-12 gap-8 min-h-0 items-start">
-                    <div
-                        onDragOver={handleDragOver}
-                        onDragLeave={() => setIsDraggingOver(false)}
-                        onDrop={handleDrop}
-                        className={cn(
-                            "crystalline shadow-[0_0_100px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col min-h-[1000px] group/soc invisible-glass border border-[var(--border-main)] transition-all duration-1000",
-                            dashboard.isOculusView ? "col-span-12 rounded-none border-none" : "col-span-9 rounded-[3rem]",
-                            isDraggingOver && "border-[#9d4edd] shadow-[0_0_80px_rgba(157,78,221,0.2)]"
-                        )}>
-                        {!dashboard.isOculusView && (
-                            <div className="absolute top-14 left-0 w-full h-8 z-30 bg-[#0a0a0a]/40 backdrop-blur-md border-y border-white/5 overflow-hidden flex items-center">
-                                <motion.div
-                                    animate={{ x: ['100%', '-100%'] }}
-                                    transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-                                    className="whitespace-nowrap flex items-center gap-12"
-                                >
-                                    {['INITIALIZING_PARA_DRIVE_V8', 'CLOUD_NODES_STABILIZED', 'DEPIN_EQUITY_LOCKED', 'RECURSIVE_ZETTELKASTEN_SYNC', 'IA_ORCHESTRATION_L0_OK'].map((msg, i) => (
-                                        <div key={i} className="flex items-center gap-3">
-                                            <div className="w-1 h-1 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />
-                                            <span className="text-[8px] font-black font-mono text-white/40 uppercase tracking-[0.5em]">{msg}</span>
+                    {/* Left Column: SOC + Metrics Belt stacked */}
+                    <div className={cn(
+                        "flex flex-col gap-6",
+                        dashboard.isOculusView ? "col-span-12" : "col-span-9"
+                    )}>
+                        <div
+                            onDragOver={handleDragOver}
+                            onDragLeave={() => setIsDraggingOver(false)}
+                            onDrop={handleDrop}
+                            className={cn(
+                                "crystalline shadow-[0_0_100px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col min-h-[1000px] group/soc invisible-glass border border-[var(--border-main)] transition-all duration-1000 rounded-[3rem]",
+                                isDraggingOver && "border-[#9d4edd] shadow-[0_0_80px_rgba(157,78,221,0.2)]"
+                            )}>
+                            {!dashboard.isOculusView && (
+                                <div className="absolute top-14 left-0 w-full h-8 z-30 bg-[#0a0a0a]/40 backdrop-blur-md border-y border-white/5 overflow-hidden flex items-center">
+                                    <motion.div
+                                        animate={{ x: ['100%', '-100%'] }}
+                                        transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+                                        className="whitespace-nowrap flex items-center gap-12"
+                                    >
+                                        {['INITIALIZING_PARA_DRIVE_V8', 'CLOUD_NODES_STABILIZED', 'DEPIN_EQUITY_LOCKED', 'RECURSIVE_ZETTELKASTEN_SYNC', 'IA_ORCHESTRATION_L0_OK'].map((msg, i) => (
+                                            <div key={i} className="flex items-center gap-3">
+                                                <div className="w-1 h-1 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />
+                                                <span className="text-[8px] font-black font-mono text-white/40 uppercase tracking-[0.5em]">{msg}</span>
+                                            </div>
+                                        ))}
+                                    </motion.div>
+                                </div>
+                            )}
+                            {/* Fingerprint scan line - same as Biometric Anchor */}
+                            <motion.div
+                                animate={{ top: ['0%', '100%', '0%'] }}
+                                transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                                className="absolute left-0 right-0 h-[2px] bg-[#18E6FF] shadow-[0_0_20px_#18E6FF] z-40 pointer-events-none opacity-30"
+                            />
+                            <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 shrink-0 z-20 relative">
+                                <div className="flex items-center gap-4">
+                                    <Target size={18} className="text-[#9d4edd] animate-pulse" />
+                                    <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Strategic Operations Center</span>
+                                    {dashboard.hubViewUrl && (
+                                        <div className="flex items-center gap-2 px-3 py-0.5 bg-[#10b981]/10 border border-[#10b981]/30 rounded-full">
+                                            <span className="text-[7px] font-black font-mono text-[#10b981] uppercase tracking-widest">Zenith_Fidelity_3D</span>
                                         </div>
-                                    ))}
-                                </motion.div>
-                            </div>
-                        )}
-                        <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 shrink-0 z-20 relative">
-                            <div className="flex items-center gap-4">
-                                <Target size={18} className="text-[#9d4edd] animate-pulse" />
-                                <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">Strategic Operations Center</span>
-                                {dashboard.hubViewUrl && (
-                                    <div className="flex items-center gap-2 px-3 py-0.5 bg-[#10b981]/10 border border-[#10b981]/30 rounded-full">
-                                        <span className="text-[7px] font-black font-mono text-[#10b981] uppercase tracking-widest">Zenith_Fidelity_3D</span>
-                                    </div>
-                                )}
-                            </div>
-                            <div className="flex items-center gap-6">
-                                <button
-                                    onClick={runVisualIntegrityProbe}
-                                    className="flex items-center gap-2 px-4 py-1 rounded-full border border-[#22d3ee]/30 bg-black/40 text-[#22d3ee] hover:bg-[#22d3ee]/10 transition-all"
-                                >
-                                    <Gauge size={12} />
-                                    <span className="text-[8px] font-mono uppercase tracking-widest font-black">Integrity Probe</span>
-                                </button>
-                                <button
-                                    onClick={toggleOculus}
-                                    className={cn(
-                                        "flex items-center gap-2 px-4 py-1 rounded-full border transition-all",
-                                        dashboard.isOculusView ? "bg-[#f1c21b] border-[#f1c21b] text-black" : "bg-black/40 border-white/10 text-gray-500 hover:text-white"
                                     )}
-                                >
-                                    {dashboard.isOculusView ? <EyeOff size={12} /> : <Eye size={12} />}
-                                    <span className="text-[8px] font-mono uppercase tracking-widest font-black">{dashboard.isOculusView ? 'Disable Oculus' : 'Oculus View'}</span>
-                                </button>
-                                {dashboard.activeManifest && (
+                                </div>
+                                <div className="flex items-center gap-6">
                                     <button
-                                        onClick={() => setShowBlueprint(!showBlueprint)}
+                                        onClick={runVisualIntegrityProbe}
+                                        className="flex items-center gap-2 px-4 py-1 rounded-full border border-[#22d3ee]/30 bg-black/40 text-[#22d3ee] hover:bg-[#22d3ee]/10 transition-all"
+                                    >
+                                        <Gauge size={12} />
+                                        <span className="text-[8px] font-mono uppercase tracking-widest font-black">Integrity Probe</span>
+                                    </button>
+                                    <button
+                                        onClick={toggleOculus}
                                         className={cn(
                                             "flex items-center gap-2 px-4 py-1 rounded-full border transition-all",
-                                            showBlueprint ? "bg-[#22d3ee] border-[#22d3ee] text-black shadow-[0_0_15px_#22d3ee]" : "bg-black/40 border-white/10 text-[#22d3ee] hover:bg-[#22d3ee]/10"
+                                            dashboard.isOculusView ? "bg-[#f1c21b] border-[#f1c21b] text-black" : "bg-black/40 border-white/10 text-gray-500 hover:text-white"
                                         )}
                                     >
-                                        <Workflow size={12} />
-                                        <span className="text-[8px] font-mono uppercase tracking-widest font-black">View Blueprint</span>
+                                        {dashboard.isOculusView ? <EyeOff size={12} /> : <Eye size={12} />}
+                                        <span className="text-[8px] font-mono uppercase tracking-widest font-black">{dashboard.isOculusView ? 'Disable Oculus' : 'Oculus View'}</span>
                                     </button>
-                                )}
+                                    {dashboard.activeManifest && (
+                                        <button
+                                            onClick={() => setShowBlueprint(!showBlueprint)}
+                                            className={cn(
+                                                "flex items-center gap-2 px-4 py-1 rounded-full border transition-all",
+                                                showBlueprint ? "bg-[#22d3ee] border-[#22d3ee] text-black shadow-[0_0_15px_#22d3ee]" : "bg-black/40 border-white/10 text-[#22d3ee] hover:bg-[#22d3ee]/10"
+                                            )}
+                                        >
+                                            <Workflow size={12} />
+                                            <span className="text-[8px] font-mono uppercase tracking-widest font-black">View Blueprint</span>
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                        </div>
 
-                        <div className="flex-1 relative overflow-hidden bg-[#020204] group/view">
-                            <AnimatePresence>
-                                {isDraggingOver && (
-                                    <motion.div
-                                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                        className="absolute inset-0 z-40 bg-[#9d4edd]/5 backdrop-blur-sm border-4 border-dashed border-[#9d4edd]/40 flex flex-col items-center justify-center gap-8"
-                                    >
-                                        <div className="w-32 h-32 rounded-full bg-black border border-[#9d4edd] flex items-center justify-center shadow-[0_0_50px_rgba(157,78,221,0.4)]">
-                                            <Anchor size={48} className="text-[#9d4edd] animate-bounce" />
-                                        </div>
-                                        <div className="text-center space-y-2">
-                                            <h3 className="text-2xl font-black font-mono text-[#9d4edd] uppercase tracking-[0.4em]">Anchor Forge</h3>
-                                            <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Release to initialize autopoietic synthesis</p>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                            <Scanline />
-                            <NeuralFileStream active={!!dashboard.activeManifest} isDraggingOver={isDraggingOver} />
-
-                            {/* Main Display Area Content */}
-                            <div className="absolute inset-0 p-8 flex flex-col gap-6 overflow-y-auto custom-scrollbar z-10">
-
-
-                                <AnimatePresence mode="wait">
-                                    {isSyncing ? (
-                                        <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/80 backdrop-blur-3xl">
-                                            <div className="relative">
-                                                <Loader2 size={60} className="text-[#9d4edd] animate-spin mb-6" />
-                                                <div className="absolute inset-0 blur-3xl bg-[#9d4edd]/20 animate-pulse" />
+                            <div className="flex-1 relative overflow-hidden bg-[#020204] group/view">
+                                <AnimatePresence>
+                                    {isDraggingOver && (
+                                        <motion.div
+                                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                            className="absolute inset-0 z-40 bg-[#9d4edd]/5 backdrop-blur-sm border-4 border-dashed border-[#9d4edd]/40 flex flex-col items-center justify-center gap-8"
+                                        >
+                                            <div className="w-32 h-32 rounded-full bg-black border border-[#9d4edd] flex items-center justify-center shadow-[0_0_50px_rgba(157,78,221,0.4)]">
+                                                <Anchor size={48} className="text-[#9d4edd] animate-bounce" />
                                             </div>
-                                            <span className="text-[12px] font-black font-mono text-white uppercase tracking-[0.8em]">Synthesizing Lattice...</span>
+                                            <div className="text-center space-y-2">
+                                                <h3 className="text-2xl font-black font-mono text-[#9d4edd] uppercase tracking-[0.4em]">Anchor Forge</h3>
+                                                <p className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">Release to initialize autopoietic synthesis</p>
+                                            </div>
                                         </motion.div>
-                                    ) : dashboard.activeManifest && (
-                                        <motion.div key="content" className="relative w-full h-full group/img-node">
-                                            {dashboard.hubViewUrl ? (
-                                                <ZenithDisplay currentZenithImage={dashboard.hubViewUrl} />
-                                            ) : (
-                                                <div className="h-full w-full flex flex-col items-center justify-center relative bg-black/10">
-                                                    <ProceduralHologram />
-                                                    <div className="flex flex-col items-center gap-8 opacity-20 group-hover/view:opacity-40 transition-all duration-1000 text-center relative z-20">
-                                                        <div className="relative">
-                                                            <UserCircle size={100} className="animate-pulse" />
-                                                            <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 10, ease: "linear" }} className="absolute -inset-4 border border-dashed border-white/20 rounded-full" />
-                                                        </div>
-                                                        <p className="text-xl font-mono uppercase tracking-[1.2em]">Sovereign Core Hub</p>
-                                                        <div className="flex gap-4 justify-center">
-                                                            <div className="px-3 py-1 bg-white/5 border border-white/10 rounded text-[8px] font-mono uppercase">Idle_Lattice_L0</div>
-                                                            <div className="px-3 py-1 bg-white/5 border border-white/10 rounded text-[8px] font-mono uppercase">Context_Ready</div>
+                                    )}
+                                </AnimatePresence>
+                                <Scanline />
+                                <NeuralFileStream active={!!dashboard.activeManifest} isDraggingOver={isDraggingOver} />
+
+                                {/* Main Display Area Content */}
+                                <div className="absolute inset-0 p-8 flex flex-col gap-6 overflow-y-auto custom-scrollbar z-10">
+
+
+                                    <AnimatePresence mode="wait">
+                                        {isSyncing ? (
+                                            <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 flex flex-col items-center justify-center z-30 bg-black/80 backdrop-blur-3xl">
+                                                <div className="relative">
+                                                    <Loader2 size={60} className="text-[#9d4edd] animate-spin mb-6" />
+                                                    <div className="absolute inset-0 blur-3xl bg-[#9d4edd]/20 animate-pulse" />
+                                                </div>
+                                                <span className="text-[12px] font-black font-mono text-white uppercase tracking-[0.8em]">Synthesizing Lattice...</span>
+                                            </motion.div>
+                                        ) : dashboard.activeManifest && (
+                                            <motion.div key="content" className="relative w-full h-full group/img-node">
+                                                {dashboard.hubViewUrl ? (
+                                                    <ZenithDisplay currentZenithImage={dashboard.hubViewUrl} />
+                                                ) : (
+                                                    <div className="h-full w-full flex flex-col items-center justify-center relative bg-black/10">
+                                                        <ProceduralHologram />
+                                                        <div className="flex flex-col items-center gap-8 opacity-20 group-hover/view:opacity-40 transition-all duration-1000 text-center relative z-20">
+                                                            <div className="relative">
+                                                                <UserCircle size={100} className="animate-pulse" />
+                                                                <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 10, ease: "linear" }} className="absolute -inset-4 border border-dashed border-white/20 rounded-full" />
+                                                            </div>
+                                                            <p className="text-xl font-mono uppercase tracking-[1.2em]">Sovereign Core Hub</p>
+                                                            <div className="flex gap-4 justify-center">
+                                                                <div className="px-3 py-1 bg-white/5 border border-white/10 rounded text-[8px] font-mono uppercase">Idle_Lattice_L0</div>
+                                                                <div className="px-3 py-1 bg-white/5 border border-white/10 rounded text-[8px] font-mono uppercase">Context_Ready</div>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            )}
-                                            <AnimatePresence>
-                                                {showBlueprint && dashboard.activeManifest && (
-                                                    <motion.div
-                                                        initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-                                                        className="absolute top-0 right-0 bottom-0 w-1/2 bg-[#050505]/95 backdrop-blur-3xl border-l border-white/10 z-[35] shadow-[0_0_100px_rgba(0,0,0,1)] p-12 flex flex-col gap-10"
-                                                    >
-                                                        <div className="flex justify-between items-start">
-                                                            <div className="space-y-4">
-                                                                <div className="flex items-center gap-3">
-                                                                    <div className="p-2.5 bg-[#22d3ee]/20 rounded-xl text-[#22d3ee] border border-[#22d3ee]/30">
-                                                                        <FileSearch size={20} />
-                                                                    </div>
-                                                                    <span className="text-[10px] font-black text-white font-mono uppercase tracking-[0.4em]">Structured Process Blueprint</span>
-                                                                </div>
-                                                                <h3 className="text-3xl font-black text-white uppercase font-mono tracking-tighter leading-none">{dashboard.activeManifest.title}</h3>
-                                                            </div>
-                                                            <button onClick={() => setShowBlueprint(false)} className="p-3 text-gray-500 hover:text-white transition-colors bg-white/5 rounded-2xl"><X size={24} /></button>
-                                                        </div>
-                                                        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-12 pr-4">
-                                                            <div className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] shadow-inner relative group/logic">
-                                                                <div className="absolute top-0 right-0 p-4 opacity-[0.03] group/logic:opacity-10 transition-opacity"><Zap size={60} /></div>
-                                                                <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
-                                                                    <Code size={14} className="text-[#9d4edd]" />
-                                                                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Protocol Logic</span>
-                                                                </div>
-                                                                <p className="text-xl text-gray-300 font-mono italic leading-relaxed">"{renderSafe(dashboard.activeManifest.logic || dashboard.activeManifest.internalPlanningMonologue)}"</p>
-                                                            </div>
-                                                            <div className="space-y-6">
-                                                                <div className="flex items-center gap-3 text-[11px] font-black text-gray-500 uppercase tracking-widest px-2">
-                                                                    <ListChecks size={16} className="text-[#10b981]" /> Implementation Sequence
-                                                                </div>
-                                                                <div className="space-y-4">
-                                                                    {Array.isArray(dashboard.activeManifest?.protocols) && dashboard.activeManifest.protocols.map((p: any, i: number) => (
-                                                                        <div key={i} className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-6 group hover:border-white/10 transition-all">
-                                                                            <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center font-mono font-black text-sm text-[#22d3ee] border border-white/5">{i + 1}</div>
-                                                                            <span className="text-sm text-gray-300 font-mono group-hover:text-white transition-colors">{renderSafe(p.instruction)}</span>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="pt-8 border-t border-white/5 flex gap-4">
-                                                            <button onClick={() => actions.deployStrategyToLattice(dashboard.activeManifest!)} className="flex-1 py-5 bg-[#22d3ee] text-black font-black text-[10px] uppercase rounded-2xl tracking-[0.4em] shadow-[0_20px_50px_rgba(34,211,238,0.2)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4">
-                                                                <RefreshCw size={16} /> Deploy to Topology
-                                                            </button>
-                                                        </div>
-                                                    </motion.div>
                                                 )}
-                                            </AnimatePresence>
-                                            <div className="absolute top-10 right-10 z-40 opacity-0 group-hover/img-node:opacity-100 transition-all">
-                                                <div className="flex flex-col gap-3">
-                                                    <button onClick={handleDownloadMainAsset} className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-white shadow-2xl hover:scale-105 active:scale-95 transition-all">
-                                                        <Download size={24} />
-                                                    </button>
-                                                    <button onClick={(e) => { e.stopPropagation(); actions.openHoloProjector({ id: 'soc-scan', title: 'Holo Inspect', type: 'IMAGE', content: dashboard.hubViewUrl }); }} className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-[#18E6FF] shadow-2xl hover:scale-105 active:scale-95 transition-all">
-                                                        <Maximize2 size={24} />
-                                                    </button>
+                                                <AnimatePresence>
+                                                    {showBlueprint && dashboard.activeManifest && (
+                                                        <motion.div
+                                                            initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
+                                                            className="absolute top-0 right-0 bottom-0 w-1/2 bg-[#050505]/95 backdrop-blur-3xl border-l border-white/10 z-[35] shadow-[0_0_100px_rgba(0,0,0,1)] p-12 flex flex-col gap-10"
+                                                        >
+                                                            <div className="flex justify-between items-start">
+                                                                <div className="space-y-4">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="p-2.5 bg-[#22d3ee]/20 rounded-xl text-[#22d3ee] border border-[#22d3ee]/30">
+                                                                            <FileSearch size={20} />
+                                                                        </div>
+                                                                        <span className="text-[10px] font-black text-white font-mono uppercase tracking-[0.4em]">Structured Process Blueprint</span>
+                                                                    </div>
+                                                                    <h3 className="text-3xl font-black text-white uppercase font-mono tracking-tighter leading-none">{dashboard.activeManifest.title}</h3>
+                                                                </div>
+                                                                <button onClick={() => setShowBlueprint(false)} className="p-3 text-gray-500 hover:text-white transition-colors bg-white/5 rounded-2xl"><X size={24} /></button>
+                                                            </div>
+                                                            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-12 pr-4">
+                                                                <div className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] shadow-inner relative group/logic">
+                                                                    <div className="absolute top-0 right-0 p-4 opacity-[0.03] group/logic:opacity-10 transition-opacity"><Zap size={60} /></div>
+                                                                    <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
+                                                                        <Code size={14} className="text-[#9d4edd]" />
+                                                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Protocol Logic</span>
+                                                                    </div>
+                                                                    <p className="text-xl text-gray-300 font-mono italic leading-relaxed">"{renderSafe(dashboard.activeManifest.logic || dashboard.activeManifest.internalPlanningMonologue)}"</p>
+                                                                </div>
+                                                                <div className="space-y-6">
+                                                                    <div className="flex items-center gap-3 text-[11px] font-black text-gray-500 uppercase tracking-widest px-2">
+                                                                        <ListChecks size={16} className="text-[#10b981]" /> Implementation Sequence
+                                                                    </div>
+                                                                    <div className="space-y-4">
+                                                                        {Array.isArray(dashboard.activeManifest?.protocols) && dashboard.activeManifest.protocols.map((p: any, i: number) => (
+                                                                            <div key={i} className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl flex items-center gap-6 group hover:border-white/10 transition-all">
+                                                                                <div className="w-10 h-10 rounded-xl bg-black flex items-center justify-center font-mono font-black text-sm text-[#22d3ee] border border-white/5">{i + 1}</div>
+                                                                                <span className="text-sm text-gray-300 font-mono group-hover:text-white transition-colors">{renderSafe(p.instruction)}</span>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="pt-8 border-t border-white/5 flex gap-4">
+                                                                <button onClick={() => actions.deployStrategyToLattice(dashboard.activeManifest!)} className="flex-1 py-5 bg-[#22d3ee] text-black font-black text-[10px] uppercase rounded-2xl tracking-[0.4em] shadow-[0_20px_50px_rgba(34,211,238,0.2)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-4">
+                                                                    <RefreshCw size={16} /> Deploy to Topology
+                                                                </button>
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                                <div className="absolute top-10 right-10 z-40 opacity-0 group-hover/img-node:opacity-100 transition-all">
+                                                    <div className="flex flex-col gap-3">
+                                                        <button onClick={handleDownloadMainAsset} className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-white shadow-2xl hover:scale-105 active:scale-95 transition-all">
+                                                            <Download size={24} />
+                                                        </button>
+                                                        <button onClick={(e) => { e.stopPropagation(); actions.openHoloProjector({ id: 'soc-scan', title: 'Holo Inspect', type: 'IMAGE', content: dashboard.hubViewUrl }); }} className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-[#18E6FF] shadow-2xl hover:scale-105 active:scale-95 transition-all">
+                                                            <Maximize2 size={24} />
+                                                        </button>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
-                                <AnimatePresence>
-                                    {dashboard.activeManifest && dashboard.deploymentProgress < 100 && (
-                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="absolute bottom-10 right-10 z-[35] w-72 bg-[#050505]/90 backdrop-blur-3xl border border-[#22d3ee]/40 p-8 rounded-[2.5rem] shadow-[0_0_80px_rgba(34,211,238,0.15)] flex flex-col gap-6">
-                                            <div className="flex items-center justify-between">
-                                                <div className="flex items-center gap-3">
-                                                    <Activity size={14} className="text-[#22d3ee] animate-pulse" />
-                                                    <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Protocol Deployment</span>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 pointer-events-none" />
+                                    <AnimatePresence>
+                                        {dashboard.activeManifest && dashboard.deploymentProgress < 100 && (
+                                            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="absolute bottom-10 right-10 z-[35] w-72 bg-[#050505]/90 backdrop-blur-3xl border border-[#22d3ee]/40 p-8 rounded-[2.5rem] shadow-[0_0_80px_rgba(34,211,238,0.15)] flex flex-col gap-6">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <Activity size={14} className="text-[#22d3ee] animate-pulse" />
+                                                        <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Protocol Deployment</span>
+                                                    </div>
+                                                    <span className="text-[12px] font-black font-mono text-[#22d3ee]">{dashboard.deploymentProgress}%</span>
                                                 </div>
-                                                <span className="text-[12px] font-black font-mono text-[#22d3ee]">{dashboard.deploymentProgress}%</span>
-                                            </div>
-                                            <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                                                <motion.div className="h-full bg-gradient-to-r from-[#22d3ee] to-[#18E6FF] shadow-[0_0_20px_#22d3ee]" animate={{ width: `${dashboard.deploymentProgress}%` }} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <div className="text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest">Active Process Sequence:</div>
-                                                <div className="p-3 bg-black/60 border border-white/5 rounded-xl font-mono text-[9px] text-[#22d3ee] italic leading-relaxed">
-                                                    {manifestProtocols.length > 0
-                                                        ? renderSafe(manifestProtocols[Math.min(manifestProtocols.length - 1, Math.floor((dashboard.deploymentProgress / 100) * manifestProtocols.length))]?.instruction)
-                                                        : "Synchronizing Neural Lattice..."}
+                                                <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                                                    <motion.div className="h-full bg-gradient-to-r from-[#22d3ee] to-[#18E6FF] shadow-[0_0_20px_#22d3ee]" animate={{ width: `${dashboard.deploymentProgress}%` }} />
                                                 </div>
+                                                <div className="space-y-2">
+                                                    <div className="text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest">Active Process Sequence:</div>
+                                                    <div className="p-3 bg-black/60 border border-white/5 rounded-xl font-mono text-[9px] text-[#22d3ee] italic leading-relaxed">
+                                                        {manifestProtocols.length > 0
+                                                            ? renderSafe(manifestProtocols[Math.min(manifestProtocols.length - 1, Math.floor((dashboard.deploymentProgress / 100) * manifestProtocols.length))]?.instruction)
+                                                            : "Synchronizing Neural Lattice..."}
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between items-center text-[7px] font-black text-gray-700 uppercase tracking-[0.4em]">
+                                                    <span>Phase_{Math.floor(dashboard.deploymentProgress / 20) + 1}_Engaged</span>
+                                                    <span className="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 rounded border border-white/10">
+                                                        <div className="w-1 h-1 rounded-full bg-[#9d4edd] animate-pulse" />
+                                                        <span className="text-[6px] font-mono text-[#9d4edd]">SOVEREIGN_V1</span>
+                                                    </span>
+                                                    <Loader2 size={10} className="animate-spin" />
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                                <div className="absolute bottom-8 left-10 z-20 flex flex-col gap-3">
+                                    <div className="text-[8px] font-black font-mono text-[#9d4edd] uppercase tracking-[0.5em] mb-1 px-1 opacity-60">Lattice_Operational_State</div>
+                                    <div className="flex gap-2.5">
+                                        {[1, 2, 3].map(i => (
+                                            <div key={i} className="w-10 h-10 bg-black/60 border border-white/10 rounded-xl backdrop-blur-3xl flex items-center justify-center text-gray-500 hover:text-white hover:border-[#9d4edd]/50 transition-all shadow-xl group/node cursor-pointer">
+                                                <Bot size={18} className="group-hover/node:scale-110 transition-transform" />
                                             </div>
-                                            <div className="flex justify-between items-center text-[7px] font-black text-gray-700 uppercase tracking-[0.4em]">
-                                                <span>Phase_{Math.floor(dashboard.deploymentProgress / 20) + 1}_Engaged</span>
-                                                <span className="flex items-center gap-1.5 px-2 py-0.5 bg-white/5 rounded border border-white/10">
-                                                    <div className="w-1 h-1 rounded-full bg-[#9d4edd] animate-pulse" />
-                                                    <span className="text-[6px] font-mono text-[#9d4edd]">SOVEREIGN_V1</span>
-                                                </span>
-                                                <Loader2 size={10} className="animate-spin" />
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
-                            <div className="absolute bottom-8 left-10 z-20 flex flex-col gap-3">
-                                <div className="text-[8px] font-black font-mono text-[#9d4edd] uppercase tracking-[0.5em] mb-1 px-1 opacity-60">Lattice_Operational_State</div>
-                                <div className="flex gap-2.5">
-                                    {[1, 2, 3].map(i => (
-                                        <div key={i} className="w-10 h-10 bg-black/60 border border-white/10 rounded-xl backdrop-blur-3xl flex items-center justify-center text-gray-500 hover:text-white hover:border-[#9d4edd]/50 transition-all shadow-xl group/node cursor-pointer">
-                                            <Bot size={18} className="group-hover/node:scale-110 transition-transform" />
+
+
+                            <div className="h-32 bg-black/60 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-10 shrink-0 z-20 relative">
+                                <div className="flex items-center gap-12">
+                                    <div className="flex flex-col">
+                                        <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Neural Coherence</span>
+                                        <span className="text-lg font-black font-mono text-white tracking-tighter uppercase">The D-Ecosystem</span>
+                                    </div>
+                                    <div className="h-10 w-px bg-white/5" />
+                                    <div className="flex flex-col">
+                                        <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Auth Protocol</span>
+                                        <span className="text-base font-black font-mono text-[#10b981] tracking-tighter uppercase">Secure_L0</span>
+                                    </div>
+                                    <div className="h-10 w-px bg-white/5" />
+                                    <div className="flex items-center gap-6">
+                                        <div className="relative w-14 h-14 flex items-center justify-center shrink-0">
+                                            <canvas ref={voiceCanvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
+                                            <div className={cn(
+                                                "w-9 h-9 rounded-full border p-1 glass-action flex items-center justify-center relative transition-all duration-700 z-10",
+                                                voice.isActive ? "border-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.3)] scale-105" : "border-white/10"
+                                            )}>
+                                                <div className="w-full h-full rounded-full overflow-hidden bg-black/20 flex items-center justify-center">
+                                                    <Radio size={14} className={voice.isActive ? "text-[#9d4edd] animate-pulse" : "text-gray-700"} />
+                                                </div>
+                                            </div>
                                         </div>
-                                    ))}
+                                        <div className="flex flex-col gap-1.5">
+                                            <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Active Comms</span>
+                                            <button onClick={handleUplink} className={cn("px-5 py-1.5 rounded-xl text-[8px] font-black font-mono uppercase tracking-widest transition-all flex items-center gap-2 border glass-action active:scale-95", voice.isActive ? "bg-red-500/10 border-red-500/20 text-red-400" : "text-[#9d4edd] border-[#9d4edd]/30 hover:border-[#9d4edd] hover:text-white")}>
+                                                {voice.isActive ? <MicOff size={10} /> : <Mic size={10} />}
+                                                {voice.isActive ? 'Sever Link' : 'Establish Comms'}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col items-end gap-3">
+                                    <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest max-w-[280px] text-right leading-relaxed italic opacity-60">
+                                        Orchestrating Zenith Fidelity implementation protocols and autonomous agentic workflows.
+                                    </p>
+                                    <button onClick={handleGlobalSync} disabled={isSyncing} className="px-8 py-3 bg-[#f1c21b] hover:bg-[#ffdf6b] text-black rounded-2xl text-[9px] font-black uppercase tracking-[0.4em] transition-all active:scale-95 shadow-xl flex items-center gap-4 group">
+                                        {isSyncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />}
+                                        Establish Zenith View
+                                    </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="h-32 bg-black/60 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-10 shrink-0 z-20 relative">
-                            <div className="flex items-center gap-12">
-                                <div className="flex flex-col">
-                                    <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Neural Coherence</span>
-                                    <span className="text-lg font-black font-mono text-white tracking-tighter uppercase">The D-Ecosystem</span>
-                                </div>
-                                <div className="h-10 w-px bg-white/5" />
-                                <div className="flex flex-col">
-                                    <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Auth Protocol</span>
-                                    <span className="text-base font-black font-mono text-[#10b981] tracking-tighter uppercase">Secure_L0</span>
-                                </div>
-                                <div className="h-10 w-px bg-white/5" />
-                                <div className="flex items-center gap-6">
-                                    <div className="relative w-14 h-14 flex items-center justify-center shrink-0">
-                                        <canvas ref={voiceCanvasRef} className="absolute inset-0 w-full h-full pointer-events-none" />
-                                        <div className={cn(
-                                            "w-9 h-9 rounded-full border p-1 glass-action flex items-center justify-center relative transition-all duration-700 z-10",
-                                            voice.isActive ? "border-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.3)] scale-105" : "border-white/10"
-                                        )}>
-                                            <div className="w-full h-full rounded-full overflow-hidden bg-black/20 flex items-center justify-center">
-                                                <Radio size={14} className={voice.isActive ? "text-[#9d4edd] animate-pulse" : "text-gray-700"} />
-                                            </div>
-                                        </div>
+                        {/* Metrics Belt: Network Topology + Capital Velocity + Context Velocity - 3-column equal */}
+                        {!dashboard.isOculusView && (
+                            <div className="grid grid-cols-3 gap-6">
+                                {/* Network Topology */}
+                                <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col relative overflow-hidden group/topology shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(241,194,27,0.02)_0%,transparent_70%)] pointer-events-none" />
+                                    <div className="flex items-center gap-3 mb-3 relative z-10">
+                                        <ChartIcon size={14} className="text-[#f1c21b]" />
+                                        <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
                                     </div>
-                                    <div className="flex flex-col gap-1.5">
-                                        <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest font-black">Active Comms</span>
-                                        <button onClick={handleUplink} className={cn("px-5 py-1.5 rounded-xl text-[8px] font-black font-mono uppercase tracking-widest transition-all flex items-center gap-2 border glass-action active:scale-95", voice.isActive ? "bg-red-500/10 border-red-500/20 text-red-400" : "text-[#9d4edd] border-[#9d4edd]/30 hover:border-[#9d4edd] hover:text-white")}>
-                                            {voice.isActive ? <MicOff size={10} /> : <Mic size={10} />}
-                                            {voice.isActive ? 'Sever Link' : 'Establish Comms'}
-                                        </button>
+                                    <div className="flex-1 min-h-[180px] relative z-10">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RadarChart data={dashboard.topologyData}>
+                                                <PolarGrid stroke="#333" />
+                                                <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
+                                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                                <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
+                                            </RadarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity pointer-events-none" />
+                                </div>
+
+                                {/* Capital Velocity */}
+                                <CapitalVelocity telemetry={telemetry} />
+
+                                {/* Context Velocity */}
+                                <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col relative overflow-hidden shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.02)_0%,transparent_70%)] pointer-events-none" />
+                                    <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Command Deck + System Metrics - Moved to left column */}
+                        {!dashboard.isOculusView && (
+                            <div className="grid grid-cols-2 gap-6">
+                                <StrategicConsole />
+                                <div className="crystalline rounded-[2rem] p-5 shadow-2xl relative overflow-hidden shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
+                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.02)_0%,transparent_70%)] pointer-events-none" />
+                                    <div className="grid grid-cols-2 gap-4 relative z-10">
+                                        <CompactMetric title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
+                                        <CompactMetric title="BANDWIDTH" value={`${telemetry.net}GB/s`} detail="PEAK" icon={Radio} color="var(--amethyst)" trend="up" />
+                                        <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
+                                        <CompactMetric title="LATENCY" value="2.4ms" detail="OPTIMAL" icon={Zap} color="#f59e0b" trend="up" />
                                     </div>
                                 </div>
                             </div>
-                            <div className="flex flex-col items-end gap-3">
-                                <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest max-w-[280px] text-right leading-relaxed italic opacity-60">
-                                    Orchestrating Zenith Fidelity implementation protocols and autonomous agentic workflows.
-                                </p>
-                                <button onClick={handleGlobalSync} disabled={isSyncing} className="px-8 py-3 bg-[#f1c21b] hover:bg-[#ffdf6b] text-black rounded-2xl text-[9px] font-black uppercase tracking-[0.4em] transition-all active:scale-95 shadow-xl flex items-center gap-4 group">
-                                    {isSyncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />}
-                                    Establish Zenith View
-                                </button>
-                            </div>
-                        </div>
+                        )}
                     </div>
+
+                    {/* Sidebar - Right Column */}
                     <AnimatePresence>
                         {!dashboard.isOculusView && (
                             <motion.div initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }} className="col-span-3 space-y-4 flex flex-col relative z-10">
-                                <StrategicConsole />
-                                <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/anchor shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
+                                <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/anchor shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700 min-h-[300px]">
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
                                     <div className="absolute inset-0 opacity-0 group-hover/anchor:opacity-20 bg-[linear-gradient(45deg,transparent_45%,rgba(255,255,255,0.8)_50%,transparent_55%)] bg-[length:200%_200%] animate-[shimmer_5s_infinite_linear] pointer-events-none" />
                                     <div className="flex items-center justify-between relative z-10 px-1">
@@ -1083,7 +1147,7 @@ const MetaventionsHub: React.FC = () => {
                                             <input type="file" className="hidden" onChange={handleAnchorSwap} accept="image/*" />
                                         </label>
                                     </div>
-                                    <motion.div onClick={() => fileInputRef.current?.click()} whileHover="scanning" className="h-32 bg-black/60 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer">
+                                    <motion.div onClick={() => fileInputRef.current?.click()} whileHover="scanning" className="h-48 bg-black/60 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer flex-1">
                                         <input type="file" ref={fileInputRef} className="hidden" onChange={handleAnchorSwap} accept="image/*" />
                                         <motion.div variants={{ scanning: { top: ['0%', '100%', '0%'], opacity: 1 } }} animate={isSyncing ? "scanning" : { opacity: 0 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute left-0 right-0 h-[2px] bg-[#18E6FF] shadow-[0_0_20px_#18E6FF] z-30 pointer-events-none" />
                                         {dashboard.referenceImage ? (
@@ -1111,14 +1175,7 @@ const MetaventionsHub: React.FC = () => {
                                         )}
                                     </motion.div>
                                 </div>
-                                <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl relative overflow-hidden shrink-0 invisible-glass border border-white/5">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <CompactMetric title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
-                                        <CompactMetric title="BANDWIDTH" value={`${telemetry.net}GB/s`} detail="PEAK" icon={Radio} color="var(--amethyst)" trend="up" />
-                                        <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
-                                        <CompactMetric title="LATENCY" value="2.4ms" detail="OPTIMAL" icon={Zap} color="#f59e0b" trend="up" />
-                                    </div>
-                                </div>
+
                                 <DirectoryPeek manifest={dashboard.activeManifest} />
                                 <SwarmBox />
 
@@ -1126,48 +1183,6 @@ const MetaventionsHub: React.FC = () => {
                         )}
                     </AnimatePresence>
                 </div>
-
-                {/* VISUALLY SEPARATE METRICS ROW - ALGIGNED WITH GRID */}
-                <AnimatePresence>
-                    {!dashboard.isOculusView && (
-                        <motion.div
-                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="grid grid-cols-12 gap-6 relative z-20 mb-2 -mt-4 px-2" // Reduced gap via negative margin
-                        >
-                            {/* Network Topology */}
-                            <div className="col-span-4 flex">
-                                <div className="crystalline rounded-xl p-5 w-full h-56 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5 bg-black/40 backdrop-blur-sm">
-                                    <div className="flex items-center gap-3 mb-2 relative z-10">
-                                        <ChartIcon size={14} className="text-[#f1c21b]" />
-                                        <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
-                                    </div>
-                                    <div className="flex-1 h-40 relative z-10">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <RadarChart data={dashboard.topologyData}>
-                                                <PolarGrid stroke="#333" />
-                                                <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
-                                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                                <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
-                                            </RadarChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
-                                </div>
-                            </div>
-
-                            {/* Capital Velocity */}
-                            <div className="col-span-4 h-56">
-                                <CapitalVelocity telemetry={telemetry} />
-                            </div>
-
-                            {/* Context Velocity (Moved from Sidebar) */}
-                            <div className="col-span-4 h-56 bg-black/40 border border-white/5 rounded-xl overflow-hidden invisible-glass shadow-2xl backdrop-blur-sm p-4 relative">
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.02)_0%,transparent_70%)] pointer-events-none" />
-                                <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
 
                 <AnimatePresence>
                     {!dashboard.isOculusView && (
@@ -1191,8 +1206,8 @@ const MetaventionsHub: React.FC = () => {
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 };
 
