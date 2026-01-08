@@ -1129,45 +1129,7 @@ const MetaventionsHub: React.FC = () => {
                     </AnimatePresence>
                 </div>
 
-                {/* Gap Filler - Topology & Metrics in the void between Main Layout and D-Ecosystem */}
-                <AnimatePresence>
-                    {!dashboard.isOculusView && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 30 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 30 }}
-                            className="grid grid-cols-12 gap-8 mt-6 mb-2" // Fills the void
-                        >
-                            {/* Network Topology on Left to fill void */}
-                            <div className="col-span-9 grid grid-cols-2 gap-8">
-                                <div className="crystalline rounded-xl p-6 h-64 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5 bg-black/20">
-                                    <div className="flex items-center gap-3 mb-2 relative z-10">
-                                        <ChartIcon size={14} className="text-[#f1c21b]" />
-                                        <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
-                                    </div>
-                                    <div className="flex-1 h-48 relative z-10">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <RadarChart data={dashboard.topologyData}>
-                                                <PolarGrid stroke="#333" />
-                                                <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
-                                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                                <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
-                                            </RadarChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                    <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
-                                </div>
-                                <div className="h-64">
-                                    <CapitalVelocity telemetry={telemetry} />
-                                </div>
-                            </div>
-                            {/* Right side spacer or additional metrics if needed - keeping it aligned with sidebar width */}
-                            <div className="col-span-3">
-                                {/* Optional: Power Status could go here in future */}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+
 
                 <AnimatePresence>
                     {!dashboard.isOculusView && (
@@ -1183,6 +1145,29 @@ const MetaventionsHub: React.FC = () => {
                                         <span className="text-[7px] text-gray-500 font-mono uppercase tracking-0.4em block">Active Global Node Synchronization</span>
                                         <span className="text-[6px] px-1.5 py-0.5 bg-[#9d4edd]/10 border border-[#9d4edd]/20 rounded font-black font-mono text-[#9d4edd] uppercase">SOVEREIGN_V1_STABLE</span>
                                     </div>
+                                </div>
+                            </div>
+
+                            {/* Metrics Overlay in D-Ecosystem Header Area (Top Right) */}
+                            <div className="absolute top-12 right-16 z-20 flex items-start gap-12 pointer-events-auto">
+                                <div className="w-64 h-48 relative group/topology">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <ChartIcon size={14} className="text-[#f1c21b]" />
+                                        <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
+                                    </div>
+                                    <div className="h-40">
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RadarChart data={dashboard.topologyData}>
+                                                <PolarGrid stroke="#333" />
+                                                <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
+                                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                                <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
+                                            </RadarChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                                <div className="w-72 mt-2">
+                                    <CapitalVelocity telemetry={telemetry} />
                                 </div>
                             </div>
                             <DEcosystem sectorOverrides={sectorLoads} />
