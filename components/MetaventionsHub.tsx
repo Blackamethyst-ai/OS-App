@@ -1129,7 +1129,39 @@ const MetaventionsHub: React.FC = () => {
                     </AnimatePresence>
                 </div>
 
+                {/* VISUALLY SEPARATE METRICS ROW - COMPLETED OUTSIDE ZENITH/SOC */}
+                <AnimatePresence>
+                    {!dashboard.isOculusView && (
+                        <motion.div
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="flex items-end justify-between px-10 py-2 mb-4 relative z-20"
+                        >
+                            {/* Network Topology Standalone */}
+                            <div className="crystalline rounded-xl p-6 w-[450px] h-56 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5 bg-black/40 backdrop-blur-sm">
+                                <div className="flex items-center gap-3 mb-4 relative z-10">
+                                    <ChartIcon size={14} className="text-[#f1c21b]" />
+                                    <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
+                                </div>
+                                <div className="flex-1 h-36 relative z-10">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <RadarChart data={dashboard.topologyData}>
+                                            <PolarGrid stroke="#333" />
+                                            <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
+                                            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                                            <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
+                                        </RadarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-[#f1c21b]/5 opacity-0 group-hover/topology:opacity-100 transition-opacity" />
+                            </div>
 
+                            {/* Capital Velocity Standalone - Right Side Aligned */}
+                            <div className="w-[500px]">
+                                <CapitalVelocity telemetry={telemetry} />
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 <AnimatePresence>
                     {!dashboard.isOculusView && (
@@ -1148,28 +1180,6 @@ const MetaventionsHub: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Metrics Overlay in D-Ecosystem Header Area (Top Right) */}
-                            <div className="absolute top-12 right-16 z-20 flex items-start gap-12 pointer-events-auto">
-                                <div className="w-64 h-48 relative group/topology">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <ChartIcon size={14} className="text-[#f1c21b]" />
-                                        <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
-                                    </div>
-                                    <div className="h-40">
-                                        <ResponsiveContainer width="100%" height="100%">
-                                            <RadarChart data={dashboard.topologyData}>
-                                                <PolarGrid stroke="#333" />
-                                                <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
-                                                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                                <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
-                                            </RadarChart>
-                                        </ResponsiveContainer>
-                                    </div>
-                                </div>
-                                <div className="w-72 mt-2">
-                                    <CapitalVelocity telemetry={telemetry} />
-                                </div>
-                            </div>
                             <DEcosystem sectorOverrides={sectorLoads} />
                             <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black to-transparent pointer-events-none z-10" />
                         </motion.div>
