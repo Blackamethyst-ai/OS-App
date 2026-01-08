@@ -22,7 +22,6 @@ export interface ApiUsageStats {
 const RATE_LIMITS = {
     'gemini-2.0-flash-exp': { rpm: 15, rpd: 1500 },
     'gemini-2.0-flash': { rpm: 15, rpd: 1500 },
-    'gemini-2.0-flash': { rpm: 15, rpd: 1500 },
     'text-embedding-004': { rpm: 100, rpd: 10000 },
     'default': { rpm: 15, rpd: 1500 }
 };
@@ -83,7 +82,7 @@ class ApiUsageService {
         const limits = RATE_LIMITS[normalizedModel as keyof typeof RATE_LIMITS] || RATE_LIMITS.default;
         const now = Date.now();
         const minuteAgo = now - 60 * 1000;
-        
+
         const callsThisMinute = this.calls.filter(
             c => c.model === normalizedModel && c.timestamp > minuteAgo
         ).length;
