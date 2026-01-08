@@ -173,8 +173,10 @@ export interface FileData {
 export interface StoredArtifact {
     id: string;
     name: string;
+    title?: string;
     type: string;
     data: Blob;
+    content?: string;
     analysis: ArtifactAnalysis | null;
     timestamp: number;
     tags: string[];

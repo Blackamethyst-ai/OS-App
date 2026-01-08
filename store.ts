@@ -6,7 +6,8 @@ import {
     PeerPresence, SwarmEvent, TaskPriority, TaskStatus,
     AspectRatio, ImageSize, StoredArtifact, MetaventionsState,
     OperationalContext, AutonomousAgent, Frame, ProductionBible,
-    TechnicalManifest, SwarmProposal, AppPreferences, ModelTier
+    TechnicalManifest, SwarmProposal, AppPreferences, ModelTier,
+    ProtocolStepResult
 } from './types';
 import { neuralVault } from './services/persistenceService';
 
@@ -91,8 +92,8 @@ interface AppState {
     };
     system: {
         isTerminalOpen: boolean;
-        logs: any[];
-        dockItems: any[];
+        logs: { level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' | 'SYSTEM'; message: string; timestamp: number; id?: string }[];
+        dockItems: { id: string; label: string; icon: string; action: () => void }[];
     };
     marketData: {
         lastSync: number;
@@ -112,8 +113,8 @@ interface AppState {
         isConnecting: boolean;
         error: string | null;
         voiceName: string;
-        transcripts: any[];
-        partialTranscript: any | null;
+        transcripts: { role: 'user' | 'model'; text: string; timestamp: number }[];
+        partialTranscript: { role: 'user' | 'model'; text: string } | null;
         mentalState: {
             skepticism: number;
             excitement: number;
@@ -124,12 +125,12 @@ interface AppState {
     visualCortex: {
         isAnalyzing: boolean;
         isProbing: boolean;
-        lastResult: any | null;
+        lastResult: { summary: string; confidence: number; tags: string[] } | null;
         dropActive: boolean;
     };
     holo: {
         isOpen: boolean;
-        activeArtifact: any | null;
+        activeArtifact: StoredArtifact | null;
         analysisResult: string | null;
         isAnalyzing: boolean;
     };
@@ -151,6 +152,7 @@ interface AppState {
         activeLayers: string[];
     };
     process: {
+        // ReactFlow nodes/edges - using any[] for external library compatibility
         nodes: any[];
         edges: any[];
         isLoading: boolean;
@@ -159,15 +161,15 @@ interface AppState {
         diagramError: string | null;
         generatedCode: string;
         generatedWorkflow: TechnicalManifest | null;
-        runtimeResults: Record<number, any>;
+        runtimeResults: Record<number, ProtocolStepResult>;
         activeStepIndex: number | null;
         isSimulating: boolean;
         activeTab: string;
         workflowType: 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE' | 'AGENTIC_ORCHESTRATION' | 'CONVERGENT_SYNTHESIS';
         livingMapContext: {
-            sources: any[];
+            sources: FileData[];
         };
-        pendingAIAddition: any | null;
+        pendingAIAddition: { id: string; type: string; label: string; data?: Record<string, unknown> } | null;
         pendingAction: string | null;
         governance: 'D-Ecosystem Protocol 2025.Q1';
         coherenceScore: number;
@@ -677,7 +679,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         updateProcessNode: (id, update) => set((state) => ({
             process: {
                 ...state.process,
-                nodes: state.process.nodes.map(n => n.id === id ? { ...n, data: { ...n.data, ...update } } : n)
+                nodes: state.process.nodes.map((n: any) => n.id === id ? { ...n, data: { ...n.data, ...update } } : n)
             }
         })),
         setImageGenState: (update) => set((state) => ({

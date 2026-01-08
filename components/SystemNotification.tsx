@@ -7,15 +7,15 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { cn } from '../utils/cn';
 import { audio } from '../services/audioService';
 
-const NotificationCard: React.FC<{ 
-    id: string; 
-    type: 'ERROR' | 'SUCCESS' | 'INFO' | 'WARNING'; 
-    title: string; 
-    message: string; 
+const NotificationCard: React.FC<{
+    id: string;
+    type: 'ERROR' | 'SUCCESS' | 'INFO' | 'WARNING';
+    title: string;
+    message: string;
     timestamp: number;
-    onDismiss: (id: string) => void; 
+    onDismiss: (id: string) => void;
 }> = ({ id, type, title, message, timestamp, onDismiss }) => {
-    
+
     useEffect(() => {
         const duration = type === 'ERROR' ? 10000 : 5000;
         const timer = setTimeout(() => onDismiss(id), duration);
@@ -148,10 +148,10 @@ const GlobalAlertMesh: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ i
     const filteredLogs = store.system.logs.filter(l => {
         if (filter === 'ALL') return true;
         if (filter === 'ERROR') return l.level === 'ERROR';
-        if (filter === 'WARNING') return l.level === 'WARN' || l.level === 'WARNING';
+        if (filter === 'WARNING') return l.level === 'WARN';
         return l.level === 'SYSTEM';
     });
-    const errorCount = store.system.logs.filter(n => n.level === 'ERROR' || n.level === 'CRITICAL').length;
+    const errorCount = store.system.logs.filter(n => n.level === 'ERROR').length;
 
     return (
         <>
