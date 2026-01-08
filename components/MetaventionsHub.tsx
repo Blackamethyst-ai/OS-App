@@ -1121,9 +1121,7 @@ const MetaventionsHub: React.FC = () => {
                                 </div>
                                 <DirectoryPeek manifest={dashboard.activeManifest} />
                                 <SwarmBox />
-                                <div className="flex-1 min-h-[300px]">
-                                    <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
-                                </div>
+
                             </motion.div>
                         )}
                     </AnimatePresence>
@@ -1134,16 +1132,16 @@ const MetaventionsHub: React.FC = () => {
                     {!dashboard.isOculusView && (
                         <motion.div
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="grid grid-cols-12 gap-6 relative z-20 mb-6"
+                            className="grid grid-cols-12 gap-6 relative z-20 mb-2 -mt-4 px-2" // Reduced gap via negative margin
                         >
-                            {/* Network Topology - Aligned under SOC (Left) */}
-                            <div className="col-span-9 flex items-end px-2">
-                                <div className="crystalline rounded-xl p-5 w-[420px] h-52 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5 bg-black/40 backdrop-blur-sm">
-                                    <div className="flex items-center gap-3 mb-4 relative z-10">
+                            {/* Network Topology */}
+                            <div className="col-span-4 flex">
+                                <div className="crystalline rounded-xl p-5 w-full h-56 relative overflow-hidden shadow-2xl shrink-0 group/topology invisible-glass border border-white/5 bg-black/40 backdrop-blur-sm">
+                                    <div className="flex items-center gap-3 mb-2 relative z-10">
                                         <ChartIcon size={14} className="text-[#f1c21b]" />
                                         <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
                                     </div>
-                                    <div className="flex-1 h-32 relative z-10">
+                                    <div className="flex-1 h-40 relative z-10">
                                         <ResponsiveContainer width="100%" height="100%">
                                             <RadarChart data={dashboard.topologyData}>
                                                 <PolarGrid stroke="#333" />
@@ -1157,9 +1155,15 @@ const MetaventionsHub: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Capital Velocity - Aligned under Sidebar (Right) */}
-                            <div className="col-span-3">
+                            {/* Capital Velocity */}
+                            <div className="col-span-4 h-56">
                                 <CapitalVelocity telemetry={telemetry} />
+                            </div>
+
+                            {/* Context Velocity (Moved from Sidebar) */}
+                            <div className="col-span-4 h-56 bg-black/40 border border-white/5 rounded-xl overflow-hidden invisible-glass shadow-2xl backdrop-blur-sm p-4 relative">
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.02)_0%,transparent_70%)] pointer-events-none" />
+                                <ContextVelocityChart onDrillDown={(p) => actions.addLog('INFO', `LOG_DRILL: ${p.throughput} pkts`)} />
                             </div>
                         </motion.div>
                     )}
