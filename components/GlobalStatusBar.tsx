@@ -11,7 +11,7 @@ import {
     ArrowRight, Loader2, Terminal, HardDrive, Globe, Users,
     Eye, Scan, Monitor, Save, Gauge, Database, Fingerprint,
     Bot, RefreshCw, ShieldAlert, CheckCircle2, Target, Radio,
-    ShieldCheck, PanelRight, SearchCode, Dna
+    ShieldCheck, PanelRight, SearchCode, Dna, Battery
 } from 'lucide-react';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { useVisualCortex } from '../hooks/useVisualCortex';
@@ -20,6 +20,8 @@ import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import ApiUsageIndicator from './ApiUsageIndicator';
 import EvolutionConsole from './EvolutionConsole';
+import PowerControlPanel from './PowerControlPanel';
+import { powerService } from '../services/powerService';
 
 const ActionSquircle = memo(({ icon: Icon, color, onClick, isActive, glowColor }: any) => (
     <motion.button
@@ -114,6 +116,8 @@ const GlobalStatusBar: React.FC = () => {
     const [driveHealth, setDriveHealth] = useState(99.6);
     const [neuralLoad, setNeuralLoad] = useState(12.4);
     const [isEvolutionOpen, setIsEvolutionOpen] = useState(false);
+    const [isPowerOpen, setIsPowerOpen] = useState(false);
+    const powerConfig = powerService.getConfig();
 
     const peerCount = collaboration.peers.length;
 
@@ -266,10 +270,21 @@ const GlobalStatusBar: React.FC = () => {
                         label="Evolution"
                         glowColor="#22d3ee"
                     />
+                    <ActionSquircle
+                        icon={Battery}
+                        color={powerConfig.mode === 'OVERDRIVE' ? '#ef4444' : powerConfig.mode === 'ECO' ? '#10b981' : '#f59e0b'}
+                        onClick={() => setIsPowerOpen(true)}
+                        isActive={isPowerOpen}
+                        label="Power"
+                        glowColor="#22d3ee"
+                    />
                 </div>
 
                 {/* Evolution Console Modal */}
                 <EvolutionConsole isOpen={isEvolutionOpen} onClose={() => setIsEvolutionOpen(false)} />
+
+                {/* Power Control Panel */}
+                <PowerControlPanel isOpen={isPowerOpen} onClose={() => setIsPowerOpen(false)} />
 
                 {/* IDENTITY & AUDIT (Far Right) */}
                 <div className="flex items-center gap-6 pl-6 shrink-0 relative z-10">
