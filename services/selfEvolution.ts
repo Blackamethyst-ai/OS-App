@@ -19,6 +19,7 @@
 
 import { useAppStore } from '../store';
 import { generateText } from './geminiService';
+import { powerService } from './powerService';
 
 // Configuration
 const FRICTION_THRESHOLD = 3; // Number of similar errors/actions before triggering evolution
@@ -123,6 +124,12 @@ class SelfEvolutionService {
         if (this.isEvolving) return;
         if (Date.now() - this.lastEvolutionTime < EVOLUTION_COOLDOWN_MS) return;
 
+        // Check if Auto-Evolution is enabled in power settings
+        if (!powerService.isEnabled('autoEvolution')) {
+            console.log('🧬 SELF-EVOLUTION: Disabled in power settings. Enable in Power Control Panel.');
+            return;
+        }
+
         // Find friction signals that exceed threshold
         const criticalFriction = Array.from(this.frictionSignals.values())
             .filter(f => f.count >= FRICTION_THRESHOLD)
@@ -165,6 +172,7 @@ class SelfEvolutionService {
                 return;
             }
             cycle.hypothesesGenerated++;
+            powerService.recordUsage('autoEvolution', 2000); // Approx tokens for hypothesis
 
             // Step 2: Generate code
             const evolution = await this.generateEvolution(hypothesis);
@@ -172,6 +180,7 @@ class SelfEvolutionService {
                 this.isEvolving = false;
                 return;
             }
+            powerService.recordUsage('autoEvolution', 5000); // Approx tokens for code gen
 
             // Step 3: Validate code
             const isValid = this.validateCode(evolution.generatedCode);

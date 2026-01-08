@@ -12,6 +12,7 @@
 import { useAppStore } from '../store';
 import { generateText, performGlobalSearch, generateEmbedding } from './geminiService';
 import { neuralVault } from './persistenceService';
+import { powerService } from './powerService';
 
 // Configuration
 const IDLE_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes of inactivity triggers dream mode
@@ -94,6 +95,12 @@ class DreamProtocolService {
     private async enterDreamMode() {
         if (this.isDreaming) return;
 
+        // Check if Dream Protocol is enabled in power settings
+        if (!powerService.isEnabled('dreamProtocol')) {
+            console.log('🌙 DREAM PROTOCOL: Disabled in power settings. Enable in Power Control Panel.');
+            return;
+        }
+
         this.isDreaming = true;
         const sessionId = `dream-${Date.now()}`;
 
@@ -134,15 +141,18 @@ class DreamProtocolService {
                 const query = this.pendingQueries.shift()!;
                 await this.processQuery(query);
                 this.currentSession.queriesProcessed++;
+                powerService.recordUsage('dreamProtocol', 2000); // Approx tokens per query
             }
 
             // Priority 2: Analyze usage patterns
             await this.analyzePatterns();
             this.currentSession.patternsAnalyzed++;
+            powerService.recordUsage('dreamProtocol', 1000); // Approx tokens per analysis
 
             // Priority 3: Generate predictive insights
             if (Math.random() > 0.5) {
                 await this.generatePrediction();
+                powerService.recordUsage('dreamProtocol', 1500); // Approx tokens per prediction
             }
 
         } catch (error) {
