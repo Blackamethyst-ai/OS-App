@@ -184,7 +184,7 @@ interface AppState {
         characterRefs: FileData[];
         worldRefs: FileData[];
         styleRefs: FileData[];
-        activeColorway: any;
+        activeColorway: { name: string; primary: string; secondary: string; accent: string } | null;
         activeStylePreset: string;
         resonanceCurve: { frame: number; tension: number; dynamics: number }[];
         productionBible: null | ProductionBible;
@@ -212,7 +212,7 @@ interface AppState {
     hardware: {
         currentEra: string;
         activeVendor: string;
-        recommendations: any[];
+        recommendations: { id: string; name: string; price: number; rating: number; vendor: string }[];
         componentQuery: string;
         filters: {
             minPrice: number;
@@ -221,8 +221,8 @@ interface AppState {
             showOutOfStock: boolean;
         };
         schematicImage: FileData | null;
-        analysis: any | null;
-        bom: any[];
+        analysis: { summary: string; components: string[]; specs: Record<string, string> } | null;
+        bom: { id: string; name: string; quantity: number; price: number; source: string }[];
         isLoading: boolean;
         error: string | null;
         xrayImage: string | null;
@@ -235,7 +235,7 @@ interface AppState {
         };
     };
     memory: {
-        driveManifest: any | null;
+        driveManifest: TechnicalManifest | null;
         activeCollection: string | null;
     };
     bibliomorphic: {
@@ -248,7 +248,7 @@ interface AppState {
         status: string;
     };
     research: {
-        tasks: any[];
+        tasks: { id: string; query: string; status: string; progress: number; logs: string[]; timestamp: number; findings?: string[] }[];
     };
     bicameral: {
         goal: string;
@@ -274,7 +274,7 @@ interface AppState {
         x: number;
         y: number;
         contextType: string;
-        targetContent: any;
+        targetContent: string | Record<string, unknown> | null;
     };
     synthesis: {
         incomingProposals: SwarmProposal[];
