@@ -30,6 +30,7 @@ import MetaventionsLogo from './components/MetaventionsLogo';
 import AppFooter from './components/AppFooter';
 import AuthModule from './components/AuthModule';
 import SynapticContextHub from './components/SynapticContextHub';
+import DreamProtocolWidget from './components/DreamProtocolWidget';
 
 import { useAutoSave } from './hooks/useAutoSave';
 import { useDaemonSwarm } from './hooks/useDaemonSwarm';
@@ -401,6 +402,7 @@ const App: React.FC = () => {
             <OverlayOS />
             <HoloProjector />
             <VoiceManager />
+            <DreamProtocolWidget />
 
             {/* API Key Configuration Modal */}
             <ApiKeyModal
