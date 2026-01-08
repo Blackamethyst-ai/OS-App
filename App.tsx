@@ -198,13 +198,15 @@ const App: React.FC = () => {
         window.addEventListener('show-api-key-modal', handleShowModal);
 
         // Auto-show modal if no key configured
+        let apiKeyTimer: ReturnType<typeof setTimeout> | null = null;
         if (!apiKeyService.hasGeminiKey()) {
-            setTimeout(() => setIsApiKeyModalOpen(true), 1500);
+            apiKeyTimer = setTimeout(() => setIsApiKeyModalOpen(true), 1500);
         }
 
         return () => {
             collabService.disconnect();
             window.removeEventListener('show-api-key-modal', handleShowModal);
+            if (apiKeyTimer) clearTimeout(apiKeyTimer);
         };
     }, []);
 
@@ -218,6 +220,8 @@ const App: React.FC = () => {
     }, []);
 
     useEffect(() => {
+        let warningTimer: ReturnType<typeof setTimeout> | null = null;
+
         const checkKey = async () => {
             // Check if we have a key in Environment OR LocalStorage
             const hasEnvKey = !!(import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY);
@@ -226,15 +230,18 @@ const App: React.FC = () => {
             if (!hasEnvKey && !hasLocalKey) {
                 console.log("🔐 AUTH EXTENSION: No key found. Triggering auto-prompt.");
                 // No key found anywhere. Prompt the user.
-                setTimeout(() => {
+                warningTimer = setTimeout(() => {
                     actions.addLog('WARN', 'SECURITY: Neural Uplink Credentials missing.');
-                    // actions.toggleProfile(true); // User requested manual entry via Sovereign Gate
                 }, 1000);
             } else {
                 console.log("🔐 AUTH EXTENSION: Key detected.", { env: hasEnvKey, local: hasLocalKey });
             }
         };
         checkKey();
+
+        return () => {
+            if (warningTimer) clearTimeout(warningTimer);
+        };
     }, [actions]);
 
     useEffect(() => { setSector(mode); }, [mode, setSector]);
