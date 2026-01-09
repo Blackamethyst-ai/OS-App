@@ -7,7 +7,7 @@ import {
     AspectRatio, ImageSize, StoredArtifact, MetaventionsState,
     OperationalContext, AutonomousAgent, Frame, ProductionBible,
     TechnicalManifest, SwarmProposal, AppPreferences, ModelTier,
-    ProtocolStepResult
+    ProtocolStepResult, BiometricState, UIComplexityLevel
 } from './types';
 import { neuralVault } from './services/persistenceService';
 
@@ -89,7 +89,13 @@ interface AppState {
         uptime: number;
         entropy: number;
         integrity: number;
+        operationalState: 'BOOTING' | 'IDLE' | 'PROCESSING' | 'PAGING' | 'SUSPENDED' | 'ERROR';
+        tasksProcessed: number;
+        taskQueueDepth: number;
+        pagesInMemory: number;
+        cacheHitRate: number;
     };
+    biometric: BiometricState;
     system: {
         isTerminalOpen: boolean;
         logs: { level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' | 'SYSTEM'; message: string; timestamp: number; id?: string }[];
@@ -349,6 +355,10 @@ interface AppState {
         deployStrategyToLattice: (strategy: TechnicalManifest) => void;
         addSwarmProposal: (proposal: SwarmProposal) => void;
         dismissProposal: (id: string) => void;
+        // Kernel & Biometric actions
+        setKernelState: (update: Partial<AppState['kernel']>) => void;
+        setBiometricState: (update: Partial<BiometricState>) => void;
+        setUIComplexity: (level: UIComplexityLevel) => void;
     };
 }
 
@@ -371,7 +381,25 @@ export const useAppStore = create<AppState>((set, get) => ({
     kernel: {
         uptime: 0,
         entropy: 5,
-        integrity: 99
+        integrity: 99,
+        operationalState: 'IDLE',
+        tasksProcessed: 0,
+        taskQueueDepth: 0,
+        pagesInMemory: 0,
+        cacheHitRate: 0.95
+    },
+    biometric: {
+        isActive: false,
+        gazeTrackingEnabled: true,
+        stressDetectionEnabled: true,
+        adaptiveUIEnabled: true,
+        currentStressLevel: 0,
+        stressTrend: 'STABLE',
+        attentionScore: 100,
+        cognitiveLoad: 30,
+        uiComplexity: 'FULL',
+        lastGazeFixation: null,
+        samplesCollected: 0
     },
     system: {
         isTerminalOpen: false,
@@ -850,5 +878,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         }),
         addSwarmProposal: (proposal) => set((state) => ({ synthesis: { ...state.synthesis, incomingProposals: [proposal, ...state.synthesis.incomingProposals].slice(0, 5) } })),
         dismissProposal: (id) => set((state) => ({ synthesis: { ...state.synthesis, incomingProposals: state.synthesis.incomingProposals.filter(p => p.id !== id) } })),
+        // Kernel & Biometric actions
+        setKernelState: (update) => set((state) => ({
+            kernel: { ...state.kernel, ...update }
+        })),
+        setBiometricState: (update) => set((state) => ({
+            biometric: { ...state.biometric, ...update }
+        })),
+        setUIComplexity: (level) => set((state) => ({
+            biometric: { ...state.biometric, uiComplexity: level }
+        })),
     }
 }));
