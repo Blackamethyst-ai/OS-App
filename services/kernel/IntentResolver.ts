@@ -57,6 +57,7 @@ const INTENT_TOOLS: Record<IntentCategory, string[]> = {
   ANALYSIS: ['analyze', 'evaluate', 'compare'],
   ORCHESTRATION: ['spawnAgent', 'coordinateSwarm', 'delegate'],
   BIOMETRIC: ['adaptUI', 'prefetchContext', 'reduceComplexity'],
+  UI_REGENERATION: ['regenerateUI', 'morphLayout', 'adaptiveRender'],
 };
 
 export class IntentResolver {
