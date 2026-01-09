@@ -289,7 +289,7 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
       // But update gaze point EVERY frame for smooth reticle
       const shouldProcessFull = frameCountRef.current % 3 === 0;
 
-      const processingStart = performance.now();
+      const processingStart = window.performance.now();
 
       // ALWAYS update gaze point for smooth tracking
       if (config.gazeTrackingEnabled) {
@@ -314,7 +314,7 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
         agentKernel.updateBiometricContext(context);
       }
 
-      const processingLatency = performance.now() - processingStart;
+      const processingLatency = window.performance.now() - processingStart;
 
       // Update FPS counter every second
       if (now - lastFpsUpdateRef.current >= 1000) {
