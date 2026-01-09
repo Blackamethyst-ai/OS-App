@@ -509,3 +509,43 @@ export interface AppPreferences {
     modelTier: ModelTier;
     autonomyEnabled: boolean;
 }
+
+// ============================================================================
+// AGENTIC KERNEL TYPES
+// ============================================================================
+
+export type KernelOperationalState = 'BOOTING' | 'IDLE' | 'PROCESSING' | 'PAGING' | 'SUSPENDED' | 'ERROR';
+export type UIComplexityLevel = 'FULL' | 'REDUCED' | 'MINIMAL' | 'FLOW_STATE';
+
+export interface KernelState {
+    uptime: number;
+    entropy: number;
+    integrity: number;
+    operationalState: KernelOperationalState;
+    tasksProcessed: number;
+    taskQueueDepth: number;
+    pagesInMemory: number;
+    totalPageSize: number;
+    pageFaults: number;
+    cacheHitRate: number;
+    avgTaskLatency: number;
+}
+
+export interface BiometricState {
+    isActive: boolean;
+    gazeTrackingEnabled: boolean;
+    stressDetectionEnabled: boolean;
+    adaptiveUIEnabled: boolean;
+    currentStressLevel: number;
+    stressTrend: 'RISING' | 'STABLE' | 'FALLING';
+    attentionScore: number;
+    cognitiveLoad: number;
+    uiComplexity: UIComplexityLevel;
+    lastGazeFixation: {
+        x: number;
+        y: number;
+        duration: number;
+        targetElement: string | null;
+    } | null;
+    samplesCollected: number;
+}

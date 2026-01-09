@@ -1,0 +1,280 @@
+/**
+ * ADAPTIVE UI STYLES
+ *
+ * CSS for stress-responsive UI mutations.
+ * These styles are activated by data attributes set by useStressDetector.
+ *
+ * Complexity Levels:
+ * - FULL: All UI elements visible, full animations
+ * - REDUCED: Secondary panels hidden, reduced animations
+ * - MINIMAL: Minimal UI, essential elements only
+ * - FLOW_STATE: Distraction-free focus mode
+ */
+
+/* ============================================================================
+   BASE TRANSITIONS
+   ============================================================================ */
+
+[data-ui-complexity] * {
+  transition-duration: calc(var(--base-transition-duration, 300ms) * var(--animation-duration-multiplier, 1));
+}
+
+/* ============================================================================
+   REDUCED MOTION
+   ============================================================================ */
+
+[data-reduced-motion="true"] * {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+/* ============================================================================
+   COMPLEXITY: REDUCED
+   ============================================================================ */
+
+[data-ui-complexity="REDUCED"] .secondary-panel,
+[data-ui-complexity="REDUCED"] [data-adaptive-hide="reduced"],
+[data-ui-complexity="REDUCED"] .metrics-belt,
+[data-ui-complexity="REDUCED"] .notification-center {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.95);
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+/* ============================================================================
+   COMPLEXITY: MINIMAL
+   ============================================================================ */
+
+[data-ui-complexity="MINIMAL"] .secondary-panel,
+[data-ui-complexity="MINIMAL"] [data-adaptive-hide="reduced"],
+[data-ui-complexity="MINIMAL"] [data-adaptive-hide="minimal"],
+[data-ui-complexity="MINIMAL"] .metrics-belt,
+[data-ui-complexity="MINIMAL"] .notification-center,
+[data-ui-complexity="MINIMAL"] .sidebar,
+[data-ui-complexity="MINIMAL"] .status-bar-details {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.95);
+}
+
+[data-ui-complexity="MINIMAL"] .main-content {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+[data-ui-complexity="MINIMAL"] .grid-layout {
+  grid-template-columns: 1fr;
+}
+
+/* ============================================================================
+   COMPLEXITY: FLOW_STATE
+   ============================================================================ */
+
+[data-ui-complexity="FLOW_STATE"] .secondary-panel,
+[data-ui-complexity="FLOW_STATE"] [data-adaptive-hide="reduced"],
+[data-ui-complexity="FLOW_STATE"] [data-adaptive-hide="minimal"],
+[data-ui-complexity="FLOW_STATE"] [data-adaptive-hide="flow"],
+[data-ui-complexity="FLOW_STATE"] .metrics-belt,
+[data-ui-complexity="FLOW_STATE"] .notification-center,
+[data-ui-complexity="FLOW_STATE"] .sidebar,
+[data-ui-complexity="FLOW_STATE"] .status-bar-details,
+[data-ui-complexity="FLOW_STATE"] .neural-dock,
+[data-ui-complexity="FLOW_STATE"] .global-header {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.95);
+}
+
+[data-ui-complexity="FLOW_STATE"] .main-content {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+}
+
+[data-ui-complexity="FLOW_STATE"] {
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111111;
+  --text-primary: #e0e0e0;
+  --accent-color: #4a90d9;
+}
+
+/* Flow state focus ring */
+[data-focus-mode="true"] .main-content {
+  box-shadow: 0 0 60px rgba(74, 144, 217, 0.1);
+  border-radius: 12px;
+}
+
+/* ============================================================================
+   GAZE TRACKING OVERLAYS (Debug Mode)
+   ============================================================================ */
+
+.gaze-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.gaze-point {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 100, 100, 0.5);
+  border: 2px solid rgba(255, 100, 100, 0.8);
+  transform: translate(-50%, -50%);
+  transition: all 50ms ease-out;
+}
+
+.gaze-fixation {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(100, 255, 100, 0.2);
+  border: 2px solid rgba(100, 255, 100, 0.5);
+  transform: translate(-50%, -50%);
+  animation: fixation-pulse 1s ease-in-out infinite;
+}
+
+@keyframes fixation-pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1.2);
+    opacity: 0.8;
+  }
+}
+
+/* ============================================================================
+   HEATMAP OVERLAY
+   ============================================================================ */
+
+.heatmap-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9998;
+}
+
+.heatmap-cell {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 100, 0, var(--intensity, 0.5)) 0%,
+    transparent 70%
+  );
+  mix-blend-mode: screen;
+}
+
+/* ============================================================================
+   STRESS INDICATOR
+   ============================================================================ */
+
+.stress-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  z-index: 9997;
+  transition: all 300ms ease;
+}
+
+.stress-indicator.low {
+  background: rgba(100, 255, 100, 0.2);
+  border: 2px solid rgba(100, 255, 100, 0.5);
+  color: #64ff64;
+}
+
+.stress-indicator.medium {
+  background: rgba(255, 200, 0, 0.2);
+  border: 2px solid rgba(255, 200, 0, 0.5);
+  color: #ffc800;
+}
+
+.stress-indicator.high {
+  background: rgba(255, 100, 100, 0.2);
+  border: 2px solid rgba(255, 100, 100, 0.5);
+  color: #ff6464;
+  animation: stress-pulse 1s ease-in-out infinite;
+}
+
+@keyframes stress-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* ============================================================================
+   ACCESSIBILITY: REDUCED MOTION PREFERENCE
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ui-complexity] * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================================
+   UTILITY CLASSES FOR ADAPTIVE ELEMENTS
+   ============================================================================ */
+
+/* Hide in reduced complexity */
+.adaptive-reduced {
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+[data-ui-complexity="REDUCED"] .adaptive-reduced,
+[data-ui-complexity="MINIMAL"] .adaptive-reduced,
+[data-ui-complexity="FLOW_STATE"] .adaptive-reduced {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Hide in minimal complexity */
+.adaptive-minimal {
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+[data-ui-complexity="MINIMAL"] .adaptive-minimal,
+[data-ui-complexity="FLOW_STATE"] .adaptive-minimal {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Hide in flow state only */
+.adaptive-flow {
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+[data-ui-complexity="FLOW_STATE"] .adaptive-flow {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Always visible (priority override) */
+.adaptive-always {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
