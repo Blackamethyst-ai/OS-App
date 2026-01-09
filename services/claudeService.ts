@@ -5,9 +5,25 @@
  */
 import { apiKeyService } from './apiKeyService';
 
+export interface ClaudeTextContent {
+    type: 'text';
+    text: string;
+}
+
+export interface ClaudeImageContent {
+    type: 'image';
+    source: {
+        type: 'base64';
+        media_type: 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp';
+        data: string;
+    };
+}
+
+export type ClaudeContentBlock = ClaudeTextContent | ClaudeImageContent;
+
 export interface ClaudeMessage {
     role: 'user' | 'assistant';
-    content: string;
+    content: string | ClaudeContentBlock[];
 }
 
 export interface ClaudeResponse {
@@ -74,6 +90,74 @@ class ClaudeService {
             return '';
         } catch (error) {
             console.error('Claude API request failed:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Generate content with vision (image analysis)
+     */
+    async generateVision(
+        prompt: string,
+        imageBase64: string,
+        mediaType: 'image/png' | 'image/jpeg' = 'image/png',
+        model: string = 'claude-sonnet-4-20250514'
+    ): Promise<string> {
+        const apiKey = apiKeyService.getKey('claude');
+
+        if (!apiKey) {
+            throw new Error('Claude API key not found. Please configure it in Settings.');
+        }
+
+        const message: ClaudeMessage = {
+            role: 'user',
+            content: [
+                {
+                    type: 'image',
+                    source: {
+                        type: 'base64',
+                        media_type: mediaType,
+                        data: imageBase64,
+                    },
+                },
+                {
+                    type: 'text',
+                    text: prompt,
+                },
+            ],
+        };
+
+        try {
+            const response = await fetch(this.baseUrl, {
+                method: 'POST',
+                headers: {
+                    'x-api-key': apiKey,
+                    'anthropic-version': '2023-06-01',
+                    'content-type': 'application/json',
+                    'anthropic-dangerously-allow-browser': 'true',
+                },
+                body: JSON.stringify({
+                    model: model,
+                    max_tokens: 1024,
+                    messages: [message],
+                    temperature: 0.3, // Lower temperature for structured output
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(`Claude Vision API Error: ${response.status} - ${JSON.stringify(errorData)}`);
+            }
+
+            const data: ClaudeResponse = await response.json();
+
+            if (data.content && data.content.length > 0) {
+                return data.content[0].text;
+            }
+
+            return '';
+        } catch (error) {
+            console.error('Claude Vision API request failed:', error);
             throw error;
         }
     }
