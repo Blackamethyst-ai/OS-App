@@ -17,6 +17,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAppStore } from '../store';
 import { agentKernel } from '../services/kernel/AgentKernel';
+import { faceDetectionService, FaceDetectionResult, GazeEstimate } from '../services/faceDetectionService';
 import {
   BiometricContext,
   BiometricConfig,
@@ -165,6 +166,36 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
   const stressHistoryRef = useRef<number[]>([]);
   const fastStressHistoryRef = useRef<number[]>([]); // For realtime mode
 
+  // Face detection state
+  const lastFaceResultRef = useRef<FaceDetectionResult | null>(null);
+  const faceDetectionInitializedRef = useRef(false);
+  const lastGazePointRef = useRef<GazePoint | null>(null);
+  const faceDetectionFrameRef = useRef(0);
+  const isFaceDetectionRunningRef = useRef(false);
+
+  // ============================================================================
+  // STABILIZATION: Moving Average Buffers (Protocol §1)
+  // ============================================================================
+  const confidenceBufferRef = useRef<number[]>([]);
+  const CONFIDENCE_BUFFER_SIZE = 10; // Average last 10 frames
+
+  // Hysteresis state for stress mode (Protocol §2)
+  const stressHighStartRef = useRef<number | null>(null);
+  const stressLowStartRef = useRef<number | null>(null);
+  const isStressModeLockedRef = useRef(false);
+  const lastUIMorphTimeRef = useRef<number>(0);
+  const STRESS_HIGH_THRESHOLD = 70;
+  const STRESS_LOW_THRESHOLD = 50;
+  const STRESS_HIGH_DURATION_MS = 5000;  // 5 seconds to enter
+  const STRESS_LOW_DURATION_MS = 10000;  // 10 seconds to exit
+  const UI_MORPH_LOCKOUT_MS = 30000;     // 30 second lockout
+
+  // Performance monitoring (Protocol §4)
+  const lowFpsStartRef = useRef<number | null>(null);
+  const overlaysDisabledRef = useRef(false);
+  const LOW_FPS_THRESHOLD = 15;
+  const LOW_FPS_DURATION_MS = 5000;
+
   // ============================================================================
   // LIFECYCLE
   // ============================================================================
@@ -213,6 +244,18 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
         droppedFramesRef.current = 0;
         lastFpsUpdateRef.current = Date.now();
 
+        // Initialize face detection service
+        if (!faceDetectionInitializedRef.current) {
+          addLog('SYSTEM', 'BIOMETRIC: Initializing face detection models...');
+          const faceInitialized = await faceDetectionService.initialize();
+          faceDetectionInitializedRef.current = faceInitialized;
+          if (faceInitialized) {
+            addLog('SUCCESS', 'BIOMETRIC: Face detection models loaded');
+          } else {
+            addLog('WARN', 'BIOMETRIC: Face detection failed to initialize, using fallback');
+          }
+        }
+
         // Start the 60 FPS processing loop
         startProcessingLoop();
       }
@@ -220,9 +263,33 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
       setIsActive(true);
       addLog('SUCCESS', 'BIOMETRIC: Sensors active @ 60 FPS');
     } catch (error: any) {
-      addLog('ERROR', `BIOMETRIC: Failed to start - ${error.message}`);
+      // STABILIZATION: Graceful fallback (Protocol §3)
+      const errorMsg = error.message || 'Unknown error';
+
+      if (errorMsg.includes('Permission denied') || errorMsg.includes('NotAllowedError')) {
+        addLog('WARN', 'BIOMETRIC: Webcam denied - switching to mouse tracking mode');
+        // Switch to mouse-only mode
+        setConfigState(prev => ({ ...prev, source: 'MOUSE_FALLBACK' as BiometricSource }));
+        faceDetectionInitializedRef.current = false;
+        setIsActive(true);
+        startProcessingLoop();
+        // Emit toast notification
+        window.dispatchEvent(new CustomEvent('biometric-fallback', {
+          detail: { reason: 'webcam_denied', message: 'Biometrics unavailable - Using mouse tracking' }
+        }));
+      } else if (errorMsg.includes('NotFoundError')) {
+        addLog('WARN', 'BIOMETRIC: No webcam found - switching to mouse tracking mode');
+        setConfigState(prev => ({ ...prev, source: 'MOUSE_FALLBACK' as BiometricSource }));
+        setIsActive(true);
+        startProcessingLoop();
+        window.dispatchEvent(new CustomEvent('biometric-fallback', {
+          detail: { reason: 'no_webcam', message: 'No webcam detected - Using mouse tracking' }
+        }));
+      } else {
+        addLog('ERROR', `BIOMETRIC: Failed to start - ${errorMsg}`);
+      }
     }
-  }, [isActive, config.source, addLog]);
+  }, [isActive, config.source, addLog, startProcessingLoop]);
 
   const stop = useCallback(() => {
     if (!isActive) return;
@@ -285,15 +352,22 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
       frameCountRef.current++;
       fpsCountRef.current++;
 
-      // Process every 3rd frame for 20 FPS effective rate (saves CPU)
-      // But update gaze point EVERY frame for smooth reticle
+      // OPTIMIZATION: Face detection is heavy - run every 6th frame (~10 FPS)
+      // Use cached gaze for smooth reticle tracking in between
+      faceDetectionFrameRef.current++;
+      const shouldRunFaceDetection = faceDetectionFrameRef.current % 6 === 0;
       const shouldProcessFull = frameCountRef.current % 3 === 0;
 
       const processingStart = window.performance.now();
 
-      // ALWAYS update gaze point for smooth tracking
+      // Run face detection only every 6th frame (non-blocking)
+      if (config.gazeTrackingEnabled && shouldRunFaceDetection && !isFaceDetectionRunningRef.current) {
+        runFaceDetection();
+      }
+
+      // Update gaze point from cached result (smooth tracking)
       if (config.gazeTrackingEnabled) {
-        processGazeInstant();
+        updateGazeFromCache();
       }
 
       // Full processing every 3rd frame
@@ -322,6 +396,9 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
         fpsCountRef.current = 0;
         lastFpsUpdateRef.current = now;
 
+        // STABILIZATION: Check performance and auto-disable overlays (Protocol §4)
+        checkPerformance(fps);
+
         // Update performance metrics
         setPerformance(prev => ({
           ...prev,
@@ -345,26 +422,71 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
   }, [config.gazeTrackingEnabled, config.stressDetectionEnabled]);
 
   // ============================================================================
-  // GAZE PROCESSING - Split into instant and full
+  // GAZE PROCESSING - Optimized for performance
   // ============================================================================
 
-  // Instant update for smooth reticle (every frame)
-  const processGazeInstant = useCallback(() => {
-    const gaze = getSimulatedGaze();
-    if (gaze) {
-      setGazePoint(gaze);
+  // Non-blocking face detection (runs in background)
+  const runFaceDetection = useCallback(() => {
+    if (!faceDetectionInitializedRef.current || !videoRef.current) return;
+    if (isFaceDetectionRunningRef.current) return;
 
-      // Emit gaze update for GazeReticle component
-      const fixation = currentFixationRef.current;
-      emitGazeUpdateEvent(
-        gaze.x,
-        gaze.y,
-        gaze.confidence,
-        !!fixation,
-        fixation?.duration || 0,
-        fixation?.targetElement
-      );
+    isFaceDetectionRunningRef.current = true;
+
+    faceDetectionService.detectFace(videoRef.current)
+      .then((result) => {
+        lastFaceResultRef.current = result;
+
+        if (result.detected && result.gazeEstimate) {
+          const gaze = result.gazeEstimate;
+          lastGazePointRef.current = {
+            x: gaze.x,
+            y: gaze.y,
+            timestamp: Date.now(),
+            confidence: gaze.confidence,
+            pupilDilation: gaze.pupilDilation,
+          };
+        } else {
+          // Face not detected - clear gaze cache so UI shows proper state
+          lastGazePointRef.current = null;
+        }
+      })
+      .catch((error) => {
+        console.warn('BIOMETRIC: Face detection error', error);
+      })
+      .finally(() => {
+        isFaceDetectionRunningRef.current = false;
+      });
+  }, []);
+
+  // Fast sync update from cached gaze (runs every frame for smooth tracking)
+  const updateGazeFromCache = useCallback(() => {
+    let gaze = lastGazePointRef.current;
+
+    // Fallback to mouse if no face detection
+    if (!gaze || gaze.confidence < 0.1) {
+      const mouseX = (window as any).__lastMouseX || window.innerWidth / 2;
+      const mouseY = (window as any).__lastMouseY || window.innerHeight / 2;
+      gaze = {
+        x: mouseX,
+        y: mouseY,
+        timestamp: Date.now(),
+        confidence: 0.1,
+        pupilDilation: 0.5,
+      };
     }
+
+    setGazePoint(gaze);
+
+    // Emit gaze update for GazeReticle component
+    const fixation = currentFixationRef.current;
+    emitGazeUpdateEvent(
+      gaze.x,
+      gaze.y,
+      gaze.confidence,
+      !!fixation,
+      fixation?.duration || 0,
+      fixation?.targetElement
+    );
   }, []);
 
   // Full processing for fixation detection (every 3rd frame)
@@ -511,10 +633,15 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
     setAttentionScore(calculateAttention());
     setCognitiveLoad(calculateCognitiveLoad(stressLevel.value));
 
-    // Update stress confidence
+    // Update stress confidence based on real face detection
+    const faceStressEstimate = faceDetectionService.estimateStress();
+    const stressConf = faceStressEstimate.confidence > 0.3
+      ? faceStressEstimate.confidence * 100
+      : stressLevel.confidence * 100;
+
     setPerformance(prev => ({
       ...prev,
-      stressConfidence: stressLevel.confidence * 100,
+      stressConfidence: stressConf,
     }));
   }, [realtimeMode, stressLevel.value, stressLevel.confidence]);
 
@@ -561,37 +688,127 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
       lightingStatus = 'LOW';
     }
 
-    // Face detection simulation (would use ML model in production)
-    const faceDetected = lightingQuality > 20;
+    // Use REAL face detection result from face-api.js
+    const faceResult = lastFaceResultRef.current;
+    const faceDetected = faceResult?.detected ?? false;
+    const rawFaceConfidence = faceResult?.confidence ?? 0;
+
+    // STABILIZATION: Apply moving average smoothing to confidence (Protocol §1)
+    const smoothedFaceConfidence = getSmoothedConfidence(rawFaceConfidence);
+
+    // Calculate gaze confidence from actual detection (also smoothed)
+    const rawGazeConf = faceResult?.gazeEstimate?.confidence ?? 0;
+    const smoothedGazeConf = faceDetected ? Math.max(smoothedFaceConfidence, rawGazeConf) : 0;
 
     setPerformance(prev => ({
       ...prev,
       lightingQuality: Math.round(lightingQuality),
       lightingStatus,
       faceDetected,
-      overallConfidence: (prev.gazeConfidence + prev.stressConfidence + lightingQuality) / 3,
+      gazeConfidence: smoothedGazeConf * 100,
+      overallConfidence: faceDetected
+        ? ((smoothedGazeConf * 100) + prev.stressConfidence + lightingQuality) / 3
+        : 0,
     }));
-  }, []);
+  }, [getSmoothedConfidence]);
 
   // ============================================================================
   // HELPERS
   // ============================================================================
 
-  const getSimulatedGaze = (): GazePoint | null => {
-    const mouseX = (window as any).__lastMouseX || window.innerWidth / 2;
-    const mouseY = (window as any).__lastMouseY || window.innerHeight / 2;
+  /**
+   * STABILIZATION: Smoothed confidence with moving average (Protocol §1)
+   * Prevents jittery numbers jumping between 16% and 80%
+   */
+  const getSmoothedConfidence = useCallback((rawConfidence: number): number => {
+    // Add to buffer
+    confidenceBufferRef.current.push(rawConfidence);
 
-    // Add slight smoothing/interpolation for more natural movement
-    const noise = realtimeMode ? 0 : (Math.random() - 0.5) * 10;
+    // Keep only last N frames
+    if (confidenceBufferRef.current.length > CONFIDENCE_BUFFER_SIZE) {
+      confidenceBufferRef.current = confidenceBufferRef.current.slice(-CONFIDENCE_BUFFER_SIZE);
+    }
 
-    return {
-      x: mouseX + noise,
-      y: mouseY + noise,
-      timestamp: Date.now(),
-      confidence: performance.lightingQuality / 100,
-      pupilDilation: 0.5 + Math.random() * 0.1,
-    };
-  };
+    // Return average
+    const sum = confidenceBufferRef.current.reduce((a, b) => a + b, 0);
+    return sum / confidenceBufferRef.current.length;
+  }, []);
+
+  /**
+   * STABILIZATION: Check if stress mode should change (Protocol §2)
+   * Implements hysteresis to prevent jitter
+   */
+  const checkStressHysteresis = useCallback((currentStress: number): boolean => {
+    const now = Date.now();
+
+    // Check if UI morphed recently (30s lockout)
+    if (now - lastUIMorphTimeRef.current < UI_MORPH_LOCKOUT_MS) {
+      return isStressModeLockedRef.current;
+    }
+
+    if (currentStress >= STRESS_HIGH_THRESHOLD) {
+      // Trying to enter stress mode
+      stressLowStartRef.current = null;
+      if (!stressHighStartRef.current) {
+        stressHighStartRef.current = now;
+      }
+      // Only enter if sustained for 5 seconds
+      if (now - stressHighStartRef.current >= STRESS_HIGH_DURATION_MS) {
+        if (!isStressModeLockedRef.current) {
+          isStressModeLockedRef.current = true;
+          lastUIMorphTimeRef.current = now;
+        }
+      }
+    } else if (currentStress <= STRESS_LOW_THRESHOLD) {
+      // Trying to exit stress mode
+      stressHighStartRef.current = null;
+      if (!stressLowStartRef.current) {
+        stressLowStartRef.current = now;
+      }
+      // Only exit if sustained for 10 seconds
+      if (now - stressLowStartRef.current >= STRESS_LOW_DURATION_MS) {
+        if (isStressModeLockedRef.current) {
+          isStressModeLockedRef.current = false;
+          lastUIMorphTimeRef.current = now;
+        }
+      }
+    } else {
+      // In the middle zone - reset timers
+      stressHighStartRef.current = null;
+      stressLowStartRef.current = null;
+    }
+
+    return isStressModeLockedRef.current;
+  }, []);
+
+  /**
+   * STABILIZATION: Performance monitor (Protocol §4)
+   * Auto-disable overlays if FPS drops below threshold
+   */
+  const checkPerformance = useCallback((currentFps: number): void => {
+    const now = Date.now();
+
+    if (currentFps < LOW_FPS_THRESHOLD) {
+      if (!lowFpsStartRef.current) {
+        lowFpsStartRef.current = now;
+      }
+      // Disable overlays after 5 seconds of low FPS
+      if (now - lowFpsStartRef.current >= LOW_FPS_DURATION_MS && !overlaysDisabledRef.current) {
+        overlaysDisabledRef.current = true;
+        addLog('WARN', 'BIOMETRIC: Low FPS detected - disabling visual overlays to save CPU');
+        // Emit event to disable GazeReticle
+        window.dispatchEvent(new CustomEvent('biometric-performance-mode', { detail: { overlaysDisabled: true } }));
+      }
+    } else {
+      lowFpsStartRef.current = null;
+      // Re-enable overlays if FPS recovers
+      if (overlaysDisabledRef.current && currentFps >= LOW_FPS_THRESHOLD + 5) {
+        overlaysDisabledRef.current = false;
+        addLog('SUCCESS', 'BIOMETRIC: FPS recovered - re-enabling visual overlays');
+        window.dispatchEvent(new CustomEvent('biometric-performance-mode', { detail: { overlaysDisabled: false } }));
+      }
+    }
+  }, [addLog]);
 
   const calculateCentroid = (points: GazePoint[]): { x: number; y: number } => {
     const sumX = points.reduce((sum, p) => sum + p.x, 0);
@@ -618,11 +835,15 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
   };
 
   const calculateStressIndicators = useCallback((): StressIndicators => {
-    const now = Date.now();
-    const recentBlinks = blinkTimestampsRef.current.filter(t => now - t < 60000);
-    const blinkRate = recentBlinks.length;
+    // Use real blink rate from face detection service
+    const blinkRate = faceDetectionService.getBlinkRate();
+
+    // Get gaze stability from history
     const gazeStability = calculateGazeStability();
-    const pupilDilation = 0.5 + Math.random() * 0.2;
+
+    // Get pupil dilation from face detection
+    const faceResult = lastFaceResultRef.current;
+    const pupilDilation = faceResult?.gazeEstimate?.pupilDilation ?? 0.5;
 
     return { blinkRate, pupilDilation, gazeStability };
   }, []);
@@ -639,6 +860,27 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
   };
 
   const calculateStressScore = useCallback((indicators: StressIndicators): number => {
+    // Use real facial expression stress estimation when available
+    const faceStressEstimate = faceDetectionService.estimateStress();
+
+    if (faceStressEstimate.confidence > 0.3) {
+      // Blend real expression-based stress with eye metrics
+      const expressionStress = faceStressEstimate.level;
+      const eyeStress = faceStressEstimate.indicators.eyeStrainScore;
+
+      // Calculate eye-metric based stress
+      const normalizedBlink = Math.min(100, (indicators.blinkRate / 30) * 100);
+      const normalizedStability = (1 - indicators.gazeStability) * 100;
+
+      // Weighted combination: 40% expressions, 30% eye strain, 30% gaze metrics
+      return (
+        expressionStress * 0.4 +
+        eyeStress * 0.3 +
+        ((normalizedBlink + normalizedStability) / 2) * 0.3
+      );
+    }
+
+    // Fallback to traditional calculation
     const weights = { blinkRate: 0.3, pupilDilation: 0.4, gazeStability: 0.3 };
     const normalizedBlink = Math.min(100, (indicators.blinkRate / 30) * 100);
     const normalizedPupil = indicators.pupilDilation * 100;
@@ -667,11 +909,21 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
   };
 
   const calculateAttention = (): number => {
+    // Base attention on current gaze confidence (immediate feedback)
+    const faceResult = lastFaceResultRef.current;
+    const gazeConfidence = faceResult?.gazeEstimate?.confidence ?? 0;
+
+    // Factor in fixation history (longer-term engagement)
     const recentFixations = fixationHistoryRef.current.filter(
-      f => Date.now() - f.endTime < 30000
+      f => Date.now() - f.endTime < 10000  // Last 10 seconds
     );
     const totalFixationTime = recentFixations.reduce((sum, f) => sum + f.duration, 0);
-    return Math.min(100, (totalFixationTime / 30000) * 100);
+    const fixationScore = Math.min(100, (totalFixationTime / 5000) * 100);  // 5s of fixation = 100%
+
+    // Blend: 60% current gaze confidence, 40% fixation history
+    const attention = (gazeConfidence * 100 * 0.6) + (fixationScore * 0.4);
+
+    return Math.min(100, Math.max(0, attention));
   };
 
   const calculateCognitiveLoad = (stress: number): number => {

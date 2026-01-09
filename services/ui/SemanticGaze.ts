@@ -38,6 +38,10 @@ const CONFIG = {
   screenshotQuality: 0.7, // JPEG quality for screenshots
   screenshotScale: 0.5, // Downscale to reduce tokens/bandwidth
   enableScreenshots: true, // Set to false to use DOM-only analysis
+  // STABILIZATION: API Safety (Protocol §5)
+  vlmRateLimitMs: 3000, // Max 1 VLM request per 3 seconds
+  requireExplicitEnable: true, // Require user to enable AI analysis
+  aiAnalysisEnabledKey: 'biometric_ai_analysis_enabled',
 };
 
 const ANALYSIS_COOLDOWN_MS = CONFIG.analysisCooldownMs;
@@ -190,6 +194,27 @@ class SemanticGazeAnalyzer {
   }
 
   /**
+   * STABILIZATION: Check if AI analysis is enabled (Protocol §5)
+   */
+  private isAIAnalysisEnabled(): boolean {
+    // Check if user has explicitly enabled AI analysis
+    if (CONFIG.requireExplicitEnable) {
+      const enabled = localStorage.getItem(CONFIG.aiAnalysisEnabledKey);
+      if (enabled !== 'true') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Enable or disable AI analysis
+   */
+  setAIAnalysisEnabled(enabled: boolean): void {
+    localStorage.setItem(CONFIG.aiAnalysisEnabledKey, enabled ? 'true' : 'false');
+  }
+
+  /**
    * Use Vision LLM to semantically identify gaze target
    */
   private async analyzeWithVLM(
@@ -198,7 +223,29 @@ class SemanticGazeAnalyzer {
     screenshotBase64: string,
     provider: VLMProvider = 'auto'
   ): Promise<SemanticGazeTarget | null> {
-    this.lastVLMCallTime = Date.now();
+    const now = Date.now();
+
+    // STABILIZATION: API Safety checks (Protocol §5)
+    // 1. Check if AI analysis is explicitly enabled
+    if (!this.isAIAnalysisEnabled()) {
+      console.log('SEMANTIC_GAZE: AI analysis disabled - using DOM fallback');
+      return this.analyzeFromDOM(gazeX, gazeY);
+    }
+
+    // 2. Check API key exists
+    const hasApiKey = apiKeyService.getClaudeApiKey() || apiKeyService.getGeminiApiKey();
+    if (!hasApiKey) {
+      console.log('SEMANTIC_GAZE: No API key - using DOM fallback');
+      return this.analyzeFromDOM(gazeX, gazeY);
+    }
+
+    // 3. Rate limiting: max 1 request per 3 seconds
+    if (now - this.lastVLMCallTime < CONFIG.vlmRateLimitMs) {
+      console.log('SEMANTIC_GAZE: Rate limited - using cached/DOM fallback');
+      return this.getNearestCachedTarget(gazeX, gazeY) || this.analyzeFromDOM(gazeX, gazeY);
+    }
+
+    this.lastVLMCallTime = now;
     this.vlmCallCount++;
 
     const prompt = `You are analyzing a screenshot of a developer dashboard UI to identify what UI element the user is looking at.

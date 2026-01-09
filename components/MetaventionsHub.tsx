@@ -39,6 +39,7 @@ import { BiometricPanel } from './BiometricPanel';
 import { ZenithDisplay } from './ZenithDisplay';
 import { StrategicConsole } from './StrategicConsole';
 import { AdaptiveContainer, AdaptivePanel, AdaptiveRegion } from './AdaptiveContainer';
+import { BiometricErrorBoundary } from './BiometricErrorBoundary';
 import { useAdaptiveUI } from '../hooks/useAdaptiveUI';
 
 
@@ -712,6 +713,7 @@ const MetaventionsHub: React.FC = () => {
     const manifestProtocols = dashboard.activeManifest?.protocols || [];
 
     return (
+        <BiometricErrorBoundary>
         <AdaptiveContainer
             regionId="metaventions-hub"
             enableMorphing={auiEnabled}
@@ -1229,6 +1231,7 @@ const MetaventionsHub: React.FC = () => {
             </div>
         </div>
         </AdaptiveContainer>
+        </BiometricErrorBoundary>
     );
 };
 
