@@ -38,6 +38,8 @@ import { BiometricPanel } from './BiometricPanel';
 
 import { ZenithDisplay } from './ZenithDisplay';
 import { StrategicConsole } from './StrategicConsole';
+import { AdaptiveContainer, AdaptivePanel, AdaptiveRegion } from './AdaptiveContainer';
+import { useAdaptiveUI } from '../hooks/useAdaptiveUI';
 
 
 const VISIONARY_DIRECTIVES = [
@@ -454,6 +456,9 @@ const MetaventionsHub: React.FC = () => {
     const kernel = useAppStore(s => s.kernel);
     const agents = useAppStore(s => s.agents);
 
+    // Adaptive UI integration
+    const { isEnabled: auiEnabled, currentLayout, shouldShowComponent } = useAdaptiveUI();
+
     const sectorLoads = useMemo(() => {
         const activeCount = agents.activeAgents.length;
         const thinkingCount = agents.activeAgents.filter(a => a.status === 'THINKING').length;
@@ -707,7 +712,17 @@ const MetaventionsHub: React.FC = () => {
     const manifestProtocols = dashboard.activeManifest?.protocols || [];
 
     return (
-        <div className="h-full w-full bg-[var(--bg-app)] flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out relative">
+        <AdaptiveContainer
+            regionId="metaventions-hub"
+            enableMorphing={auiEnabled}
+            showDebugOverlay={false}
+            className="h-full w-full"
+        >
+        <div
+            className="h-full w-full bg-[var(--bg-app)] flex flex-col font-sans overflow-hidden transition-all duration-700 ease-in-out relative"
+            data-biometric-id="metaventions-hub"
+            data-semantic-type="dashboard"
+        >
             <div className="absolute inset-0 z-0 pointer-events-none">
                 <div className="absolute inset-0 bg-[var(--bg-app)]" />
                 <VolumetricFog />
@@ -802,6 +817,8 @@ const MetaventionsHub: React.FC = () => {
                             onDragOver={handleDragOver}
                             onDragLeave={() => setIsDraggingOver(false)}
                             onDrop={handleDrop}
+                            data-biometric-id="strategic-operations-center"
+                            data-semantic-type="panel"
                             className={cn(
                                 "crystalline shadow-[0_0_100px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col min-h-[1000px] group/soc invisible-glass border border-[var(--border-main)] transition-all duration-1000 rounded-[3rem]",
                                 isDraggingOver && "border-[#9d4edd] shadow-[0_0_80px_rgba(157,78,221,0.2)]"
@@ -1080,7 +1097,7 @@ const MetaventionsHub: React.FC = () => {
 
                         {/* Metrics Belt: Network Topology + Capital Velocity + Context Velocity - 3-column equal */}
                         {!dashboard.isOculusView && (
-                            <div className="grid grid-cols-3 gap-6 h-[320px]">
+                            <div className="grid grid-cols-3 gap-6 h-[320px]" data-biometric-id="metrics-belt" data-semantic-type="metrics">
                                 {/* Network Topology */}
                                 <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col relative overflow-hidden group/topology shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(241,194,27,0.02)_0%,transparent_70%)] pointer-events-none" />
@@ -1129,7 +1146,7 @@ const MetaventionsHub: React.FC = () => {
                     {/* Sidebar - Right Column */}
                     <AnimatePresence>
                         {!dashboard.isOculusView && (
-                            <motion.div initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }} className="col-span-3 space-y-4 flex flex-col relative z-10">
+                            <motion.div initial={{ x: 100, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: 100, opacity: 0 }} className="col-span-3 space-y-4 flex flex-col relative z-10" data-biometric-id="sidebar-panel" data-semantic-type="navigation">
 
                                 <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/anchor shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700 min-h-[300px]">
                                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.02)_0%,transparent_70%)] pointer-events-none" />
@@ -1189,7 +1206,7 @@ const MetaventionsHub: React.FC = () => {
 
                 <AnimatePresence>
                     {!dashboard.isOculusView && (
-                        <motion.div initial={{ y: 200, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 200, opacity: 0 }} className="w-full h-[850px] mt-8 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0">
+                        <motion.div initial={{ y: 200, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 200, opacity: 0 }} className="w-full h-[850px] mt-8 rounded-[5rem] overflow-hidden border border-white/10 shadow-[0_80px_200px_rgba(0,0,0,1)] relative group/ecosystem shrink-0" data-biometric-id="d-ecosystem" data-semantic-type="chart">
                             <div className="absolute top-12 left-16 z-20 flex flex-col gap-3 pointer-events-none">
                                 <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">The D-Ecosystem</h2>
                                 <div className="space-y-2">
@@ -1209,8 +1226,9 @@ const MetaventionsHub: React.FC = () => {
                         </motion.div>
                     )}
                 </AnimatePresence>
-            </div >
-        </div >
+            </div>
+        </div>
+        </AdaptiveContainer>
     );
 };
 

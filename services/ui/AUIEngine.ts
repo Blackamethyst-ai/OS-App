@@ -5,9 +5,17 @@
  * based on biometric state, gaze semantics, and task context.
  *
  * Reference: AUI (arXiv:2511.15567) - Computer-Use Agents as Judges
+ *
+ * Features:
+ * - Real LLM integration (Claude + Gemini with auto-selection)
+ * - Biometric-aware layout synthesis
+ * - Gaze-following component prioritization
+ * - Stress-responsive simplification
  */
 
 import { getAI, safeParseJson } from '../geminiService';
+import { claudeService } from '../claudeService';
+import { apiKeyService } from '../apiKeyService';
 import {
   UILayoutSpec,
   UIRegion,
@@ -23,25 +31,58 @@ import {
 // CONFIGURATION
 // ============================================================================
 
-const AUI_MODEL = 'gemini-2.0-flash';
-const GENERATION_TIMEOUT_MS = 3000;
-const MAX_GENERATION_RETRIES = 2;
+type LLMProvider = 'claude' | 'gemini' | 'auto';
 
-// Available components that can be synthesized
+const CONFIG = {
+  provider: 'auto' as LLMProvider,
+  claudeModel: 'claude-sonnet-4-20250514',
+  geminiModel: 'gemini-2.0-flash',
+  generationTimeoutMs: 3000,
+  maxRetries: 2,
+  cooldownMs: 1000,
+};
+
+const GENERATION_TIMEOUT_MS = CONFIG.generationTimeoutMs;
+const MAX_GENERATION_RETRIES = CONFIG.maxRetries;
+
+// Available components that can be synthesized (matching actual app components)
 const AVAILABLE_COMPONENTS = [
+  // Dashboard & Hub
+  'MetaventionsHub',
+  'Dashboard',
+  'GlobalStatusBar',
+  'NeuralDock',
+  // Biometrics
   'BiometricPanel',
-  'TerminalOutput',
-  'CodeEditor',
-  'MetricsChart',
-  'NavigationTabs',
-  'StatusIndicator',
-  'ActionButton',
-  'ContextPanel',
-  'FileExplorer',
-  'AgentStatus',
-  'AlertBanner',
-  'QuickActions',
-  'FocusOverlay',
+  'GazeReticle',
+  // Agent & Process
+  'AgentControlCenter',
+  'AgenticHUD',
+  'ProcessVisualizer',
+  'SynapticRouter',
+  'TaskBoard',
+  // Code & Development
+  'CodeStudio',
+  'NexusAPIExplorer',
+  'HolographicCommandDeck',
+  'CommandPalette',
+  // Visualizations
+  'DEcosystem',
+  'ContextVelocityChart',
+  'KnowledgeGraph',
+  'EmotionalResonanceGraph',
+  'FlywheelOrbit',
+  // Voice & Media
+  'VoiceMode',
+  'VoiceManager',
+  'ImageGen',
+  // Memory & Knowledge
+  'MemoryCore',
+  'SynapticContextHub',
+  // System
+  'HelpCenter',
+  'StrategicConsole',
+  'ZenithDisplay',
 ] as const;
 
 // ============================================================================
@@ -53,7 +94,24 @@ class AUIEngineService {
   private currentLayout: UILayoutSpec | null = null;
   private generationInProgress: boolean = false;
   private lastGenerationTime: number = 0;
-  private generationCooldownMs: number = 1000;
+  private generationCooldownMs: number = CONFIG.cooldownMs;
+  private llmCallCount: number = 0;
+  private lastProvider: LLMProvider | null = null;
+
+  /**
+   * Get the best available LLM provider
+   */
+  private getLLMProvider(): LLMProvider | null {
+    if (CONFIG.provider !== 'auto') {
+      const key = CONFIG.provider === 'claude' ? 'claude' : 'gemini';
+      return apiKeyService.getKey(key) ? CONFIG.provider : null;
+    }
+
+    // Auto mode: prefer Claude for complex reasoning, fall back to Gemini
+    if (apiKeyService.getKey('claude')) return 'claude';
+    if (apiKeyService.getKey('gemini')) return 'gemini';
+    return null;
+  }
 
   // ============================================================================
   // LAYOUT GENERATION
@@ -102,31 +160,93 @@ class AUIEngineService {
    * Core synthesis logic using LLM
    */
   private async synthesizeLayout(context: AUIGenerationContext): Promise<UILayoutSpec> {
-    const ai = getAI();
+    const provider = this.getLLMProvider();
+    this.lastProvider = provider;
+    this.llmCallCount++;
 
     const prompt = this.buildGenerationPrompt(context);
+    const systemInstruction = this.getSystemInstruction();
 
     try {
-      const response = await Promise.race([
-        ai.models.generateContent({
-          model: AUI_MODEL,
-          contents: prompt,
-          config: {
-            systemInstruction: this.getSystemInstruction(),
-          },
-        }),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Generation timeout')), GENERATION_TIMEOUT_MS)
-        ),
-      ]);
+      let responseText: string;
 
-      const layoutSpec = safeParseJson<Partial<UILayoutSpec>>(response.text);
+      if (provider === 'claude') {
+        // Use Claude for layout generation
+        responseText = await Promise.race([
+          claudeService.generateContent(
+            [{ role: 'user', content: prompt }],
+            systemInstruction,
+            CONFIG.claudeModel
+          ),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Generation timeout')), GENERATION_TIMEOUT_MS)
+          ),
+        ]);
+        console.log('AUI: Layout generated via Claude');
+      } else if (provider === 'gemini') {
+        // Use Gemini for layout generation
+        const ai = getAI();
+        const response = await Promise.race([
+          ai.models.generateContent({
+            model: CONFIG.geminiModel,
+            contents: prompt,
+            config: {
+              systemInstruction: systemInstruction,
+            },
+          }),
+          new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Generation timeout')), GENERATION_TIMEOUT_MS)
+          ),
+        ]);
+        responseText = response.text || '';
+        console.log('AUI: Layout generated via Gemini');
+      } else {
+        // No LLM available, use rule-based
+        console.log('AUI: No LLM available, using rule-based generation');
+        return this.generateRuleBasedLayout(context);
+      }
+
+      const layoutSpec = this.parseLayoutResponse(responseText);
       return this.validateAndComplete(layoutSpec, context);
     } catch (error: any) {
       console.error('AUI: LLM generation failed', error.message);
       // Fallback to rule-based generation
       return this.generateRuleBasedLayout(context);
     }
+  }
+
+  /**
+   * Parse LLM response into layout spec
+   */
+  private parseLayoutResponse(responseText: string): Partial<UILayoutSpec> {
+    try {
+      let jsonStr = responseText.trim();
+
+      // Remove markdown code blocks if present
+      if (jsonStr.startsWith('```json')) {
+        jsonStr = jsonStr.slice(7);
+      } else if (jsonStr.startsWith('```')) {
+        jsonStr = jsonStr.slice(3);
+      }
+      if (jsonStr.endsWith('```')) {
+        jsonStr = jsonStr.slice(0, -3);
+      }
+
+      return JSON.parse(jsonStr.trim());
+    } catch (error) {
+      console.error('AUI: Failed to parse layout response', error);
+      return {};
+    }
+  }
+
+  /**
+   * Get LLM usage statistics
+   */
+  getLLMStats(): { callCount: number; lastProvider: LLMProvider | null } {
+    return {
+      callCount: this.llmCallCount,
+      lastProvider: this.lastProvider,
+    };
   }
 
   /**
