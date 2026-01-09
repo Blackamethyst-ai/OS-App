@@ -35,6 +35,9 @@ import { useDaemonSwarm } from './hooks/useDaemonSwarm';
 import { useVoiceControl } from './hooks/useVoiceControl';
 import { useResearchAgent } from './hooks/useResearchAgent';
 import { useVisualCortex } from './hooks/useVisualCortex';
+import { useBiometricSensor } from './hooks/useBiometricSensor';
+import { useStressDetector } from './hooks/useStressDetector';
+import { agentKernel } from './services/kernel';
 import {
     Target, X, User, ExternalLink, Activity, ShieldCheck, Terminal, Cpu,
     Zap, ListTodo, Search, Key
@@ -187,6 +190,24 @@ const App: React.FC = () => {
     useVoiceControl();
     useResearchAgent();
     useVisualCortex();
+
+    // Agentic Kernel & Biometric Integration
+    const biometricSensor = useBiometricSensor();
+    const stressDetector = useStressDetector();
+
+    useEffect(() => {
+        // Boot the Agentic Kernel
+        agentKernel.boot().then(() => {
+            actions.addLog('SYSTEM', 'KERNEL: Agentic Kernel booted successfully');
+            actions.setKernelState({ operationalState: 'IDLE' });
+        }).catch((err) => {
+            actions.addLog('ERROR', `KERNEL: Boot failed - ${err.message}`);
+        });
+
+        return () => {
+            agentKernel.shutdown();
+        };
+    }, []);
 
     useEffect(() => {
         collabService.init();
