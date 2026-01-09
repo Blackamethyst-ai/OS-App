@@ -34,6 +34,7 @@ import { cn } from '../utils/cn';
 import { renderSafe } from '../utils/renderSafe';
 import DEcosystem from './DEcosystem';
 import ContextVelocityChart from './ContextVelocityChart';
+import { BiometricPanel } from './BiometricPanel';
 
 import { ZenithDisplay } from './ZenithDisplay';
 import { StrategicConsole } from './StrategicConsole';
@@ -1174,6 +1175,9 @@ const MetaventionsHub: React.FC = () => {
                                         )}
                                     </motion.div>
                                 </div>
+
+                                {/* Biometric Sensors Panel - Gaze & Stress Detection */}
+                                <BiometricPanel showControls={true} />
 
                                 <DirectoryPeek manifest={dashboard.activeManifest} />
                                 <SwarmBox />

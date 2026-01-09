@@ -1,4 +1,9 @@
 /* ============================================
+   ADAPTIVE UI SYSTEM - Biometric Response
+   ============================================ */
+@import './styles/adaptive-ui.css';
+
+/* ============================================
    RESPONSIVE DESIGN SYSTEM
    Uses CSS clamp() for fluid sizing across all viewports
    ============================================ */
