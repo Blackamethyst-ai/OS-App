@@ -46,33 +46,34 @@ export const AdaptiveContainer: React.FC<AdaptiveContainerProps> = ({
   }, [currentLayout, regionId]);
 
   // Determine container style based on layout
+  // CRITICAL: Container must allow scroll pass-through
   const containerStyle = useMemo((): React.CSSProperties => {
-    if (!currentLayout) return {};
-
     const baseStyle: React.CSSProperties = {
-      transition: enableMorphing ? 'all 300ms cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+      // Allow vertical scrolling
+      minHeight: '100%',
+      overflowY: 'auto',
+      overflowX: 'hidden',
+      // Only apply transitions to visual properties (not layout)
+      transition: enableMorphing ? 'opacity 300ms, filter 300ms, background-color 300ms' : 'none',
     };
 
-    // Apply theme-based styling
+    if (!currentLayout) return baseStyle;
+
+    // Apply theme-based styling (visual only, no layout changes)
     switch (currentLayout.theme) {
       case 'MINIMAL':
         return {
           ...baseStyle,
           backgroundColor: 'rgba(0, 0, 0, 0.4)',
           backdropFilter: 'blur(20px)',
-          padding: '2rem',
         };
       case 'FOCUS':
         return {
           ...baseStyle,
           boxShadow: '0 0 40px rgba(157, 78, 221, 0.15)',
-          borderColor: 'rgba(157, 78, 221, 0.3)',
         };
       case 'DENSE':
-        return {
-          ...baseStyle,
-          gap: '0.5rem',
-        };
+        return baseStyle;
       default:
         return baseStyle;
     }
@@ -120,7 +121,8 @@ export const AdaptiveContainer: React.FC<AdaptiveContainerProps> = ({
         style={containerStyle}
         variants={morphVariants}
         animate={morphState}
-        layout={enableMorphing}
+        // IMPORTANT: Don't use layout prop on scroll containers - it blocks scroll
+        layout={false}
         data-layout-version={layoutVersion}
         data-theme={currentLayout?.theme || 'DEFAULT'}
         data-region={regionId}
@@ -203,13 +205,10 @@ export const AdaptiveContainer: React.FC<AdaptiveContainerProps> = ({
           </motion.div>
         )}
 
-        {/* Main Content */}
-        <motion.div
-          layout={enableMorphing}
-          className="adaptive-content"
-        >
+        {/* Main Content - No layout animation to preserve scroll */}
+        <div className="adaptive-content">
           {children}
-        </motion.div>
+        </div>
       </motion.div>
     </LayoutGroup>
   );

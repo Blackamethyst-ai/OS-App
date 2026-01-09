@@ -31,6 +31,7 @@ import {
 import { useAppStore } from '../store';
 import { useBiometricSensor, BiometricPerformance } from '../hooks/useBiometricSensor';
 import { useStressDetector } from '../hooks/useStressDetector';
+import { faceDetectionService, DetectionQuality } from '../services/faceDetectionService';
 import { GazeReticle } from './GazeReticle';
 import { cn } from '../utils/cn';
 
@@ -525,6 +526,16 @@ export const BiometricPanel = memo(({
                     <span className="text-white/40">Face Detected:</span>
                     <span className={performance.faceDetected ? 'text-green-400' : 'text-red-400'}>
                       {performance.faceDetected ? 'Yes' : 'No'}
+                    </span>
+
+                    <span className="text-white/40">Detection Quality:</span>
+                    <span className={cn(
+                      faceDetectionService.getDetectionQuality() === 'HIGH' && 'text-green-400',
+                      faceDetectionService.getDetectionQuality() === 'MEDIUM' && 'text-yellow-400',
+                      faceDetectionService.getDetectionQuality() === 'LOW' && 'text-orange-400',
+                      faceDetectionService.getDetectionQuality() === 'NONE' && 'text-red-400',
+                    )}>
+                      {faceDetectionService.getDetectionQuality()}
                     </span>
 
                     <span className="text-white/40">Gaze Conf:</span>
