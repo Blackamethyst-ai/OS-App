@@ -37,6 +37,7 @@ import { useResearchAgent } from './hooks/useResearchAgent';
 import { useVisualCortex } from './hooks/useVisualCortex';
 import { useBiometricSensor } from './hooks/useBiometricSensor';
 import { useStressDetector } from './hooks/useStressDetector';
+import { useFixationGlow } from './hooks/useFixationGlow';
 import { agentKernel } from './services/kernel';
 import {
     Target, X, User, ExternalLink, Activity, ShieldCheck, Terminal, Cpu,
@@ -194,6 +195,7 @@ const App: React.FC = () => {
     // Agentic Kernel & Biometric Integration
     const biometricSensor = useBiometricSensor();
     const stressDetector = useStressDetector();
+    useFixationGlow(); // Apply glow effects to elements on gaze fixation
 
     useEffect(() => {
         // Boot the Agentic Kernel

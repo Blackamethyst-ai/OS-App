@@ -278,3 +278,160 @@
   opacity: 1 !important;
   pointer-events: auto !important;
 }
+
+/* ============================================================================
+   GAZE FIXATION GLOW EFFECTS
+   Applied to elements via biometric-fixation events
+   ============================================================================ */
+
+/* Base fixation glow - adds ring around fixated element */
+[data-biometric-fixating="true"] {
+  position: relative;
+  z-index: 10;
+}
+
+[data-biometric-fixating="true"]::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  right: -4px;
+  bottom: -4px;
+  border-radius: inherit;
+  border: 2px solid rgba(34, 197, 94, 0.6);
+  box-shadow:
+    0 0 12px rgba(34, 197, 94, 0.4),
+    0 0 24px rgba(34, 197, 94, 0.2),
+    inset 0 0 8px rgba(34, 197, 94, 0.1);
+  animation: fixation-glow-pulse 1.2s ease-in-out infinite;
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Glow intensity increases with fixation duration */
+[data-biometric-fixation-level="1"]::before {
+  border-color: rgba(34, 197, 94, 0.3);
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.2);
+}
+
+[data-biometric-fixation-level="2"]::before {
+  border-color: rgba(34, 197, 94, 0.5);
+  box-shadow:
+    0 0 12px rgba(34, 197, 94, 0.3),
+    0 0 20px rgba(34, 197, 94, 0.15);
+}
+
+[data-biometric-fixation-level="3"]::before {
+  border-color: rgba(34, 197, 94, 0.7);
+  box-shadow:
+    0 0 16px rgba(34, 197, 94, 0.5),
+    0 0 32px rgba(34, 197, 94, 0.25),
+    0 0 48px rgba(34, 197, 94, 0.1);
+}
+
+/* Locked state - prolonged fixation (2s+) */
+[data-biometric-fixation-locked="true"]::before {
+  border-color: rgba(34, 197, 94, 0.9);
+  border-width: 3px;
+  box-shadow:
+    0 0 20px rgba(34, 197, 94, 0.6),
+    0 0 40px rgba(34, 197, 94, 0.3),
+    0 0 60px rgba(34, 197, 94, 0.15);
+  animation: fixation-locked-pulse 0.8s ease-in-out infinite;
+}
+
+/* Locked state ring expansion effect */
+[data-biometric-fixation-locked="true"]::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: inherit;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  animation: fixation-ring-expand 1.5s ease-out infinite;
+  pointer-events: none;
+}
+
+@keyframes fixation-glow-pulse {
+  0%, 100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+@keyframes fixation-locked-pulse {
+  0%, 100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes fixation-ring-expand {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.15);
+  }
+}
+
+/* Interactive elements get enhanced glow */
+button[data-biometric-fixating="true"]::before,
+a[data-biometric-fixating="true"]::before,
+[role="button"][data-biometric-fixating="true"]::before {
+  border-color: rgba(59, 130, 246, 0.6);
+  box-shadow:
+    0 0 12px rgba(59, 130, 246, 0.4),
+    0 0 24px rgba(59, 130, 246, 0.2);
+}
+
+/* Cards and panels get subtle background glow */
+.panel[data-biometric-fixating="true"],
+.card[data-biometric-fixating="true"],
+[data-biometric-id][data-biometric-fixating="true"] {
+  background-image: radial-gradient(
+    ellipse at center,
+    rgba(34, 197, 94, 0.05) 0%,
+    transparent 70%
+  );
+}
+
+/* Text elements get subtle underline effect */
+p[data-biometric-fixating="true"],
+span[data-biometric-fixating="true"],
+h1[data-biometric-fixating="true"],
+h2[data-biometric-fixating="true"],
+h3[data-biometric-fixating="true"] {
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.3);
+}
+
+/* ============================================================================
+   BIOMETRIC ID MARKERS (for gaze targeting)
+   ============================================================================ */
+
+/* Debug: show biometric IDs on hover */
+[data-biometric-id]:hover::after {
+  content: attr(data-biometric-id);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: rgba(0, 0, 0, 0.8);
+  color: rgba(34, 197, 94, 0.8);
+  padding: 2px 6px;
+  font-size: 10px;
+  font-family: monospace;
+  border-radius: 4px;
+  white-space: nowrap;
+  z-index: 9999;
+  pointer-events: none;
+}
