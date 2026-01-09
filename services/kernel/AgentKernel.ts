@@ -28,6 +28,8 @@ import {
 import { KernelScheduler } from './KernelScheduler';
 import { IntentResolver } from './IntentResolver';
 import { SemanticPager } from '../memory/SemanticPager';
+import { auiEngine, judgeAgent, semanticGaze, domRegenerator } from '../ui';
+import type { UILayoutSpec, AUIGenerationContext, UIEvaluation } from '../ui/types';
 
 const KERNEL_VERSION = '1.0.0-agentic';
 
@@ -59,6 +61,13 @@ class AgentKernelService {
   // Biometric state
   private biometricContext: BiometricContext | null = null;
   private adaptiveUIEnabled: boolean = false;
+
+  // AUI state
+  private auiEnabled: boolean = true;
+  private currentLayout: UILayoutSpec | null = null;
+  private lastRegenerationTime: number = 0;
+  private regenerationCooldownMs: number = 2000;
+  private isRegenerating: boolean = false;
 
   constructor() {
     this.scheduler = new KernelScheduler();
@@ -215,6 +224,9 @@ class AgentKernelService {
         case 'BIOMETRIC':
           result = await this.handleBiometricResponse(task);
           break;
+        case 'UI_REGENERATION':
+          result = await this.handleUIRegeneration(task);
+          break;
         default:
           result = await this.handleGeneric(task);
       }
@@ -320,6 +332,169 @@ class AgentKernelService {
   }
 
   // ============================================================================
+  // UI REGENERATION - Self-Synthesizing Adaptive UI
+  // ============================================================================
+
+  /**
+   * Handle UI regeneration task with Judge Agent Loop
+   */
+  private async handleUIRegeneration(task: KernelTask): Promise<any> {
+    if (!this.auiEnabled) {
+      return { action: 'UI_NOOP', reason: 'AUI disabled' };
+    }
+
+    const startTime = performance.now();
+    this.emit('UI_REGENERATION_START', { task });
+
+    try {
+      // Build generation context from biometric state
+      const context = this.buildAUIContext();
+
+      // Start judge iteration cycle
+      judgeAgent.startCycle();
+
+      let layout: UILayoutSpec;
+      let evaluation: UIEvaluation;
+      let iteration = 0;
+
+      do {
+        // Generate layout
+        layout = await auiEngine.generateLayout(context);
+
+        // Evaluate layout
+        evaluation = await judgeAgent.evaluateLayout(layout, context);
+
+        this.emit('UI_EVALUATION', {
+          layout,
+          evaluation,
+          iteration,
+        });
+
+        // Log reasoning
+        console.log(`⚡ KERNEL: UI Evaluation [${iteration}] - Score: ${evaluation.score}, Verdict: ${evaluation.verdict}`);
+        console.log(`   Reasoning: ${evaluation.reasoning}`);
+
+        // Check if iteration needed
+        if (judgeAgent.shouldIterate(evaluation)) {
+          judgeAgent.incrementIteration();
+          iteration++;
+          this.emit('UI_ITERATION', { iteration, evaluation });
+          console.log(`⚡ KERNEL: Iterating UI generation (${iteration}/3)...`);
+        } else {
+          break;
+        }
+      } while (iteration < 3);
+
+      // Apply the final layout
+      if (evaluation.verdict !== 'POOR') {
+        await domRegenerator.morphToLayout(layout);
+        this.currentLayout = layout;
+      }
+
+      const latency = performance.now() - startTime;
+
+      this.emit('UI_REGENERATION_COMPLETE', {
+        layout,
+        evaluation,
+        iterations: iteration,
+        latencyMs: latency,
+      });
+
+      return {
+        action: 'UI_REGENERATED',
+        layoutId: layout.id,
+        score: evaluation.score,
+        verdict: evaluation.verdict,
+        iterations: iteration,
+        latencyMs: latency,
+      };
+    } catch (error: any) {
+      console.error('⚡ KERNEL: UI regeneration failed', error);
+      return {
+        action: 'UI_REGENERATION_FAILED',
+        error: error.message,
+      };
+    }
+  }
+
+  /**
+   * Build AUI generation context from current state
+   */
+  private buildAUIContext(): AUIGenerationContext {
+    const bio = this.biometricContext;
+
+    return {
+      // Biometric state
+      stressLevel: bio?.stressLevel.value ?? 0,
+      stressTrend: bio?.stressLevel.trend ?? 'STABLE',
+      attentionScore: bio?.attentionScore ?? 100,
+      cognitiveLoad: bio?.cognitiveLoad ?? 30,
+
+      // Gaze context
+      gazeSemantics: null, // Will be populated by semantic gaze service
+      recentFixations: bio?.recentFixations.map(f => ({
+        target: f.targetElement || 'unknown',
+        duration: f.duration,
+      })) ?? [],
+
+      // Task context
+      currentMode: 'METAVENTIONS_HUB', // Would come from app state
+      activeTask: null,
+      recentActions: [],
+
+      // UI state
+      currentLayout: this.currentLayout,
+      visiblePanels: this.currentLayout?.visiblePanels ?? [],
+
+      // User preferences
+      preferredComplexity: 'STANDARD',
+      frequentActions: [],
+    };
+  }
+
+  /**
+   * Trigger UI regeneration from biometric changes
+   */
+  async triggerUIRegeneration(reason: string): Promise<void> {
+    const now = Date.now();
+
+    // Cooldown check
+    if (now - this.lastRegenerationTime < this.regenerationCooldownMs) {
+      return;
+    }
+
+    if (this.isRegenerating) {
+      return;
+    }
+
+    this.lastRegenerationTime = now;
+    this.isRegenerating = true;
+
+    console.log(`⚡ KERNEL: Triggering UI regeneration - ${reason}`);
+
+    try {
+      await this.dispatch(`regenerate ui: ${reason}`, { priority: 'HIGH' });
+    } finally {
+      this.isRegenerating = false;
+    }
+  }
+
+  /**
+   * Enable/disable AUI system
+   */
+  setAUIEnabled(enabled: boolean): void {
+    this.auiEnabled = enabled;
+    console.log(`⚡ KERNEL: AUI ${enabled ? 'enabled' : 'disabled'}`);
+  }
+
+  /**
+   * Get current AUI layout
+   */
+  getCurrentLayout(): UILayoutSpec | null {
+    return this.currentLayout;
+  }
+
+  // ============================================================================
   // BIOMETRIC INTEGRATION
   // ============================================================================
 
@@ -327,6 +502,9 @@ class AgentKernelService {
    * Update biometric context from sensor hooks
    */
   updateBiometricContext(context: BiometricContext): void {
+    const prevStress = this.biometricContext?.stressLevel.value ?? 0;
+    const prevFixation = this.biometricContext?.recentFixations[0]?.targetElement;
+
     this.biometricContext = context;
     this.metrics.biometricSamples++;
     this.metrics.currentStressLevel = context.stressLevel.value;
@@ -347,6 +525,38 @@ class AgentKernelService {
     const longFixation = context.recentFixations.find(f => f.duration > 2000);
     if (longFixation) {
       this.emit('GAZE_FIXATION', longFixation);
+    }
+
+    // ============================================
+    // AUI TRIGGERS - Self-Synthesizing Adaptive UI
+    // ============================================
+
+    if (this.auiEnabled && this.adaptiveUIEnabled) {
+      // Trigger 1: Stress crosses 70% threshold (in either direction)
+      const stressCrossedUp = prevStress <= 70 && context.stressLevel.value > 70;
+      const stressCrossedDown = prevStress > 70 && context.stressLevel.value <= 50;
+
+      if (stressCrossedUp) {
+        this.triggerUIRegeneration(`Stress exceeded 70% (${context.stressLevel.value}%)`);
+      } else if (stressCrossedDown) {
+        this.triggerUIRegeneration(`Stress normalized (${context.stressLevel.value}%)`);
+      }
+
+      // Trigger 2: Significant gaze shift to different element (2s+ fixation)
+      const currentFixation = context.recentFixations[0];
+      if (
+        currentFixation &&
+        currentFixation.duration > 2000 &&
+        currentFixation.targetElement &&
+        currentFixation.targetElement !== prevFixation
+      ) {
+        this.triggerUIRegeneration(`Gaze shift to ${currentFixation.targetElement}`);
+      }
+
+      // Trigger 3: Cognitive overload detected
+      if (context.cognitiveLoad > 85 && (this.biometricContext?.cognitiveLoad ?? 0) <= 85) {
+        this.triggerUIRegeneration(`Cognitive overload (${context.cognitiveLoad}%)`);
+      }
     }
   }
 

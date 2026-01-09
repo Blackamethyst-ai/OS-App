@@ -20,7 +20,8 @@ export type IntentCategory =
   | 'CREATION'        // Asset/artifact generation
   | 'ANALYSIS'        // Deep reasoning
   | 'ORCHESTRATION'   // Multi-agent coordination
-  | 'BIOMETRIC';      // Gaze/stress response
+  | 'BIOMETRIC'       // Gaze/stress response
+  | 'UI_REGENERATION'; // Self-synthesizing adaptive UI
 
 export type TaskPriority = 'CRITICAL' | 'HIGH' | 'NORMAL' | 'LOW' | 'BACKGROUND';
 
@@ -210,7 +211,11 @@ export type KernelEventType =
   | 'INTENT_RESOLVED'
   | 'GAZE_FIXATION'
   | 'STRESS_THRESHOLD'
-  | 'UI_MUTATION';
+  | 'UI_MUTATION'
+  | 'UI_REGENERATION_START'
+  | 'UI_REGENERATION_COMPLETE'
+  | 'UI_EVALUATION'
+  | 'UI_ITERATION';
 
 export interface KernelEvent {
   id: string;
