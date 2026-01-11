@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Claude session files (local workflow)
+SESSION_LOG.md
+CURRENT_TASK.md
+.claude/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
