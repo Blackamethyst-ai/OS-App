@@ -298,6 +298,45 @@ export interface MentalState {
     alignment: number;
 }
 
+export interface CodebaseNode {
+    id: string;
+    path: string;
+    label: string;
+    type: 'file' | 'folder';
+    radius: number;
+    risk: 'LOW' | 'MEDIUM' | 'HIGH';
+}
+
+export interface CodebaseEdge {
+    source: string;
+    target: string;
+}
+
+export interface CodebaseGraph {
+    nodes: CodebaseNode[];
+    edges: CodebaseEdge[];
+    lastScanned: number;
+}
+
+export interface MigrationPlan {
+    id: string;
+    targetFile: string;
+    risk: 'LOW' | 'MEDIUM' | 'HIGH';
+    status: 'APPROVED' | 'AUTO_GENERATING_PATCHES' | 'MANUAL_APPROVAL_REQUIRED' | 'REJECTED';
+    impactedFiles: string[];
+    evolutionSteps: EvolutionStep[];
+    reasoning: string;
+    timestamp: number;
+}
+
+export interface EvolutionStep {
+    id: string;
+    file: string;
+    description: string;
+    patch: string;
+    status: 'PENDING' | 'APPLIED' | 'FAILED';
+}
+
 export interface AtomicTask {
     id: string;
     description: string;

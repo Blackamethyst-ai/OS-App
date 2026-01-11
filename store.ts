@@ -7,7 +7,8 @@ import {
     AspectRatio, ImageSize, StoredArtifact, MetaventionsState,
     OperationalContext, AutonomousAgent, Frame, ProductionBible,
     TechnicalManifest, SwarmProposal, AppPreferences, ModelTier,
-    ProtocolStepResult, BiometricState, UIComplexityLevel
+    ProtocolStepResult, BiometricState, UIComplexityLevel,
+    CodebaseGraph, CodebaseNode, CodebaseEdge
 } from './types';
 import { neuralVault } from './services/persistenceService';
 
@@ -179,6 +180,7 @@ interface AppState {
         pendingAction: string | null;
         governance: 'D-Ecosystem Protocol 2025.Q1';
         coherenceScore: number;
+        codebaseGraph: CodebaseGraph | null;
     };
     imageGen: {
         prompt: string;
@@ -488,7 +490,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         pendingAIAddition: null,
         pendingAction: null,
         governance: 'D-Ecosystem Protocol 2025.Q1',
-        coherenceScore: 98
+        coherenceScore: 98,
+        codebaseGraph: null
     },
     imageGen: {
         prompt: '',

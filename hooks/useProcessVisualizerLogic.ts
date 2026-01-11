@@ -1,15 +1,15 @@
 import { apiKeyService } from '../services/apiKeyService';
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { 
-    useNodesState, useEdgesState, useReactFlow, addEdge, Connection, 
+import {
+    useNodesState, useEdgesState, useReactFlow, addEdge, Connection,
     Node, Edge, OnSelectionChangeParams, getNodesBounds
 } from '@xyflow/react';
 import { useAppStore } from '../store';
 import { neuralVault } from '../services/persistenceService';
-import { 
-    generateMermaidDiagram, generateAudioOverview, 
-    fileToGenerativePart, promptSelectKey, classifyArtifact, 
+import {
+    generateMermaidDiagram, generateAudioOverview,
+    fileToGenerativePart, promptSelectKey, classifyArtifact,
     generateAutopoieticFramework, generateStructuredWorkflow,
     generateSystemArchitecture, calculateEntropy, decomposeNode, generateInfrastructureCode,
     generateSingleNode, calculateOptimalLayout, generateSwarmArchitecture,
@@ -19,12 +19,12 @@ import { FileData, AppMode, AppTheme, ProtocolStepResult, StoredArtifact } from 
 import { audio } from '../services/audioService';
 
 export const THEME = {
-    accent: { 
-        core: '#9d4edd', 
-        memory: '#22d3ee', 
-        action: '#f59e0b', 
-        tools: '#3b82f6', 
-        alert: '#ef4444', 
+    accent: {
+        core: '#9d4edd',
+        memory: '#22d3ee',
+        action: '#f59e0b',
+        tools: '#3b82f6',
+        alert: '#ef4444',
         success: '#10b981',
         execution: '#f59e0b'
     }
@@ -45,7 +45,7 @@ export const VISUAL_THEMES: Record<AppTheme, any> = {
 export const useProcessVisualizerLogic = () => {
     const { process: state, theme: globalTheme, actions } = useAppStore();
     const { setProcessState: setState, setCodeStudioState, setMode, addLog, openHoloProjector, updateProcessNode } = actions;
-    
+
     const activeTab = state.activeTab || 'living_map';
     const [visualTheme, setVisualTheme] = useState<AppTheme>(AppTheme.DARK);
     const [showGrid, setShowGrid] = useState(true);
@@ -76,7 +76,7 @@ export const useProcessVisualizerLogic = () => {
                 const isResolved = n.data?.status === 'DONE' || n.data?.status === 'COMPLETED';
                 const delta = isResolved ? -1 : (Math.random() > 0.9 ? Math.floor(Math.random() * 5) : 0);
                 const nextDrift = Math.max(0, Math.min(100, currentDrift + delta));
-                
+
                 if (nextDrift !== currentDrift) {
                     return { ...n, data: { ...n.data, drift: nextDrift } };
                 }
@@ -185,11 +185,11 @@ export const useProcessVisualizerLogic = () => {
                     classifyArtifact(fileData).then(result => {
                         if (result.ok) {
                             const analysis = result.value;
-                            setState((prev: any) => ({ 
-                                livingMapContext: { 
-                                    ...prev.livingMapContext, 
-                                    sources: prev.livingMapContext.sources.map((s: any) => s.id === sourceId ? { ...s, analysis } : s) 
-                                } 
+                            setState((prev: any) => ({
+                                livingMapContext: {
+                                    ...prev.livingMapContext,
+                                    sources: prev.livingMapContext.sources.map((s: any) => s.id === sourceId ? { ...s, analysis } : s)
+                                }
                             }));
                             addLog('SUCCESS', `INGEST_COMPLETE: Indexed "${file.name}" as ${analysis.classification}.`);
                         }
@@ -234,7 +234,7 @@ export const useProcessVisualizerLogic = () => {
         try {
             if (!(await checkApiKey())) return;
             const neighbors = edges.filter(e => e.source === selectedNode.id || e.target === selectedNode.id)
-                                    .map(e => nodes.find(n => n.id === (e.source === selectedNode.id ? e.target : e.source))?.data.label).join(', ');
+                .map(e => nodes.find(n => n.id === (e.source === selectedNode.id ? e.target : e.source))?.data.label).join(', ');
             const result = await decomposeNode(selectedNode.data.label as string, neighbors) as any;
             if (result.optimizations && result.optimizations.length > 0) {
                 addLog('SUCCESS', `OPTIMIZE: Found ${result.optimizations.length} improvements for "${selectedNode.data.label}".`);
@@ -264,7 +264,7 @@ export const useProcessVisualizerLogic = () => {
         setIsSynthesizingVault(true);
         setState({ isLoading: true });
         addLog('SYSTEM', 'VAULT_SYNTHESIS: Scanning artifacts for structural emergence...');
-        
+
         try {
             if (!(await checkApiKey())) return;
             const artifacts = await neuralVault.getArtifacts();
@@ -276,14 +276,14 @@ export const useProcessVisualizerLogic = () => {
             }
 
             const result = await generateProcessFromContext(artifacts as StoredArtifact[], state.workflowType, architecturePrompt) as any;
-            
+
             const newNodes = (result.nodes || []).map((n: any, i: number) => ({
                 id: n.id,
                 type: 'holographic',
                 position: { x: 500 + Math.cos(i) * 300, y: 300 + Math.sin(i) * 300 },
                 data: { ...n, theme: visualTheme, progress: 2, drift: 0 }
             }));
-            
+
             const newEdges = (result.edges || []).map((e: any) => ({
                 id: e.id,
                 source: e.source,
@@ -312,23 +312,23 @@ export const useProcessVisualizerLogic = () => {
         try {
             const sources = state.livingMapContext.sources || [];
             const files = (sources as any[]).map((s) => ({ inlineData: s.inlineData, name: s.name })) as FileData[];
-            const mapContext = { 
-                nodes: nodes.map(n => ({ label: n.data.label, subtext: n.data.subtext })), 
+            const mapContext = {
+                nodes: nodes.map(n => ({ label: n.data.label, subtext: n.data.subtext })),
                 edges: edges.map(e => e.id),
                 architecturePrompt: architecturePrompt,
                 domain: state.workflowType
             };
-            
+
             const code = await generateMermaidDiagram(state.governance, files, [mapContext]);
             setState({ generatedCode: code }); setSequenceProgress(30);
-            
+
             const workflow = await generateStructuredWorkflow(files, state.governance, state.workflowType, mapContext);
             setState({ generatedWorkflow: workflow }); setSequenceProgress(70);
-            
+
             const { audioData, transcript } = await generateAudioOverview(files);
             setState({ audioUrl: audioData, audioTranscript: transcript }); setSequenceProgress(100);
-            
-            setSequenceStatus('COMPLETE'); 
+
+            setSequenceStatus('COMPLETE');
             setState({ activeTab: state.workflowType === 'DRIVE_ORGANIZATION' ? 'vault' : 'workflow', isLoading: false });
             setTimeout(() => setSequenceStatus('IDLE'), 3000);
         } catch (err: any) { handleApiError('Global Sequence', err); }
@@ -376,7 +376,7 @@ export const useProcessVisualizerLogic = () => {
         visualTheme, showGrid, paneContextMenu, setPaneContextMenu, toggleGrid: () => setShowGrid(!showGrid), addNodeAtPosition,
         updateNodeStatus,
         handleGenerateGraph: async () => {
-            if (!(await checkApiKey())) return; 
+            if (!(await checkApiKey())) return;
             setIsGeneratingGraph(true);
             try {
                 let result;
@@ -405,7 +405,7 @@ export const useProcessVisualizerLogic = () => {
                 addLog('SUCCESS', `DECOMPOSE: Node "${selectedNode.data.label}" expanded into ${expanded.length} sub-units.`);
             } catch (err: any) { handleApiError('Decompose', err); } finally { setIsDecomposing(false); }
         },
-        handleOptimizeNode, 
+        handleOptimizeNode,
         handleAutoOrganize,
         handleSynthesizeFromVault,
         handleGenerateIaC: async (provider: string) => {
@@ -413,7 +413,7 @@ export const useProcessVisualizerLogic = () => {
                 if (!(await checkApiKey())) return;
                 const summary = nodes.map(n => n.data.label).join(', ');
                 const code = await generateInfrastructureCode(summary, provider);
-                setMode(AppMode.CODE_STUDIO); 
+                setMode(AppMode.CODE_STUDIO);
                 setCodeStudioState({ generatedCode: code, language: provider === 'DOCKER' ? 'yaml' : 'hcl' });
                 addLog('SUCCESS', `IAC_GEN: Provisioning code for ${provider} stabilized in Studio.`);
             } catch (err: any) { handleApiError('IaC', err); }
@@ -424,6 +424,49 @@ export const useProcessVisualizerLogic = () => {
         getTabLabel: (t: string) => t.replace('_', ' '), getPriorityBadgeStyle: (p: string) => p === 'HIGH' ? 'bg-red-900/20 text-red-400 border-red-500/30' : 'bg-[#111] text-gray-500',
         handleSourceUpload, removeSource, viewSourceAnalysis, setState,
         animatedNodes: nodes, animatedEdges: edges, handleRunGlobalSequence,
-        handleExecuteStep, handleResetSimulation
+        handleExecuteStep, handleResetSimulation,
+        handleLoadCodebaseGraph: async () => {
+            setState({ isLoading: true });
+            try {
+                const response = await fetch('/codebase_graph.json');
+                const data = await response.json();
+
+                // Convert to ReactFlow nodes
+                const rfNodes = data.nodes.map((n: any) => ({
+                    id: n.id,
+                    type: 'holographic',
+                    position: { x: Math.random() * 2000, y: Math.random() * 2000 },
+                    data: {
+                        label: n.label,
+                        subtext: n.path,
+                        radius: n.radius,
+                        risk: n.risk,
+                        iconName: 'Files',
+                        color: n.risk === 'HIGH' ? '#ef4444' : n.risk === 'MEDIUM' ? '#f59e0b' : '#3b82f6',
+                        status: n.risk === 'HIGH' ? 'CRITICAL' : 'STABLE',
+                        theme: visualTheme,
+                        progress: n.radius > 0 ? 3 : 1,
+                        drift: n.radius * 2
+                    }
+                }));
+
+                const rfEdges = data.edges.map((e: any) => ({
+                    id: e.id,
+                    source: e.source,
+                    target: e.target,
+                    type: 'cinematic',
+                    data: { color: '#9d4edd', variant: 'stream' }
+                }));
+
+                setNodes(rfNodes);
+                setEdges(rfEdges);
+                setState({ codebaseGraph: data, isLoading: false });
+                addLog('SUCCESS', `LATTICE_SYNC: ${rfNodes.length} file nodes ingested.`);
+                setTimeout(() => fitView({ duration: 1000 }), 100);
+            } catch (err: any) {
+                handleApiError('Load Codebase Graph', err);
+            }
+        }
     };
 };
+

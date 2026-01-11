@@ -8,6 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "sync:lattice": "tsx scripts/sync_code_graph.ts",
     "start": "serve -s dist -l 8080"
   },
   "dependencies": {
@@ -36,6 +37,7 @@
     "@types/node": "^22.14.0",
     "@types/three": "^0.170.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.21.0",
     "typescript": "^5.7.3",
     "vite": "^6.1.1"
   }

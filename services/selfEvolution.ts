@@ -20,8 +20,7 @@
 import { useAppStore } from '../store';
 import { generateText } from './geminiService';
 import { powerService } from './powerService';
-import { scanCodebase } from '../libs/codebase-scanner';
-import { GraphReasoningEngine } from '../libs/graph-reasoning-engine/engine';
+import { MigrationPlan, EvolutionStep, AppMode, AppTheme, ProtocolStepResult, StoredArtifact } from '../types';
 import * as path from 'path';
 
 // Configuration
@@ -67,12 +66,7 @@ export interface EvolutionCycle {
     netImpact: number; // Positive = improvement
 }
 
-export interface MigrationPlan {
-    target: string;
-    risk: RiskLevel;
-    impactedFiles: string[];
-    status: 'AUTO_GENERATING_PATCHES' | 'MANUAL_APPROVAL_REQUIRED' | 'APPROVED';
-}
+// Redefining local interfaces for internals if needed, but using MigrationPlan from types.ts globally
 
 class SelfEvolutionService {
     private frictionSignals: Map<string, FrictionSignal> = new Map();
@@ -459,15 +453,19 @@ Output ONLY the code, no markdown fences.`;
         // Trigger analysis
         this.analyzeFriction();
     }
+
     /**
      * Sentient Code Editing: Assess the blast radius of modifying a file.
      * Uses Graph Reasoning Engine to find all dependent components.
      */
-    assessImpact(targetFile: string): RiskLevel {
+    async assessImpact(targetFile: string): Promise<RiskLevel> {
         try {
             // 1. Scan Codebase (Note: assumes Node environment for file scanning)
             // In a real browser app, this graph would be pre-built or served by backend.
-            // For this phase, we run it directly.
+            // For this phase, we run it directly via dynamic import to avoid browser crash
+            const { scanCodebase } = await import('../libs/codebase-scanner');
+            const { GraphReasoningEngine } = await import('../libs/graph-reasoning-engine/engine');
+
             const rootDir = process.cwd();
             const graphData = scanCodebase(rootDir);
 
@@ -518,17 +516,22 @@ Output ONLY the code, no markdown fences.`;
      * Sentient Code Editing: Propose a migration plan based on impact analysis.
      * High risk changes require manual approval. Medium risk triggers auto-patching.
      */
-    proposeMigration(targetFile: string, changes: string): MigrationPlan {
+    async proposeMigration(targetFile: string, changes: string): Promise<MigrationPlan> {
         try {
             // 1. Assess Risk
-            const risk = this.assessImpact(targetFile);
+            const risk = await this.assessImpact(targetFile);
 
-            // 2. Scan for dependent files (re-using logic from assessImpact for now, 
-            // ideally we cache the graph or return it from assessImpact)
+            // 2. Scan for dependent files (re-using logic from assessImpact for now)
+            // Note: In Node, we use scanner. In browser, we would fetch the graph.
+            let impactedFiles: string[] = [];
+
+            // For the test script, we use scanner
+            const { scanCodebase } = await import('../libs/codebase-scanner');
+            const { GraphReasoningEngine } = await import('../libs/graph-reasoning-engine/engine');
+
             const rootDir = process.cwd();
             const graphData = scanCodebase(rootDir);
             const targetPath = Object.keys(graphData.meta.pathToId).find(p => p.endsWith(targetFile));
-            let impactedFiles: string[] = [];
 
             if (targetPath) {
                 const targetId = graphData.meta.pathToId[targetPath];
@@ -548,38 +551,52 @@ Output ONLY the code, no markdown fences.`;
             }
 
             // 3. Formulate Plan
+            const planId = `plan-${Date.now()}`;
+            const plan: MigrationPlan = {
+                id: planId,
+                targetFile,
+                risk,
+                status: 'APPROVED', // Default
+                impactedFiles,
+                evolutionSteps: [],
+                reasoning: `Analysis of ${targetFile} shows a blast radius of ${impactedFiles.length} files.`,
+                timestamp: Date.now()
+            };
+
             if (risk === 'HIGH') {
-                return {
-                    target: targetFile,
-                    risk,
-                    impactedFiles,
-                    status: 'MANUAL_APPROVAL_REQUIRED'
-                };
+                plan.status = 'MANUAL_APPROVAL_REQUIRED';
+                plan.reasoning += " High impact detected on core systems. Manual architectural review required.";
             } else if (risk === 'MEDIUM') {
-                // In a real system, we would queue jobs to patch these files here
-                return {
-                    target: targetFile,
-                    risk,
-                    impactedFiles,
-                    status: 'AUTO_GENERATING_PATCHES'
-                };
+                plan.status = 'AUTO_GENERATING_PATCHES';
+                plan.reasoning += " Significant dependencies found. Automated patching initiated for affected modules.";
+
+                // Add dummy evolution steps representing the plan for impacted files
+                plan.evolutionSteps = impactedFiles.map(file => ({
+                    id: `step-${Math.random().toString(36).substr(2, 9)}`,
+                    file,
+                    description: `Update call sites and types for changes in ${targetFile}`,
+                    patch: `// TODO: Generate patch for ${file}`,
+                    status: 'PENDING'
+                }));
             } else {
-                return {
-                    target: targetFile,
-                    risk,
-                    impactedFiles,
-                    status: 'APPROVED'
-                };
+                plan.status = 'APPROVED';
+                plan.reasoning += " Low blast radius. Safe for immediate evolution.";
             }
+
+            return plan;
 
         } catch (error) {
             console.error('Migration Proposal Failed:', error);
             return {
-                target: targetFile,
+                id: `error-${Date.now()}`,
+                targetFile: targetFile,
                 risk: 'HIGH',
+                status: 'MANUAL_APPROVAL_REQUIRED',
                 impactedFiles: [],
-                status: 'MANUAL_APPROVAL_REQUIRED'
-            };
+                evolutionSteps: [],
+                reasoning: `Error during proposal: ${error}`,
+                timestamp: Date.now()
+            } as MigrationPlan;
         }
     }
 }

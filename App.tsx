@@ -248,7 +248,7 @@ const App: React.FC = () => {
 
         const checkKey = async () => {
             // Check if we have a key in Environment OR LocalStorage
-            const hasEnvKey = !!(import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY || process.env.GEMINI_API_KEY);
+            const hasEnvKey = !!(import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY || (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY));
             const hasLocalKey = !!localStorage.getItem('gemini_api_key');
 
             if (!hasEnvKey && !hasLocalKey) {

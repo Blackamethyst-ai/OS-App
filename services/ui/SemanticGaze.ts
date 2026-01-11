@@ -233,7 +233,7 @@ class SemanticGazeAnalyzer {
     }
 
     // 2. Check API key exists
-    const hasApiKey = apiKeyService.getClaudeApiKey() || apiKeyService.getGeminiApiKey();
+    const hasApiKey = apiKeyService.getKey('claude') || apiKeyService.getGeminiKey();
     if (!hasApiKey) {
       console.log('SEMANTIC_GAZE: No API key - using DOM fallback');
       return this.analyzeFromDOM(gazeX, gazeY);
