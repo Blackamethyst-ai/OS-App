@@ -1,6 +1,5 @@
 
 import { buildGraph, sssp, dijkstraSSSP } from "./src/index.js";
-import { performance } from "perf_hooks";
 
 // --- Types ---
 export interface PathRequest {

@@ -16,7 +16,28 @@ if (typeof localStorage === 'undefined' || typeof window === 'undefined') {
     };
     (global as any).document = {
         elementFromPoint: () => null
-    }
+    };
+    (global as any).indexedDB = {
+        open: () => ({
+            onupgradeneeded: null,
+            onsuccess: null,
+            onerror: null,
+            result: {
+                createObjectStore: () => ({
+                    createIndex: () => { }
+                }),
+                transaction: () => ({
+                    objectStore: () => ({
+                        get: () => ({ onsuccess: null }),
+                        put: () => ({ onsuccess: null }),
+                        delete: () => ({ onsuccess: null }),
+                        getAll: () => ({ onsuccess: null }),
+                        clear: () => ({ onsuccess: null })
+                    })
+                })
+            }
+        })
+    };
 }
 
 async function runTest() {
@@ -43,17 +64,24 @@ async function runTest() {
     console.log(`\n🤖 User Request: 'Refactor ${targetFile} to add new types.'`);
     console.log(`... Consulting Graph Reasoner ...`);
 
-    const plan = selfEvolution.proposeMigration(targetFile, "dummy change");
+    const plan = await selfEvolution.proposeMigration(targetFile, "dummy change");
 
     console.log(`\n📜 MIGRATION PLAN GENERATED:`);
-    console.log(`   TARGET: ${plan.target}`);
+    console.log(`   ID: ${plan.id}`);
+    console.log(`   TARGET: ${plan.targetFile}`);
     console.log(`   RISK LEVEL: ${plan.risk}`);
     console.log(`   STATUS: ${plan.status}`);
+    console.log(`   REASONING: ${plan.reasoning}`);
 
     if (plan.impactedFiles.length > 0) {
         console.log(`\n   IMPACTED FILES (${plan.impactedFiles.length}):`);
         plan.impactedFiles.slice(0, 15).forEach(f => console.log(`    - ${f}`));
         if (plan.impactedFiles.length > 15) console.log(`    ... and ${plan.impactedFiles.length - 15} more.`);
+    }
+
+    if (plan.evolutionSteps.length > 0) {
+        console.log(`\n   EVOLUTION STEPS (${plan.evolutionSteps.length}):`);
+        plan.evolutionSteps.slice(0, 5).forEach(s => console.log(`    - [${s.status}] ${s.file}: ${s.description}`));
     }
 
     if (plan.status === 'AUTO_GENERATING_PATCHES') {

@@ -1,15 +1,15 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    ReactFlow, Background, Controls, MiniMap, 
+import {
+    ReactFlow, Background, Controls, MiniMap,
     NodeProps, EdgeProps, BackgroundVariant, ReactFlowProvider,
     Handle, Position, getSmoothStepPath, useReactFlow,
     useNodesState, useEdgesState
 } from '@xyflow/react';
-import { 
-    BrainCircuit, Activity, Zap, Workflow, Loader2, Sparkles, 
-    CheckCircle, Clock, RefreshCw, DraftingCompass, 
+import {
+    BrainCircuit, Activity, Zap, Workflow, Loader2, Sparkles,
+    CheckCircle, Clock, RefreshCw, DraftingCompass,
     Layers, Grid3X3, ListChecks, Map, ShieldCheck, GitBranch,
     ChevronRight, Binary, HardDrive, Server, Target, Box,
     Network, Search, Cpu, Database, Brain, FolderTree, Cloud,
@@ -37,20 +37,20 @@ const ExecutiveNode = ({ id, data: nodeData, selected, dragging }: NodeProps) =>
     };
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
-            animate={{ 
-                scale: selected ? 1.05 : 1, 
+            animate={{
+                scale: selected ? 1.05 : 1,
                 opacity: 1,
                 boxShadow: selected ? `0 0 40px ${accentColor}20` : '0 15px 35px rgba(0,0,0,0.5)',
                 borderColor: selected ? 'rgba(255,255,255,0.4)' : drift > 60 ? '#ef4444' : 'rgba(255,255,255,0.1)'
             }}
-            className={`relative rounded-3xl border crystalline overflow-hidden ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`} 
+            className={`relative rounded-3xl border crystalline overflow-hidden ${dragging ? 'cursor-grabbing' : 'cursor-grab'}`}
             style={{ minWidth: '280px' }}
         >
             <Handle type="target" position={Position.Top} className="!bg-[var(--cyan)] !border-none !w-2.5 !h-2.5 !opacity-40" />
             <Handle type="source" position={Position.Bottom} className="!bg-[var(--amethyst)] !border-none !w-2.5 !h-2.5 !opacity-40" />
-            
+
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.03] to-transparent pointer-events-none" />
 
             <div className="flex p-6 gap-5 relative z-10">
@@ -72,7 +72,20 @@ const ExecutiveNode = ({ id, data: nodeData, selected, dragging }: NodeProps) =>
                         )}
                     </div>
                     <h3 className="text-[13px] font-black font-mono uppercase tracking-tight text-white truncate">{renderSafe(data.label as any)}</h3>
-                    <p className="text-[10px] text-gray-400 font-mono truncate mt-1 leading-tight italic opacity-60">"{renderSafe(data.subtext as any)}"</p>
+                    {data.radius !== undefined ? (
+                        <div className="flex items-center gap-3 mt-1">
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-black/40 border border-white/5">
+                                <Activity size={10} className="text-[var(--amethyst)]" />
+                                <span className="text-[9px] font-black font-mono text-white tracking-widest">{data.radius}</span>
+                            </div>
+                            <span className={cn(
+                                "text-[8px] font-black font-mono uppercase tracking-[0.2em]",
+                                data.risk === 'HIGH' ? 'text-red-500' : data.risk === 'MEDIUM' ? 'text-amber-500' : 'text-blue-400'
+                            )}>{data.risk} RISK</span>
+                        </div>
+                    ) : (
+                        <p className="text-[10px] text-gray-400 font-mono truncate mt-1 leading-tight italic opacity-60">"{renderSafe(data.subtext as any)}"</p>
+                    )}
                 </div>
             </div>
 
@@ -83,9 +96,9 @@ const ExecutiveNode = ({ id, data: nodeData, selected, dragging }: NodeProps) =>
                         <span>{100 - drift}%</span>
                     </div>
                     <div className="h-1 w-full bg-black/40 rounded-full overflow-hidden border border-white/5">
-                        <motion.div 
-                            animate={{ width: `${100 - drift}%` }} 
-                            className="h-full bg-gradient-to-r from-[var(--amethyst)] to-[var(--cyan)]" 
+                        <motion.div
+                            animate={{ width: `${100 - drift}%` }}
+                            className="h-full bg-gradient-to-r from-[var(--amethyst)] to-[var(--cyan)]"
                         />
                     </div>
                 </div>
@@ -123,11 +136,11 @@ const ProcessVisualizerContent = () => {
     const { setProcessState } = actions;
     const logic = useProcessVisualizerLogic();
     const {
-        activeTab, onNodesChange, onEdgesChange, onConnect, 
+        activeTab, onNodesChange, onEdgesChange, onConnect,
         nodes, edges, setState, handleAutoOrganize,
         architecturePrompt, setArchitecturePrompt,
         handleGenerateGraph, isGeneratingGraph, handleRunGlobalSequence,
-        updateNodeStatus, handleExecuteStep
+        updateNodeStatus, handleExecuteStep, handleLoadCodebaseGraph
     } = logic;
 
     const nodeTypes = useMemo(() => ({ holographic: ExecutiveNode }), []);
@@ -156,7 +169,7 @@ const ProcessVisualizerContent = () => {
         <div className="h-full w-full bg-transparent flex flex-col relative overflow-hidden font-sans border border-[var(--border-main)] rounded-[2.5rem] shadow-2xl transition-colors duration-500">
             <div className="h-16 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl z-[60] flex items-center justify-between px-10 shrink-0 relative overflow-hidden shadow-2xl">
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--cyan)]/40 to-transparent" />
-                
+
                 <div className="flex items-center gap-10">
                     <div className="flex items-center gap-4">
                         <div className="p-2.5 bg-[var(--amethyst)]/10 border border-[var(--border-main)] rounded-xl shadow-[0_0_20px_rgba(157,78,221,0.2)]">
@@ -173,11 +186,12 @@ const ProcessVisualizerContent = () => {
                             { id: 'living_map', icon: Map, label: 'Topology' },
                             { id: 'architect', icon: DraftingCompass, label: 'Logic Lab' },
                             { id: 'workflow', icon: ListChecks, label: 'Implementation' },
-                            { id: 'diagram', icon: Grid3X3, label: 'Visual Log' }
+                            { id: 'diagram', icon: Grid3X3, label: 'Visual Log' },
+                            { id: 'blast_radius', icon: GitBranch, label: 'Blast Radius' }
                         ].map(tab => (
-                            <button 
-                                key={tab.id} 
-                                onClick={() => { setState({ activeTab: tab.id }); audio.playClick(); }} 
+                            <button
+                                key={tab.id}
+                                onClick={() => { setState({ activeTab: tab.id }); audio.playClick(); }}
                                 className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all
                                     ${activeTab === tab.id ? 'bg-[var(--amethyst)] text-white shadow-xl scale-105' : 'text-gray-500 hover:text-white'}
                                 `}
@@ -193,7 +207,7 @@ const ProcessVisualizerContent = () => {
                         <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />
                     </button>
                     <button onClick={handleRunGlobalSequence} className="px-6 py-2 bg-[#f1c21b] text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(241,194,27,0.3)] flex items-center gap-3 active:scale-95 group">
-                        <Zap size={14} className="fill-current"/> Initialize Protocol
+                        <Zap size={14} className="fill-current" /> Initialize Protocol
                     </button>
                 </div>
             </div>
@@ -214,7 +228,7 @@ const ProcessVisualizerContent = () => {
                         <motion.div key="architect" initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -15 }} className="h-full flex flex-col items-center justify-center p-12">
                             <div className="w-full max-w-3xl bg-transparent crystalline rounded-[3rem] p-12 border border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.7)] space-y-10 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-8 opacity-[0.03] rotate-12 pointer-events-none scale-150"><Compass size={140} /></div>
-                                
+
                                 <div className="flex items-center gap-6 relative z-10">
                                     <div className="p-4 bg-[var(--cyan)]/10 rounded-2xl border border-[var(--cyan)]/30 text-[var(--cyan)] shadow-xl">
                                         <DraftingCompass size={28} />
@@ -224,7 +238,7 @@ const ProcessVisualizerContent = () => {
                                         <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-2 block">Forge high-fidelity process topologies</p>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex flex-col gap-6 relative z-10">
                                     <div className="space-y-4">
                                         <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Sector Domain</label>
@@ -233,13 +247,13 @@ const ProcessVisualizerContent = () => {
                                                 { id: 'DRIVE_ORGANIZATION', icon: HardDrive, label: 'D-System PARA+' },
                                                 { id: 'SYSTEM_ARCHITECTURE', icon: Server, label: 'Cloud Infrastructure' }
                                             ].map(mode => (
-                                                <button 
+                                                <button
                                                     key={mode.id}
                                                     onClick={() => { setProcessState({ workflowType: mode.id as any }); audio.playClick(); }}
                                                     className={cn(
                                                         "px-8 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3",
-                                                        processData.workflowType === mode.id 
-                                                            ? 'bg-white text-black shadow-2xl scale-105' 
+                                                        processData.workflowType === mode.id
+                                                            ? 'bg-white text-black shadow-2xl scale-105'
                                                             : 'text-gray-500 hover:text-white hover:bg-white/5'
                                                     )}
                                                 >
@@ -267,20 +281,20 @@ const ProcessVisualizerContent = () => {
 
                                 <div className="space-y-4 relative z-10">
                                     <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Operational Intent</label>
-                                    <textarea 
-                                        value={architecturePrompt} 
-                                        onChange={(e) => setArchitecturePrompt(e.target.value)} 
+                                    <textarea
+                                        value={architecturePrompt}
+                                        onChange={(e) => setArchitecturePrompt(e.target.value)}
                                         placeholder={`Specify structural constraints for ${processData.workflowType === 'DRIVE_ORGANIZATION' ? 'PARA Data Taxonomy' : 'Production Systems Blueprint'}...`}
-                                        className="w-full h-48 bg-black/60 border border-white/10 rounded-[2.5rem] p-8 text-sm font-mono text-white outline-none focus:border-[var(--cyan)] transition-all placeholder:text-gray-800 shadow-inner group-hover/forge:border-white/20" 
+                                        className="w-full h-48 bg-black/60 border border-white/10 rounded-[2.5rem] p-8 text-sm font-mono text-white outline-none focus:border-[var(--cyan)] transition-all placeholder:text-gray-800 shadow-inner group-hover/forge:border-white/20"
                                     />
                                 </div>
-                                
-                                <button 
-                                    onClick={handleGenerateGraph} 
-                                    disabled={isGeneratingGraph || !architecturePrompt.trim()} 
+
+                                <button
+                                    onClick={handleGenerateGraph}
+                                    disabled={isGeneratingGraph || !architecturePrompt.trim()}
                                     className="w-full bg-[#f1c21b] text-black py-6 rounded-[2.5rem] font-black text-[12px] uppercase tracking-[0.5em] flex items-center justify-center gap-5 shadow-[0_20px_50px_rgba(241,194,27,0.3)] hover:bg-yellow-400 transition-all disabled:opacity-30 active:scale-95 relative z-10 group/gen"
                                 >
-                                    {isGeneratingGraph ? <Loader2 className="animate-spin" size={18} /> : <Sparkles className="w-5 h-5 group-hover/gen:scale-125 transition-transform" />} 
+                                    {isGeneratingGraph ? <Loader2 className="animate-spin" size={18} /> : <Sparkles className="w-5 h-5 group-hover/gen:scale-125 transition-transform" />}
                                     Synthesize System Manifest
                                 </button>
                             </div>
@@ -303,7 +317,7 @@ const ProcessVisualizerContent = () => {
                                         </div>
                                         <div className="text-[10px] font-black text-[#10b981] px-4 py-1.5 rounded-full border border-[#10b981]/30 bg-[#10b981]/10 uppercase tracking-widest shadow-xl">Stable Release</div>
                                     </div>
-                                    
+
                                     <div className="space-y-4">
                                         {processData.generatedWorkflow?.protocols?.map((p: any, i: number) => (
                                             <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}
@@ -382,6 +396,58 @@ const ProcessVisualizerContent = () => {
                                     <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.6em]">System Topology Visualizer</span>
                                 </div>
                                 <MermaidDiagram code={processData.generatedCode || 'graph TD\nCORE[D-System Core] --> NODE[Infrastructure Node]'} />
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'blast_radius' && (
+                        <motion.div key="blast_radius" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full p-10">
+                            <div className="w-full h-full bg-black/20 crystalline border border-white/10 rounded-[4rem] overflow-hidden shadow-2xl relative">
+                                <div className="absolute top-10 left-12 z-20 flex items-center gap-5 pointer-events-none">
+                                    <GitBranch className="text-[var(--amethyst)]" size={28} />
+                                    <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.6em]">Codebase Blast Radius (Lattice Engine)</span>
+                                </div>
+
+                                <div className="absolute top-10 right-14 z-20 flex items-center gap-4">
+                                    <button
+                                        onClick={handleLoadCodebaseGraph}
+                                        className="h-14 px-10 rounded-full bg-[var(--amethyst)] hover:bg-[var(--amethyst-hover)] text-white text-[11px] font-bold uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95"
+                                    >
+                                        <Zap size={16} /> Sync Lattice Graph
+                                    </button>
+                                </div>
+
+                                <ReactFlow
+                                    nodes={nodes}
+                                    edges={edges}
+                                    onNodesChange={onNodesChange}
+                                    onEdgesChange={onEdgesChange}
+                                    nodeTypes={nodeTypes}
+                                    edgeTypes={edgeTypes}
+                                    fitView
+                                    className="bg-transparent"
+                                >
+                                    <Background color="#555" gap={40} size={1} />
+                                </ReactFlow>
+
+                                <div className="absolute bottom-12 left-12 right-12 flex justify-between items-end pointer-events-none">
+                                    <div className="flex gap-10">
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-[9px] text-gray-500 font-black uppercase tracking-widest">Nodes Tracked</span>
+                                            <span className="text-2xl font-black text-white font-mono">{nodes.length}</span>
+                                        </div>
+                                        <div className="flex flex-col gap-1">
+                                            <span className="text-[9px] text-gray-500 font-black uppercase tracking-widest">Dependencies</span>
+                                            <span className="text-2xl font-black text-white font-mono">{edges.length}</span>
+                                        </div>
+                                    </div>
+                                    <div className="p-8 bg-black/40 crystalline border border-white/10 rounded-3xl pointer-events-auto">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                                            <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">Self-Evolution Risk Monitor Active</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </motion.div>
                     )}
