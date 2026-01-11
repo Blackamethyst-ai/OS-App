@@ -425,48 +425,108 @@ export const useProcessVisualizerLogic = () => {
         handleSourceUpload, removeSource, viewSourceAnalysis, setState,
         animatedNodes: nodes, animatedEdges: edges, handleRunGlobalSequence,
         handleExecuteStep, handleResetSimulation,
+
+
         handleLoadCodebaseGraph: async () => {
             setState({ isLoading: true });
             try {
                 const response = await fetch('/codebase_graph.json');
                 const data = await response.json();
 
-                // Convert to ReactFlow nodes
-                const rfNodes = data.nodes.map((n: any) => ({
-                    id: n.id,
-                    type: 'holographic',
-                    position: { x: Math.random() * 2000, y: Math.random() * 2000 },
-                    data: {
-                        label: n.label,
-                        subtext: n.path,
-                        radius: n.radius,
-                        risk: n.risk,
-                        iconName: 'Files',
-                        color: n.risk === 'HIGH' ? '#ef4444' : n.risk === 'MEDIUM' ? '#f59e0b' : '#3b82f6',
-                        status: n.risk === 'HIGH' ? 'CRITICAL' : 'STABLE',
-                        theme: visualTheme,
-                        progress: n.radius > 0 ? 3 : 1,
-                        drift: n.radius * 2
-                    }
+                const TIER_SPACING_X = 750;
+                const NODE_SPACING_Y = 280;
+                const TIER_LABELS = ["CORE_INFRA", "SYSTEM_SERVICES", "LOGIC_LATTICE", "COMPONENT_MATRIX", "INTERFACE_LAYER"];
+
+                // 1. Group nodes by tier for vertical layout
+                const nodesByTier: Record<number, any[]> = {};
+                const fileNodesData = data.nodes.filter((n: any) => n.type === 'file');
+
+                fileNodesData.forEach((n: any) => {
+                    const tier = n.tier ?? 3;
+                    if (!nodesByTier[tier]) nodesByTier[tier] = [];
+                    nodesByTier[tier].push(n);
+                });
+
+                // 2. Create Tier Labels
+                const tierLabelNodes = TIER_LABELS.map((label, i) => ({
+                    id: `tier-label-${i}`,
+                    type: 'tierLabel',
+                    position: { x: i * TIER_SPACING_X + 250, y: -600 },
+                    data: { label },
+                    draggable: false
                 }));
+
+                // 3. Convert to ReactFlow nodes
+                const rfFileNodes = fileNodesData.map((n: any) => {
+                    const tier = n.tier ?? 3;
+                    const tierNodes = nodesByTier[tier];
+                    const index = tierNodes.indexOf(n);
+
+                    const verticalOffset = - (tierNodes.length * NODE_SPACING_Y) / 2;
+                    const x = tier * TIER_SPACING_X + 350;
+                    const y = index * NODE_SPACING_Y + verticalOffset;
+
+                    return {
+                        id: n.id,
+                        type: 'holographic',
+                        position: { x, y },
+                        data: {
+                            label: n.label,
+                            subtext: n.relPath || n.path,
+                            radius: n.radius,
+                            risk: n.risk,
+                            iconName: (n.relPath || "").includes('.tsx') ? 'Layout' : (n.relPath || "").includes('.ts') ? 'Binary' : 'Files',
+                            color: n.risk === 'HIGH' ? '#ef4444' : n.risk === 'MEDIUM' ? '#f59e0b' : '#3b82f6',
+                            status: n.risk === 'HIGH' ? 'CRITICAL' : 'STABLE',
+                            theme: visualTheme,
+                            progress: (n.radius || 0) > 0 ? 3 : 1,
+                            drift: (n.radius || 0) * 0.8
+                        }
+                    };
+                });
+
+                // 4. Wrap Folders around their child nodes
+                const folderNodes = data.nodes.filter((n: any) => n.type === 'folder').map((f: any) => {
+                    // Find children of this folder
+                    const children = rfFileNodes.filter(n => n.data.subtext.startsWith(f.path));
+                    if (children.length === 0) return null;
+
+                    // Compute bounding box
+                    const minX = Math.min(...children.map(c => c.position.x)) - 100;
+                    const minY = Math.min(...children.map(c => c.position.y)) - 250;
+                    const maxX = Math.max(...children.map(c => c.position.x)) + 400;
+                    const maxY = Math.max(...children.map(c => c.position.y)) + 400;
+
+                    return {
+                        id: f.id,
+                        type: 'folder',
+                        position: { x: minX, y: minY },
+                        data: { label: f.label, color: '#9d4edd' },
+                        style: { width: maxX - minX, height: maxY - minY, zIndex: -1 },
+                        draggable: true
+                    };
+                }).filter(Boolean);
 
                 const rfEdges = data.edges.map((e: any) => ({
                     id: e.id,
                     source: e.source,
                     target: e.target,
                     type: 'cinematic',
-                    data: { color: '#9d4edd', variant: 'stream' }
+                    data: { color: '#9d4edd', variant: 'stream' },
+                    animated: true
                 }));
 
-                setNodes(rfNodes);
+                setNodes([...tierLabelNodes, ...folderNodes, ...rfFileNodes]);
                 setEdges(rfEdges);
                 setState({ codebaseGraph: data, isLoading: false });
-                addLog('SUCCESS', `LATTICE_SYNC: ${rfNodes.length} file nodes ingested.`);
-                setTimeout(() => fitView({ duration: 1000 }), 100);
+                addLog('SUCCESS', `LATTICE_RECONSTRUCTION: View stabilized and centered.`);
+
+                setTimeout(() => {
+                    fitView({ duration: 1200, padding: 0.15 });
+                }, 400);
             } catch (err: any) {
                 handleApiError('Load Codebase Graph', err);
             }
         }
     };
 };
-
