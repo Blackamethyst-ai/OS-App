@@ -32,7 +32,10 @@ import {
     EvolutionCycle,
     RiskLevel
 } from '../types';
-import * as path from 'path';
+
+// Browser-safe path helpers
+const getBasename = (filePath: string) => filePath.split(/[\\/]/).pop() || '';
+
 
 // Configuration
 const FRICTION_THRESHOLD = 3; // Number of similar errors/actions before triggering evolution
@@ -439,7 +442,7 @@ Output ONLY the code, no markdown fences.`;
             const { scanCodebase } = await import('../libs/codebase-scanner');
             const { GraphReasoningEngine } = await import('../libs/graph-reasoning-engine/engine');
 
-            const rootDir = process.cwd();
+            const rootDir = '/'; // Browser sandbox fallback
             const graphData = scanCodebase(rootDir);
 
             // 2. Resolve Target
@@ -502,7 +505,7 @@ Output ONLY the code, no markdown fences.`;
             const { scanCodebase } = await import('../libs/codebase-scanner');
             const { GraphReasoningEngine } = await import('../libs/graph-reasoning-engine/engine');
 
-            const rootDir = process.cwd();
+            const rootDir = '/'; // Browser sandbox fallback
             const graphData = scanCodebase(rootDir);
             const targetPath = Object.keys(graphData.meta.pathToId).find(p => p.endsWith(targetFile));
 
@@ -517,7 +520,7 @@ Output ONLY the code, no markdown fences.`;
                 if (paths.distances) {
                     for (let i = 0; i < paths.distances.length; i++) {
                         if (i !== targetId && paths.distances[i] !== Infinity) {
-                            impactedFiles.push(path.basename(graphData.meta.idToPath[i]));
+                            impactedFiles.push(getBasename(graphData.meta.idToPath[i]));
                         }
                     }
                 }

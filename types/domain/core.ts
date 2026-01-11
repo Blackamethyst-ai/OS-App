@@ -45,6 +45,12 @@ export interface FileData {
     name?: string;
 }
 
+export enum TemporalEra {
+    SILICON = 'SILICON',
+    QUANTUM = 'QUANTUM',
+    BIOMIMETIC = 'BIOMIMETIC'
+}
+
 export type ModelTier = 'fast' | 'balanced' | 'powerful' | 'creative' | 'local';
 
 export interface AppPreferences {
