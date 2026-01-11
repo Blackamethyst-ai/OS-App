@@ -1,12 +1,12 @@
 import { openDB, DBSchema, IDBPDatabase } from 'idb';
 import { AppMode, ArtifactAnalysis, Message, UserProfile, KnowledgeLayer, AutonomousAgent } from '../types';
-import { cosineSimilarity } from '../utils/vector';
+import { cosineSimilarity } from './persistence/vectorMath';
 
 // --- SCHEMA DEFINITION ---
 
 interface NeuralVaultSchema extends DBSchema {
   artifacts: {
-    key: string; 
+    key: string;
     value: {
       id: string;
       name: string;
@@ -20,7 +20,7 @@ interface NeuralVaultSchema extends DBSchema {
   };
 
   snapshots: {
-    key: number; 
+    key: number;
     value: {
       timestamp: number;
       mode: AppMode;
@@ -31,7 +31,7 @@ interface NeuralVaultSchema extends DBSchema {
   };
 
   echoes: {
-    key: string; 
+    key: string;
     value: {
       id: string;
       mode: AppMode;
@@ -43,7 +43,7 @@ interface NeuralVaultSchema extends DBSchema {
   };
 
   vectors: {
-    key: string; 
+    key: string;
     value: {
       id: string;
       embedding: number[];
@@ -52,28 +52,28 @@ interface NeuralVaultSchema extends DBSchema {
   };
 
   profile: {
-      key: string; 
-      value: UserProfile;
+    key: string;
+    value: UserProfile;
   };
 
   knowledge_layers: {
-      key: string; 
-      value: KnowledgeLayer;
+    key: string;
+    value: KnowledgeLayer;
   };
 
   dynamic_tools: {
-      key: string;
-      value: {
-          id: string;
-          manifest: any; // FunctionDeclaration
-          code: string; // The executable logic as string
-          timestamp: number;
-      };
+    key: string;
+    value: {
+      id: string;
+      manifest: any; // FunctionDeclaration
+      code: string; // The executable logic as string
+      timestamp: number;
+    };
   };
 
   agents: {
-      key: string;
-      value: AutonomousAgent;
+    key: string;
+    value: AutonomousAgent;
   };
 }
 
@@ -101,48 +101,48 @@ class NeuralVaultService {
           store.createIndex('by-mode', 'mode');
         }
         if (!db.objectStoreNames.contains('vectors')) {
-            db.createObjectStore('vectors', { keyPath: 'id' });
+          db.createObjectStore('vectors', { keyPath: 'id' });
         }
         if (!db.objectStoreNames.contains('profile')) {
-            db.createObjectStore('profile');
+          db.createObjectStore('profile');
         }
         if (!db.objectStoreNames.contains('knowledge_layers')) {
-            db.createObjectStore('knowledge_layers', { keyPath: 'id' });
+          db.createObjectStore('knowledge_layers', { keyPath: 'id' });
         }
         if (!db.objectStoreNames.contains('dynamic_tools')) {
-            db.createObjectStore('dynamic_tools', { keyPath: 'id' });
+          db.createObjectStore('dynamic_tools', { keyPath: 'id' });
         }
         if (!db.objectStoreNames.contains('agents')) {
-            db.createObjectStore('agents', { keyPath: 'id' });
+          db.createObjectStore('agents', { keyPath: 'id' });
         }
       },
     });
   }
 
   async saveVector(id: string, embedding: number[], metadata?: any) {
-      const db = await this.db;
-      await db.put('vectors', { id, embedding, metadata });
+    const db = await this.db;
+    await db.put('vectors', { id, embedding, metadata });
   }
 
-  async searchVectors(queryEmbedding: number[], limit: number = 5): Promise<{id: string, score: number}[]> {
-      const db = await this.db;
-      const allVectors = await db.getAll('vectors');
-      
-      const scoredResults = allVectors.map(v => ({
-          id: v.id,
-          score: cosineSimilarity(queryEmbedding, v.embedding)
-      }));
+  async searchVectors(queryEmbedding: number[], limit: number = 5): Promise<{ id: string, score: number }[]> {
+    const db = await this.db;
+    const allVectors = await db.getAll('vectors');
 
-      return scoredResults
-          .sort((a, b) => b.score - a.score)
-          .slice(0, limit);
+    const scoredResults = allVectors.map(v => ({
+      id: v.id,
+      score: cosineSimilarity(queryEmbedding, v.embedding)
+    }));
+
+    return scoredResults
+      .sort((a, b) => b.score - a.score)
+      .slice(0, limit);
   }
 
   async saveArtifact(file: File | Blob, analysis: ArtifactAnalysis | null): Promise<string> {
     const id = crypto.randomUUID();
     const db = await this.db;
     const isFile = file instanceof File;
-    const name = isFile ? (file as File).name : `Artifact_${id.slice(0,8)}`;
+    const name = isFile ? (file as File).name : `Artifact_${id.slice(0, 8)}`;
     const blobRef = file as Blob;
 
     await db.put('artifacts', {
@@ -158,8 +158,8 @@ class NeuralVaultService {
   }
 
   async getArtifact(id: string) {
-      const db = await this.db;
-      return db.get('artifacts', id);
+    const db = await this.db;
+    return db.get('artifacts', id);
   }
 
   async getArtifacts() {
@@ -168,25 +168,25 @@ class NeuralVaultService {
   }
 
   async deleteArtifact(id: string) {
-      const db = await this.db;
-      await db.delete('artifacts', id);
-      await db.delete('vectors', id);
+    const db = await this.db;
+    await db.delete('artifacts', id);
+    await db.delete('vectors', id);
   }
 
   async saveDynamicTool(id: string, manifest: any, code: string) {
-      const db = await this.db;
-      await db.put('dynamic_tools', { id, manifest, code, timestamp: Date.now() });
+    const db = await this.db;
+    await db.put('dynamic_tools', { id, manifest, code, timestamp: Date.now() });
   }
 
   async getDynamicTools() {
-      const db = await this.db;
-      return db.getAll('dynamic_tools');
+    const db = await this.db;
+    return db.getAll('dynamic_tools');
   }
 
   async createCheckpoint(mode: AppMode, state: any, label: string = "Manual Save") {
     const db = await this.db;
     const timestamp = Date.now();
-    const cleanState = JSON.parse(JSON.stringify(state)); 
+    const cleanState = JSON.parse(JSON.stringify(state));
     await db.put('snapshots', { timestamp, mode, state: cleanState, label });
   }
 
@@ -196,45 +196,45 @@ class NeuralVaultService {
   }
 
   async saveProfile(profile: UserProfile) {
-      const db = await this.db;
-      await db.put('profile', profile, 'current_user');
+    const db = await this.db;
+    await db.put('profile', profile, 'current_user');
   }
 
   async getProfile(): Promise<UserProfile | undefined> {
-      const db = await this.db;
-      return db.get('profile', 'current_user');
+    const db = await this.db;
+    return db.get('profile', 'current_user');
   }
 
   async saveAgent(agent: AutonomousAgent) {
-      const db = await this.db;
-      await db.put('agents', agent);
+    const db = await this.db;
+    await db.put('agents', agent);
   }
 
   async getAgents(): Promise<AutonomousAgent[]> {
-      const db = await this.db;
-      return db.getAll('agents');
+    const db = await this.db;
+    return db.getAll('agents');
   }
 
   async getKnowledgeLayers(): Promise<KnowledgeLayer[]> {
-      const db = await this.db;
-      return db.getAll('knowledge_layers');
+    const db = await this.db;
+    return db.getAll('knowledge_layers');
   }
 
   async saveKnowledgeLayer(layer: KnowledgeLayer) {
-      const db = await this.db;
-      await db.put('knowledge_layers', layer);
+    const db = await this.db;
+    await db.put('knowledge_layers', layer);
   }
 
   async wipeSystem() {
-      const db = await this.db;
-      await db.clear('artifacts');
-      await db.clear('snapshots');
-      await db.clear('echoes');
-      await db.clear('profile');
-      await db.clear('knowledge_layers');
-      await db.clear('vectors');
-      await db.clear('dynamic_tools');
-      await db.clear('agents');
+    const db = await this.db;
+    await db.clear('artifacts');
+    await db.clear('snapshots');
+    await db.clear('echoes');
+    await db.clear('profile');
+    await db.clear('knowledge_layers');
+    await db.clear('vectors');
+    await db.clear('dynamic_tools');
+    await db.clear('agents');
   }
 }
 
