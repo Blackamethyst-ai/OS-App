@@ -1,0 +1,60 @@
+{
+  "name": "bm-sssp",
+  "version": "1.0.0",
+  "description": "Breaking the Sorting Barrier for Directed Single-Source Shortest Path (BM-SSSP) in TypeScript",
+  "keywords": [
+    "shortest",
+    "path",
+    "graph",
+    "sssp",
+    "bm-sssp"
+  ],
+  "license": "MIT",
+  "author": "Maninder Singh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/braeniac/bm-sssp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/braeniac/bm-sssp/issues"
+  },
+  "homepage": "https://github.com/braeniac/bm-sssp#readme",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "tsx ./example/run-bmssp.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.41.0",
+    "@typescript-eslint/parser": "^8.41.0",
+    "eslint": "^9.34.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.6.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "ts-node": "^10.9.2"
+  }
+}

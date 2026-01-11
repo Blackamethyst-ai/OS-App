@@ -20,10 +20,15 @@
 import { useAppStore } from '../store';
 import { generateText } from './geminiService';
 import { powerService } from './powerService';
+import { scanCodebase } from '../libs/codebase-scanner';
+import { GraphReasoningEngine } from '../libs/graph-reasoning-engine/engine';
+import * as path from 'path';
 
 // Configuration
 const FRICTION_THRESHOLD = 3; // Number of similar errors/actions before triggering evolution
 const EVOLUTION_COOLDOWN_MS = 5 * 60 * 1000; // 5 minutes between evolution attempts
+
+export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 
 export interface FrictionSignal {
     id: string;
@@ -60,6 +65,13 @@ export interface EvolutionCycle {
     hypothesesGenerated: number;
     evolutionsDeployed: number;
     netImpact: number; // Positive = improvement
+}
+
+export interface MigrationPlan {
+    target: string;
+    risk: RiskLevel;
+    impactedFiles: string[];
+    status: 'AUTO_GENERATING_PATCHES' | 'MANUAL_APPROVAL_REQUIRED' | 'APPROVED';
 }
 
 class SelfEvolutionService {
@@ -446,6 +458,129 @@ Output ONLY the code, no markdown fences.`;
 
         // Trigger analysis
         this.analyzeFriction();
+    }
+    /**
+     * Sentient Code Editing: Assess the blast radius of modifying a file.
+     * Uses Graph Reasoning Engine to find all dependent components.
+     */
+    assessImpact(targetFile: string): RiskLevel {
+        try {
+            // 1. Scan Codebase (Note: assumes Node environment for file scanning)
+            // In a real browser app, this graph would be pre-built or served by backend.
+            // For this phase, we run it directly.
+            const rootDir = process.cwd();
+            const graphData = scanCodebase(rootDir);
+
+            // 2. Resolve Target
+            const targetPath = Object.keys(graphData.meta.pathToId).find(p => p.endsWith(targetFile));
+
+            if (!targetPath) {
+                console.warn(`Risk Assessment: Could not find file ${targetFile}`);
+                return 'HIGH'; // Use high caution if file unknown
+            }
+
+            const targetId = graphData.meta.pathToId[targetPath];
+
+            // 3. Compute Blast Radius
+            const engine = new GraphReasoningEngine();
+            // We want to know what depends on Target. 
+            // Our graph edges are Imported -> Importer.
+            // So reachable nodes from Target = Blast Radius.
+            const paths = engine.computePaths({
+                sourceNodeId: targetId,
+                graphData: graphData
+            });
+
+            let radius = 0;
+            if (paths.distances) {
+                for (let i = 0; i < paths.distances.length; i++) {
+                    if (i !== targetId && paths.distances[i] !== Infinity) {
+                        radius++;
+                    }
+                }
+            }
+
+            console.log(`Risk Assessment for ${targetFile}: Radius=${radius}`);
+
+            // 4. Determine Risk Rule
+            if (radius < 5) return 'LOW';
+            if (radius < 20) return 'MEDIUM';
+            return 'HIGH';
+
+        } catch (error) {
+            console.error('Risk Assessment Failed:', error);
+            return 'HIGH'; // Fail safe
+        }
+    }
+
+
+    /**
+     * Sentient Code Editing: Propose a migration plan based on impact analysis.
+     * High risk changes require manual approval. Medium risk triggers auto-patching.
+     */
+    proposeMigration(targetFile: string, changes: string): MigrationPlan {
+        try {
+            // 1. Assess Risk
+            const risk = this.assessImpact(targetFile);
+
+            // 2. Scan for dependent files (re-using logic from assessImpact for now, 
+            // ideally we cache the graph or return it from assessImpact)
+            const rootDir = process.cwd();
+            const graphData = scanCodebase(rootDir);
+            const targetPath = Object.keys(graphData.meta.pathToId).find(p => p.endsWith(targetFile));
+            let impactedFiles: string[] = [];
+
+            if (targetPath) {
+                const targetId = graphData.meta.pathToId[targetPath];
+                const engine = new GraphReasoningEngine();
+                const paths = engine.computePaths({
+                    sourceNodeId: targetId,
+                    graphData: graphData
+                });
+
+                if (paths.distances) {
+                    for (let i = 0; i < paths.distances.length; i++) {
+                        if (i !== targetId && paths.distances[i] !== Infinity) {
+                            impactedFiles.push(path.basename(graphData.meta.idToPath[i]));
+                        }
+                    }
+                }
+            }
+
+            // 3. Formulate Plan
+            if (risk === 'HIGH') {
+                return {
+                    target: targetFile,
+                    risk,
+                    impactedFiles,
+                    status: 'MANUAL_APPROVAL_REQUIRED'
+                };
+            } else if (risk === 'MEDIUM') {
+                // In a real system, we would queue jobs to patch these files here
+                return {
+                    target: targetFile,
+                    risk,
+                    impactedFiles,
+                    status: 'AUTO_GENERATING_PATCHES'
+                };
+            } else {
+                return {
+                    target: targetFile,
+                    risk,
+                    impactedFiles,
+                    status: 'APPROVED'
+                };
+            }
+
+        } catch (error) {
+            console.error('Migration Proposal Failed:', error);
+            return {
+                target: targetFile,
+                risk: 'HIGH',
+                impactedFiles: [],
+                status: 'MANUAL_APPROVAL_REQUIRED'
+            };
+        }
     }
 }
 
