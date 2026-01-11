@@ -131,6 +131,42 @@ const CinematicEdge = ({ id, sourceX, sourceY, targetX, targetY, markerEnd, data
     );
 };
 
+
+const FolderNode = ({ data, selected }: NodeProps) => {
+    const accentColor = (data as any).color || '#9d4edd';
+    return (
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.08, scale: selected ? 1.02 : 1 }}
+            className="rounded-[4rem] border-4 border-dashed flex flex-col items-center justify-start p-10 pointer-events-none shadow-2xl"
+            style={{
+                borderColor: accentColor,
+                backgroundColor: `${accentColor}10`,
+                width: '100%',
+                height: '100%'
+            }}
+        >
+            <div className="absolute top-12 left-16 flex items-center gap-6 opacity-60">
+                <FolderTree size={48} style={{ color: accentColor }} />
+                <span className="text-4xl font-black font-mono uppercase tracking-[0.8em]" style={{ color: accentColor }}>
+                    {renderSafe((data as any).label as any)}
+                </span>
+            </div>
+        </motion.div>
+    );
+};
+
+const TierLabelNode = ({ data }: NodeProps) => {
+    return (
+        <div className="flex flex-col items-center gap-6 opacity-60 min-w-[600px]">
+            <h2 className="text-6xl font-black font-mono uppercase tracking-[1.2em] text-white whitespace-nowrap drop-shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+                {renderSafe((data as any).label as any)}
+            </h2>
+            <div className="w-full h-1.5 bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+        </div>
+    );
+};
+
 const ProcessVisualizerContent = () => {
     const { process: processData, actions } = useAppStore();
     const { setProcessState } = actions;
@@ -143,7 +179,12 @@ const ProcessVisualizerContent = () => {
         updateNodeStatus, handleExecuteStep, handleLoadCodebaseGraph
     } = logic;
 
-    const nodeTypes = useMemo(() => ({ holographic: ExecutiveNode }), []);
+    const nodeTypes = useMemo(() => ({
+        holographic: ExecutiveNode,
+        executive: ExecutiveNode,
+        folder: FolderNode,
+        tierLabel: TierLabelNode
+    }), []);
     const edgeTypes = useMemo(() => ({ cinematic: CinematicEdge }), []);
 
     useEffect(() => {
@@ -417,6 +458,7 @@ const ProcessVisualizerContent = () => {
                                     </button>
                                 </div>
 
+
                                 <ReactFlow
                                     nodes={nodes}
                                     edges={edges}
@@ -425,9 +467,13 @@ const ProcessVisualizerContent = () => {
                                     nodeTypes={nodeTypes}
                                     edgeTypes={edgeTypes}
                                     fitView
+                                    fitViewOptions={{ padding: 0.3 }}
+                                    minZoom={0.01}
+                                    maxZoom={20}
                                     className="bg-transparent"
                                 >
                                     <Background color="#555" gap={40} size={1} />
+                                    <Controls />
                                 </ReactFlow>
 
                                 <div className="absolute bottom-12 left-12 right-12 flex justify-between items-end pointer-events-none">

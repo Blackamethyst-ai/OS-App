@@ -1,1324 +1,1924 @@
 {
   "nodes": [
     {
+      "id": "folder-Visualizations",
+      "label": "Visualizations",
+      "type": "folder",
+      "path": "Visualizations",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-components",
+      "label": "components",
+      "type": "folder",
+      "path": "components",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-components/ImageGenParts",
+      "label": "ImageGenParts",
+      "type": "folder",
+      "path": "components/ImageGenParts",
+      "parentId": "folder-components",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-components/Visualizations",
+      "label": "Visualizations",
+      "type": "folder",
+      "path": "components/Visualizations",
+      "parentId": "folder-components",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-components/autogen",
+      "label": "autogen",
+      "type": "folder",
+      "path": "components/autogen",
+      "parentId": "folder-components",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-data",
+      "label": "data",
+      "type": "folder",
+      "path": "data",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-hooks",
+      "label": "hooks",
+      "type": "folder",
+      "path": "hooks",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-scripts",
+      "label": "scripts",
+      "type": "folder",
+      "path": "scripts",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-services",
+      "label": "services",
+      "type": "folder",
+      "path": "services",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-services/kernel",
+      "label": "kernel",
+      "type": "folder",
+      "path": "services/kernel",
+      "parentId": "folder-services",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-services/memory",
+      "label": "memory",
+      "type": "folder",
+      "path": "services/memory",
+      "parentId": "folder-services",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-services/ui",
+      "label": "ui",
+      "type": "folder",
+      "path": "services/ui",
+      "parentId": "folder-services",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-store",
+      "label": "store",
+      "type": "folder",
+      "path": "store",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-stores",
+      "label": "stores",
+      "type": "folder",
+      "path": "stores",
+      "isArchitectural": true
+    },
+    {
+      "id": "folder-utils",
+      "label": "utils",
+      "type": "folder",
+      "path": "utils",
+      "isArchitectural": true
+    },
+    {
       "id": "0",
       "path": "/Users/dicoangelo/Desktop/OS-App/App.tsx",
+      "relPath": "App.tsx",
       "label": "App.tsx",
       "type": "file",
       "radius": 1,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "1",
       "path": "/Users/dicoangelo/Desktop/OS-App/Visualizations/AgentGraveyard.tsx",
+      "relPath": "Visualizations/AgentGraveyard.tsx",
       "label": "AgentGraveyard.tsx",
       "type": "file",
+      "parentId": "folder-Visualizations",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "2",
       "path": "/Users/dicoangelo/Desktop/OS-App/Visualizations/TugOfWarChart.tsx",
+      "relPath": "Visualizations/TugOfWarChart.tsx",
       "label": "TugOfWarChart.tsx",
       "type": "file",
+      "parentId": "folder-Visualizations",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "3",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/AdaptiveContainer.tsx",
+      "relPath": "components/AdaptiveContainer.tsx",
       "label": "AdaptiveContainer.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "4",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/AgentControlCenter.tsx",
+      "relPath": "components/AgentControlCenter.tsx",
       "label": "AgentControlCenter.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "5",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/AgenticHUD.tsx",
+      "relPath": "components/AgenticHUD.tsx",
       "label": "AgenticHUD.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 3,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "6",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/AgoraPanel.tsx",
+      "relPath": "components/AgoraPanel.tsx",
       "label": "AgoraPanel.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "7",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ApiKeyModal.tsx",
+      "relPath": "components/ApiKeyModal.tsx",
       "label": "ApiKeyModal.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "8",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ApiUsageIndicator.tsx",
+      "relPath": "components/ApiUsageIndicator.tsx",
       "label": "ApiUsageIndicator.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "9",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/AppFooter.tsx",
+      "relPath": "components/AppFooter.tsx",
       "label": "AppFooter.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "10",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/AuthModule.tsx",
+      "relPath": "components/AuthModule.tsx",
       "label": "AuthModule.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "11",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/AutonomousFinance.tsx",
+      "relPath": "components/AutonomousFinance.tsx",
       "label": "AutonomousFinance.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "12",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/BackgroundEffect.tsx",
+      "relPath": "components/BackgroundEffect.tsx",
       "label": "BackgroundEffect.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "13",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/BibliomorphicEngine.tsx",
+      "relPath": "components/BibliomorphicEngine.tsx",
       "label": "BibliomorphicEngine.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "14",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/BicameralEngine.tsx",
+      "relPath": "components/BicameralEngine.tsx",
       "label": "BicameralEngine.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "15",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/BiometricErrorBoundary.tsx",
+      "relPath": "components/BiometricErrorBoundary.tsx",
       "label": "BiometricErrorBoundary.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "16",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/BiometricPanel.tsx",
+      "relPath": "components/BiometricPanel.tsx",
       "label": "BiometricPanel.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "17",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/CodeStudio.tsx",
+      "relPath": "components/CodeStudio.tsx",
       "label": "CodeStudio.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "18",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/CommandPalette.tsx",
+      "relPath": "components/CommandPalette.tsx",
       "label": "CommandPalette.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 3,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "19",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ContextVelocityChart.tsx",
+      "relPath": "components/ContextVelocityChart.tsx",
       "label": "ContextVelocityChart.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 6,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "20",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/DEcosystem.tsx",
+      "relPath": "components/DEcosystem.tsx",
       "label": "DEcosystem.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 6,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "21",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/Dashboard.tsx",
+      "relPath": "components/Dashboard.tsx",
       "label": "Dashboard.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "22",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/DiscoveryLab.tsx",
+      "relPath": "components/DiscoveryLab.tsx",
       "label": "DiscoveryLab.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "23",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/DynamicVisuals.tsx",
+      "relPath": "components/DynamicVisuals.tsx",
       "label": "DynamicVisuals.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "24",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/DynamicWidget.tsx",
+      "relPath": "components/DynamicWidget.tsx",
       "label": "DynamicWidget.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "25",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/EmotionalResonanceGraph.tsx",
+      "relPath": "components/EmotionalResonanceGraph.tsx",
       "label": "EmotionalResonanceGraph.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "26",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/EvolutionConsole.tsx",
+      "relPath": "components/EvolutionConsole.tsx",
       "label": "EvolutionConsole.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "27",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/FlywheelOrbit.tsx",
+      "relPath": "components/FlywheelOrbit.tsx",
       "label": "FlywheelOrbit.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 3,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "28",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/GazeReticle.tsx",
+      "relPath": "components/GazeReticle.tsx",
       "label": "GazeReticle.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 6,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "29",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/GlobalErrorBoundary.tsx",
+      "relPath": "components/GlobalErrorBoundary.tsx",
       "label": "GlobalErrorBoundary.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "30",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/GlobalSearchBar.tsx",
+      "relPath": "components/GlobalSearchBar.tsx",
       "label": "GlobalSearchBar.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "31",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/GlobalStatusBar.tsx",
+      "relPath": "components/GlobalStatusBar.tsx",
       "label": "GlobalStatusBar.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 3,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "32",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/HardwareEngine.tsx",
+      "relPath": "components/HardwareEngine.tsx",
       "label": "HardwareEngine.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "33",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/HelpCenter.tsx",
+      "relPath": "components/HelpCenter.tsx",
       "label": "HelpCenter.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 3,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "34",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/HoloProjector.tsx",
+      "relPath": "components/HoloProjector.tsx",
       "label": "HoloProjector.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "35",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/HolographicCommandDeck.tsx",
+      "relPath": "components/HolographicCommandDeck.tsx",
       "label": "HolographicCommandDeck.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 1,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "36",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ImageGen.tsx",
+      "relPath": "components/ImageGen.tsx",
       "label": "ImageGen.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "37",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ImageGenParts/ProductionBiblePanel.tsx",
+      "relPath": "components/ImageGenParts/ProductionBiblePanel.tsx",
       "label": "ProductionBiblePanel.tsx",
       "type": "file",
+      "parentId": "folder-components/ImageGenParts",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "38",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ImageGenParts/ReferenceManager.tsx",
+      "relPath": "components/ImageGenParts/ReferenceManager.tsx",
       "label": "ReferenceManager.tsx",
       "type": "file",
+      "parentId": "folder-components/ImageGenParts",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "39",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ImageGenParts/ScreeningRoom.tsx",
+      "relPath": "components/ImageGenParts/ScreeningRoom.tsx",
       "label": "ScreeningRoom.tsx",
       "type": "file",
+      "parentId": "folder-components/ImageGenParts",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "40",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ImageGenParts/StoryboardPanel.tsx",
+      "relPath": "components/ImageGenParts/StoryboardPanel.tsx",
       "label": "StoryboardPanel.tsx",
       "type": "file",
+      "parentId": "folder-components/ImageGenParts",
       "radius": 1,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "41",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ImageGenParts/index.ts",
+      "relPath": "components/ImageGenParts/index.ts",
       "label": "index.ts",
       "type": "file",
+      "parentId": "folder-components/ImageGenParts",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "42",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ImageGenParts/types.tsx",
+      "relPath": "components/ImageGenParts/types.tsx",
       "label": "types.tsx",
       "type": "file",
+      "parentId": "folder-components/ImageGenParts",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 0
     },
     {
       "id": "43",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/KnowledgeGraph.tsx",
+      "relPath": "components/KnowledgeGraph.tsx",
       "label": "KnowledgeGraph.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "44",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/LayerToggle.tsx",
+      "relPath": "components/LayerToggle.tsx",
       "label": "LayerToggle.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "45",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/MasterStabilizationProtocol.tsx",
+      "relPath": "components/MasterStabilizationProtocol.tsx",
       "label": "MasterStabilizationProtocol.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "46",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/MemoryCore.tsx",
+      "relPath": "components/MemoryCore.tsx",
       "label": "MemoryCore.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "47",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/MermaidDiagram.tsx",
+      "relPath": "components/MermaidDiagram.tsx",
       "label": "MermaidDiagram.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "48",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/MetaventionsHub.tsx",
+      "relPath": "components/MetaventionsHub.tsx",
       "label": "MetaventionsHub.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "49",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/MetaventionsLogo.tsx",
+      "relPath": "components/MetaventionsLogo.tsx",
       "label": "MetaventionsLogo.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "50",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ModelSelector.tsx",
+      "relPath": "components/ModelSelector.tsx",
       "label": "ModelSelector.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "51",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/NeuralDebuggerPanel.tsx",
+      "relPath": "components/NeuralDebuggerPanel.tsx",
       "label": "NeuralDebuggerPanel.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "52",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/NeuralDock.tsx",
+      "relPath": "components/NeuralDock.tsx",
       "label": "NeuralDock.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "53",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/NeuralHeader.tsx",
+      "relPath": "components/NeuralHeader.tsx",
       "label": "NeuralHeader.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "54",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/NexusAPIExplorer.tsx",
+      "relPath": "components/NexusAPIExplorer.tsx",
       "label": "NexusAPIExplorer.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "55",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/OverlayOS.tsx",
+      "relPath": "components/OverlayOS.tsx",
       "label": "OverlayOS.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "56",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/PeerMeshOverlay.tsx",
+      "relPath": "components/PeerMeshOverlay.tsx",
       "label": "PeerMeshOverlay.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "57",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/PowerControlPanel.tsx",
+      "relPath": "components/PowerControlPanel.tsx",
       "label": "PowerControlPanel.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "58",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/PowerXRay.tsx",
+      "relPath": "components/PowerXRay.tsx",
       "label": "PowerXRay.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "59",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ProcessVisualizer.tsx",
+      "relPath": "components/ProcessVisualizer.tsx",
       "label": "ProcessVisualizer.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "60",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ResearchTray.tsx",
+      "relPath": "components/ResearchTray.tsx",
       "label": "ResearchTray.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "61",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/Starfield.tsx",
+      "relPath": "components/Starfield.tsx",
       "label": "Starfield.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "62",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/StrategicConsole.tsx",
+      "relPath": "components/StrategicConsole.tsx",
       "label": "StrategicConsole.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "63",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/SunMoonToggle.tsx",
+      "relPath": "components/SunMoonToggle.tsx",
       "label": "SunMoonToggle.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "64",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/SynapticContextHub.tsx",
+      "relPath": "components/SynapticContextHub.tsx",
       "label": "SynapticContextHub.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 3,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "65",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/SynapticRouter.tsx",
+      "relPath": "components/SynapticRouter.tsx",
       "label": "SynapticRouter.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 3,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "66",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/SynthesisBridge.tsx",
+      "relPath": "components/SynthesisBridge.tsx",
       "label": "SynthesisBridge.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "67",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/SystemNotification.tsx",
+      "relPath": "components/SystemNotification.tsx",
       "label": "SystemNotification.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "68",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/TacticalScanner.tsx",
+      "relPath": "components/TacticalScanner.tsx",
       "label": "TacticalScanner.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 6,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "69",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/TaskBoard.tsx",
+      "relPath": "components/TaskBoard.tsx",
       "label": "TaskBoard.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "70",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ThemeSwitcher.tsx",
+      "relPath": "components/ThemeSwitcher.tsx",
       "label": "ThemeSwitcher.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "71",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/TimeTravelScrubber.tsx",
+      "relPath": "components/TimeTravelScrubber.tsx",
       "label": "TimeTravelScrubber.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "72",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/UserProfileOverlay.tsx",
+      "relPath": "components/UserProfileOverlay.tsx",
       "label": "UserProfileOverlay.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "73",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/VisualCortexOverlay.tsx",
+      "relPath": "components/VisualCortexOverlay.tsx",
       "label": "VisualCortexOverlay.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "74",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/Visualizations/AgentGraveyard.tsx",
+      "relPath": "components/Visualizations/AgentGraveyard.tsx",
       "label": "AgentGraveyard.tsx",
       "type": "file",
+      "parentId": "folder-components/Visualizations",
       "radius": 6,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "75",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/Visualizations/SuperLattice.tsx",
+      "relPath": "components/Visualizations/SuperLattice.tsx",
       "label": "SuperLattice.tsx",
       "type": "file",
+      "parentId": "folder-components/Visualizations",
       "radius": 6,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "76",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/Visualizations/TugOfWarChart.tsx",
+      "relPath": "components/Visualizations/TugOfWarChart.tsx",
       "label": "TugOfWarChart.tsx",
       "type": "file",
+      "parentId": "folder-components/Visualizations",
       "radius": 6,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "77",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/VoiceCoreOverlay.tsx",
+      "relPath": "components/VoiceCoreOverlay.tsx",
       "label": "VoiceCoreOverlay.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "78",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/VoiceManager.tsx",
+      "relPath": "components/VoiceManager.tsx",
       "label": "VoiceManager.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 3,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "79",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/VoiceMode.tsx",
+      "relPath": "components/VoiceMode.tsx",
       "label": "VoiceMode.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "80",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/ZenithDisplay.tsx",
+      "relPath": "components/ZenithDisplay.tsx",
       "label": "ZenithDisplay.tsx",
       "type": "file",
+      "parentId": "folder-components",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "81",
       "path": "/Users/dicoangelo/Desktop/OS-App/components/autogen/index.ts",
+      "relPath": "components/autogen/index.ts",
       "label": "index.ts",
       "type": "file",
+      "parentId": "folder-components/autogen",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "82",
       "path": "/Users/dicoangelo/Desktop/OS-App/data/googleApis.ts",
+      "relPath": "data/googleApis.ts",
       "label": "googleApis.ts",
       "type": "file",
+      "parentId": "folder-data",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "83",
       "path": "/Users/dicoangelo/Desktop/OS-App/data/knowledgeLayers.ts",
+      "relPath": "data/knowledgeLayers.ts",
       "label": "knowledgeLayers.ts",
       "type": "file",
+      "parentId": "folder-data",
       "radius": 7,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "84",
       "path": "/Users/dicoangelo/Desktop/OS-App/global.d.ts",
+      "relPath": "global.d.ts",
       "label": "global.d.ts",
       "type": "file",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "85",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useAdaptiveUI.ts",
+      "relPath": "hooks/useAdaptiveUI.ts",
       "label": "useAdaptiveUI.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 6,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 2
     },
     {
       "id": "86",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useAgentRuntime.ts",
+      "relPath": "hooks/useAgentRuntime.ts",
       "label": "useAgentRuntime.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 10,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 2
     },
     {
       "id": "87",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useApiUsage.ts",
+      "relPath": "hooks/useApiUsage.ts",
       "label": "useApiUsage.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 2
     },
     {
       "id": "88",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useAutoSave.ts",
+      "relPath": "hooks/useAutoSave.ts",
       "label": "useAutoSave.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 2
     },
     {
       "id": "89",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useBiometricSensor.ts",
+      "relPath": "hooks/useBiometricSensor.ts",
       "label": "useBiometricSensor.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 7,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 2
     },
     {
       "id": "90",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useDaemonSwarm.ts",
+      "relPath": "hooks/useDaemonSwarm.ts",
       "label": "useDaemonSwarm.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 2
     },
     {
       "id": "91",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useFixationGlow.ts",
+      "relPath": "hooks/useFixationGlow.ts",
       "label": "useFixationGlow.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 2
     },
     {
       "id": "92",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useFlywheel.ts",
+      "relPath": "hooks/useFlywheel.ts",
       "label": "useFlywheel.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 2
     },
     {
       "id": "93",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useGazeTracking.ts",
+      "relPath": "hooks/useGazeTracking.ts",
       "label": "useGazeTracking.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 2
     },
     {
       "id": "94",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/usePerformanceMonitor.ts",
+      "relPath": "hooks/usePerformanceMonitor.ts",
       "label": "usePerformanceMonitor.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 2
     },
     {
       "id": "95",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/usePerspectiveRefraction.ts",
+      "relPath": "hooks/usePerspectiveRefraction.ts",
       "label": "usePerspectiveRefraction.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 8,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 2
     },
     {
       "id": "96",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useProcessVisualizerLogic.ts",
+      "relPath": "hooks/useProcessVisualizerLogic.ts",
       "label": "useProcessVisualizerLogic.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 2
     },
     {
       "id": "97",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useResearchAgent.ts",
+      "relPath": "hooks/useResearchAgent.ts",
       "label": "useResearchAgent.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 2
     },
     {
       "id": "98",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useStressDetector.ts",
+      "relPath": "hooks/useStressDetector.ts",
       "label": "useStressDetector.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 6,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 2
     },
     {
       "id": "99",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useVisualCortex.ts",
+      "relPath": "hooks/useVisualCortex.ts",
       "label": "useVisualCortex.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 6,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 2
     },
     {
       "id": "100",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useVoiceAction.ts",
+      "relPath": "hooks/useVoiceAction.ts",
       "label": "useVoiceAction.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 2
     },
     {
       "id": "101",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useVoiceControl.ts",
+      "relPath": "hooks/useVoiceControl.ts",
       "label": "useVoiceControl.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 2
     },
     {
       "id": "102",
       "path": "/Users/dicoangelo/Desktop/OS-App/hooks/useVoiceExpose.ts",
+      "relPath": "hooks/useVoiceExpose.ts",
       "label": "useVoiceExpose.ts",
       "type": "file",
+      "parentId": "folder-hooks",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 2
     },
     {
       "id": "103",
       "path": "/Users/dicoangelo/Desktop/OS-App/index.tsx",
+      "relPath": "index.tsx",
       "label": "index.tsx",
       "type": "file",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "104",
       "path": "/Users/dicoangelo/Desktop/OS-App/scripts/audit_codebase.ts",
+      "relPath": "scripts/audit_codebase.ts",
       "label": "audit_codebase.ts",
       "type": "file",
+      "parentId": "folder-scripts",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "105",
       "path": "/Users/dicoangelo/Desktop/OS-App/scripts/sync_code_graph.ts",
+      "relPath": "scripts/sync_code_graph.ts",
       "label": "sync_code_graph.ts",
       "type": "file",
+      "parentId": "folder-scripts",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "106",
       "path": "/Users/dicoangelo/Desktop/OS-App/scripts/test_migration_plan.ts",
+      "relPath": "scripts/test_migration_plan.ts",
       "label": "test_migration_plan.ts",
       "type": "file",
+      "parentId": "folder-scripts",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "107",
       "path": "/Users/dicoangelo/Desktop/OS-App/scripts/test_risk_assessment.ts",
+      "relPath": "scripts/test_risk_assessment.ts",
       "label": "test_risk_assessment.ts",
       "type": "file",
+      "parentId": "folder-scripts",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "108",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/DynamicToolRegistry.ts",
+      "relPath": "services/DynamicToolRegistry.ts",
       "label": "DynamicToolRegistry.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 12,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "109",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/agents.ts",
+      "relPath": "services/agents.ts",
       "label": "agents.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 64,
-      "risk": "HIGH"
+      "risk": "HIGH",
+      "tier": 1
     },
     {
       "id": "110",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/agoraService.ts",
+      "relPath": "services/agoraService.ts",
       "label": "agoraService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 6,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "111",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/apiKeyService.ts",
+      "relPath": "services/apiKeyService.ts",
       "label": "apiKeyService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 68,
-      "risk": "HIGH"
+      "risk": "HIGH",
+      "tier": 1
     },
     {
       "id": "112",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/apiUsageService.ts",
+      "relPath": "services/apiUsageService.ts",
       "label": "apiUsageService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 66,
-      "risk": "HIGH"
+      "risk": "HIGH",
+      "tier": 1
     },
     {
       "id": "113",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/audioService.ts",
+      "relPath": "services/audioService.ts",
       "label": "audioService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 46,
-      "risk": "HIGH"
+      "risk": "HIGH",
+      "tier": 1
     },
     {
       "id": "114",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/autopoieticDaemon.ts",
+      "relPath": "services/autopoieticDaemon.ts",
       "label": "autopoieticDaemon.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 3,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "115",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/bicameralService.ts",
+      "relPath": "services/bicameralService.ts",
       "label": "bicameralService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 7,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "116",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/claudeService.ts",
+      "relPath": "services/claudeService.ts",
       "label": "claudeService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 11,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "117",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/collabService.ts",
+      "relPath": "services/collabService.ts",
       "label": "collabService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "118",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/daemonService.ts",
+      "relPath": "services/daemonService.ts",
       "label": "daemonService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 3,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "119",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/dreamProtocol.ts",
+      "relPath": "services/dreamProtocol.ts",
       "label": "dreamProtocol.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 4,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "120",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/elevenLabsService.ts",
+      "relPath": "services/elevenLabsService.ts",
       "label": "elevenLabsService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "121",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/faceDetectionService.ts",
+      "relPath": "services/faceDetectionService.ts",
       "label": "faceDetectionService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 9,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "122",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/geminiService.ts",
+      "relPath": "services/geminiService.ts",
       "label": "geminiService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 63,
-      "risk": "HIGH"
+      "risk": "HIGH",
+      "tier": 1
     },
     {
       "id": "123",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/grokService.ts",
+      "relPath": "services/grokService.ts",
       "label": "grokService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 9,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "124",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/kernel/AgentKernel.ts",
+      "relPath": "services/kernel/AgentKernel.ts",
       "label": "AgentKernel.ts",
       "type": "file",
+      "parentId": "folder-services/kernel",
       "radius": 10,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "125",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/kernel/IntentResolver.ts",
+      "relPath": "services/kernel/IntentResolver.ts",
       "label": "IntentResolver.ts",
       "type": "file",
+      "parentId": "folder-services/kernel",
       "radius": 11,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "126",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/kernel/KernelScheduler.ts",
+      "relPath": "services/kernel/KernelScheduler.ts",
       "label": "KernelScheduler.ts",
       "type": "file",
+      "parentId": "folder-services/kernel",
       "radius": 11,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "127",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/kernel/index.ts",
+      "relPath": "services/kernel/index.ts",
       "label": "index.ts",
       "type": "file",
+      "parentId": "folder-services/kernel",
       "radius": 8,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "128",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/kernel/types.ts",
+      "relPath": "services/kernel/types.ts",
       "label": "types.ts",
       "type": "file",
+      "parentId": "folder-services/kernel",
       "radius": 15,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "129",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/liveSession.ts",
+      "relPath": "services/liveSession.ts",
       "label": "liveSession.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "130",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/memory/AgenticFileSystem.ts",
+      "relPath": "services/memory/AgenticFileSystem.ts",
       "label": "AgenticFileSystem.ts",
       "type": "file",
+      "parentId": "folder-services/memory",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "131",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/memory/ArtifactStore.ts",
+      "relPath": "services/memory/ArtifactStore.ts",
       "label": "ArtifactStore.ts",
       "type": "file",
+      "parentId": "folder-services/memory",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "132",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/memory/ContextCompiler.ts",
+      "relPath": "services/memory/ContextCompiler.ts",
       "label": "ContextCompiler.ts",
       "type": "file",
+      "parentId": "folder-services/memory",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "133",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/memory/KnowledgeLayerProcessor.ts",
+      "relPath": "services/memory/KnowledgeLayerProcessor.ts",
       "label": "KnowledgeLayerProcessor.ts",
       "type": "file",
+      "parentId": "folder-services/memory",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "134",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/memory/MemoryStore.ts",
+      "relPath": "services/memory/MemoryStore.ts",
       "label": "MemoryStore.ts",
       "type": "file",
+      "parentId": "folder-services/memory",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "135",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/memory/Processor.ts",
+      "relPath": "services/memory/Processor.ts",
       "label": "Processor.ts",
       "type": "file",
+      "parentId": "folder-services/memory",
       "radius": 2,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "136",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/memory/SemanticPager.ts",
+      "relPath": "services/memory/SemanticPager.ts",
       "label": "SemanticPager.ts",
       "type": "file",
+      "parentId": "folder-services/memory",
       "radius": 11,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "137",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/memory/interfaces.ts",
+      "relPath": "services/memory/interfaces.ts",
       "label": "interfaces.ts",
       "type": "file",
+      "parentId": "folder-services/memory",
       "radius": 5,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "138",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/metaventionService.ts",
+      "relPath": "services/metaventionService.ts",
       "label": "metaventionService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 6,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "139",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/modelRouter.ts",
+      "relPath": "services/modelRouter.ts",
       "label": "modelRouter.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 8,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "140",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/ollamaService.ts",
+      "relPath": "services/ollamaService.ts",
       "label": "ollamaService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 9,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "141",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/persistenceService.ts",
+      "relPath": "services/persistenceService.ts",
       "label": "persistenceService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 93,
-      "risk": "HIGH"
+      "risk": "HIGH",
+      "tier": 1
     },
     {
       "id": "142",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/powerService.ts",
+      "relPath": "services/powerService.ts",
       "label": "powerService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 12,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "143",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/selfEvolution.ts",
+      "relPath": "services/selfEvolution.ts",
       "label": "selfEvolution.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 8,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "144",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/toolRegistry.ts",
+      "relPath": "services/toolRegistry.ts",
       "label": "toolRegistry.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 14,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "145",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/ui/AUIEngine.ts",
+      "relPath": "services/ui/AUIEngine.ts",
       "label": "AUIEngine.ts",
       "type": "file",
+      "parentId": "folder-services/ui",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "146",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/ui/ComponentRegistry.ts",
+      "relPath": "services/ui/ComponentRegistry.ts",
       "label": "ComponentRegistry.ts",
       "type": "file",
+      "parentId": "folder-services/ui",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "147",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/ui/DOMRegenerator.ts",
+      "relPath": "services/ui/DOMRegenerator.ts",
       "label": "DOMRegenerator.ts",
       "type": "file",
+      "parentId": "folder-services/ui",
       "radius": 1,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "148",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/ui/JudgeAgent.ts",
+      "relPath": "services/ui/JudgeAgent.ts",
       "label": "JudgeAgent.ts",
       "type": "file",
+      "parentId": "folder-services/ui",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "149",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/ui/SemanticGaze.ts",
+      "relPath": "services/ui/SemanticGaze.ts",
       "label": "SemanticGaze.ts",
       "type": "file",
+      "parentId": "folder-services/ui",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "150",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/ui/index.ts",
+      "relPath": "services/ui/index.ts",
       "label": "index.ts",
       "type": "file",
+      "parentId": "folder-services/ui",
       "radius": 13,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "151",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/ui/types.ts",
+      "relPath": "services/ui/types.ts",
       "label": "types.ts",
       "type": "file",
+      "parentId": "folder-services/ui",
       "radius": 16,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 1
     },
     {
       "id": "152",
       "path": "/Users/dicoangelo/Desktop/OS-App/services/unitTestingService.ts",
+      "relPath": "services/unitTestingService.ts",
       "label": "unitTestingService.ts",
       "type": "file",
+      "parentId": "folder-services",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 1
     },
     {
       "id": "153",
       "path": "/Users/dicoangelo/Desktop/OS-App/store/flywheelStore.ts",
+      "relPath": "store/flywheelStore.ts",
       "label": "flywheelStore.ts",
       "type": "file",
+      "parentId": "folder-store",
       "radius": 8,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "154",
       "path": "/Users/dicoangelo/Desktop/OS-App/store/systemMind.ts",
+      "relPath": "store/systemMind.ts",
       "label": "systemMind.ts",
       "type": "file",
+      "parentId": "folder-store",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     },
     {
       "id": "155",
       "path": "/Users/dicoangelo/Desktop/OS-App/store.ts",
+      "relPath": "store.ts",
       "label": "store.ts",
       "type": "file",
       "radius": 92,
-      "risk": "HIGH"
+      "risk": "HIGH",
+      "tier": 0
     },
     {
       "id": "156",
       "path": "/Users/dicoangelo/Desktop/OS-App/stores/useSystemMind.ts",
+      "relPath": "stores/useSystemMind.ts",
       "label": "useSystemMind.ts",
       "type": "file",
+      "parentId": "folder-stores",
       "radius": 10,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 3
     },
     {
       "id": "157",
       "path": "/Users/dicoangelo/Desktop/OS-App/types.ts",
+      "relPath": "types.ts",
       "label": "types.ts",
       "type": "file",
       "radius": 110,
-      "risk": "HIGH"
+      "risk": "HIGH",
+      "tier": 0
     },
     {
       "id": "158",
       "path": "/Users/dicoangelo/Desktop/OS-App/utils/cn.ts",
+      "relPath": "utils/cn.ts",
       "label": "cn.ts",
       "type": "file",
+      "parentId": "folder-utils",
       "radius": 29,
-      "risk": "HIGH"
+      "risk": "HIGH",
+      "tier": 2
     },
     {
       "id": "159",
       "path": "/Users/dicoangelo/Desktop/OS-App/utils/cryptoService.ts",
+      "relPath": "utils/cryptoService.ts",
       "label": "cryptoService.ts",
       "type": "file",
+      "parentId": "folder-utils",
       "radius": 69,
-      "risk": "HIGH"
+      "risk": "HIGH",
+      "tier": 2
     },
     {
       "id": "160",
       "path": "/Users/dicoangelo/Desktop/OS-App/utils/logic.ts",
+      "relPath": "utils/logic.ts",
       "label": "logic.ts",
       "type": "file",
+      "parentId": "folder-utils",
       "radius": 1,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 2
     },
     {
       "id": "161",
       "path": "/Users/dicoangelo/Desktop/OS-App/utils/renderSafe.tsx",
+      "relPath": "utils/renderSafe.tsx",
       "label": "renderSafe.tsx",
       "type": "file",
+      "parentId": "folder-utils",
       "radius": 10,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 2
     },
     {
       "id": "162",
       "path": "/Users/dicoangelo/Desktop/OS-App/utils/validateToolCode.ts",
+      "relPath": "utils/validateToolCode.ts",
       "label": "validateToolCode.ts",
       "type": "file",
+      "parentId": "folder-utils",
       "radius": 13,
-      "risk": "MEDIUM"
+      "risk": "MEDIUM",
+      "tier": 2
     },
     {
       "id": "163",
       "path": "/Users/dicoangelo/Desktop/OS-App/utils/vector.ts",
+      "relPath": "utils/vector.ts",
       "label": "vector.ts",
       "type": "file",
+      "parentId": "folder-utils",
       "radius": 94,
-      "risk": "HIGH"
+      "risk": "HIGH",
+      "tier": 2
     },
     {
       "id": "164",
       "path": "/Users/dicoangelo/Desktop/OS-App/vite.config.ts",
+      "relPath": "vite.config.ts",
       "label": "vite.config.ts",
       "type": "file",
       "radius": 0,
-      "risk": "LOW"
+      "risk": "LOW",
+      "tier": 3
     }
   ],
   "edges": [
@@ -3695,186 +4295,186 @@
     {
       "id": "e474",
       "source": "157",
-      "target": "144"
+      "target": "143"
     },
     {
       "id": "e475",
-      "source": "155",
+      "source": "157",
       "target": "144"
     },
     {
       "id": "e476",
-      "source": "122",
+      "source": "155",
       "target": "144"
     },
     {
       "id": "e477",
       "source": "122",
-      "target": "145"
+      "target": "144"
     },
     {
       "id": "e478",
-      "source": "116",
+      "source": "122",
       "target": "145"
     },
     {
       "id": "e479",
-      "source": "111",
+      "source": "116",
       "target": "145"
     },
     {
       "id": "e480",
-      "source": "151",
+      "source": "111",
       "target": "145"
     },
     {
       "id": "e481",
+      "source": "151",
+      "target": "145"
+    },
+    {
+      "id": "e482",
       "source": "147",
       "target": "146"
     },
     {
-      "id": "e482",
+      "id": "e483",
       "source": "48",
       "target": "146"
     },
     {
-      "id": "e483",
+      "id": "e484",
       "source": "21",
       "target": "146"
     },
     {
-      "id": "e484",
+      "id": "e485",
       "source": "31",
       "target": "146"
     },
     {
-      "id": "e485",
+      "id": "e486",
       "source": "52",
       "target": "146"
     },
     {
-      "id": "e486",
+      "id": "e487",
       "source": "16",
       "target": "146"
     },
     {
-      "id": "e487",
+      "id": "e488",
       "source": "28",
       "target": "146"
     },
     {
-      "id": "e488",
+      "id": "e489",
       "source": "4",
       "target": "146"
     },
     {
-      "id": "e489",
+      "id": "e490",
       "source": "5",
       "target": "146"
     },
     {
-      "id": "e490",
+      "id": "e491",
       "source": "59",
       "target": "146"
     },
     {
-      "id": "e491",
+      "id": "e492",
       "source": "65",
       "target": "146"
     },
     {
-      "id": "e492",
+      "id": "e493",
       "source": "69",
       "target": "146"
     },
     {
-      "id": "e493",
+      "id": "e494",
       "source": "17",
       "target": "146"
     },
     {
-      "id": "e494",
+      "id": "e495",
       "source": "54",
       "target": "146"
     },
     {
-      "id": "e495",
+      "id": "e496",
       "source": "35",
       "target": "146"
     },
     {
-      "id": "e496",
+      "id": "e497",
       "source": "18",
       "target": "146"
     },
     {
-      "id": "e497",
+      "id": "e498",
       "source": "20",
       "target": "146"
     },
     {
-      "id": "e498",
+      "id": "e499",
       "source": "19",
       "target": "146"
     },
     {
-      "id": "e499",
+      "id": "e500",
       "source": "43",
       "target": "146"
     },
     {
-      "id": "e500",
+      "id": "e501",
       "source": "25",
       "target": "146"
     },
     {
-      "id": "e501",
+      "id": "e502",
       "source": "27",
       "target": "146"
     },
     {
-      "id": "e502",
+      "id": "e503",
       "source": "79",
       "target": "146"
     },
     {
-      "id": "e503",
+      "id": "e504",
       "source": "78",
       "target": "146"
     },
     {
-      "id": "e504",
+      "id": "e505",
       "source": "36",
       "target": "146"
     },
     {
-      "id": "e505",
+      "id": "e506",
       "source": "46",
       "target": "146"
     },
     {
-      "id": "e506",
+      "id": "e507",
       "source": "64",
       "target": "146"
     },
     {
-      "id": "e507",
+      "id": "e508",
       "source": "33",
       "target": "146"
     },
     {
-      "id": "e508",
+      "id": "e509",
       "source": "62",
       "target": "146"
     },
     {
-      "id": "e509",
-      "source": "80",
-      "target": "146"
-    },
-    {
       "id": "e510",
-      "source": "3",
+      "source": "80",
       "target": "146"
     },
     {
@@ -3889,54 +4489,59 @@
     },
     {
       "id": "e513",
+      "source": "3",
+      "target": "146"
+    },
+    {
+      "id": "e514",
       "source": "151",
       "target": "147"
     },
     {
-      "id": "e514",
-      "source": "122",
-      "target": "148"
-    },
-    {
       "id": "e515",
-      "source": "151",
+      "source": "122",
       "target": "148"
     },
     {
       "id": "e516",
+      "source": "151",
+      "target": "148"
+    },
+    {
+      "id": "e517",
       "source": "122",
       "target": "149"
     },
     {
-      "id": "e517",
+      "id": "e518",
       "source": "116",
       "target": "149"
     },
     {
-      "id": "e518",
+      "id": "e519",
       "source": "111",
       "target": "149"
     },
     {
-      "id": "e519",
+      "id": "e520",
       "source": "151",
       "target": "149"
     },
     {
-      "id": "e520",
+      "id": "e521",
       "source": "160",
       "target": "152"
     },
     {
-      "id": "e521",
+      "id": "e522",
       "source": "157",
       "target": "155"
     },
     {
-      "id": "e522",
+      "id": "e523",
       "source": "141",
       "target": "155"
     }
   ],
-  "lastScanned": 1768147551385
+  "lastScanned": 1768149848225
 }
