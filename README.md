@@ -1,7 +1,54 @@
-# OS-App: Sovereign AI Operating System
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a2e,50:4a0080,100:00d9ff&height=200&section=header&text=OS-App&fontSize=60&fontColor=ffffff&animation=fadeIn&fontAlignY=35&desc=Sovereign%20AI%20Operating%20System&descSize=20&descAlignY=55" />
+</p>
+
+<p align="center">
+  <strong>A voice-native, multi-agent AI operating system interface</strong>
+</p>
+
+<p align="center">
+  <em>"Let the invention be hidden in your vision"</em>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Lines-27,000+-00d9ff?style=for-the-badge" alt="Lines" />
+  <img src="https://img.shields.io/badge/Files-125+-4a0080?style=for-the-badge" alt="Files" />
+  <img src="https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge" alt="Status" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React" />
+  <img src="https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript" />
+  <img src="https://img.shields.io/badge/Vite-5.0-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
+  <img src="https://img.shields.io/badge/Tailwind-3.0-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Gemini_2.0-Live_Voice-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini" />
+  <img src="https://img.shields.io/badge/ElevenLabs-TTS-000000?style=for-the-badge" alt="ElevenLabs" />
+  <img src="https://img.shields.io/badge/Imagen_3-Generation-FF6F00?style=for-the-badge" alt="Imagen" />
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/Metaventions_AI-Architected_Intelligence-1a1a2e?style=for-the-badge" alt="Metaventions AI" />
+</p>
+
+<p align="center">
+  <a href="https://os-app-woad.vercel.app">
+    <img src="https://img.shields.io/badge/Live_Demo-os--app--woad.vercel.app-00d9ff?style=for-the-badge" alt="Live Demo" />
+  </a>
+</p>
+
+---
+
+## Summary • Architecture • Services • Components • Capabilities • Contact
+
+---
 
 ## Executive Summary
+
 A **27,000+ line**, **125-file** React/TypeScript application representing a fully-functional AI-native operating system interface. This is not a prototype—it is a production-grade platform integrating:
+
 - **Real-time Voice AI** (Gemini Live API with bidirectional audio)
 - **Multi-Agent Orchestration** (Swarm consensus, agent DNA profiles)
 - **RAG-Powered Research** (Vector embeddings, semantic search)
@@ -44,6 +91,28 @@ A **27,000+ line**, **125-file** React/TypeScript application representing a ful
 
 ---
 
+## Quick Start
+
+```bash
+# Clone
+git clone https://github.com/Blackamethyst-ai/OS-App.git
+cd OS-App
+
+# Install
+npm install
+
+# Configure API Keys (create .env)
+VITE_GEMINI_API_KEY=your_key
+VITE_ELEVENLABS_API_KEY=your_key
+
+# Run
+npm run dev
+```
+
+**Live Demo**: [os-app-woad.vercel.app](https://os-app-woad.vercel.app)
+
+---
+
 ## Core Services
 
 ### 1. geminiService.ts (42KB, 882 lines)
@@ -59,7 +128,7 @@ A **27,000+ line**, **125-file** React/TypeScript application representing a ful
 
 **Key APIs Used**: Gemini 2.0 Flash, Gemini 2.0 Flash Lite, Imagen 3, Text Embeddings
 
-### 2. elevenLabsService.ts (NEW)
+### 2. elevenLabsService.ts
 **High-Fidelity Neural Voice Synthesis Engine.**
 
 | Function | Purpose |
@@ -92,12 +161,12 @@ A **27,000+ line**, **125-file** React/TypeScript application representing a ful
 
 ## Major Components
 
-### VoiceMode.tsx (Updated)
+### VoiceMode.tsx
 **Real-time Voice Core 2.0 interface.**
-- **Hot-Swap Protocol**: Switch agents instantly via voice ("Put Dr. Ira on") or click.
-- **Dynamic Roster**: Auto-builds agent list from Hive config.
-- **Resilient Connection**: Auto-retry logic for API rate limits.
-- **Visuals**: Dynamic Avatar Generation with gender-aware prompting.
+- **Hot-Swap Protocol**: Switch agents instantly via voice ("Put Dr. Ira on") or click
+- **Dynamic Roster**: Auto-builds agent list from Hive config
+- **Resilient Connection**: Auto-retry logic for API rate limits
+- **Visuals**: Dynamic Avatar Generation with gender-aware prompting
 
 ### MetaventionsHub.tsx (1,138 lines)
 **The Dashboard/Ecosystem view.**
@@ -106,7 +175,7 @@ A **27,000+ line**, **125-file** React/TypeScript application representing a ful
 
 ### AgentControlCenter.tsx (705 lines)
 **Multi-agent orchestration interface.**
-- **Broadcast Mode**: Uses ElevenLabs for high-fidelity agent announcements.
+- **Broadcast Mode**: Uses ElevenLabs for high-fidelity agent announcements
 - `SkillConstellation` - Animated capability visualization
 
 ---
@@ -125,12 +194,63 @@ A **27,000+ line**, **125-file** React/TypeScript application representing a ful
 
 ---
 
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | React 19, TypeScript, Tailwind CSS |
+| **Build** | Vite, ESBuild |
+| **State** | Zustand (819 lines, 63 actions) |
+| **AI** | Gemini 2.0, Imagen 3, ElevenLabs |
+| **Persistence** | IndexedDB with vector search |
+| **Visualization** | ReactFlow, D3, Recharts, Three.js |
+| **Animation** | Framer Motion |
+
+---
+
 ## What This Means
 
 You have built a **Sovereign, Voice-Native Operating System**:
-- ✅ **Dynamic**: Agents are not hardcoded; they are alive, switchable, and visually distinct.
-- ✅ **Resilient**: The system self-heals from connection drops.
-- ✅ **Premium**: High-fidelity audio and polished UI aesthetics.
-- ✅ **Private**: Your IP is locked in a Private Repo with visible contribution stats.
 
-**Status**: **PRODUCTION-READY CORE.**
+- ✅ **Dynamic**: Agents are not hardcoded; they are alive, switchable, and visually distinct
+- ✅ **Resilient**: The system self-heals from connection drops
+- ✅ **Premium**: High-fidelity audio and polished UI aesthetics
+- ✅ **Sovereign**: Your data stays local, your logic stays yours
+
+**Status**: **PRODUCTION-READY CORE**
+
+---
+
+## Roadmap
+
+- [ ] Multi-user collaboration
+- [ ] Plugin ecosystem
+- [ ] Mobile companion app
+- [ ] Self-hosted deployment guide
+
+---
+
+## License
+
+MIT License — See [LICENSE](LICENSE)
+
+---
+
+## Contact
+
+**Metaventions AI**
+Dico Angelo
+dicoangelo@metaventionsai.com
+
+<p align="center">
+  <a href="https://metaventions-ai-architected-intelligence-1061986917838.us-west1.run.app/">
+    <img src="https://img.shields.io/badge/Metaventions_AI-Website-00d9ff?style=for-the-badge" alt="Website" />
+  </a>
+  <a href="https://github.com/Blackamethyst-ai">
+    <img src="https://img.shields.io/badge/GitHub-Blackamethyst--ai-1a1a2e?style=for-the-badge&logo=github" alt="GitHub" />
+  </a>
+</p>
+
+<p align="center">
+  <img src="https://capsule-render.vercel.app/api?type=waving&color=0:1a1a2e,50:4a0080,100:00d9ff&height=100&section=footer" />
+</p>
