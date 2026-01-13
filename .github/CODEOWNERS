@@ -1,0 +1,14 @@
+# OS-App Code Owners
+# Metaventions AI
+
+# Default owner for everything
+* @Blackamethyst-ai
+
+# Core services
+services/ @Blackamethyst-ai
+
+# State management
+store.ts @Blackamethyst-ai
+
+# GitHub config
+.github/ @Blackamethyst-ai
