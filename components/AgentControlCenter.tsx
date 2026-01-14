@@ -21,6 +21,7 @@ import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest, getA
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import { ModelSelector } from './ModelSelector';
+import { convergenceMemory } from '../services/bicameralService';
 
 /**
  * LIVING SKILL CONSTELLATION
@@ -196,8 +197,15 @@ const AgentControlCenter: React.FC = () => {
     const { updateAgent, addLog } = actions;
     const [selectedAgentId, setSelectedAgentId] = useState<string | null>(agents.activeAgents[0]?.id || null);
     const [input, setInput] = useState('');
-    const [viewMode, setViewMode] = useState<'MEMORY' | 'SKILLS' | 'TASKS'>('MEMORY');
+    const [viewMode, setViewMode] = useState<'MEMORY' | 'SKILLS' | 'TASKS' | 'CONVERGENCE'>('MEMORY');
     const [taskInput, setTaskInput] = useState('');
+    const [convergenceStats, setConvergenceStats] = useState<{
+        totalPatterns: number;
+        avgDQScore: number;
+        avgRoundsToConverge: number;
+        topDomains: { domain: string; count: number }[];
+        topAgents: { agentId: string; winCount: number }[];
+    } | null>(null);
     const [isGrounding, setIsGrounding] = useState(false);
     const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -329,6 +337,13 @@ const AgentControlCenter: React.FC = () => {
         return () => clearInterval(interval);
     }, [preferences.autonomyEnabled, agents.activeAgents]);
 
+    // Fetch convergence stats when CONVERGENCE view is active
+    useEffect(() => {
+        if (viewMode === 'CONVERGENCE') {
+            convergenceMemory.getStats().then(setConvergenceStats).catch(console.warn);
+        }
+    }, [viewMode]);
+
     const handleAddTask = () => {
         if (!activeAgent || !taskInput.trim()) return;
         const newTask: AtomicTask = {
@@ -421,7 +436,8 @@ const AgentControlCenter: React.FC = () => {
                         {[
                             { id: 'MEMORY', label: 'Neural Mesh', icon: Atom },
                             { id: 'SKILLS', label: 'Evolution', icon: Waypoints },
-                            { id: 'TASKS', label: 'Deployment', icon: ListTodo }
+                            { id: 'TASKS', label: 'Deployment', icon: ListTodo },
+                            { id: 'CONVERGENCE', label: 'ACE', icon: Gauge }
                         ].map(tab => (
                             <button
                                 key={tab.id}
@@ -727,6 +743,165 @@ const AgentControlCenter: React.FC = () => {
                                                     </motion.div>
                                                 ))}
                                             </div>
+                                        </div>
+                                    )}
+
+                                    {viewMode === 'CONVERGENCE' && (
+                                        <div className="max-w-5xl mx-auto space-y-12 pb-24">
+                                            {/* Header */}
+                                            <div className="flex items-center justify-between px-4">
+                                                <div className="flex items-center gap-6">
+                                                    <div className="p-4 bg-[#22d3ee]/10 rounded-2xl text-[#22d3ee] border border-[#22d3ee]/30 shadow-xl">
+                                                        <Gauge size={24} />
+                                                    </div>
+                                                    <div>
+                                                        <span className="text-base font-black text-white uppercase tracking-[0.5em]">Adaptive Convergence Engine</span>
+                                                        <p className="text-[10px] text-gray-500 font-mono uppercase mt-2.5 tracking-widest">DQ Scoring & Pattern Learning Analytics</p>
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => convergenceMemory.getStats().then(setConvergenceStats)}
+                                                    className="px-5 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center gap-2 shadow-xl active:scale-95"
+                                                >
+                                                    <RefreshCw size={14} /> Refresh Stats
+                                                </button>
+                                            </div>
+
+                                            {/* Stats Grid */}
+                                            {convergenceStats ? (
+                                                <div className="grid grid-cols-3 gap-6 px-4">
+                                                    {/* Total Patterns */}
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 20 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        className="p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] shadow-2xl"
+                                                    >
+                                                        <div className="flex items-center gap-4 mb-6">
+                                                            <div className="p-3 bg-[#9d4edd]/10 rounded-xl text-[#9d4edd] border border-[#9d4edd]/30">
+                                                                <Layers size={20} />
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Total Patterns</span>
+                                                        </div>
+                                                        <div className="text-4xl font-black text-white font-mono">{convergenceStats.totalPatterns}</div>
+                                                        <div className="text-[9px] font-mono text-gray-600 mt-2 uppercase tracking-widest">Convergence Events Recorded</div>
+                                                    </motion.div>
+
+                                                    {/* Avg DQ Score */}
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 20 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ delay: 0.1 }}
+                                                        className="p-8 bg-white/[0.02] border border-[#10b981]/20 rounded-[2.5rem] shadow-2xl"
+                                                    >
+                                                        <div className="flex items-center gap-4 mb-6">
+                                                            <div className="p-3 bg-[#10b981]/10 rounded-xl text-[#10b981] border border-[#10b981]/30">
+                                                                <Target size={20} />
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Avg DQ Score</span>
+                                                        </div>
+                                                        <div className={cn(
+                                                            "text-4xl font-black font-mono",
+                                                            convergenceStats.avgDQScore >= 0.7 ? "text-[#10b981]" :
+                                                            convergenceStats.avgDQScore >= 0.5 ? "text-[#f59e0b]" : "text-[#ef4444]"
+                                                        )}>
+                                                            {Math.round(convergenceStats.avgDQScore * 100)}%
+                                                        </div>
+                                                        <div className="text-[9px] font-mono text-gray-600 mt-2 uppercase tracking-widest">Decision Quality Index</div>
+                                                    </motion.div>
+
+                                                    {/* Avg Rounds */}
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: 20 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        transition={{ delay: 0.2 }}
+                                                        className="p-8 bg-white/[0.02] border border-[#22d3ee]/20 rounded-[2.5rem] shadow-2xl"
+                                                    >
+                                                        <div className="flex items-center gap-4 mb-6">
+                                                            <div className="p-3 bg-[#22d3ee]/10 rounded-xl text-[#22d3ee] border border-[#22d3ee]/30">
+                                                                <Activity size={20} />
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Avg Rounds</span>
+                                                        </div>
+                                                        <div className="text-4xl font-black text-[#22d3ee] font-mono">{convergenceStats.avgRoundsToConverge.toFixed(1)}</div>
+                                                        <div className="text-[9px] font-mono text-gray-600 mt-2 uppercase tracking-widest">Rounds to Consensus</div>
+                                                    </motion.div>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col items-center justify-center py-20 opacity-30">
+                                                    <Loader2 className="w-12 h-12 animate-spin text-[#22d3ee] mb-6" />
+                                                    <span className="text-sm font-mono uppercase tracking-widest">Loading Convergence Data...</span>
+                                                </div>
+                                            )}
+
+                                            {/* Top Domains & Agents */}
+                                            {convergenceStats && (convergenceStats.topDomains.length > 0 || convergenceStats.topAgents.length > 0) && (
+                                                <div className="grid grid-cols-2 gap-8 px-4">
+                                                    {/* Top Domains */}
+                                                    <motion.div
+                                                        initial={{ opacity: 0, x: -20 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{ delay: 0.3 }}
+                                                        className="p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] shadow-2xl"
+                                                    >
+                                                        <div className="flex items-center gap-4 mb-8">
+                                                            <Globe size={20} className="text-[#f59e0b]" />
+                                                            <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Top Domains</span>
+                                                        </div>
+                                                        <div className="space-y-4">
+                                                            {convergenceStats.topDomains.map((d, i) => (
+                                                                <div key={d.domain} className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <span className="text-[10px] font-mono text-gray-700 w-6">{(i + 1).toString().padStart(2, '0')}</span>
+                                                                        <span className="text-sm font-black text-white uppercase tracking-wider">{d.domain}</span>
+                                                                    </div>
+                                                                    <span className="text-sm font-mono text-[#f59e0b]">{d.count}</span>
+                                                                </div>
+                                                            ))}
+                                                            {convergenceStats.topDomains.length === 0 && (
+                                                                <div className="text-[10px] font-mono text-gray-700 uppercase">No domain data yet</div>
+                                                            )}
+                                                        </div>
+                                                    </motion.div>
+
+                                                    {/* Top Winning Agents */}
+                                                    <motion.div
+                                                        initial={{ opacity: 0, x: 20 }}
+                                                        animate={{ opacity: 1, x: 0 }}
+                                                        transition={{ delay: 0.4 }}
+                                                        className="p-8 bg-white/[0.02] border border-white/5 rounded-[2.5rem] shadow-2xl"
+                                                    >
+                                                        <div className="flex items-center gap-4 mb-8">
+                                                            <Bot size={20} className="text-[#9d4edd]" />
+                                                            <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Top Winning Agents</span>
+                                                        </div>
+                                                        <div className="space-y-4">
+                                                            {convergenceStats.topAgents.map((a, i) => (
+                                                                <div key={a.agentId} className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <span className="text-[10px] font-mono text-gray-700 w-6">{(i + 1).toString().padStart(2, '0')}</span>
+                                                                        <span className="text-sm font-black text-white uppercase tracking-wider">{a.agentId}</span>
+                                                                    </div>
+                                                                    <span className="text-sm font-mono text-[#9d4edd]">{a.winCount} wins</span>
+                                                                </div>
+                                                            ))}
+                                                            {convergenceStats.topAgents.length === 0 && (
+                                                                <div className="text-[10px] font-mono text-gray-700 uppercase">No agent data yet</div>
+                                                            )}
+                                                        </div>
+                                                    </motion.div>
+                                                </div>
+                                            )}
+
+                                            {/* Empty State */}
+                                            {convergenceStats && convergenceStats.totalPatterns === 0 && (
+                                                <div className="flex flex-col items-center justify-center py-20 opacity-30">
+                                                    <Gauge size={80} className="mb-8 text-[#22d3ee]" />
+                                                    <h3 className="text-xl font-black text-white uppercase tracking-[0.5em] mb-4">No Convergence Data</h3>
+                                                    <p className="text-sm font-mono text-gray-500 uppercase tracking-widest text-center max-w-md">
+                                                        Run tasks through the Bicameral Engine with ACE mode enabled to start collecting convergence patterns and DQ scores.
+                                                    </p>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>

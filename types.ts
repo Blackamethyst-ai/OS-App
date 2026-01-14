@@ -7,3 +7,4 @@ export * from './types/domain/visuals';
 export * from './types/domain/finance';
 export * from './types/domain/kernel';
 export * from './types/domain/evolution';
+export * from './types/domain/convergence';
