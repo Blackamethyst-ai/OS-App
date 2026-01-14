@@ -6,7 +6,7 @@ import {
     generateEmbedding 
 } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
-import { consensusEngine } from '../services/bicameralService';
+import { adaptiveConsensusEngine, ACEStatus } from '../services/bicameralService';
 import { FactChunk, AtomicTask, ScienceHypothesis } from '../types';
 
 export const useResearchAgent = () => {
@@ -125,9 +125,23 @@ export const useResearchAgent = () => {
                     plan: [synthesisTask]
                 });
 
-                const bicameralResult = await consensusEngine(synthesisTask, (status) => {
-                     setBicameralState(prev => ({ swarmStatus: status }));
-                });
+                const bicameralResult = await adaptiveConsensusEngine(
+                    synthesisTask,
+                    (status: ACEStatus) => {
+                        setBicameralState(prev => ({
+                            swarmStatus: {
+                                ...status,
+                                consensusProgress: (status.currentGap / status.targetGap) * 100
+                            }
+                        }));
+                    },
+                    {
+                        adaptiveThresholds: true,
+                        enableAuction: true,
+                        enableDQScoring: true,
+                        enableLearning: true
+                    }
+                );
 
                 setBicameralState({ isSwarming: false });
 

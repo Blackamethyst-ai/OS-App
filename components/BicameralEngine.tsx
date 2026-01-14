@@ -1,10 +1,10 @@
 import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useRef, useEffect } from 'react';
 import { useAppStore } from '../store';
-import { generateDecompositionMap, consensusEngine } from '../services/bicameralService';
+import { generateDecompositionMap, adaptiveConsensusEngine, ACEStatus, ACEResult, DQScore } from '../services/bicameralService';
 import { promptSelectKey, AGENT_DNA_BUILDER } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
-import { BrainCircuit, Zap, Layers, Cpu, ArrowRight, CheckCircle2, Loader2, GitBranch, GitCommit, AlertOctagon, Save, ExternalLink, Dna, Info, Settings2, Sliders, X, MessageSquareCode, ShieldCheck, Activity, Target } from 'lucide-react';
+import { BrainCircuit, Zap, Layers, Cpu, ArrowRight, CheckCircle2, Loader2, GitBranch, GitCommit, AlertOctagon, Save, ExternalLink, Dna, Info, Settings2, Sliders, X, MessageSquareCode, ShieldCheck, Activity, Target, Gauge, Users, TrendingUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TugOfWarChart } from './Visualizations/TugOfWarChart';
 import { AgentGraveyard } from './Visualizations/AgentGraveyard';
@@ -15,12 +15,18 @@ const BicameralEngine: React.FC = () => {
     const { bicameral, actions } = useAppStore();
     const { setBicameralState, addLog } = actions;
     const { goal, plan, ledger, isPlanning, isSwarming, swarmStatus } = bicameral;
-    
-    const [selectedDNA, setSelectedDNA] = useState<AgentDNA>(AGENT_DNA_BUILDER[1]); 
+
+    const [selectedDNA, setSelectedDNA] = useState<AgentDNA>(AGENT_DNA_BUILDER[1]);
     const [agentWeights, setAgentWeights] = useState({ skepticism: 50, excitement: 80, alignment: 90 });
     const [showControls, setShowControls] = useState(false);
     const [customDirective, setCustomDirective] = useState('');
-    
+
+    // ACE-specific state
+    const [aceStatus, setAceStatus] = useState<ACEStatus | null>(null);
+    const [lastDQScore, setLastDQScore] = useState<DQScore | null>(null);
+    const [participatingAgents, setParticipatingAgents] = useState<string[]>([]);
+    const [useAdaptiveMode, setUseAdaptiveMode] = useState(true);
+
     const activeTask = plan.find(t => t.status === 'IN_PROGRESS');
 
     const runArchitecture = async () => {
@@ -60,17 +66,40 @@ const BicameralEngine: React.FC = () => {
                 }));
 
                 try {
-                    const result = await consensusEngine(task, (statusUpdate: SwarmStatus) => {
-                        setBicameralState(prev => ({ 
-                            swarmStatus: { ...statusUpdate, activeDNA: selectedDNA.id, consensusProgress: (statusUpdate.currentGap / statusUpdate.targetGap) * 100 } 
-                        }));
-                    });
-                    
+                    const result = await adaptiveConsensusEngine(
+                        task,
+                        (statusUpdate: ACEStatus) => {
+                            setAceStatus(statusUpdate);
+                            setParticipatingAgents(statusUpdate.participatingAgents || []);
+                            setBicameralState(prev => ({
+                                swarmStatus: {
+                                    ...statusUpdate,
+                                    activeDNA: statusUpdate.activeDNA || selectedDNA.id,
+                                    consensusProgress: (statusUpdate.currentGap / statusUpdate.targetGap) * 100
+                                }
+                            }));
+                        },
+                        {
+                            adaptiveThresholds: useAdaptiveMode,
+                            enableAuction: useAdaptiveMode,
+                            enableDQScoring: true,
+                            enableLearning: true
+                        }
+                    );
+
+                    // Store DQ score for display
+                    if (result.dqScore) {
+                        setLastDQScore(result.dqScore);
+                    }
+
                     const consensusContent = `
-# BICAMERAL CONSENSUS [BUILD: ${selectedDNA.label}]
+# BICAMERAL CONSENSUS [BUILD: ${selectedDNA.label}] [ACE MODE]
 **Task ID:** ${task.id}
 **DNA Logic:** ${selectedDNA.description}
 **Confidence:** ${result.confidence}%
+**DQ Score:** ${result.dqScore ? `${Math.round(result.dqScore.score * 100)}% (V:${Math.round(result.dqScore.components.validity * 100)} S:${Math.round(result.dqScore.components.specificity * 100)} C:${Math.round(result.dqScore.components.correctness * 100)})` : 'N/A'}
+**Complexity:** ${result.complexity?.taskType || 'unknown'} (${result.complexity?.suggestedRounds || '?'} rounds suggested)
+**Participating Agents:** ${result.voteLedger.participatingAgents?.join(', ') || 'all'}
 **Mental State Weighting:** Skepticism: ${agentWeights.skepticism}, Excitement: ${agentWeights.excitement}, Alignment: ${agentWeights.alignment}
 ${customDirective ? `**Custom Directive:** ${customDirective}` : ''}
 ---
@@ -155,13 +184,29 @@ ${result.output}
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase tracking-widest px-1"><span>Active Directive Overlay</span> <Target size={10} className="text-[#9d4edd]" /></div>
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         value={customDirective}
                                         onChange={e => setCustomDirective(e.target.value)}
                                         placeholder="Inject logic anchor for swarm..."
                                         className="w-full bg-black border border-[#333] px-4 py-2.5 rounded-xl text-[10px] font-mono text-white outline-none focus:border-[#9d4edd] transition-colors"
                                     />
+                                </div>
+                                {/* ACE Mode Toggle */}
+                                <div className="flex items-center justify-between p-4 bg-black border border-[#22d3ee]/30 rounded-xl">
+                                    <div className="flex items-center gap-3">
+                                        <Gauge size={16} className="text-[#22d3ee]" />
+                                        <div>
+                                            <div className="text-[10px] font-black text-white uppercase tracking-wider">ACE Mode</div>
+                                            <div className="text-[8px] text-gray-600 font-mono">Adaptive Convergence Engine</div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setUseAdaptiveMode(!useAdaptiveMode)}
+                                        className={`w-12 h-6 rounded-full transition-all ${useAdaptiveMode ? 'bg-[#22d3ee]' : 'bg-gray-800'}`}
+                                    >
+                                        <div className={`w-5 h-5 bg-white rounded-full shadow transition-transform ${useAdaptiveMode ? 'translate-x-6' : 'translate-x-0.5'}`} />
+                                    </button>
                                 </div>
                             </motion.div>
                         )}
@@ -287,6 +332,69 @@ ${result.output}
                             <div className="col-span-4"><AgentGraveyard killedCount={swarmStatus.killedAgents} /></div>
                             <div className="col-span-8"><TugOfWarChart votes={swarmStatus.votes} confidenceGap={swarmStatus.targetGap} /></div>
                         </div>
+
+                        {/* ACE Metrics Panel */}
+                        {useAdaptiveMode && aceStatus && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="grid grid-cols-4 gap-4"
+                            >
+                                {/* Phase */}
+                                <div className="bg-[#050505] border border-[#22d3ee]/20 rounded-2xl p-4">
+                                    <div className="text-[8px] font-mono text-gray-600 uppercase tracking-widest mb-2">Phase</div>
+                                    <div className="text-sm font-black text-[#22d3ee] uppercase tracking-wider">
+                                        {aceStatus.phase}
+                                    </div>
+                                </div>
+
+                                {/* Complexity */}
+                                <div className="bg-[#050505] border border-[#f59e0b]/20 rounded-2xl p-4">
+                                    <div className="text-[8px] font-mono text-gray-600 uppercase tracking-widest mb-2">Complexity</div>
+                                    <div className="text-sm font-black text-[#f59e0b] uppercase">
+                                        {aceStatus.complexity?.taskType || '—'}
+                                    </div>
+                                    <div className="text-[9px] font-mono text-gray-600 mt-1">
+                                        {aceStatus.complexity?.suggestedRounds || '?'} rounds max
+                                    </div>
+                                </div>
+
+                                {/* DQ Score */}
+                                <div className="bg-[#050505] border border-[#10b981]/20 rounded-2xl p-4">
+                                    <div className="text-[8px] font-mono text-gray-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                        <Gauge size={10} /> Decision Quality
+                                    </div>
+                                    {lastDQScore ? (
+                                        <>
+                                            <div className={`text-xl font-black ${lastDQScore.isActionable ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
+                                                {Math.round(lastDQScore.score * 100)}%
+                                            </div>
+                                            <div className="flex gap-2 mt-1">
+                                                <span className="text-[8px] font-mono text-gray-500">V:{Math.round(lastDQScore.components.validity * 100)}</span>
+                                                <span className="text-[8px] font-mono text-gray-500">S:{Math.round(lastDQScore.components.specificity * 100)}</span>
+                                                <span className="text-[8px] font-mono text-gray-500">C:{Math.round(lastDQScore.components.correctness * 100)}</span>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="text-sm font-black text-gray-700">—</div>
+                                    )}
+                                </div>
+
+                                {/* Participating Agents */}
+                                <div className="bg-[#050505] border border-[#9d4edd]/20 rounded-2xl p-4">
+                                    <div className="text-[8px] font-mono text-gray-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                        <Users size={10} /> Agents
+                                    </div>
+                                    <div className="text-sm font-black text-[#9d4edd]">
+                                        {participatingAgents.length || '—'}
+                                    </div>
+                                    <div className="text-[8px] font-mono text-gray-600 mt-1 truncate">
+                                        {participatingAgents.slice(0, 3).join(', ') || 'awaiting auction'}
+                                        {participatingAgents.length > 3 && '...'}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
 
                         <div className="bg-[#050505] border border-white/5 rounded-[2.5rem] p-8 font-mono text-[11px] text-[#42be65] shadow-[inset_0_0_50px_rgba(0,0,0,1)] relative overflow-hidden h-44 backdrop-blur-xl group">
                             <div className="absolute top-4 right-8 flex items-center gap-3">

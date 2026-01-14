@@ -2,6 +2,13 @@ import { GoogleGenAI, Schema, Type, GenerateContentResponse } from "@google/gena
 import { AtomicTask, SwarmResult, SwarmStatus, VoteLedger } from '../types';
 import { retryGeminiRequest, getAI } from './geminiService';
 
+// Re-export Adaptive Convergence Engine (ACE) for enhanced consensus
+export { adaptiveConsensusEngine, quickConsensus } from './adaptiveConsensus';
+export { convergenceMemory } from './convergenceMemory';
+export { estimateComplexity } from './complexityEstimator';
+export { scoreDQHeuristic, scoreDQWithLLM, calculateDQ } from './dqScoring';
+export type { ACEConfig, ACEStatus, ACEResult, DQScore, ComplexityProfile } from '../types/domain/convergence';
+
 export async function generateDecompositionMap(goal: string): Promise<AtomicTask[]> {
     const ai = getAI();
 
