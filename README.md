@@ -13,6 +13,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Lines-27,000+-00d9ff?style=for-the-badge" alt="Lines" />
   <img src="https://img.shields.io/badge/Files-125+-4a0080?style=for-the-badge" alt="Files" />
+  <img src="https://img.shields.io/badge/Version-1.2.0-00d9ff?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge" alt="Status" />
 </p>
 
@@ -221,8 +222,21 @@ You have built a **Sovereign, Voice-Native Operating System**:
 
 ---
 
+## What's New (January 2026)
+
+| Update | Status |
+|--------|--------|
+| **Voice Core 2.0** | Agent hot-swap via voice command |
+| **Resilient Sessions** | Auto-retry with rate-limit backoff |
+| **Dynamic Avatars** | Gender-aware AI avatar generation |
+| **Ecosystem Sync** | Cross-project state via Agent Core |
+
+---
+
 ## Roadmap
 
+- [x] ~~Voice Core 2.0~~ (v1.2)
+- [x] ~~Agent Hot-Swap Protocol~~ (v1.2)
 - [ ] Multi-user collaboration
 - [ ] Plugin ecosystem
 - [ ] Mobile companion app
