@@ -8,13 +8,27 @@ const AuthModule: React.FC = () => {
     const { setAuthenticated, setUserProfile } = actions;
     const [view, setView] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [credentials, setCredentials] = useState({ username: '', password: '', role: 'OPERATOR', apiKey: '' });
+
+    // SOVEREIGN GATE: Secret passphrase for access
+    // Can be overridden via env var VITE_ACCESS_PASSPHRASE
+    const VALID_PASSPHRASE = import.meta.env.VITE_ACCESS_PASSPHRASE || 'metaventions2026';
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError(null);
         setIsLoading(true);
+
         // Simulate network handshake
         await new Promise(r => setTimeout(r, 1500));
+
+        // VALIDATE PASSPHRASE
+        if (credentials.password !== VALID_PASSPHRASE) {
+            setError('UPLINK REJECTED: Invalid Neural Key');
+            setIsLoading(false);
+            return;
+        }
 
         if (credentials.apiKey) {
             localStorage.setItem('gemini_api_key', credentials.apiKey);
@@ -114,6 +128,15 @@ const AuthModule: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-3">
+                        {error && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="p-3 bg-red-500/20 border border-red-500/50 rounded-xl text-red-400 text-[10px] font-mono uppercase tracking-wider text-center"
+                            >
+                                {error}
+                            </motion.div>
+                        )}
                         <button
                             disabled={isLoading}
                             className="w-full py-4 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black font-mono text-xs uppercase tracking-[0.2em] rounded-xl transition-all shadow-[0_0_40px_rgba(157,78,221,0.3)] flex items-center justify-center gap-3 disabled:opacity-50"

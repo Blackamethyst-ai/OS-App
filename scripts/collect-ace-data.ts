@@ -227,4 +227,5 @@ Data stored in: ${DATA_DIR}
         `);
 }
 
-export { createManualEntry, computeStats, loadResults, TASK_BANK, TrialResult };
+export { createManualEntry, computeStats, loadResults, TASK_BANK };
+export type { TrialResult };
