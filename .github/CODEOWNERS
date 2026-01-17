@@ -2,13 +2,13 @@
 # Metaventions AI
 
 # Default owner for everything
-* @Blackamethyst-ai
+* @Dicoangelo
 
 # Core services
-services/ @Blackamethyst-ai
+services/ @Dicoangelo
 
 # State management
-store.ts @Blackamethyst-ai
+store.ts @Dicoangelo
 
 # GitHub config
-.github/ @Blackamethyst-ai
+.github/ @Dicoangelo
