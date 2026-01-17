@@ -57,6 +57,7 @@ Based on research from:
 | `services/agentAuction.ts` | DALA-style agent selection |
 | `services/dqScoring.ts` | Decision Quality measurement |
 | `services/convergenceMemory.ts` | Pattern learning & storage |
+| `services/hopGrouping.ts` | **NEW** HRPO clustering (Phase 3.5) |
 | `types/domain/convergence.ts` | Type definitions |
 
 ---
@@ -176,6 +177,61 @@ After each successful consensus:
 
 ---
 
+## Phase 3.5: Hop Grouping (HRPO)
+
+**Added:** January 17, 2026 | **Version:** 1.1.0
+
+HRPO (Hop-grouped Response Processing) clusters similar answers before winner selection, preventing vote fragmentation among semantically equivalent responses.
+
+### Trigger Conditions
+
+HRPO activates when ALL conditions are met:
+- `enableHopGrouping: true` (default)
+- `complexity.taskType === 'expert'`
+- `Object.keys(votes).length >= 4` (hopMinVotes)
+
+### How It Works
+
+1. **Clustering**: Similar answers are grouped using Levenshtein similarity
+2. **Voting Strength**: Groups accumulate member votes
+3. **Winner Selection**: Highest voting strength wins (DQ tie-breaker)
+
+### Example
+
+```
+Before HRPO:
+  "Use React hooks"        → 2 votes
+  "Use React hooks for state" → 2 votes
+  "Use Redux"              → 3 votes
+  Winner: "Use Redux" (3 votes)
+
+After HRPO:
+  Group 1: ["Use React hooks", "Use React hooks for state"] → 4 votes
+  Group 2: ["Use Redux"] → 3 votes
+  Winner: "Use React hooks" (4 combined votes)
+```
+
+### Configuration
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `enableHopGrouping` | `true` | Master toggle |
+| `hopMinVotes` | `4` | Minimum answers to trigger |
+| `hopMaxGroups` | `5` | Maximum clusters to form |
+| `hopSimilarityThreshold` | `0.6` | Similarity required to merge |
+
+### Verification
+
+1. Submit an expert-level task via Bicameral Engine
+2. Check console for: `[ACE] HRPO: N groups formed, winning group has X votes`
+3. Verify simple tasks do NOT trigger HRPO
+
+### Detailed Documentation
+
+See `docs/HRPO_IMPLEMENTATION.md` for full algorithm details, API reference, and troubleshooting.
+
+---
+
 ## Configuration Options
 
 ```typescript
@@ -191,6 +247,11 @@ interface ACEConfig {
     specificity: number;
     correctness: number;
   };
+  // HRPO Settings (Phase 3.5)
+  enableHopGrouping: boolean;   // Enable hop grouping (default: true)
+  hopMinVotes: number;          // Min votes to trigger (default: 4)
+  hopMaxGroups: number;         // Max clusters (default: 5)
+  hopSimilarityThreshold: number; // Merge threshold (default: 0.6)
 }
 ```
 
@@ -297,6 +358,7 @@ const convergenceMemory = {
 | Version | Date | Changes |
 |---------|------|---------|
 | 1.0.0 | 2026-01-13 | Initial ACE implementation |
+| 1.1.0 | 2026-01-17 | Added HRPO (Phase 3.5) - hop-grouped answer clustering |
 
 ---
 

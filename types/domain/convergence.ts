@@ -97,6 +97,42 @@ export interface ConvergencePattern {
     tokensUsed: number;
     /** Convergence timestamp */
     timestamp: number;
+    /** Number of hop groups formed (HRPO) */
+    hopGroupCount?: number;
+    /** Cohesion of winning hop group (HRPO) */
+    winningGroupCohesion?: number;
+}
+
+// ============================================================================
+// HOP GROUPING (HRPO - Hop-grouped Response Processing)
+// ============================================================================
+
+export interface HopGroup {
+    /** Unique identifier for this group */
+    id: string;
+    /** Canonical answer representing this group */
+    representativeAnswer: string;
+    /** All answers clustered into this group */
+    memberAnswers: string[];
+    /** Agents that contributed to this group */
+    agentContributors: string[];
+    /** Combined voting strength (sum of member votes) */
+    votingStrength: number;
+    /** DQ score for the representative answer */
+    dqScore?: DQScore;
+    /** Internal cohesion (0-1): how similar the members are */
+    cohesion: number;
+}
+
+export interface HopGroupingResult {
+    /** All groups formed by clustering */
+    groups: HopGroup[];
+    /** The group with highest voting strength */
+    winningGroup: HopGroup;
+    /** Clustering method used */
+    method: 'levenshtein' | 'embedding' | 'llm';
+    /** Time spent on grouping in ms */
+    groupingDuration: number;
 }
 
 export interface OptimalThresholds {
@@ -133,6 +169,14 @@ export interface ACEConfig {
         specificity: number;
         correctness: number;
     };
+    /** Enable hop grouping for expert tasks (HRPO) */
+    enableHopGrouping: boolean;
+    /** Minimum votes before hop grouping activates */
+    hopMinVotes: number;
+    /** Maximum number of hop groups to form */
+    hopMaxGroups: number;
+    /** Similarity threshold for grouping (0-1) */
+    hopSimilarityThreshold: number;
 }
 
 export interface ACEStatus extends SwarmStatusExtended {
@@ -177,6 +221,8 @@ export interface ACEResult {
     auctionResult?: AuctionResult;
     /** Whether pattern was stored */
     patternStored?: boolean;
+    /** Hop grouping result (HRPO, expert tasks only) */
+    hopGroupingResult?: HopGroupingResult;
 }
 
 export interface VoteLedgerExtended {
@@ -209,5 +255,9 @@ export const DEFAULT_ACE_CONFIG: ACEConfig = {
         validity: 0.4,
         specificity: 0.3,
         correctness: 0.3
-    }
+    },
+    enableHopGrouping: true,
+    hopMinVotes: 4,
+    hopMaxGroups: 5,
+    hopSimilarityThreshold: 0.6
 };
