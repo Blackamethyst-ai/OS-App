@@ -144,7 +144,7 @@ Task → Complexity Estimator → Agent Auction → Voting Core → DQ Scoring �
 4. Log to convergence memory
 
 ### 5.3 Reproducibility
-- All code open-source: github.com/Blackamethyst-ai/OS-App
+- All code open-source: github.com/Dicoangelo/OS-App
 - Task definitions in supplementary materials
 - Random seeds documented
 
@@ -229,7 +229,7 @@ We presented ACE, an adaptive convergence engine that combines complexity estima
 
 ## Appendix A: Implementation Details
 
-- Repository: github.com/Blackamethyst-ai/OS-App
+- Repository: github.com/Dicoangelo/OS-App
 - Services: adaptiveConsensus.ts, complexityEstimator.ts, agentAuction.ts, dqScoring.ts, convergenceMemory.ts
 - Total implementation: ~1,800 lines TypeScript
 

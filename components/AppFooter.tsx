@@ -53,7 +53,7 @@ const AppFooter: React.FC = () => {
                     <nav className="flex items-center gap-8">
                         {[
                             { label: 'LINKEDIN', href: 'https://www.linkedin.com/in/dico-angelo/' },
-                            { label: 'GITHUB', href: 'https://github.com/Blackamethyst-ai' },
+                            { label: 'GITHUB', href: 'https://github.com/Dicoangelo' },
                             { label: 'X', href: 'https://x.com/dicoangelo' }
                         ].map((link) => (
                             <a
