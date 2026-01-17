@@ -122,13 +122,7 @@ const AuthModule: React.FC = () => {
                             {!isLoading && <ChevronRight className="w-4 h-4" />}
                         </button>
 
-                        <button
-                            type="button"
-                            onClick={() => setAuthenticated(true)}
-                            className="w-full py-3 bg-transparent hover:bg-white/5 text-gray-500 hover:text-white font-mono text-[10px] uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2"
-                        >
-                            <span>Initialize Guest Protocol</span>
-                        </button>
+
                     </div>
                 </form>
 
