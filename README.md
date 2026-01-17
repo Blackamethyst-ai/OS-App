@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Lines-27,000+-00d9ff?style=for-the-badge" alt="Lines" />
-  <img src="https://img.shields.io/badge/Files-125+-4a0080?style=for-the-badge" alt="Files" />
-  <img src="https://img.shields.io/badge/Version-1.2.0-00d9ff?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Lines-30,000+-00d9ff?style=for-the-badge" alt="Lines" />
+  <img src="https://img.shields.io/badge/Files-130+-4a0080?style=for-the-badge" alt="Files" />
+  <img src="https://img.shields.io/badge/Version-1.3.0-00d9ff?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge" alt="Status" />
 </p>
 
@@ -48,13 +48,24 @@
 
 ## Executive Summary
 
-A **27,000+ line**, **125-file** React/TypeScript application representing a fully-functional AI-native operating system interface. This is not a prototype—it is a production-grade platform integrating:
+A **30,000+ line**, **130-file** React/TypeScript application representing a fully-functional AI-native operating system interface. This is not a prototype—it is a production-grade platform integrating:
 
 - **Real-time Voice AI** (Gemini Live API with bidirectional audio)
-- **Multi-Agent Orchestration** (Swarm consensus, agent DNA profiles)
+- **Adaptive Consensus Engine (ACE)** (Multi-agent voting with DQ scoring)
+- **Recursive Language Model (RLM)** (Infinite context processing via recursive decomposition)
 - **RAG-Powered Research** (Vector embeddings, semantic search)
 - **Cinematic AI Production** (Storyboarding, TTS, image sequencing)
 - **Visual Process Architecture** (ReactFlow node editor with AI generation)
+
+### The Precision Bridge Framework
+
+Metaventions AI implements a unified pattern across hardware, context, and decision quality:
+
+```
+COMPRESS → PRE-COMPUTE → PARALLEL EXPLORE → ACCUMULATE → RECONSTRUCT → VERIFY
+```
+
+This architecture enables Opus-quality decisions through Haiku-budget compute.
 
 ---
 
@@ -79,6 +90,10 @@ A **27,000+ line**, **125-file** React/TypeScript application representing a ful
 │  ┌─────────────────┐ ┌──────────────────┐ ┌───────────────────┐│
 │  │ geminiService   │ │persistenceService│ │   toolRegistry    ││
 │  │ (AI Core)       │ │  (IndexedDB+Vec) │ │    (MCP Tools)    ││
+│  └─────────────────┘ └──────────────────┘ └───────────────────┘│
+│  ┌─────────────────┐ ┌──────────────────┐ ┌───────────────────┐│
+│  │adaptiveConsensus│ │recursiveLangModel│ │    dqScoring      ││
+│  │ (ACE Engine)    │ │  (RLM Infinite)  │ │  (Quality Score)  ││
 │  └─────────────────┘ └──────────────────┘ └───────────────────┘│
 ├─────────────────────────────────────────────────────────────────┤
 │                           HOOKS                                 │
@@ -158,6 +173,43 @@ npm run dev
 | `architect_generate_process` | AI-generated process blueprints |
 | `system_navigate` | Mode switching via natural language |
 
+### 5. adaptiveConsensus.ts (420 lines)
+**Adaptive Convergence Engine (ACE) — Multi-agent consensus with quality scoring.**
+
+| Feature | Description |
+|---------|-------------|
+| `adaptiveConsensusEngine()` | Dynamic thresholds based on task complexity |
+| Agent Auction | Competitive bidding for task-relevant agents |
+| DQ Scoring | Validity × Specificity × Correctness measurement |
+| HRPO | Hierarchical Response Pattern Optimization for expert tasks |
+| Pattern Learning | IndexedDB-based threshold optimization |
+
+**Research Foundation**: arXiv:2511.15755 (DQ Scoring), arXiv:2508.17536 (Voting vs Debate)
+
+### 6. recursiveLanguageModel.ts (736 lines)
+**Recursive Language Model (RLM) — Infinite context processing.**
+
+| Feature | Description |
+|---------|-------------|
+| `recursiveLLMQuery()` | Process arbitrarily long contexts via recursive decomposition |
+| Context Externalization | Store context as variable, not tokens |
+| REPL Engine | Sandboxed Python-like execution environment |
+| Sub-LLM Calls | Cheap model swarm for parallel exploration |
+| Variable Buffering | Lossless accumulation of intermediate results |
+
+**Research Foundation**: arXiv:2512.24601 (Recursive Language Models), Tesla US20260017019A1 (Precision Bridge)
+
+### 7. dqScoring.ts (316 lines)
+**Decision Quality Framework — Quantitative output validation.**
+
+| Component | Weight | Measures |
+|-----------|--------|----------|
+| Validity | 40% | Technical feasibility, logical soundness |
+| Specificity | 30% | Concrete identifiers, versions, commands |
+| Correctness | 30% | Task alignment, problem resolution |
+
+**Key Insight**: Multi-agent with DQ scoring achieves 100% actionability vs 1.7% single-agent.
+
 ---
 
 ## Major Components
@@ -190,6 +242,10 @@ npm run dev
 | Voice Handover | ✅ | **Seamless Agent Hot-Swapping** |
 | Vector Search (RAG) | ✅ | IndexedDB + cosine similarity |
 | Multi-Agent Swarm | ✅ | Agent DNA, bicameral consensus |
+| **Adaptive Consensus (ACE)** | ✅ | **Dynamic thresholds + DQ scoring** |
+| **Recursive LLM (RLM)** | ✅ | **Infinite context via decomposition** |
+| **Decision Quality (DQ)** | ✅ | **Validity × Specificity × Correctness** |
+| **HRPO Optimization** | ✅ | **Hierarchical response pattern clustering** |
 | Resilience | ✅ | **Automatic Rate-Limit Backoff** |
 | Secure Auth | ✅ | **Local Encrypted Key Vault** |
 
@@ -226,10 +282,23 @@ You have built a **Sovereign, Voice-Native Operating System**:
 
 | Update | Status |
 |--------|--------|
+| **Adaptive Consensus Engine (ACE)** | Multi-agent voting with dynamic thresholds |
+| **Recursive Language Model (RLM)** | Infinite context via recursive decomposition |
+| **Decision Quality Scoring** | Quantitative output validation (arXiv:2511.15755) |
+| **HRPO Algorithm** | Hierarchical response clustering for expert tasks |
+| **Precision Bridge Framework** | Unified pattern: Compress → Explore → Reconstruct |
 | **Voice Core 2.0** | Agent hot-swap via voice command |
 | **Resilient Sessions** | Auto-retry with rate-limit backoff |
 | **Dynamic Avatars** | Gender-aware AI avatar generation |
-| **Ecosystem Sync** | Cross-project state via Agent Core |
+
+### Research Foundation
+
+| Paper | arXiv | Contribution |
+|-------|-------|--------------|
+| DQ Scoring | 2511.15755 | Decision quality measurement |
+| RLM | 2512.24601 | Recursive context processing |
+| Voting vs Debate | 2508.17536 | Consensus optimization |
+| Tesla Patent | US20260017019A1 | Precision Bridge architecture |
 
 ---
 
@@ -237,10 +306,27 @@ You have built a **Sovereign, Voice-Native Operating System**:
 
 - [x] ~~Voice Core 2.0~~ (v1.2)
 - [x] ~~Agent Hot-Swap Protocol~~ (v1.2)
+- [x] ~~Adaptive Consensus Engine (ACE)~~ (v1.3)
+- [x] ~~Recursive Language Model (RLM)~~ (v1.3)
+- [x] ~~Decision Quality Scoring~~ (v1.3)
+- [x] ~~HRPO Optimization~~ (v1.3)
+- [ ] Cognitive Precision Bridge (CPB) — Full implementation
 - [ ] Multi-user collaboration
 - [ ] Plugin ecosystem
 - [ ] Mobile companion app
 - [ ] Self-hosted deployment guide
+
+---
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [ACE Technical Whitepaper](docs/ACE_TECHNICAL_WHITEPAPER.md) | Full ACE specification with research foundation |
+| [ACE Implementation Manual](docs/ACE_IMPLEMENTATION_MANUAL.md) | Integration guide and API reference |
+| [RLM Technical Overview](docs/RLM_TECHNICAL_OVERVIEW.md) | Recursive Language Model documentation |
+| [HRPO Implementation](docs/HRPO_IMPLEMENTATION.md) | Hierarchical response pattern optimization |
+| [System Mind](docs/SYSTEM_MIND.md) | Core architecture philosophy |
 
 ---
 
