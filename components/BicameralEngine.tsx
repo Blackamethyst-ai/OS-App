@@ -10,6 +10,8 @@ import { TugOfWarChart } from './Visualizations/TugOfWarChart';
 import { AgentGraveyard } from './Visualizations/AgentGraveyard';
 import { SwarmStatus, AgentDNA } from '../types';
 import { audio } from '../services/audioService';
+import { ExperimentLogger } from './ExperimentLogger';
+import { FlaskConical } from 'lucide-react';
 
 const BicameralEngine: React.FC = () => {
     const { bicameral, actions } = useAppStore();
@@ -26,6 +28,9 @@ const BicameralEngine: React.FC = () => {
     const [lastDQScore, setLastDQScore] = useState<DQScore | null>(null);
     const [participatingAgents, setParticipatingAgents] = useState<string[]>([]);
     const [useAdaptiveMode, setUseAdaptiveMode] = useState(true);
+    const [showExperimentLogger, setShowExperimentLogger] = useState(false);
+    const [lastCompletedRounds, setLastCompletedRounds] = useState<number>(0);
+    const [lastCompletedOutput, setLastCompletedOutput] = useState<string>('');
 
     const activeTask = plan.find(t => t.status === 'IN_PROGRESS');
 
@@ -122,6 +127,10 @@ ${result.output}
                     }));
                     
                     addLog('SUCCESS', `SWARM: Consensus Reached (+${result.voteLedger.count - result.voteLedger.runnerUpCount}).`);
+
+                    // Track for experiment logger
+                    setLastCompletedRounds(result.voteLedger.totalRounds);
+                    setLastCompletedOutput(result.output);
                 } catch (taskErr) {
                     console.error("Task Swarm Fail", taskErr);
                     setBicameralState(prev => ({ 
@@ -154,9 +163,18 @@ ${result.output}
                             </div>
                             <h2 className="text-xs font-black text-white font-mono uppercase tracking-[0.3em]">Architect Core</h2>
                         </div>
-                        <button onClick={() => setShowControls(!showControls)} className={`p-2 rounded-lg transition-all ${showControls ? 'bg-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/20' : 'hover:bg-white/5 text-gray-600'}`}>
-                            <Settings2 size={18} />
-                        </button>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => setShowExperimentLogger(!showExperimentLogger)}
+                                className={`p-2 rounded-lg transition-all ${showExperimentLogger ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30' : 'hover:bg-white/5 text-gray-600'}`}
+                                title="Experiment Logger"
+                            >
+                                <FlaskConical size={18} />
+                            </button>
+                            <button onClick={() => setShowControls(!showControls)} className={`p-2 rounded-lg transition-all ${showControls ? 'bg-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/20' : 'hover:bg-white/5 text-gray-600'}`}>
+                                <Settings2 size={18} />
+                            </button>
+                        </div>
                     </div>
                     
                     <AnimatePresence>
@@ -422,6 +440,26 @@ ${result.output}
                     </div>
                 )}
             </div>
+
+            {/* Experiment Logger Floating Panel */}
+            <ExperimentLogger
+                isVisible={showExperimentLogger}
+                onClose={() => setShowExperimentLogger(false)}
+                currentTask={activeTask?.description || goal || undefined}
+                aceEnabled={useAdaptiveMode}
+                complexity={aceStatus?.complexity?.taskType}
+                rounds={lastCompletedRounds || swarmStatus.totalAttempts}
+                gap={aceStatus?.currentGap}
+                targetGap={aceStatus?.targetGap}
+                agents={participatingAgents}
+                dqScore={lastDQScore ? {
+                    validity: lastDQScore.components.validity,
+                    specificity: lastDQScore.components.specificity,
+                    correctness: lastDQScore.components.correctness,
+                    overall: lastDQScore.score
+                } : undefined}
+                output={lastCompletedOutput || undefined}
+            />
         </div>
     );
 };
