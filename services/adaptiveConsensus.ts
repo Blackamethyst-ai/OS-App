@@ -23,8 +23,10 @@ import {
     ComplexityProfile,
     AuctionResult,
     DEFAULT_ACE_CONFIG,
-    VoteLedgerExtended
+    VoteLedgerExtended,
+    HopGroupingResult
 } from '../types/domain/convergence';
+import { performHopGrouping } from './hopGrouping';
 import { retryGeminiRequest, getAI, constructHiveContext } from './geminiService';
 import { HIVE_AGENTS } from './agents';
 import { estimateComplexity, getAdaptiveThresholds } from './complexityEstimator';
@@ -216,8 +218,34 @@ export async function adaptiveConsensusEngine(
             // Check for convergence
             if (currentGap >= TARGET_GAP) {
                 const winnerKey = sortedCandidates[0][0];
-                const winnerOutput = answerMap[winnerKey];
-                const winningAgents = agentContributions[winnerKey] || [];
+                let winnerOutput = answerMap[winnerKey];
+                let winningAgents = agentContributions[winnerKey] || [];
+
+                // ================================================================
+                // PHASE 3.5: Hop Grouping (expert tasks only)
+                // ================================================================
+                let hopGroupingResult: HopGroupingResult | undefined;
+
+                if (fullConfig.enableHopGrouping &&
+                    complexity.taskType === 'expert' &&
+                    Object.keys(votes).length >= fullConfig.hopMinVotes) {
+
+                    hopGroupingResult = performHopGrouping(
+                        votes, answerMap, agentContributions, task,
+                        {
+                            maxGroups: fullConfig.hopMaxGroups,
+                            similarityThreshold: fullConfig.hopSimilarityThreshold,
+                            scoreDQ: fullConfig.enableDQScoring
+                        }
+                    );
+
+                    // Override winner with hop group representative
+                    if (hopGroupingResult.winningGroup) {
+                        winnerOutput = hopGroupingResult.winningGroup.representativeAnswer;
+                        winningAgents = hopGroupingResult.winningGroup.agentContributors;
+                        console.log(`[ACE] HRPO: ${hopGroupingResult.groups.length} groups formed, winning group has ${hopGroupingResult.winningGroup.votingStrength} votes`);
+                    }
+                }
 
                 // Score the winning output
                 let dqScore: DQScore | undefined;
@@ -297,7 +325,8 @@ export async function adaptiveConsensusEngine(
                     dqScore,
                     complexity,
                     auctionResult,
-                    patternStored
+                    patternStored,
+                    hopGroupingResult
                 };
             }
         } catch (e) {

@@ -176,6 +176,15 @@ ACE synthesizes these research threads into a unified architecture, combining:
 │  │ • Exit when gap >= threshold OR rounds >= max                  │ │
 │  └────────────────────────────────────────────────────────────────┘ │
 │                              ▼                                       │
+│  Phase 3.5: HOP GROUPING (expert tasks only)                         │
+│  ┌────────────────────────────────────────────────────────────────┐ │
+│  │ IF taskType === 'expert' && votes >= 4:                        │ │
+│  │ • Cluster similar answers using Levenshtein similarity         │ │
+│  │ • Combine voting strength within clusters                      │ │
+│  │ • Select winning group (strength, then DQ score)               │ │
+│  │ • Override winner with group representative                    │ │
+│  └────────────────────────────────────────────────────────────────┘ │
+│                              ▼                                       │
 │  Phase 4: SCORING                                                    │
 │  ┌────────────────────────────────────────────────────────────────┐ │
 │  │ • Extract winning response                                     │ │
@@ -450,11 +459,73 @@ Temperature increases gradually across rounds to encourage diversity:
 | 8-12 | 0.94-1.06 | Increased creativity |
 | 13-15 | 1.09-1.15 | High exploration for stuck consensus |
 
-### 4.4 Convergence Memory
+### 4.4 Hop Grouping (Phase 3.5)
+
+**Added in v1.1.0** - Hop-grouped Response Processing (HRPO) clusters semantically similar answers before winner selection.
+
+#### 4.4.1 Problem Statement
+
+In voting-based consensus, similar answers compete instead of combining:
+
+```
+"Use React hooks"           → 2 votes
+"Use React hooks for state" → 2 votes  (semantically identical)
+"Use Redux"                 → 3 votes  ← WINS (incorrectly)
+```
+
+#### 4.4.2 Solution: Agglomerative Clustering
+
+HRPO groups similar answers using Levenshtein distance:
+
+```typescript
+function levenshteinSimilarity(a: string, b: string): number {
+    const normA = a.toLowerCase().replace(/\s+/g, ' ').trim();
+    const normB = b.toLowerCase().replace(/\s+/g, ' ').trim();
+
+    if (normA === normB) return 1;
+
+    const distance = levenshteinDistance(normA, normB);
+    return 1 - (distance / Math.max(normA.length, normB.length));
+}
+```
+
+#### 4.4.3 Clustering Algorithm
+
+1. **Initialize**: Each answer starts as its own cluster
+2. **Find closest**: Identify two clusters with highest similarity
+3. **Merge**: If similarity >= threshold (default 0.6), merge clusters
+4. **Repeat**: Until max groups reached or no similar pairs remain
+
+#### 4.4.4 Winner Selection
+
+Groups are ranked by:
+1. **Primary**: Combined voting strength (sum of member votes)
+2. **Secondary**: DQ score of representative answer (tie-breaker)
+
+#### 4.4.5 Activation Conditions
+
+| Condition | Value | Rationale |
+|-----------|-------|-----------|
+| `enableHopGrouping` | `true` | Master toggle |
+| `complexity.taskType` | `'expert'` | Only worth overhead for complex tasks |
+| `votes.length` | `>= 4` | Need enough answers to cluster meaningfully |
+
+#### 4.4.6 Configuration
+
+```typescript
+{
+    enableHopGrouping: true,      // Default: enabled
+    hopMinVotes: 4,               // Minimum unique answers
+    hopMaxGroups: 5,              // Maximum final clusters
+    hopSimilarityThreshold: 0.6   // 60% similarity to merge
+}
+```
+
+### 4.5 Convergence Memory
 
 Pattern storage enables learning from historical convergence behavior.
 
-#### 4.4.1 Schema
+#### 4.5.1 Schema
 
 ```typescript
 interface ConvergencePattern {
@@ -481,7 +552,7 @@ interface ThresholdRecord {
 }
 ```
 
-#### 4.4.2 Threshold Retrieval
+#### 4.5.2 Threshold Retrieval
 
 ```typescript
 async function getOptimalThresholds(domain: string, taskType: TaskComplexity): Promise<OptimalThresholds | null> {
@@ -528,15 +599,16 @@ async function getOptimalThresholds(domain: string, taskType: TaskComplexity): P
 
 ```
 services/
-├── adaptiveConsensus.ts    # Main ACE orchestrator (394 lines)
+├── adaptiveConsensus.ts    # Main ACE orchestrator (420 lines)
 ├── complexityEstimator.ts  # Task analysis (180 lines)
 ├── agentAuction.ts         # DALA-style selection (180 lines)
 ├── dqScoring.ts            # Quality measurement (220 lines)
 ├── convergenceMemory.ts    # Pattern storage (353 lines)
+├── hopGrouping.ts          # HRPO clustering (255 lines) [v1.1.0]
 └── bicameralService.ts     # Integration exports
 
 types/domain/
-└── convergence.ts          # Type definitions (150 lines)
+└── convergence.ts          # Type definitions (190 lines)
 
 components/
 ├── BicameralEngine.tsx     # Primary UI with ACE metrics
@@ -576,7 +648,12 @@ const DEFAULT_ACE_CONFIG: ACEConfig = {
         validity: 0.4,
         specificity: 0.3,
         correctness: 0.3
-    }
+    },
+    // HRPO Settings (v1.1.0)
+    enableHopGrouping: true,
+    hopMinVotes: 4,
+    hopMaxGroups: 5,
+    hopSimilarityThreshold: 0.6
 };
 ```
 
@@ -1011,6 +1088,25 @@ interface ACEResult {
     complexity?: ComplexityProfile;
     auctionResult?: AuctionResult;
     patternStored: boolean;
+    hopGroupingResult?: HopGroupingResult; // v1.1.0
+}
+
+// Hop grouping types (v1.1.0)
+interface HopGroup {
+    id: string;
+    representativeAnswer: string;
+    memberAnswers: string[];
+    agentContributors: string[];
+    votingStrength: number;
+    dqScore?: DQScore;
+    cohesion: number;
+}
+
+interface HopGroupingResult {
+    groups: HopGroup[];
+    winningGroup: HopGroup;
+    method: 'levenshtein' | 'embedding' | 'llm';
+    groupingDuration: number;
 }
 ```
 
@@ -1055,11 +1151,22 @@ calculateDQ(components: DecisionQuality, weights?: DQWeights): number
 convergenceMemory.storePattern(pattern: ConvergencePattern): Promise<void>
 convergenceMemory.getOptimalThresholds(domain: string, taskType: TaskComplexity): Promise<OptimalThresholds | null>
 convergenceMemory.getStats(): Promise<ConvergenceStats>
+
+// Hop grouping (v1.1.0)
+performHopGrouping(
+    votes: Record<string, number>,
+    answerMap: Record<string, string>,
+    agentContributions: Record<string, string[]>,
+    task: AtomicTask,
+    options: HopGroupingOptions
+): HopGroupingResult
+
+levenshteinSimilarity(a: string, b: string): number
 ```
 
 ---
 
-**Document Version:** 1.0.0
-**Last Updated:** January 13, 2026
+**Document Version:** 1.1.0
+**Last Updated:** January 17, 2026
 **License:** MIT
 **Repository:** github.com/dicoangelo/OS-App
