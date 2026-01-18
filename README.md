@@ -15,6 +15,7 @@
   <img src="https://img.shields.io/badge/Files-130+-4a0080?style=for-the-badge" alt="Files" />
   <img src="https://img.shields.io/badge/Version-1.3.0-00d9ff?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge" alt="Status" />
+  <img src="https://img.shields.io/badge/Security-Audited-00d9ff?style=for-the-badge" alt="Security" />
 </p>
 
 <p align="center">
