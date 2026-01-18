@@ -19,8 +19,9 @@ export default defineConfig(({ mode }) => {
     // Enable SPA support for deployments like Vercel
     appType: 'spa',
     define: {
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+      // Support both VITE_GEMINI_API_KEY and legacy GEMINI_API_KEY from .env
+      'process.env.API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY || ''),
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY || '')
     },
     resolve: {
       alias: {
