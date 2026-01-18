@@ -7,6 +7,7 @@ import {
 } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
 import { adaptiveConsensusEngine, ACEStatus } from '../services/bicameralService';
+import { rlmEnhancedQuery } from '../services/recursiveLanguageModel';
 import { FactChunk, AtomicTask, ScienceHypothesis } from '../types';
 
 export const useResearchAgent = () => {
@@ -104,10 +105,57 @@ export const useResearchAgent = () => {
                 updateResearchTask(task.id, { hypotheses });
 
                 const compiledContext = await compileResearchContext(findings);
-                updateResearchTask(task.id, { 
-                    status: 'SWARM_VERIFY', 
-                    progress: 80, 
-                    logs: [...task.logs, "Verification sequence active."] 
+
+                // Use RLM for long-context synthesis (100k+ chars)
+                if (compiledContext.length > 100000) {
+                    updateResearchTask(task.id, {
+                        status: 'SWARM_VERIFY',
+                        progress: 80,
+                        logs: [...task.logs, "RLM: Recursive decomposition for long context..."]
+                    });
+
+                    const rlmResult = await rlmEnhancedQuery(
+                        compiledContext,
+                        `Synthesize a comprehensive research report for: "${task.query}". Include key findings, patterns identified, and actionable insights.`,
+                        (status) => {
+                            updateResearchTask(task.id, {
+                                logs: [...task.logs, `RLM: Iteration ${status.iteration}/${status.maxIterations}`]
+                            });
+                        }
+                    );
+
+                    const finalReport = rlmResult.answer;
+                    const researchBlob = new Blob([finalReport], { type: 'text/markdown' });
+                    const researchFile = new File([researchBlob], `RESEARCH_${task.id.slice(0,8)}.md`, { type: 'text/markdown' });
+
+                    const artifactId = await neuralVault.saveArtifact(researchFile, {
+                        classification: 'RESEARCH_FINDING',
+                        ambiguityScore: 10,
+                        entities: findings.slice(0, 3).map(f => f.fact.substring(0, 10)),
+                        summary: `RLM-synthesized report for query: "${task.query}"`
+                    });
+
+                    const embedding = await generateEmbedding(finalReport.substring(0, 5000));
+                    if (embedding.length > 0) {
+                        await neuralVault.saveVector(artifactId, embedding, { query: task.query });
+                    }
+
+                    updateResearchTask(task.id, {
+                        result: finalReport,
+                        status: 'COMPLETED',
+                        progress: 100,
+                        logs: [...task.logs, `RLM: Completed in ${rlmResult.iterations} iterations, ${rlmResult.subCalls} sub-calls.`]
+                    });
+
+                    addLog('SUCCESS', `RESEARCH_AGENT: RLM synthesis complete for "${task.query}"`);
+                    processingRef.current.delete(task.id);
+                    return;
+                }
+
+                updateResearchTask(task.id, {
+                    status: 'SWARM_VERIFY',
+                    progress: 80,
+                    logs: [...task.logs, "Verification sequence active."]
                 });
 
                 const synthesisTask: AtomicTask = {
