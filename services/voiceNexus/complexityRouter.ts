@@ -91,35 +91,41 @@ export function calculateComplexityScore(signals: ComplexitySignals): number {
 
 /**
  * Determine complexity tier from score
+ * ELITE TIER: Lower thresholds for more Opus usage
  */
 export function getComplexityTier(score: number): ReasoningTier {
-    if (score < 0.3) return 'fast';
-    if (score < 0.7) return 'balanced';
-    return 'deep';
+    // ELITE: More aggressive routing to higher tiers
+    if (score < 0.2) return 'fast';      // ELITE: Only truly simple queries
+    if (score < 0.5) return 'balanced';  // ELITE: Wider balanced range
+    return 'deep';                        // ELITE: More deep reasoning
 }
 
 /**
  * Select optimal providers based on complexity
+ * ELITE TIER: Opus-first, ElevenLabs always
  */
 export function selectProviders(score: number): ProviderSelection {
     const tier = getComplexityTier(score);
 
     switch (tier) {
         case 'fast':
+            // ELITE: Fast tier still uses Sonnet for quality
             return {
-                reasoning: 'gemini-flash',
-                tts: 'gemini',
+                reasoning: 'claude-sonnet',
+                tts: 'elevenlabs',        // ELITE: Always premium TTS
                 reasoningTier: 'fast',
             };
 
         case 'balanced':
+            // ELITE: Balanced tier uses Opus
             return {
-                reasoning: 'claude-sonnet',
+                reasoning: 'claude-opus',
                 tts: 'elevenlabs',
                 reasoningTier: 'balanced',
             };
 
         case 'deep':
+            // ELITE: Deep tier uses Opus with extended context
             return {
                 reasoning: 'claude-opus',
                 tts: 'elevenlabs',

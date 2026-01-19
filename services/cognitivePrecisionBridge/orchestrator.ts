@@ -57,29 +57,37 @@ function getModelForPath(path: CPBPath, forceModel?: ReasoningModel): { provider
         }
     }
 
-    // Auto-route based on path
+    // ELITE TIER: Auto-route based on path with Opus-first preference
     switch (path) {
         case 'direct':
-            return { provider: 'gemini', model: 'gemini-2.0-flash' };
-        case 'rlm':
-            return { provider: 'gemini', model: 'gemini-2.0-flash' }; // RLM uses Gemini for iteration
-        case 'ace':
-            // ACE uses Claude Sonnet for balanced reasoning
+            // ELITE: Even direct uses Sonnet for quality
             return claudeService.isConfigured()
                 ? { provider: 'claude', model: 'claude-sonnet-4-20250514' }
                 : { provider: 'gemini', model: 'gemini-2.0-flash' };
-        case 'hybrid':
-            // Hybrid uses Claude Sonnet for final synthesis
+        case 'rlm':
+            // ELITE: RLM uses Sonnet for better compression quality
             return claudeService.isConfigured()
                 ? { provider: 'claude', model: 'claude-sonnet-4-20250514' }
+                : { provider: 'gemini', model: 'gemini-2.0-flash' };
+        case 'ace':
+            // ELITE: ACE uses Opus for maximum reasoning depth
+            return claudeService.isConfigured()
+                ? { provider: 'claude', model: 'claude-opus-4-20250514' }
+                : { provider: 'gemini', model: 'gemini-1.5-pro' };
+        case 'hybrid':
+            // ELITE: Hybrid uses Opus for final synthesis
+            return claudeService.isConfigured()
+                ? { provider: 'claude', model: 'claude-opus-4-20250514' }
                 : { provider: 'gemini', model: 'gemini-1.5-pro' };
         case 'cascade':
-            // Cascade uses Claude Opus for deep reasoning
+            // ELITE: Cascade uses Opus with extended context
             return claudeService.isConfigured()
                 ? { provider: 'claude', model: 'claude-opus-4-20250514' }
                 : { provider: 'gemini', model: 'gemini-1.5-pro' };
         default:
-            return { provider: 'gemini', model: 'gemini-2.0-flash' };
+            return claudeService.isConfigured()
+                ? { provider: 'claude', model: 'claude-sonnet-4-20250514' }
+                : { provider: 'gemini', model: 'gemini-2.0-flash' };
     }
 }
 

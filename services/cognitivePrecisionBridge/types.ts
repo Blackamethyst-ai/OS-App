@@ -83,31 +83,32 @@ export interface CPBConfig {
 }
 
 /**
- * Default CPB configuration
+ * Default CPB configuration - ELITE TIER
+ * Optimized for maximum reasoning quality with Opus-first routing
  */
 export const DEFAULT_CPB_CONFIG: CPBConfig = {
     autoRoute: true,
-    defaultPath: 'hybrid',
+    defaultPath: 'cascade',        // ELITE: Full pipeline by default
 
-    contextThreshold: 50000,       // ~12.5k tokens
-    complexityThreshold: 0.5,
-    dqThreshold: 0.6,
+    contextThreshold: 100000,      // ELITE: Handle larger contexts (~25k tokens)
+    complexityThreshold: 0.35,     // ELITE: Lower threshold → more consensus
+    dqThreshold: 0.75,             // ELITE: Higher quality bar
 
-    fastPathMs: 5000,
-    standardPathMs: 30000,
-    hybridPathMs: 60000,
+    fastPathMs: 8000,              // ELITE: More time for quality
+    standardPathMs: 45000,         // ELITE: Extended for deep reasoning
+    hybridPathMs: 90000,           // ELITE: Full pipeline allowance
 
     enableVerification: true,
     enableLearning: true,
     retryOnLowDQ: true,
 
     rlmConfig: {
-        maxIterations: 15,
-        rootModel: 'gemini-2.0-flash',
-        subModel: 'gemini-2.0-flash'
+        maxIterations: 25,         // ELITE: Deeper decomposition
+        rootModel: 'claude-opus-4-20250514',    // ELITE: Opus for root synthesis
+        subModel: 'claude-sonnet-4-20250514'   // ELITE: Sonnet for sub-tasks
     },
     aceConfig: {
-        maxRounds: 12,
+        maxRounds: 18,             // ELITE: More consensus rounds
         enableAuction: true,
         enableHopGrouping: true
     }
