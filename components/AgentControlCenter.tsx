@@ -11,8 +11,10 @@ import {
     Fingerprint, Gauge, Waves, ChevronRight, PlayCircle, Boxes, Dna,
     Plus, GitBranch, Share2, PowerOff, Scissors, Command, Waypoints,
     Workflow, ListTodo, Circle, SearchCode, History as HistoryIcon,
-    ShieldAlert, ChevronDown, MousePointer2, User, Trash2, Atom, Headphones
+    ShieldAlert, ChevronDown, MousePointer2, User, Trash2, Atom, Headphones,
+    BookOpen
 } from 'lucide-react';
+import { useSemanticSearch, useSessions } from '@antigravity/agent-core-sdk';
 import { elevenLabs, ELEVEN_LABS_VOICES } from '../services/elevenLabsService';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AutonomousAgent, OperationalContext, MentalState, TaskStatus, AtomicTask } from '../types';
@@ -199,6 +201,16 @@ const AgentControlCenter: React.FC = () => {
     const [input, setInput] = useState('');
     const [viewMode, setViewMode] = useState<'MEMORY' | 'SKILLS' | 'TASKS' | 'CONVERGENCE'>('MEMORY');
     const [taskInput, setTaskInput] = useState('');
+    const [knowledgeQuery, setKnowledgeQuery] = useState('');
+    const [isKnowledgePanelOpen, setIsKnowledgePanelOpen] = useState(false);
+
+    // Knowledge Base Integration
+    const { results: knowledgeResults, isLoading: isSearchingKnowledge } = useSemanticSearch({
+        query: knowledgeQuery,
+        limit: 8,
+        debounceMs: 400,
+    });
+    const { sessions: recentSessions } = useSessions({ limit: 5 });
     const [convergenceStats, setConvergenceStats] = useState<{
         totalPatterns: number;
         avgDQScore: number;
@@ -451,6 +463,22 @@ const AgentControlCenter: React.FC = () => {
                             </button>
                         ))}
                     </div>
+
+                    <div className="h-8 w-px bg-white/5" />
+
+                    {/* Persistent Knowledge Panel Toggle */}
+                    <button
+                        onClick={() => { setIsKnowledgePanelOpen(!isKnowledgePanelOpen); audio.playClick(); }}
+                        className={cn(
+                            "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all border",
+                            isKnowledgePanelOpen
+                                ? "bg-[#18E6FF]/20 text-[#18E6FF] border-[#18E6FF]/40 shadow-[0_0_20px_rgba(24,230,255,0.2)]"
+                                : "bg-black/40 border-white/10 text-gray-500 hover:text-[#18E6FF] hover:border-[#18E6FF]/30"
+                        )}
+                    >
+                        <BookOpen size={14} className={isKnowledgePanelOpen ? 'fill-current' : ''} />
+                        Knowledge
+                    </button>
                 </div>
 
                 <div className="flex items-center gap-6">
@@ -616,6 +644,111 @@ const AgentControlCenter: React.FC = () => {
                                         </button>
                                     </div>
                                 </div>
+
+                                {/* Persistent Knowledge Panel - Visible across all tabs */}
+                                <AnimatePresence>
+                                    {isKnowledgePanelOpen && (
+                                        <motion.div
+                                            initial={{ height: 0, opacity: 0 }}
+                                            animate={{ height: 'auto', opacity: 1 }}
+                                            exit={{ height: 0, opacity: 0 }}
+                                            transition={{ duration: 0.3 }}
+                                            className="border-b border-[#18E6FF]/20 bg-[#18E6FF]/[0.02] overflow-hidden shrink-0"
+                                        >
+                                            <div className="p-4">
+                                                {/* Search Input */}
+                                                <div className="flex items-center gap-4 mb-3">
+                                                    <div className="relative flex-1">
+                                                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#18E6FF]/50" />
+                                                        <input
+                                                            type="text"
+                                                            value={knowledgeQuery}
+                                                            onChange={(e) => setKnowledgeQuery(e.target.value)}
+                                                            placeholder="Search knowledge... (multi-agent, routing, DQ scoring)"
+                                                            className="w-full pl-11 pr-4 py-2.5 bg-black/60 border border-[#18E6FF]/20 rounded-xl text-xs font-mono text-white placeholder:text-gray-700 focus:border-[#18E6FF]/50 focus:outline-none transition-colors"
+                                                        />
+                                                        {isSearchingKnowledge && (
+                                                            <Loader2 size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-[#18E6FF] animate-spin" />
+                                                        )}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => { setIsKnowledgePanelOpen(false); audio.playClick(); }}
+                                                        className="p-2 hover:bg-white/5 rounded-lg text-gray-500 hover:text-white transition-colors"
+                                                    >
+                                                        <X size={16} />
+                                                    </button>
+                                                </div>
+
+                                                {/* Search Results - Compact horizontal scroll */}
+                                                {knowledgeQuery.length > 1 && knowledgeResults.length > 0 && (
+                                                    <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+                                                        {knowledgeResults.slice(0, 6).map((result, i) => (
+                                                            <motion.div
+                                                                key={i}
+                                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                transition={{ delay: i * 0.05 }}
+                                                                className="flex-shrink-0 w-72 p-3 bg-black/40 border border-white/5 rounded-xl hover:border-[#18E6FF]/30 transition-all group cursor-pointer"
+                                                                onClick={() => {
+                                                                    if (activeAgent) {
+                                                                        const updatedMemory = [...activeAgent.memoryBuffer, {
+                                                                            timestamp: Date.now(),
+                                                                            role: 'AI' as const,
+                                                                            text: `[KNOWLEDGE_INJECT] ${result.content}`
+                                                                        }];
+                                                                        updateAgent(activeAgent.id, { memoryBuffer: updatedMemory });
+                                                                        addLog('SUCCESS', `Injected knowledge into ${activeAgent.name}'s context`);
+                                                                        audio.playSuccess();
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <p className="text-[11px] text-gray-300 font-mono leading-relaxed line-clamp-2 mb-2">
+                                                                    {result.content.slice(0, 120)}{result.content.length > 120 ? '...' : ''}
+                                                                </p>
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="px-2 py-0.5 bg-[#9d4edd]/20 text-[#9d4edd] rounded text-[8px] font-black uppercase">
+                                                                            {result.category}
+                                                                        </span>
+                                                                        <span className="text-[8px] font-mono text-gray-600">
+                                                                            {Math.round(result.similarity * 100)}%
+                                                                        </span>
+                                                                    </div>
+                                                                    <span className="text-[8px] font-black text-[#18E6FF] opacity-0 group-hover:opacity-100 transition-opacity uppercase">
+                                                                        + Inject
+                                                                    </span>
+                                                                </div>
+                                                            </motion.div>
+                                                        ))}
+                                                    </div>
+                                                )}
+
+                                                {/* Empty state */}
+                                                {knowledgeQuery.length > 1 && knowledgeResults.length === 0 && !isSearchingKnowledge && (
+                                                    <div className="text-center py-3 text-gray-600 text-[10px] font-mono uppercase tracking-widest">
+                                                        No results for "{knowledgeQuery}"
+                                                    </div>
+                                                )}
+
+                                                {/* Quick suggestions when no query */}
+                                                {knowledgeQuery.length <= 1 && (
+                                                    <div className="flex items-center gap-2 text-[9px] text-gray-600">
+                                                        <span className="font-mono uppercase tracking-widest">Quick:</span>
+                                                        {['routing', 'multi-agent', 'DQ scoring', 'ACE'].map(term => (
+                                                            <button
+                                                                key={term}
+                                                                onClick={() => setKnowledgeQuery(term)}
+                                                                className="px-2 py-1 bg-white/5 hover:bg-[#18E6FF]/10 rounded text-gray-500 hover:text-[#18E6FF] transition-colors font-mono"
+                                                            >
+                                                                {term}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
 
                                 {/* Dynamic Views - SPACED & COMPACTED */}
                                 <div className="flex-1 overflow-y-auto custom-scrollbar p-8 relative" ref={scrollRef}>

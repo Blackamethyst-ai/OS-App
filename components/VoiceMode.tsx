@@ -2,13 +2,15 @@ import { apiKeyService } from '../services/apiKeyService';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { liveSession, promptSelectKey, HIVE_AGENTS, generateAvatar } from '../services/geminiService';
+import { voiceNexus, analyzeComplexity, formatComplexityResult } from '../services/voiceNexus';
+import type { VoiceMode as VoiceModeType } from '../services/voiceNexus';
 import {
     Mic, Activity, Power, Settings, Zap, User, Bot, Sparkles, Loader2,
     Sliders, X, RotateCcw, Send, Volume2, VolumeX, Terminal,
     ShieldAlert, Navigation, ChevronDown, ChevronUp, Cpu, Radio,
     Waves, Target, BrainCircuit, Globe, Fingerprint, Shield,
     CheckCircle, Binary, History, Layers, ShieldCheck, Database,
-    Cpu as CpuIcon, Network, Share2, AudioWaveform
+    Cpu as CpuIcon, Network, Share2, AudioWaveform, Gauge, Zap as ZapIcon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
@@ -184,9 +186,40 @@ const NodePersona = ({ image, freqs, color, label, isAgent, isThinking }: any) =
 
 // --- MAIN COMPONENT ---
 
+// Voice Mode Selector Component
+const ModeSelector = ({ currentMode, onChange, disabled }: { currentMode: VoiceModeType, onChange: (mode: VoiceModeType) => void, disabled: boolean }) => {
+    const modes: { value: VoiceModeType; label: string; desc: string; icon: React.ReactNode }[] = [
+        { value: 'realtime', label: 'Realtime', desc: 'Gemini end-to-end', icon: <ZapIcon size={10} /> },
+        { value: 'hybrid', label: 'Hybrid', desc: 'Auto-routes', icon: <Gauge size={10} /> },
+        { value: 'turn-based', label: 'Quality', desc: 'Claude + ElevenLabs', icon: <BrainCircuit size={10} /> },
+    ];
+
+    return (
+        <div className="flex gap-1 p-1 bg-black/40 border border-white/5 rounded-xl">
+            {modes.map(mode => (
+                <button
+                    key={mode.value}
+                    onClick={() => { onChange(mode.value); audio.playClick(); }}
+                    disabled={disabled}
+                    className={cn(
+                        "px-2.5 py-1.5 rounded-lg text-[7px] font-black font-mono uppercase tracking-widest transition-all flex items-center gap-1.5",
+                        currentMode === mode.value
+                            ? "bg-white text-black shadow-lg"
+                            : "text-gray-600 hover:text-white disabled:opacity-30"
+                    )}
+                    title={mode.desc}
+                >
+                    {mode.icon}
+                    {mode.label}
+                </button>
+            ))}
+        </div>
+    );
+};
+
 const VoiceMode: React.FC = () => {
-    const { voice, user, actions } = useAppStore();
-    const { setVoiceState, addLog } = actions;
+    const { voice, voiceNexus: nexusState, user, actions } = useAppStore();
+    const { setVoiceState, setVoiceNexusState, addLog } = actions;
     const [showTuning, setShowTuning] = useState(false);
     const [isTranscriptExpanded, setIsTranscriptExpanded] = useState(false);
     const [userFreqs, setUserFreqs] = useState<Uint8Array | null>(null);
@@ -241,8 +274,10 @@ const VoiceMode: React.FC = () => {
         let rafId: number;
         const loop = () => {
             if (voice.isActive) {
-                setUserFreqs(liveSession.getInputFrequencies());
-                setAgentFreqs(liveSession.getOutputFrequencies());
+                // Use voiceNexus for frequency data when available
+                const freqData = voiceNexus.getFrequencyData();
+                setUserFreqs(freqData.input || liveSession.getInputFrequencies());
+                setAgentFreqs(freqData.output || liveSession.getOutputFrequencies());
             } else {
                 setUserFreqs(null);
                 setAgentFreqs(null);
@@ -252,6 +287,13 @@ const VoiceMode: React.FC = () => {
         loop();
         return () => cancelAnimationFrame(rafId);
     }, [voice.isActive]);
+
+    // Sync voiceNexus mode changes
+    const handleModeChange = (mode: VoiceModeType) => {
+        voiceNexus.setMode(mode);
+        setVoiceNexusState({ mode });
+        addLog('SYSTEM', `VOICE_NEXUS: Mode switched to [${mode.toUpperCase()}]`);
+    };
 
     useEffect(() => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -308,7 +350,16 @@ const VoiceMode: React.FC = () => {
                     </div>
                     <div className="h-8 w-px bg-white/5" />
                     <div className="flex items-center gap-3">
-                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Selected Build</span>
+                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Mode</span>
+                        <ModeSelector
+                            currentMode={nexusState.mode}
+                            onChange={handleModeChange}
+                            disabled={voice.isActive}
+                        />
+                    </div>
+                    <div className="h-8 w-px bg-white/5" />
+                    <div className="flex items-center gap-3">
+                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Agent</span>
                         <div className="flex gap-1.5 p-1 bg-black/40 border border-white/5 rounded-xl overflow-x-auto max-w-[400px] custom-scrollbar">
                             {Object.values(HIVE_AGENTS).map((agent: any) => {
                                 const color = agent.name === 'Dr. Ira' ? 'var(--plasma-green)' :
@@ -455,6 +506,14 @@ const VoiceMode: React.FC = () => {
                             <ShieldCheck size={12} className="text-[var(--plasma-green)]" />
                             <span className="text-[8px] font-mono text-gray-600 uppercase">Handshake_L0_Valid</span>
                         </div>
+                        {nexusState.lastComplexityScore > 0 && (
+                            <div className="flex items-center gap-2">
+                                <Gauge size={12} className="text-[var(--amethyst)]" />
+                                <span className="text-[8px] font-mono text-gray-600 uppercase">
+                                    DQ:{nexusState.lastComplexityScore.toFixed(2)} → {nexusState.currentProvider.reasoning}
+                                </span>
+                            </div>
+                        )}
                         <span className="text-[8px] font-mono text-gray-700 uppercase tracking-widest">{voice.transcripts.length} packets synchronized</span>
                         <button
                             onClick={() => { setVoiceState({ transcripts: [], partialTranscript: null }); audio.playClick(); }}

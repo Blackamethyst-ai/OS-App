@@ -3,8 +3,9 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { interpretIntent, predictNextActions, promptSelectKey } from '../services/geminiService';
 import { AppMode, SuggestedAction, AppTheme } from '../types';
-import { Command, Loader2, X, Sparkles, ChevronRight, Code, Cpu, Mic, Zap, Image, BookOpen, Layers, Terminal, Activity, Search, Shield, BrainCircuit, Split, Palette, History, User, HardDrive, Settings, FlaskConical, Target } from 'lucide-react';
+import { Command, Loader2, X, Sparkles, ChevronRight, Code, Cpu, Mic, Zap, Image, BookOpen, Layers, Terminal, Activity, Search, Shield, BrainCircuit, Split, Palette, History, User, HardDrive, Settings, FlaskConical, Target, Database } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSemanticSearch } from '@antigravity/agent-core-sdk';
 
 const MotionDiv = motion.div as any;
 
@@ -38,6 +39,18 @@ const CommandPalette: React.FC = () => {
     const [result, setResult] = useState<string | null>(null);
     const [aiSuggestions, setAiSuggestions] = useState<SuggestedAction[]>([]);
     const inputRef = useRef<HTMLInputElement>(null);
+
+    // Knowledge search mode: triggers when input starts with ? or "know"
+    const isKnowledgeMode = input.startsWith('?') || input.toLowerCase().startsWith('know ');
+    const knowledgeQuery = isKnowledgeMode
+        ? input.replace(/^\?/, '').replace(/^know\s+/i, '').trim()
+        : '';
+
+    const { results: knowledgeResults, isLoading: isSearching } = useSemanticSearch({
+        query: knowledgeQuery,
+        limit: 6,
+        debounceMs: 300,
+    });
 
     const staticSuggestions = useMemo(() => {
         const base = [
@@ -258,6 +271,38 @@ const CommandPalette: React.FC = () => {
                             <button onClick={() => toggleCommandPalette(false)} className="ml-5 p-2 text-gray-500 hover:text-white transition-colors glass-action rounded-xl"><X className="w-5 h-5" /></button>
                         </div>
 
+                        {/* Knowledge Search Results */}
+                        {isKnowledgeMode && knowledgeQuery.length > 1 && (
+                            <div className="flex flex-col border-b border-white/10">
+                                <div className="px-8 py-3 text-[9px] text-[#18E6FF] font-black font-mono uppercase tracking-[0.4em] flex items-center justify-between bg-[#18E6FF]/5 border-b border-white/10">
+                                    <span className="flex items-center gap-3"><Database className="w-4 h-4" /> Knowledge_Base_Search</span>
+                                    {isSearching && <Loader2 size={3.5} className="w-3.5 h-3.5 animate-spin" />}
+                                </div>
+                                <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
+                                    {knowledgeResults.length > 0 ? (
+                                        knowledgeResults.map((r, i) => (
+                                            <div key={i} className="px-8 py-4 border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors">
+                                                <div className="text-[11px] text-white font-mono leading-relaxed mb-2">
+                                                    {r.content.slice(0, 200)}{r.content.length > 200 ? '...' : ''}
+                                                </div>
+                                                <div className="flex items-center gap-4 text-[9px] font-mono">
+                                                    <span className="px-2 py-0.5 bg-[#9d4edd]/20 text-[#9d4edd] rounded uppercase">{r.category}</span>
+                                                    <span className="text-gray-500">{Math.round(r.similarity * 100)}% match</span>
+                                                    {r.tags?.length > 0 && (
+                                                        <span className="text-gray-600">{r.tags.slice(0, 3).join(', ')}</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : !isSearching ? (
+                                        <div className="px-8 py-6 text-gray-500 text-[11px] font-mono text-center">
+                                            No results found for "{knowledgeQuery}"
+                                        </div>
+                                    ) : null}
+                                </div>
+                            </div>
+                        )}
+
                         {!input && !isLoading && !result && (
                             <div className="flex flex-col">
                                 {(aiSuggestions.length > 0 || isPredicting) && (
@@ -301,8 +346,8 @@ const CommandPalette: React.FC = () => {
 
                         <div className="bg-white/[0.02] p-4 px-8 text-[9px] text-gray-600 font-black font-mono border-t border-white/10 flex justify-between items-center">
                             <div className="flex items-center gap-8">
+                                <span className="flex items-center gap-2 group cursor-help hover:text-[#18E6FF] transition-colors" title="Type ? to search knowledge"><Database size={12} /> ?KNOW</span>
                                 <span className="flex items-center gap-2 group cursor-help hover:text-white transition-colors"><History size={12} /> CACHED</span>
-                                <span className="flex items-center gap-2 group cursor-help hover:text-white transition-colors"><Search size={12} /> GLOBAL</span>
                                 <span className="flex items-center gap-2 group cursor-help hover:text-white transition-colors"><Palette size={12} /> SKINS</span>
                             </div>
                             <div className="flex items-center gap-4">
