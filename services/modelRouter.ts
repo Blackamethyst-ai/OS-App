@@ -2,18 +2,32 @@
  * MODEL ROUTER
  * Intelligent routing layer that selects the best AI model for the task.
  * Optimizes for cost, speed, and capability capabilities.
+ *
+ * Now integrated with CPB (Cognitive Precision Bridge) for precision-aware
+ * routing on complex queries. Use `generateWithPrecision()` for automatic
+ * path selection based on query complexity.
  */
 import * as geminiService from './geminiService';
 import { claudeService } from './claudeService';
 import { apiKeyService } from './apiKeyService';
 import { ollamaService } from './ollamaService';
 import { grokService } from './grokService';
+import { cpb, type CPBStatus, type CPBResult } from './cpbService';
 import { ModelTier } from '../types';
 
 export interface RouterConfig {
     tier: ModelTier;
     preferredProvider?: 'gemini' | 'claude' | 'grok';
     requireVision?: boolean;
+    /** Enable CPB orchestration for complex queries */
+    useCPB?: boolean;
+}
+
+export interface PrecisionConfig {
+    context?: string;
+    onStatus?: (status: CPBStatus) => void;
+    /** Force specific CPB path instead of auto-routing */
+    forcePath?: 'direct' | 'rlm' | 'ace' | 'hybrid' | 'cascade';
 }
 
 class ModelRouter {
@@ -122,6 +136,51 @@ class ModelRouter {
             [{ role: 'user', content: prompt }],
             systemPrompt
         );
+    }
+
+    /**
+     * Generate with CPB precision routing
+     * Automatically selects the best execution path based on query complexity.
+     *
+     * @example
+     * // Auto-routed based on complexity
+     * const result = await modelRouter.generateWithPrecision('Analyze this architecture...');
+     *
+     * // With context and status updates
+     * const result = await modelRouter.generateWithPrecision(
+     *     'Compare REST vs GraphQL',
+     *     { context: apiSpec, onStatus: (s) => setProgress(s.progress) }
+     * );
+     *
+     * // Force consensus path for critical decisions
+     * const result = await modelRouter.generateWithPrecision(
+     *     'Design the database schema',
+     *     { forcePath: 'ace' }
+     * );
+     */
+    async generateWithPrecision(
+        prompt: string,
+        config: PrecisionConfig = {}
+    ): Promise<CPBResult> {
+        return cpb.query(prompt, {
+            context: config.context,
+            onStatus: config.onStatus,
+            forcePath: config.forcePath
+        });
+    }
+
+    /**
+     * Check if a query would benefit from CPB orchestration
+     */
+    shouldUseCPB(prompt: string, context?: string): boolean {
+        return cpb.shouldOrchestrate(prompt, context);
+    }
+
+    /**
+     * Analyze a query without executing
+     */
+    analyzeQuery(prompt: string, context?: string) {
+        return cpb.analyze(prompt, context);
     }
 }
 
