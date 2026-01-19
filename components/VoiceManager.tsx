@@ -100,6 +100,7 @@ const VoiceManager: React.FC = () => {
                     [AppMode.AGENT_CONTROL]: '/agents',
                     [AppMode.AUTONOMOUS_FINANCE]: '/finance',
                     [AppMode.AGENT_CORE_TEST]: '/agent-core-test',
+                    [AppMode.CPB_TEST]: '/cpb-test',
                 };
 
                 if (routeMap[target]) {
