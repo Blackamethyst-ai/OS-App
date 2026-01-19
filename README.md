@@ -11,9 +11,9 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Lines-30,000+-00d9ff?style=for-the-badge" alt="Lines" />
-  <img src="https://img.shields.io/badge/Files-130+-4a0080?style=for-the-badge" alt="Files" />
-  <img src="https://img.shields.io/badge/Version-1.3.0-00d9ff?style=for-the-badge" alt="Version" />
+  <img src="https://img.shields.io/badge/Lines-33,000+-00d9ff?style=for-the-badge" alt="Lines" />
+  <img src="https://img.shields.io/badge/Files-145+-4a0080?style=for-the-badge" alt="Files" />
+  <img src="https://img.shields.io/badge/Version-1.4.0-00d9ff?style=for-the-badge" alt="Version" />
   <img src="https://img.shields.io/badge/Status-Production_Ready-success?style=for-the-badge" alt="Status" />
   <img src="https://img.shields.io/badge/Security-Audited-00d9ff?style=for-the-badge" alt="Security" />
 </p>
@@ -27,7 +27,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Gemini_2.0-Live_Voice-4285F4?style=for-the-badge&logo=google&logoColor=white" alt="Gemini" />
-  <img src="https://img.shields.io/badge/ElevenLabs-TTS-000000?style=for-the-badge" alt="ElevenLabs" />
+  <img src="https://img.shields.io/badge/Claude-Deep_Reasoning-cc785c?style=for-the-badge&logo=anthropic&logoColor=white" alt="Claude" />
+  <img src="https://img.shields.io/badge/ElevenLabs-Premium_TTS-000000?style=for-the-badge" alt="ElevenLabs" />
   <img src="https://img.shields.io/badge/Imagen_3-Generation-FF6F00?style=for-the-badge" alt="Imagen" />
 </p>
 
@@ -49,11 +50,14 @@
 
 ## Executive Summary
 
-A **30,000+ line**, **130-file** React/TypeScript application representing a fully-functional AI-native operating system interface. This is not a prototype—it is a production-grade platform integrating:
+A **33,000+ line**, **145-file** React/TypeScript application representing a fully-functional AI-native operating system interface. This is not a prototype—it is a production-grade platform integrating:
 
+- **Voice Nexus** (Multi-provider voice with complexity-based routing)
 - **Real-time Voice AI** (Gemini Live API with bidirectional audio)
+- **Claude Deep Reasoning** (Complex analysis, architecture, code generation)
 - **Adaptive Consensus Engine (ACE)** (Multi-agent voting with DQ scoring)
 - **Recursive Language Model (RLM)** (Infinite context processing via recursive decomposition)
+- **Knowledge Injection** (351 research sessions via semantic search)
 - **RAG-Powered Research** (Vector embeddings, semantic search)
 - **Cinematic AI Production** (Storyboarding, TTS, image sequencing)
 - **Visual Process Architecture** (ReactFlow node editor with AI generation)
@@ -84,17 +88,32 @@ This architecture enables Opus-quality decisions through Haiku-budget compute.
 │  └─────────────┘ └────────────────┘ └─────────────────────────┘│
 │  ┌────────────┐ ┌──────────────┐ ┌────────────┐ ┌────────────┐ │
 │  │ ImageGen   │ │ VoiceMode    │ │ MemoryCore │ │AgentControl││
-│  │(Cinematic) │ │ (Live AI)    │ │ (RAG/Vec)  │ │ (Swarm)    ││
+│  │(Cinematic) │ │ (Voice Nexus)│ │ (RAG/Vec)  │ │ (Swarm)    ││
 │  └────────────┘ └──────────────┘ └────────────┘ └────────────┘ │
+├─────────────────────────────────────────────────────────────────┤
+│                       VOICE NEXUS                               │
+│  ┌─────────────────────────────────────────────────────────────┐│
+│  │  User Speaks → [Complexity Router] → Provider Selection     ││
+│  │       ↓              DQ Score            ↓                  ││
+│  │  [Gemini STT]     0-0.3: Fast      [Gemini Flash]          ││
+│  │       ↓           0.3-0.7: Mid     [Claude Sonnet]         ││
+│  │  [Knowledge       0.7-1.0: Deep    [Claude Opus]           ││
+│  │   Injection]           ↓                 ↓                  ││
+│  │  (351 sessions)   [ElevenLabs TTS] ← Response              ││
+│  └─────────────────────────────────────────────────────────────┘│
 ├─────────────────────────────────────────────────────────────────┤
 │                          SERVICES                               │
 │  ┌─────────────────┐ ┌──────────────────┐ ┌───────────────────┐│
-│  │ geminiService   │ │persistenceService│ │   toolRegistry    ││
-│  │ (AI Core)       │ │  (IndexedDB+Vec) │ │    (MCP Tools)    ││
+│  │ geminiService   │ │ claudeService    │ │ elevenLabsService ││
+│  │ (Gemini 2.0)    │ │ (Deep Reasoning) │ │ (Premium TTS)     ││
 │  └─────────────────┘ └──────────────────┘ └───────────────────┘│
 │  ┌─────────────────┐ ┌──────────────────┐ ┌───────────────────┐│
 │  │adaptiveConsensus│ │recursiveLangModel│ │    dqScoring      ││
 │  │ (ACE Engine)    │ │  (RLM Infinite)  │ │  (Quality Score)  ││
+│  └─────────────────┘ └──────────────────┘ └───────────────────┘│
+│  ┌─────────────────┐ ┌──────────────────┐ ┌───────────────────┐│
+│  │persistenceService│ │   toolRegistry   │ │  agent-core-sdk  ││
+│  │  (IndexedDB+Vec) │ │   (MCP Tools)    │ │ (Knowledge API)  ││
 │  └─────────────────┘ └──────────────────┘ └───────────────────┘│
 ├─────────────────────────────────────────────────────────────────┤
 │                           HOOKS                                 │
@@ -102,7 +121,7 @@ This architecture enables Opus-quality decisions through Haiku-budget compute.
 ├─────────────────────────────────────────────────────────────────┤
 │                           STORE                                 │
 │                    store.ts (Zustand)                           │
-│                     819 lines, 63 actions                       │
+│                     920 lines, 65 actions                       │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -132,7 +151,53 @@ npm run dev
 
 ## Core Services
 
-### 1. geminiService.ts (42KB, 882 lines)
+### 1. Voice Nexus (services/voiceNexus/)
+**Universal Multi-Provider Voice Architecture — Routes to optimal AI based on query complexity.**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           VOICE NEXUS ORCHESTRATOR                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  INPUT: User Speech                                                         │
+│       ↓                                                                     │
+│  [Gemini Live STT] → Transcription                                         │
+│       ↓                                                                     │
+│  [Complexity Router] → DQ Score (0-1)                                      │
+│       ↓                                                                     │
+│  ┌─────────────┬─────────────────┬────────────────────────┐                │
+│  │ FAST <0.3   │ BALANCED 0.3-0.7│ DEEP >0.7              │                │
+│  │ Navigation  │ Code generation │ Architecture           │                │
+│  │ Simple facts│ Analysis        │ Research synthesis     │                │
+│  │ → Gemini    │ → Claude Sonnet │ → Claude Opus          │                │
+│  │ → Gemini TTS│ → ElevenLabs    │ → ElevenLabs           │                │
+│  └─────────────┴─────────────────┴────────────────────────┘                │
+│       ↓                                                                     │
+│  [Knowledge Injector] → Enriches with 351 research sessions                │
+│       ↓                                                                     │
+│  OUTPUT: Spoken Response                                                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+| File | Purpose |
+|------|---------|
+| `orchestrator.ts` | Central coordinator for all voice operations |
+| `complexityRouter.ts` | DQ-inspired query analysis and provider selection |
+| `knowledgeInjector.ts` | Semantic search integration with Agent Core API |
+| `providers/stt/geminiLive.ts` | Real-time speech-to-text via Gemini Live |
+| `providers/reasoning/claudeReasoning.ts` | Claude API for deep thinking |
+| `providers/reasoning/geminiReasoning.ts` | Gemini API for fast responses |
+| `providers/tts/elevenLabsTTS.ts` | Premium 9-voice synthesis |
+| `providers/tts/browserTTS.ts` | Web Speech API fallback |
+
+**Voice Modes**:
+
+| Mode | Path | Latency | Use Case |
+|------|------|---------|----------|
+| **Realtime** | Gemini → Gemini | ~500ms | Navigation, quick facts |
+| **Hybrid** | Auto-routes | Variable | Default - best of both |
+| **Quality** | Claude → ElevenLabs | ~3-4s | Deep thinking, premium voice |
+
+### 2. geminiService.ts (42KB, 882 lines)
 **The AI brain of the application.**
 
 | Function | Purpose |
@@ -238,8 +303,12 @@ npm run dev
 
 | Feature | Status | Implementation |
 |---------|--------|----------------|
-| Multi-Model AI | ✅ | Gemini 2.0, Imagen 3, Embeddings |
-| Real-Time Voice | ✅ | **Gemini Live (Input) + ElevenLabs (Output)** |
+| **Voice Nexus** | ✅ | **Multi-provider routing (Gemini + Claude + ElevenLabs)** |
+| **Complexity Router** | ✅ | **DQ-inspired auto-routing based on query complexity** |
+| **Knowledge Injection** | ✅ | **351 research sessions via Agent Core API** |
+| **Claude Integration** | ✅ | **Deep reasoning for architecture & code** |
+| Multi-Model AI | ✅ | Gemini 2.0, Claude, Imagen 3, Embeddings |
+| Real-Time Voice | ✅ | **Gemini Live STT + ElevenLabs TTS** |
 | Voice Handover | ✅ | **Seamless Agent Hot-Swapping** |
 | Vector Search (RAG) | ✅ | IndexedDB + cosine similarity |
 | Multi-Agent Swarm | ✅ | Agent DNA, bicameral consensus |
@@ -258,8 +327,10 @@ npm run dev
 |-------|------------|
 | **Frontend** | React 19, TypeScript, Tailwind CSS |
 | **Build** | Vite, ESBuild |
-| **State** | Zustand (819 lines, 63 actions) |
-| **AI** | Gemini 2.0, Imagen 3, ElevenLabs |
+| **State** | Zustand (920 lines, 65 actions) |
+| **AI** | Gemini 2.0, Claude (Sonnet/Opus), Imagen 3, ElevenLabs |
+| **Voice** | Voice Nexus (multi-provider orchestration) |
+| **Knowledge** | Agent Core SDK (351 research sessions) |
 | **Persistence** | IndexedDB with vector search |
 | **Visualization** | ReactFlow, D3, Recharts, Three.js |
 | **Animation** | Framer Motion |
@@ -281,6 +352,19 @@ You have built a **Sovereign, Voice-Native Operating System**:
 
 ## What's New (January 2026)
 
+### v1.4.0 — Voice Nexus (Latest)
+
+| Update | Status |
+|--------|--------|
+| **Voice Nexus Architecture** | Multi-provider routing (Gemini + Claude + ElevenLabs) |
+| **Complexity Router** | DQ-inspired scoring for automatic provider selection |
+| **Knowledge Injection** | 351 research sessions enriching voice responses |
+| **Claude Integration** | Deep reasoning for architecture & complex analysis |
+| **Three Voice Modes** | Realtime / Hybrid / Quality with UI selector |
+| **Agent Core SDK** | Knowledge base client for semantic search |
+
+### v1.3.0 — ACE & RLM
+
 | Update | Status |
 |--------|--------|
 | **Adaptive Consensus Engine (ACE)** | Multi-agent voting with dynamic thresholds |
@@ -288,9 +372,15 @@ You have built a **Sovereign, Voice-Native Operating System**:
 | **Decision Quality Scoring** | Quantitative output validation (arXiv:2511.15755) |
 | **HRPO Algorithm** | Hierarchical response clustering for expert tasks |
 | **Precision Bridge Framework** | Unified pattern: Compress → Explore → Reconstruct |
+
+### v1.2.0 — Voice Core 2.0
+
+| Update | Status |
+|--------|--------|
 | **Voice Core 2.0** | Agent hot-swap via voice command |
 | **Resilient Sessions** | Auto-retry with rate-limit backoff |
 | **Dynamic Avatars** | Gender-aware AI avatar generation |
+| **ElevenLabs Integration** | Premium TTS for agent voices |
 
 ### Research Foundation
 
@@ -311,6 +401,9 @@ You have built a **Sovereign, Voice-Native Operating System**:
 - [x] ~~Recursive Language Model (RLM)~~ (v1.3)
 - [x] ~~Decision Quality Scoring~~ (v1.3)
 - [x] ~~HRPO Optimization~~ (v1.3)
+- [x] ~~Voice Nexus Multi-Provider~~ (v1.4)
+- [x] ~~Claude Integration~~ (v1.4)
+- [x] ~~Knowledge Injection~~ (v1.4)
 - [ ] Cognitive Precision Bridge (CPB) — Full implementation
 - [ ] Multi-user collaboration
 - [ ] Plugin ecosystem
@@ -323,6 +416,7 @@ You have built a **Sovereign, Voice-Native Operating System**:
 
 | Document | Description |
 |----------|-------------|
+| [Voice Nexus Architecture](#1-voice-nexus-servicesvoicenexus) | Multi-provider voice routing system |
 | [ACE Technical Whitepaper](docs/ACE_TECHNICAL_WHITEPAPER.md) | Full ACE specification with research foundation |
 | [ACE Implementation Manual](docs/ACE_IMPLEMENTATION_MANUAL.md) | Integration guide and API reference |
 | [RLM Technical Overview](docs/RLM_TECHNICAL_OVERVIEW.md) | Recursive Language Model documentation |
