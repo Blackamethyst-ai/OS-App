@@ -54,44 +54,49 @@ class ModelRouter {
             console.warn("ROUTER: Local AI requested but failed check. Falling back to Cloud.");
         }
 
-        // 1. DEFAULT TO GEMINI FLASH (Fastest/Cheapest) for "Fast" tier
+        // ELITE TIER: Opus-first routing for maximum quality
+
+        // 1. FAST tier - ELITE: Use Sonnet instead of Flash
         if (config.tier === 'fast') {
-            if (hasGemini) {
-                // Using Flash via Gemini Service (defaults in service might need tuning)
-                // For now, assume Gemini Service maps 'fast' needs appropriately
-                return this.callGemini(prompt, systemPrompt, 'gemini-1.5-flash');
-            }
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-sonnet-4-20250514');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
         }
 
-        // 2. USE CLAUDE FOR CODING / COMPLEX REASONING ("Powerful" tier)
+        // 2. POWERFUL tier - ELITE: Use Opus for maximum reasoning
         if (config.tier === 'powerful') {
-            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-3-5-sonnet-20240620');
-            // Fallback to Grok or Gemini Pro if Claude missing
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-opus-4-20250514');
             if (hasGrok) return this.callGrok(prompt, systemPrompt);
             if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-1.5-pro');
         }
 
-        // 3. USE GROK FOR CREATIVE / CHAT ("Creative" tier)
+        // 3. CREATIVE tier - ELITE: Use Opus for creative depth
         if (config.tier === 'creative') {
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-opus-4-20250514');
             if (hasGrok) return this.callGrok(prompt, systemPrompt);
-            // Fallback to Opus or Gemini Pro
-            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-3-opus-20240229');
             if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-1.5-pro');
         }
 
-        // 4. FALLBACK CASCADE & PREFERENCES
-        // If preferred provider request matches available key
-        if (config.preferredProvider === 'claude' && hasClaude) return this.callClaude(prompt, systemPrompt);
-        if (config.preferredProvider === 'grok' && hasGrok) return this.callGrok(prompt, systemPrompt);
-        if (config.preferredProvider === 'gemini' && hasGemini) return this.callGemini(prompt, systemPrompt);
+        // 4. BALANCED tier - ELITE: Default to Sonnet
+        if (config.tier === 'balanced') {
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-sonnet-4-20250514');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-1.5-pro');
+        }
 
-        // Ultimate Catch-all: Try largest available model
-        if (hasClaude) return this.callClaude(prompt, systemPrompt);
+        // 5. FALLBACK CASCADE & PREFERENCES
+        // ELITE: Preferred provider with Opus/Sonnet defaults
+        if (config.preferredProvider === 'claude' && hasClaude) {
+            return this.callClaude(prompt, systemPrompt, 'claude-opus-4-20250514');
+        }
+        if (config.preferredProvider === 'grok' && hasGrok) return this.callGrok(prompt, systemPrompt);
+        if (config.preferredProvider === 'gemini' && hasGemini) {
+            return this.callGemini(prompt, systemPrompt, 'gemini-1.5-pro');
+        }
+
+        // ELITE: Ultimate Catch-all - Opus first, then Pro
+        if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-opus-4-20250514');
         if (hasGrok) return this.callGrok(prompt, systemPrompt);
         if (hasGemini) {
-            // Default to Gemini Pro/Flash based on complexity
-            const model = config.tier === 'powerful' ? 'gemini-1.5-pro' : 'gemini-1.5-flash';
-            return this.callGemini(prompt, systemPrompt, model);
+            return this.callGemini(prompt, systemPrompt, 'gemini-1.5-pro');
         }
 
         throw new Error('No capable AI models configured. Please add an API Key in settings.');
