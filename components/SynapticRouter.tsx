@@ -25,6 +25,7 @@ const AgentControlCenter = lazy(() => import('./AgentControlCenter'));
 const AutonomousFinance = lazy(() => import('./AutonomousFinance'));
 const NexusAPIExplorer = lazy(() => import('./NexusAPIExplorer'));
 const AgentCoreTest = lazy(() => import('./AgentCoreTest'));
+const CPBTest = lazy(() => import('./CPBTest'));
 
 // --- CYCLE 1: SPATIAL COORDINATE MAP ---
 const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> = {
@@ -41,7 +42,8 @@ const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> =
     [AppMode.VOICE_MODE]: { x: 0, y: 0, z: -1 },
     [AppMode.SYNTHESIS_BRIDGE]: { x: 0.5, y: 0.5, z: 0.5 },
     [AppMode.BICAMERAL]: { x: -0.5, y: 0.5, z: 0.5 },
-    [AppMode.AGENT_CORE_TEST]: { x: -0.5, y: -0.5, z: 0.5 }
+    [AppMode.AGENT_CORE_TEST]: { x: -0.5, y: -0.5, z: 0.5 },
+    [AppMode.CPB_TEST]: { x: 0.5, y: -0.5, z: 0.5 }
 };
 
 const SynapticRouter: React.FC = () => {
@@ -85,7 +87,8 @@ const SynapticRouter: React.FC = () => {
                 'agents': AppMode.AGENT_CONTROL,
                 'finance': AppMode.AUTONOMOUS_FINANCE,
                 'nexus': 'NEXUS' as any,
-                'sdk-test': AppMode.AGENT_CORE_TEST
+                'sdk-test': AppMode.AGENT_CORE_TEST,
+                'cpb-test': AppMode.CPB_TEST
             };
 
             const targetMode = routeMap[mainPath];
@@ -164,6 +167,7 @@ const SynapticRouter: React.FC = () => {
                         {mode === AppMode.AUTONOMOUS_FINANCE && <AutonomousFinance />}
                         {(mode as any) === 'NEXUS' && <NexusAPIExplorer />}
                         {mode === AppMode.AGENT_CORE_TEST && <AgentCoreTest />}
+                        {mode === AppMode.CPB_TEST && <CPBTest />}
                     </motion.main>
                 </AnimatePresence>
             </Suspense>

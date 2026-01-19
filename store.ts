@@ -143,6 +143,24 @@ interface AppState {
         knowledgeContext: string | null;
         error: string | null;
     };
+    cpb: {
+        isActive: boolean;
+        phase: 'idle' | 'analyzing' | 'compressing' | 'exploring' | 'converging' | 'verifying' | 'reconstructing' | 'complete' | 'error';
+        path: 'direct' | 'rlm' | 'ace' | 'hybrid' | 'cascade';
+        progress: number;
+        message: string | null;
+        lastResult: {
+            output: string;
+            confidence: number;
+            dqScore: number;
+            path: string;
+            executionTimeMs: number;
+            tokensUsed: number;
+            verified: boolean;
+            pathReasoning: string;
+        } | null;
+        error: string | null;
+    };
     visualCortex: {
         isAnalyzing: boolean;
         isProbing: boolean;
@@ -324,6 +342,7 @@ interface AppState {
         setSearchState: (update: any) => void;
         setVoiceState: (update: any) => void;
         setVoiceNexusState: (update: any) => void;
+        setCPBState: (update: any) => void;
         setVisualCortexState: (update: any) => void;
         openHoloProjector: (artifact: any) => void;
         closeHoloProjector: () => void;
@@ -462,6 +481,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         transcripts: [],
         lastComplexityScore: 0,
         knowledgeContext: null,
+        error: null
+    },
+    cpb: {
+        isActive: false,
+        phase: 'idle',
+        path: 'direct',
+        progress: 0,
+        message: null,
+        lastResult: null,
         error: null
     },
     visualCortex: {
@@ -716,6 +744,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         })),
         setVoiceNexusState: (update) => set((state) => ({
             voiceNexus: { ...state.voiceNexus, ...(typeof update === 'function' ? update(state.voiceNexus) : update) }
+        })),
+        setCPBState: (update) => set((state) => ({
+            cpb: { ...state.cpb, ...(typeof update === 'function' ? update(state.cpb) : update) }
         })),
         setVisualCortexState: (update) => set((state) => ({
             visualCortex: { ...state.visualCortex, ...(typeof update === 'function' ? update(state.visualCortex) : update) }
