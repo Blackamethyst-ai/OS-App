@@ -129,6 +129,20 @@ interface AppState {
         };
         agentAvatars: Record<string, string>;
     };
+    voiceNexus: {
+        mode: 'realtime' | 'turn-based' | 'hybrid';
+        isActive: boolean;
+        isProcessing: boolean;
+        currentProvider: {
+            stt: 'gemini' | 'whisper' | 'browser';
+            reasoning: string;
+            tts: 'elevenlabs' | 'gemini' | 'browser';
+        };
+        transcripts: { id: string; role: 'user' | 'model' | 'system'; text: string; timestamp: number; complexity?: number; provider?: string; knowledgeUsed?: boolean }[];
+        lastComplexityScore: number;
+        knowledgeContext: string | null;
+        error: string | null;
+    };
     visualCortex: {
         isAnalyzing: boolean;
         isProbing: boolean;
@@ -309,6 +323,7 @@ interface AppState {
         toggleTerminal: (open?: boolean) => void;
         setSearchState: (update: any) => void;
         setVoiceState: (update: any) => void;
+        setVoiceNexusState: (update: any) => void;
         setVisualCortexState: (update: any) => void;
         openHoloProjector: (artifact: any) => void;
         closeHoloProjector: () => void;
@@ -434,6 +449,20 @@ export const useAppStore = create<AppState>((set, get) => ({
             alignment: 95
         },
         agentAvatars: {}
+    },
+    voiceNexus: {
+        mode: 'hybrid',
+        isActive: false,
+        isProcessing: false,
+        currentProvider: {
+            stt: 'gemini',
+            reasoning: 'auto',
+            tts: 'elevenlabs'
+        },
+        transcripts: [],
+        lastComplexityScore: 0,
+        knowledgeContext: null,
+        error: null
     },
     visualCortex: {
         isAnalyzing: false,
@@ -684,6 +713,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         })),
         setVoiceState: (update) => set((state) => ({
             voice: { ...state.voice, ...(typeof update === 'function' ? update(state.voice) : update) }
+        })),
+        setVoiceNexusState: (update) => set((state) => ({
+            voiceNexus: { ...state.voiceNexus, ...(typeof update === 'function' ? update(state.voiceNexus) : update) }
         })),
         setVisualCortexState: (update) => set((state) => ({
             visualCortex: { ...state.visualCortex, ...(typeof update === 'function' ? update(state.visualCortex) : update) }

@@ -6,6 +6,7 @@ import {
     HIVE_AGENTS,
     constructHiveContext
 } from '../services/geminiService';
+import { voiceNexus, analyzeComplexity } from '../services/voiceNexus';
 import { OS_TOOLS } from '../services/toolRegistry';
 import { AppMode } from '../types';
 import { FunctionDeclaration, Type, LiveServerMessage } from '@google/genai';
@@ -69,10 +70,10 @@ const switchAgentTool: FunctionDeclaration = {
 
 const VoiceManager: React.FC = () => {
     const {
-        voice, actions,
+        voice, voiceNexus: nexusState, actions,
         operationalContext
     } = useAppStore();
-    const { setVoiceState, setMode, addLog } = actions;
+    const { setVoiceState, setVoiceNexusState, setMode, addLog } = actions;
 
     const { currentLocation } = useSystemMind();
     const connectionAttemptRef = useRef(false);
@@ -98,6 +99,7 @@ const VoiceManager: React.FC = () => {
                     [AppMode.BICAMERAL]: '/bibliomorphic/bicameral',
                     [AppMode.AGENT_CONTROL]: '/agents',
                     [AppMode.AUTONOMOUS_FINANCE]: '/finance',
+                    [AppMode.AGENT_CORE_TEST]: '/agent-core-test',
                 };
 
                 if (routeMap[target]) {
@@ -223,6 +225,17 @@ const VoiceManager: React.FC = () => {
                             } else if (message.serverContent?.inputTranscription) {
                                 partialTranscriptRef.current += message.serverContent.inputTranscription.text;
                                 setVoiceState({ partialTranscript: { role: 'user', text: partialTranscriptRef.current } });
+
+                                // Analyze complexity for hybrid mode routing display
+                                const complexity = analyzeComplexity(partialTranscriptRef.current);
+                                setVoiceNexusState({
+                                    lastComplexityScore: complexity.score,
+                                    currentProvider: {
+                                        ...nexusState.currentProvider,
+                                        reasoning: complexity.recommendedProvider.reasoning,
+                                        tts: complexity.recommendedProvider.tts,
+                                    }
+                                });
                             }
                             if (message.serverContent?.turnComplete) {
                                 const finalText = partialTranscriptRef.current;
