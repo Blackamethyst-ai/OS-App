@@ -17,6 +17,8 @@
   "dependencies": {
     "@antigravity/agent-core-sdk": "file:./libs/agent-core-sdk",
     "@google/genai": "^1.31.0",
+    "@metaventionsai/cpb-core": "^1.0.0",
+    "@metaventionsai/voice-nexus": "^1.0.0",
     "@react-three/fiber": "^9.0.0-rc.0",
     "@xyflow/react": "^12.10.0",
     "clsx": "^2.1.1",
