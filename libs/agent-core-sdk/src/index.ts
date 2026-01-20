@@ -33,6 +33,13 @@ export {
   useLogInsight,
 } from './hooks';
 
+// React Context Provider
+export {
+  AgentCoreProvider,
+  useAgentCore,
+  useAgentCoreSafe,
+} from './provider';
+
 // Types
 export type {
   // Client options
