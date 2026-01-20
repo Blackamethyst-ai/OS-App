@@ -1,8 +1,8 @@
 /**
- * CPB Service - Simple Component Integration Layer
+ * CPB Service - Component Integration Layer
  *
  * Provides easy-to-use functions for components to leverage
- * Cognitive Precision Bridge without managing complexity directly.
+ * @metaventionsai/cpb-core without managing complexity directly.
  *
  * Usage:
  * ```typescript
@@ -25,13 +25,32 @@
  * ```
  */
 
-import { cpbExecute, cpbExecutePath, extractPathSignals, selectPath } from './cognitivePrecisionBridge';
-import type { CPBStatus, CPBResult, CPBPath, ImageInput } from './cognitivePrecisionBridge';
+import {
+    createCPB,
+    extractPathSignals,
+    selectPath,
+    canUseDirectPath,
+    needsRLMPath,
+    wouldBenefitFromConsensus
+} from '@metaventionsai/cpb-core';
+
+import type {
+    CPBStatus,
+    CPBResult,
+    CPBPath,
+    ImageInput,
+    CPBStatusCallback
+} from '@metaventionsai/cpb-core';
+
+import { defaultProviders } from './cpbProviders';
+
+// Create the CPB instance with our providers
+const cpbInstance = createCPB(defaultProviders);
 
 export interface CPBQueryOptions {
     context?: string;
     images?: ImageInput[];
-    onStatus?: (status: CPBStatus) => void;
+    onStatus?: CPBStatusCallback;
     forcePath?: CPBPath;
     timeout?: number;
 }
@@ -44,61 +63,84 @@ export const cpb = {
      * Auto-routed query - CPB decides the best path
      */
     async query(prompt: string, options: CPBQueryOptions = {}): Promise<CPBResult> {
-        if (options.forcePath) {
-            return cpbExecutePath(options.forcePath, prompt, options.context, options.onStatus);
-        }
-        return cpbExecute(prompt, options.context, options.onStatus);
+        return cpbInstance.execute(
+            {
+                query: prompt,
+                context: options.context,
+                multimodal: options.images ? { images: options.images } : undefined,
+                forcePath: options.forcePath,
+                timeBudgetMs: options.timeout
+            },
+            options.onStatus
+        );
     },
 
     /**
      * Fast path - direct LLM call, no orchestration
      * Use for: navigation, simple facts, quick responses
      */
-    async fast(prompt: string, context?: string, onStatus?: (s: CPBStatus) => void): Promise<CPBResult> {
-        return cpbExecutePath('direct', prompt, context, onStatus);
+    async fast(prompt: string, context?: string, onStatus?: CPBStatusCallback): Promise<CPBResult> {
+        return cpbInstance.execute(
+            { query: prompt, context, forcePath: 'direct' },
+            onStatus
+        );
     },
 
     /**
      * Deep path - RLM compression for long context
      * Use for: document analysis, large codebase queries
      */
-    async deep(prompt: string, context?: string, onStatus?: (s: CPBStatus) => void): Promise<CPBResult> {
-        return cpbExecutePath('rlm', prompt, context, onStatus);
+    async deep(prompt: string, context?: string, onStatus?: CPBStatusCallback): Promise<CPBResult> {
+        return cpbInstance.execute(
+            { query: prompt, context, forcePath: 'rlm' },
+            onStatus
+        );
     },
 
     /**
      * Consensus path - ACE multi-agent agreement
      * Use for: architecture decisions, complex analysis, trade-off evaluation
      */
-    async consensus(prompt: string, context?: string, onStatus?: (s: CPBStatus) => void): Promise<CPBResult> {
-        return cpbExecutePath('ace', prompt, context, onStatus);
+    async consensus(prompt: string, context?: string, onStatus?: CPBStatusCallback): Promise<CPBResult> {
+        return cpbInstance.execute(
+            { query: prompt, context, forcePath: 'ace' },
+            onStatus
+        );
     },
 
     /**
      * Hybrid path - RLM + ACE combined
      * Use for: large context that needs consensus
      */
-    async hybrid(prompt: string, context?: string, onStatus?: (s: CPBStatus) => void): Promise<CPBResult> {
-        return cpbExecutePath('hybrid', prompt, context, onStatus);
+    async hybrid(prompt: string, context?: string, onStatus?: CPBStatusCallback): Promise<CPBResult> {
+        return cpbInstance.execute(
+            { query: prompt, context, forcePath: 'hybrid' },
+            onStatus
+        );
     },
 
     /**
      * Cascade path - full verification pipeline
      * Use for: critical decisions, research synthesis, production code
      */
-    async cascade(prompt: string, context?: string, onStatus?: (s: CPBStatus) => void): Promise<CPBResult> {
-        return cpbExecutePath('cascade', prompt, context, onStatus);
+    async cascade(prompt: string, context?: string, onStatus?: CPBStatusCallback): Promise<CPBResult> {
+        return cpbInstance.execute(
+            { query: prompt, context, forcePath: 'cascade' },
+            onStatus
+        );
     },
 
     /**
      * Analyze a query to determine recommended path without executing
      */
-    analyze(query: string, context?: string): { path: CPBPath; reasoning: string; signals: ReturnType<typeof extractPathSignals> } {
+    analyze(query: string, context?: string) {
         const signals = extractPathSignals(query, context || '');
         const decision = selectPath(signals);
         return {
             path: decision.path,
             reasoning: decision.reasoning,
+            confidence: decision.confidence,
+            alternatives: decision.alternatives,
             signals
         };
     },
@@ -108,15 +150,36 @@ export const cpb = {
      * Returns false for simple queries that should use direct LLM calls
      */
     shouldOrchestrate(query: string, context?: string): boolean {
-        const signals = extractPathSignals(query, context || '');
-        // If direct path scores highest, no orchestration needed
-        const decision = selectPath(signals);
-        return decision.path !== 'direct';
+        return !canUseDirectPath(query, context);
+    },
+
+    /**
+     * Check if RLM path is needed for context compression
+     */
+    needsCompression(query: string, context?: string): boolean {
+        return needsRLMPath(query, context);
+    },
+
+    /**
+     * Check if ACE consensus would benefit this query
+     */
+    wouldBenefitFromConsensus(query: string, context?: string): boolean {
+        return wouldBenefitFromConsensus(query, context);
+    },
+
+    /**
+     * Get the underlying CPB instance for advanced usage
+     */
+    getInstance() {
+        return cpbInstance;
     }
 };
 
 // Re-export types for convenience
-export type { CPBStatus, CPBResult, CPBPath, ImageInput };
+export type { CPBStatus, CPBResult, CPBPath, ImageInput, CPBStatusCallback };
+
+// Re-export router utilities
+export { extractPathSignals, selectPath, canUseDirectPath, needsRLMPath, wouldBenefitFromConsensus };
 
 // Default export
 export default cpb;
