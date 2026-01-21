@@ -31,7 +31,7 @@ async function runTest() {
     console.log(`\n🤖 User Request: 'I want to refactor ${target}.'`);
     console.log(`... Analyzing Blast Radius ...`);
 
-    const risk = selfEvolution.assessImpact(target);
+    const risk = await selfEvolution.assessImpact(target);
 
     console.log(`\n📋 ANALYSIS RESULT for ${target}:`);
     console.log(`   RISK LEVEL: [ ${risk} ]`);

@@ -33,6 +33,9 @@ import {
     RiskLevel
 } from '../types';
 
+// Re-export types used by components
+export type { FrictionSignal, EvolutionHypothesis };
+
 // Browser-safe path helpers
 const getBasename = (filePath: string) => filePath.split(/[\\/]/).pop() || '';
 
@@ -499,7 +502,7 @@ Output ONLY the code, no markdown fences.`;
 
             // 2. Scan for dependent files (re-using logic from assessImpact for now)
             // Note: In Node, we use scanner. In browser, we would fetch the graph.
-            let impactedFiles: string[] = [];
+            const impactedFiles: string[] = [];
 
             // For the test script, we use scanner
             const { scanCodebase } = await import('../libs/codebase-scanner');

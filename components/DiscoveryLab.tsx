@@ -22,7 +22,7 @@ const DiscoveryLab: React.FC = () => {
     const [filterTaskId, setFilterTaskId] = useState<string | null>(null);
 
     const activeKnowledge = useMemo(() => {
-        let nodes: KnowledgeNode[] = [];
+        const nodes: KnowledgeNode[] = [];
         const researchTasks = research?.tasks || [];
         const tasksToInclude = filterTaskId ? researchTasks.filter(t => t.id === filterTaskId) : researchTasks;
 

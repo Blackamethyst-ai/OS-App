@@ -21,8 +21,56 @@ import type {
     LearnedRouting
 } from './types';
 import { DEFAULT_CPB_CONFIG } from './types';
-import { estimateComplexity } from '../complexityEstimator';
-import type { AtomicTask } from '../../types';
+
+// ============================================================================
+// COMPLEXITY ESTIMATION
+// ============================================================================
+
+type TaskType = 'simple' | 'medium' | 'expert';
+
+interface ComplexityProfile {
+    taskType: TaskType;
+    estimatedTokens: number;
+    requiresContext: boolean;
+}
+
+/**
+ * Estimate task complexity from query characteristics
+ */
+function estimateComplexity(query: string, context?: string): ComplexityProfile {
+    const wordCount = query.split(/\s+/).length;
+    const contextLength = context?.length || 0;
+
+    // Detect expert patterns
+    const expertPatterns = [
+        /architect|design system|infrastructure/i,
+        /multi-?agent|distributed|consensus/i,
+        /research|investigate|analyze deeply/i,
+        /prove|derive|demonstrate/i,
+        /security|vulnerability|attack vector/i
+    ];
+
+    // Detect simple patterns
+    const simplePatterns = [
+        /^(what is|define|who is|when|where)/i,
+        /^(list|show|display|get|find)/i,
+        /navigate|go to|open/i,
+        /^(yes|no|true|false)/i
+    ];
+
+    const isExpert = expertPatterns.some(p => p.test(query)) || contextLength > 50000;
+    const isSimple = simplePatterns.some(p => p.test(query)) && wordCount < 20;
+
+    let taskType: TaskType = 'medium';
+    if (isExpert) taskType = 'expert';
+    else if (isSimple) taskType = 'simple';
+
+    return {
+        taskType,
+        estimatedTokens: Math.ceil((query.length + contextLength) / 4),
+        requiresContext: contextLength > 1000
+    };
+}
 
 // ============================================================================
 // SIGNAL EXTRACTION
@@ -32,50 +80,41 @@ import type { AtomicTask } from '../../types';
  * Extract path-determining signals from request
  */
 export function extractPathSignals(
-    request: CPBRequest,
-    config: CPBConfig = DEFAULT_CPB_CONFIG
+    query: string,
+    context?: string,
+    config: Partial<CPBConfig> = {}
 ): PathSignals {
-    const contextLength = (request.context?.length || 0) + request.query.length;
+    const mergedConfig = { ...DEFAULT_CPB_CONFIG, ...config };
+    const contextLength = (context?.length || 0) + query.length;
 
-    // Estimate complexity using existing infrastructure
-    const task: AtomicTask = request.task || {
-        id: `cpb-${Date.now()}`,
-        description: request.query,
-        instruction: request.query,
-        isolated_input: request.context || '',
-        weight: 1,
-        status: 'PENDING'
-    };
-    const complexityProfile = estimateComplexity(task);
+    // Estimate complexity
+    const complexityProfile = estimateComplexity(query, context);
 
     // Map complexity to 0-1 score
-    const queryComplexity = mapComplexityToScore(complexityProfile.taskType, request.query);
+    const queryComplexity = mapComplexityToScore(complexityProfile.taskType, query);
 
     // Detect if consensus is beneficial
-    const requiresConsensus = detectConsensusNeed(request.query);
+    const requiresConsensus = detectConsensusNeed(query);
 
     // Detect if deep reasoning is needed
-    const requiresReasoning = detectReasoningNeed(request.query);
-
-    // Check for ground truth availability (check complexity property as proxy)
-    const hasGroundTruth = !!request.task?.complexity && request.task.complexity === 'HIGH';
+    const requiresReasoning = detectReasoningNeed(query);
 
     return {
         contextLength,
         queryComplexity,
         requiresConsensus,
         requiresReasoning,
-        hasGroundTruth,
-        timeBudgetMs: request.timeBudgetMs || config.standardPathMs,
-        qualityTarget: request.qualityTarget || config.dqThreshold
+        hasGroundTruth: false,
+        timeBudgetMs: mergedConfig.standardPathMs,
+        qualityTarget: mergedConfig.dqThreshold
     };
 }
 
 /**
  * Map complexity type to numeric score
  */
-function mapComplexityToScore(taskType: string, query: string): number {
-    const baseScores: Record<string, number> = {
+function mapComplexityToScore(taskType: TaskType, query: string): number {
+    const baseScores: Record<TaskType, number> = {
         simple: 0.2,
         medium: 0.5,
         expert: 0.8
@@ -154,7 +193,7 @@ function detectReasoningNeed(query: string): boolean {
  */
 function scorePathsOnSignals(
     signals: PathSignals,
-    config: CPBConfig
+    config: Omit<CPBConfig, 'providers'>
 ): Record<CPBPath, { score: number; reasoning: string }> {
     const scores: Record<CPBPath, { score: number; reasoning: string }> = {
         direct: { score: 0.5, reasoning: 'Base path for simple queries' },
@@ -236,23 +275,12 @@ function scorePathsOnSignals(
  * Select optimal path based on signals
  */
 export function selectPath(
-    request: CPBRequest,
-    config: CPBConfig = DEFAULT_CPB_CONFIG,
+    signals: PathSignals,
+    config: Partial<CPBConfig> = {},
     learnedRouting?: LearnedRouting
 ): RoutingDecision {
-    // Honor forced path
-    if (request.forcePath) {
-        return {
-            selectedPath: request.forcePath,
-            signals: extractPathSignals(request, config),
-            reasoning: `Forced path: ${request.forcePath}`,
-            confidence: 1.0,
-            alternatives: []
-        };
-    }
-
-    const signals = extractPathSignals(request, config);
-    const pathScores = scorePathsOnSignals(signals, config);
+    const mergedConfig = { ...DEFAULT_CPB_CONFIG, ...config };
+    const pathScores = scorePathsOnSignals(signals, mergedConfig);
 
     // Apply learned preferences if available
     if (learnedRouting && learnedRouting.confidence > 0.7) {
@@ -278,7 +306,7 @@ export function selectPath(
     }));
 
     return {
-        selectedPath: selected.path,
+        path: selected.path,
         signals,
         reasoning: selected.reasoning,
         confidence: calculateRoutingConfidence(sorted),
@@ -299,9 +327,6 @@ function calculateRoutingConfidence(
     const gap = topScore - runnerUpScore;
 
     // Higher gap = higher confidence
-    // Gap of 0.3+ = very confident (0.9+)
-    // Gap of 0.1 = moderate confidence (0.7)
-    // Gap of 0 = low confidence (0.5)
     return Math.min(0.95, 0.5 + gap * 1.5);
 }
 
@@ -313,16 +338,15 @@ function calculateRoutingConfidence(
  * Quick check if direct path is sufficient
  */
 export function canUseDirectPath(
-    request: CPBRequest,
-    config: CPBConfig = DEFAULT_CPB_CONFIG
+    query: string,
+    context?: string,
+    config: Partial<CPBConfig> = {}
 ): boolean {
-    const contextLength = (request.context?.length || 0) + request.query.length;
+    const mergedConfig = { ...DEFAULT_CPB_CONFIG, ...config };
+    const contextLength = (context?.length || 0) + query.length;
 
     // Too long for direct
-    if (contextLength > config.contextThreshold) return false;
-
-    // Time-constrained - force direct
-    if (request.timeBudgetMs && request.timeBudgetMs < config.fastPathMs) return true;
+    if (contextLength > mergedConfig.contextThreshold) return false;
 
     // Check for simplicity indicators
     const simplePatterns = [
@@ -331,25 +355,27 @@ export function canUseDirectPath(
         /navigate|go to|open/i
     ];
 
-    return simplePatterns.some(p => p.test(request.query));
+    return simplePatterns.some(p => p.test(query));
 }
 
 /**
  * Check if RLM path is needed
  */
 export function needsRLMPath(
-    request: CPBRequest,
-    config: CPBConfig = DEFAULT_CPB_CONFIG
+    query: string,
+    context?: string,
+    config: Partial<CPBConfig> = {}
 ): boolean {
-    const contextLength = (request.context?.length || 0) + request.query.length;
-    return contextLength > config.contextThreshold;
+    const mergedConfig = { ...DEFAULT_CPB_CONFIG, ...config };
+    const contextLength = (context?.length || 0) + query.length;
+    return contextLength > mergedConfig.contextThreshold;
 }
 
 /**
  * Check if ACE consensus would help
  */
-export function wouldBenefitFromConsensus(request: CPBRequest): boolean {
-    const signals = extractPathSignals(request);
+export function wouldBenefitFromConsensus(query: string, context?: string): boolean {
+    const signals = extractPathSignals(query, context);
     return signals.requiresConsensus || signals.queryComplexity > 0.6;
 }
 

@@ -74,10 +74,10 @@ const SuperLattice: React.FC<SuperLatticeProps> = ({ nodes, mode, onNodeSelect, 
 
             // 1. Projection & Sorting
             renderedNodes.forEach(n => {
-                let x1 = n.baseX * Math.cos(rotY) - n.baseZ * Math.sin(rotY);
-                let z1 = n.baseZ * Math.cos(rotY) + n.baseX * Math.sin(rotY);
-                let y1 = n.baseY * Math.cos(rotX) - z1 * Math.sin(rotX);
-                let z2 = z1 * Math.cos(rotX) + n.baseY * Math.sin(rotX);
+                const x1 = n.baseX * Math.cos(rotY) - n.baseZ * Math.sin(rotY);
+                const z1 = n.baseZ * Math.cos(rotY) + n.baseX * Math.sin(rotY);
+                const y1 = n.baseY * Math.cos(rotX) - z1 * Math.sin(rotX);
+                const z2 = z1 * Math.cos(rotX) + n.baseY * Math.sin(rotX);
                 
                 const perspective = 300;
                 const scale = perspective / (perspective + z2); 

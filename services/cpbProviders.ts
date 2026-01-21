@@ -7,7 +7,7 @@
 
 import type { CPBProvider, GenerateOptions, ImageInput } from '@metaventionsai/cpb-core';
 import { generateText } from './geminiService';
-import { claudeService } from './claudeService';
+import { claudeService, type ClaudeContentBlock } from './claudeService';
 import { apiKeyService } from './apiKeyService';
 
 /**
@@ -71,15 +71,15 @@ export const claudeProvider: CPBProvider = {
         const model = options?.model || 'claude-sonnet-4-20250514';
 
         // Build content array with images
-        const content: Array<{ type: string; text?: string; source?: unknown }> = [];
+        const content: ClaudeContentBlock[] = [];
 
         // Add images first
         for (const img of images) {
             content.push({
-                type: 'image',
+                type: 'image' as const,
                 source: {
-                    type: 'base64',
-                    media_type: img.mediaType,
+                    type: 'base64' as const,
+                    media_type: img.mediaType as 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp',
                     data: img.base64
                 }
             });
@@ -87,11 +87,16 @@ export const claudeProvider: CPBProvider = {
 
         // Add text prompt
         content.push({
-            type: 'text',
+            type: 'text' as const,
             text: prompt
         });
 
-        return claudeService.generateVision(content, options?.systemPrompt, model);
+        // Use generateContent with multimodal message format
+        return claudeService.generateContent(
+            [{ role: 'user', content }],
+            options?.systemPrompt,
+            model
+        );
     }
 };
 

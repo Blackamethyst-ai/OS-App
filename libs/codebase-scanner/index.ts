@@ -85,7 +85,7 @@ export function scanCodebase(rootPath: string): CodebaseGraphData {
             try {
                 // Resolve path
                 const importDir = path.dirname(importerFile);
-                let resolvedPath = path.resolve(importDir, importPath);
+                const resolvedPath = path.resolve(importDir, importPath);
 
                 // Handle extension resolution
                 let exactPath = '';

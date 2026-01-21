@@ -229,6 +229,7 @@ class REPLEngine {
      * Create sandboxed execution functions
      */
     private createSandbox(outputs: string[]) {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const self = this;
 
         return {
@@ -482,7 +483,7 @@ export async function recursiveLLMQuery(
     // Initialize REPL engine
     const repl = new REPLEngine(context, fullConfig);
     const trajectory: TrajectoryStep[] = [];
-    let totalTokens = 0;
+    const totalTokens = 0;
 
     // Schema for code generation
     const schema: Schema = {
@@ -511,7 +512,7 @@ export async function recursiveLLMQuery(
     // Build initial prompt
     const contextMetadata = `Context length: ${context.length} characters (~${Math.ceil(context.length / 4)} tokens)`;
 
-    let history: Array<{ code: string; output: string }> = [];
+    const history: Array<{ code: string; output: string }> = [];
 
     for (let iteration = 1; iteration <= fullConfig.maxIterations; iteration++) {
         onStatusUpdate?.({
@@ -608,10 +609,11 @@ Now write Python code to continue working toward the answer. Use the REPL functi
                 if (fullConfig.enableDQScoring) {
                     const task: AtomicTask = {
                         id: `rlm-${Date.now()}`,
+                        description: query,
                         instruction: query,
                         isolated_input: context.slice(0, 1000), // Sample for scoring
-                        expected_type: 'text',
-                        status: 'completed'
+                        weight: 1,
+                        status: 'COMPLETED'
                     };
                     dqScore = scoreDQHeuristic(answer, task);
                 }

@@ -49,8 +49,8 @@ export async function consensusEngine(
     const MAX_ROUNDS = 15;
     const MODEL = 'gemini-2.0-flash';
 
-    let votes: Record<string, number> = {};
-    let answerMap: Record<string, string> = {};
+    const votes: Record<string, number> = {};
+    const answerMap: Record<string, string> = {};
     let killedAgents = 0;
     let rounds = 0;
 

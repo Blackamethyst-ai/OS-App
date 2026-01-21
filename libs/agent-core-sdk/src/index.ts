@@ -31,6 +31,10 @@ export {
   useAgentContext,
   useReinvigoration,
   useLogInsight,
+  // Graph Intelligence Hooks
+  useRelatedConcepts,
+  useSessionLineage,
+  useSessionsGraph,
 } from './hooks';
 
 // React Context Provider
@@ -74,4 +78,11 @@ export type {
   ApiHealth,
   CreateFindingRequest,
   CreateFindingResponse,
+
+  // Graph Intelligence types
+  GraphNode,
+  GraphEdge,
+  RelatedConceptsResult,
+  SessionLineageResult,
+  SessionsGraphResult,
 } from './types';

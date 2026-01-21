@@ -75,7 +75,7 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
         }
 
         setSearchState({ isSearching: true, isOpen: true });
-        let finalResults: any[] = [];
+        const finalResults: any[] = [];
 
         try {
             if (search.filter === 'ALL' || search.filter === 'COMMANDS') {

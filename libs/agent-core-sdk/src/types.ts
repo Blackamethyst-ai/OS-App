@@ -166,6 +166,52 @@ export interface CreateFindingResponse {
 }
 
 // ============================================================
+// Graph Intelligence Types
+// ============================================================
+
+export interface GraphNode {
+  id: string;
+  label: string;
+  type: 'session' | 'finding' | 'paper' | 'concept' | string;
+  relevance?: number;
+  confidence?: number;
+  url?: string;
+  session_id?: string;
+  project?: string;
+  status?: string;
+  isRoot?: boolean;
+  tier?: number;
+}
+
+export interface GraphEdge {
+  source: string;
+  target: string;
+  relation: 'researched_in' | 'found_as' | 'contains' | 'cites' | 'references' | 'builds_on' | 'enables' | 'shares_reference' | 'produced' | string;
+  paper?: string;
+}
+
+export interface RelatedConceptsResult {
+  query: string;
+  concepts: GraphNode[];
+  edges: GraphEdge[];
+  depth: number;
+}
+
+export interface SessionLineageResult {
+  session_id: string;
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  node_count: number;
+  edge_count: number;
+}
+
+export interface SessionsGraphResult {
+  nodes: GraphNode[];
+  edges: GraphEdge[];
+  shared_papers: number;
+}
+
+// ============================================================
 // Client Options
 // ============================================================
 

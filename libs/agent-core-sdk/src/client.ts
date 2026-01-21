@@ -17,6 +17,9 @@ import type {
   ApiHealth,
   CreateFindingRequest,
   CreateFindingResponse,
+  RelatedConceptsResult,
+  SessionLineageResult,
+  SessionsGraphResult,
 } from './types';
 
 const DEFAULT_BASE_URL = 'http://localhost:3847';
@@ -34,10 +37,14 @@ export class AgentCoreClient {
   }
 
   // ============================================================
-  // Private Helpers
+  // HTTP Helpers
   // ============================================================
 
-  private async fetch<T>(
+  /**
+   * Generic fetch method for API calls
+   * Made public for custom endpoint access
+   */
+  async fetch<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
@@ -245,6 +252,52 @@ export class AgentCoreClient {
       tags,
       project: this.project,
     });
+  }
+
+  // ============================================================
+  // Graph Intelligence
+  // ============================================================
+
+  /**
+   * Find concepts related to a query
+   */
+  async getRelatedConcepts(
+    query: string,
+    options: { depth?: number; limit?: number } = {}
+  ): Promise<RelatedConceptsResult> {
+    const params = this.buildQuery({
+      query,
+      depth: options.depth || 2,
+      limit: options.limit || 20,
+    });
+    return this.fetch<RelatedConceptsResult>(`/api/graph/concepts${params}`);
+  }
+
+  /**
+   * Get session lineage graph
+   */
+  async getSessionLineage(
+    sessionId: string,
+    options: { includeFindings?: boolean; includePapers?: boolean } = {}
+  ): Promise<SessionLineageResult> {
+    const params = this.buildQuery({
+      include_findings: options.includeFindings ?? true,
+      include_papers: options.includePapers ?? true,
+    });
+    return this.fetch<SessionLineageResult>(`/api/graph/lineage/${sessionId}${params}`);
+  }
+
+  /**
+   * Get graph of all sessions with connections
+   */
+  async getSessionsGraph(
+    options: { limit?: number; project?: string } = {}
+  ): Promise<SessionsGraphResult> {
+    const params = this.buildQuery({
+      limit: options.limit || 30,
+      project: options.project || this.project,
+    });
+    return this.fetch<SessionsGraphResult>(`/api/graph/sessions${params}`);
   }
 }
 

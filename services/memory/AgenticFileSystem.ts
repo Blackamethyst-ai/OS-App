@@ -409,7 +409,7 @@ export class AgenticFileSystem {
     const keywords: string[] = [];
 
     // From path
-    const pathParts = file.path.toLowerCase().split(/[\/\\\._-]/);
+    const pathParts = file.path.toLowerCase().split(/[/\\._-]/);
     keywords.push(...pathParts.filter(p => p.length > 2));
 
     // From content
