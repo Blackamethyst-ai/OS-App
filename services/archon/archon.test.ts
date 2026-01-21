@@ -22,7 +22,7 @@ import {
 
 import { DEFAULT_CONFIG, getConfig, validateConfig, MODEL_COSTS } from './config';
 
-import { TaskGraph, createTask, TaskStatus } from './goals/taskGraph';
+import { TaskGraph, createTask, TaskStatus, TaskPriority } from './goals/taskGraph';
 
 import { eventBus, emitGoalEvent } from './eventBus';
 
@@ -287,7 +287,6 @@ describe('TaskGraph', () => {
       const task = createTask({
         name: 'Test Task',
         description: 'A test task',
-        estimatedTokens: 1000,
       });
 
       expect(task.id).toMatch(/^task_/);
@@ -299,16 +298,17 @@ describe('TaskGraph', () => {
     it('should respect provided priority', () => {
       const task = createTask({
         name: 'High Priority Task',
-        priority: 0, // High priority
+        description: 'A high priority task',
+        priority: TaskPriority.HIGH,
       });
 
-      expect(task.priority).toBe(0);
+      expect(task.priority).toBe(TaskPriority.HIGH);
     });
   });
 
   describe('addTask', () => {
     it('should add tasks to the graph', () => {
-      const task = createTask({ name: 'Task 1' });
+      const task = createTask({ name: 'Task 1', description: 'Task 1 desc' });
       graph.addTask(task);
 
       expect(graph.tasks.size).toBe(1);
@@ -316,8 +316,8 @@ describe('TaskGraph', () => {
     });
 
     it('should add multiple tasks', () => {
-      const task1 = createTask({ name: 'Task 1' });
-      const task2 = createTask({ name: 'Task 2' });
+      const task1 = createTask({ name: 'Task 1', description: 'Task 1 desc' });
+      const task2 = createTask({ name: 'Task 2', description: 'Task 2 desc' });
 
       graph.addTask(task1);
       graph.addTask(task2);
@@ -328,9 +328,10 @@ describe('TaskGraph', () => {
 
   describe('dependencies via dependsOn', () => {
     it('should create tasks with dependencies', () => {
-      const task1 = createTask({ name: 'Task 1' });
+      const task1 = createTask({ name: 'Task 1', description: 'Task 1 desc' });
       const task2 = createTask({
         name: 'Task 2',
+        description: 'Task 2 with dependency',
         dependsOn: [task1.id],
       });
 
@@ -343,10 +344,11 @@ describe('TaskGraph', () => {
 
   describe('getReadyTasks', () => {
     it('should return tasks with no pending dependencies', () => {
-      const task1 = createTask({ name: 'Task 1' });
-      const task2 = createTask({ name: 'Task 2' });
+      const task1 = createTask({ name: 'Task 1', description: 'Task 1 desc' });
+      const task2 = createTask({ name: 'Task 2', description: 'Task 2 desc' });
       const task3 = createTask({
         name: 'Task 3',
+        description: 'Task 3 with dependencies',
         dependsOn: [task1.id, task2.id],
       });
 
@@ -363,7 +365,7 @@ describe('TaskGraph', () => {
     });
 
     it('should not return completed tasks', () => {
-      const task = createTask({ name: 'Task 1' });
+      const task = createTask({ name: 'Task 1', description: 'Task 1 desc' });
       task.status = TaskStatus.COMPLETED;
       graph.addTask(task);
 
@@ -374,9 +376,10 @@ describe('TaskGraph', () => {
 
   describe('task completion flow', () => {
     it('should unlock dependent tasks when dependency is completed', () => {
-      const task1 = createTask({ name: 'Task 1' });
+      const task1 = createTask({ name: 'Task 1', description: 'Task 1 desc' });
       const task2 = createTask({
         name: 'Task 2',
+        description: 'Task 2 with dependency',
         dependsOn: [task1.id],
       });
 
@@ -400,8 +403,8 @@ describe('TaskGraph', () => {
     });
 
     it('should calculate progress correctly', () => {
-      const task1 = createTask({ name: 'Task 1' });
-      const task2 = createTask({ name: 'Task 2' });
+      const task1 = createTask({ name: 'Task 1', description: 'Task 1 desc' });
+      const task2 = createTask({ name: 'Task 2', description: 'Task 2 desc' });
 
       graph.addTask(task1);
       graph.addTask(task2);
@@ -422,7 +425,7 @@ describe('TaskGraph', () => {
     });
 
     it('should return true when all tasks completed', () => {
-      const task = createTask({ name: 'Task 1' });
+      const task = createTask({ name: 'Task 1', description: 'Task 1 desc' });
       graph.addTask(task);
 
       expect(graph.isComplete()).toBe(false);

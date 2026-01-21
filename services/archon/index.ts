@@ -745,13 +745,20 @@ export function resetArchon(): void {
 // REACT HOOK
 // =============================================================================
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 
 /**
  * React hook for using ARCHON
+ *
+ * Properly subscribes to store state changes to ensure UI updates
+ * when goals are added or modified.
  */
 export function useArchon() {
-  const store = useArchonStore();
+  // Subscribe to specific state slices for proper reactivity
+  const phase = useArchonStore((state) => state.phase);
+  const activeGoalsMap = useArchonStore((state) => state.activeGoals);
+  const telemetry = useArchonStore((state) => state.telemetry);
+
   const [archon, setArchon] = useState<Archon | null>(null);
 
   useEffect(() => {
@@ -760,6 +767,24 @@ export function useArchon() {
       setArchon(instance);
     });
   }, []);
+
+  // Convert Map to array reactively
+  const activeGoals = useMemo(() => {
+    const goals: Goal[] = [];
+    activeGoalsMap.forEach((goal) => {
+      if (goal.status === 'active' || goal.status === 'pending') {
+        goals.push(goal);
+      }
+    });
+    return goals;
+  }, [activeGoalsMap]);
+
+  // Get all goals (including completed/escalated) for display
+  const allGoals = useMemo(() => {
+    const goals: Goal[] = [];
+    activeGoalsMap.forEach((goal) => goals.push(goal));
+    return goals.sort((a, b) => b.createdAt - a.createdAt);
+  }, [activeGoalsMap]);
 
   const processGoal = useCallback(async (goalText: string) => {
     if (!archon) throw new Error('ARCHON not initialized');
@@ -774,9 +799,10 @@ export function useArchon() {
   return {
     archon,
     isReady: archon !== null,
-    phase: store.phase,
-    activeGoals: store.getActiveGoals(),
-    telemetry: store.telemetry,
+    phase,
+    activeGoals,
+    allGoals, // New: includes completed goals for UI display
+    telemetry,
     models: archon?.listModels() ?? [],
     stats: archon?.getStats(),
     processGoal,
