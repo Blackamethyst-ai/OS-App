@@ -114,7 +114,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
             setPersonas(agents);
             setStatus('DEBATING');
             let currentHistory: DebateTurn[] = [];
-            let currentPersonas = [...agents]; 
+            const currentPersonas = [...agents]; 
             
             for (let i = 0; i < 9; i++) {
                 const speakerIndex = i % currentPersonas.length;

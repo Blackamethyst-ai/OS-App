@@ -13,6 +13,9 @@ import type {
   SearchResult,
   SelectedPacks,
   ReinvigorationContext,
+  RelatedConceptsResult,
+  SessionLineageResult,
+  SessionsGraphResult,
 } from './types';
 
 // ============================================================
@@ -358,4 +361,184 @@ export function useLogInsight(client?: AgentCoreClient) {
   );
 
   return { logInsight, isLoading, error };
+}
+
+// ============================================================
+// Graph Intelligence Hooks
+// ============================================================
+
+/**
+ * Find concepts related to a query
+ * Returns nodes and edges for graph visualization
+ */
+export function useRelatedConcepts(options: {
+  query: string;
+  depth?: number;
+  limit?: number;
+  debounceMs?: number;
+  client?: AgentCoreClient;
+}) {
+  const [result, setResult] = useState<RelatedConceptsResult | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const { query, depth = 2, limit = 20, debounceMs = 300, client } = options;
+  const defaultClient = useMemo(
+    () => client || new AgentCoreClient(),
+    [client]
+  );
+
+  useEffect(() => {
+    if (!query || query.length < 2) {
+      setResult(null);
+      return;
+    }
+
+    let mounted = true;
+    const timeoutId = setTimeout(async () => {
+      setIsLoading(true);
+
+      try {
+        const response = await defaultClient.fetch<RelatedConceptsResult>(
+          `/api/graph/concepts?query=${encodeURIComponent(query)}&depth=${depth}&limit=${limit}`
+        );
+        if (mounted) {
+          setResult(response);
+          setError(null);
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err as Error);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }, debounceMs);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [defaultClient, query, depth, limit, debounceMs]);
+
+  return { result, isLoading, error };
+}
+
+/**
+ * Get session lineage graph
+ * Returns nodes and edges showing research lineage
+ */
+export function useSessionLineage(
+  sessionId: string,
+  options: {
+    includeFindings?: boolean;
+    includePapers?: boolean;
+    client?: AgentCoreClient;
+  } = {}
+) {
+  const [lineage, setLineage] = useState<SessionLineageResult | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const { includeFindings = true, includePapers = true, client } = options;
+  const defaultClient = useMemo(
+    () => client || new AgentCoreClient(),
+    [client]
+  );
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    let mounted = true;
+    setIsLoading(true);
+
+    const fetchLineage = async () => {
+      try {
+        const params = new URLSearchParams({
+          include_findings: String(includeFindings),
+          include_papers: String(includePapers),
+        });
+        const response = await defaultClient.fetch<SessionLineageResult>(
+          `/api/graph/lineage/${sessionId}?${params}`
+        );
+        if (mounted) {
+          setLineage(response);
+          setError(null);
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err as Error);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchLineage();
+
+    return () => {
+      mounted = false;
+    };
+  }, [defaultClient, sessionId, includeFindings, includePapers]);
+
+  return { lineage, isLoading, error };
+}
+
+/**
+ * Get graph of all sessions with connections
+ */
+export function useSessionsGraph(options: {
+  limit?: number;
+  project?: string;
+  client?: AgentCoreClient;
+} = {}) {
+  const [graph, setGraph] = useState<SessionsGraphResult | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const { limit = 30, project, client } = options;
+  const defaultClient = useMemo(
+    () => client || new AgentCoreClient(),
+    [client]
+  );
+
+  useEffect(() => {
+    let mounted = true;
+    setIsLoading(true);
+
+    const fetchGraph = async () => {
+      try {
+        const params = new URLSearchParams({ limit: String(limit) });
+        if (project) params.set('project', project);
+
+        const response = await defaultClient.fetch<SessionsGraphResult>(
+          `/api/graph/sessions?${params}`
+        );
+        if (mounted) {
+          setGraph(response);
+          setError(null);
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err as Error);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchGraph();
+
+    return () => {
+      mounted = false;
+    };
+  }, [defaultClient, limit, project]);
+
+  return { graph, isLoading, error };
 }

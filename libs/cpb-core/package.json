@@ -1,0 +1,71 @@
+{
+  "name": "@metaventionsai/cpb-core",
+  "version": "1.0.0",
+  "description": "Cognitive Precision Bridge - Unified AI orchestration with precision-aware routing through RLM, ACE, and DQ scoring",
+  "main": "./index.ts",
+  "module": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": {
+      "import": "./index.ts",
+      "types": "./index.ts"
+    },
+    "./router": {
+      "import": "./router.ts",
+      "types": "./router.ts"
+    },
+    "./types": {
+      "import": "./types.ts",
+      "types": "./types.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts src/router.ts src/types.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts src/router.ts src/types.ts --format cjs,esm --dts --watch",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "lint": "eslint src --ext .ts,.tsx",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "ai",
+    "llm",
+    "orchestration",
+    "multi-agent",
+    "consensus",
+    "routing",
+    "cognitive",
+    "precision",
+    "gemini",
+    "claude",
+    "openai"
+  ],
+  "author": "Dicoangelo",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Dicoangelo/cpb-core.git"
+  },
+  "peerDependencies": {
+    "@google/genai": ">=0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@google/genai": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0",
+    "eslint": "^8.56.0",
+    "@typescript-eslint/eslint-plugin": "^6.19.0",
+    "@typescript-eslint/parser": "^6.19.0"
+  }
+}

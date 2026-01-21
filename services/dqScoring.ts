@@ -16,6 +16,9 @@ import {
     DEFAULT_ACE_CONFIG
 } from '../types/domain/convergence';
 
+// Re-export types for convenience
+export type { DQScore, DecisionQuality };
+
 // ============================================================================
 // CORE SCORING FUNCTIONS
 // ============================================================================
@@ -198,7 +201,7 @@ function scoreSpecificity(output: string): number {
     if (/v?\d+\.\d+(\.\d+)?/.test(output)) score += 0.15;
 
     // File paths
-    if (/[\/\\][\w\-\.]+[\/\\]/.test(output)) score += 0.1;
+    if (/[/\\][\w\-.]+[/\\]/.test(output)) score += 0.1;
 
     // URLs
     if (/https?:\/\//.test(output)) score += 0.1;

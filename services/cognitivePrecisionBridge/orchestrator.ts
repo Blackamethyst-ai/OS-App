@@ -407,10 +407,11 @@ class CognitivePrecisionBridgeOrchestrator {
 
         const task: AtomicTask = {
             id: `cpb-hybrid-${Date.now()}`,
+            description: request.query,
             instruction: request.query,
             isolated_input: processedContext,
-            expected_type: 'text',
-            status: 'pending'
+            weight: 1,
+            status: 'PENDING'
         };
 
         const aceResult = await adaptiveConsensusEngine(
@@ -536,10 +537,11 @@ Please provide an improved response that addresses any quality gaps.`;
     private createTask(request: CPBRequest): AtomicTask {
         return request.task || {
             id: `cpb-${Date.now()}`,
+            description: request.query,
             instruction: request.query,
             isolated_input: request.context || '',
-            expected_type: 'text',
-            status: 'pending'
+            weight: 1,
+            status: 'PENDING'
         };
     }
 
@@ -549,7 +551,7 @@ Please provide an improved response that addresses any quality gaps.`;
     private async storePattern(request: CPBRequest, result: Omit<CPBResult, 'path' | 'pathSignals' | 'pathReasoning' | 'patternStored'>): Promise<void> {
         const pattern = convergenceMemory.createPattern(
             this.createTask(request),
-            result.dqScore.score > 0.7 ? 'expert' : result.dqScore.score > 0.4 ? 'medium' : 'simple',
+            result.dqScore.score > 0.7 ? 'expert' : result.dqScore.score > 0.4 ? 'moderate' : 'simple',
             'cpb',
             result.aceResult?.voteLedger?.totalRounds || 1,
             result.aceResult?.voteLedger?.count || 1,

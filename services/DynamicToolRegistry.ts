@@ -12,7 +12,7 @@ import { validateAndSanitize } from '../utils/validateToolCode';
  */
 class DynamicToolRegistry {
     private dynamicManifests: FunctionDeclaration[] = [];
-    private dynamicLogic: Record<string, Function> = {};
+    private dynamicLogic: Record<string, (...args: unknown[]) => unknown> = {};
 
     /**
      * BOOT: Hydrate dynamic capabilities from the persistent vault.

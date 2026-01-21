@@ -220,7 +220,7 @@ export const CPBMonitorPanel: React.FC<CPBMonitorPanelProps> = ({ status, lastRe
                                         style={{
                                             background: isActive ? `${config.color}20` : 'transparent',
                                             borderColor: config.color,
-                                            ringColor: isActive ? config.color : 'transparent'
+                                            boxShadow: isActive ? `0 0 0 2px ${config.color}40` : 'none'
                                         }}
                                         title={config.description}
                                     >

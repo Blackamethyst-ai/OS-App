@@ -100,7 +100,7 @@ class ClaudeService {
     async generateVision(
         prompt: string,
         imageBase64: string,
-        mediaType: 'image/png' | 'image/jpeg' = 'image/png',
+        mediaType: 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp' = 'image/png',
         model: string = 'claude-sonnet-4-20250514'
     ): Promise<string> {
         const apiKey = apiKeyService.getKey('claude');

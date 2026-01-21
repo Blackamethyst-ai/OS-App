@@ -19,7 +19,7 @@ export async function generatePersonas(file: FileData, baselineMindset?: MentalS
 
         return selection.map((agent) => {
             // Use baseline from DNA Builder if provided, otherwise compute from agent defaults
-            let mindset: MentalState = baselineMindset
+            const mindset: MentalState = baselineMindset
                 ? { ...baselineMindset }
                 : { skepticism: 50, excitement: 50, alignment: 50 };
 

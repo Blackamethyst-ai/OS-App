@@ -38,7 +38,7 @@ const TaskBoard: React.FC = () => {
     const [isCreating, setIsCreating] = useState(false);
 
     const sortedTasks = useMemo(() => {
-        let filtered = tasks.filter(t => {
+        const filtered = tasks.filter(t => {
             const matchPriority = filter.priority === 'ALL' || t.priority === filter.priority;
             const matchStatus = filter.status === 'ALL' || t.status === filter.status;
             return matchPriority && matchStatus;

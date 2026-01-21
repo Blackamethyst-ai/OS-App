@@ -113,11 +113,11 @@ export async function adaptiveConsensusEngine(
     // ========================================================================
     // PHASE 3: Voting Loop
     // ========================================================================
-    let votes: Record<string, number> = {};
-    let answerMap: Record<string, string> = {};
+    const votes: Record<string, number> = {};
+    const answerMap: Record<string, string> = {};
     let killedAgents = 0;
     let rounds = 0;
-    let agentContributions: Record<string, string[]> = {}; // Track which agents contributed to which answers
+    const agentContributions: Record<string, string[]> = {}; // Track which agents contributed to which answers
 
     const schema: Schema = {
         type: Type.OBJECT,

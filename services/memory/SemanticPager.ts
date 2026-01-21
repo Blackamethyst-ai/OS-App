@@ -291,12 +291,13 @@ export class SemanticPager {
       case 'LFU':
         return page.accessCount;
       case 'RELEVANCE':
-      default:
+      default: {
         // Combine recency, frequency, and relevance
         const recencyScore = (Date.now() - page.lastAccessed) / (1000 * 60 * 60); // Hours old
         const frequencyScore = page.accessCount;
         const relevanceScore = page.relevanceScore * 100;
         return relevanceScore + frequencyScore - recencyScore;
+      }
     }
   }
 

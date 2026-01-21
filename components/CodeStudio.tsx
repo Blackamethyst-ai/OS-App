@@ -16,7 +16,7 @@ import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { usePerspectiveRefraction } from '../hooks/usePerspectiveRefraction';
 
 const highlightCode = (code: string, lang: string) => {
-    let escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return escaped
         .replace(/\b(const|let|var|function|class|import|from|return|if|else|for|while|async|await|export|default|interface|type|public|private|protected|new|try|catch|finally|switch|case|break|throw)\b/g, '<span style="color: #f1c21b">$1</span>')
         .replace(/\b(string|number|boolean|any|Promise|Array|Object|null|undefined|true|false)\b/g, '<span style="color: #22d3ee">$1</span>')
