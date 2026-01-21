@@ -101,6 +101,7 @@ const VoiceManager: React.FC = () => {
                     [AppMode.AUTONOMOUS_FINANCE]: '/finance',
                     [AppMode.AGENT_CORE_TEST]: '/agent-core-test',
                     [AppMode.CPB_TEST]: '/cpb-test',
+                    [AppMode.ARCHON]: '/archon',
                 };
 
                 if (routeMap[target]) {

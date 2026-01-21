@@ -17,7 +17,8 @@ export enum AppMode {
     AGENT_CONTROL = 'AGENT_CONTROL',
     AUTONOMOUS_FINANCE = 'AUTONOMOUS_FINANCE',
     AGENT_CORE_TEST = 'AGENT_CORE_TEST',
-    CPB_TEST = 'CPB_TEST'
+    CPB_TEST = 'CPB_TEST',
+    ARCHON = 'ARCHON'
 }
 
 export enum AppTheme {
