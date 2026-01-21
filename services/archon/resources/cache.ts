@@ -69,7 +69,7 @@ export class CacheManager {
     const hash = this.hashGoal(goal);
 
     // Exact match
-    let cached = this.cache.get(hash);
+    const cached = this.cache.get(hash);
     if (cached && !this.isExpired(cached)) {
       this.recordAccess(hash, true);
       this.updateMetadata(cached);
