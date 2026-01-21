@@ -194,6 +194,18 @@ import { getBudgetAllocator, getCostAwareRouter, getCacheManager } from './resou
 import { getEscalationController } from './escalation';
 import { getFeedbackLearner, getPatternMemory } from './learning';
 
+// =============================================================================
+// REAL SUBSYSTEM IMPORTS
+// =============================================================================
+import { adaptiveConsensusEngine, quickConsensus } from '../adaptiveConsensus';
+import { cpbExecute, cpbExecutePath } from '../cognitivePrecisionBridge';
+import { scoreDQWithLLM, scoreDQHeuristic, createDQScore } from '../dqScoring';
+import { dreamProtocol } from '../dreamProtocol';
+import { selfEvolution } from '../selfEvolution';
+import { agentKernel } from '../kernel';
+import type { AtomicTask } from '../../types';
+import type { ACEStatus } from '../../types/domain/convergence';
+
 /**
  * Main ARCHON controller class
  *
@@ -393,16 +405,22 @@ class Archon {
           }
         }
 
-        // Phase 4: Execute (placeholder - integrate with actual subsystems)
+        // Phase 4: Execute via real subsystems
         store.setPhase('executing');
 
-        // Simulate execution for now
-        // TODO: Actually dispatch to ACE, Dream, Evolution, etc.
-        const result = await this.simulateExecution(goal, {
-          tasks: Array.from(decomposition.tree.tasks.values()),
-          complexity: analysis.estimatedComplexity,
-          estimatedTokens: analysis.estimatedTokenCost,
-        }, routing);
+        // Dispatch to real subsystems (ACE, CPB, Dream, Evolution, Kernel)
+        const result = await this.executeWithSubsystems(
+          goal,
+          {
+            tasks: Array.from(decomposition.tree.tasks.values()),
+            complexity: analysis.estimatedComplexity,
+            estimatedTokens: analysis.estimatedTokenCost,
+          },
+          routing,
+          (phase, progress) => {
+            archonLog('debug', `Subsystem progress: ${phase} (${progress}%)`);
+          }
+        );
 
         // Phase 5: Verify output quality
         store.setPhase('verifying');
@@ -584,54 +602,243 @@ class Archon {
   }
 
   /**
-   * Simulate execution (placeholder)
-   * TODO: Replace with actual subsystem dispatch
+   * Execute goal with real subsystems
+   *
+   * Routes to appropriate subsystem based on goal type and complexity:
+   * - CPB (auto-routes internally to RLM, ACE, etc.)
+   * - ACE for multi-agent consensus
+   * - Dream Protocol for background research
+   * - Self-Evolution for code generation
+   * - Agent Kernel for intent dispatch
    */
-  private async simulateExecution(
+  private async executeWithSubsystems(
     goal: Goal,
     decomposition: { tasks: any[]; complexity: number; estimatedTokens: number },
-    routing: { modelId: string; modelTier: string }
-  ): Promise<{ dqScore: number; output: string }> {
-    // Simulate based on model tier
-    const baseScore = routing.modelTier === 'flagship' ? 0.85 :
-                      routing.modelTier === 'standard' ? 0.75 : 0.65;
+    routing: { modelId: string; modelTier: string },
+    onStatus?: (phase: string, progress: number) => void
+  ): Promise<{ dqScore: number; output: string; subsystemUsed: string; tokensUsed: number }> {
+    const goalType = this.inferGoalType(goal.text);
+    const store = useArchonStore.getState();
 
-    // Add some variance
-    const variance = (Math.random() - 0.5) * 0.2;
-    const dqScore = Math.max(0.3, Math.min(0.95, baseScore + variance));
+    archonLog('info', `Executing goal via real subsystems`, {
+      goalType,
+      complexity: decomposition.complexity,
+      taskCount: decomposition.tasks.length,
+    });
 
-    // Simulate latency
-    await new Promise((resolve) => setTimeout(resolve, 500 + Math.random() * 1000));
-
-    return {
-      dqScore,
-      output: `Simulated output for: ${goal.text}`,
+    // Create an AtomicTask for subsystems that need it
+    const atomicTask: AtomicTask = {
+      id: `archon-${goal.id}`,
+      description: goal.text,
+      instruction: goal.text,
+      isolated_input: goal.metadata?.context || '',
+      weight: 1,
+      status: 'PENDING',
     };
+
+    try {
+      // Route based on goal type and complexity
+      if (goalType === 'research' && decomposition.complexity < 0.5) {
+        // Queue for Dream Protocol (background processing)
+        dreamProtocol.queueQuery(goal.text);
+        store.recordSubsystemInvocation('dream', 0.7, 100, 0);
+
+        return {
+          dqScore: 0.7, // Pending score - will be updated when dream completes
+          output: `Queued for background research: ${goal.text}`,
+          subsystemUsed: 'dream',
+          tokensUsed: 0,
+        };
+      }
+
+      if (goalType === 'code-generation' || goalType === 'refactor') {
+        // Record friction for Self-Evolution to observe
+        selfEvolution.recordFriction('REPEATED_ACTION', goal.text, 'ARCHON');
+
+        // Use CPB with cascade path for high-quality code
+        const result = await cpbExecutePath(
+          decomposition.complexity > 0.7 ? 'cascade' : 'ace',
+          goal.text,
+          goal.metadata?.context || '',
+          (status) => {
+            onStatus?.(status.phase, status.progress);
+            archonLog('debug', `CPB status: ${status.phase} (${status.progress}%)`);
+          }
+        );
+
+        store.recordSubsystemInvocation('evolution', result.dqScore.score, result.executionTimeMs, result.tokensUsed);
+
+        return {
+          dqScore: result.dqScore.score,
+          output: result.output,
+          subsystemUsed: `cpb:${result.path}`,
+          tokensUsed: result.tokensUsed,
+        };
+      }
+
+      if (decomposition.complexity > 0.7 || goalType === 'consensus') {
+        // High complexity - use ACE for multi-agent consensus
+        const result = await adaptiveConsensusEngine(
+          atomicTask,
+          (status: ACEStatus) => {
+            // Calculate progress from consensus gap or use consensusProgress
+            const progress = status.consensusProgress ??
+              (status.targetGap > 0 ? Math.min(100, (1 - status.currentGap / status.targetGap) * 100) : 0);
+            onStatus?.(status.phase, progress);
+            archonLog('debug', `ACE status: ${status.phase} (${progress.toFixed(0)}%)`);
+          },
+          {
+            enableAuction: true,
+            enableDQScoring: true,
+            enableLearning: true,
+          }
+        );
+
+        store.recordSubsystemInvocation('ace', result.dqScore?.score || 0.8, result.executionTime, decomposition.estimatedTokens);
+
+        return {
+          dqScore: result.dqScore?.score || 0.8,
+          output: result.output,
+          subsystemUsed: 'ace',
+          tokensUsed: decomposition.estimatedTokens,
+        };
+      }
+
+      if (goalType === 'dispatch' || goalType === 'navigation') {
+        // Use Agent Kernel for intent dispatch
+        const result = await agentKernel.dispatch(goal.text, {
+          priority: goal.metadata.priority === 'high' ? 'HIGH' : 'NORMAL',
+          currentMode: 'ARCHON',
+        });
+
+        // Score the output
+        const dqResult = scoreDQHeuristic(
+          typeof result.result === 'string' ? result.result : JSON.stringify(result.result || ''),
+          atomicTask
+        );
+
+        store.recordSubsystemInvocation('kernel', dqResult.score, result.latencyMs || 1000, 500);
+
+        return {
+          dqScore: dqResult.score,
+          output: typeof result.result === 'string' ? result.result : JSON.stringify(result.result),
+          subsystemUsed: 'kernel',
+          tokensUsed: 500,
+        };
+      }
+
+      // Default: Use CPB auto-routing (handles most cases well)
+      const cpbResult = await cpbExecute(
+        goal.text,
+        goal.metadata?.context || '',
+        (status) => {
+          onStatus?.(status.phase, status.progress);
+          archonLog('debug', `CPB status: ${status.phase} (${status.progress}%)`);
+        }
+      );
+
+      store.recordSubsystemInvocation('cpb', cpbResult.dqScore.score, cpbResult.executionTimeMs, cpbResult.tokensUsed);
+
+      return {
+        dqScore: cpbResult.dqScore.score,
+        output: cpbResult.output,
+        subsystemUsed: `cpb:${cpbResult.path}`,
+        tokensUsed: cpbResult.tokensUsed,
+      };
+
+    } catch (error) {
+      archonLog('error', `Subsystem execution failed`, { error, goalType });
+
+      // Fallback: Try quick consensus
+      try {
+        const fallbackResult = await quickConsensus(atomicTask, (status: ACEStatus) => {
+          const progress = status.consensusProgress ??
+            (status.targetGap > 0 ? Math.min(100, (1 - status.currentGap / status.targetGap) * 100) : 0);
+          onStatus?.(status.phase, progress);
+        });
+
+        return {
+          dqScore: fallbackResult.dqScore?.score || 0.6,
+          output: fallbackResult.output,
+          subsystemUsed: 'ace:fallback',
+          tokensUsed: decomposition.estimatedTokens,
+        };
+      } catch (fallbackError) {
+        // Final fallback - return error state
+        return {
+          dqScore: 0.3,
+          output: `Execution failed: ${error}`,
+          subsystemUsed: 'none',
+          tokensUsed: 0,
+        };
+      }
+    }
   }
 
   /**
    * Infer goal type from text
+   *
+   * Maps to subsystem routing:
+   * - code-generation, refactor → CPB cascade/ace path + Self-Evolution
+   * - research → Dream Protocol (background)
+   * - consensus → ACE multi-agent
+   * - dispatch, navigation → Agent Kernel
+   * - general, debugging, testing, code-review → CPB auto-route
    */
   private inferGoalType(goalText: string): string {
     const text = goalText.toLowerCase();
 
-    if (text.includes('implement') || text.includes('add') || text.includes('create')) {
+    // Code generation patterns
+    if (text.includes('implement') || text.includes('add') || text.includes('create') ||
+        text.includes('build') || text.includes('write') || text.includes('generate')) {
       return 'code-generation';
     }
-    if (text.includes('fix') || text.includes('bug') || text.includes('error')) {
+
+    // Debugging patterns
+    if (text.includes('fix') || text.includes('bug') || text.includes('error') ||
+        text.includes('debug') || text.includes('issue')) {
       return 'debugging';
     }
-    if (text.includes('refactor') || text.includes('improve') || text.includes('optimize')) {
+
+    // Refactoring patterns
+    if (text.includes('refactor') || text.includes('improve') || text.includes('optimize') ||
+        text.includes('clean up') || text.includes('restructure')) {
       return 'refactor';
     }
-    if (text.includes('test') || text.includes('verify')) {
+
+    // Testing patterns
+    if (text.includes('test') || text.includes('verify') || text.includes('validate')) {
       return 'testing';
     }
-    if (text.includes('research') || text.includes('analyze') || text.includes('investigate')) {
+
+    // Research patterns → Dream Protocol
+    if (text.includes('research') || text.includes('investigate') || text.includes('explore') ||
+        text.includes('find out') || text.includes('learn about')) {
       return 'research';
     }
-    if (text.includes('review') || text.includes('audit')) {
+
+    // Analysis patterns
+    if (text.includes('analyze') || text.includes('analyse') || text.includes('review') ||
+        text.includes('audit') || text.includes('examine')) {
       return 'code-review';
+    }
+
+    // Consensus patterns → ACE
+    if (text.includes('consensus') || text.includes('decide') || text.includes('compare') ||
+        text.includes('evaluate options') || text.includes('which is better')) {
+      return 'consensus';
+    }
+
+    // Navigation patterns → Kernel
+    if (text.includes('navigate') || text.includes('go to') || text.includes('open') ||
+        text.includes('show me') || text.includes('switch to')) {
+      return 'navigation';
+    }
+
+    // Dispatch patterns → Kernel
+    if (text.includes('run') || text.includes('execute') || text.includes('start') ||
+        text.includes('launch') || text.includes('trigger')) {
+      return 'dispatch';
     }
 
     return 'general';
