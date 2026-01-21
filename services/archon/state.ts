@@ -45,7 +45,7 @@ export const DEFAULT_ARCHON_CONFIG: ArchonConfig = {
     ['voice', 0.05],     // Voice gets 5%
     ['dq', 0.05],        // DQ gets 5%
   ]),
-  defaultModel: 'sonnet',
+  defaultModel: 'flagship',
 
   // Learning settings
   learningEnabled: true,

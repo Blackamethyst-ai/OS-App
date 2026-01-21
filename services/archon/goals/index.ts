@@ -10,30 +10,19 @@
 export * from './types';
 
 // Task Graph
-export {
-  TaskGraph,
-  Task,
-  TaskStatus,
-  TaskPriority,
-  TaskResult,
-  createTask,
-} from './taskGraph';
+export { TaskGraph, createTask } from './taskGraph';
+export type { Task, TaskStatus, TaskPriority, TaskResult } from './taskGraph';
 
 // Goal Decomposer
-export {
-  GoalDecomposer,
+export { GoalDecomposer, getGoalDecomposer, StubPatternStore, StubLLMProvider } from './decomposer';
+export type {
   IPatternStore,
   ILLMProvider,
   IComplexityRouter,
   ComplexityAnalysis,
   DecompositionContext,
-  StubPatternStore,
-  StubLLMProvider,
 } from './decomposer';
 
 // Goal Tracker
-export {
-  GoalTracker,
-  TrackerStats,
-  getGoalTracker,
-} from './tracker';
+export { GoalTracker, getGoalTracker } from './tracker';
+export type { TrackerStats } from './tracker';

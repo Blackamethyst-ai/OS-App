@@ -671,3 +671,16 @@ export class StubLLMProvider implements ILLMProvider {
     ];
   }
 }
+
+// =============================================================================
+// SINGLETON
+// =============================================================================
+
+let decomposerInstance: GoalDecomposer | null = null;
+
+export function getGoalDecomposer(): GoalDecomposer {
+  if (!decomposerInstance) {
+    decomposerInstance = new GoalDecomposer();
+  }
+  return decomposerInstance;
+}
