@@ -28,7 +28,7 @@ export const DEFAULT_CONFIG: ArchonConfig = {
     ['voice', 0.05],       // Voice gets 5% - input processing
     ['dq', 0.05],          // DQ gets 5% - scoring
   ]),
-  defaultModel: 'sonnet',  // Quality-first default
+  defaultModel: 'flagship',  // Performance-first default
 
   // Learning settings
   learningEnabled: true,
@@ -45,9 +45,10 @@ export const DEFAULT_CONFIG: ArchonConfig = {
 // =============================================================================
 
 export const MODEL_COSTS: Record<ModelTier, { input: number; output: number }> = {
-  haiku: { input: 0.00025, output: 0.00125 },   // $0.25/$1.25 per 1M tokens
-  sonnet: { input: 0.003, output: 0.015 },       // $3/$15 per 1M tokens
-  opus: { input: 0.015, output: 0.075 },         // $15/$75 per 1M tokens
+  fast: { input: 0.00025, output: 0.00125 },      // $0.25/$1.25 per 1M tokens (Haiku-class)
+  standard: { input: 0.003, output: 0.015 },      // $3/$15 per 1M tokens (Sonnet-class)
+  flagship: { input: 0.015, output: 0.075 },      // $15/$75 per 1M tokens (Opus-class)
+  local: { input: 0, output: 0 },                 // Free (local models)
 };
 
 // =============================================================================
