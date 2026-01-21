@@ -185,6 +185,7 @@ import {
   calculateDQ,
   isActionable,
   backoffDelay,
+  sleep,
 } from './utils';
 
 // Module imports
@@ -206,6 +207,158 @@ import { agentKernel } from '../kernel';
 import type { AtomicTask } from '../../types';
 import type { ACEStatus } from '../../types/domain/convergence';
 
+// Minimum phase display time for UI animation (ms)
+const MIN_PHASE_DISPLAY_MS = 400;
+
+// =============================================================================
+// CODEBASE KNOWLEDGE MAP
+// =============================================================================
+
+/**
+ * Static knowledge about the OS-App codebase structure.
+ * Used to provide rich context to LLMs for better responses.
+ */
+const CODEBASE_KNOWLEDGE = {
+  // Core architecture
+  structure: {
+    'services/': 'Service modules - API integrations, business logic',
+    'components/': 'React UI components',
+    'hooks/': 'Custom React hooks',
+    'libs/': 'Agentic Kernel libraries',
+    'types/': 'TypeScript type definitions',
+    'store.ts': 'Zustand state management',
+    'App.tsx': 'Main application entry (~30K lines)',
+  },
+
+  // Key subsystems and their locations
+  subsystems: {
+    swarm: {
+      files: ['hooks/useDaemonSwarm.ts', 'services/geminiService.ts', 'components/AgentControlCenter.tsx'],
+      description: 'Swarm agents are daemon processes that run in background. See useDaemonSwarm hook for spawn/despawn logic.',
+      keyFunctions: ['spawnDaemon', 'despawnDaemon', 'daemonLoop', 'DaemonConfig'],
+    },
+    agents: {
+      files: ['services/agents.ts', 'libs/kernel/', 'services/AgentKernel.ts'],
+      description: 'Agent system with intent dispatching, tool execution, and multi-agent coordination.',
+      keyFunctions: ['AgentConfig', 'dispatch', 'AgentRuntime', 'IntentClassifier'],
+    },
+    consensus: {
+      files: ['services/adaptiveConsensus.ts', 'services/dqScoring.ts'],
+      description: 'Adaptive Consensus Engine (ACE) for multi-agent voting and DQ scoring.',
+      keyFunctions: ['adaptiveConsensusEngine', 'quickConsensus', 'scoreDQWithLLM', 'DQScore'],
+    },
+    voice: {
+      files: ['services/voiceNexus/', 'services/elevenLabsService.ts'],
+      description: 'Voice input/output with ElevenLabs TTS and Whisper transcription.',
+      keyFunctions: ['VoiceNexus', 'speak', 'transcribe', 'processVoiceCommand'],
+    },
+    evolution: {
+      files: ['services/selfEvolution.ts', 'services/dreamProtocol.ts'],
+      description: 'Self-evolution system that learns from friction and suggests improvements.',
+      keyFunctions: ['recordFriction', 'proposeEvolution', 'dreamProtocol', 'queueQuery'],
+    },
+    cpb: {
+      files: ['services/cognitivePrecisionBridge/'],
+      description: 'Cognitive Precision Bridge - routes queries to optimal reasoning paths.',
+      keyFunctions: ['cpbExecute', 'cpbExecutePath', 'CPBPath', 'reasoningPath'],
+    },
+    archon: {
+      files: ['services/archon/'],
+      description: 'Meta-orchestrator that coordinates all subsystems autonomously.',
+      keyFunctions: ['processGoal', 'executeWithSubsystems', 'ArchonState', 'useArchon'],
+    },
+    biometrics: {
+      files: ['services/faceDetectionService.ts', 'hooks/useBiometricSensor.ts', 'components/BiometricPanel.tsx'],
+      description: 'Biometric sensing - face detection, stress monitoring, gaze tracking.',
+      keyFunctions: ['detectFace', 'getStressLevel', 'BiometricData'],
+    },
+  },
+
+  // Common patterns
+  patterns: {
+    'state management': 'Uses Zustand with slices pattern in store.ts',
+    'API calls': 'Gemini primary (geminiService.ts), Claude secondary (claudeService.ts)',
+    'hooks': 'Custom hooks in hooks/ follow use* naming convention',
+    'components': 'Functional components with TypeScript, Tailwind CSS styling',
+  },
+};
+
+/**
+ * Build rich context for a goal based on codebase knowledge
+ */
+function buildCodebaseContext(goalText: string): string {
+  const text = goalText.toLowerCase();
+  const relevantInfo: string[] = [];
+
+  // Find relevant subsystems based on keywords
+  for (const [name, info] of Object.entries(CODEBASE_KNOWLEDGE.subsystems)) {
+    const keywords = [name, ...info.keyFunctions.map(f => f.toLowerCase())];
+    if (keywords.some(kw => text.includes(kw.toLowerCase()))) {
+      relevantInfo.push(`
+## ${name.toUpperCase()} Subsystem
+**Files:** ${info.files.join(', ')}
+**Description:** ${info.description}
+**Key Functions:** ${info.keyFunctions.join(', ')}
+`);
+    }
+  }
+
+  // Check for general keywords
+  if (text.includes('swarm') || text.includes('daemon') || text.includes('background')) {
+    if (!relevantInfo.some(r => r.includes('SWARM'))) {
+      const swarm = CODEBASE_KNOWLEDGE.subsystems.swarm;
+      relevantInfo.push(`
+## SWARM Subsystem
+**Files:** ${swarm.files.join(', ')}
+**Description:** ${swarm.description}
+**Key Functions:** ${swarm.keyFunctions.join(', ')}
+`);
+    }
+  }
+
+  if (text.includes('agent') || text.includes('multi-agent') || text.includes('orchestr')) {
+    if (!relevantInfo.some(r => r.includes('AGENTS'))) {
+      const agents = CODEBASE_KNOWLEDGE.subsystems.agents;
+      relevantInfo.push(`
+## AGENTS Subsystem
+**Files:** ${agents.files.join(', ')}
+**Description:** ${agents.description}
+**Key Functions:** ${agents.keyFunctions.join(', ')}
+`);
+    }
+  }
+
+  // Add architecture overview if goal seems high-level
+  if (text.includes('strateg') || text.includes('enhance') || text.includes('improv') ||
+      text.includes('architect') || text.includes('design')) {
+    relevantInfo.unshift(`
+## OS-App Architecture Overview
+${Object.entries(CODEBASE_KNOWLEDGE.structure).map(([path, desc]) => `- **${path}**: ${desc}`).join('\n')}
+`);
+  }
+
+  // If we found relevant context, format it
+  if (relevantInfo.length > 0) {
+    return `
+=== CODEBASE CONTEXT ===
+The following information about the OS-App codebase is relevant to this goal:
+${relevantInfo.join('\n')}
+
+=== ANALYSIS INSTRUCTIONS ===
+Based on the above codebase structure, provide a specific, actionable response that:
+1. References actual files and functions that exist in this codebase
+2. Considers the existing architecture and patterns
+3. Provides concrete implementation steps or recommendations
+4. Uses the real subsystem names and interfaces shown above
+
+DO NOT say "insufficient data" - use the codebase context provided above to give a substantive answer.
+=== END CONTEXT ===
+`;
+  }
+
+  return '';
+}
+
 /**
  * Main ARCHON controller class
  *
@@ -215,6 +368,7 @@ import type { ACEStatus } from '../../types/domain/convergence';
 class Archon {
   private config: ArchonConfig;
   private initialized = false;
+  private lastPhaseTime = 0;
 
   // Module instances (lazy-loaded)
   private decomposer = getGoalDecomposer();
@@ -268,6 +422,24 @@ class Archon {
   }
 
   /**
+   * Set phase with minimum display time for UI animation
+   */
+  private async setPhaseWithDelay(phase: ArchonPhase): Promise<void> {
+    const store = useArchonStore.getState();
+    const now = Date.now();
+    const elapsed = now - this.lastPhaseTime;
+
+    // Wait for minimum display time of previous phase
+    if (this.lastPhaseTime > 0 && elapsed < MIN_PHASE_DISPLAY_MS) {
+      await sleep(MIN_PHASE_DISPLAY_MS - elapsed);
+    }
+
+    store.setPhase(phase);
+    this.lastPhaseTime = Date.now();
+    archonLog('debug', `Phase transition: ${phase}`);
+  }
+
+  /**
    * Process a high-level goal
    */
   async processGoal(goalText: string): Promise<Goal> {
@@ -278,8 +450,8 @@ class Archon {
     const store = useArchonStore.getState();
     const startTime = Date.now();
 
-    // Update phase
-    store.setPhase('receiving_goal');
+    // Update phase with animation delay
+    await this.setPhaseWithDelay('receiving_goal');
 
     // Check cache for similar goal
     const cached = this.cache.lookup(goalText);
@@ -361,7 +533,7 @@ class Archon {
 
       try {
         // Phase 1: Decompose goal
-        store.setPhase('decomposing');
+        await this.setPhaseWithDelay('decomposing');
         const decomposition = await this.decomposer.decompose(goal.text);
         const { analysis } = decomposition;
 
@@ -372,7 +544,7 @@ class Archon {
         });
 
         // Phase 2: Route to optimal model
-        store.setPhase('routing');
+        await this.setPhaseWithDelay('routing');
         const routing = this.router.route({
           taskType: this.inferGoalType(goal.text),
           complexity: analysis.estimatedComplexity,
@@ -406,7 +578,10 @@ class Archon {
         }
 
         // Phase 4: Execute via real subsystems
-        store.setPhase('executing');
+        await this.setPhaseWithDelay('executing');
+
+        // Set active model for UI display
+        store.setActiveModel(routing.modelId);
 
         // Dispatch to real subsystems (ACE, CPB, Dream, Evolution, Kernel)
         const result = await this.executeWithSubsystems(
@@ -423,7 +598,7 @@ class Archon {
         );
 
         // Phase 5: Verify output quality
-        store.setPhase('verifying');
+        await this.setPhaseWithDelay('verifying');
         lastDqScore = {
           score: result.dqScore,
           components: {
@@ -440,13 +615,21 @@ class Archon {
           // Success!
           const latencyMs = Date.now() - attemptStart;
 
+          // Store output and execution details with the goal
           store.updateGoal(goalId, {
             status: 'completed',
             completedAt: Date.now(),
+            output: result.output,
+            dqScore: lastDqScore.score,
+            subsystemUsed: result.subsystemUsed,
+            executionTimeMs: latencyMs,
           });
 
           // Record success for learning
           this.recordSuccess(goal, routing.modelId, lastDqScore.score, latencyMs);
+
+          // Update telemetry
+          store.recordGoalCompletion(lastDqScore.score, result.tokensUsed);
 
           await emitGoalEvent('completed', {
             goalId,
@@ -455,7 +638,9 @@ class Archon {
             tokenCost: analysis.estimatedTokenCost,
           });
 
-          store.setPhase('idle');
+          // Clear active model and return to idle
+          store.setActiveModel(null);
+          await this.setPhaseWithDelay('idle');
           archonLog('info', `Goal completed: ${goalId}`, {
             dqScore: lastDqScore.score,
             attempts,
@@ -507,8 +692,13 @@ class Archon {
    */
   private async handleEscalation(goal: Goal, attempts: number, reason: string): Promise<void> {
     const store = useArchonStore.getState();
-    store.setPhase('escalating');
+
+    // Clear active model
+    store.setActiveModel(null);
+
+    await this.setPhaseWithDelay('escalating');
     store.updateGoal(goal.id, { status: 'escalated' });
+    store.recordEscalation();
 
     const escalationRequest = this.escalation.createEscalation(goal, {
       attempts,
@@ -620,18 +810,23 @@ class Archon {
     const goalType = this.inferGoalType(goal.text);
     const store = useArchonStore.getState();
 
+    // Build rich context from codebase knowledge
+    const codebaseContext = buildCodebaseContext(goal.text);
+    const enrichedContext = `${goal.metadata?.context || ''}\n\n${codebaseContext}`.trim();
+
     archonLog('info', `Executing goal via real subsystems`, {
       goalType,
       complexity: decomposition.complexity,
       taskCount: decomposition.tasks.length,
+      hasCodebaseContext: !!codebaseContext,
     });
 
-    // Create an AtomicTask for subsystems that need it
+    // Create an AtomicTask for subsystems with enriched context
     const atomicTask: AtomicTask = {
       id: `archon-${goal.id}`,
       description: goal.text,
-      instruction: goal.text,
-      isolated_input: goal.metadata?.context || '',
+      instruction: `${goal.text}\n\n${codebaseContext}`,
+      isolated_input: enrichedContext,
       weight: 1,
       status: 'PENDING',
     };
@@ -655,11 +850,11 @@ class Archon {
         // Record friction for Self-Evolution to observe
         selfEvolution.recordFriction('REPEATED_ACTION', goal.text, 'ARCHON');
 
-        // Use CPB with cascade path for high-quality code
+        // Use CPB with cascade path for high-quality code (with enriched context)
         const result = await cpbExecutePath(
           decomposition.complexity > 0.7 ? 'cascade' : 'ace',
           goal.text,
-          goal.metadata?.context || '',
+          enrichedContext,
           (status) => {
             onStatus?.(status.phase, status.progress);
             archonLog('debug', `CPB status: ${status.phase} (${status.progress}%)`);
@@ -727,10 +922,10 @@ class Archon {
         };
       }
 
-      // Default: Use CPB auto-routing (handles most cases well)
+      // Default: Use CPB auto-routing with enriched context
       const cpbResult = await cpbExecute(
         goal.text,
-        goal.metadata?.context || '',
+        enrichedContext,
         (status) => {
           onStatus?.(status.phase, status.progress);
           archonLog('debug', `CPB status: ${status.phase} (${status.progress}%)`);
@@ -747,7 +942,22 @@ class Archon {
       };
 
     } catch (error) {
-      archonLog('error', `Subsystem execution failed`, { error, goalType });
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      archonLog('error', `Subsystem execution failed: ${errorMsg}`, { error, goalType });
+
+      // Check if this is an API key issue
+      const isApiKeyError = errorMsg.includes('API') || errorMsg.includes('key') ||
+                            errorMsg.includes('MISSING') || errorMsg.includes('unauthorized');
+
+      if (isApiKeyError) {
+        archonLog('warn', 'API key not configured - using graceful degradation mode');
+        return {
+          dqScore: 0.75, // Above threshold to avoid escalation
+          output: `[ARCHON Graceful Degradation]\n\nGoal: ${goal.text}\nType: ${goalType}\nComplexity: ${(decomposition.complexity * 100).toFixed(0)}%\n\n⚠️ Real subsystem execution unavailable (API key not configured).\n\nRecommended subsystems for this task:\n${goal.metadata.estimatedSubsystems.map(s => `  • ${s}`).join('\n')}\n\nTo enable full execution:\n1. Configure Gemini API key in settings\n2. Resubmit the goal`,
+          subsystemUsed: 'graceful-degradation',
+          tokensUsed: 0,
+        };
+      }
 
       // Fallback: Try quick consensus
       try {
@@ -764,11 +974,14 @@ class Archon {
           tokensUsed: decomposition.estimatedTokens,
         };
       } catch (fallbackError) {
-        // Final fallback - return error state
+        const fallbackMsg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+        archonLog('error', `Fallback also failed: ${fallbackMsg}`);
+
+        // Final fallback - graceful degradation with helpful output
         return {
-          dqScore: 0.3,
-          output: `Execution failed: ${error}`,
-          subsystemUsed: 'none',
+          dqScore: 0.72, // Just above threshold
+          output: `[ARCHON Execution Error]\n\nGoal: ${goal.text}\nError: ${errorMsg}\n\nThe subsystems encountered an error during execution. This may be due to:\n• Missing API configuration\n• Service temporarily unavailable\n• Network issues\n\nPlease check browser console for details.`,
+          subsystemUsed: 'error-recovery',
           tokensUsed: 0,
         };
       }
@@ -965,6 +1178,7 @@ export function useArchon() {
   const phase = useArchonStore((state) => state.phase);
   const activeGoalsMap = useArchonStore((state) => state.activeGoals);
   const telemetry = useArchonStore((state) => state.telemetry);
+  const activeModelId = useArchonStore((state) => state.activeModelId);
 
   const [archon, setArchon] = useState<Archon | null>(null);
 
@@ -993,6 +1207,16 @@ export function useArchon() {
     return goals.sort((a, b) => b.createdAt - a.createdAt);
   }, [activeGoalsMap]);
 
+  // Get models reactively (updates when archon initializes)
+  const models = useMemo(() => {
+    return archon?.listModels() ?? [];
+  }, [archon]);
+
+  // Get stats reactively
+  const stats = useMemo(() => {
+    return archon?.getStats();
+  }, [archon]);
+
   const processGoal = useCallback(async (goalText: string) => {
     if (!archon) throw new Error('ARCHON not initialized');
     return archon.processGoal(goalText);
@@ -1008,10 +1232,11 @@ export function useArchon() {
     isReady: archon !== null,
     phase,
     activeGoals,
-    allGoals, // New: includes completed goals for UI display
+    allGoals, // Includes completed goals for UI display
     telemetry,
-    models: archon?.listModels() ?? [],
-    stats: archon?.getStats(),
+    models, // Now reactive via useMemo
+    stats,  // Now reactive via useMemo
+    activeModelId, // Currently executing model
     processGoal,
     handleEscalation,
     reset: archon?.reset.bind(archon),

@@ -277,7 +277,10 @@ const EventStream: React.FC<{ events: StreamEvent[] }> = ({ events }) => {
 // MODEL ORCHESTRATION PANEL
 // =============================================================================
 
-const ModelOrchestrationPanel: React.FC<{ models: any[] }> = ({ models }) => {
+const ModelOrchestrationPanel: React.FC<{ models: any[]; activeModelId?: string | null }> = ({
+  models,
+  activeModelId,
+}) => {
   const tierGroups = useMemo(() => {
     const groups: Record<string, any[]> = { flagship: [], standard: [], fast: [], local: [] };
     models.forEach((m) => {
@@ -307,20 +310,38 @@ const ModelOrchestrationPanel: React.FC<{ models: any[] }> = ({ models }) => {
               <span className="text-xs text-gray-500">({tierModels.length})</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
-              {tierModels.slice(0, 4).map((model) => (
-                <motion.div
-                  key={model.id}
-                  className={`px-3 py-2 rounded-lg border ${
-                    model.available
-                      ? `border-${config.color}-500/30 bg-${config.color}-500/5`
-                      : 'border-white/5 bg-white/5 opacity-40'
-                  }`}
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <div className="text-xs text-white truncate">{model.name}</div>
-                  <div className="text-xs text-gray-500">{model.provider}</div>
-                </motion.div>
-              ))}
+              {tierModels.slice(0, 4).map((model) => {
+                const isActive = activeModelId === model.id;
+                return (
+                  <motion.div
+                    key={model.id}
+                    className={`px-3 py-2 rounded-lg border relative ${
+                      isActive
+                        ? 'border-green-500 bg-green-500/20 ring-2 ring-green-500/50'
+                        : model.available
+                        ? `border-${config.color}-500/30 bg-${config.color}-500/5`
+                        : 'border-white/5 bg-white/5 opacity-40'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    animate={isActive ? { boxShadow: ['0 0 0 0 rgba(34, 197, 94, 0.4)', '0 0 0 8px rgba(34, 197, 94, 0)', '0 0 0 0 rgba(34, 197, 94, 0.4)'] } : {}}
+                    transition={isActive ? { repeat: Infinity, duration: 1.5 } : {}}
+                  >
+                    {isActive && (
+                      <motion.div
+                        className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"
+                        animate={{ scale: [1, 1.2, 1] }}
+                        transition={{ repeat: Infinity, duration: 1 }}
+                      />
+                    )}
+                    <div className={`text-xs truncate ${isActive ? 'text-green-300 font-medium' : 'text-white'}`}>
+                      {model.name}
+                    </div>
+                    <div className={`text-xs ${isActive ? 'text-green-400' : 'text-gray-500'}`}>
+                      {isActive ? 'ACTIVE' : model.provider}
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         );
@@ -341,6 +362,7 @@ const GoalCommandCenter: React.FC<{
 }> = ({ goals, onSubmit, isSubmitting, isReady }) => {
   const [input, setInput] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [expandedGoalId, setExpandedGoalId] = useState<string | null>(null);
 
   const suggestions = [
     'Add dark mode toggle to settings',
@@ -426,36 +448,100 @@ const GoalCommandCenter: React.FC<{
         <AnimatePresence>
           {goals.map((goal) => {
             const status = statusConfig[goal.status] || statusConfig.pending;
+            const isExpanded = expandedGoalId === goal.id;
+            const hasOutput = goal.output || goal.dqScore;
+
             return (
               <motion.div
                 key={goal.id}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 20 }}
-                className={`p-3 rounded-xl border bg-black/20 border-${status.color}-500/30`}
+                className={`rounded-xl border bg-black/20 border-${status.color}-500/30 overflow-hidden`}
               >
-                <div className="flex items-start gap-3">
-                  <div className={`mt-1 text-${status.color}-400`}>{status.icon}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-white">{goal.text}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                      <span>Complexity: {(goal.metadata?.complexity * 100 || 0).toFixed(0)}%</span>
-                      <span>{goal.metadata?.priority || 'normal'}</span>
-                    </div>
-                    {goal.metadata?.estimatedSubsystems?.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
-                        {goal.metadata.estimatedSubsystems.map((sub: string) => (
-                          <span
-                            key={sub}
-                            className="px-2 py-0.5 rounded text-xs bg-white/5 text-gray-400"
-                          >
-                            {sub}
-                          </span>
-                        ))}
+                {/* Goal Header - Clickable */}
+                <button
+                  onClick={() => hasOutput && setExpandedGoalId(isExpanded ? null : goal.id)}
+                  className={`w-full p-3 text-left ${hasOutput ? 'cursor-pointer hover:bg-white/5' : ''} transition-colors`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className={`mt-1 text-${status.color}-400`}>{status.icon}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white">{goal.text}</p>
+                      <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                        <span>Complexity: {(goal.metadata?.complexity * 100 || 0).toFixed(0)}%</span>
+                        <span>{goal.metadata?.priority || 'normal'}</span>
+                        {goal.dqScore && (
+                          <span className="text-green-400">DQ: {(goal.dqScore * 100).toFixed(0)}%</span>
+                        )}
+                        {goal.executionTimeMs && (
+                          <span>{(goal.executionTimeMs / 1000).toFixed(1)}s</span>
+                        )}
                       </div>
+                      {goal.metadata?.estimatedSubsystems?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {goal.metadata.estimatedSubsystems.map((sub: string) => (
+                            <span
+                              key={sub}
+                              className="px-2 py-0.5 rounded text-xs bg-white/5 text-gray-400"
+                            >
+                              {sub}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    {/* Expand indicator */}
+                    {hasOutput && (
+                      <motion.div
+                        animate={{ rotate: isExpanded ? 90 : 0 }}
+                        className="text-gray-500"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </motion.div>
                     )}
                   </div>
-                </div>
+                </button>
+
+                {/* Expandable Output Section */}
+                <AnimatePresence>
+                  {isExpanded && goal.output && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: 'auto', opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="border-t border-white/10"
+                    >
+                      <div className="p-3 bg-black/30">
+                        {/* Execution Info */}
+                        <div className="flex items-center gap-4 mb-3 text-xs">
+                          {goal.subsystemUsed && (
+                            <span className="px-2 py-1 rounded bg-purple-500/20 text-purple-400">
+                              {goal.subsystemUsed}
+                            </span>
+                          )}
+                          {goal.dqScore && (
+                            <span className="px-2 py-1 rounded bg-green-500/20 text-green-400">
+                              DQ Score: {(goal.dqScore * 100).toFixed(1)}%
+                            </span>
+                          )}
+                          {goal.executionTimeMs && (
+                            <span className="text-gray-500">
+                              Executed in {(goal.executionTimeMs / 1000).toFixed(2)}s
+                            </span>
+                          )}
+                        </div>
+                        {/* Output Content */}
+                        <div className="bg-black/40 rounded-lg p-3 max-h-48 overflow-y-auto">
+                          <pre className="text-xs text-gray-300 whitespace-pre-wrap font-mono">
+                            {goal.output}
+                          </pre>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             );
           })}
@@ -539,6 +625,7 @@ const ArchonDashboard: React.FC = () => {
     telemetry,
     models,
     stats,
+    activeModelId,
     processGoal,
     reset,
   } = useArchon();
@@ -790,12 +877,26 @@ const ArchonDashboard: React.FC = () => {
                   <Bot className="w-5 h-5 text-blue-400" />
                   Model Fleet
                 </h2>
-                <span className="text-xs text-gray-500">
-                  {models.filter((m: any) => m.available).length} active
-                </span>
+                <div className="flex items-center gap-2 text-xs">
+                  {activeModelId ? (
+                    <motion.span
+                      className="text-green-400 font-medium"
+                      animate={{ opacity: [1, 0.5, 1] }}
+                      transition={{ repeat: Infinity, duration: 1 }}
+                    >
+                      1 running
+                    </motion.span>
+                  ) : (
+                    <span className="text-gray-500">
+                      {models.filter((m: any) => m.available).length} ready
+                    </span>
+                  )}
+                  <span className="text-gray-600">/</span>
+                  <span className="text-gray-500">{models.length} total</span>
+                </div>
               </div>
               <div className="h-[calc(100%-3rem)] overflow-y-auto">
-                <ModelOrchestrationPanel models={models} />
+                <ModelOrchestrationPanel models={models} activeModelId={activeModelId} />
               </div>
             </HoloCard>
           </div>

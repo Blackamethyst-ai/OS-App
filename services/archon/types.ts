@@ -23,6 +23,11 @@ export interface Goal {
   createdAt: number;
   completedAt?: number;
   metadata: GoalMetadata;
+  // Execution results
+  output?: string;           // Generated output from subsystems
+  dqScore?: number;          // Final DQ score
+  subsystemUsed?: string;    // Which subsystem handled the goal
+  executionTimeMs?: number;  // How long execution took
 }
 
 export interface GoalMetadata {

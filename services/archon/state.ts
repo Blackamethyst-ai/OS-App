@@ -121,6 +121,10 @@ const createInitialTelemetry = (): TelemetryData => ({
 // =============================================================================
 
 interface ArchonStore extends ArchonState {
+  // Active model tracking
+  activeModelId: string | null;
+  setActiveModel: (modelId: string | null) => void;
+
   // Phase transitions
   setPhase: (phase: ArchonPhase) => void;
 
@@ -170,6 +174,10 @@ export const useArchonStore = create<ArchonStore>()(
       patterns: [],
       config: DEFAULT_ARCHON_CONFIG,
       telemetry: createInitialTelemetry(),
+      activeModelId: null,
+
+      // Active model tracking
+      setActiveModel: (modelId) => set({ activeModelId: modelId }),
 
       // Phase transitions
       setPhase: (phase) => set({ phase }),
@@ -384,6 +392,7 @@ export const useArchonStore = create<ArchonStore>()(
           resources: createInitialTokenBudget(DEFAULT_ARCHON_CONFIG),
           patterns: [], // Preserve patterns for learning
           telemetry: createInitialTelemetry(),
+          activeModelId: null,
         });
       },
     }),
