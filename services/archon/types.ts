@@ -30,6 +30,7 @@ export interface GoalMetadata {
   estimatedSubsystems: SubsystemType[];
   priority: Priority;
   source: 'user' | 'decomposition' | 'self-questioning';
+  context?: string;          // Optional context/input for the goal
 }
 
 export interface GoalTree {
