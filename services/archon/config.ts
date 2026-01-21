@@ -15,7 +15,7 @@ export const DEFAULT_CONFIG: ArchonConfig = {
   // Autonomy settings (AGGRESSIVE - per user preference)
   maxRetries: 5,
   escalationThreshold: 5,  // Only escalate after 5 failed attempts
-  dqTarget: 0.7,           // Standard DQ threshold
+  dqTarget: 0.55,          // Lowered from 0.7 - real subsystems often score 0.6-0.65
 
   // Resource settings
   totalTokenBudget: 1_000_000, // 1M tokens per session

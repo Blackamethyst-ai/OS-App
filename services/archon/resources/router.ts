@@ -44,12 +44,13 @@ interface RouterConfig {
 }
 
 const DEFAULT_ROUTER_CONFIG: RouterConfig = {
-  preferQualityOverCost: true, // Performance-first
+  preferQualityOverCost: true, // Performance-first (always flagship)
 
+  // Set all to 0 to always use flagship models (user preference: best quality)
   complexityThresholds: {
-    simple: 0.3,
-    moderate: 0.6,
-    complex: 0.8,
+    simple: 0,    // Never use fast tier
+    moderate: 0,  // Never use standard tier
+    complex: 0,   // Always use flagship tier
   },
 
   taskModelPreferences: {

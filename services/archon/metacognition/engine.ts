@@ -388,10 +388,10 @@ export class MetaCognitionEngine {
   }
 
   /**
-   * List all available models
+   * List all models (both available and unavailable for UI display)
    */
   listModels(): ModelInfo[] {
-    return this.registry.getAvailableModels();
+    return this.registry.getAllModels();
   }
 
   /**

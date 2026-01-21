@@ -357,6 +357,13 @@ export class ModelRegistry {
   }
 
   /**
+   * Get all models (including unavailable) for UI display
+   */
+  getAllModels(): ModelInfo[] {
+    return Array.from(this.models.values());
+  }
+
+  /**
    * Get models by provider
    */
   getModelsByProvider(provider: ModelProvider): ModelInfo[] {

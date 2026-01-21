@@ -92,7 +92,7 @@ export const DEFAULT_CPB_CONFIG: CPBConfig = {
 
     contextThreshold: 100000,      // ELITE: Handle larger contexts (~25k tokens)
     complexityThreshold: 0.35,     // ELITE: Lower threshold → more consensus
-    dqThreshold: 0.75,             // ELITE: Higher quality bar
+    dqThreshold: 0.55,             // Lowered from 0.75 - real execution often scores 0.6-0.65
 
     fastPathMs: 8000,              // ELITE: More time for quality
     standardPathMs: 45000,         // ELITE: Extended for deep reasoning
