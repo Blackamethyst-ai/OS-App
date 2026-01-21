@@ -55,6 +55,7 @@ import MasterStabilizationProtocol from './components/MasterStabilizationProtoco
 
 const NAV_CONFIG = [
     { id: AppMode.METAVENTIONS_HUB, label: 'ECOSYSTEM', path: '/metaventions-hub' },
+    { id: AppMode.ARCHON, label: 'ARCHON', path: '/archon' },
     { id: AppMode.BIBLIOMORPHIC, label: 'RESEARCH', path: '/bibliomorphic' },
     { id: AppMode.PROCESS_MAP, label: 'TOPOLOGY', path: '/process' },
     { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance' },

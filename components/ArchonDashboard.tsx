@@ -535,6 +535,7 @@ const ArchonDashboard: React.FC = () => {
     isReady,
     phase,
     activeGoals,
+    allGoals, // New: includes all goals from store
     telemetry,
     models,
     stats,
@@ -543,7 +544,6 @@ const ArchonDashboard: React.FC = () => {
   } = useArchon();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [recentGoals, setRecentGoals] = useState<any[]>([]);
   const [events, setEvents] = useState<StreamEvent[]>([]);
   const [isPaused, setIsPaused] = useState(false);
 
@@ -578,8 +578,8 @@ const ArchonDashboard: React.FC = () => {
 
       setIsSubmitting(true);
       try {
-        const goal = await processGoal(goalText);
-        setRecentGoals((prev) => [goal, ...prev].slice(0, 20));
+        await processGoal(goalText);
+        // Goals are automatically added to the store and will appear via allGoals
       } catch (error) {
         console.error('Failed to process goal:', error);
       } finally {
@@ -589,10 +589,8 @@ const ArchonDashboard: React.FC = () => {
     [isReady, processGoal]
   );
 
-  const allGoals = [
-    ...activeGoals,
-    ...recentGoals.filter((rg) => !activeGoals.find((ag) => ag.id === rg.id)),
-  ];
+  // Use allGoals from the hook (includes all goals sorted by creation time)
+  const displayGoals = allGoals || [];
 
   const phases = [
     { id: 'idle', label: 'Idle', icon: <Clock className="w-5 h-5" /> },
@@ -710,11 +708,11 @@ const ArchonDashboard: React.FC = () => {
                   Mission Control
                 </h2>
                 <span className="text-xs text-gray-500 px-2 py-1 rounded-full bg-white/5">
-                  {allGoals.length} missions
+                  {displayGoals.length} missions
                 </span>
               </div>
               <GoalCommandCenter
-                goals={allGoals}
+                goals={displayGoals}
                 onSubmit={handleSubmitGoal}
                 isSubmitting={isSubmitting}
                 isReady={isReady}
