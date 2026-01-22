@@ -359,6 +359,9 @@ DO NOT say "insufficient data" - use the codebase context provided above to give
   return '';
 }
 
+// Export codebase knowledge for use by other systems (voice, etc.)
+export { CODEBASE_KNOWLEDGE, buildCodebaseContext };
+
 /**
  * Main ARCHON controller class
  *
