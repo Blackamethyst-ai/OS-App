@@ -70,6 +70,52 @@ const switchAgentTool: FunctionDeclaration = {
     }
 };
 
+const executeActionTool: FunctionDeclaration = {
+    name: "execute_component_action",
+    description: "Execute a registered UI action. Use this to interact with UI elements like submitting forms, running queries, generating content, etc. First call get_available_actions to see what actions are available in the current view.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action_id: { type: Type.STRING, description: "The ID of the action to execute (from available_actions list)" },
+            args: { type: Type.OBJECT, description: "Arguments to pass to the action (varies by action type)" }
+        },
+        required: ["action_id"]
+    }
+};
+
+const getAvailableActionsTool: FunctionDeclaration = {
+    name: "get_available_actions",
+    description: "Get a list of all available UI actions in the current view. Call this before execute_component_action to know what actions you can perform.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {},
+        required: []
+    }
+};
+
+const inputTextTool: FunctionDeclaration = {
+    name: "input_text",
+    description: "Input text into a specific UI field. Use this when the user asks you to type, enter, or input text into a form field, text area, or input box.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            field_id: { type: Type.STRING, description: "The ID or name of the input field (e.g., 'mission-objective', 'query-input', 'directive-input')" },
+            text: { type: Type.STRING, description: "The text to input into the field" }
+        },
+        required: ["field_id", "text"]
+    }
+};
+
+const getUIContextTool: FunctionDeclaration = {
+    name: "get_ui_context",
+    description: "Get the current UI state including visible data, available actions, and input fields. Use this to understand what you can interact with.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {},
+        required: []
+    }
+};
+
 const VoiceManager: React.FC = () => {
     const {
         voice, voiceNexus: nexusState, actions,
@@ -77,7 +123,7 @@ const VoiceManager: React.FC = () => {
     } = useAppStore();
     const { setVoiceState, setVoiceNexusState, setMode, addLog } = actions;
 
-    const { currentLocation } = useSystemMind();
+    const { currentLocation, getSnapshot, executeAction, actionRegistry, activeTelemetry } = useSystemMind();
     const connectionAttemptRef = useRef(false);
     const lastConnectedNameRef = useRef<string | null>(null);
     const partialTranscriptRef = useRef<string>("");
@@ -85,6 +131,11 @@ const VoiceManager: React.FC = () => {
 
     useEffect(() => {
         liveSession.onToolCall = async (name, args) => {
+            // Debug logging for tool calls
+            if (import.meta.env.DEV) {
+                console.log('[VoiceManager] Tool Invoked:', { name, args });
+            }
+
             if (name === 'navigate_to_sector') {
                 const target = (args.target_sector as string || '').toUpperCase() as AppMode;
 
@@ -136,6 +187,71 @@ const VoiceManager: React.FC = () => {
             if (name === 'switch_agent') {
                 // Handled via onAgentSwitch event, but return confirming status
                 return { status: "HANDOVER_INITIATED", target: args.agentName };
+            }
+
+            if (name === 'execute_component_action') {
+                const actionId = args.action_id as string;
+                const actionArgs = args.args || {};
+                addLog('SYSTEM', `VOICE_EXECUTIVE: Executing action [${actionId}]...`);
+
+                try {
+                    const result = await executeAction(actionId, actionArgs);
+                    addLog('SUCCESS', `VOICE_EXECUTIVE: Action [${actionId}] completed.`);
+                    audio.playSuccess();
+                    return { status: "ACTION_EXECUTED", actionId, result };
+                } catch (e: any) {
+                    addLog('ERROR', `VOICE_EXECUTIVE: Action [${actionId}] failed: ${e.message}`);
+                    return { error: e.message, actionId };
+                }
+            }
+
+            if (name === 'get_available_actions') {
+                const snapshot = getSnapshot();
+                addLog('SYSTEM', `VOICE_EXECUTIVE: ${snapshot.available_actions.length} actions available.`);
+                return {
+                    status: "OK",
+                    current_sector: snapshot.current_location,
+                    available_actions: snapshot.available_actions,
+                    hint: "Use execute_component_action with an action_id to perform an action"
+                };
+            }
+
+            if (name === 'input_text') {
+                const fieldId = args.field_id as string;
+                const text = args.text as string;
+                addLog('SYSTEM', `VOICE_EXECUTIVE: Inputting text to [${fieldId}]...`);
+
+                // Try to find and fill the input element
+                const input = document.querySelector(`[data-voice-id="${fieldId}"], #${fieldId}, [name="${fieldId}"], textarea[placeholder*="${fieldId}" i], input[placeholder*="${fieldId}" i]`) as HTMLInputElement | HTMLTextAreaElement;
+
+                if (input) {
+                    input.value = text;
+                    input.dispatchEvent(new Event('input', { bubbles: true }));
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                    addLog('SUCCESS', `VOICE_EXECUTIVE: Text input to [${fieldId}] complete.`);
+                    audio.playClick();
+                    return { status: "TEXT_INPUT_COMPLETE", fieldId, textLength: text.length };
+                } else {
+                    // Check if there's an action registered for this input
+                    const inputAction = Object.keys(actionRegistry).find(k =>
+                        k.includes(fieldId) || k.includes('input') || k.includes('set')
+                    );
+                    if (inputAction) {
+                        await executeAction(inputAction, { text, value: text });
+                        return { status: "TEXT_INPUT_VIA_ACTION", actionUsed: inputAction };
+                    }
+                    addLog('WARN', `VOICE_EXECUTIVE: Input field [${fieldId}] not found.`);
+                    return { error: `Input field "${fieldId}" not found`, suggestion: "Try get_available_actions to see available inputs" };
+                }
+            }
+
+            if (name === 'get_ui_context') {
+                const snapshot = getSnapshot();
+                return {
+                    status: "OK",
+                    ...snapshot,
+                    hint: "Use execute_component_action or input_text to interact with the UI"
+                };
             }
 
             return { error: "Unknown executive protocol." };
@@ -215,21 +331,39 @@ const VoiceManager: React.FC = () => {
             const systemContext = getFullSystemContext();
 
             // Build rich context with UI knowledge, codebase awareness, and current state
+            // Get available actions from SystemMind
+            const snapshot = getSnapshot();
+            const availableActionsText = snapshot.available_actions.length > 0
+                ? snapshot.available_actions.map((a: any) => `• ${a.id}: ${a.description}`).join('\n')
+                : '(No actions registered in current view)';
+
             const sharedContext = `
 === VOICE CORE EXECUTIVE CONTEXT ===
 
 OS_STATUS: Active in sector [${currentLocation || currentMode || 'HUB'}]
-DOMAINS: Full UI Sector Control + Codebase Awareness authorized
-DIRECTIVE: You are an executive-tier OS assistant with deep knowledge of the Metaventions OS codebase and all UI features.
-- Explain any feature, component, or sector when asked
-- Navigate users using voice commands
-- Answer questions about the codebase architecture
-- Provide implementation guidance when needed
+DOMAINS: Full UI Sector Control + Codebase Awareness + UI Interaction
+DIRECTIVE: You are an executive-tier OS assistant with DIRECT UI CONTROL capabilities.
+
+CRITICAL UI INTERACTION RULES:
+1. When user asks to "input text" or "type" or "enter" something into a field, use the input_text tool
+2. When user asks to "run", "execute", "submit", or trigger something, use execute_component_action
+3. ALWAYS call get_available_actions FIRST to see what you can do in the current view
+4. If an input field isn't found, suggest available actions that might help
+
+CAPABILITIES:
+- Navigate to any sector using navigate_to_sector
+- Input text into fields using input_text
+- Execute UI actions using execute_component_action
+- Get available actions using get_available_actions
+- Get full UI context using get_ui_context
 
 MENTAL_STATE: DNA weights S:${voice.mentalState.skepticism}, E:${voice.mentalState.excitement}, A:${voice.mentalState.alignment}
 
 === CURRENT SECTOR ===
 ${sectorContext}
+
+=== AVAILABLE ACTIONS IN THIS VIEW ===
+${availableActionsText}
 
 === FULL SYSTEM KNOWLEDGE ===
 ${systemContext}
@@ -249,17 +383,36 @@ ${Object.entries(CODEBASE_KNOWLEDGE.subsystems).map(([name, info]: [string, any]
                 await liveSession.primeAudio();
                 await liveSession.connect(agentName, {
                     systemInstruction: constructHiveContext(agentId, sharedContext, voice.mentalState),
-                    tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool, switchAgentTool] }],
+                    tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool, switchAgentTool, executeActionTool, getAvailableActionsTool, inputTextTool, getUIContextTool] }],
                     outputAudioTranscription: {},
                     inputAudioTranscription: {},
                     callbacks: {
                         onmessage: async (message: LiveServerMessage) => {
+                            // Debug logging for transcript analysis
+                            if (import.meta.env.DEV) {
+                                console.log('[VoiceManager] Message:', {
+                                    hasToolCall: !!message.toolCall,
+                                    hasOutputTranscript: !!message.serverContent?.outputTranscription,
+                                    hasInputTranscript: !!message.serverContent?.inputTranscription,
+                                    turnComplete: !!message.serverContent?.turnComplete
+                                });
+                                if (message.toolCall) {
+                                    console.log('[VoiceManager] Tool Call:', message.toolCall.functionCalls?.map(fc => ({ name: fc.name, args: fc.args })));
+                                }
+                            }
+
                             if (message.serverContent?.outputTranscription) {
                                 partialTranscriptRef.current += message.serverContent.outputTranscription.text;
                                 setVoiceState({ partialTranscript: { role: 'model', text: partialTranscriptRef.current } });
+                                if (import.meta.env.DEV) {
+                                    console.log('[VoiceManager] Model:', message.serverContent.outputTranscription.text);
+                                }
                             } else if (message.serverContent?.inputTranscription) {
                                 partialTranscriptRef.current += message.serverContent.inputTranscription.text;
                                 setVoiceState({ partialTranscript: { role: 'user', text: partialTranscriptRef.current } });
+                                if (import.meta.env.DEV) {
+                                    console.log('[VoiceManager] User:', message.serverContent.inputTranscription.text);
+                                }
 
                                 // Analyze complexity for hybrid mode routing display
                                 const complexity = analyzeComplexity(partialTranscriptRef.current);
@@ -275,6 +428,9 @@ ${Object.entries(CODEBASE_KNOWLEDGE.subsystems).map(([name, info]: [string, any]
                             if (message.serverContent?.turnComplete) {
                                 const finalText = partialTranscriptRef.current;
                                 if (finalText) {
+                                    if (import.meta.env.DEV) {
+                                        console.log('[VoiceManager] Turn Complete:', { role: voice.partialTranscript?.role, text: finalText });
+                                    }
                                     setVoiceState(prev => ({
                                         transcripts: [...prev.transcripts, { role: prev.partialTranscript?.role || 'user', text: finalText, timestamp: Date.now() }],
                                         partialTranscript: null
