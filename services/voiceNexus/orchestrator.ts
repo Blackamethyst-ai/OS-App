@@ -27,10 +27,12 @@ import type { HiveAgent, MentalState } from '../../types/domain/agents';
 
 // Providers
 import { geminiLiveSTT } from './providers/stt/geminiLive';
+import { browserSTT } from './providers/stt/browserSTT';
 import { claudeReasoning } from './providers/reasoning/claudeReasoning';
 import { geminiReasoning } from './providers/reasoning/geminiReasoning';
 import { elevenLabsTTS } from './providers/tts/elevenLabsTTS';
 import { browserTTS } from './providers/tts/browserTTS';
+import type { STTProvider } from './types';
 
 // Utilities
 import { analyzeComplexity, hasExplicitOverride, formatComplexityResult } from './complexityRouter';
@@ -74,18 +76,22 @@ export class VoiceNexusOrchestrator {
     private events: VoiceNexusEvents;
     private transcripts: Transcript[] = [];
     private toolHandler: VoiceToolHandler | null = null;
+    private sttProvider: STTProvider;
 
     constructor(options: Partial<VoiceNexusOptions> = {}) {
         this.config = { ...DEFAULT_CONFIG, ...options.config };
         this.events = options.events || {};
         this.toolHandler = options.events?.onToolCall || null;
 
+        // Select STT provider based on config and availability
+        this.sttProvider = this.selectSTTProvider();
+
         this.state = {
             mode: this.config.mode,
             isActive: false,
             isProcessing: false,
             currentProvider: {
-                stt: this.config.sttProvider,
+                stt: this.sttProvider.name === 'browser-stt' ? 'browser' : this.config.sttProvider,
                 reasoning: this.config.reasoningProvider,
                 tts: this.config.ttsProvider,
             },
@@ -94,6 +100,47 @@ export class VoiceNexusOrchestrator {
             knowledgeContext: null,
             error: null,
         };
+    }
+
+    /**
+     * Select the best available STT provider
+     */
+    private selectSTTProvider(): STTProvider {
+        // If browser is explicitly requested, use it
+        if (this.config.sttProvider === 'browser') {
+            console.log('VoiceNexus: Using browser STT (configured)');
+            return browserSTT;
+        }
+
+        // If Gemini is requested and available, use it
+        if (this.config.sttProvider === 'gemini' && geminiLiveSTT.isAvailable()) {
+            console.log('VoiceNexus: Using Gemini Live STT');
+            return geminiLiveSTT;
+        }
+
+        // Fallback to browser STT
+        if (browserSTT.isAvailable()) {
+            console.log('VoiceNexus: Falling back to browser STT');
+            return browserSTT;
+        }
+
+        // Last resort: return Gemini even if not available (will error on use)
+        console.warn('VoiceNexus: No STT provider available');
+        return geminiLiveSTT;
+    }
+
+    /**
+     * Get the current STT provider
+     */
+    getSTTProvider(): STTProvider {
+        return this.sttProvider;
+    }
+
+    /**
+     * Check if browser STT is being used
+     */
+    isUsingBrowserSTT(): boolean {
+        return this.sttProvider.name === 'browser-stt';
     }
 
     // =========================================================================
@@ -113,8 +160,12 @@ export class VoiceNexusOrchestrator {
             this.state.isActive = true;
             this.state.error = null;
 
-            if (this.config.mode === 'realtime') {
+            // Determine which mode to use
+            if (this.config.mode === 'realtime' && !this.isUsingBrowserSTT()) {
                 await this.startRealtimeMode();
+            } else if (this.isUsingBrowserSTT()) {
+                // Browser STT mode - works without Gemini
+                await this.startBrowserMode();
             } else {
                 // For turn-based and hybrid, we still use Gemini Live for STT
                 // but route the response through different providers
@@ -132,7 +183,14 @@ export class VoiceNexusOrchestrator {
      * Stop the voice session
      */
     stop(): void {
+        // Stop browser STT if active
+        if (this.isUsingBrowserSTT() && browserSTT.isCurrentlyStreaming()) {
+            browserSTT.stopStreaming().catch(console.error);
+        }
+
+        // Stop Gemini Live session
         liveSession.disconnect();
+
         this.state.isActive = false;
         this.state.isProcessing = false;
     }
@@ -291,6 +349,13 @@ export class VoiceNexusOrchestrator {
      * Start hybrid mode (Gemini STT → Claude/Gemini → ElevenLabs)
      */
     private async startHybridMode(): Promise<void> {
+        // Check if we should use browser STT instead
+        if (this.isUsingBrowserSTT()) {
+            console.log('VoiceNexus: Using browser STT for hybrid mode');
+            await this.startBrowserMode();
+            return;
+        }
+
         // For hybrid mode, we use Gemini Live for STT only
         // Then route through the complexity router for reasoning
         const systemPrompt = `You are a voice assistant. Your ONLY job is to listen and transcribe what the user says.
@@ -315,6 +380,55 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
                     this.state.isActive = false;
                 },
             },
+        });
+    }
+
+    /**
+     * Start browser mode (Web Speech API STT → Claude/Gemini → ElevenLabs)
+     * Used when Gemini Live is unavailable or browser STT is preferred
+     */
+    private async startBrowserMode(): Promise<void> {
+        if (!browserSTT.isAvailable()) {
+            throw new Error('Browser STT (Web Speech API) is not available in this browser');
+        }
+
+        console.log('VoiceNexus: Starting browser STT mode');
+        this.state.currentProvider.stt = 'browser';
+        this.events.onProviderSwitch?.({ stt: 'browser' });
+
+        let lastProcessedTranscript = '';
+        let processingTimeout: NodeJS.Timeout | null = null;
+
+        await browserSTT.startStreaming((transcript) => {
+            // Emit partial transcript
+            this.events.onPartialTranscript?.({ role: 'user', text: transcript });
+
+            // Clear previous processing timeout
+            if (processingTimeout) {
+                clearTimeout(processingTimeout);
+            }
+
+            // Wait for pause in speech before processing (debounce)
+            processingTimeout = setTimeout(async () => {
+                // Only process if transcript changed significantly
+                if (transcript.length > lastProcessedTranscript.length + 5) {
+                    const newText = transcript.slice(lastProcessedTranscript.length).trim();
+
+                    if (newText.length > 3) {
+                        // Create user transcript
+                        const userTranscript = this.createTranscript('user', newText);
+                        this.addTranscript(userTranscript);
+
+                        // Process through reasoning pipeline
+                        try {
+                            await this.processText(newText);
+                            lastProcessedTranscript = transcript;
+                        } catch (error) {
+                            console.error('VoiceNexus: Error processing browser transcript:', error);
+                        }
+                    }
+                }
+            }, 1500); // 1.5 second pause triggers processing
         });
     }
 
