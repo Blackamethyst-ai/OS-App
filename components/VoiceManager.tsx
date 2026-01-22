@@ -11,6 +11,8 @@ import { OS_TOOLS } from '../services/toolRegistry';
 import { AppMode } from '../types';
 import { FunctionDeclaration, Type, LiveServerMessage } from '@google/genai';
 import { audio } from '../services/audioService';
+import { CODEBASE_KNOWLEDGE, buildCodebaseContext } from '../services/archon';
+import { getFullSystemContext, getSectorContext } from '../services/voiceUIContext';
 
 const navigateTool: FunctionDeclaration = {
     name: 'navigate_to_sector',
@@ -206,14 +208,42 @@ const VoiceManager: React.FC = () => {
             const thisSessionVersion = sessionVersionRef.current;
             const agentName = name || 'Puck';
             const agentId = Object.keys(HIVE_AGENTS).find(k => HIVE_AGENTS[k].name === agentName) || 'Puck';
+
+            // Get the current mode from the store for sector-specific context
+            const currentMode = useAppStore.getState().mode;
+            const sectorContext = getSectorContext(currentMode);
+            const systemContext = getFullSystemContext();
+
+            // Build rich context with UI knowledge, codebase awareness, and current state
             const sharedContext = `
-                OS_STATUS: Node monitoring sector [${currentLocation || 'HUB'}].
-                DOMAINS: Full UI Sector Control authorized.
-                OPERATIONAL_PRIORITY: Synchronous user assistance.
-                DIRECTIVE: You are an executive-tier OS assistant. Respond quickly and use tools to drive the UI whenever navigation or synthesis is requested.
-                NAV_COHERENCE: User-facing labels are: ECOSYSTEM (Dashboard), RESEARCH (Lab), TOPOLOGY (Process Map), TREASURY (Finance), LOGIC (Code Studio), SWARM (Agent Control), MEMORY (Vault), CINEMA (Image Gen), HARDWARE (Infra), VOICE CORE (Voice Mode), SYNTHESIS (Bridge), NEXUS.
-                MENTAL_STATE: Your current DNA weights are S:${voice.mentalState.skepticism}, E:${voice.mentalState.excitement}, A:${voice.mentalState.alignment}.
-             `;
+=== VOICE CORE EXECUTIVE CONTEXT ===
+
+OS_STATUS: Active in sector [${currentLocation || currentMode || 'HUB'}]
+DOMAINS: Full UI Sector Control + Codebase Awareness authorized
+DIRECTIVE: You are an executive-tier OS assistant with deep knowledge of the Metaventions OS codebase and all UI features.
+- Explain any feature, component, or sector when asked
+- Navigate users using voice commands
+- Answer questions about the codebase architecture
+- Provide implementation guidance when needed
+
+MENTAL_STATE: DNA weights S:${voice.mentalState.skepticism}, E:${voice.mentalState.excitement}, A:${voice.mentalState.alignment}
+
+=== CURRENT SECTOR ===
+${sectorContext}
+
+=== FULL SYSTEM KNOWLEDGE ===
+${systemContext}
+
+=== CODEBASE ARCHITECTURE ===
+Structure: ${Object.entries(CODEBASE_KNOWLEDGE.structure).map(([k, v]) => `${k}: ${v}`).join(' | ')}
+
+Key Subsystems:
+${Object.entries(CODEBASE_KNOWLEDGE.subsystems).map(([name, info]: [string, any]) =>
+  `• ${name.toUpperCase()}: ${info.description} (Files: ${info.files.slice(0, 2).join(', ')})`
+).join('\n')}
+
+=== END CONTEXT ===
+            `;
 
             try {
                 await liveSession.primeAudio();
