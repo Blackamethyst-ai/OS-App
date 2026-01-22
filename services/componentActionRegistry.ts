@@ -11,7 +11,7 @@ import { useSystemMind } from '../stores/useSystemMind';
 import { useAppStore } from '../store';
 import { AppMode, AppTheme } from '../types';
 import * as gemini from './geminiService';
-import { neuralVault } from './neuralVault';
+import { neuralVault } from './persistenceService';
 import { selfEvolution } from './selfEvolution';
 import { convergenceMemory } from './convergenceMemory';
 import { audio } from './audioService';
