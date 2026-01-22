@@ -247,9 +247,60 @@ const VoiceManager: React.FC = () => {
             }
 
             if (name === 'execute_component_action') {
-                const actionId = args.action_id as string;
+                let actionId = args.action_id as string;
                 const actionArgs = args.args || {};
                 addLog('SYSTEM', `VOICE_EXECUTIVE: Executing action [${actionId}]...`);
+
+                // Check if action exists directly
+                const actionExists = !!actionRegistry[actionId];
+
+                // If not found, try fuzzy matching
+                if (!actionExists) {
+                    const normalized = actionId.toLowerCase().replace(/[-_\s]/g, '');
+                    const allActionIds = Object.keys(actionRegistry);
+
+                    // Try exact normalized match first
+                    let matchedId = allActionIds.find(key => {
+                        const keyNorm = key.toLowerCase().replace(/[-_\s]/g, '');
+                        return keyNorm === normalized;
+                    });
+
+                    // Try partial match if no exact match
+                    if (!matchedId) {
+                        matchedId = allActionIds.find(key => {
+                            const keyNorm = key.toLowerCase().replace(/[-_\s]/g, '');
+                            return keyNorm.includes(normalized) || normalized.includes(keyNorm);
+                        });
+                    }
+
+                    // Try matching individual words
+                    if (!matchedId) {
+                        const words = actionId.toLowerCase().split(/[-_\s]+/).filter(w => w.length > 2);
+                        matchedId = allActionIds.find(key => {
+                            const keyLower = key.toLowerCase();
+                            return words.every(word => keyLower.includes(word));
+                        });
+                    }
+
+                    if (matchedId) {
+                        addLog('SYSTEM', `VOICE_EXECUTIVE: Fuzzy matched [${actionId}] → [${matchedId}]`);
+                        actionId = matchedId;
+                    } else {
+                        // Suggest similar actions
+                        const suggestions = allActionIds
+                            .filter(k => {
+                                const kLower = k.toLowerCase();
+                                return normalized.split('').some(char => kLower.includes(char));
+                            })
+                            .slice(0, 5);
+                        addLog('WARN', `VOICE_EXECUTIVE: Action [${args.action_id}] not found. Suggestions: ${suggestions.join(', ')}`);
+                        return {
+                            error: `Action "${args.action_id}" not found`,
+                            suggestions,
+                            hint: "Call get_available_actions to see all available actions"
+                        };
+                    }
+                }
 
                 try {
                     const result = await executeAction(actionId, actionArgs);
