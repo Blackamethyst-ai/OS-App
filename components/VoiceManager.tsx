@@ -79,6 +79,7 @@ const VoiceManager: React.FC = () => {
     const connectionAttemptRef = useRef(false);
     const lastConnectedNameRef = useRef<string | null>(null);
     const partialTranscriptRef = useRef<string>("");
+    const sessionVersionRef = useRef(0); // Guards against stale callbacks
 
     useEffect(() => {
         liveSession.onToolCall = async (name, args) => {
@@ -201,6 +202,8 @@ const VoiceManager: React.FC = () => {
         };
 
         const initiateConnection = async (name: string, retryCount = 0) => {
+            sessionVersionRef.current += 1;
+            const thisSessionVersion = sessionVersionRef.current;
             const agentName = name || 'Puck';
             const agentId = Object.keys(HIVE_AGENTS).find(k => HIVE_AGENTS[k].name === agentName) || 'Puck';
             const sharedContext = `
@@ -251,23 +254,25 @@ const VoiceManager: React.FC = () => {
                             }
                         },
                         onopen: () => {
-                            if (mounted) {
-                                setVoiceState({ isConnecting: false });
-                                addLog('SUCCESS', `VOICE_CORE: Neural handshake finalized.`);
-                                lastConnectedNameRef.current = name;
-                            }
+                            // Ignore stale callbacks from old sessions
+                            if (!mounted || sessionVersionRef.current !== thisSessionVersion) return;
+                            setVoiceState({ isConnecting: false });
+                            addLog('SUCCESS', `VOICE_CORE: Neural handshake finalized.`);
+                            lastConnectedNameRef.current = name;
                         },
                         onerror: (err: any) => {
+                            // Ignore stale callbacks from old sessions
+                            if (sessionVersionRef.current !== thisSessionVersion) return;
                             connectionAttemptRef.current = false;
                             setVoiceState({ isActive: false, isConnecting: false });
                             lastConnectedNameRef.current = null;
                         },
                         onclose: () => {
-                            if (mounted) {
-                                connectionAttemptRef.current = false;
-                                setVoiceState({ isActive: false, isConnecting: false });
-                                lastConnectedNameRef.current = null;
-                            }
+                            // Ignore stale callbacks from old sessions
+                            if (!mounted || sessionVersionRef.current !== thisSessionVersion) return;
+                            connectionAttemptRef.current = false;
+                            setVoiceState({ isActive: false, isConnecting: false });
+                            lastConnectedNameRef.current = null;
                         }
                     }
                 });
