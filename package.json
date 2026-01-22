@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "sync:lattice": "tsx scripts/sync_code_graph.ts",
-    "scan:codebase": "node scripts/scan-codebase-voice.js ./ --output ./public/codebase_graph.json",
+    "scan:codebase": "node scripts/scan-codebase-voice.cjs ./ --output ./public/codebase_graph.json",
     "prebuild": "npm run scan:codebase",
     "start": "serve -s dist -l 8080",
     "test": "vitest",
