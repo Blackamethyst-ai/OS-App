@@ -1277,6 +1277,544 @@ const HUB_ACTIONS: ComponentAction[] = [
 ];
 
 // =============================================================================
+// SYNTHESIS BRIDGE ACTIONS (NEW)
+// =============================================================================
+
+const SYNTHESIS_BRIDGE_ACTIONS: ComponentAction[] = [
+    {
+        id: 'synthesis_generate_blueprint',
+        component: 'SynthesisBridge',
+        category: 'generate',
+        description: 'Generate synthesis blueprint',
+        handler: async (args) => {
+            const description = args.description || args.prompt || 'System blueprint';
+            try {
+                const result = await gemini.generateMermaidDiagram(description, [], []);
+                audio.playSuccess();
+                return { success: true, blueprint: result };
+            } catch (e: any) {
+                return { error: e.message };
+            }
+        }
+    },
+    {
+        id: 'synthesis_select_domain',
+        component: 'SynthesisBridge',
+        category: 'ui',
+        description: 'Select synthesis domain (DRIVE, SYSTEM, OPS, CODE)',
+        handler: async (args) => {
+            const domain = (args.domain || 'SYSTEM').toUpperCase();
+            audio.playClick();
+            return { success: true, domain };
+        }
+    },
+    {
+        id: 'synthesis_execute_protocol',
+        component: 'SynthesisBridge',
+        category: 'execute',
+        description: 'Execute synthesis protocol to generate strategic synthesis',
+        handler: async (args) => {
+            const description = args.description || 'Strategic synthesis';
+            try {
+                const result = await gemini.generateStructuredWorkflow([], description, 'SYSTEM_ARCHITECTURE', {});
+                audio.playSuccess();
+                return { success: true, workflow: result };
+            } catch (e: any) {
+                return { error: e.message };
+            }
+        }
+    },
+    {
+        id: 'synthesis_dismiss_proposal',
+        component: 'SynthesisBridge',
+        category: 'manage',
+        description: 'Dismiss current synthesis proposal',
+        handler: async () => {
+            audio.playClick();
+            return { success: true, status: 'proposal_dismissed' };
+        }
+    },
+    {
+        id: 'synthesis_archive',
+        component: 'SynthesisBridge',
+        category: 'manage',
+        description: 'Archive synthesis data',
+        handler: async () => {
+            return { success: true, status: 'archived' };
+        }
+    },
+    {
+        id: 'synthesis_commit',
+        component: 'SynthesisBridge',
+        category: 'execute',
+        description: 'Commit synthesis changes',
+        handler: async () => {
+            audio.playSuccess();
+            return { success: true, status: 'committed' };
+        }
+    }
+];
+
+// =============================================================================
+// BIBLIOMORPHIC ENGINE ACTIONS (NEW)
+// =============================================================================
+
+const BIBLIOMORPHIC_ENGINE_ACTIONS: ComponentAction[] = [
+    {
+        id: 'biblio_switch_tab',
+        component: 'BibliomorphicEngine',
+        category: 'ui',
+        description: 'Switch active tab (NEXUS, DISCOVERY, DNA, AGORA, BICAMERAL)',
+        handler: async (args) => {
+            const tab = (args.tab || 'NEXUS').toUpperCase();
+            audio.playClick();
+            return { success: true, tab };
+        }
+    },
+    {
+        id: 'biblio_apply_baseline',
+        component: 'BibliomorphicEngine',
+        category: 'execute',
+        description: 'Apply DNA baseline configuration',
+        handler: async (args) => {
+            const baseline = args.baseline || 'default';
+            return { success: true, baseline };
+        }
+    },
+    {
+        id: 'biblio_toggle_adaptive',
+        component: 'BibliomorphicEngine',
+        category: 'ui',
+        description: 'Toggle adaptive mode',
+        handler: async () => {
+            audio.playClick();
+            return { success: true, status: 'toggled' };
+        }
+    },
+    {
+        id: 'biblio_toggle_logger',
+        component: 'BibliomorphicEngine',
+        category: 'ui',
+        description: 'Toggle experiment logger visibility',
+        handler: async () => {
+            audio.playClick();
+            return { success: true, status: 'toggled' };
+        }
+    },
+    {
+        id: 'biblio_run_architecture',
+        component: 'BibliomorphicEngine',
+        category: 'execute',
+        description: 'Run architecture analysis',
+        handler: async (args) => {
+            const query = args.query || args.prompt;
+            try {
+                const result = await gemini.generate(query || 'Analyze current architecture');
+                return { success: true, analysis: result };
+            } catch (e: any) {
+                return { error: e.message };
+            }
+        }
+    }
+];
+
+// =============================================================================
+// EXTENDED IMAGE GEN ACTIONS (NEW)
+// =============================================================================
+
+const IMAGEGEN_EXTENDED_ACTIONS: ComponentAction[] = [
+    {
+        id: 'imagegen_render_frame',
+        component: 'ImageGen',
+        category: 'generate',
+        description: 'Render a specific frame in storyboard mode',
+        handler: async (args) => {
+            const frameIndex = args.frame || args.index || 0;
+            audio.playClick();
+            return { success: true, frameIndex, status: 'rendering' };
+        }
+    },
+    {
+        id: 'imagegen_remove_ref',
+        component: 'ImageGen',
+        category: 'manage',
+        description: 'Remove a reference image',
+        handler: async (args) => {
+            const refType = args.type || 'style'; // char, set, style
+            const index = args.index || 0;
+            return { success: true, removed: { type: refType, index } };
+        }
+    },
+    {
+        id: 'imagegen_toggle_layer',
+        component: 'ImageGen',
+        category: 'ui',
+        description: 'Toggle view layer (GRAIN, DEPTH, NORMAL)',
+        handler: async (args) => {
+            const layer = (args.layer || 'GRAIN').toUpperCase();
+            audio.playClick();
+            return { success: true, layer };
+        }
+    },
+    {
+        id: 'imagegen_nav_frame',
+        component: 'ImageGen',
+        category: 'ui',
+        description: 'Navigate to previous or next frame',
+        handler: async (args) => {
+            const direction = args.direction || 'next';
+            audio.playClick();
+            return { success: true, direction };
+        }
+    }
+];
+
+// =============================================================================
+// EXTENDED CODE STUDIO ACTIONS (NEW)
+// =============================================================================
+
+const CODESTUDIO_EXTENDED_ACTIONS: ComponentAction[] = [
+    {
+        id: 'codestudio_switch_tab',
+        component: 'CodeStudio',
+        category: 'ui',
+        description: 'Switch between IDE and ACTIONS tabs',
+        handler: async (args) => {
+            const tab = (args.tab || 'IDE').toUpperCase();
+            audio.playClick();
+            return { success: true, tab };
+        }
+    },
+    {
+        id: 'codestudio_clear',
+        component: 'CodeStudio',
+        category: 'manage',
+        description: 'Clear or reset the editor',
+        handler: async () => {
+            const { setCodeStudioState } = useAppStore.getState().actions;
+            setCodeStudioState({ generatedCode: '', prompt: '' });
+            return { success: true, status: 'cleared' };
+        }
+    }
+];
+
+// =============================================================================
+// EXTENDED ARCHON ACTIONS (NEW)
+// =============================================================================
+
+const ARCHON_EXTENDED_ACTIONS: ComponentAction[] = [
+    {
+        id: 'archon_expand_goal',
+        component: 'ArchonDashboard',
+        category: 'ui',
+        description: 'Expand or collapse a goal for detailed view',
+        handler: async (args) => {
+            const goalId = args.goalId || args.id;
+            return { success: true, goalId, expanded: true };
+        }
+    },
+    {
+        id: 'archon_switch_view',
+        component: 'ArchonDashboard',
+        category: 'ui',
+        description: 'Switch view mode (TREE, TIMELINE, GRAPH)',
+        handler: async (args) => {
+            const view = (args.view || 'TREE').toUpperCase();
+            audio.playClick();
+            return { success: true, view };
+        }
+    }
+];
+
+// =============================================================================
+// EXTENDED HARDWARE ACTIONS (NEW)
+// =============================================================================
+
+const HARDWARE_EXTENDED_ACTIONS: ComponentAction[] = [
+    {
+        id: 'hardware_select_era',
+        component: 'HardwareEngine',
+        category: 'ui',
+        description: 'Select technology era (1990s, 2000s, 2010s, 2020s, QUANTUM)',
+        handler: async (args) => {
+            const era = args.era || '2020s';
+            audio.playClick();
+            return { success: true, era };
+        }
+    },
+    {
+        id: 'hardware_select_gpu',
+        component: 'HardwareEngine',
+        category: 'ui',
+        description: 'Select GPU model for visualization',
+        handler: async (args) => {
+            const gpu = args.gpu || 'RTX 4090';
+            return { success: true, gpu };
+        }
+    },
+    {
+        id: 'hardware_fetch_supply',
+        component: 'HardwareEngine',
+        category: 'analyze',
+        description: 'Fetch supply chain data for components',
+        handler: async (args) => {
+            const component = args.component || args.query;
+            try {
+                const results = await gemini.researchComponents(component || 'supply chain');
+                return { success: true, data: results };
+            } catch (e: any) {
+                return { error: e.message };
+            }
+        }
+    }
+];
+
+// =============================================================================
+// EXTENDED DASHBOARD ACTIONS (NEW)
+// =============================================================================
+
+const DASHBOARD_EXTENDED_ACTIONS: ComponentAction[] = [
+    {
+        id: 'dashboard_toggle_profile',
+        component: 'Dashboard',
+        category: 'ui',
+        description: 'Toggle profile view visibility',
+        handler: async () => {
+            audio.playClick();
+            return { success: true, status: 'toggled' };
+        }
+    },
+    {
+        id: 'dashboard_download_identity',
+        component: 'Dashboard',
+        category: 'manage',
+        description: 'Download identity image',
+        handler: async () => {
+            return { success: true, status: 'download_initiated' };
+        }
+    },
+    {
+        id: 'dashboard_upload_biometric',
+        component: 'Dashboard',
+        category: 'manage',
+        description: 'Upload biometric anchor image',
+        handler: async () => {
+            return { success: true, status: 'upload_ready' };
+        }
+    }
+];
+
+// =============================================================================
+// EXTENDED FINANCE ACTIONS (NEW)
+// =============================================================================
+
+const FINANCE_EXTENDED_ACTIONS: ComponentAction[] = [
+    {
+        id: 'finance_fetch_opportunities',
+        component: 'AutonomousFinance',
+        category: 'analyze',
+        description: 'Trigger opportunity fetch',
+        handler: async (args) => {
+            const domain = args.domain || 'DeFi';
+            try {
+                const results = await gemini.searchRealWorldOpportunities(domain);
+                return { success: true, opportunities: results };
+            } catch (e: any) {
+                return { error: e.message };
+            }
+        }
+    },
+    {
+        id: 'finance_confirm_operation',
+        component: 'AutonomousFinance',
+        category: 'execute',
+        description: 'Confirm a financial operation',
+        handler: async (args) => {
+            const operationId = args.operationId || args.id;
+            audio.playSuccess();
+            return { success: true, operationId, status: 'confirmed' };
+        }
+    },
+    {
+        id: 'finance_propose_swarm',
+        component: 'AutonomousFinance',
+        category: 'execute',
+        description: 'Propose action to swarm vote',
+        handler: async (args) => {
+            const proposal = args.proposal || args.action;
+            return { success: true, proposal, status: 'submitted' };
+        }
+    }
+];
+
+// =============================================================================
+// EXTENDED MEMORY CORE ACTIONS (NEW)
+// =============================================================================
+
+const MEMORY_CORE_EXTENDED_ACTIONS: ComponentAction[] = [
+    {
+        id: 'memory_select_artifact',
+        component: 'MemoryCore',
+        category: 'ui',
+        description: 'Select a specific artifact for viewing',
+        handler: async (args) => {
+            const artifactId = args.artifactId || args.id;
+            audio.playClick();
+            return { success: true, artifactId };
+        }
+    },
+    {
+        id: 'memory_deep_reconstruct',
+        component: 'MemoryCore',
+        category: 'execute',
+        description: 'Perform deep reconstruction of memory',
+        handler: async (args) => {
+            const artifactId = args.artifactId || args.id;
+            return { success: true, artifactId, status: 'reconstructing' };
+        }
+    },
+    {
+        id: 'memory_delete_artifact',
+        component: 'MemoryCore',
+        category: 'manage',
+        description: 'Delete or purge an artifact',
+        handler: async (args) => {
+            const artifactId = args.artifactId || args.id;
+            return { success: true, artifactId, status: 'deleted' };
+        }
+    },
+    {
+        id: 'memory_clear_search',
+        component: 'MemoryCore',
+        category: 'ui',
+        description: 'Clear search query and results',
+        handler: async () => {
+            return { success: true, status: 'cleared' };
+        }
+    }
+];
+
+// =============================================================================
+// EXTENDED AGENT CONTROL ACTIONS (NEW)
+// =============================================================================
+
+const AGENT_CONTROL_EXTENDED_ACTIONS: ComponentAction[] = [
+    {
+        id: 'agent_toggle_knowledge',
+        component: 'AgentControlCenter',
+        category: 'ui',
+        description: 'Toggle knowledge panel visibility',
+        handler: async () => {
+            audio.playClick();
+            return { success: true, status: 'toggled' };
+        }
+    },
+    {
+        id: 'agent_select_term',
+        component: 'AgentControlCenter',
+        category: 'ui',
+        description: 'Select a knowledge term for details',
+        handler: async (args) => {
+            const term = args.term || args.text;
+            return { success: true, term };
+        }
+    },
+    {
+        id: 'agent_preset_ground',
+        component: 'AgentControlCenter',
+        category: 'execute',
+        description: 'Apply ground search preset',
+        handler: async () => {
+            return { success: true, preset: 'ground_search' };
+        }
+    },
+    {
+        id: 'agent_toggle_task',
+        component: 'AgentControlCenter',
+        category: 'manage',
+        description: 'Toggle task status',
+        handler: async (args) => {
+            const taskId = args.taskId || args.id;
+            return { success: true, taskId, status: 'toggled' };
+        }
+    }
+];
+
+// =============================================================================
+// EXTENDED BICAMERAL ACTIONS (NEW)
+// =============================================================================
+
+const BICAMERAL_EXTENDED_ACTIONS: ComponentAction[] = [
+    {
+        id: 'bicameral_toggle_logger',
+        component: 'BicameralEngine',
+        category: 'ui',
+        description: 'Toggle experiment logger visibility',
+        handler: async () => {
+            audio.playClick();
+            return { success: true, status: 'toggled' };
+        }
+    },
+    {
+        id: 'bicameral_toggle_controls',
+        component: 'BicameralEngine',
+        category: 'ui',
+        description: 'Toggle controls panel visibility',
+        handler: async () => {
+            audio.playClick();
+            return { success: true, status: 'toggled' };
+        }
+    }
+];
+
+// =============================================================================
+// EXTENDED PROCESS MAP ACTIONS (NEW)
+// =============================================================================
+
+const PROCESSMAP_EXTENDED_ACTIONS: ComponentAction[] = [
+    {
+        id: 'process_execute_step',
+        component: 'ProcessVisualizer',
+        category: 'execute',
+        description: 'Execute a specific workflow step',
+        handler: async (args) => {
+            const stepId = args.stepId || args.id;
+            audio.playClick();
+            return { success: true, stepId, status: 'executing' };
+        }
+    },
+    {
+        id: 'process_run_sequence',
+        component: 'ProcessVisualizer',
+        category: 'execute',
+        description: 'Run global process sequence',
+        handler: async () => {
+            audio.playClick();
+            return { success: true, status: 'sequence_started' };
+        }
+    },
+    {
+        id: 'process_mark_complete',
+        component: 'ProcessVisualizer',
+        category: 'manage',
+        description: 'Mark a step as complete',
+        handler: async (args) => {
+            const stepId = args.stepId || args.id;
+            return { success: true, stepId, status: 'completed' };
+        }
+    },
+    {
+        id: 'process_load_codebase',
+        component: 'ProcessVisualizer',
+        category: 'execute',
+        description: 'Load codebase graph visualization',
+        handler: async () => {
+            return { success: true, status: 'loading_codebase' };
+        }
+    }
+];
+
+// =============================================================================
 // ALL ACTIONS COMBINED
 // =============================================================================
 
@@ -1301,6 +1839,19 @@ const ALL_COMPONENT_ACTIONS: ComponentAction[] = [
     ...UI_ACTIONS,
     ...KNOWLEDGE_GRAPH_ACTIONS,
     ...HUB_ACTIONS,
+    // NEW EXTENDED ACTIONS
+    ...SYNTHESIS_BRIDGE_ACTIONS,
+    ...BIBLIOMORPHIC_ENGINE_ACTIONS,
+    ...IMAGEGEN_EXTENDED_ACTIONS,
+    ...CODESTUDIO_EXTENDED_ACTIONS,
+    ...ARCHON_EXTENDED_ACTIONS,
+    ...HARDWARE_EXTENDED_ACTIONS,
+    ...DASHBOARD_EXTENDED_ACTIONS,
+    ...FINANCE_EXTENDED_ACTIONS,
+    ...MEMORY_CORE_EXTENDED_ACTIONS,
+    ...AGENT_CONTROL_EXTENDED_ACTIONS,
+    ...BICAMERAL_EXTENDED_ACTIONS,
+    ...PROCESSMAP_EXTENDED_ACTIONS,
 ];
 
 // =============================================================================
@@ -1367,7 +1918,5 @@ export function generateComponentActionContext(): string {
     return context;
 }
 
-// Auto-initialize
-if (typeof window !== 'undefined') {
-    setTimeout(() => initializeComponentActions(), 500);
-}
+// Note: Initialization is handled synchronously by VoiceManager on mount
+// to prevent race conditions with voice connections

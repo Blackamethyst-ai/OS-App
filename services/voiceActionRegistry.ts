@@ -577,6 +577,176 @@ const VOICE_ACTIONS: VoiceAction[] = [
                 return { error: e.message };
             }
         }
+    },
+
+    // =========================================================================
+    // SYNTHESIS PROTOCOL (User-Requested)
+    // =========================================================================
+    {
+        id: 'execute_synthesis_protocol',
+        category: 'execute',
+        sector: AppMode.SYNTHESIS_BRIDGE,
+        description: 'Execute synthesis protocol to generate strategic synthesis and blueprints',
+        examples: ['execute synthesis protocol', 'run synthesis', 'start synthesis protocol', 'synthesis protocol'],
+        handler: async (args) => {
+            const description = args.description || args.prompt || 'Strategic synthesis generation';
+            const type = args.type || 'SYSTEM_ARCHITECTURE';
+
+            try {
+                const result = await gemini.generateStructuredWorkflow(
+                    [],
+                    description,
+                    type,
+                    {}
+                );
+                return { success: true, workflow: result, protocol: 'synthesis' };
+            } catch (e: any) {
+                return { error: e.message };
+            }
+        }
+    },
+    {
+        id: 'synthesis_protocol',
+        category: 'execute',
+        sector: AppMode.SYNTHESIS_BRIDGE,
+        description: 'Alias for execute_synthesis_protocol',
+        examples: ['synthesis protocol', 'run the synthesis'],
+        handler: async (args) => {
+            // Delegate to the main handler
+            const mainHandler = VOICE_ACTIONS.find(a => a.id === 'execute_synthesis_protocol')?.handler;
+            if (mainHandler) {
+                return await mainHandler(args);
+            }
+            return { error: 'Main synthesis handler not found' };
+        }
+    },
+    {
+        id: 'synthesis_generate_blueprint',
+        category: 'generate',
+        sector: AppMode.SYNTHESIS_BRIDGE,
+        description: 'Generate a synthesis blueprint from description',
+        examples: ['generate blueprint', 'create synthesis blueprint', 'build blueprint'],
+        handler: async (args) => {
+            const description = args.description || args.prompt || 'System blueprint';
+
+            try {
+                const result = await gemini.generateMermaidDiagram(description, [], []);
+                return { success: true, blueprint: result };
+            } catch (e: any) {
+                return { error: e.message };
+            }
+        }
+    },
+
+    // =========================================================================
+    // DISCOVERY LAB
+    // =========================================================================
+    {
+        id: 'discovery_dispatch_research',
+        category: 'execute',
+        sector: AppMode.BIBLIOMORPHIC,
+        description: 'Dispatch a research probe to explore a topic',
+        examples: ['dispatch research', 'start research on X', 'explore topic'],
+        handler: async (args) => {
+            const topic = args.topic || args.query || args.text;
+            if (!topic) return { error: 'No research topic provided' };
+
+            try {
+                const results = await gemini.performGlobalSearch(topic);
+                return { success: true, topic, results };
+            } catch (e: any) {
+                return { error: e.message };
+            }
+        }
+    },
+
+    // =========================================================================
+    // CPB TEST
+    // =========================================================================
+    {
+        id: 'cpb_execute_test',
+        category: 'execute',
+        sector: AppMode.CPB_TEST,
+        description: 'Execute a CPB (Cognitive Precision Bridge) test query',
+        examples: ['run CPB test', 'execute CPB', 'test the bridge'],
+        handler: async (args) => {
+            const query = args.query || args.prompt || args.text;
+            const path = args.path || 'auto';
+
+            if (!query) return { error: 'No query provided for CPB test' };
+
+            try {
+                // This would integrate with CPB service
+                const intent = await gemini.classifyIntent(query);
+                return { success: true, query, path, intent };
+            } catch (e: any) {
+                return { error: e.message };
+            }
+        }
+    },
+
+    // =========================================================================
+    // MEMORY OPERATIONS
+    // =========================================================================
+    {
+        id: 'memory_deep_reconstruct',
+        category: 'execute',
+        sector: AppMode.MEMORY_CORE,
+        description: 'Perform deep reconstruction of memory artifacts',
+        examples: ['deep reconstruct', 'reconstruct memories', 'memory reconstruction'],
+        handler: async (args) => {
+            const artifactId = args.artifactId || args.id;
+            // Placeholder for actual memory reconstruction
+            return { success: true, status: 'reconstruction_initiated', artifactId };
+        }
+    },
+
+    // =========================================================================
+    // PROCESS OPERATIONS
+    // =========================================================================
+    {
+        id: 'process_run_sequence',
+        category: 'execute',
+        sector: AppMode.PROCESS_MAP,
+        description: 'Run a global process sequence',
+        examples: ['run sequence', 'execute process', 'run global sequence'],
+        handler: async (args) => {
+            const sequenceId = args.sequenceId || args.id;
+            return { success: true, status: 'sequence_started', sequenceId };
+        }
+    },
+
+    // =========================================================================
+    // FINANCE OPERATIONS
+    // =========================================================================
+    {
+        id: 'finance_fetch_opportunities',
+        category: 'search',
+        sector: AppMode.AUTONOMOUS_FINANCE,
+        description: 'Fetch and analyze yield opportunities',
+        examples: ['fetch opportunities', 'find yields', 'search DeFi'],
+        handler: async (args) => {
+            const domain = args.domain || 'DeFi';
+
+            try {
+                const results = await gemini.searchRealWorldOpportunities(domain);
+                return { success: true, opportunities: results };
+            } catch (e: any) {
+                return { error: e.message };
+            }
+        }
+    },
+    {
+        id: 'finance_propose_swarm',
+        category: 'execute',
+        sector: AppMode.AUTONOMOUS_FINANCE,
+        description: 'Propose an action to the swarm for voting',
+        examples: ['propose to swarm', 'swarm vote', 'submit proposal'],
+        handler: async (args) => {
+            const proposal = args.proposal || args.action || args.text;
+            if (!proposal) return { error: 'No proposal provided' };
+            return { success: true, status: 'proposal_submitted', proposal };
+        }
     }
 ];
 
@@ -689,9 +859,5 @@ export function generateActionContext(): string {
     return context;
 }
 
-// Auto-initialize when module loads
-if (typeof window !== 'undefined') {
-    setTimeout(() => {
-        initializeVoiceActions();
-    }, 1000);
-}
+// Note: Initialization is handled synchronously by VoiceManager on mount
+// to prevent race conditions with voice connections

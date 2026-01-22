@@ -278,6 +278,7 @@ export function scanInteractiveElements(): VoiceSnapshot {
 
 /**
  * Fill an input element by ID or fuzzy match
+ * Uses multiple strategies to ensure React state updates correctly
  */
 export function fillInput(identifier: string, text: string): { success: boolean; element?: string; error?: string } {
     const snapshot = scanInteractiveElements();
@@ -303,19 +304,95 @@ export function fillInput(identifier: string, text: string): { success: boolean;
     if (target) {
         const el = target.element as HTMLInputElement | HTMLTextAreaElement;
         el.focus();
-        el.value = text;
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
 
-        // Also try to trigger React's synthetic events
+        // Strategy 1: Try to access React fiber and call onChange directly
+        // This is the most reliable way to update React controlled inputs
+        const reactKey = Object.keys(el).find(k =>
+            k.startsWith('__reactFiber$') ||
+            k.startsWith('__reactInternalInstance$') ||
+            k.startsWith('__reactProps$')
+        );
+
+        if (reactKey) {
+            try {
+                // Try to find the props with onChange handler
+                const propsKey = Object.keys(el).find(k => k.startsWith('__reactProps$'));
+                if (propsKey) {
+                    const props = (el as any)[propsKey];
+                    if (props?.onChange) {
+                        // Create a synthetic-like event object
+                        const syntheticEvent = {
+                            target: { value: text, name: el.name || el.id },
+                            currentTarget: { value: text, name: el.name || el.id },
+                            type: 'change',
+                            bubbles: true,
+                            cancelable: true,
+                            defaultPrevented: false,
+                            eventPhase: 3,
+                            isTrusted: true,
+                            nativeEvent: new Event('input'),
+                            preventDefault: () => {},
+                            stopPropagation: () => {},
+                            persist: () => {}
+                        };
+
+                        // Call React's onChange directly
+                        props.onChange(syntheticEvent);
+
+                        // Also set the DOM value for visual feedback
+                        el.value = text;
+
+                        return { success: true, element: target.label };
+                    }
+                }
+            } catch (e) {
+                // Fall through to other strategies
+                console.debug('[UniversalVoice] React fiber strategy failed, trying alternatives');
+            }
+        }
+
+        // Strategy 2: Use native value setter to bypass React's controlled input restrictions
+        // This tricks React into thinking the value was set natively
         const nativeInputValueSetter = Object.getOwnPropertyDescriptor(
             target.type === 'textarea' ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype,
             'value'
         )?.set;
+
         if (nativeInputValueSetter) {
+            // Set value using native setter
             nativeInputValueSetter.call(el, text);
-            el.dispatchEvent(new Event('input', { bubbles: true }));
+
+            // Create and dispatch InputEvent (more compatible with React 16+)
+            const inputEvent = new InputEvent('input', {
+                bubbles: true,
+                cancelable: true,
+                inputType: 'insertText',
+                data: text
+            });
+            el.dispatchEvent(inputEvent);
+
+            // Also dispatch change event for form validation
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+
+            return { success: true, element: target.label };
         }
+
+        // Strategy 3: Fallback - simulate keyboard input with execCommand
+        // This is a last resort but can work for some inputs
+        try {
+            el.focus();
+            el.select(); // Select all existing text
+            document.execCommand('insertText', false, text);
+            return { success: true, element: target.label };
+        } catch (e) {
+            // execCommand might not be supported
+        }
+
+        // Strategy 4: Direct assignment with multiple event dispatches
+        el.value = text;
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        el.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true }));
 
         return { success: true, element: target.label };
     }
