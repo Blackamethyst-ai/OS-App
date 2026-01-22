@@ -18,6 +18,7 @@ import HelpCenter from './components/HelpCenter';
 import ThemeSwitcher from './components/ThemeSwitcher';
 import ResearchTray from './components/ResearchTray';
 import VoiceManager from './components/VoiceManager';
+import VoiceCoreManager from './components/VoiceCoreManager';
 import VoiceCoreOverlay from './components/VoiceCoreOverlay';
 import UserProfileOverlay from './components/UserProfileOverlay';
 import VisualCortexOverlay from './components/VisualCortexOverlay';
@@ -429,6 +430,7 @@ const App: React.FC = () => {
                         <OverlayOS />
                         <HoloProjector />
                         <VoiceManager />
+                        <VoiceCoreManager showDebug={import.meta.env.DEV} />
                         {/* DreamProtocolWidget is now integrated into GlobalStatusBar pill */}
 
                         {/* API Key Configuration Modal */}
