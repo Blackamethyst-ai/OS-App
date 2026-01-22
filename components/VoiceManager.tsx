@@ -16,6 +16,7 @@ import { getFullSystemContext, getSectorContext } from '../services/voiceUIConte
 import { universalVoice, fillInput, clickButton, selectOption, scanInteractiveElements } from '../services/universalVoiceHooks';
 import { initializeVoiceActions, generateActionContext, getVoiceActions } from '../services/voiceActionRegistry';
 import { initializeComponentActions, generateComponentActionContext } from '../services/componentActionRegistry';
+import { navigateToTab, generateTabContext, parseTabNavigation, TAB_REGISTRY } from '../services/tabNavigationRegistry';
 
 const navigateTool: FunctionDeclaration = {
     name: 'navigate_to_sector',
@@ -151,6 +152,18 @@ const scanUITool: FunctionDeclaration = {
         type: Type.OBJECT,
         properties: {},
         required: []
+    }
+};
+
+const navigateToTabTool: FunctionDeclaration = {
+    name: "navigate_to_tab",
+    description: "Navigate to a specific tab or subtab within any sector. Use this for precise tab navigation like 'go to Nexus', 'open the cascade tab', 'show DNA builder'. This handles all tabs, subtabs, and sector navigation automatically.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            query: { type: Type.STRING, description: "Natural language navigation query (e.g., 'nexus', 'cascade in CPB', 'DNA tab', 'discovery lab')" }
+        },
+        required: ["query"]
     }
 };
 
@@ -327,6 +340,35 @@ const VoiceManager: React.FC = () => {
                 };
             }
 
+            if (name === 'navigate_to_tab') {
+                const query = args.query as string;
+                addLog('SYSTEM', `VOICE_EXECUTIVE: Parsing tab navigation for "${query}"...`);
+
+                const result = navigateToTab(query);
+
+                if (result.success) {
+                    addLog('SUCCESS', `VOICE_EXECUTIVE: Navigated to ${result.sectorLabel} > ${result.tabLabel}${result.subtabLabel ? ` > ${result.subtabLabel}` : ''}`);
+                    audio.playTransition();
+                    return {
+                        status: "TAB_NAVIGATION_COMPLETE",
+                        sector: result.sector,
+                        sectorLabel: result.sectorLabel,
+                        tab: result.tab,
+                        tabLabel: result.tabLabel,
+                        subtab: result.subtab,
+                        subtabLabel: result.subtabLabel,
+                        route: result.route
+                    };
+                } else {
+                    addLog('WARN', `VOICE_EXECUTIVE: ${result.error}`);
+                    return {
+                        error: result.error,
+                        suggestions: result.suggestions,
+                        hint: "Available tabs: Nexus, Discovery, DNA, Agora, Bicameral, IDE, Actions, Cascade, ACE, RLM, and more. Say 'go to [tab name]' or '[sector] [tab]'."
+                    };
+                }
+            }
+
             if (name === 'get_ui_context') {
                 const snapshot = getSnapshot();
                 return {
@@ -439,9 +481,18 @@ UNIVERSAL UI CONTROL (you can interact with ANY element):
 - input_text: Fill ANY text input or textarea
 - click_element: Click ANY button, tab, or link
 - select_option: Select from ANY dropdown
-- navigate_to_sector: Navigate to any app sector
+- navigate_to_sector: Navigate to any app sector (use for major sector changes)
+- navigate_to_tab: Navigate to specific tabs/subtabs within sectors (use for precise tab navigation like "nexus", "cascade", "discovery")
 - execute_component_action: Trigger registered component actions
 - get_ui_context: Get full UI state snapshot
+
+TAB NAVIGATION (use navigate_to_tab for precise navigation):
+- "go to nexus" → Nexus Matrix (API explorer)
+- "open cascade" → CPB > Cascade tab
+- "discovery lab" → Research > Discovery Lab
+- "show DNA builder" → Research > DNA Builder
+- "bicameral" → Research > Bicameral Swarm
+- "yield operations" → Treasury > Yield Operations
 
 WORKFLOW FOR UI REQUESTS:
 1. User says "enter text X" → call input_text with field identifier and text
@@ -476,6 +527,8 @@ ${generateActionContext()}
 Every UI component action, organized by component:
 ${generateComponentActionContext()}
 
+${generateTabContext(currentMode)}
+
 === END CONTEXT ===
             `;
 
@@ -483,7 +536,7 @@ ${generateComponentActionContext()}
                 await liveSession.primeAudio();
                 await liveSession.connect(agentName, {
                     systemInstruction: constructHiveContext(agentId, sharedContext, voice.mentalState),
-                    tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool, switchAgentTool, executeActionTool, getAvailableActionsTool, inputTextTool, getUIContextTool, clickElementTool, selectOptionTool, scanUITool] }],
+                    tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool, switchAgentTool, executeActionTool, getAvailableActionsTool, inputTextTool, getUIContextTool, clickElementTool, selectOptionTool, scanUITool, navigateToTabTool] }],
                     outputAudioTranscription: {},
                     inputAudioTranscription: {},
                     callbacks: {
