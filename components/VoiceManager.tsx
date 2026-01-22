@@ -15,6 +15,7 @@ import { CODEBASE_KNOWLEDGE, buildCodebaseContext } from '../services/archon';
 import { getFullSystemContext, getSectorContext } from '../services/voiceUIContext';
 import { universalVoice, fillInput, clickButton, selectOption, scanInteractiveElements } from '../services/universalVoiceHooks';
 import { initializeVoiceActions, generateActionContext, getVoiceActions } from '../services/voiceActionRegistry';
+import { initializeComponentActions, generateComponentActionContext } from '../services/componentActionRegistry';
 
 const navigateTool: FunctionDeclaration = {
     name: 'navigate_to_sector',
@@ -166,9 +167,10 @@ const VoiceManager: React.FC = () => {
     const partialTranscriptRef = useRef<string>("");
     const sessionVersionRef = useRef(0); // Guards against stale callbacks
 
-    // Initialize voice actions on mount
+    // Initialize all voice and component actions on mount
     useEffect(() => {
         initializeVoiceActions();
+        initializeComponentActions();
     }, []);
 
     useEffect(() => {
@@ -469,6 +471,10 @@ ${Object.entries(CODEBASE_KNOWLEDGE.subsystems).map(([name, info]: [string, any]
 === SEMANTIC VOICE ACTIONS ===
 Use execute_component_action with these IDs for complex operations:
 ${generateActionContext()}
+
+=== COMPONENT-SPECIFIC ACTIONS ===
+Every UI component action, organized by component:
+${generateComponentActionContext()}
 
 === END CONTEXT ===
             `;
