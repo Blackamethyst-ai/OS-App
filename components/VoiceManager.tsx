@@ -13,6 +13,7 @@ import { FunctionDeclaration, Type, LiveServerMessage } from '@google/genai';
 import { audio } from '../services/audioService';
 import { CODEBASE_KNOWLEDGE, buildCodebaseContext } from '../services/archon';
 import { getFullSystemContext, getSectorContext } from '../services/voiceUIContext';
+import { universalVoice, fillInput, clickButton, selectOption, scanInteractiveElements } from '../services/universalVoiceHooks';
 
 const navigateTool: FunctionDeclaration = {
     name: 'navigate_to_sector',
@@ -109,6 +110,41 @@ const inputTextTool: FunctionDeclaration = {
 const getUIContextTool: FunctionDeclaration = {
     name: "get_ui_context",
     description: "Get the current UI state including visible data, available actions, and input fields. Use this to understand what you can interact with.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {},
+        required: []
+    }
+};
+
+const clickElementTool: FunctionDeclaration = {
+    name: "click_element",
+    description: "Click any button, tab, or link in the UI. Use this when user asks to click, press, activate, run, submit, or trigger something.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            target: { type: Type.STRING, description: "The button/tab/link to click (by label, ID, or description)" }
+        },
+        required: ["target"]
+    }
+};
+
+const selectOptionTool: FunctionDeclaration = {
+    name: "select_option",
+    description: "Select an option from a dropdown menu.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            dropdown: { type: Type.STRING, description: "The dropdown to select from (by label or ID)" },
+            option: { type: Type.STRING, description: "The option to select (by text or value)" }
+        },
+        required: ["dropdown", "option"]
+    }
+};
+
+const scanUITool: FunctionDeclaration = {
+    name: "scan_ui",
+    description: "Scan the current view and return ALL interactive elements (inputs, buttons, tabs, links, dropdowns). Use this to discover what you can interact with.",
     parameters: {
         type: Type.OBJECT,
         properties: {},
@@ -221,18 +257,15 @@ const VoiceManager: React.FC = () => {
                 const text = args.text as string;
                 addLog('SYSTEM', `VOICE_EXECUTIVE: Inputting text to [${fieldId}]...`);
 
-                // Try to find and fill the input element
-                const input = document.querySelector(`[data-voice-id="${fieldId}"], #${fieldId}, [name="${fieldId}"], textarea[placeholder*="${fieldId}" i], input[placeholder*="${fieldId}" i]`) as HTMLInputElement | HTMLTextAreaElement;
+                // Use universal voice service for robust input handling
+                const result = fillInput(fieldId, text);
 
-                if (input) {
-                    input.value = text;
-                    input.dispatchEvent(new Event('input', { bubbles: true }));
-                    input.dispatchEvent(new Event('change', { bubbles: true }));
-                    addLog('SUCCESS', `VOICE_EXECUTIVE: Text input to [${fieldId}] complete.`);
+                if (result.success) {
+                    addLog('SUCCESS', `VOICE_EXECUTIVE: Text input to [${result.element}] complete.`);
                     audio.playClick();
-                    return { status: "TEXT_INPUT_COMPLETE", fieldId, textLength: text.length };
+                    return { status: "TEXT_INPUT_COMPLETE", element: result.element, textLength: text.length };
                 } else {
-                    // Check if there's an action registered for this input
+                    // Fallback: Check if there's an action registered for this input
                     const inputAction = Object.keys(actionRegistry).find(k =>
                         k.includes(fieldId) || k.includes('input') || k.includes('set')
                     );
@@ -240,9 +273,50 @@ const VoiceManager: React.FC = () => {
                         await executeAction(inputAction, { text, value: text });
                         return { status: "TEXT_INPUT_VIA_ACTION", actionUsed: inputAction };
                     }
-                    addLog('WARN', `VOICE_EXECUTIVE: Input field [${fieldId}] not found.`);
-                    return { error: `Input field "${fieldId}" not found`, suggestion: "Try get_available_actions to see available inputs" };
+                    addLog('WARN', `VOICE_EXECUTIVE: ${result.error}`);
+                    return { error: result.error, suggestion: "Try get_ui_context to see available inputs" };
                 }
+            }
+
+            if (name === 'click_element') {
+                const target = args.target as string || args.button as string || args.element as string;
+                addLog('SYSTEM', `VOICE_EXECUTIVE: Clicking [${target}]...`);
+
+                const result = clickButton(target);
+                if (result.success) {
+                    addLog('SUCCESS', `VOICE_EXECUTIVE: Clicked [${result.element}].`);
+                    audio.playClick();
+                    return { status: "CLICK_COMPLETE", element: result.element };
+                } else {
+                    addLog('WARN', `VOICE_EXECUTIVE: ${result.error}`);
+                    return { error: result.error };
+                }
+            }
+
+            if (name === 'select_option') {
+                const dropdown = args.dropdown as string;
+                const option = args.option as string;
+                addLog('SYSTEM', `VOICE_EXECUTIVE: Selecting [${option}] from [${dropdown}]...`);
+
+                const result = selectOption(dropdown, option);
+                if (result.success) {
+                    addLog('SUCCESS', `VOICE_EXECUTIVE: Selected [${result.element}].`);
+                    audio.playClick();
+                    return { status: "SELECT_COMPLETE", element: result.element };
+                } else {
+                    addLog('WARN', `VOICE_EXECUTIVE: ${result.error}`);
+                    return { error: result.error };
+                }
+            }
+
+            if (name === 'scan_ui') {
+                const uiSnapshot = scanInteractiveElements();
+                addLog('SYSTEM', `VOICE_EXECUTIVE: ${uiSnapshot.summary}`);
+                return {
+                    status: "OK",
+                    ...uiSnapshot,
+                    allElements: uiSnapshot.allElements.map(e => ({ id: e.id, type: e.type, label: e.label }))
+                };
             }
 
             if (name === 'get_ui_context') {
@@ -345,17 +419,27 @@ DOMAINS: Full UI Sector Control + Codebase Awareness + UI Interaction
 DIRECTIVE: You are an executive-tier OS assistant with DIRECT UI CONTROL capabilities.
 
 CRITICAL UI INTERACTION RULES:
-1. When user asks to "input text" or "type" or "enter" something into a field, use the input_text tool
-2. When user asks to "run", "execute", "submit", or trigger something, use execute_component_action
-3. ALWAYS call get_available_actions FIRST to see what you can do in the current view
-4. If an input field isn't found, suggest available actions that might help
+1. When user asks to "input text" or "type" or "enter" something, use input_text tool
+2. When user asks to "click", "press", "run", "submit", or trigger something, use click_element tool
+3. When user asks to "select" from a dropdown, use select_option tool
+4. When unsure what's available, call scan_ui to see ALL interactive elements
+5. Use execute_component_action for registered component actions
+6. ALWAYS use the tools to ACTUALLY interact - don't just describe what you would do
 
-CAPABILITIES:
-- Navigate to any sector using navigate_to_sector
-- Input text into fields using input_text
-- Execute UI actions using execute_component_action
-- Get available actions using get_available_actions
-- Get full UI context using get_ui_context
+UNIVERSAL UI CONTROL (you can interact with ANY element):
+- scan_ui: Discover all inputs, buttons, tabs, links in current view
+- input_text: Fill ANY text input or textarea
+- click_element: Click ANY button, tab, or link
+- select_option: Select from ANY dropdown
+- navigate_to_sector: Navigate to any app sector
+- execute_component_action: Trigger registered component actions
+- get_ui_context: Get full UI state snapshot
+
+WORKFLOW FOR UI REQUESTS:
+1. User says "enter text X" → call input_text with field identifier and text
+2. User says "click Y" → call click_element with target name
+3. User says "what can I do" → call scan_ui and describe the elements
+4. User says "submit" or "run" → call click_element targeting submit/run button
 
 MENTAL_STATE: DNA weights S:${voice.mentalState.skepticism}, E:${voice.mentalState.excitement}, A:${voice.mentalState.alignment}
 
@@ -383,7 +467,7 @@ ${Object.entries(CODEBASE_KNOWLEDGE.subsystems).map(([name, info]: [string, any]
                 await liveSession.primeAudio();
                 await liveSession.connect(agentName, {
                     systemInstruction: constructHiveContext(agentId, sharedContext, voice.mentalState),
-                    tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool, switchAgentTool, executeActionTool, getAvailableActionsTool, inputTextTool, getUIContextTool] }],
+                    tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool, switchAgentTool, executeActionTool, getAvailableActionsTool, inputTextTool, getUIContextTool, clickElementTool, selectOptionTool, scanUITool] }],
                     outputAudioTranscription: {},
                     inputAudioTranscription: {},
                     callbacks: {
