@@ -278,6 +278,24 @@ interface AppState {
         selectedGpuId: string | null;
         tierFilter: string | null;
         gpuSearchQuery: string;
+        // Procurement workflow
+        procurement: {
+            status: 'idle' | 'quoting' | 'reviewing' | 'confirming' | 'processing' | 'completed' | 'error';
+            currentOrder: {
+                id: string;
+                gpuId: string;
+                gpuModel: string;
+                quantity: number;
+                selectedQuote: { id: string; vendor: string; unitPrice: number; quantity: number; totalPrice: number; leadTime: string; warranty: string; inStock: boolean; rating: number } | null;
+                status: string;
+                createdAt: number;
+                updatedAt: number;
+            } | null;
+            quotes: Array<{ id: string; vendor: string; unitPrice: number; quantity: number; totalPrice: number; leadTime: string; warranty: string; inStock: boolean; rating: number }>;
+            orderHistory: Array<{ id: string; gpuId: string; gpuModel: string; quantity: number; status: string; createdAt: number }>;
+            isModalOpen: boolean;
+            error: string | null;
+        };
     };
     memory: {
         driveManifest: TechnicalManifest | null;
@@ -617,7 +635,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         livePrices: {},
         selectedGpuId: null,
         tierFilter: null,
-        gpuSearchQuery: ''
+        gpuSearchQuery: '',
+        procurement: {
+            status: 'idle',
+            currentOrder: null,
+            quotes: [],
+            orderHistory: [],
+            isModalOpen: false,
+            error: null
+        }
     },
     memory: {
         driveManifest: null,

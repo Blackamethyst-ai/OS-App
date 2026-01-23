@@ -42,3 +42,41 @@ export interface GpuWithLiveData extends GpuSpec {
     livePrice?: LiveGpuPrice;
     mtbf: number;
 }
+
+// Procurement workflow types
+export type ProcurementStatus = 'idle' | 'quoting' | 'reviewing' | 'confirming' | 'processing' | 'completed' | 'error';
+
+export interface VendorQuote {
+    id: string;
+    vendor: string;
+    unitPrice: number;
+    quantity: number;
+    totalPrice: number;
+    leadTime: string;
+    warranty: string;
+    inStock: boolean;
+    rating: number;
+}
+
+export interface ProcurementOrder {
+    id: string;
+    gpuId: string;
+    gpuModel: string;
+    quantity: number;
+    selectedQuote: VendorQuote | null;
+    status: ProcurementStatus;
+    createdAt: number;
+    updatedAt: number;
+    estimatedDelivery?: string;
+    trackingNumber?: string;
+    notes?: string;
+}
+
+export interface ProcurementState {
+    status: ProcurementStatus;
+    currentOrder: ProcurementOrder | null;
+    quotes: VendorQuote[];
+    orderHistory: ProcurementOrder[];
+    isModalOpen: boolean;
+    error: string | null;
+}
