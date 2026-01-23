@@ -27,7 +27,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
     mermaid.initialize({
       startOnLoad: false,
       theme: 'base',
-      securityLevel: 'loose',
+      securityLevel: 'strict',
       fontFamily: 'Fira Code',
       flowchart: { htmlLabels: false },
       themeVariables: { primaryColor: '#000', primaryTextColor: '#fff', primaryBorderColor: '#9d4edd', lineColor: '#555' }

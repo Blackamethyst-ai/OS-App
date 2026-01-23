@@ -37,18 +37,18 @@ export const useApiKeyModal = (): UseApiKeyModalResult => {
         let warningTimer: ReturnType<typeof setTimeout> | null = null;
 
         const checkKey = async () => {
-            // Check if we have a key in Environment OR LocalStorage
+            // Check if we have a key in Environment OR Vault
             const hasEnvKey = !!(import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY || (typeof process !== 'undefined' && process.env && process.env.GEMINI_API_KEY));
-            const hasLocalKey = !!localStorage.getItem('gemini_api_key');
+            const hasVaultKey = apiKeyService.hasGeminiKey();
 
-            if (!hasEnvKey && !hasLocalKey) {
+            if (!hasEnvKey && !hasVaultKey) {
                 console.log("🔐 AUTH EXTENSION: No key found. Triggering auto-prompt.");
                 // No key found anywhere. Prompt the user.
                 warningTimer = setTimeout(() => {
                     actions.addLog('WARN', 'SECURITY: Neural Uplink Credentials missing.');
                 }, 1000);
             } else {
-                console.log("🔐 AUTH EXTENSION: Key detected.", { env: hasEnvKey, local: hasLocalKey });
+                console.log("🔐 AUTH EXTENSION: Key detected.", { env: hasEnvKey, vault: hasVaultKey });
             }
         };
         checkKey();

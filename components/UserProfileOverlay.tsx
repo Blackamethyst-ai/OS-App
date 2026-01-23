@@ -34,7 +34,7 @@ const UserProfileOverlay: React.FC = () => {
         setEditAvatar(user.avatar);
         setEditRole(user.role);
         setEditClearance(user.clearanceLevel);
-        const existingKey = localStorage.getItem('gemini_api_key');
+        const existingKey = apiKeyService.getGeminiKey();
         if (existingKey) setEditApiKey(existingKey);
     }, [user, isProfileOpen]);
 
@@ -100,11 +100,11 @@ const UserProfileOverlay: React.FC = () => {
             // 2. Persist to DB
             await neuralVault.saveProfile(newProfile);
 
-            // 3. Save API Key (BYOK)
+            // 3. Save API Key (BYOK) - use encrypted vault
             if (editApiKey.trim()) {
-                localStorage.setItem('gemini_api_key', editApiKey.trim());
+                await apiKeyService.setKey('gemini', editApiKey.trim());
             } else {
-                localStorage.removeItem('gemini_api_key');
+                await apiKeyService.removeKey('gemini');
             }
 
             actions.addLog('SUCCESS', `PROFILE_UPDATE: Identity confirmed for [${editName}]`);

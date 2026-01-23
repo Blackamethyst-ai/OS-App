@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store';
-import { Shield, Fingerprint, Key, ChevronRight, Loader2, Cpu, Globe, Lock } from 'lucide-react';
+import { Shield, Fingerprint, ChevronRight, Loader2, Cpu, Globe, Lock } from 'lucide-react';
 
 const AuthModule: React.FC = () => {
     const { actions } = useAppStore();
@@ -9,7 +9,7 @@ const AuthModule: React.FC = () => {
     const [view, setView] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [credentials, setCredentials] = useState({ username: '', password: '', role: 'OPERATOR', apiKey: '' });
+    const [credentials, setCredentials] = useState({ username: '', password: '', role: 'OPERATOR' });
 
     // SOVEREIGN GATE: Secret passphrase for access
     // Can be overridden via env var VITE_ACCESS_PASSPHRASE
@@ -28,10 +28,6 @@ const AuthModule: React.FC = () => {
             setError('UPLINK REJECTED: Invalid Neural Key');
             setIsLoading(false);
             return;
-        }
-
-        if (credentials.apiKey) {
-            localStorage.setItem('gemini_api_key', credentials.apiKey);
         }
 
         if (view === 'REGISTER') {
@@ -96,18 +92,6 @@ const AuthModule: React.FC = () => {
                                 placeholder="Passphrase..."
                             />
                             <Lock className="absolute left-3.5 bottom-3.5 w-4 h-4 text-gray-600 group-focus-within:text-[#9d4edd] transition-colors" />
-                        </div>
-
-                        <div className="relative group">
-                            <label className="text-[9px] font-mono text-gray-500 uppercase tracking-widest block mb-2 px-1">Gemini Uplink (API Key)</label>
-                            <input
-                                type="password"
-                                value={credentials.apiKey || ''}
-                                onChange={e => setCredentials({ ...credentials, apiKey: e.target.value })}
-                                className="w-full bg-black/50 border border-white/10 rounded-xl px-10 py-3 text-sm text-white font-mono focus:border-[#9d4edd] outline-none transition-all placeholder-white/20"
-                                placeholder="sk-..."
-                            />
-                            <Key className="absolute left-3.5 bottom-3.5 w-4 h-4 text-gray-600 group-focus-within:text-[#9d4edd] transition-colors" />
                         </div>
 
                         {view === 'REGISTER' && (
