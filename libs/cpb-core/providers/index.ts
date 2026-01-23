@@ -20,30 +20,35 @@
  * ```
  */
 
-// Claude (Anthropic)
-export {
+import type { CPBProvider } from '../types';
+
+// Import and re-export Claude (Anthropic)
+import {
     createClaudeProvider,
     getClaudeModel,
     CLAUDE_MODELS,
-    type ClaudeProviderOptions,
 } from './anthropic';
+export type { ClaudeProviderOptions } from './anthropic';
+export { createClaudeProvider, getClaudeModel, CLAUDE_MODELS };
 
-// Gemini (Google)
-export {
+// Import and re-export Gemini (Google)
+import {
     createGeminiProvider,
     createGroundedGeminiProvider,
     getGeminiModel,
     GEMINI_MODELS,
-    type GeminiProviderOptions,
 } from './google';
+export type { GeminiProviderOptions } from './google';
+export { createGeminiProvider, createGroundedGeminiProvider, getGeminiModel, GEMINI_MODELS };
 
-// Grok (xAI)
-export {
+// Import and re-export Grok (xAI)
+import {
     createGrokProvider,
     getGrokModel,
     GROK_MODELS,
-    type GrokProviderOptions,
 } from './grok';
+export type { GrokProviderOptions } from './grok';
+export { createGrokProvider, getGrokModel, GROK_MODELS };
 
 /**
  * Create a default provider configuration using environment variables
@@ -54,22 +59,18 @@ export {
  * - XAI_API_KEY -> Grok as alternative balanced
  */
 export function createDefaultProviders(): {
-    fast?: ReturnType<typeof createGeminiProvider>;
-    balanced?: ReturnType<typeof createGeminiProvider | typeof createGrokProvider>;
-    deep?: ReturnType<typeof createClaudeProvider>;
+    fast?: CPBProvider;
+    balanced?: CPBProvider;
+    deep?: CPBProvider;
 } {
-    const { createClaudeProvider: claude } = require('./anthropic');
-    const { createGeminiProvider: gemini } = require('./google');
-    const { createGrokProvider: grok } = require('./grok');
-
     const providers: {
-        fast?: ReturnType<typeof createGeminiProvider>;
-        balanced?: ReturnType<typeof createGeminiProvider | typeof createGrokProvider>;
-        deep?: ReturnType<typeof createClaudeProvider>;
+        fast?: CPBProvider;
+        balanced?: CPBProvider;
+        deep?: CPBProvider;
     } = {};
 
     // Check Gemini
-    const geminiProvider = gemini();
+    const geminiProvider = createGeminiProvider();
     if (geminiProvider.isConfigured()) {
         providers.fast = geminiProvider;
         providers.balanced = geminiProvider;
@@ -77,7 +78,7 @@ export function createDefaultProviders(): {
 
     // Check Grok as alternative balanced
     if (!providers.balanced) {
-        const grokProvider = grok();
+        const grokProvider = createGrokProvider();
         if (grokProvider.isConfigured()) {
             providers.balanced = grokProvider;
             if (!providers.fast) {
@@ -87,7 +88,7 @@ export function createDefaultProviders(): {
     }
 
     // Check Claude
-    const claudeProvider = claude();
+    const claudeProvider = createClaudeProvider();
     if (claudeProvider.isConfigured()) {
         providers.deep = claudeProvider;
         // Use Claude as fallback for all tiers if no other providers

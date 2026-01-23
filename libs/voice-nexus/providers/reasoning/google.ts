@@ -81,6 +81,7 @@ export function createGeminiReasoning(options?: GeminiReasoningOptions): Reasoni
             const startTime = Date.now();
 
             // Dynamic import to avoid requiring SDK at load time
+            // @ts-ignore - SDK is a peer dependency
             const { GoogleGenAI } = await import('@google/genai');
 
             const ai = new GoogleGenAI({ apiKey });

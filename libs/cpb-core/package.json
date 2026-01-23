@@ -1,34 +1,58 @@
 {
   "name": "@metaventionsai/cpb-core",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Cognitive Precision Bridge - Unified AI orchestration with precision-aware routing through RLM, ACE, and DQ scoring",
-  "main": "./index.ts",
-  "module": "./index.ts",
-  "types": "./index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./index.ts",
-      "types": "./index.ts"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
     "./router": {
-      "import": "./router.ts",
-      "types": "./router.ts"
+      "import": "./dist/router.mjs",
+      "require": "./dist/router.js",
+      "types": "./dist/router.d.ts"
     },
     "./types": {
-      "import": "./types.ts",
-      "types": "./types.ts"
+      "import": "./dist/types.mjs",
+      "require": "./dist/types.js",
+      "types": "./dist/types.d.ts"
+    },
+    "./providers": {
+      "import": "./dist/providers/index.mjs",
+      "require": "./dist/providers/index.js",
+      "types": "./dist/providers/index.d.ts"
+    },
+    "./providers/anthropic": {
+      "import": "./dist/providers/anthropic.mjs",
+      "require": "./dist/providers/anthropic.js",
+      "types": "./dist/providers/anthropic.d.ts"
+    },
+    "./providers/google": {
+      "import": "./dist/providers/google.mjs",
+      "require": "./dist/providers/google.js",
+      "types": "./dist/providers/google.d.ts"
+    },
+    "./providers/grok": {
+      "import": "./dist/providers/grok.mjs",
+      "require": "./dist/providers/grok.js",
+      "types": "./dist/providers/grok.d.ts"
     }
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/router.ts src/types.ts --format cjs,esm --dts --clean",
-    "dev": "tsup src/index.ts src/router.ts src/types.ts --format cjs,esm --dts --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "test": "vitest",
     "test:run": "vitest run",
-    "lint": "eslint src --ext .ts,.tsx",
+    "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
@@ -43,7 +67,9 @@
     "precision",
     "gemini",
     "claude",
-    "openai"
+    "openai",
+    "grok",
+    "anthropic"
   ],
   "author": "Dicoangelo",
   "license": "MIT",
@@ -52,10 +78,18 @@
     "url": "https://github.com/Dicoangelo/cpb-core.git"
   },
   "peerDependencies": {
-    "@google/genai": ">=0.1.0"
+    "@anthropic-ai/sdk": ">=0.20.0",
+    "@google/genai": ">=0.1.0",
+    "openai": ">=4.0.0"
   },
   "peerDependenciesMeta": {
+    "@anthropic-ai/sdk": {
+      "optional": true
+    },
     "@google/genai": {
+      "optional": true
+    },
+    "openai": {
       "optional": true
     }
   },

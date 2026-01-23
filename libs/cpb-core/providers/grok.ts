@@ -69,6 +69,7 @@ export function createGrokProvider(options?: GrokProviderOptions): CPBProvider {
             }
 
             // Dynamic import to avoid requiring SDK at load time
+            // @ts-ignore - SDK is a peer dependency
             const { default: OpenAI } = await import('openai');
 
             const client = new OpenAI({
@@ -109,6 +110,7 @@ export function createGrokProvider(options?: GrokProviderOptions): CPBProvider {
                 );
             }
 
+            // @ts-ignore - SDK is a peer dependency
             const { default: OpenAI } = await import('openai');
 
             const client = new OpenAI({

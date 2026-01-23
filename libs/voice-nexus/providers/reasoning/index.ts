@@ -21,28 +21,29 @@
  * ```
  */
 
-// Claude (Anthropic)
-export {
+import type { ReasoningProvider } from '../../types';
+
+// Import and re-export Claude (Anthropic)
+import {
     createClaudeReasoning,
     CLAUDE_REASONING_MODELS,
-    type ClaudeReasoningOptions,
 } from './anthropic';
+export type { ClaudeReasoningOptions } from './anthropic';
+export { createClaudeReasoning, CLAUDE_REASONING_MODELS };
 
-// Gemini (Google)
-export {
+// Import and re-export Gemini (Google)
+import {
     createGeminiReasoning,
     createGroundedGeminiReasoning,
     GEMINI_REASONING_MODELS,
-    type GeminiReasoningOptions,
 } from './google';
+export type { GeminiReasoningOptions } from './google';
+export { createGeminiReasoning, createGroundedGeminiReasoning, GEMINI_REASONING_MODELS };
 
 /**
  * Create a default reasoning provider based on available API keys
  */
-export function createDefaultReasoning(): import('../../types').ReasoningProvider | undefined {
-    const { createGeminiReasoning } = require('./google');
-    const { createClaudeReasoning } = require('./anthropic');
-
+export function createDefaultReasoning(): ReasoningProvider | undefined {
     // Prefer Gemini for voice (faster response times)
     const gemini = createGeminiReasoning();
     if (gemini.isAvailable()) {

@@ -1,34 +1,83 @@
 {
   "name": "@metaventionsai/voice-nexus",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Universal multi-provider voice architecture - seamless routing between STT, reasoning, and TTS providers",
-  "main": "./index.ts",
-  "module": "./index.ts",
-  "types": "./index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./index.ts",
-      "types": "./index.ts"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
     },
     "./types": {
-      "import": "./types.ts",
-      "types": "./types.ts"
+      "import": "./dist/types.mjs",
+      "require": "./dist/types.js",
+      "types": "./dist/types.d.ts"
     },
     "./router": {
-      "import": "./router.ts",
-      "types": "./router.ts"
+      "import": "./dist/router.mjs",
+      "require": "./dist/router.js",
+      "types": "./dist/router.d.ts"
+    },
+    "./providers": {
+      "import": "./dist/providers/index.mjs",
+      "require": "./dist/providers/index.js",
+      "types": "./dist/providers/index.d.ts"
+    },
+    "./providers/reasoning": {
+      "import": "./dist/providers/reasoning/index.mjs",
+      "require": "./dist/providers/reasoning/index.js",
+      "types": "./dist/providers/reasoning/index.d.ts"
+    },
+    "./providers/reasoning/anthropic": {
+      "import": "./dist/providers/reasoning/anthropic.mjs",
+      "require": "./dist/providers/reasoning/anthropic.js",
+      "types": "./dist/providers/reasoning/anthropic.d.ts"
+    },
+    "./providers/reasoning/google": {
+      "import": "./dist/providers/reasoning/google.mjs",
+      "require": "./dist/providers/reasoning/google.js",
+      "types": "./dist/providers/reasoning/google.d.ts"
+    },
+    "./providers/tts": {
+      "import": "./dist/providers/tts/index.mjs",
+      "require": "./dist/providers/tts/index.js",
+      "types": "./dist/providers/tts/index.d.ts"
+    },
+    "./providers/tts/elevenlabs": {
+      "import": "./dist/providers/tts/elevenlabs.mjs",
+      "require": "./dist/providers/tts/elevenlabs.js",
+      "types": "./dist/providers/tts/elevenlabs.d.ts"
+    },
+    "./providers/tts/browser": {
+      "import": "./dist/providers/tts/browser.mjs",
+      "require": "./dist/providers/tts/browser.js",
+      "types": "./dist/providers/tts/browser.d.ts"
+    },
+    "./providers/stt": {
+      "import": "./dist/providers/stt/index.mjs",
+      "require": "./dist/providers/stt/index.js",
+      "types": "./dist/providers/stt/index.d.ts"
+    },
+    "./providers/stt/browser": {
+      "import": "./dist/providers/stt/browser.mjs",
+      "require": "./dist/providers/stt/browser.js",
+      "types": "./dist/providers/stt/browser.d.ts"
     }
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "scripts": {
-    "build": "tsup src/index.ts src/types.ts src/router.ts --format cjs,esm --dts --clean",
-    "dev": "tsup src/index.ts src/types.ts src/router.ts --format cjs,esm --dts --watch",
+    "build": "tsup",
+    "dev": "tsup --watch",
     "test": "vitest",
     "test:run": "vitest run",
-    "lint": "eslint src --ext .ts,.tsx",
+    "lint": "eslint . --ext .ts,.tsx",
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "npm run build"
   },
@@ -44,13 +93,26 @@
     "gemini",
     "claude",
     "elevenlabs",
-    "whisper"
+    "whisper",
+    "anthropic"
   ],
   "author": "Dicoangelo",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/Dicoangelo/voice-nexus.git"
+  },
+  "peerDependencies": {
+    "@anthropic-ai/sdk": ">=0.20.0",
+    "@google/genai": ">=0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@anthropic-ai/sdk": {
+      "optional": true
+    },
+    "@google/genai": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^20.11.0",

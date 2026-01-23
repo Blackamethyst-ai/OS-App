@@ -84,6 +84,7 @@ export function createClaudeReasoning(options?: ClaudeReasoningOptions): Reasoni
             const startTime = Date.now();
 
             // Dynamic import to avoid requiring SDK at load time
+            // @ts-ignore - SDK is a peer dependency
             const { default: Anthropic } = await import('@anthropic-ai/sdk');
 
             const client = new Anthropic({
