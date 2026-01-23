@@ -4,11 +4,10 @@ import { motion } from 'framer-motion';
 import { User, ShieldCheck, Terminal } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { audio } from '../../services/audioService';
-import { NAV_CONFIG } from '../../config/navigation';
+import { useNavigation } from '../../hooks/useNavigation';
 import MetaventionsLogo from '../MetaventionsLogo';
 import ThemeSwitcher from '../ThemeSwitcher';
 import GlobalSearchBar from '../GlobalSearchBar';
-import { AppMode } from '../../types';
 
 const AppHeader: React.FC = () => {
     const mode = useAppStore(s => s.mode);
@@ -16,6 +15,8 @@ const AppHeader: React.FC = () => {
     const search = useAppStore(s => s.search);
     const actions = useAppStore(s => s.actions);
     const focusedSelector = useAppStore(s => s.focusedSelector);
+
+    const { navItems, onDragStart, onDragOver, onDrop, onDragEnd, draggedIndex } = useNavigation();
 
     return (
         <header className="flex-shrink-0 h-[76px] z-[100] px-10 flex items-center justify-between backdrop-blur-3xl bg-[var(--bg-header)] shadow-2xl relative transition-all duration-500 border-b border-[var(--border-main)]">
@@ -39,10 +40,15 @@ const AppHeader: React.FC = () => {
                     className="flex-1 h-[48px] bg-black/20 border border-white/5 rounded-2xl flex items-center px-2 relative group/cmdbar focus-within:border-[#9d4edd]/30 focus-within:bg-black/40 transition-all duration-500 overflow-hidden"
                 >
                     <nav className="flex items-center h-full overflow-x-auto no-scrollbar flex-1 min-w-0">
-                        {NAV_CONFIG.map(item => (
+                        {navItems.map((item, index) => (
                             <motion.button
                                 layout
                                 key={item.id}
+                                draggable
+                                onDragStart={(e) => onDragStart(e as unknown as React.DragEvent, index)}
+                                onDragOver={onDragOver}
+                                onDrop={(e) => onDrop(e as unknown as React.DragEvent, index)}
+                                onDragEnd={onDragEnd}
                                 whileHover={{
                                     y: -1,
                                     scale: 1.05,
@@ -50,7 +56,10 @@ const AppHeader: React.FC = () => {
                                 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => { window.location.hash = item.path; audio.playClick(); }}
-                                className="relative h-full px-4 group flex-shrink-0 flex items-center overflow-visible transition-all duration-300"
+                                className={cn(
+                                    "relative h-full px-4 group flex-shrink-0 flex items-center overflow-visible transition-all duration-300 cursor-grab active:cursor-grabbing",
+                                    draggedIndex === index && "opacity-50"
+                                )}
                             >
                                 <span className={cn(
                                     "text-[9px] font-black uppercase tracking-[0.2em] font-mono transition-all duration-500 relative z-10",

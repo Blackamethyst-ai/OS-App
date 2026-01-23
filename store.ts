@@ -8,72 +8,15 @@ import {
     OperationalContext, AutonomousAgent, Frame, ProductionBible,
     TechnicalManifest, SwarmProposal, AppPreferences, ModelTier,
     ProtocolStepResult, BiometricState, UIComplexityLevel,
-    CodebaseGraph, CodebaseNode, CodebaseEdge
+    CodebaseGraph, CodebaseNode, CodebaseEdge,
+    // Slice types
+    KernelState, SystemState, VoiceState, VoiceNexusState,
+    CPBState, VisualCortexState, HoloState, SearchState,
+    MarketDataState, ContextMenuState
 } from './types';
 import { neuralVault } from './services/persistenceService';
-
-const INITIAL_AGENTS: AutonomousAgent[] = [
-    {
-        id: 'mike',
-        name: 'Mike',
-        role: 'Implementation Architect',
-        context: OperationalContext.STRATEGY_SYNTHESIS,
-        status: 'IDLE',
-        memoryBuffer: [],
-        capabilities: ['system_navigate', 'search_intel', 'architect_generate_process', 'propose_structural_change'],
-        currentMindset: { skepticism: 10, excitement: 95, alignment: 75 },
-        energyLevel: 100,
-        tasks: []
-    },
-    {
-        id: 'dr_ira',
-        name: 'Dr. Ira',
-        role: 'Audit Sentinel',
-        context: OperationalContext.SYSTEM_MONITORING,
-        status: 'IDLE',
-        memoryBuffer: [],
-        capabilities: ['search_intel', 'update_task_priority', 'propose_structural_change'],
-        currentMindset: { skepticism: 95, excitement: 15, alignment: 90 },
-        energyLevel: 100,
-        tasks: []
-    },
-    {
-        id: 'caleb',
-        name: 'Caleb',
-        role: 'Execution Lead',
-        context: OperationalContext.CODE_GENERATION,
-        status: 'IDLE',
-        memoryBuffer: [],
-        capabilities: ['search_intel', 'architect_generate_process', 'perform_code_review'],
-        currentMindset: { skepticism: 35, excitement: 65, alignment: 85 },
-        energyLevel: 100,
-        tasks: []
-    },
-    {
-        id: 'paramdeep',
-        name: 'Paramdeep',
-        role: 'Systems Strategist',
-        context: OperationalContext.DATA_ANALYSIS,
-        status: 'IDLE',
-        memoryBuffer: [],
-        capabilities: ['analyze_data', 'optimize_flow', 'predict_vectors'],
-        currentMindset: { skepticism: 60, excitement: 80, alignment: 95 },
-        energyLevel: 100,
-        tasks: []
-    },
-    {
-        id: 'bilal',
-        name: 'Bilal',
-        role: 'Kinetic Operator',
-        context: OperationalContext.GENERAL_PURPOSE,
-        status: 'IDLE',
-        memoryBuffer: [],
-        capabilities: ['quick_response', 'route_tasks', 'manage_uplink'],
-        currentMindset: { skepticism: 20, excitement: 90, alignment: 80 },
-        energyLevel: 100,
-        tasks: []
-    }
-];
+import { INITIAL_AGENTS } from './data/initialAgents';
+import { INITIAL_METAVENTIONS } from './data/initialMetaventions';
 
 interface AppState {
     mode: AppMode;
@@ -86,93 +29,16 @@ interface AppState {
     isCommandPaletteOpen: boolean;
     isSidebarOpen: boolean;
     operationalContext: string;
-    kernel: {
-        uptime: number;
-        entropy: number;
-        integrity: number;
-        operationalState: 'BOOTING' | 'IDLE' | 'PROCESSING' | 'PAGING' | 'SUSPENDED' | 'ERROR';
-        tasksProcessed: number;
-        taskQueueDepth: number;
-        pagesInMemory: number;
-        cacheHitRate: number;
-    };
+    kernel: KernelState;
     biometric: BiometricState;
-    system: {
-        isTerminalOpen: boolean;
-        logs: { level: 'INFO' | 'WARN' | 'ERROR' | 'SUCCESS' | 'SYSTEM'; message: string; timestamp: number; id?: string }[];
-        dockItems: { id: string; label: string; icon: string; action: () => void }[];
-    };
-    marketData: {
-        lastSync: number;
-        opportunities: { id: string; title: string; yield: string; risk: string; logic: string }[];
-        isSyncing: boolean;
-    };
-    search: {
-        isOpen: boolean;
-        isSearching: boolean;
-        query: string;
-        results: SearchResultItem[];
-        history: string[];
-        filter: 'ALL' | 'COMMANDS' | 'MEMORY' | 'WORLD';
-    };
-    voice: {
-        isActive: boolean;
-        isConnecting: boolean;
-        error: string | null;
-        voiceName: string;
-        transcripts: { role: 'user' | 'model'; text: string; timestamp: number }[];
-        partialTranscript: { role: 'user' | 'model'; text: string } | null;
-        mentalState: {
-            skepticism: number;
-            excitement: number;
-            alignment: number;
-        };
-        agentAvatars: Record<string, string>;
-    };
-    voiceNexus: {
-        mode: 'realtime' | 'turn-based' | 'hybrid';
-        isActive: boolean;
-        isProcessing: boolean;
-        currentProvider: {
-            stt: 'gemini' | 'whisper' | 'browser';
-            reasoning: string;
-            tts: 'elevenlabs' | 'gemini' | 'browser';
-        };
-        transcripts: { id: string; role: 'user' | 'model' | 'system'; text: string; timestamp: number; complexity?: number; provider?: string; knowledgeUsed?: boolean }[];
-        lastComplexityScore: number;
-        knowledgeContext: string | null;
-        error: string | null;
-    };
-    cpb: {
-        isActive: boolean;
-        phase: 'idle' | 'analyzing' | 'compressing' | 'exploring' | 'converging' | 'verifying' | 'reconstructing' | 'complete' | 'error';
-        path: 'direct' | 'rlm' | 'ace' | 'hybrid' | 'cascade';
-        progress: number;
-        message: string | null;
-        lastResult: {
-            output: string;
-            confidence: number;
-            dqScore: number;
-            path: string;
-            executionTimeMs: number;
-            tokensUsed: number;
-            verified: boolean;
-            pathReasoning: string;
-        } | null;
-        error: string | null;
-    };
-    visualCortex: {
-        isAnalyzing: boolean;
-        isProbing: boolean;
-        lastResult: { summary: string; confidence: number; tags: string[] } | null;
-        dropActive: boolean;
-    };
-    holo: {
-        isOpen: boolean;
-        activeArtifact: StoredArtifact | null;
-        analysisResult: string | null;
-        isAnalyzing: boolean;
-    };
+    system: SystemState;
+    marketData: MarketDataState;
+    search: SearchState;
+    voice: VoiceState;
+    voiceNexus: VoiceNexusState;
+    cpb: CPBState;
+    visualCortex: VisualCortexState;
+    holo: HoloState;
     dashboard: {
         isGenerating: boolean;
         identityUrl: null | string;
@@ -252,8 +118,11 @@ interface AppState {
     hardware: {
         currentEra: string;
         activeVendor: string;
+        // AI-generated recommendations (populated by researchComponents)
         recommendations: { id: string; name: string; price: number; rating: number; vendor: string }[];
+        // DEPRECATED: Use gpuSearchQuery instead - kept for backwards compatibility
         componentQuery: string;
+        // Advanced filters for component search
         filters: {
             minPrice: number;
             maxPrice: number;
@@ -266,17 +135,22 @@ interface AppState {
         isLoading: boolean;
         error: string | null;
         xrayImage: string | null;
+        // Search history for autocomplete/suggestions
         searchHistory: string[];
+        // DEPRECATED: Use tierFilter instead - kept for backwards compatibility
         activeTier: string;
         finTelemetry: {
             totalBomCost: number;
             roiProjection: number;
+            // Estimated annual maintenance cost based on MTBF
             maintenanceEst: number;
         };
         // GPU procurement state (persisted)
         livePrices: Record<string, { price: number; trend: number; stock: string; source: string; lastUpdated: number }>;
         selectedGpuId: string | null;
+        // CANONICAL: Primary tier filter for GPU selection
         tierFilter: string | null;
+        // CANONICAL: Primary search query for GPU filtering
         gpuSearchQuery: string;
         // Procurement workflow
         procurement: {
@@ -332,13 +206,7 @@ interface AppState {
         events: SwarmEvent[];
         isOverlayOpen: boolean;
     };
-    contextMenu: {
-        isOpen: boolean;
-        x: number;
-        y: number;
-        contextType: string;
-        targetContent: string | Record<string, unknown> | null;
-    };
+    contextMenu: ContextMenuState;
     synthesis: {
         incomingProposals: SwarmProposal[];
     };
@@ -429,7 +297,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     user: {
         displayName: 'Operator_Core',
         role: 'ARCHITECT',
-        clearanceLevel: 5,
+        clearanceLevel: 10,  // Max clearance - full access to all tabs
         avatar: null
     },
     authenticated: false,
@@ -481,6 +349,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     voice: {
         isActive: false,
         isConnecting: false,
+        isOverlayVisible: true,
         error: null,
         voiceName: 'Puck',
         transcripts: [],
@@ -626,7 +495,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         error: null,
         xrayImage: null,
         searchHistory: [],
-        activeTier: 'PRO',
+        activeTier: 'ALL', // Synced with tierFilter
         finTelemetry: {
             totalBomCost: 0,
             roiProjection: 0,
@@ -702,43 +571,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     isHUDClosed: false,
     focusedSelector: null,
     tasks: [],
-    metaventions: {
-        layers: [
-            {
-                id: 'LAYER_DEPIN',
-                name: 'Physical Infrastructure',
-                role: 'PHYSICAL_NETWORK',
-                leverage: 'Orchestrating production-grade D-Infrastructure nodes.',
-                status: 'STABLE',
-                level: 1,
-                metrics: [
-                    { label: 'Units', value: '1,420', trend: 'up' },
-                    { label: 'Uptime', value: '99.99%', trend: 'stable' }
-                ]
-            },
-            {
-                id: 'LAYER_AI',
-                name: 'Strategic Intelligence',
-                role: 'COGNITIVE_CORE',
-                leverage: 'Recursive neural implementation of meta inventions.',
-                status: 'OPTIMIZED',
-                level: 2,
-                metrics: [
-                    { label: 'Coherence', value: '98.4%', trend: 'up' },
-                    { label: 'Latency', value: '3ms', trend: 'down' }
-                ]
-            }
-        ],
-        activeLayerId: 'LAYER_DEPIN',
-        isAnalyzing: false,
-        strategyLog: [],
-        strategyLibrary: [
-            { id: 'PARA_DRIVE_SYSTEM', title: 'PARA+ Drive Architecture', context: 'D-System File Management', logic: 'Recursive multi-modal indexing with adaptive TTL for Projects and Areas.', steps: ['Audit Drive', 'Create P.A.R.A Structure', 'Migrate Archives'], physicalImpact: '40% reduction in data retrieval latency.', timestamp: Date.now() },
-            { id: 'PARA_NAMING_CONVENTION', title: 'PARA Naming Protocol', context: 'Drive Organization', logic: 'Date-stamped project identifiers with [P] [A] [R] [A] prefixes for zero-ambiguity indexing.', steps: ['Scan Hierarchy', 'Apply Prefix', 'Sync Metadata'], physicalImpact: 'Instant semantic recall across all storage nodes.', timestamp: Date.now() }
-        ],
-        wallets: [],
-        economicProtocols: []
-    },
+    metaventions: INITIAL_METAVENTIONS,
     preferences: {
         modelTier: 'balanced',
         autonomyEnabled: false
@@ -817,9 +650,16 @@ export const useAppStore = create<AppState>((set, get) => ({
         setCodeStudioState: (update) => set((state) => ({
             codeStudio: { ...state.codeStudio, ...(typeof update === 'function' ? update(state.codeStudio) : update) }
         })),
-        setHardwareState: (update) => set((state) => ({
-            hardware: { ...state.hardware, ...(typeof update === 'function' ? update(state.hardware) : update) }
-        })),
+        setHardwareState: (update) => set((state) => {
+            const newUpdate = typeof update === 'function' ? update(state.hardware) : update;
+            // Sync deprecated fields with canonical ones
+            const synced = { ...newUpdate };
+            if ('gpuSearchQuery' in synced) synced.componentQuery = synced.gpuSearchQuery;
+            if ('componentQuery' in synced && !('gpuSearchQuery' in synced)) synced.gpuSearchQuery = synced.componentQuery;
+            if ('tierFilter' in synced) synced.activeTier = synced.tierFilter || 'ALL';
+            if ('activeTier' in synced && !('tierFilter' in synced)) synced.tierFilter = synced.activeTier === 'ALL' ? null : synced.activeTier;
+            return { hardware: { ...state.hardware, ...synced } };
+        }),
         setMemoryState: (update) => set((state) => ({
             memory: { ...state.memory, ...(typeof update === 'function' ? update(state.memory) : update) }
         })),

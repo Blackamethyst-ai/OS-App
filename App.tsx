@@ -10,11 +10,6 @@ import SystemNotification from './components/SystemNotification';
 import OverlayOS from './components/OverlayOS';
 import HoloProjector from './components/HoloProjector';
 import SynapticRouter from './components/SynapticRouter';
-import TimeTravelScrubber from './components/TimeTravelScrubber';
-import VoiceManager from './components/VoiceManager';
-import VoiceCoreManager from './components/VoiceCoreManager';
-import UniversalVoiceProvider from './components/UniversalVoiceProvider';
-import VoiceCoreOverlay from './components/VoiceCoreOverlay';
 import UserProfileOverlay from './components/UserProfileOverlay';
 import VisualCortexOverlay from './components/VisualCortexOverlay';
 import GlobalStatusBar from './components/GlobalStatusBar';
@@ -35,20 +30,24 @@ import { useApiKeyModal } from './hooks/useApiKeyModal';
 import { useKernelUptime } from './hooks/useKernelUptime';
 import { useKernelLifecycle } from './hooks/useKernelLifecycle';
 import { useTimeTravel } from './hooks/useTimeTravel';
+import { useAuthPersistence } from './hooks/useAuthPersistence';
 import { hasFixedLayout } from './config/navigation';
 import { audio } from './services/audioService';
 import { AnimatePresence } from 'framer-motion';
 import { cn } from './utils/cn';
-import ApiKeyModal from './components/ApiKeyModal';
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import MasterStabilizationProtocol from './components/MasterStabilizationProtocol';
 import FocusOverlay from './components/overlays/FocusOverlay';
-import OperationalSidebar from './components/OperationalSidebar';
 import AppHeader from './components/layout/AppHeader';
 
-// Lazy-loaded overlays (conditionally rendered)
+import VoiceSystem from './components/VoiceSystem';
+
+// Lazy-loaded components (conditionally rendered)
 const HelpCenter = lazy(() => import('./components/HelpCenter'));
 const AgenticHUD = lazy(() => import('./components/AgenticHUD'));
+const TimeTravelScrubber = lazy(() => import('./components/TimeTravelScrubber'));
+const ApiKeyModal = lazy(() => import('./components/ApiKeyModal'));
+const OperationalSidebar = lazy(() => import('./components/OperationalSidebar'));
 
 const App: React.FC = () => {
     const mode = useAppStore(s => s.mode);
@@ -64,6 +63,9 @@ const App: React.FC = () => {
     const isHUDClosed = useAppStore(s => s.isHUDClosed);
 
     const { setSector } = useSystemMind();
+
+    // Auth persistence (restore login state from localStorage)
+    useAuthPersistence();
 
     // Hooks
     const { isOpen: isApiKeyModalOpen, setIsOpen: setIsApiKeyModalOpen } = useApiKeyModal();
@@ -125,25 +127,30 @@ const App: React.FC = () => {
                         <SynapticContextHub />
 
                         <FocusOverlay />
-                        <VoiceCoreOverlay />
                         <UserProfileOverlay />
                         <VisualCortexOverlay />
                         <CommandPalette />
                         <PeerMeshOverlay />
                         <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => actions.setDiagnosticsOpen(false)} />
-                        <TimeTravelScrubber mode={mode} onRestore={restore} isOpen={isScrubberOpen} onClose={() => actions.setScrubberOpen(false)} />
                         <OverlayOS />
                         <HoloProjector />
-                        <VoiceManager />
-                        <VoiceCoreManager showDebug={import.meta.env.DEV} />
-                        <UniversalVoiceProvider showDebug={import.meta.env.DEV} />
-                        {/* DreamProtocolWidget is now integrated into GlobalStatusBar pill */}
 
-                        {/* API Key Configuration Modal */}
-                        <ApiKeyModal
-                            isOpen={isApiKeyModalOpen}
-                            onClose={() => setIsApiKeyModalOpen(false)}
-                        />
+                        {/* Unified Voice Stack (always mounted for voice functionality) */}
+                        <VoiceSystem />
+
+                        {/* Time Travel Scrubber (lazy-loaded, conditionally rendered) */}
+                        {isScrubberOpen && (
+                            <Suspense fallback={null}>
+                                <TimeTravelScrubber mode={mode} onRestore={restore} isOpen={isScrubberOpen} onClose={() => actions.setScrubberOpen(false)} />
+                            </Suspense>
+                        )}
+
+                        {/* API Key Configuration Modal (lazy-loaded) */}
+                        {isApiKeyModalOpen && (
+                            <Suspense fallback={null}>
+                                <ApiKeyModal isOpen={isApiKeyModalOpen} onClose={() => setIsApiKeyModalOpen(false)} />
+                            </Suspense>
+                        )}
 
                         <AnimatePresence>
                             {!isHUDClosed && (
@@ -180,7 +187,11 @@ const App: React.FC = () => {
                             </div>
 
                             <AnimatePresence>
-                                {isSidebarOpen && <OperationalSidebar />}
+                                {isSidebarOpen && (
+                                    <Suspense fallback={null}>
+                                        <OperationalSidebar />
+                                    </Suspense>
+                                )}
                             </AnimatePresence>
                         </div>
 

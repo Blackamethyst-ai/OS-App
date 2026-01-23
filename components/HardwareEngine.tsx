@@ -6,8 +6,9 @@ import {
     promptSelectKey, generateXRayVariant, generateIsometricSchematic,
     getLiveSupplyChainData, generateHardwareDeploymentManifest, analyzeCrossSectorImpact
 } from '../services/geminiService';
-import { fetchLivePrice, clearPriceCache } from '../services/gpuPricingService';
-import { GPU_CATALOG, getGpusByEra } from '../data/gpuCatalog';
+import { fetchLivePrice, fetchBatchPrices, clearPriceCache, getCacheStats } from '../services/gpuPricingService';
+import { GPU_CATALOG, getGpusByEra, getGpuById, getGpusByTier } from '../data/gpuCatalog';
+import { enrichGpuData, calculateMTBF, calculateDynamicMTBF, calculatePowerDraw, getEraColor } from '../utils/hardwareCalculations';
 import {
     Upload, Cpu, Zap, Activity, Loader2,
     Thermometer, X, Scan, FileText, Trash2, Download,
@@ -136,34 +137,15 @@ const PerformanceMixer = ({ label, value, unit, min, max, onValueChange, color }
     </div>
 );
 
-// MTBF calculation based on tier and manufacturer (in thousands of hours)
-const calculateMTBF = (tier: GpuTier, manufacturer: string): number => {
-    const baseMTBF: Record<GpuTier, number> = {
-        'DATACENTER': 50000,
-        'WORKSTATION': 40000,
-        'CONSUMER': 25000
-    };
-    const manufacturerBonus: Record<string, number> = {
-        'NVIDIA': 1.1,
-        'AMD': 1.0,
-        'Intel': 0.95
-    };
-    return Math.round(baseMTBF[tier] * (manufacturerBonus[manufacturer] || 1.0));
-};
-
-// Convert GpuSpec to GpuWithLiveData with optional live pricing
-const enrichGpuData = (gpu: GpuSpec, livePrice?: LiveGpuPrice): GpuWithLiveData => ({
-    ...gpu,
-    livePrice,
-    mtbf: calculateMTBF(gpu.tier, gpu.manufacturer)
-});
+// MTBF and enrichGpuData now imported from ../utils/hardwareCalculations
 
 const HardwareEngine: React.FC = () => {
     const { hardware, actions, metaventions } = useAppStore();
     const { setHardwareState, addLog } = actions;
     const {
         currentEra, schematicImage, analysis, bom, isLoading, xrayImage, finTelemetry,
-        livePrices: storedPrices, selectedGpuId, tierFilter: storedTierFilter, gpuSearchQuery: storedSearchQuery
+        livePrices: storedPrices, selectedGpuId, tierFilter: storedTierFilter, gpuSearchQuery: storedSearchQuery,
+        searchHistory, filters, recommendations
     } = hardware;
 
     const [clockSpeed, setClockSpeed] = useState(3.4);
@@ -172,11 +154,7 @@ const HardwareEngine: React.FC = () => {
     const [viewMode, setViewMode] = useState<'2D' | '3D' | 'SCHEMATIC' | 'XRAY' | 'QUANTUM'>('QUANTUM');
     const [showComputeFlux, setShowComputeFlux] = useState(true);
 
-    const eraColor = useMemo(() => {
-        if (currentEra === 'QUANTUM') return '#9d4edd';
-        if (currentEra === 'BIOMIMETIC') return '#10b981';
-        return '#22d3ee';
-    }, [currentEra]);
+    const eraColor = useMemo(() => getEraColor(currentEra), [currentEra]);
 
     // Convert stored prices to Map for efficient lookups
     const livePrices = useMemo(() => {
@@ -196,6 +174,7 @@ const HardwareEngine: React.FC = () => {
     // Live pricing state (local for loading indicator)
     const [isFetchingPrice, setIsFetchingPrice] = useState(false);
     const [lastPriceUpdate, setLastPriceUpdate] = useState<number | null>(null);
+    const [cacheStats, setCacheStats] = useState(() => getCacheStats());
 
     // Filter GPUs by era and tier
     const filteredGpus = useMemo(() => {
@@ -206,10 +185,10 @@ const HardwareEngine: React.FC = () => {
         return gpus.map(gpu => enrichGpuData(gpu, livePrices.get(gpu.model)));
     }, [currentEra, tierFilter, livePrices]);
 
-    // Selected GPU from store
+    // Selected GPU from store - uses getGpuById helper
     const selectedGpu = useMemo(() => {
         if (selectedGpuId) {
-            const gpu = GPU_CATALOG.find(g => g.id === selectedGpuId);
+            const gpu = getGpuById(selectedGpuId);
             if (gpu) return enrichGpuData(gpu, livePrices.get(gpu.model));
         }
         return filteredGpus[0] || null;
@@ -219,15 +198,40 @@ const HardwareEngine: React.FC = () => {
         setHardwareState({ selectedGpuId: gpu?.id || null });
     }, [setHardwareState]);
 
-    // GPU search query from store
+    // GPU search query from store with history tracking
     const gpuSearchQuery = storedSearchQuery || '';
     const setGpuSearchQuery = useCallback((query: string) => {
         setHardwareState({ gpuSearchQuery: query });
     }, [setHardwareState]);
+
+    // Add search to history when user finishes typing (debounced)
+    const saveSearchToHistory = useCallback((query: string) => {
+        if (query.length >= 2 && !searchHistory.includes(query)) {
+            const newHistory = [query, ...searchHistory].slice(0, 10); // Keep last 10 searches
+            setHardwareState({ searchHistory: newHistory });
+        }
+    }, [searchHistory, setHardwareState]);
+
+    // Calculate maintenance estimate based on selected GPU MTBF
+    const maintenanceEst = useMemo(() => {
+        if (!selectedGpu) return 0;
+        // Estimate based on replacement cost and MTBF
+        // Annual maintenance = (GPU cost / MTBF hours) * 8760 hours/year
+        const gpuCost = selectedGpu.livePrice?.price || selectedGpu.msrp;
+        const annualMaintenance = (gpuCost / selectedGpu.mtbf) * 8760;
+        return Math.round(annualMaintenance);
+    }, [selectedGpu]);
     const [isometricImage, setIsometricImage] = useState<string | null>(null);
     const [liveSupplyData, setLiveSupplyData] = useState<any>(null);
     const [isFetchingSupply, setIsFetchingSupply] = useState(false);
-    const [isAnalyzingFinImpact, setIsAnalyzingFinImpact] = useState(false);
+
+    // AI Analysis states
+    const [isResearchingComponents, setIsResearchingComponents] = useState(false);
+    const [componentResearch, setComponentResearch] = useState<any>(null);
+    const [isGeneratingManifest, setIsGeneratingManifest] = useState(false);
+    const [deploymentManifest, setDeploymentManifest] = useState<any>(null);
+    const [isAnalyzingImpact, setIsAnalyzingImpact] = useState(false);
+    const [crossSectorImpact, setCrossSectorImpact] = useState<any>(null);
 
     // Procurement modal state
     const [isProcurementOpen, setIsProcurementOpen] = useState(false);
@@ -242,6 +246,61 @@ const HardwareEngine: React.FC = () => {
         setIsProcurementOpen(false);
         setProcurementGpu(null);
     }, []);
+
+    // AI Analysis Handlers
+    const handleResearchComponents = useCallback(async () => {
+        if (!selectedGpu) return;
+        setIsResearchingComponents(true);
+        addLog('SYSTEM', `AI_RESEARCH: Analyzing component architecture for ${selectedGpu.model}...`);
+        try {
+            if (!apiKeyService.hasGeminiKey()) await promptSelectKey();
+            const research = await researchComponents(selectedGpu.bom.join(', '));
+            setComponentResearch(research);
+            addLog('SUCCESS', 'AI_RESEARCH: Component analysis complete.');
+            audio.playSuccess();
+        } catch (err: any) {
+            addLog('ERROR', `AI_RESEARCH: ${err.message}`);
+            audio.playError();
+        } finally {
+            setIsResearchingComponents(false);
+        }
+    }, [selectedGpu, addLog]);
+
+    const handleGenerateManifest = useCallback(async () => {
+        if (!selectedGpu) return;
+        setIsGeneratingManifest(true);
+        addLog('SYSTEM', `MANIFEST_GEN: Creating deployment manifest for ${selectedGpu.model}...`);
+        try {
+            if (!apiKeyService.hasGeminiKey()) await promptSelectKey();
+            const manifest = await generateHardwareDeploymentManifest(selectedGpu.model, selectedGpu.specs);
+            setDeploymentManifest(manifest);
+            addLog('SUCCESS', 'MANIFEST_GEN: Deployment manifest generated.');
+            audio.playSuccess();
+        } catch (err: any) {
+            addLog('ERROR', `MANIFEST_GEN: ${err.message}`);
+            audio.playError();
+        } finally {
+            setIsGeneratingManifest(false);
+        }
+    }, [selectedGpu, addLog]);
+
+    const handleAnalyzeImpact = useCallback(async () => {
+        if (!selectedGpu) return;
+        setIsAnalyzingImpact(true);
+        addLog('SYSTEM', `IMPACT_ANALYSIS: Evaluating cross-sector implications for ${selectedGpu.model}...`);
+        try {
+            if (!apiKeyService.hasGeminiKey()) await promptSelectKey();
+            const impact = await analyzeCrossSectorImpact(selectedGpu.model, selectedGpu.tier);
+            setCrossSectorImpact(impact);
+            addLog('SUCCESS', 'IMPACT_ANALYSIS: Cross-sector analysis complete.');
+            audio.playSuccess();
+        } catch (err: any) {
+            addLog('ERROR', `IMPACT_ANALYSIS: ${err.message}`);
+            audio.playError();
+        } finally {
+            setIsAnalyzingImpact(false);
+        }
+    }, [selectedGpu, addLog]);
 
     // Reset selected GPU when era or tier changes (only if current selection not in filtered list)
     useEffect(() => {
@@ -281,9 +340,40 @@ const HardwareEngine: React.FC = () => {
     const handleRefreshPrice = useCallback(() => {
         if (selectedGpu) {
             clearPriceCache();
+            setCacheStats(getCacheStats());
             fetchGpuPrice(selectedGpu);
         }
     }, [selectedGpu, fetchGpuPrice]);
+
+    // Batch fetch all prices for visible GPUs
+    const handleFetchAllPrices = useCallback(async () => {
+        const siliconGpus = filteredGpus.filter(g => g.era === 'SILICON' && !livePrices.has(g.model));
+        if (siliconGpus.length === 0) {
+            addLog('INFO', 'PRICE_SYNC: All prices already cached.');
+            return;
+        }
+
+        setIsFetchingPrice(true);
+        addLog('SYSTEM', `PRICE_SYNC: Fetching ${siliconGpus.length} GPU prices...`);
+        try {
+            const prices = await fetchBatchPrices(siliconGpus.map(g => ({ model: g.model, msrp: g.msrp })));
+            const priceObj: Record<string, any> = {};
+            prices.forEach((price, model) => { priceObj[model] = price; });
+            setHardwareState(prev => ({
+                livePrices: { ...prev.livePrices, ...priceObj }
+            }));
+            setLastPriceUpdate(Date.now());
+            setCacheStats(getCacheStats());
+            addLog('SUCCESS', `PRICE_SYNC: ${prices.size} prices updated.`);
+            audio.playSuccess();
+        } catch (error) {
+            console.error('Batch price fetch failed:', error);
+            addLog('ERROR', 'PRICE_SYNC: Batch fetch failed.');
+            audio.playError();
+        } finally {
+            setIsFetchingPrice(false);
+        }
+    }, [filteredGpus, livePrices, setHardwareState, addLog]);
 
     const stressLevel = useMemo(() => {
         const base = (clockSpeed - 1) * 20;
@@ -292,13 +382,11 @@ const HardwareEngine: React.FC = () => {
         return Math.max(10, Math.min(100, base + voltBonus - fanPenalty));
     }, [clockSpeed, voltage, fanSpeed]);
 
-    const mtbf = useMemo(() => {
-        const baseline = 50000; 
-        const thermalPenalty = Math.pow(stressLevel / 40, 2.5) * 4000;
-        return Math.max(4500, Math.round(baseline - thermalPenalty));
-    }, [stressLevel]);
+    // Dynamic MTBF based on current stress level - uses shared utility
+    const mtbf = useMemo(() => calculateDynamicMTBF(stressLevel), [stressLevel]);
 
-    const powerDraw = useMemo(() => (voltage * clockSpeed * 0.85 + (fanSpeed / 1000) * 15).toFixed(2), [voltage, clockSpeed, fanSpeed]);
+    // Power draw calculation - uses shared utility
+    const powerDraw = useMemo(() => calculatePowerDraw(voltage, clockSpeed, fanSpeed).toString(), [voltage, clockSpeed, fanSpeed]);
 
     useVoiceExpose('hardware-fabricator', { era: currentEra, stressLevel, powerDraw, mtbf, clocks: `${clockSpeed}GHz`, activeGpu: selectedGpu?.model });
 
@@ -375,11 +463,21 @@ const HardwareEngine: React.FC = () => {
                             <button key={btn.id} onClick={() => { setViewMode(btn.id as any); audio.playClick(); }} className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2.5 ${viewMode === btn.id ? 'bg-white text-black shadow-md scale-105' : 'text-gray-500 hover:text-gray-300'}`}><btn.icon size={11} /> {btn.label}</button>
                         ))}
                     </div>
+                    {/* Compute Flux Toggle */}
+                    <button
+                        onClick={() => { setShowComputeFlux(!showComputeFlux); audio.playClick(); }}
+                        className={`p-2 rounded-lg border transition-all ${showComputeFlux ? 'bg-[#22d3ee]/10 border-[#22d3ee]/40 text-[#22d3ee]' : 'bg-[#0a0a0a] border-white/10 text-gray-600 hover:text-white'}`}
+                        title="Toggle Compute Flux Visualization"
+                    >
+                        <Activity size={14} />
+                    </button>
                 </div>
             </div>
 
             <div className="flex-1 flex overflow-hidden">
                 <div className="flex-1 bg-black relative flex flex-col p-6 overflow-hidden">
+                    {/* Compute Flux Overlay - Particle visualization */}
+                    <ComputeFluxOverlay active={showComputeFlux} speed={stressLevel / 20} color={eraColor} />
                     <AnimatePresence mode="wait">
                         {viewMode === 'QUANTUM' ? (
                             <motion.div key="quantum-view" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="h-full flex flex-col gap-6 overflow-hidden">
@@ -387,9 +485,25 @@ const HardwareEngine: React.FC = () => {
                                     <div className="space-y-2">
                                         <h2 className="text-xl font-black font-mono text-white uppercase tracking-tight">Component Procurement Hub</h2>
                                         <div className="flex items-center gap-4">
-                                            <div className="flex items-center bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-1.5 w-64 focus-within:border-[#22d3ee] transition-all">
-                                                <Search size={12} className="text-gray-600 mr-2" />
-                                                <input value={gpuSearchQuery} onChange={e => setGpuSearchQuery(e.target.value)} placeholder="Filter components..." className="bg-transparent border-none outline-none text-[10px] font-mono text-white w-full uppercase placeholder:text-gray-800" />
+                                            <div className="relative">
+                                                <div className="flex items-center bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-1.5 w-64 focus-within:border-[#22d3ee] transition-all">
+                                                    <Search size={12} className="text-gray-600 mr-2" />
+                                                    <input
+                                                        value={gpuSearchQuery}
+                                                        onChange={e => setGpuSearchQuery(e.target.value)}
+                                                        onBlur={() => saveSearchToHistory(gpuSearchQuery)}
+                                                        onKeyDown={e => e.key === 'Enter' && saveSearchToHistory(gpuSearchQuery)}
+                                                        placeholder="Filter components..."
+                                                        className="bg-transparent border-none outline-none text-[10px] font-mono text-white w-full uppercase placeholder:text-gray-800"
+                                                        list="search-history"
+                                                    />
+                                                </div>
+                                                {/* Search history datalist */}
+                                                <datalist id="search-history">
+                                                    {searchHistory.map((term, i) => (
+                                                        <option key={i} value={term} />
+                                                    ))}
+                                                </datalist>
                                             </div>
                                             {/* Tier Filter - Only show for SILICON era */}
                                             {currentEra === 'SILICON' && (
@@ -410,18 +524,37 @@ const HardwareEngine: React.FC = () => {
                                             )}
                                         </div>
                                     </div>
-                                    {/* Price refresh and status */}
+                                    {/* Price refresh, cache stats, and batch fetch */}
                                     <div className="flex items-center gap-3">
+                                        {/* Cache Stats */}
+                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0a0a0a] border border-white/5 rounded-lg">
+                                            <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Cache</span>
+                                            <span className="text-[9px] font-bold font-mono text-[#22d3ee]">{cacheStats.entries}</span>
+                                            {cacheStats.oldestEntry && (
+                                                <span className="text-[7px] font-mono text-gray-700">
+                                                    ({Math.round(cacheStats.oldestEntry / 60000)}m old)
+                                                </span>
+                                            )}
+                                        </div>
                                         {lastPriceUpdate && (
                                             <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">
                                                 Updated {new Date(lastPriceUpdate).toLocaleTimeString()}
                                             </span>
                                         )}
                                         <button
+                                            onClick={handleFetchAllPrices}
+                                            disabled={isFetchingPrice}
+                                            className="px-3 py-1.5 bg-[#0a0a0a] border border-white/10 rounded-lg hover:border-[#10b981]/50 transition-all disabled:opacity-50 flex items-center gap-2"
+                                            title="Fetch all prices"
+                                        >
+                                            <Download size={11} className="text-gray-500" />
+                                            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">Fetch All</span>
+                                        </button>
+                                        <button
                                             onClick={handleRefreshPrice}
                                             disabled={isFetchingPrice}
                                             className="p-2 bg-[#0a0a0a] border border-white/10 rounded-lg hover:border-[#22d3ee]/50 transition-all disabled:opacity-50"
-                                            title="Refresh live prices"
+                                            title="Refresh selected price"
                                         >
                                             <RefreshCw size={12} className={`text-gray-500 ${isFetchingPrice ? 'animate-spin' : ''}`} />
                                         </button>
@@ -778,17 +911,90 @@ const HardwareEngine: React.FC = () => {
                                 <div className="grid grid-cols-2 gap-3 relative z-10">
                                     <div className="space-y-1">
                                         <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Projected Cost</span>
-                                        <div className="text-lg font-black font-mono text-white tracking-tighter">${finTelemetry.totalBomCost > 0 ? finTelemetry.totalBomCost.toLocaleString() : '--'}</div>
+                                        <div className="text-lg font-black font-mono text-white tracking-tighter">${finTelemetry.totalBomCost > 0 ? finTelemetry.totalBomCost.toLocaleString() : selectedGpu ? (selectedGpu.livePrice?.price || selectedGpu.msrp).toLocaleString() : '--'}</div>
                                     </div>
                                     <div className="space-y-1 text-right">
                                         <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Efficiency Yield</span>
                                         <div className="text-lg font-black font-mono text-[#10b981] tracking-tighter">{finTelemetry.roiProjection > 0 ? `+${finTelemetry.roiProjection}%` : '--'}</div>
                                     </div>
                                 </div>
+                                {/* Maintenance Estimate */}
+                                <div className="pt-2 border-t border-[#10b981]/10">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Annual Maintenance Est.</span>
+                                        <div className="text-sm font-black font-mono text-amber-500/80">${maintenanceEst > 0 ? maintenanceEst.toLocaleString() : '--'}/yr</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div className="space-y-3 px-1"><span className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5"><Thermometer size={12}/> Thermal Distribution</span><NeuralThermalGrid stressLevel={stressLevel} /></div>
+
+                        {/* AI Analysis Tools */}
+                        <div className="space-y-3">
+                            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 px-1">
+                                <FlaskConical size={12} className="text-[#9d4edd]"/> AI Analysis
+                            </span>
+                            <div className="space-y-2">
+                                <button
+                                    onClick={handleResearchComponents}
+                                    disabled={!selectedGpu || isResearchingComponents}
+                                    className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[#9d4edd]/30 hover:bg-[#9d4edd]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
+                                >
+                                    {isResearchingComponents ? (
+                                        <Loader2 size={14} className="text-[#9d4edd] animate-spin" />
+                                    ) : (
+                                        <Microscope size={14} className="text-gray-600 group-hover:text-[#9d4edd] transition-colors" />
+                                    )}
+                                    <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest group-hover:text-white transition-colors">Research Components</span>
+                                </button>
+                                <button
+                                    onClick={handleGenerateManifest}
+                                    disabled={!selectedGpu || isGeneratingManifest}
+                                    className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[#22d3ee]/30 hover:bg-[#22d3ee]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
+                                >
+                                    {isGeneratingManifest ? (
+                                        <Loader2 size={14} className="text-[#22d3ee] animate-spin" />
+                                    ) : (
+                                        <FileText size={14} className="text-gray-600 group-hover:text-[#22d3ee] transition-colors" />
+                                    )}
+                                    <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest group-hover:text-white transition-colors">Generate Manifest</span>
+                                </button>
+                                <button
+                                    onClick={handleAnalyzeImpact}
+                                    disabled={!selectedGpu || isAnalyzingImpact}
+                                    className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[#10b981]/30 hover:bg-[#10b981]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
+                                >
+                                    {isAnalyzingImpact ? (
+                                        <Loader2 size={14} className="text-[#10b981] animate-spin" />
+                                    ) : (
+                                        <Target size={14} className="text-gray-600 group-hover:text-[#10b981] transition-colors" />
+                                    )}
+                                    <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest group-hover:text-white transition-colors">Analyze Impact</span>
+                                </button>
+                            </div>
+                            {/* Analysis Results Preview */}
+                            {(componentResearch || deploymentManifest || crossSectorImpact) && (
+                                <div className="p-3 bg-[#0a0a0a] border border-white/10 rounded-xl space-y-2">
+                                    <span className="text-[7px] text-gray-600 uppercase tracking-widest">Latest Analysis</span>
+                                    {componentResearch && (
+                                        <div className="text-[8px] text-gray-400 truncate">
+                                            <span className="text-[#9d4edd]">Components:</span> {typeof componentResearch === 'string' ? componentResearch.slice(0, 50) : 'Complete'}...
+                                        </div>
+                                    )}
+                                    {deploymentManifest && (
+                                        <div className="text-[8px] text-gray-400 truncate">
+                                            <span className="text-[#22d3ee]">Manifest:</span> {typeof deploymentManifest === 'string' ? deploymentManifest.slice(0, 50) : 'Generated'}...
+                                        </div>
+                                    )}
+                                    {crossSectorImpact && (
+                                        <div className="text-[8px] text-gray-400 truncate">
+                                            <span className="text-[#10b981]">Impact:</span> {typeof crossSectorImpact === 'string' ? crossSectorImpact.slice(0, 50) : 'Analyzed'}...
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <div className="p-6 border-t border-white/5 bg-black shrink-0 space-y-4 shadow-2xl">
