@@ -26,6 +26,23 @@ export interface VoiceAction {
     description: string;
     examples: string[];
     handler: (args: any) => Promise<any>;
+    priority?: number;  // 0-100, higher = more prominent in voice context
+}
+
+/**
+ * Get priority based on action category for synchronized clock
+ */
+function getCategoryPriority(category: VoiceAction['category']): number {
+    switch (category) {
+        case 'generate': return 85;
+        case 'execute': return 80;
+        case 'deploy': return 75;
+        case 'analyze': return 70;
+        case 'search': return 65;
+        case 'manage': return 60;
+        case 'navigate': return 50;
+        default: return 50;
+    }
 }
 
 // =============================================================================
@@ -757,7 +774,8 @@ const VOICE_ACTIONS: VoiceAction[] = [
 let isInitialized = false;
 
 /**
- * Initialize all voice actions and register with SystemMind
+ * Initialize all voice actions and register with SystemMind.
+ * Uses bulk registration with sector tags for synchronized clock awareness.
  */
 export function initializeVoiceActions(): void {
     if (isInitialized) {
@@ -767,16 +785,21 @@ export function initializeVoiceActions(): void {
 
     const store = useSystemMind.getState();
 
-    for (const action of VOICE_ACTIONS) {
-        store.registerAction(
-            action.id,
-            `[${action.category.toUpperCase()}] ${action.description}`,
-            action.handler
-        );
-    }
+    // Build action list with sector awareness for synchronized clock
+    const actionsWithSectors = VOICE_ACTIONS.map(action => ({
+        id: action.id,
+        description: `[${action.category.toUpperCase()}] ${action.description}`,
+        callback: action.handler,
+        // Convert AppMode sector to string array, empty = global action
+        sectors: action.sector ? [action.sector] : [],
+        priority: action.priority ?? getCategoryPriority(action.category)
+    }));
+
+    // Bulk register for single epoch increment (synchronized clock efficiency)
+    store.registerActions(actionsWithSectors);
 
     isInitialized = true;
-    console.log(`[VoiceActionRegistry] Registered ${VOICE_ACTIONS.length} voice actions`);
+    console.log(`[VoiceActionRegistry] Registered ${VOICE_ACTIONS.length} voice actions with sector awareness`);
 }
 
 /**
