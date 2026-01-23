@@ -11,7 +11,8 @@ import { AppMode } from '../../types';
 // KERNEL CORE TYPES
 // ============================================================================
 
-export type KernelState = 'BOOTING' | 'IDLE' | 'PROCESSING' | 'PAGING' | 'SUSPENDED' | 'ERROR';
+/** Operational mode of the Agentic Kernel (renamed from KernelState to avoid conflict with store slice) */
+export type KernelOperationalMode = 'BOOTING' | 'IDLE' | 'PROCESSING' | 'PAGING' | 'SUSPENDED' | 'ERROR';
 
 export type IntentCategory =
   | 'NAVIGATION'      // Mode/view switching

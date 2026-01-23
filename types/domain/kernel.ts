@@ -11,19 +11,8 @@ export enum OperationalContext {
     GENERAL_PURPOSE = 'GENERAL_PURPOSE'
 }
 
-export interface KernelState {
-    uptime: number;
-    entropy: number;
-    integrity: number;
-    operationalState: KernelOperationalState;
-    tasksProcessed: number;
-    taskQueueDepth: number;
-    pagesInMemory: number;
-    totalPageSize: number;
-    pageFaults: number;
-    cacheHitRate: number;
-    avgTaskLatency: number;
-}
+// Note: KernelState interface is defined in slices.ts (for store state)
+// Extended kernel metrics are in services/kernel/types.ts:KernelMetrics
 
 export interface ProtocolStep {
     instruction: string;

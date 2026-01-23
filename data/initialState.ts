@@ -255,7 +255,6 @@ export const INITIAL_HARDWARE: HardwareState = {
     currentEra: 'SILICON',
     activeVendor: 'ALL',
     recommendations: [],
-    componentQuery: '',
     filters: {
         minPrice: 0,
         maxPrice: 10000000,
@@ -269,7 +268,6 @@ export const INITIAL_HARDWARE: HardwareState = {
     error: null,
     xrayImage: null,
     searchHistory: [],
-    activeTier: 'ALL',
     finTelemetry: {
         totalBomCost: 0,
         roiProjection: 0,
