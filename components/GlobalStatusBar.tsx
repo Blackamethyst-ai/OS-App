@@ -5,7 +5,7 @@ import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { neuralVault } from '../services/persistenceService';
 import { KnowledgeLayer, AppMode } from '../types';
 import * as Icons from 'lucide-react';
-import { Terminal, PanelRight, Gauge, Fingerprint, Users, SearchCode, Radio, Moon, Sun, History as HistoryIcon, Loader2, Save, Sparkles, Activity } from 'lucide-react';
+import { Terminal, PanelRight, Gauge, Fingerprint, Users, SearchCode, Radio, Moon, Sun, History as HistoryIcon, Loader2, Save, Sparkles, Activity, Mic } from 'lucide-react';
 import { dreamProtocol } from '../services/dreamProtocol';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { useVisualCortex } from '../hooks/useVisualCortex';
@@ -75,12 +75,12 @@ const LayerControlMesh = memo(() => {
 
 const GlobalStatusBar: React.FC = () => {
     const {
-        kernel, system, collaboration, actions,
+        kernel, system, collaboration, voice, actions,
         isScrubberOpen, isDiagnosticsOpen, isSidebarOpen
     } = useAppStore();
     const {
         setScrubberOpen, setDiagnosticsOpen, setCollabState,
-        setSidebarOpen, addLog, toggleTerminal, hydrateAgents
+        setSidebarOpen, addLog, toggleTerminal, hydrateAgents, setVoiceState
     } = actions;
 
     const { execute, state: agentState } = useAgentRuntime();
@@ -266,6 +266,28 @@ const GlobalStatusBar: React.FC = () => {
                 <div className="flex items-center gap-1 px-6 border-x border-white/5 relative z-10 shrink-0">
 
 
+
+                    {/* Voice Overlay Toggle */}
+                    <button
+                        onClick={() => {
+                            setVoiceState({ isOverlayVisible: !voice.isOverlayVisible });
+                            audio.playClick();
+                        }}
+                        className={cn(
+                            "flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all relative overflow-hidden group/voice mr-2",
+                            voice.isActive
+                                ? voice.isOverlayVisible
+                                    ? 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.3)]'
+                                    : 'bg-[#9d4edd]/10 border-[#9d4edd]/50 text-[#9d4edd]/70'
+                                : 'bg-black/40 border-white/10 text-gray-500 hover:text-[#9d4edd] hover:border-[#9d4edd]/50'
+                        )}
+                        title={voice.isOverlayVisible ? 'Hide voice overlay' : 'Show voice overlay'}
+                    >
+                        <Mic size={10} className={cn("transition-transform", voice.isActive && "animate-pulse")} />
+                        <span className="text-[8px] font-black font-mono uppercase tracking-widest">
+                            {voice.isActive ? 'LIVE' : 'VOICE'}
+                        </span>
+                    </button>
 
                     {/* Snapshot Button */}
                     <button

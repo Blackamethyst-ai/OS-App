@@ -5,33 +5,88 @@ export interface NavItem {
     label: string;
     path: string;
     fixedLayout?: boolean;
+    requiredClearance?: number; // Minimum clearance level to see this tab (1-10)
 }
 
-export const NAV_CONFIG: NavItem[] = [
+// Default navigation configuration
+// requiredClearance: tabs with higher clearance require elevated user access (1-10 scale)
+export const DEFAULT_NAV_CONFIG: NavItem[] = [
     { id: AppMode.METAVENTIONS_HUB, label: 'ECOSYSTEM', path: '/metaventions-hub', fixedLayout: true },
-    { id: AppMode.ARCHON, label: 'ARCHON', path: '/archon' },
+    { id: AppMode.ARCHON, label: 'ARCHON', path: '/archon', requiredClearance: 7 },
     { id: AppMode.BIBLIOMORPHIC, label: 'RESEARCH', path: '/bibliomorphic' },
     { id: AppMode.PROCESS_MAP, label: 'TOPOLOGY', path: '/process', fixedLayout: true },
-    { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance', fixedLayout: true },
+    { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance', fixedLayout: true, requiredClearance: 3 },
     { id: AppMode.CODE_STUDIO, label: 'LOGIC', path: '/code', fixedLayout: true },
-    { id: AppMode.AGENT_CONTROL, label: 'SWARM', path: '/agents', fixedLayout: true },
+    { id: AppMode.AGENT_CONTROL, label: 'SWARM', path: '/agents', fixedLayout: true, requiredClearance: 5 },
     { id: AppMode.MEMORY_CORE, label: 'MEMORY', path: '/memory' },
     { id: AppMode.IMAGE_GEN, label: 'CINEMA', path: '/assets', fixedLayout: true },
-    { id: AppMode.HARDWARE_ENGINEER, label: 'HARDWARE', path: '/hardware', fixedLayout: true },
+    { id: AppMode.HARDWARE_ENGINEER, label: 'HARDWARE', path: '/hardware', fixedLayout: true, requiredClearance: 6 },
     { id: AppMode.VOICE_MODE, label: 'VOICE CORE', path: '/voice', fixedLayout: true },
-    { id: AppMode.SYNTHESIS_BRIDGE, label: 'SYNTHESIS', path: '/bridge', fixedLayout: true },
-    { id: 'NEXUS', label: 'NEXUS', path: '/nexus' },
+    { id: AppMode.SYNTHESIS_BRIDGE, label: 'SYNTHESIS', path: '/bridge', fixedLayout: true, requiredClearance: 4 },
+    { id: 'NEXUS', label: 'NEXUS', path: '/nexus', requiredClearance: 8 },
 ];
+
+// Storage key for persisted nav order
+const NAV_ORDER_KEY = 'metaventions_nav_order';
+
+// Get user's custom nav order from localStorage
+export const getPersistedNavOrder = (): string[] | null => {
+    try {
+        const stored = localStorage.getItem(NAV_ORDER_KEY);
+        return stored ? JSON.parse(stored) : null;
+    } catch {
+        return null;
+    }
+};
+
+// Save custom nav order to localStorage
+export const persistNavOrder = (order: string[]): void => {
+    try {
+        localStorage.setItem(NAV_ORDER_KEY, JSON.stringify(order));
+    } catch {
+        console.warn('Failed to persist nav order');
+    }
+};
+
+// Reset nav order to default
+export const resetNavOrder = (): void => {
+    localStorage.removeItem(NAV_ORDER_KEY);
+};
+
+// Get navigation config filtered by clearance and ordered by user preference
+export const getNavConfig = (clearanceLevel: number = 10): NavItem[] => {
+    const customOrder = getPersistedNavOrder();
+
+    // Filter by clearance level
+    const filtered = DEFAULT_NAV_CONFIG.filter(item =>
+        !item.requiredClearance || item.requiredClearance <= clearanceLevel
+    );
+
+    // Apply custom ordering if exists
+    if (customOrder) {
+        const orderMap = new Map(customOrder.map((id, index) => [id, index]));
+        return [...filtered].sort((a, b) => {
+            const aIndex = orderMap.get(a.id as string) ?? Infinity;
+            const bIndex = orderMap.get(b.id as string) ?? Infinity;
+            return aIndex - bIndex;
+        });
+    }
+
+    return filtered;
+};
+
+// Legacy export for backward compatibility
+export const NAV_CONFIG = DEFAULT_NAV_CONFIG;
 
 // Helper to check if current mode uses fixed layout
 export const isFixedLayoutMode = (mode: AppMode | 'NEXUS'): boolean => {
-    const navItem = NAV_CONFIG.find(item => item.id === mode);
+    const navItem = DEFAULT_NAV_CONFIG.find(item => item.id === mode);
     return navItem?.fixedLayout ?? false;
 };
 
 // Also include DASHBOARD which isn't in nav but uses fixed layout
 const FIXED_LAYOUT_MODES = new Set([
-    ...NAV_CONFIG.filter(item => item.fixedLayout).map(item => item.id),
+    ...DEFAULT_NAV_CONFIG.filter(item => item.fixedLayout).map(item => item.id),
     AppMode.DASHBOARD
 ]);
 

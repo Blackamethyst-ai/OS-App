@@ -45,7 +45,8 @@ const VoiceCoreOverlay = () => {
     audio.playSuccess();
   };
 
-  if (!voice.isActive && !voice.isConnecting) return null;
+  // Hide if: not active AND not connecting, OR overlay explicitly hidden
+  if ((!voice.isActive && !voice.isConnecting) || !voice.isOverlayVisible) return null;
 
   return (
     <motion.div
