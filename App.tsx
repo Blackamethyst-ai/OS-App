@@ -1,8 +1,8 @@
 
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, Suspense, lazy } from 'react';
 import { useAppStore } from './store';
 import { useSystemMind } from './stores/useSystemMind';
-import { AppMode, AppTheme } from './types';
+import { AppTheme } from './types';
 import Starfield from './components/Starfield';
 import BackgroundEffect from './components/BackgroundEffect';
 import CommandPalette from './components/CommandPalette';
@@ -11,14 +11,12 @@ import OverlayOS from './components/OverlayOS';
 import HoloProjector from './components/HoloProjector';
 import SynapticRouter from './components/SynapticRouter';
 import TimeTravelScrubber from './components/TimeTravelScrubber';
-import HelpCenter from './components/HelpCenter';
 import VoiceManager from './components/VoiceManager';
 import VoiceCoreManager from './components/VoiceCoreManager';
 import UniversalVoiceProvider from './components/UniversalVoiceProvider';
 import VoiceCoreOverlay from './components/VoiceCoreOverlay';
 import UserProfileOverlay from './components/UserProfileOverlay';
 import VisualCortexOverlay from './components/VisualCortexOverlay';
-import AgenticHUD from './components/AgenticHUD';
 import GlobalStatusBar from './components/GlobalStatusBar';
 import PeerMeshOverlay from './components/PeerMeshOverlay';
 import AppFooter from './components/AppFooter';
@@ -35,7 +33,9 @@ import { useFixationGlow } from './hooks/useFixationGlow';
 import { useThemeVariables } from './hooks/useThemeVariables';
 import { useApiKeyModal } from './hooks/useApiKeyModal';
 import { useKernelUptime } from './hooks/useKernelUptime';
-import { agentKernel } from './services/kernel';
+import { useKernelLifecycle } from './hooks/useKernelLifecycle';
+import { useTimeTravel } from './hooks/useTimeTravel';
+import { hasFixedLayout } from './config/navigation';
 import { audio } from './services/audioService';
 import { AnimatePresence } from 'framer-motion';
 import { cn } from './utils/cn';
@@ -45,6 +45,10 @@ import MasterStabilizationProtocol from './components/MasterStabilizationProtoco
 import FocusOverlay from './components/overlays/FocusOverlay';
 import OperationalSidebar from './components/OperationalSidebar';
 import AppHeader from './components/layout/AppHeader';
+
+// Lazy-loaded overlays (conditionally rendered)
+const HelpCenter = lazy(() => import('./components/HelpCenter'));
+const AgenticHUD = lazy(() => import('./components/AgenticHUD'));
 
 const App: React.FC = () => {
     const mode = useAppStore(s => s.mode);
@@ -63,7 +67,9 @@ const App: React.FC = () => {
 
     // Hooks
     const { isOpen: isApiKeyModalOpen, setIsOpen: setIsApiKeyModalOpen } = useApiKeyModal();
+    const { restore } = useTimeTravel();
     useKernelUptime();
+    useKernelLifecycle();
 
     useAutoSave();
     useDaemonSwarm();
@@ -71,24 +77,10 @@ const App: React.FC = () => {
     useResearchAgent();
     useVisualCortex();
 
-    // Agentic Kernel & Biometric Integration
+    // Biometric Integration
     useBiometricSensor();
     useStressDetector();
     useFixationGlow();
-
-    useEffect(() => {
-        // Boot the Agentic Kernel
-        agentKernel.boot().then(() => {
-            actions.addLog('SYSTEM', 'KERNEL: Agentic Kernel booted successfully');
-            actions.setKernelState({ operationalState: 'IDLE' });
-        }).catch((err) => {
-            actions.addLog('ERROR', `KERNEL: Boot failed - ${err.message}`);
-        });
-
-        return () => {
-            agentKernel.shutdown();
-        };
-    }, []);
 
     useEffect(() => { setSector(mode); }, [mode, setSector]);
 
@@ -103,31 +95,8 @@ const App: React.FC = () => {
         return () => window.removeEventListener('contextmenu', handleContextMenu);
     }, [actions]);
 
-    const handleRestore = (state: any) => {
-        switch (mode) {
-            case AppMode.PROCESS_MAP: actions.setProcessState(state); break;
-            case AppMode.CODE_STUDIO: actions.setCodeStudioState(state); break;
-            case AppMode.HARDWARE_ENGINEER: actions.setHardwareState(state); break;
-            case AppMode.IMAGE_GEN: actions.setImageGenState(state); break;
-            case AppMode.BIBLIOMORPHIC: actions.setBibliomorphicState(state); break;
-            case AppMode.DASHBOARD: actions.setDashboardState(state); break;
-            case AppMode.METAVENTIONS_HUB: actions.setMetaventionsState(state); break;
-            case AppMode.AUTONOMOUS_FINANCE: actions.setMetaventionsState(state); break;
-            case AppMode.AGENT_CONTROL: actions.setAgentState(state); break;
-            case AppMode.SYNTHESIS_BRIDGE: actions.setMetaventionsState(state); break;
-            case AppMode.MEMORY_CORE: actions.setMemoryState(state); break;
-            case AppMode.VOICE_MODE: actions.setVoiceState(state); break;
-            case AppMode.BICAMERAL: actions.setBicameralState(state); break;
-        }
-        actions.addLog('INFO', 'Timeline resync successful.');
-        audio.playSuccess();
-    };
-
     const themeVars = useThemeVariables(theme);
-
-    const isFixedLayout = useMemo(() =>
-        mode === AppMode.METAVENTIONS_HUB || mode === AppMode.DASHBOARD || mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.SYNTHESIS_BRIDGE || mode === AppMode.VOICE_MODE || mode === AppMode.AUTONOMOUS_FINANCE
-        , [mode]);
+    const isFixedLayout = hasFixedLayout(mode);
 
     // MATERIAL SOVEREIGNTY: Deep Refraction Stacking
     const isDeepRefracted = system.isTerminalOpen || holo.isOpen;
@@ -162,7 +131,7 @@ const App: React.FC = () => {
                         <CommandPalette />
                         <PeerMeshOverlay />
                         <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => actions.setDiagnosticsOpen(false)} />
-                        <TimeTravelScrubber mode={mode} onRestore={handleRestore} isOpen={isScrubberOpen} onClose={() => actions.setScrubberOpen(false)} />
+                        <TimeTravelScrubber mode={mode} onRestore={restore} isOpen={isScrubberOpen} onClose={() => actions.setScrubberOpen(false)} />
                         <OverlayOS />
                         <HoloProjector />
                         <VoiceManager />
@@ -177,11 +146,19 @@ const App: React.FC = () => {
                         />
 
                         <AnimatePresence>
-                            {!isHUDClosed && <AgenticHUD />}
+                            {!isHUDClosed && (
+                                <Suspense fallback={null}>
+                                    <AgenticHUD />
+                                </Suspense>
+                            )}
                         </AnimatePresence>
 
                         <AnimatePresence>
-                            {isHelpOpen && <HelpCenter onClose={() => actions.setHelpOpen(false)} />}
+                            {isHelpOpen && (
+                                <Suspense fallback={null}>
+                                    <HelpCenter onClose={() => actions.setHelpOpen(false)} />
+                                </Suspense>
+                            )}
                         </AnimatePresence>
 
                         <AppHeader />
