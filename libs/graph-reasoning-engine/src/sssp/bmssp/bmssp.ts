@@ -200,7 +200,7 @@ function BMSSP_level(
     };
     const down = (i: number) => {
       for (;;) {
-        let l = 2 * i + 1, r = l + 1, m = i;
+        const l = 2 * i + 1, r = l + 1; let m = i;
         if (l < heap.length && heap[l].d < heap[m].d) m = l;
         if (r < heap.length && heap[r].d < heap[m].d) m = r;
         if (m === i) break;

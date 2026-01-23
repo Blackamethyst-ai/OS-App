@@ -275,7 +275,7 @@ class CodebaseAwarenessService {
             const response = await fetch('/codebase_graph.json');
             if (response.ok) {
                 this.graph = await response.json();
-                console.log('CodebaseAwareness: Loaded graph with', this.graph?.nodes.length, 'nodes');
+                if (import.meta.env.DEV) console.log('CodebaseAwareness: Loaded graph with', this.graph?.nodes.length, 'nodes');
             }
         } catch (error) {
             console.warn('CodebaseAwareness: Could not load codebase_graph.json:', error);

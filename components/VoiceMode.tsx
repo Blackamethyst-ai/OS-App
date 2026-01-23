@@ -429,7 +429,7 @@ const VoiceMode: React.FC = () => {
                                     </div>
                                     <div className="relative h-1 w-full bg-white/5 border border-white/5 rounded-full overflow-hidden shadow-inner">
                                         <motion.div className="h-full" style={{ backgroundColor: agentColor }} animate={{ width: `${(voice.mentalState as any)[key]}%` }} />
-                                        <input type="range" min="0" max="100" value={(voice.mentalState as any)[key]} onChange={e => setVoiceState({ mentalState: { ...voice.mentalState, [key]: parseInt(e.target.value) } })} className="absolute inset-0 opacity-0 cursor-pointer" />
+                                        <input type="range" min="0" max="100" value={(voice.mentalState as any)[key]} onChange={e => setVoiceState({ mentalState: { ...voice.mentalState, [key]: parseInt(e.target.value, 10) } })} className="absolute inset-0 opacity-0 cursor-pointer" />
                                     </div>
                                 </div>
                             ))}

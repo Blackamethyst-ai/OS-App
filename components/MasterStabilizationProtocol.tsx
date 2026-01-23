@@ -67,7 +67,7 @@ const MasterStabilizationProtocol: React.FC = () => {
 
                 // If consistently low confidence for ~2 seconds (10 checks), intervene
                 if (lowConfidenceFramesRef.current > 10) {
-                    console.log("🛡️ STABILIZATION: Biometric Signal Weak. Injecting Synthetic Stability.");
+                    if (import.meta.env.DEV) console.log("🛡️ STABILIZATION: Biometric Signal Weak. Injecting Synthetic Stability.");
 
                     // Temporarily relax the adaptive UI trigger thresholds
                     // This prevents the UI from "flickering" between complexity levels

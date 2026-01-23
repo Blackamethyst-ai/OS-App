@@ -57,7 +57,7 @@ export class AgenticFileSystem {
     if (this.config.autoSurfaceEnabled) {
       setInterval(() => this.updateIndex(), this.config.indexUpdateIntervalMs);
     }
-    console.log('📁 AFS: Initialized');
+    if (import.meta.env.DEV) console.log('📁 AFS: Initialized');
   }
 
   // ============================================================================

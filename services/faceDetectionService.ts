@@ -95,7 +95,7 @@ class FaceDetectionService {
     if (this.isLoading) return false;
 
     this.isLoading = true;
-    console.log('FACE_DETECTION: Loading models...');
+    if (import.meta.env.DEV) console.log('FACE_DETECTION: Loading models...');
 
     try {
       // Load models from public folder
@@ -110,7 +110,7 @@ class FaceDetectionService {
       ]);
 
       this.isInitialized = true;
-      console.log('FACE_DETECTION: Models loaded successfully (SSD MobileNet + Tiny)');
+      if (import.meta.env.DEV) console.log('FACE_DETECTION: Models loaded successfully (SSD MobileNet + Tiny)');
       return true;
     } catch (error) {
       console.error('FACE_DETECTION: Failed to load models', error);

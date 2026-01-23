@@ -147,7 +147,7 @@ export class ToolSchemaProcessor implements ContextProcessor {
           content: `Available Tool Definition for ${toolName}:\n${schemaString}`
         });
 
-        console.log(`[ToolSchemaProcessor] Injected schema for: ${toolName}`);
+        if (import.meta.env.DEV) console.log(`[ToolSchemaProcessor] Injected schema for: ${toolName}`);
 
       } catch (error) {
         console.warn(`Could not inject schema for ${toolName}: ${error}`);

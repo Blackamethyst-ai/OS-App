@@ -77,7 +77,7 @@ const DNABuilder = () => {
                                     type="range" 
                                     min="0" max="100" 
                                     value={(mentalState as any)[param.id]} 
-                                    onChange={e => handleUpdate(param.id, parseInt(e.target.value))}
+                                    onChange={e => handleUpdate(param.id, parseInt(e.target.value, 10))}
                                     className="absolute inset-0 opacity-0 cursor-pointer"
                                 />
                             </div>

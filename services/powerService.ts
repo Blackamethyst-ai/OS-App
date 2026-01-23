@@ -165,7 +165,7 @@ class PowerManagementService {
             this.config.features = { ...POWER_PRESETS[mode] };
         }
         this.save();
-        console.log(`⚡ POWER: Mode set to ${mode}`);
+        if (import.meta.env.DEV) console.log(`⚡ POWER: Mode set to ${mode}`);
     }
 
     /**
@@ -175,7 +175,7 @@ class PowerManagementService {
         this.config.features[feature] = enabled;
         this.config.mode = 'CUSTOM'; // Switch to custom when manually toggling
         this.save();
-        console.log(`⚡ POWER: ${feature} ${enabled ? 'enabled' : 'disabled'}`);
+        if (import.meta.env.DEV) console.log(`⚡ POWER: ${feature} ${enabled ? 'enabled' : 'disabled'}`);
     }
 
     /**

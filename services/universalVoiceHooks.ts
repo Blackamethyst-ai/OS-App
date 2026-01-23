@@ -257,15 +257,18 @@ function getElementDescription(el: HTMLElement, type: string): string {
             return `Button: "${label}" - click to activate`;
         case 'link':
             return `Link: "${label}" - click to navigate`;
-        case 'select':
+        case 'select': {
             const options = Array.from((el as HTMLSelectElement).options).map(o => o.text).slice(0, 5);
             return `Dropdown: "${label}" - options: ${options.join(', ')}`;
-        case 'checkbox':
+        }
+        case 'checkbox': {
             const checked = (el as HTMLInputElement).checked;
             return `Checkbox: "${label}" - currently ${checked ? 'checked' : 'unchecked'}`;
-        case 'radio':
+        }
+        case 'radio': {
             const selected = (el as HTMLInputElement).checked;
             return `Radio: "${label}" - currently ${selected ? 'selected' : 'unselected'}`;
+        }
         case 'tab':
             return `Tab: "${label}" - click to switch view`;
         default:
@@ -782,7 +785,7 @@ class UniversalVoiceService {
             attributeFilter: ['disabled', 'hidden', 'aria-hidden', 'style', 'class']
         });
 
-        console.log('[UniversalVoice] Started monitoring DOM');
+        if (import.meta.env.DEV) console.log('[UniversalVoice] Started monitoring DOM');
     }
 
     /**
@@ -794,7 +797,7 @@ class UniversalVoiceService {
             this.observer = null;
         }
         this.isRunning = false;
-        console.log('[UniversalVoice] Stopped monitoring');
+        if (import.meta.env.DEV) console.log('[UniversalVoice] Stopped monitoring');
     }
 
     /**

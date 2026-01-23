@@ -228,20 +228,20 @@ class SemanticGazeAnalyzer {
     // STABILIZATION: API Safety checks (Protocol §5)
     // 1. Check if AI analysis is explicitly enabled
     if (!this.isAIAnalysisEnabled()) {
-      console.log('SEMANTIC_GAZE: AI analysis disabled - using DOM fallback');
+      if (import.meta.env.DEV) console.log('SEMANTIC_GAZE: AI analysis disabled - using DOM fallback');
       return this.analyzeFromDOM(gazeX, gazeY);
     }
 
     // 2. Check API key exists
     const hasApiKey = apiKeyService.getKey('claude') || apiKeyService.getGeminiKey();
     if (!hasApiKey) {
-      console.log('SEMANTIC_GAZE: No API key - using DOM fallback');
+      if (import.meta.env.DEV) console.log('SEMANTIC_GAZE: No API key - using DOM fallback');
       return this.analyzeFromDOM(gazeX, gazeY);
     }
 
     // 3. Rate limiting: max 1 request per 3 seconds
     if (now - this.lastVLMCallTime < CONFIG.vlmRateLimitMs) {
-      console.log('SEMANTIC_GAZE: Rate limited - using cached/DOM fallback');
+      if (import.meta.env.DEV) console.log('SEMANTIC_GAZE: Rate limited - using cached/DOM fallback');
       return this.getNearestCachedTarget(gazeX, gazeY) || this.analyzeFromDOM(gazeX, gazeY);
     }
 
@@ -283,7 +283,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
           'image/jpeg',
           CONFIG.claudeModel
         );
-        console.log('SEMANTIC_GAZE: Claude Vision analysis complete');
+        if (import.meta.env.DEV) console.log('SEMANTIC_GAZE: Claude Vision analysis complete');
       } else {
         // Use Gemini Vision
         const ai = getAI();
@@ -305,7 +305,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
           ],
         });
         responseText = response.text || '';
-        console.log('SEMANTIC_GAZE: Gemini Vision analysis complete');
+        if (import.meta.env.DEV) console.log('SEMANTIC_GAZE: Gemini Vision analysis complete');
       }
 
       // Parse the JSON response

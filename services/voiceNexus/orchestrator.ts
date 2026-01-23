@@ -108,19 +108,19 @@ export class VoiceNexusOrchestrator {
     private selectSTTProvider(): STTProvider {
         // If browser is explicitly requested, use it
         if (this.config.sttProvider === 'browser') {
-            console.log('VoiceNexus: Using browser STT (configured)');
+            if (import.meta.env.DEV) console.log('VoiceNexus: Using browser STT (configured)');
             return browserSTT;
         }
 
         // If Gemini is requested and available, use it
         if (this.config.sttProvider === 'gemini' && geminiLiveSTT.isAvailable()) {
-            console.log('VoiceNexus: Using Gemini Live STT');
+            if (import.meta.env.DEV) console.log('VoiceNexus: Using Gemini Live STT');
             return geminiLiveSTT;
         }
 
         // Fallback to browser STT
         if (browserSTT.isAvailable()) {
-            console.log('VoiceNexus: Falling back to browser STT');
+            if (import.meta.env.DEV) console.log('VoiceNexus: Falling back to browser STT');
             return browserSTT;
         }
 
@@ -207,7 +207,7 @@ export class VoiceNexusOrchestrator {
             const complexityResult = analyzeComplexity(text);
             this.state.lastComplexityScore = complexityResult.score;
 
-            console.log(`VoiceNexus: ${formatComplexityResult(complexityResult)}`);
+            if (import.meta.env.DEV) console.log(`VoiceNexus: ${formatComplexityResult(complexityResult)}`);
 
             // 2. Check for explicit overrides
             const override = hasExplicitOverride(text);
@@ -323,7 +323,7 @@ export class VoiceNexusOrchestrator {
             tools: this.buildTools(),
             callbacks: {
                 onopen: () => {
-                    console.log('VoiceNexus: Realtime session connected');
+                    if (import.meta.env.DEV) console.log('VoiceNexus: Realtime session connected');
                 },
                 onmessage: async (message: LiveServerMessage) => {
                     await this.handleRealtimeMessage(message);
@@ -340,7 +340,7 @@ export class VoiceNexusOrchestrator {
 
         // Set up agent switch handler
         liveSession.onAgentSwitch = (agentName: string) => {
-            console.log(`VoiceNexus: Switching to agent ${agentName}`);
+            if (import.meta.env.DEV) console.log(`VoiceNexus: Switching to agent ${agentName}`);
             // Agent switch is handled by VoiceManager in the component layer
         };
     }
@@ -351,7 +351,7 @@ export class VoiceNexusOrchestrator {
     private async startHybridMode(): Promise<void> {
         // Check if we should use browser STT instead
         if (this.isUsingBrowserSTT()) {
-            console.log('VoiceNexus: Using browser STT for hybrid mode');
+            if (import.meta.env.DEV) console.log('VoiceNexus: Using browser STT for hybrid mode');
             await this.startBrowserMode();
             return;
         }
@@ -367,7 +367,7 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
             tools: this.buildTools(),
             callbacks: {
                 onopen: () => {
-                    console.log('VoiceNexus: Hybrid session connected');
+                    if (import.meta.env.DEV) console.log('VoiceNexus: Hybrid session connected');
                 },
                 onmessage: async (message: LiveServerMessage) => {
                     await this.handleHybridMessage(message);
@@ -392,7 +392,7 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
             throw new Error('Browser STT (Web Speech API) is not available in this browser');
         }
 
-        console.log('VoiceNexus: Starting browser STT mode');
+        if (import.meta.env.DEV) console.log('VoiceNexus: Starting browser STT mode');
         this.state.currentProvider.stt = 'browser';
         this.events.onProviderSwitch?.({ stt: 'browser' });
 
@@ -675,7 +675,7 @@ ${agent.expertise?.length ? `## Expertise Areas\n${agent.expertise.join(', ')}` 
         provider?: string
     ): Transcript {
         return {
-            id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            id: `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
             role,
             text,
             timestamp: Date.now(),

@@ -99,7 +99,7 @@ class SelfEvolutionService {
             });
         }
 
-        console.log(`🧬 Evolution: Friction recorded - ${type}: ${context.slice(0, 50)}...`);
+        if (import.meta.env.DEV) console.log(`🧬 Evolution: Friction recorded - ${type}: ${context.slice(0, 50)}...`);
     }
 
     /**
@@ -111,7 +111,7 @@ class SelfEvolutionService {
 
         // Check if Auto-Evolution is enabled in power settings
         if (!powerService.isEnabled('autoEvolution')) {
-            console.log('🧬 SELF-EVOLUTION: Disabled in power settings. Enable in Power Control Panel.');
+            if (import.meta.env.DEV) console.log('🧬 SELF-EVOLUTION: Disabled in power settings. Enable in Power Control Panel.');
             return;
         }
 
@@ -124,7 +124,7 @@ class SelfEvolutionService {
 
         // Take the highest-friction signal
         const target = criticalFriction[0];
-        console.log(`🧬 Evolution: Critical friction detected - ${target.type} (${target.count}x)`);
+        if (import.meta.env.DEV) console.log(`🧬 Evolution: Critical friction detected - ${target.type} (${target.count}x)`);
 
         await this.triggerEvolution(target);
     }
@@ -477,7 +477,7 @@ Output ONLY the code, no markdown fences.`;
                 }
             }
 
-            console.log(`Risk Assessment for ${targetFile}: Radius=${radius}`);
+            if (import.meta.env.DEV) console.log(`Risk Assessment for ${targetFile}: Radius=${radius}`);
 
             // 4. Determine Risk Rule
             if (radius < 5) return 'LOW';
@@ -551,7 +551,7 @@ Output ONLY the code, no markdown fences.`;
 
                 // Add dummy evolution steps representing the plan for impacted files
                 plan.evolutionSteps = impactedFiles.map(file => ({
-                    id: `step-${Math.random().toString(36).substr(2, 9)}`,
+                    id: `step-${crypto.randomUUID().slice(0, 8)}`,
                     file,
                     description: `Update call sites and types for changes in ${targetFile}`,
                     patch: `// TODO: Generate patch for ${file}`,

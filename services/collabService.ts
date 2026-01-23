@@ -9,7 +9,7 @@ class CollaborationService {
     private interval: number | null = null;
 
     public init() {
-        console.log('[CollabService] Synchronizing with Peer Mesh...');
+        if (import.meta.env.DEV) console.log('[CollabService] Synchronizing with Peer Mesh...');
         
         // Initial set of peers
         this.syncPeers();

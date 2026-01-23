@@ -539,9 +539,9 @@ Be thorough, precise, and intellectually rigorous.`,
         const specificityMatch = verification.match(/SPECIFICITY:\s*(\d+)/i);
         const correctnessMatch = verification.match(/CORRECTNESS:\s*(\d+)/i);
 
-        const validity = validityMatch ? parseInt(validityMatch[1]) : 70;
-        const specificity = specificityMatch ? parseInt(specificityMatch[1]) : 60;
-        const correctness = correctnessMatch ? parseInt(correctnessMatch[1]) : 70;
+        const validity = validityMatch ? parseInt(validityMatch[1], 10) : 70;
+        const specificity = specificityMatch ? parseInt(specificityMatch[1], 10) : 60;
+        const correctness = correctnessMatch ? parseInt(correctnessMatch[1], 10) : 70;
 
         const overall = Math.round(validity * 0.4 + specificity * 0.3 + correctness * 0.3);
 

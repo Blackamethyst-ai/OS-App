@@ -428,7 +428,7 @@ let isInitialized = false;
 export async function initializeUnifiedRegistry(): Promise<void> {
     if (isInitialized) return;
 
-    console.log('[UnifiedRegistry] Initializing...');
+    if (import.meta.env.DEV) console.log('[UnifiedRegistry] Initializing...');
 
     // Import existing registries
     const { getAllComponentActions } = await import('./componentActionRegistry');
@@ -467,7 +467,7 @@ export async function initializeUnifiedRegistry(): Promise<void> {
     isInitialized = true;
     registryState.initialized = true;
 
-    console.log(`[UnifiedRegistry] Initialized with ${registryState.actions.size} actions`);
+    if (import.meta.env.DEV) console.log(`[UnifiedRegistry] Initialized with ${registryState.actions.size} actions`);
 }
 
 // =============================================================================

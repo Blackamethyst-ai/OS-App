@@ -894,7 +894,7 @@ let isInitialized = false;
  */
 export function initializeVoiceActions(): void {
     if (isInitialized) {
-        console.log('[VoiceActionRegistry] Already initialized');
+        if (import.meta.env.DEV) console.log('[VoiceActionRegistry] Already initialized');
         return;
     }
 
@@ -914,7 +914,7 @@ export function initializeVoiceActions(): void {
     store.registerActions(actionsWithSectors);
 
     isInitialized = true;
-    console.log(`[VoiceActionRegistry] Registered ${VOICE_ACTIONS.length} voice actions with sector awareness`);
+    if (import.meta.env.DEV) console.log(`[VoiceActionRegistry] Registered ${VOICE_ACTIONS.length} voice actions with sector awareness`);
 }
 
 /**

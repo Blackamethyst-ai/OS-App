@@ -47,7 +47,7 @@ export class SemanticPager {
   async initialize(): Promise<void> {
     // Load pinned pages from storage
     await this.loadPinnedPages();
-    console.log('📄 SEMANTIC_PAGER: Initialized');
+    if (import.meta.env.DEV) console.log('📄 SEMANTIC_PAGER: Initialized');
   }
 
   /**
@@ -60,7 +60,7 @@ export class SemanticPager {
     );
 
     // Would persist to IndexedDB via neuralVault
-    console.log(`📄 SEMANTIC_PAGER: Flushed ${toFlush.length} pages`);
+    if (import.meta.env.DEV) console.log(`📄 SEMANTIC_PAGER: Flushed ${toFlush.length} pages`);
   }
 
   // ============================================================================
@@ -230,7 +230,7 @@ export class SemanticPager {
       }
     }
 
-    console.log(`📄 SEMANTIC_PAGER: Prefetched ${relatedPages.length} pages for element ${elementId}`);
+    if (import.meta.env.DEV) console.log(`📄 SEMANTIC_PAGER: Prefetched ${relatedPages.length} pages for element ${elementId}`);
   }
 
   /**
@@ -278,7 +278,7 @@ export class SemanticPager {
       freed += page.size;
     }
 
-    console.log(`📄 SEMANTIC_PAGER: Evicted ${freed} tokens`);
+    if (import.meta.env.DEV) console.log(`📄 SEMANTIC_PAGER: Evicted ${freed} tokens`);
   }
 
   /**
