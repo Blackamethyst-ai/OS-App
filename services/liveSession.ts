@@ -128,7 +128,7 @@ class LiveSession {
         const voiceName = agent?.voice || 'Zephyr';
 
         const sessionPromise = ai.live.connect({
-            model: 'gemini-2.0-flash-exp',
+            model: 'gemini-2.5-flash-preview-05-20',
             callbacks: {
                 onopen: async () => {
                     try {
