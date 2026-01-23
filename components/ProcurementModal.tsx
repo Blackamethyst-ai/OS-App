@@ -2,6 +2,7 @@
  * ProcurementModal Component
  *
  * Full procurement workflow: quantity selection, vendor quotes, confirmation, order tracking.
+ * Uses real vendor data from vendorService (minerstat + PriceAPI).
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
@@ -9,44 +10,16 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, ShoppingCart, Package, Truck, CheckCircle2, AlertTriangle,
     Loader2, ChevronRight, Star, Clock, Shield, Building2,
-    CreditCard, FileText, ArrowLeft, Sparkles
+    CreditCard, FileText, ArrowLeft, Sparkles, Database, Wifi
 } from 'lucide-react';
 import { useAppStore } from '../store';
+import * as vendorService from '../services/vendorService';
 import type { GpuWithLiveData, VendorQuote } from '../types';
 
 interface ProcurementModalProps {
     gpu: GpuWithLiveData;
     isOpen: boolean;
     onClose: () => void;
-}
-
-// Simulated vendor data generator
-function generateVendorQuotes(gpu: GpuWithLiveData, quantity: number): VendorQuote[] {
-    const basePrice = gpu.livePrice?.price || gpu.msrp;
-    const vendors = [
-        { name: 'Direct from Manufacturer', rating: 4.9, leadTime: '2-3 weeks', warranty: '3 years', markup: 1.0 },
-        { name: 'TechDistributor Pro', rating: 4.7, leadTime: '1-2 weeks', warranty: '2 years', markup: 1.05 },
-        { name: 'Enterprise Solutions Inc', rating: 4.8, leadTime: '3-5 days', warranty: '2 years', markup: 1.12 },
-        { name: 'CloudHardware Partners', rating: 4.5, leadTime: '1 week', warranty: '1 year', markup: 0.98 },
-    ];
-
-    return vendors.map((v, i) => {
-        const unitPrice = Math.round(basePrice * v.markup);
-        const bulkDiscount = quantity >= 10 ? 0.95 : quantity >= 5 ? 0.97 : 1;
-        const totalPrice = Math.round(unitPrice * quantity * bulkDiscount);
-
-        return {
-            id: `quote-${i}-${Date.now()}`,
-            vendor: v.name,
-            unitPrice,
-            quantity,
-            totalPrice,
-            leadTime: v.leadTime,
-            warranty: v.warranty,
-            inStock: Math.random() > 0.3,
-            rating: v.rating
-        };
-    });
 }
 
 type Step = 'quantity' | 'quotes' | 'confirm' | 'processing' | 'complete';
@@ -61,6 +34,10 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
     const [selectedQuote, setSelectedQuote] = useState<VendorQuote | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [orderId, setOrderId] = useState<string | null>(null);
+    const [quoteError, setQuoteError] = useState<string | null>(null);
+
+    // Get data source status for display
+    const dataSourceStatus = useMemo(() => vendorService.getDataSourceStatus(), []);
 
     // Reset state when modal opens
     React.useEffect(() => {
@@ -70,17 +47,28 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
             setQuotes([]);
             setSelectedQuote(null);
             setOrderId(null);
+            setQuoteError(null);
         }
     }, [isOpen]);
 
     const handleGetQuotes = useCallback(async () => {
         setIsLoading(true);
-        // Simulate API call
-        await new Promise(r => setTimeout(r, 1500));
-        const newQuotes = generateVendorQuotes(gpu, quantity);
-        setQuotes(newQuotes);
-        setIsLoading(false);
-        setStep('quotes');
+        setQuoteError(null);
+        try {
+            // Fetch real vendor quotes from vendorService
+            const realQuotes = await vendorService.getVendorQuotes(
+                gpu.model,
+                quantity,
+                { msrp: gpu.msrp, includeMarketAverage: true, includePriceApi: true }
+            );
+            setQuotes(realQuotes);
+            setStep('quotes');
+        } catch (error) {
+            console.error('[Procurement] Failed to fetch quotes:', error);
+            setQuoteError('Failed to fetch vendor quotes. Please try again.');
+        } finally {
+            setIsLoading(false);
+        }
     }, [gpu, quantity]);
 
     const handleSelectQuote = useCallback((quote: VendorQuote) => {
@@ -241,6 +229,31 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Estimated Total</span>
                                         <span className="text-2xl font-black font-mono text-[#10b981]">${totalCost.toLocaleString()}</span>
                                     </div>
+
+                                    {/* Data Sources Status */}
+                                    <div className="p-4 bg-white/[0.02] border border-white/5 rounded-xl">
+                                        <div className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-3">Data Sources</div>
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-2">
+                                                <Wifi size={10} className={dataSourceStatus.minerstat.available ? 'text-[#10b981]' : 'text-gray-600'} />
+                                                <span className="text-[9px] text-gray-500 font-mono">minerstat</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                <Wifi size={10} className={dataSourceStatus.priceApi.available ? 'text-[#10b981]' : 'text-gray-600'} />
+                                                <span className="text-[9px] text-gray-500 font-mono">
+                                                    PriceAPI {dataSourceStatus.priceApi.available && `(${dataSourceStatus.priceApi.credits.remaining} credits)`}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Error Display */}
+                                    {quoteError && (
+                                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl flex items-start gap-3">
+                                            <AlertTriangle size={16} className="text-red-500 shrink-0 mt-0.5" />
+                                            <p className="text-[9px] text-red-400/80 leading-relaxed">{quoteError}</p>
+                                        </div>
+                                    )}
                                 </motion.div>
                             )}
 
@@ -253,51 +266,73 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                         <span className="text-[9px] text-gray-600 font-mono">{quantity} unit{quantity > 1 ? 's' : ''} • {gpu.model}</span>
                                     </div>
 
-                                    {quotes.map(quote => (
-                                        <div
-                                            key={quote.id}
-                                            onClick={() => handleSelectQuote(quote)}
-                                            className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl hover:border-[#10b981]/30 cursor-pointer transition-all group"
-                                        >
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex items-start gap-4">
-                                                    <div className="p-2.5 bg-white/5 rounded-xl group-hover:bg-[#10b981]/10 transition-colors">
-                                                        <Building2 size={18} className="text-gray-500 group-hover:text-[#10b981] transition-colors" />
-                                                    </div>
-                                                    <div>
-                                                        <h4 className="text-sm font-black text-white">{quote.vendor}</h4>
-                                                        <div className="flex items-center gap-3 mt-1">
-                                                            <div className="flex items-center gap-1">
-                                                                <Star size={10} className="text-[#f1c21b] fill-[#f1c21b]" />
-                                                                <span className="text-[9px] text-gray-500 font-mono">{quote.rating}</span>
+                                    {quotes.length === 0 ? (
+                                        <div className="p-8 text-center">
+                                            <Database size={32} className="mx-auto text-gray-700 mb-4" />
+                                            <p className="text-[10px] text-gray-500 font-mono">No vendor quotes available</p>
+                                            <p className="text-[9px] text-gray-600 font-mono mt-2">Try refreshing or check data source connections</p>
+                                        </div>
+                                    ) : quotes.map(quote => {
+                                        // Determine source badge color and text
+                                        const sourceBadge = quote.id.includes('minerstat')
+                                            ? { color: 'text-cyan-500 bg-cyan-500/10', text: 'minerstat' }
+                                            : quote.id.includes('priceapi')
+                                            ? { color: 'text-purple-500 bg-purple-500/10', text: 'PriceAPI' }
+                                            : quote.id.includes('msrp')
+                                            ? { color: 'text-gray-500 bg-gray-500/10', text: 'MSRP Est.' }
+                                            : { color: 'text-blue-500 bg-blue-500/10', text: 'Live' };
+
+                                        return (
+                                            <div
+                                                key={quote.id}
+                                                onClick={() => handleSelectQuote(quote)}
+                                                className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl hover:border-[#10b981]/30 cursor-pointer transition-all group"
+                                            >
+                                                <div className="flex items-start justify-between">
+                                                    <div className="flex items-start gap-4">
+                                                        <div className="p-2.5 bg-white/5 rounded-xl group-hover:bg-[#10b981]/10 transition-colors">
+                                                            <Building2 size={18} className="text-gray-500 group-hover:text-[#10b981] transition-colors" />
+                                                        </div>
+                                                        <div>
+                                                            <div className="flex items-center gap-2">
+                                                                <h4 className="text-sm font-black text-white">{quote.vendor}</h4>
+                                                                <span className={`px-1.5 py-0.5 rounded text-[7px] font-bold uppercase tracking-wide ${sourceBadge.color}`}>
+                                                                    {sourceBadge.text}
+                                                                </span>
                                                             </div>
-                                                            <div className="flex items-center gap-1">
-                                                                <Clock size={10} className="text-gray-600" />
-                                                                <span className="text-[9px] text-gray-500 font-mono">{quote.leadTime}</span>
-                                                            </div>
-                                                            <div className="flex items-center gap-1">
-                                                                <Shield size={10} className="text-gray-600" />
-                                                                <span className="text-[9px] text-gray-500 font-mono">{quote.warranty}</span>
+                                                            <div className="flex items-center gap-3 mt-1">
+                                                                <div className="flex items-center gap-1">
+                                                                    <Star size={10} className="text-[#f1c21b] fill-[#f1c21b]" />
+                                                                    <span className="text-[9px] text-gray-500 font-mono">{quote.rating}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <Clock size={10} className="text-gray-600" />
+                                                                    <span className="text-[9px] text-gray-500 font-mono">{quote.leadTime}</span>
+                                                                </div>
+                                                                <div className="flex items-center gap-1">
+                                                                    <Shield size={10} className="text-gray-600" />
+                                                                    <span className="text-[9px] text-gray-500 font-mono">{quote.warranty}</span>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    <div className="text-right">
+                                                        <div className="text-lg font-black font-mono text-[#10b981]">${quote.totalPrice.toLocaleString()}</div>
+                                                        <div className="text-[8px] text-gray-600 font-mono">${quote.unitPrice.toLocaleString()} / unit</div>
+                                                    </div>
                                                 </div>
-                                                <div className="text-right">
-                                                    <div className="text-lg font-black font-mono text-[#10b981]">${quote.totalPrice.toLocaleString()}</div>
-                                                    <div className="text-[8px] text-gray-600 font-mono">${quote.unitPrice.toLocaleString()} / unit</div>
-                                                </div>
+                                                {quote.inStock ? (
+                                                    <div className="mt-3 flex items-center gap-2 text-[8px] text-[#10b981] font-mono">
+                                                        <CheckCircle2 size={10} /> In Stock - Ready to Ship
+                                                    </div>
+                                                ) : (
+                                                    <div className="mt-3 flex items-center gap-2 text-[8px] text-amber-500 font-mono">
+                                                        <AlertTriangle size={10} /> Pre-order - Ships in {quote.leadTime}
+                                                    </div>
+                                                )}
                                             </div>
-                                            {quote.inStock ? (
-                                                <div className="mt-3 flex items-center gap-2 text-[8px] text-[#10b981] font-mono">
-                                                    <CheckCircle2 size={10} /> In Stock - Ready to Ship
-                                                </div>
-                                            ) : (
-                                                <div className="mt-3 flex items-center gap-2 text-[8px] text-amber-500 font-mono">
-                                                    <AlertTriangle size={10} /> Pre-order - Ships in {quote.leadTime}
-                                                </div>
-                                            )}
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </motion.div>
                             )}
 
@@ -338,11 +373,12 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                         </div>
                                     </div>
 
-                                    <div className="p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-start gap-3">
-                                        <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
-                                        <p className="text-[9px] text-amber-400/80 leading-relaxed">
-                                            This is a simulated procurement flow. In production, this would connect to vendor APIs for real-time quotes and order placement.
-                                        </p>
+                                    <div className="p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl flex items-start gap-3">
+                                        <Database size={16} className="text-cyan-500 shrink-0 mt-0.5" />
+                                        <div className="text-[9px] text-cyan-400/80 leading-relaxed">
+                                            <p className="font-bold mb-1">Real Market Data</p>
+                                            <p>Pricing sourced from minerstat and PriceAPI. Order placement is simulated.</p>
+                                        </div>
                                     </div>
                                 </motion.div>
                             )}

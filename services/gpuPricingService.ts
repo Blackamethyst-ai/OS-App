@@ -1,11 +1,17 @@
 /**
  * GPU Pricing Service
  *
- * Fetches live market prices for GPUs using Gemini + Google Search.
+ * Fetches live market prices for GPUs using a multi-source fallback chain:
+ * 1. minerstat API (free, no auth) - Primary source
+ * 2. PriceAPI (1000 free credits) - Multi-retailer data
+ * 3. Gemini + Google Search - AI-powered fallback
+ *
  * Implements caching to avoid rate limits (1 hour cache duration).
  */
 
 import { getAI, retryGeminiRequest, safeParseJson } from './geminiService';
+import * as minerstatService from './minerstatService';
+import * as priceApiService from './priceApiService';
 import type { GenerateContentResponse } from '@google/genai';
 import type { LiveGpuPrice, StockStatus } from '../types';
 
@@ -99,24 +105,10 @@ function parseStockStatus(status: string): StockStatus {
 }
 
 /**
- * Fetch live market price for a GPU model
- *
- * Uses Gemini with Google Search to find current market prices.
- * Results are cached for 1 hour.
- *
- * @param gpuModel - The GPU model name (e.g., "NVIDIA RTX 5090")
- * @param msrp - The MSRP as fallback if live price unavailable
- * @returns LiveGpuPrice object with current market data
+ * Fetch price from Gemini (existing fallback method)
  */
-export async function fetchLivePrice(gpuModel: string, msrp: number): Promise<LiveGpuPrice> {
-    // Check cache first
-    const cached = getCachedPrice(gpuModel);
-    if (cached) {
-        console.log(`[GPU Pricing] Cache hit for ${gpuModel}`);
-        return cached;
-    }
-
-    console.log(`[GPU Pricing] Fetching live price for ${gpuModel}`);
+async function fetchGeminiPrice(gpuModel: string, msrp: number): Promise<LiveGpuPrice> {
+    console.log(`[GPU Pricing] Using Gemini fallback for ${gpuModel}`);
 
     try {
         const ai = getAI();
@@ -151,32 +143,80 @@ Output ONLY valid JSON in this exact format:
             source: string;
         }>(response.text);
 
-        const livePrice: LiveGpuPrice = {
+        return {
             price: result.price || msrp,
             trend: result.trend || 0,
             stock: parseStockStatus(result.stock || 'IN_STOCK'),
-            source: result.source || 'Estimated',
+            source: result.source ? `AI Estimate (${result.source})` : 'AI Estimate',
             lastUpdated: Date.now()
         };
-
-        // Cache the result
-        setCachePrice(gpuModel, livePrice);
-
-        return livePrice;
     } catch (error) {
-        console.error(`[GPU Pricing] Error fetching price for ${gpuModel}:`, error);
+        console.error(`[GPU Pricing] Gemini fallback failed for ${gpuModel}:`, error);
 
-        // Return fallback with MSRP
-        const fallback: LiveGpuPrice = {
+        // Return MSRP fallback
+        return {
             price: msrp,
             trend: 0,
             stock: 'IN_STOCK',
             source: 'MSRP (fallback)',
             lastUpdated: Date.now()
         };
-
-        return fallback;
     }
+}
+
+/**
+ * Fetch live market price for a GPU model
+ *
+ * Uses a multi-source fallback chain:
+ * 1. Check cache (1hr TTL)
+ * 2. Try minerstat API (free, no auth)
+ * 3. Try PriceAPI (if credits available)
+ * 4. Fallback to Gemini + Google Search
+ *
+ * @param gpuModel - The GPU model name (e.g., "NVIDIA RTX 5090")
+ * @param msrp - The MSRP as fallback if live price unavailable
+ * @returns LiveGpuPrice object with current market data
+ */
+export async function fetchLivePrice(gpuModel: string, msrp: number): Promise<LiveGpuPrice> {
+    // 1. Check cache first
+    const cached = getCachedPrice(gpuModel);
+    if (cached) {
+        console.log(`[GPU Pricing] Cache hit for ${gpuModel}`);
+        return cached;
+    }
+
+    console.log(`[GPU Pricing] Fetching live price for ${gpuModel}`);
+
+    // 2. Try minerstat (free, no auth required)
+    try {
+        const minerstatPrice = await minerstatService.getLiveGpuPrice(gpuModel, msrp);
+        if (minerstatPrice) {
+            console.log(`[GPU Pricing] Got price from minerstat for ${gpuModel}: $${minerstatPrice.price}`);
+            setCachePrice(gpuModel, minerstatPrice);
+            return minerstatPrice;
+        }
+    } catch (e) {
+        console.warn(`[GPU Pricing] minerstat failed for ${gpuModel}:`, e);
+    }
+
+    // 3. Try PriceAPI (if API key configured and credits available)
+    if (priceApiService.hasApiKey() && priceApiService.hasCredits()) {
+        try {
+            const priceApiResult = await priceApiService.getGpuPrice(gpuModel, msrp);
+            if (priceApiResult) {
+                console.log(`[GPU Pricing] Got price from PriceAPI for ${gpuModel}: $${priceApiResult.price}`);
+                setCachePrice(gpuModel, priceApiResult);
+                return priceApiResult;
+            }
+        } catch (e) {
+            console.warn(`[GPU Pricing] PriceAPI failed for ${gpuModel}:`, e);
+        }
+    }
+
+    // 4. Fallback to Gemini
+    const geminiPrice = await fetchGeminiPrice(gpuModel, msrp);
+    setCachePrice(gpuModel, geminiPrice);
+    return geminiPrice;
 }
 
 /**
@@ -222,23 +262,77 @@ export function clearPriceCache(): void {
     } catch (e) {
         // Ignore
     }
-    console.log('[GPU Pricing] Cache cleared');
+    // Also clear service-level caches
+    minerstatService.clearCache();
+    priceApiService.clearCache();
+    console.log('[GPU Pricing] All caches cleared');
 }
 
 /**
  * Get cache statistics
  */
-export function getCacheStats(): { entries: number; oldestEntry: number | null } {
+export function getCacheStats(): {
+    entries: number;
+    oldestEntry: number | null;
+    minerstat: { cached: boolean; gpuCount: number; ageMs: number };
+    priceApi: { credits: { used: number; remaining: number } };
+} {
     const keys = Object.keys(priceCache);
-    if (keys.length === 0) {
-        return { entries: 0, oldestEntry: null };
-    }
-
-    const timestamps = keys.map(k => priceCache[k].timestamp);
-    const oldest = Math.min(...timestamps);
+    const timestamps = keys.length > 0 ? keys.map(k => priceCache[k].timestamp) : [];
+    const oldest = timestamps.length > 0 ? Math.min(...timestamps) : null;
 
     return {
         entries: keys.length,
-        oldestEntry: Date.now() - oldest
+        oldestEntry: oldest ? Date.now() - oldest : null,
+        minerstat: minerstatService.getCacheStatus(),
+        priceApi: { credits: priceApiService.getCreditsStatus() }
     };
+}
+
+/**
+ * Get data source status
+ */
+export function getDataSourceStatus(): {
+    minerstat: { available: boolean; description: string };
+    priceApi: { available: boolean; hasCredits: boolean; description: string };
+    gemini: { available: boolean; description: string };
+} {
+    return {
+        minerstat: {
+            available: true,
+            description: 'Free public API (primary source)'
+        },
+        priceApi: {
+            available: priceApiService.hasApiKey(),
+            hasCredits: priceApiService.hasCredits(),
+            description: 'Multi-retailer pricing (1000 free credits)'
+        },
+        gemini: {
+            available: true,
+            description: 'AI-powered price estimation (fallback)'
+        }
+    };
+}
+
+/**
+ * Force refresh price from a specific source
+ */
+export async function fetchPriceFromSource(
+    gpuModel: string,
+    msrp: number,
+    source: 'minerstat' | 'priceapi' | 'gemini'
+): Promise<LiveGpuPrice | null> {
+    switch (source) {
+        case 'minerstat':
+            return minerstatService.getLiveGpuPrice(gpuModel, msrp);
+        case 'priceapi':
+            if (!priceApiService.hasApiKey() || !priceApiService.hasCredits()) {
+                return null;
+            }
+            return priceApiService.getGpuPrice(gpuModel, msrp);
+        case 'gemini':
+            return fetchGeminiPrice(gpuModel, msrp);
+        default:
+            return null;
+    }
 }
