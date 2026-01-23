@@ -15,6 +15,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
+import CPBStatusOverlay from './CPBStatusOverlay';
 
 // --- SUB-COMPONENTS ---
 
@@ -408,6 +409,8 @@ const VoiceMode: React.FC = () => {
 
             {/* Interaction Stage */}
             <div className="flex-1 flex flex-col items-center justify-center p-10 relative overflow-hidden">
+                {/* CPB Status Overlay - shows when thinking */}
+                <CPBStatusOverlay />
                 <AnimatePresence>
                     {showTuning && (
                         <motion.div
