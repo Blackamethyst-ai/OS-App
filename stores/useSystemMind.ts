@@ -165,8 +165,10 @@ export const useSystemMind = create<SystemState>((set, get) => ({
     set((state) => ({
       activeTelemetry: { ...state.activeTelemetry, [id]: data }
     }));
-    // Only increment epoch for significant telemetry updates
-    if (id === 'ui_state' || id === 'visible_elements') {
+    // Increment epoch for significant telemetry updates
+    // These represent major state changes that voice should know about
+    const epochTriggers = ['ui_state', 'visible_elements', 'archon_event', 'tab_change', 'command_executed'];
+    if (epochTriggers.includes(id)) {
       incrementEpoch(set, get, 'telemetry_update', id);
     }
   },

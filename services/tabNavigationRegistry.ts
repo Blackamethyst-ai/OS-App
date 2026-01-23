@@ -9,10 +9,14 @@
  * - Fuzzy matching with disambiguation
  * - Subtab support
  * - Context-aware navigation
+ *
+ * SYNCHRONIZED CLOCK INTEGRATION:
+ * Tab changes trigger SystemMind epoch updates to keep voice context fresh.
  */
 
 import { AppMode } from '../types';
 import { useAppStore } from '../store';
+import { useSystemMind } from '../stores/useSystemMind';
 
 // =============================================================================
 // Types
@@ -700,6 +704,20 @@ export function navigateToTab(query: string): TabNavigationResult {
                         subtab: result.subtab
                     }
                 }));
+        }
+
+        // SYNCHRONIZED CLOCK: Trigger epoch update for tab changes
+        // This ensures voice context stays fresh when tabs change
+        try {
+            const systemMind = useSystemMind.getState();
+            systemMind.uplinkData('tab_change', {
+                sector: result.sector,
+                tab: result.tab,
+                subtab: result.subtab,
+                timestamp: Date.now()
+            });
+        } catch (e) {
+            // SystemMind may not be available during early initialization
         }
     }
 
