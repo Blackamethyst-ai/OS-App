@@ -15,7 +15,7 @@
  */
 
 import {
-  KernelState,
+  KernelOperationalMode,
   KernelTask,
   ResolvedIntent,
   KernelEvent,
@@ -34,7 +34,7 @@ import type { UILayoutSpec, AUIGenerationContext, UIEvaluation } from '../ui/typ
 const KERNEL_VERSION = '1.0.0-agentic';
 
 class AgentKernelService {
-  private state: KernelState = 'BOOTING';
+  private state: KernelOperationalMode = 'BOOTING';
   private bootTime: number = 0;
   private eventHandlers: Map<KernelEventType, Set<KernelEventHandler>> = new Map();
   private globalHandlers: Set<KernelEventHandler> = new Set();
@@ -631,7 +631,7 @@ class AgentKernelService {
   /**
    * Get current kernel state
    */
-  getState(): KernelState {
+  getState(): KernelOperationalMode {
     return this.state;
   }
 

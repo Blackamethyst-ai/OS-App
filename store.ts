@@ -9,7 +9,11 @@ import {
     MarketDataState, ContextMenuState, DashboardState, ProcessState,
     ImageGenState, CodeStudioState, HardwareState, MemorySliceState,
     BibliomorphicState, DiscoveryState, ResearchState, BicameralState,
-    AgentsState, CollaborationState, SynthesisState, KnowledgeState
+    AgentsState, CollaborationState, SynthesisState, KnowledgeState,
+    // Action types
+    SliceUpdater, HoloArtifact, ProcessNodeUpdateParams, TaskParams,
+    TaskUpdateParams, ResearchTaskParams, ResearchTaskUpdateParams,
+    SwarmEventParams, DockItemParams
 } from './types';
 import { neuralVault } from './services/persistenceService';
 import { INITIAL_AGENTS } from './data/initialAgents';
@@ -80,37 +84,38 @@ interface AppState {
         setSidebarOpen: (open: boolean) => void;
         addLog: (level: 'ERROR' | 'WARN' | 'SUCCESS' | 'INFO' | 'SYSTEM', message: string) => void;
         toggleTerminal: (open?: boolean) => void;
-        setSearchState: (update: any) => void;
-        setVoiceState: (update: any) => void;
-        setVoiceNexusState: (update: any) => void;
-        setCPBState: (update: any) => void;
-        setVisualCortexState: (update: any) => void;
-        openHoloProjector: (artifact: any) => void;
+        // Typed slice setters
+        setSearchState: (update: SliceUpdater<SearchState>) => void;
+        setVoiceState: (update: SliceUpdater<VoiceState>) => void;
+        setVoiceNexusState: (update: SliceUpdater<VoiceNexusState>) => void;
+        setCPBState: (update: SliceUpdater<CPBState>) => void;
+        setVisualCortexState: (update: SliceUpdater<VisualCortexState>) => void;
+        openHoloProjector: (artifact: HoloArtifact) => void;
         closeHoloProjector: () => void;
         setHoloAnalysis: (result: string | null) => void;
         setHoloAnalyzing: (busy: boolean) => void;
-        setDashboardState: (update: any) => void;
+        setDashboardState: (update: SliceUpdater<DashboardState>) => void;
         toggleKnowledgeLayer: (id: string) => void;
         optimizeLayer: (id: string) => void;
-        setProcessState: (update: any) => void;
-        updateProcessNode: (id: string, update: any) => void;
-        setImageGenState: (update: any) => void;
-        setCodeStudioState: (update: any) => void;
-        setHardwareState: (update: any) => void;
-        setMemoryState: (update: any) => void;
-        setBibliomorphicState: (update: any) => void;
-        setDiscoveryState: (update: any) => void;
-        addResearchTask: (task: any) => void;
-        updateResearchTask: (id: string, update: any) => void;
+        setProcessState: (update: SliceUpdater<ProcessState>) => void;
+        updateProcessNode: (id: string, update: ProcessNodeUpdateParams) => void;
+        setImageGenState: (update: SliceUpdater<ImageGenState>) => void;
+        setCodeStudioState: (update: SliceUpdater<CodeStudioState>) => void;
+        setHardwareState: (update: SliceUpdater<HardwareState>) => void;
+        setMemoryState: (update: SliceUpdater<MemorySliceState>) => void;
+        setBibliomorphicState: (update: SliceUpdater<BibliomorphicState>) => void;
+        setDiscoveryState: (update: SliceUpdater<DiscoveryState>) => void;
+        addResearchTask: (task: ResearchTaskParams) => void;
+        updateResearchTask: (id: string, update: ResearchTaskUpdateParams) => void;
         removeResearchTask: (id: string) => void;
         cancelResearchTask: (id: string) => void;
-        setBicameralState: (update: any) => void;
-        setCollabState: (update: any) => void;
-        addSwarmEvent: (event: any) => void;
-        openContextMenu: (x: number, y: number, type: string, content: any) => void;
+        setBicameralState: (update: SliceUpdater<BicameralState>) => void;
+        setCollabState: (update: SliceUpdater<CollaborationState>) => void;
+        addSwarmEvent: (event: SwarmEventParams) => void;
+        openContextMenu: (x: number, y: number, type: string, content: string | Record<string, unknown> | null) => void;
         closeContextMenu: () => void;
-        addTask: (task: any) => void;
-        updateTask: (id: string, update: any) => void;
+        addTask: (task: TaskParams) => void;
+        updateTask: (id: string, update: TaskUpdateParams) => void;
         deleteTask: (id: string) => void;
         toggleSubTask: (taskId: string, subTaskId: string) => void;
         setHelpOpen: (open: boolean) => void;
@@ -118,14 +123,14 @@ interface AppState {
         setDiagnosticsOpen: (open: boolean) => void;
         setHUDClosed: (closed: boolean) => void;
         setFocusedSelector: (selector: string | null) => void;
-        addDockItem: (item: any) => void;
+        addDockItem: (item: DockItemParams) => void;
         removeDockItem: (id: string) => void;
-        archiveIntervention: (protocol: any) => void;
+        archiveIntervention: (protocol: TechnicalManifest) => void;
         removeStrategy: (id: string) => void;
-        setMetaventionsState: (update: any) => void;
-        pushToInvestmentQueue: (metavention: any) => void;
+        setMetaventionsState: (update: SliceUpdater<MetaventionsState>) => void;
+        pushToInvestmentQueue: (metavention: { title: string; viability: number; riskVector: string; logic: string }) => void;
         commitInvestment: (id: string, amount: number) => void;
-        setAgentState: (update: any) => void;
+        setAgentState: (update: SliceUpdater<AgentsState>) => void;
         updateAgent: (id: string, update: Partial<AutonomousAgent>) => void;
         addAgent: (agent: AutonomousAgent) => void;
         hydrateAgents: () => Promise<void>;
@@ -133,7 +138,7 @@ interface AppState {
         addSwarmProposal: (proposal: SwarmProposal) => void;
         dismissProposal: (id: string) => void;
         // Kernel & Biometric actions
-        setKernelState: (update: Partial<AppState['kernel']>) => void;
+        setKernelState: (update: Partial<KernelState>) => void;
         setBiometricState: (update: Partial<BiometricState>) => void;
         setUIComplexity: (level: UIComplexityLevel) => void;
     };
@@ -262,16 +267,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         setCodeStudioState: (update) => set((state) => ({
             codeStudio: { ...state.codeStudio, ...(typeof update === 'function' ? update(state.codeStudio) : update) }
         })),
-        setHardwareState: (update) => set((state) => {
-            const newUpdate = typeof update === 'function' ? update(state.hardware) : update;
-            // Sync deprecated fields with canonical ones
-            const synced = { ...newUpdate };
-            if ('gpuSearchQuery' in synced) synced.componentQuery = synced.gpuSearchQuery;
-            if ('componentQuery' in synced && !('gpuSearchQuery' in synced)) synced.gpuSearchQuery = synced.componentQuery;
-            if ('tierFilter' in synced) synced.activeTier = synced.tierFilter || 'ALL';
-            if ('activeTier' in synced && !('tierFilter' in synced)) synced.tierFilter = synced.activeTier === 'ALL' ? null : synced.activeTier;
-            return { hardware: { ...state.hardware, ...synced } };
-        }),
+        setHardwareState: (update) => set((state) => ({
+            hardware: { ...state.hardware, ...(typeof update === 'function' ? update(state.hardware) : update) }
+        })),
         setMemoryState: (update) => set((state) => ({
             memory: { ...state.memory, ...(typeof update === 'function' ? update(state.memory) : update) }
         })),

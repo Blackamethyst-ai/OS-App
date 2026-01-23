@@ -7,7 +7,7 @@
 
 import type { SearchResultItem, FileData, ScienceHypothesis, AtomicTask, SwarmResult, SwarmStatus, SwarmProposal, PeerPresence, SwarmEvent } from './core';
 import type { StoredArtifact } from './memory';
-import type { TechnicalManifest, ProtocolStepResult } from './kernel';
+import type { TechnicalManifest, ProtocolStepResult, KernelOperationalState } from './kernel';
 import type { CodebaseGraph } from './codebase';
 import type { ImageSize, AspectRatio, ProductionBible, Frame } from './visuals';
 import type { AutonomousAgent } from './agents';
@@ -20,7 +20,7 @@ export interface KernelState {
     uptime: number;
     entropy: number;
     integrity: number;
-    operationalState: 'BOOTING' | 'IDLE' | 'PROCESSING' | 'PAGING' | 'SUSPENDED' | 'ERROR';
+    operationalState: KernelOperationalState;
     tasksProcessed: number;
     taskQueueDepth: number;
     pagesInMemory: number;
@@ -330,7 +330,6 @@ export interface HardwareState {
     currentEra: string;
     activeVendor: string;
     recommendations: { id: string; name: string; price: number; rating: number; vendor: string }[];
-    componentQuery: string;
     filters: {
         minPrice: number;
         maxPrice: number;
@@ -344,7 +343,6 @@ export interface HardwareState {
     error: string | null;
     xrayImage: string | null;
     searchHistory: string[];
-    activeTier: string;
     finTelemetry: {
         totalBomCost: number;
         roiProjection: number;
@@ -352,7 +350,9 @@ export interface HardwareState {
     };
     livePrices: Record<string, { price: number; trend: number; stock: string; source: string; lastUpdated: number }>;
     selectedGpuId: string | null;
+    /** GPU tier filter (null = all tiers) */
     tierFilter: string | null;
+    /** GPU search query string */
     gpuSearchQuery: string;
     procurement: HardwareProcurement;
 }

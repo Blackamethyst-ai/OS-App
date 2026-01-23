@@ -30,7 +30,7 @@ export const neuralAutomata = async () => {
             contextSnapshot.language = state.codeStudio.language;
         } 
         else if (state.mode === AppMode.HARDWARE_ENGINEER) {
-            contextSnapshot.hardwareTier = state.hardware.activeTier;
+            contextSnapshot.hardwareTier = state.hardware.tierFilter || 'ALL';
             contextSnapshot.hasSchematic = !!state.hardware.schematicImage;
         }
 

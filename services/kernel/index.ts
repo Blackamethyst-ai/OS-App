@@ -12,7 +12,7 @@ export { IntentResolver } from './IntentResolver';
 // Types
 export type {
   // Kernel core
-  KernelState,
+  KernelOperationalMode,
   KernelTask,
   ResolvedIntent,
   IntentCategory,
