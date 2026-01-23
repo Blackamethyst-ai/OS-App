@@ -26,6 +26,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useVoiceExpose } from '../hooks/useVoiceExpose';
 import { audio } from '../services/audioService';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
+import ProcurementModal from './ProcurementModal';
 
 const ComputeFluxOverlay = ({ active, speed, color = '#22d3ee' }: { active: boolean, speed: number, color?: string }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -227,6 +228,20 @@ const HardwareEngine: React.FC = () => {
     const [liveSupplyData, setLiveSupplyData] = useState<any>(null);
     const [isFetchingSupply, setIsFetchingSupply] = useState(false);
     const [isAnalyzingFinImpact, setIsAnalyzingFinImpact] = useState(false);
+
+    // Procurement modal state
+    const [isProcurementOpen, setIsProcurementOpen] = useState(false);
+    const [procurementGpu, setProcurementGpu] = useState<GpuWithLiveData | null>(null);
+
+    const handleOpenProcurement = useCallback((gpu: GpuWithLiveData) => {
+        setProcurementGpu(gpu);
+        setIsProcurementOpen(true);
+    }, []);
+
+    const handleCloseProcurement = useCallback(() => {
+        setIsProcurementOpen(false);
+        setProcurementGpu(null);
+    }, []);
 
     // Reset selected GPU when era or tier changes (only if current selection not in filtered list)
     useEffect(() => {
@@ -513,7 +528,7 @@ const HardwareEngine: React.FC = () => {
                                                             <span className="text-[7px] font-mono text-gray-700">Source: {selectedGpu.livePrice.source}</span>
                                                         )}
                                                     </div>
-                                                    <button onClick={() => fetchSupplyChain(selectedGpu.model)} className="px-4 py-2 bg-[#10b981] text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg">Procure Unit</button>
+                                                    <button onClick={() => handleOpenProcurement(selectedGpu)} className="px-4 py-2 bg-[#10b981] text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg">Procure Unit</button>
                                                 </div>
                                                 <div className="flex-1 bg-black rounded-2xl border border-white/5 p-4 relative overflow-hidden shadow-inner">
                                                     <AreaChart
@@ -795,6 +810,15 @@ const HardwareEngine: React.FC = () => {
                     <span className="font-black text-gray-500 uppercase tracking-widest leading-none">THE D-ECOSYSTEM SYSTEMS_ENGINE</span>
                 </div>
             </div>
+
+            {/* Procurement Modal */}
+            {procurementGpu && (
+                <ProcurementModal
+                    gpu={procurementGpu}
+                    isOpen={isProcurementOpen}
+                    onClose={handleCloseProcurement}
+                />
+            )}
         </div>
     );
 };
