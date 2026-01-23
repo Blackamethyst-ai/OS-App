@@ -215,7 +215,7 @@ const VoiceManager: React.FC = () => {
         voice, voiceNexus: nexusState, actions,
         operationalContext
     } = useAppStore();
-    const { setVoiceState, setVoiceNexusState, setMode, addLog } = actions;
+    const { setVoiceState, setVoiceNexusState, setMode, addLog, setCPBState } = actions;
 
     const {
         currentLocation,
@@ -617,10 +617,26 @@ const VoiceManager: React.FC = () => {
                 const routing = routeQuery(task, context);
                 addLog('SYSTEM', `THINK: Routed to ${routing.path} path (confidence: ${(routing.confidence * 100).toFixed(0)}%)`);
 
+                // Update CPB visual state - START
+                setCPBState({
+                    isActive: true,
+                    phase: 'analyzing',
+                    path: routing.path as any,
+                    progress: 10,
+                    message: `Routing to ${routing.path}: ${task.slice(0, 40)}...`,
+                    error: null
+                });
+
                 try {
                     const result = await executeQuery(task, context, (status) => {
+                        // Update visual state on each phase change
                         if (status.phase && status.phase !== 'idle') {
                             addLog('SYSTEM', `THINK [${status.phase}]: ${status.message || ''}`);
+                            setCPBState({
+                                phase: status.phase as any,
+                                progress: status.progress || 50,
+                                message: status.message || `${status.phase}...`
+                            });
                         }
                     });
 
@@ -628,6 +644,29 @@ const VoiceManager: React.FC = () => {
                         const dqPercent = result.dqScore ? (result.dqScore * 100).toFixed(0) : 'N/A';
                         addLog('SUCCESS', `THINK: Complete (${result.executionPath}, DQ: ${dqPercent}%)`);
                         audio.playSuccess();
+
+                        // Update CPB visual state - COMPLETE
+                        setCPBState({
+                            isActive: false,
+                            phase: 'complete',
+                            progress: 100,
+                            message: `Complete via ${result.executionPath}`,
+                            lastResult: {
+                                output: typeof result.output === 'string' ? result.output.slice(0, 200) : JSON.stringify(result.output).slice(0, 200),
+                                confidence: result.dqScore ? result.dqScore * 100 : 70,
+                                dqScore: result.dqScore || 0.7,
+                                path: result.executionPath,
+                                executionTimeMs: result.executionTimeMs || 0,
+                                tokensUsed: 0,
+                                verified: true,
+                                pathReasoning: routing.reasoning
+                            }
+                        });
+
+                        // Auto-hide after 5 seconds
+                        setTimeout(() => {
+                            setCPBState({ phase: 'idle', isActive: false });
+                        }, 5000);
 
                         // Return the reasoning result for voice AI to use
                         return {
@@ -641,6 +680,14 @@ const VoiceManager: React.FC = () => {
                         };
                     } else {
                         addLog('WARN', `THINK: Low quality result, providing anyway`);
+                        setCPBState({
+                            isActive: false,
+                            phase: 'complete',
+                            progress: 100,
+                            message: 'Completed with warnings'
+                        });
+                        setTimeout(() => setCPBState({ phase: 'idle' }), 3000);
+
                         return {
                             status: "THOUGHT_PARTIAL",
                             response: result.output?.error || "Could not fully process the request",
@@ -649,6 +696,17 @@ const VoiceManager: React.FC = () => {
                     }
                 } catch (error: any) {
                     addLog('ERROR', `THINK: Error - ${error.message}`);
+
+                    // Update CPB visual state - ERROR
+                    setCPBState({
+                        isActive: false,
+                        phase: 'error',
+                        progress: 0,
+                        message: 'Processing failed',
+                        error: error.message
+                    });
+                    setTimeout(() => setCPBState({ phase: 'idle', error: null }), 5000);
+
                     return {
                         status: "THOUGHT_ERROR",
                         error: error.message,
