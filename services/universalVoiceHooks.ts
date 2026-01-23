@@ -813,92 +813,138 @@ class UniversalVoiceService {
     }
 
     /**
-     * Register discovered elements as actions in SystemMind
+     * Register discovered elements as actions in SystemMind.
+     * Uses bulk registration with sector awareness for synchronized clock.
+     * DOM-level actions are GLOBAL (empty sectors) - they work everywhere.
      */
     private registerWithSystemMind(): void {
         const store = useSystemMind.getState();
 
-        // Register universal actions
-        store.registerAction('voice_fill_input', 'Fill any text input field with specified text', async (args) => {
-            const result = fillInput(args.field || args.identifier || 'input', args.text || args.value);
-            return result;
-        });
+        // Build global DOM actions - these work in ANY sector
+        const globalDomActions = [
+            {
+                id: 'voice_fill_input',
+                description: '[DOM] Fill any text input field with specified text',
+                callback: async (args: any) => fillInput(args.field || args.identifier || 'input', args.text || args.value),
+                sectors: [] as string[],  // Global
+                priority: 90  // High priority - fundamental DOM interaction
+            },
+            {
+                id: 'voice_click_button',
+                description: '[DOM] Click any button, tab, or link',
+                callback: async (args: any) => clickButton(args.button || args.identifier || args.target),
+                sectors: [],
+                priority: 90
+            },
+            {
+                id: 'voice_select_option',
+                description: '[DOM] Select an option from a dropdown',
+                callback: async (args: any) => selectOption(args.dropdown || args.select, args.option || args.value),
+                sectors: [],
+                priority: 85
+            },
+            {
+                id: 'voice_toggle_checkbox',
+                description: '[DOM] Toggle or set a checkbox state',
+                callback: async (args: any) => toggleCheckbox(args.checkbox || args.identifier, args.state),
+                sectors: [],
+                priority: 80
+            },
+            {
+                id: 'voice_focus_element',
+                description: '[DOM] Focus and scroll to an element',
+                callback: async (args: any) => focusElement(args.element || args.identifier),
+                sectors: [],
+                priority: 70
+            },
+            {
+                id: 'voice_get_value',
+                description: '[DOM] Get the current value of an input',
+                callback: async (args: any) => getElementValue(args.field || args.identifier),
+                sectors: [],
+                priority: 65
+            },
+            {
+                id: 'voice_scan_ui',
+                description: '[DOM] Scan and return all interactive elements',
+                callback: async () => this.getSnapshot(),
+                sectors: [],
+                priority: 60
+            },
+            {
+                id: 'voice_submit_form',
+                description: '[DOM] Submit the current form or trigger primary action',
+                callback: async () => {
+                    const snapshot = scanInteractiveElements();
+                    const submitBtn = snapshot.buttons.find(b =>
+                        b.label.toLowerCase().includes('submit') ||
+                        b.label.toLowerCase().includes('send') ||
+                        b.label.toLowerCase().includes('run') ||
+                        b.label.toLowerCase().includes('execute') ||
+                        b.label.toLowerCase().includes('go') ||
+                        b.id.includes('submit')
+                    );
 
-        store.registerAction('voice_click_button', 'Click any button, tab, or link', async (args) => {
-            const result = clickButton(args.button || args.identifier || args.target);
-            return result;
-        });
+                    if (submitBtn) {
+                        submitBtn.element.click();
+                        return { success: true, element: submitBtn.label };
+                    }
 
-        store.registerAction('voice_select_option', 'Select an option from a dropdown', async (args) => {
-            const result = selectOption(args.dropdown || args.select, args.option || args.value);
-            return result;
-        });
+                    const focused = document.activeElement as HTMLElement;
+                    if (focused && (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA')) {
+                        focused.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+                        return { success: true, element: 'Enter key pressed' };
+                    }
 
-        store.registerAction('voice_toggle_checkbox', 'Toggle or set a checkbox state', async (args) => {
-            const result = toggleCheckbox(args.checkbox || args.identifier, args.state);
-            return result;
-        });
-
-        store.registerAction('voice_focus_element', 'Focus and scroll to an element', async (args) => {
-            const result = focusElement(args.element || args.identifier);
-            return result;
-        });
-
-        store.registerAction('voice_get_value', 'Get the current value of an input', async (args) => {
-            const result = getElementValue(args.field || args.identifier);
-            return result;
-        });
-
-        store.registerAction('voice_scan_ui', 'Scan and return all interactive elements', async () => {
-            return this.getSnapshot();
-        });
-
-        store.registerAction('voice_submit_form', 'Submit the current form or trigger primary action', async () => {
-            // Find submit button or primary action
-            const snapshot = scanInteractiveElements();
-            const submitBtn = snapshot.buttons.find(b =>
-                b.label.toLowerCase().includes('submit') ||
-                b.label.toLowerCase().includes('send') ||
-                b.label.toLowerCase().includes('run') ||
-                b.label.toLowerCase().includes('execute') ||
-                b.label.toLowerCase().includes('go') ||
-                b.id.includes('submit')
-            );
-
-            if (submitBtn) {
-                submitBtn.element.click();
-                return { success: true, element: submitBtn.label };
+                    return { success: false, error: 'No submit button or active input found' };
+                },
+                sectors: [],
+                priority: 75
             }
+        ];
 
-            // Try pressing Enter on focused input
-            const focused = document.activeElement as HTMLElement;
-            if (focused && (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA')) {
-                focused.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-                return { success: true, element: 'Enter key pressed' };
-            }
-
-            return { success: false, error: 'No submit button or active input found' };
-        });
+        // Bulk register global DOM actions (single epoch increment)
+        store.registerActions(globalDomActions);
 
         // Register individual element actions for more precise control
+        // These are sector-specific based on current view
         if (this.lastSnapshot) {
+            const elementActions: Array<{ id: string; description: string; callback: (args: any) => Promise<any>; sectors: string[]; priority: number }> = [];
+            const currentSector = store.currentLocation;
+
             // Register top inputs as individual actions
-            this.lastSnapshot.inputs.slice(0, 10).forEach((input, i) => {
-                store.registerAction(`input_${input.id}`, `Fill "${input.label}" input`, async (args) => {
-                    const el = input.element as HTMLInputElement;
-                    el.value = args.text || args.value || '';
-                    el.dispatchEvent(new Event('input', { bubbles: true }));
-                    return { success: true };
+            this.lastSnapshot.inputs.slice(0, 10).forEach((input) => {
+                elementActions.push({
+                    id: `input_${input.id}`,
+                    description: `[DOM] Fill "${input.label}" input`,
+                    callback: async (args: any) => {
+                        const el = input.element as HTMLInputElement;
+                        el.value = args.text || args.value || '';
+                        el.dispatchEvent(new Event('input', { bubbles: true }));
+                        return { success: true };
+                    },
+                    sectors: currentSector ? [currentSector] : [],
+                    priority: 55
                 });
             });
 
             // Register top buttons as individual actions
-            this.lastSnapshot.buttons.slice(0, 15).forEach((btn, i) => {
-                store.registerAction(`click_${btn.id}`, `Click "${btn.label}" button`, async () => {
-                    btn.element.click();
-                    return { success: true };
+            this.lastSnapshot.buttons.slice(0, 15).forEach((btn) => {
+                elementActions.push({
+                    id: `click_${btn.id}`,
+                    description: `[DOM] Click "${btn.label}" button`,
+                    callback: async () => {
+                        btn.element.click();
+                        return { success: true };
+                    },
+                    sectors: currentSector ? [currentSector] : [],
+                    priority: 50
                 });
             });
+
+            if (elementActions.length > 0) {
+                store.registerActions(elementActions);
+            }
         }
     }
 

@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useAppStore } from '../store';
-import { useSystemMind } from '../stores/useSystemMind';
+import { useSystemMind, EpochEvent } from '../stores/useSystemMind';
 import {
     liveSession,
     HIVE_AGENTS,
@@ -167,6 +167,21 @@ const navigateToTabTool: FunctionDeclaration = {
     }
 };
 
+// =============================================================================
+// SYNCHRONIZED CLOCK TOOL - Allows voice AI to detect stale context
+// =============================================================================
+const refreshContextTool: FunctionDeclaration = {
+    name: "refresh_context",
+    description: "Check if the context has become stale (sector changed, new actions available) and get fresh action list. Use this when: 1) User mentions something that doesn't match your current view, 2) After navigating to a new sector, 3) If actions seem outdated. Returns current epoch, sector, and top relevant actions.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            reason: { type: Type.STRING, description: "Why you're refreshing context (e.g., 'sector_changed', 'stale_actions', 'user_request')" }
+        },
+        required: []
+    }
+};
+
 const VoiceManager: React.FC = () => {
     const {
         voice, voiceNexus: nexusState, actions,
@@ -174,17 +189,55 @@ const VoiceManager: React.FC = () => {
     } = useAppStore();
     const { setVoiceState, setVoiceNexusState, setMode, addLog } = actions;
 
-    const { currentLocation, getSnapshot, executeAction, actionRegistry, activeTelemetry } = useSystemMind();
+    const {
+        currentLocation,
+        getSnapshot,
+        executeAction,
+        actionRegistry,
+        activeTelemetry,
+        getEpoch,
+        getActionsForSector,
+        subscribeToEpoch,
+        getContextDigest
+    } = useSystemMind();
+
     const connectionAttemptRef = useRef(false);
     const lastConnectedNameRef = useRef<string | null>(null);
     const partialTranscriptRef = useRef<string>("");
     const sessionVersionRef = useRef(0); // Guards against stale callbacks
+
+    // ==========================================================================
+    // SYNCHRONIZED CLOCK - Track context freshness
+    // ==========================================================================
+    const sessionEpochRef = useRef<number>(0);        // Epoch when session started
+    const lastContextDigestRef = useRef<string>('');  // Quick digest for staleness check
+    const epochChangesPendingRef = useRef<EpochEvent[]>([]);  // Queued changes during session
 
     // Initialize all voice and component actions on mount
     useEffect(() => {
         initializeVoiceActions();
         initializeComponentActions();
     }, []);
+
+    // Subscribe to epoch changes for synchronized clock awareness
+    useEffect(() => {
+        const unsubscribe = subscribeToEpoch((event: EpochEvent) => {
+            // If we have an active voice session, track the change
+            if (voice.isSessionActive) {
+                epochChangesPendingRef.current.push(event);
+
+                // Log significant changes
+                if (event.reason === 'sector_changed') {
+                    console.log(`[VoiceManager] Sector changed during session: ${event.details}`);
+                    addLog('SYSTEM', `VOICE_SYNC: Context drift detected - sector changed to ${event.details}`);
+                } else if (event.reason === 'bulk_update') {
+                    console.log(`[VoiceManager] Actions updated during session: ${event.details}`);
+                }
+            }
+        });
+
+        return unsubscribe;
+    }, [voice.isSessionActive, addLog, subscribeToEpoch]);
 
     useEffect(() => {
         liveSession.onToolCall = async (name, args) => {
@@ -429,6 +482,64 @@ const VoiceManager: React.FC = () => {
                 };
             }
 
+            // =================================================================
+            // SYNCHRONIZED CLOCK HANDLER - Context freshness check
+            // =================================================================
+            if (name === 'refresh_context') {
+                const reason = args.reason || 'user_request';
+                const currentEpoch = getEpoch();
+                const currentDigest = getContextDigest();
+                const startEpoch = sessionEpochRef.current;
+                const pendingChanges = epochChangesPendingRef.current;
+
+                // Get current sector and relevant actions
+                const currentMode = useAppStore.getState().mode;
+                const currentSector = currentLocation || currentMode || 'HUB';
+                const relevantActions = getActionsForSector(currentMode);
+
+                // Clear pending changes after reporting
+                epochChangesPendingRef.current = [];
+
+                // Calculate staleness
+                const epochDrift = currentEpoch - startEpoch;
+                const isStale = epochDrift > 0;
+                const digestChanged = currentDigest !== lastContextDigestRef.current;
+
+                // Update cached digest
+                lastContextDigestRef.current = currentDigest;
+
+                addLog('SYSTEM', `VOICE_SYNC: Context refresh (epoch ${startEpoch}→${currentEpoch}, drift=${epochDrift})`);
+
+                return {
+                    status: "CONTEXT_REFRESHED",
+                    synchronized_clock: {
+                        session_start_epoch: startEpoch,
+                        current_epoch: currentEpoch,
+                        epoch_drift: epochDrift,
+                        is_stale: isStale,
+                        changes_since_start: pendingChanges.map(e => ({
+                            epoch: e.epoch,
+                            reason: e.reason,
+                            details: e.details
+                        }))
+                    },
+                    current_context: {
+                        sector: currentSector,
+                        digest: currentDigest,
+                        action_count: relevantActions.length
+                    },
+                    // Top 30 most relevant actions for current sector
+                    available_actions: relevantActions.slice(0, 30).map(a => ({
+                        id: a.id,
+                        description: a.description,
+                        priority: a.priority
+                    })),
+                    hint: isStale
+                        ? `Context was stale (${epochDrift} changes since session start). You now have fresh action list for ${currentSector}.`
+                        : `Context is synchronized. ${relevantActions.length} actions available in ${currentSector}.`
+                };
+            }
+
             return { error: "Unknown executive protocol." };
         };
 
@@ -500,22 +611,33 @@ const VoiceManager: React.FC = () => {
             const agentName = name || 'Puck';
             const agentId = Object.keys(HIVE_AGENTS).find(k => HIVE_AGENTS[k].name === agentName) || 'Puck';
 
+            // =================================================================
+            // SYNCHRONIZED CLOCK - Record starting epoch for freshness tracking
+            // =================================================================
+            const startingEpoch = getEpoch();
+            sessionEpochRef.current = startingEpoch;
+            lastContextDigestRef.current = getContextDigest();
+            epochChangesPendingRef.current = [];  // Clear pending changes
+
             // Get the current mode from the store for sector-specific context
             const currentMode = useAppStore.getState().mode;
             const sectorContext = getSectorContext(currentMode);
             const systemContext = getFullSystemContext();
 
             // Build rich context with UI knowledge, codebase awareness, and current state
-            // Get available actions from SystemMind
+            // Get SECTOR-RELEVANT actions from SystemMind (synchronized clock aware)
             const snapshot = getSnapshot();
-            const availableActionsText = snapshot.available_actions.length > 0
-                ? snapshot.available_actions.map((a: any) => `• ${a.id}: ${a.description}`).join('\n')
+            const sectorActions = getActionsForSector(currentMode);
+            // Use sector-filtered actions (sorted by relevance to current sector)
+            const availableActionsText = sectorActions.length > 0
+                ? sectorActions.slice(0, 50).map((a: any) => `• ${a.id} (p:${a.priority}): ${a.description}`).join('\n')
                 : '(No actions registered in current view)';
 
             const sharedContext = `
 === VOICE CORE EXECUTIVE CONTEXT ===
 
 OS_STATUS: Active in sector [${currentLocation || currentMode || 'HUB'}]
+SYNC_EPOCH: ${startingEpoch} (use refresh_context if actions seem stale)
 DOMAINS: Full UI Sector Control + Codebase Awareness + UI Interaction
 DIRECTIVE: You are an executive-tier OS assistant with DIRECT UI CONTROL capabilities.
 
@@ -587,7 +709,7 @@ ${generateTabContext(currentMode)}
                 await liveSession.primeAudio();
                 await liveSession.connect(agentName, {
                     systemInstruction: constructHiveContext(agentId, sharedContext, voice.mentalState),
-                    tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool, switchAgentTool, executeActionTool, getAvailableActionsTool, inputTextTool, getUIContextTool, clickElementTool, selectOptionTool, scanUITool, navigateToTabTool] }],
+                    tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool, switchAgentTool, executeActionTool, getAvailableActionsTool, inputTextTool, getUIContextTool, clickElementTool, selectOptionTool, scanUITool, navigateToTabTool, refreshContextTool] }],
                     outputAudioTranscription: {},
                     inputAudioTranscription: {},
                     callbacks: {
