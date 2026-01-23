@@ -196,7 +196,7 @@ describe('ARCHON Config', () => {
   describe('DEFAULT_CONFIG', () => {
     it('should have valid default values', () => {
       expect(DEFAULT_CONFIG.maxRetries).toBe(5);
-      expect(DEFAULT_CONFIG.dqTarget).toBe(0.7);
+      expect(DEFAULT_CONFIG.dqTarget).toBe(0.55); // Lowered from 0.7 - real subsystems often score 0.6-0.65
       expect(DEFAULT_CONFIG.totalTokenBudget).toBe(1_000_000);
       expect(DEFAULT_CONFIG.defaultModel).toBe('flagship');
     });
