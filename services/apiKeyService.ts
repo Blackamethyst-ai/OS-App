@@ -11,6 +11,8 @@ export interface ApiKeyConfig {
     claude?: string;
     grok?: string;
     eleven_labs?: string;
+    priceapi?: string;
+    infracost?: string;
 }
 
 const STORAGE_KEY = 'os_app_api_keys_encrypted';
@@ -145,7 +147,7 @@ class ApiKeyService {
     /**
      * Get API key for a provider (only works when unlocked)
      */
-    getKey(provider: 'gemini' | 'claude' | 'grok' | 'eleven_labs'): string | undefined {
+    getKey(provider: 'gemini' | 'claude' | 'grok' | 'eleven_labs' | 'priceapi' | 'infracost'): string | undefined {
         if (!this.isUnlocked) return undefined;
         return this.keys[provider];
     }
@@ -161,7 +163,7 @@ class ApiKeyService {
     /**
      * Set API key for a provider
      */
-    async setKey(provider: 'gemini' | 'claude' | 'grok' | 'eleven_labs', key: string) {
+    async setKey(provider: 'gemini' | 'claude' | 'grok' | 'eleven_labs' | 'priceapi' | 'infracost', key: string) {
         if (!this.isUnlocked) return;
 
         this.keys[provider] = key;
@@ -172,7 +174,7 @@ class ApiKeyService {
     /**
      * Remove API key for a provider
      */
-    async removeKey(provider: 'gemini' | 'claude' | 'grok' | 'eleven_labs') {
+    async removeKey(provider: 'gemini' | 'claude' | 'grok' | 'eleven_labs' | 'priceapi' | 'infracost') {
         if (!this.isUnlocked) return;
 
         delete this.keys[provider];
@@ -185,7 +187,7 @@ class ApiKeyService {
      */
     hasAnyKey(): boolean {
         if (!this.isUnlocked) return false;
-        return !!(this.keys.gemini || this.keys.claude || this.keys.grok || this.keys.eleven_labs);
+        return !!(this.keys.gemini || this.keys.claude || this.keys.grok || this.keys.eleven_labs || this.keys.priceapi || this.keys.infracost);
     }
 
     /**
@@ -205,7 +207,9 @@ class ApiKeyService {
                 { provider: 'gemini', configured: false, masked: '' },
                 { provider: 'claude', configured: false, masked: '' },
                 { provider: 'grok', configured: false, masked: '' },
-                { provider: 'eleven_labs', configured: false, masked: '' }
+                { provider: 'eleven_labs', configured: false, masked: '' },
+                { provider: 'priceapi', configured: false, masked: '' },
+                { provider: 'infracost', configured: false, masked: '' }
             ];
         }
 
@@ -229,6 +233,16 @@ class ApiKeyService {
                 provider: 'eleven_labs',
                 configured: !!this.keys.eleven_labs,
                 masked: this.keys.eleven_labs ? `${this.keys.eleven_labs.slice(0, 6)}...${this.keys.eleven_labs.slice(-4)}` : ''
+            },
+            {
+                provider: 'priceapi',
+                configured: !!this.keys.priceapi,
+                masked: this.keys.priceapi ? `${this.keys.priceapi.slice(0, 6)}...${this.keys.priceapi.slice(-4)}` : ''
+            },
+            {
+                provider: 'infracost',
+                configured: !!this.keys.infracost,
+                masked: this.keys.infracost ? `${this.keys.infracost.slice(0, 6)}...${this.keys.infracost.slice(-4)}` : ''
             }
         ];
     }
