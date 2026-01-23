@@ -31,6 +31,11 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       chunkSizeWarningLimit: 2000,
+      // Strip console.log and debugger in production
+      minify: 'esbuild',
+      esbuild: {
+        drop: mode === 'production' ? ['console', 'debugger'] : [],
+      },
       rollupOptions: {
         external: ['mermaid'],
         output: {
