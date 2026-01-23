@@ -5,11 +5,12 @@
  * Makes store.ts cleaner and types reusable.
  */
 
-import type { SearchResultItem, FileData } from './core';
+import type { SearchResultItem, FileData, ScienceHypothesis, AtomicTask, SwarmResult, SwarmStatus, SwarmProposal, PeerPresence, SwarmEvent } from './core';
 import type { StoredArtifact } from './memory';
 import type { TechnicalManifest, ProtocolStepResult } from './kernel';
 import type { CodebaseGraph } from './codebase';
 import type { ImageSize, AspectRatio, ProductionBible, Frame } from './visuals';
+import type { AutonomousAgent } from './agents';
 
 // =============================================================================
 // Kernel State
@@ -197,4 +198,257 @@ export interface ContextMenuState {
     y: number;
     contextType: string;
     targetContent: string | Record<string, unknown> | null;
+}
+
+// =============================================================================
+// Dashboard State
+// =============================================================================
+
+export interface DashboardState {
+    isGenerating: boolean;
+    identityUrl: string | null;
+    hubViewUrl: string | null;
+    activeManifest: TechnicalManifest | null;
+    deploymentProgress: number;
+    activeStepIndex: number;
+    referenceImage: FileData | null;
+    activeThemeColor: string;
+    topologyData: { s: string; A: number }[];
+    paraFocus: 'PROJECTS' | 'AREAS' | 'RESOURCES' | 'ARCHIVES' | 'NONE';
+    isOculusView: boolean;
+    architecturalFidelity: number;
+}
+
+// =============================================================================
+// Process State
+// =============================================================================
+
+export interface ProcessState {
+    nodes: any[];
+    edges: any[];
+    isLoading: boolean;
+    error: string | null;
+    diagramStatus: string;
+    diagramError: string | null;
+    generatedCode: string;
+    generatedWorkflow: TechnicalManifest | null;
+    runtimeResults: Record<number, ProtocolStepResult>;
+    activeStepIndex: number | null;
+    isSimulating: boolean;
+    activeTab: string;
+    workflowType: 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE' | 'AGENTIC_ORCHESTRATION' | 'CONVERGENT_SYNTHESIS';
+    livingMapContext: { sources: FileData[] };
+    pendingAIAddition: { id: string; type: string; label: string; data?: Record<string, unknown> } | null;
+    pendingAction: string | null;
+    governance: 'D-Ecosystem Protocol 2025.Q1';
+    coherenceScore: number;
+    codebaseGraph: CodebaseGraph | null;
+}
+
+// =============================================================================
+// Image Generation State
+// =============================================================================
+
+export interface ImageGenState {
+    prompt: string;
+    isLoading: boolean;
+    error: string | null;
+    generatedImage: { url: string; prompt: string; aspectRatio: string; size: string } | null;
+    quality: ImageSize;
+    aspectRatio: AspectRatio;
+    characterRefs: FileData[];
+    worldRefs: FileData[];
+    styleRefs: FileData[];
+    activeColorway: { name: string; primary: string; secondary: string; accent: string } | null;
+    activeStylePreset: string;
+    resonanceCurve: { frame: number; tension: number; dynamics: number }[];
+    productionBible: ProductionBible | null;
+    frames: Frame[];
+    selectedHeroMode: 'NONE' | 'HERO' | 'RISING' | 'CHAOS' | 'STEADY';
+    videoUrl: string | null;
+    videoPrompt: string;
+    videoRes: '720p' | '1080p';
+    videoMotionBias: number;
+}
+
+// =============================================================================
+// Code Studio State
+// =============================================================================
+
+export interface CodeStudioState {
+    prompt: string;
+    generatedCode: string;
+    language: string;
+    model: string;
+    isLoading: boolean;
+    error: string | null;
+    activeTab: 'IDE' | 'ACTIONS';
+    lastEditTimestamp: number;
+    isExecuting: boolean;
+    activePatch: { code: string; explanation: string; timestamp: number } | null;
+    isEvolving: boolean;
+    activeEvolution: { code: string; reasoning: string; type: string; integrityScore: number } | null;
+}
+
+// =============================================================================
+// Hardware State
+// =============================================================================
+
+export interface HardwareQuote {
+    id: string;
+    vendor: string;
+    unitPrice: number;
+    quantity: number;
+    totalPrice: number;
+    leadTime: string;
+    warranty: string;
+    inStock: boolean;
+    rating: number;
+}
+
+export interface HardwareOrder {
+    id: string;
+    gpuId: string;
+    gpuModel: string;
+    quantity: number;
+    selectedQuote: HardwareQuote | null;
+    status: string;
+    createdAt: number;
+    updatedAt: number;
+}
+
+export interface HardwareProcurement {
+    status: 'idle' | 'quoting' | 'reviewing' | 'confirming' | 'processing' | 'completed' | 'error';
+    currentOrder: HardwareOrder | null;
+    quotes: HardwareQuote[];
+    orderHistory: Array<{ id: string; gpuId: string; gpuModel: string; quantity: number; status: string; createdAt: number }>;
+    isModalOpen: boolean;
+    error: string | null;
+}
+
+export interface HardwareState {
+    currentEra: string;
+    activeVendor: string;
+    recommendations: { id: string; name: string; price: number; rating: number; vendor: string }[];
+    componentQuery: string;
+    filters: {
+        minPrice: number;
+        maxPrice: number;
+        shape: boolean;
+        showOutOfStock: boolean;
+    };
+    schematicImage: FileData | null;
+    analysis: { summary: string; components: string[]; specs: Record<string, string> } | null;
+    bom: string[];
+    isLoading: boolean;
+    error: string | null;
+    xrayImage: string | null;
+    searchHistory: string[];
+    activeTier: string;
+    finTelemetry: {
+        totalBomCost: number;
+        roiProjection: number;
+        maintenanceEst: number;
+    };
+    livePrices: Record<string, { price: number; trend: number; stock: string; source: string; lastUpdated: number }>;
+    selectedGpuId: string | null;
+    tierFilter: string | null;
+    gpuSearchQuery: string;
+    procurement: HardwareProcurement;
+}
+
+// =============================================================================
+// Memory State
+// =============================================================================
+
+export interface MemorySliceState {
+    driveManifest: TechnicalManifest | null;
+    activeCollection: string | null;
+}
+
+// =============================================================================
+// Bibliomorphic State
+// =============================================================================
+
+export interface BibliomorphicState {
+    activeTab: string;
+    error: string | null;
+}
+
+// =============================================================================
+// Discovery State
+// =============================================================================
+
+export interface DiscoveryState {
+    hypotheses: ScienceHypothesis[];
+    isLoading: boolean;
+    status: string;
+}
+
+// =============================================================================
+// Research State
+// =============================================================================
+
+export interface ResearchTask {
+    id: string;
+    query: string;
+    status: string;
+    progress: number;
+    logs: string[];
+    timestamp: number;
+    findings?: string[];
+}
+
+export interface ResearchState {
+    tasks: ResearchTask[];
+}
+
+// =============================================================================
+// Bicameral State
+// =============================================================================
+
+export interface BicameralState {
+    goal: string;
+    plan: AtomicTask[];
+    ledger: SwarmResult[];
+    isPlanning: boolean;
+    isSwarming: boolean;
+    swarmStatus: SwarmStatus;
+    error: string | null;
+}
+
+// =============================================================================
+// Agents State
+// =============================================================================
+
+export interface AgentsState {
+    activeAgents: AutonomousAgent[];
+    isDispatching: boolean;
+    swarmHealth: number;
+}
+
+// =============================================================================
+// Collaboration State
+// =============================================================================
+
+export interface CollaborationState {
+    peers: PeerPresence[];
+    events: SwarmEvent[];
+    isOverlayOpen: boolean;
+}
+
+// =============================================================================
+// Synthesis State
+// =============================================================================
+
+export interface SynthesisState {
+    incomingProposals: SwarmProposal[];
+}
+
+// =============================================================================
+// Knowledge State
+// =============================================================================
+
+export interface KnowledgeState {
+    activeLayers: string[];
 }
