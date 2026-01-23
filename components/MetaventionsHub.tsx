@@ -1,6 +1,6 @@
 import { apiKeyService } from '../services/apiKeyService';
 
-import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback, Suspense } from 'react';
 import { useAppStore } from '../store';
 import {
     generateArchitectureImage,
@@ -36,7 +36,8 @@ import DEcosystem from './DEcosystem';
 import ContextVelocityChart from './ContextVelocityChart';
 import { BiometricPanel } from './BiometricPanel';
 
-import { ZenithDisplay } from './ZenithDisplay';
+// Lazy load ZenithDisplay (uses three.js - ~500KB)
+const ZenithDisplay = React.lazy(() => import('./ZenithDisplay').then(m => ({ default: m.ZenithDisplay })));
 import { StrategicConsole } from './StrategicConsole';
 import { AdaptiveContainer, AdaptivePanel, AdaptiveRegion } from './AdaptiveContainer';
 import { BiometricErrorBoundary } from './BiometricErrorBoundary';
@@ -926,7 +927,9 @@ const MetaventionsHub: React.FC = () => {
                                         ) : dashboard.activeManifest && (
                                             <motion.div key="content" className="relative w-full h-full group/img-node">
                                                 {dashboard.hubViewUrl ? (
-                                                    <ZenithDisplay currentZenithImage={dashboard.hubViewUrl} />
+                                                    <Suspense fallback={<div className="h-full w-full flex items-center justify-center"><Loader2 className="animate-spin text-[#9d4edd]" size={32} /></div>}>
+                                                        <ZenithDisplay currentZenithImage={dashboard.hubViewUrl} />
+                                                    </Suspense>
                                                 ) : (
                                                     <div className="h-full w-full flex flex-col items-center justify-center relative bg-black/10">
                                                         <ProceduralHologram />

@@ -44,6 +44,13 @@ export default defineConfig(({ mode }) => {
           },
           manualChunks(id) {
             if (id.includes('node_modules')) {
+              // Heavy libs - lazy loaded, separate chunks
+              if (id.includes('three')) {
+                return 'vendor-three';
+              }
+              if (id.includes('face-api')) {
+                return 'vendor-faceapi';
+              }
               if (id.includes('recharts')) {
                 return 'vendor-recharts';
               }
@@ -58,6 +65,9 @@ export default defineConfig(({ mode }) => {
               }
               if (id.includes('@google/genai')) {
                 return 'vendor-genai';
+              }
+              if (id.includes('@tensorflow')) {
+                return 'vendor-tensorflow';
               }
               return 'vendor';
             }
