@@ -16,7 +16,7 @@ let idCounter = 0;
 export function generateId(prefix = 'archon'): string {
   const timestamp = Date.now().toString(36);
   const counter = (idCounter++).toString(36).padStart(4, '0');
-  const random = Math.random().toString(36).substring(2, 6);
+  const random = crypto.randomUUID().slice(0, 4);
   return `${prefix}_${timestamp}_${counter}_${random}`;
 }
 
@@ -239,9 +239,11 @@ export function archonLog(level: LogLevel, message: string, data?: unknown): voi
   const timestamp = new Date().toISOString();
   const prefix = `${LOG_COLORS[level]}[ARCHON:${level.toUpperCase()}]${RESET}`;
 
-  if (data) {
-    console.log(`${prefix} ${timestamp} - ${message}`, data);
-  } else {
-    console.log(`${prefix} ${timestamp} - ${message}`);
+  if (import.meta.env.DEV) {
+    if (data) {
+      console.log(`${prefix} ${timestamp} - ${message}`, data);
+    } else {
+      console.log(`${prefix} ${timestamp} - ${message}`);
+    }
   }
 }

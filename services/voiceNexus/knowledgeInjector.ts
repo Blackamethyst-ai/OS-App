@@ -79,10 +79,12 @@ class KnowledgeInjector {
             );
 
             // Debug logging for knowledge injection
-            console.log('[KnowledgeInjector] Query:', query);
-            console.log('[KnowledgeInjector] Found:', searchResults.length, 'search results,', findings?.length || 0, 'findings');
-            if (searchResults.length > 0) {
-                console.log('[KnowledgeInjector] Top result:', searchResults[0].content?.substring(0, 100) + '...');
+            if (import.meta.env.DEV) {
+                console.log('[KnowledgeInjector] Query:', query);
+                console.log('[KnowledgeInjector] Found:', searchResults.length, 'search results,', findings?.length || 0, 'findings');
+                if (searchResults.length > 0) {
+                    console.log('[KnowledgeInjector] Top result:', searchResults[0].content?.substring(0, 100) + '...');
+                }
             }
 
             return {

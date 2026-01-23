@@ -124,12 +124,12 @@ class AUIEngineService {
     // Cooldown check
     const now = Date.now();
     if (now - this.lastGenerationTime < this.generationCooldownMs) {
-      console.log('AUI: Generation cooldown active, returning current layout');
+      if (import.meta.env.DEV) console.log('AUI: Generation cooldown active, returning current layout');
       return this.currentLayout || this.getDefaultLayout();
     }
 
     if (this.generationInProgress) {
-      console.log('AUI: Generation already in progress');
+      if (import.meta.env.DEV) console.log('AUI: Generation already in progress');
       return this.currentLayout || this.getDefaultLayout();
     }
 
@@ -143,7 +143,7 @@ class AUIEngineService {
       const layout = await this.synthesizeLayout(context);
       const latency = performance.now() - startTime;
 
-      console.log(`AUI: Layout generated in ${latency.toFixed(0)}ms`);
+      if (import.meta.env.DEV) console.log(`AUI: Layout generated in ${latency.toFixed(0)}ms`);
       this.currentLayout = layout;
       this.emit('REGENERATION_COMPLETE', { layout, latencyMs: latency });
 
@@ -182,7 +182,7 @@ class AUIEngineService {
             setTimeout(() => reject(new Error('Generation timeout')), GENERATION_TIMEOUT_MS)
           ),
         ]);
-        console.log('AUI: Layout generated via Claude');
+        if (import.meta.env.DEV) console.log('AUI: Layout generated via Claude');
       } else if (provider === 'gemini') {
         // Use Gemini for layout generation
         const ai = getAI();
@@ -199,10 +199,10 @@ class AUIEngineService {
           ),
         ]);
         responseText = response.text || '';
-        console.log('AUI: Layout generated via Gemini');
+        if (import.meta.env.DEV) console.log('AUI: Layout generated via Gemini');
       } else {
         // No LLM available, use rule-based
-        console.log('AUI: No LLM available, using rule-based generation');
+        if (import.meta.env.DEV) console.log('AUI: No LLM available, using rule-based generation');
         return this.generateRuleBasedLayout(context);
       }
 

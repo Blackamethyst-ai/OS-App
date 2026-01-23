@@ -85,7 +85,7 @@ class DreamProtocolService {
     queueQuery(query: string) {
         if (!this.pendingQueries.includes(query)) {
             this.pendingQueries.push(query);
-            console.log(`🌙 Dream Protocol: Queued "${query}" for deep analysis`);
+            if (import.meta.env.DEV) console.log(`🌙 Dream Protocol: Queued "${query}" for deep analysis`);
         }
     }
 
@@ -97,7 +97,7 @@ class DreamProtocolService {
 
         // Check if Dream Protocol is enabled in power settings
         if (!powerService.isEnabled('dreamProtocol')) {
-            console.log('🌙 DREAM PROTOCOL: Disabled in power settings. Enable in Power Control Panel.');
+            if (import.meta.env.DEV) console.log('🌙 DREAM PROTOCOL: Disabled in power settings. Enable in Power Control Panel.');
             return;
         }
 
@@ -114,7 +114,7 @@ class DreamProtocolService {
             status: 'DREAMING'
         };
 
-        console.log('🌙✨ DREAM PROTOCOL ACTIVATED - Autonomous cognition beginning...');
+        if (import.meta.env.DEV) console.log('🌙✨ DREAM PROTOCOL ACTIVATED - Autonomous cognition beginning...');
 
         useAppStore.getState().actions.addLog('SYSTEM', 'DREAM_PROTOCOL: Entering autonomous cognition mode...');
 
@@ -185,10 +185,10 @@ class DreamProtocolService {
             };
 
             this.currentSession?.insights.push(insight);
-            console.log(`🌙 Dream insight generated: ${insight.title}`);
+            if (import.meta.env.DEV) console.log(`🌙 Dream insight generated: ${insight.title}`);
 
         } catch (error) {
-            console.log('Query processing failed:', error);
+            if (import.meta.env.DEV) console.log('Query processing failed:', error);
         }
     }
 
@@ -278,7 +278,7 @@ Predict the user's likely next 3 actions and why. Format as brief bullet points.
     private wakeUp() {
         if (!this.isDreaming) return;
 
-        console.log('🌅 DREAM PROTOCOL: User activity detected - waking up...');
+        if (import.meta.env.DEV) console.log('🌅 DREAM PROTOCOL: User activity detected - waking up...');
 
         if (this.dreamInterval) {
             clearInterval(this.dreamInterval);

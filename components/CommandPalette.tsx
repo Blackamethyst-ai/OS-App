@@ -210,7 +210,7 @@ const CommandPalette: React.FC = () => {
                         const suggestions = await predictNextActions(mode, {}, lastLog);
                         setAiSuggestions(suggestions);
                     }
-                } catch (e) { console.error("AI Prediction Failed", e); }
+                } catch (e) { addLog('ERROR', `AI Prediction Failed: ${e}`); }
                 finally { setIsPredicting(false); }
             };
             fetchSuggestions();
@@ -313,7 +313,7 @@ const CommandPalette: React.FC = () => {
             }
 
         } catch (err) {
-            console.error(err);
+            addLog('ERROR', `Command interpretation failure: ${err}`);
             setResult("Command interpretation failure.");
         } finally {
             setIsLoading(false);

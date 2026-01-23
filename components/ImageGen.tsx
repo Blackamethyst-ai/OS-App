@@ -1052,7 +1052,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                                         type="range"
                                                         min="0" max="100"
                                                         value={videoMotionBias}
-                                                        onChange={e => setVideoMotionBias(parseInt(e.target.value))}
+                                                        onChange={e => setVideoMotionBias(parseInt(e.target.value, 10))}
                                                         className="absolute inset-0 opacity-0 cursor-pointer"
                                                     />
                                                 </div>

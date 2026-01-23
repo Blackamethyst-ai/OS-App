@@ -39,7 +39,7 @@ export class KernelScheduler {
 
     this.isRunning = true;
     this.processInterval = setInterval(() => this.processQueue(), 50);
-    console.log('⚙️ SCHEDULER: Started');
+    if (import.meta.env.DEV) console.log('⚙️ SCHEDULER: Started');
   }
 
   /**
@@ -51,7 +51,7 @@ export class KernelScheduler {
       clearInterval(this.processInterval);
       this.processInterval = null;
     }
-    console.log('⚙️ SCHEDULER: Stopped');
+    if (import.meta.env.DEV) console.log('⚙️ SCHEDULER: Stopped');
   }
 
   /**

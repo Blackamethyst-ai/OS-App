@@ -68,7 +68,7 @@ const ResearchTray: React.FC = () => {
                                                 {task.status === 'SWARM_VERIFY' ? <GitBranch className="w-4 h-4 text-[#f59e0b] animate-pulse" /> : <Loader2 className="w-4 h-4 text-[#9d4edd] animate-spin" />}
                                                 {task.query}
                                             </span>
-                                            <button onClick={() => { cancelResearchTask(task.id); audio.playError(); }} className="p-1.5 text-gray-700 hover:text-red-500 transition-colors bg-white/5 rounded-lg"><Square size={12} fill="currentColor" /></button>
+                                            <button onClick={() => { cancelResearchTask(task.id); audio.playError(); }} className="p-1.5 text-gray-700 hover:text-red-500 transition-colors bg-white/5 rounded-lg" aria-label="Cancel research task"><Square size={12} fill="currentColor" /></button>
                                         </div>
                                         <div className="w-full bg-[#111] h-1 rounded-full overflow-hidden mb-3 shadow-inner">
                                             <motion.div initial={{ width: 0 }} animate={{ width: `${task.progress}%` }} className="h-full bg-gradient-to-r from-[#9d4edd] to-[#22d3ee] shadow-[0_0_10px_#9d4edd]" />

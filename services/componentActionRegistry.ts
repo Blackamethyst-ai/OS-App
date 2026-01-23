@@ -1937,7 +1937,7 @@ export function initializeComponentActions(): void {
     store.registerActions(actionsWithSectors);
 
     isInitialized = true;
-    console.log(`[ComponentActionRegistry] Registered ${ALL_COMPONENT_ACTIONS.length} component actions with sector awareness`);
+    if (import.meta.env.DEV) console.log(`[ComponentActionRegistry] Registered ${ALL_COMPONENT_ACTIONS.length} component actions with sector awareness`);
 }
 
 /**

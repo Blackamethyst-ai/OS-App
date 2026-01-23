@@ -130,8 +130,10 @@ class CognitivePrecisionBridgeOrchestrator {
             const routingDecision = selectPath(request, this.config);
             this.currentPath = routingDecision.selectedPath;
 
-            console.log(`[CPB] Selected path: ${this.currentPath} (confidence: ${routingDecision.confidence.toFixed(2)})`);
-            console.log(`[CPB] Reasoning: ${routingDecision.reasoning}`);
+            if (import.meta.env.DEV) {
+                console.log(`[CPB] Selected path: ${this.currentPath} (confidence: ${routingDecision.confidence.toFixed(2)})`);
+                console.log(`[CPB] Reasoning: ${routingDecision.reasoning}`);
+            }
 
             // ================================================================
             // PHASE 2-5: EXECUTE PATH
@@ -145,7 +147,7 @@ class CognitivePrecisionBridgeOrchestrator {
                 this.updateStatus('verifying', 'Verifying output quality...');
 
                 if (result.dqScore.score < this.config.dqThreshold && this.config.retryOnLowDQ && retryCount < 2) {
-                    console.log(`[CPB] DQ score ${result.dqScore.score.toFixed(2)} below threshold ${this.config.dqThreshold}, retrying...`);
+                    if (import.meta.env.DEV) console.log(`[CPB] DQ score ${result.dqScore.score.toFixed(2)} below threshold ${this.config.dqThreshold}, retrying...`);
                     retryCount++;
 
                     // Escalate path for retry
@@ -293,7 +295,7 @@ class CognitivePrecisionBridgeOrchestrator {
         const task = this.createTask(request);
         const dqScore = scoreDQHeuristic(output, task);
 
-        console.log(`[CPB] Direct path complete: ${modelConfig.provider}/${modelConfig.model}`);
+        if (import.meta.env.DEV) console.log(`[CPB] Direct path complete: ${modelConfig.provider}/${modelConfig.model}`);
 
         return {
             output,

@@ -47,7 +47,7 @@ export const NeuralDebuggerPanel: React.FC<NeuralDebuggerPanelProps> = ({
                             <input
                                 type="range" min="0" max="100"
                                 value={state.skepticism}
-                                onChange={(e) => onChange('skepticism', parseInt(e.target.value))}
+                                onChange={(e) => onChange('skepticism', parseInt(e.target.value, 10))}
                                 className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#7B2CFF] hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
                             />
                         </div>
@@ -60,7 +60,7 @@ export const NeuralDebuggerPanel: React.FC<NeuralDebuggerPanelProps> = ({
                             <input
                                 type="range" min="0" max="100"
                                 value={state.excitement}
-                                onChange={(e) => onChange('excitement', parseInt(e.target.value))}
+                                onChange={(e) => onChange('excitement', parseInt(e.target.value, 10))}
                                 className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#18E6FF] hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
                             />
                         </div>
@@ -73,7 +73,7 @@ export const NeuralDebuggerPanel: React.FC<NeuralDebuggerPanelProps> = ({
                             <input
                                 type="range" min="0" max="100"
                                 value={state.alignment}
-                                onChange={(e) => onChange('alignment', parseInt(e.target.value))}
+                                onChange={(e) => onChange('alignment', parseInt(e.target.value, 10))}
                                 className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#10b981] hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
                             />
                         </div>

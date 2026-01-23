@@ -188,7 +188,7 @@ ${result.output}
                                         </div>
                                         <span className="text-xs font-black font-mono text-[#ef4444]">{agentWeights.skepticism}%</span>
                                     </div>
-                                    <input type="range" className="w-full h-1 bg-[#1a1a1a] rounded-full appearance-none accent-[#ef4444]" value={agentWeights.skepticism} onChange={e => setAgentWeights({...agentWeights, skepticism: parseInt(e.target.value)})} />
+                                    <input type="range" className="w-full h-1 bg-[#1a1a1a] rounded-full appearance-none accent-[#ef4444]" value={agentWeights.skepticism} onChange={e => setAgentWeights({...agentWeights, skepticism: parseInt(e.target.value, 10)})} />
                                 </div>
                                 <div className="space-y-4">
                                     <div className="flex justify-between items-end">
@@ -198,7 +198,7 @@ ${result.output}
                                         </div>
                                         <span className="text-xs font-black font-mono text-[#f59e0b]">{agentWeights.excitement}%</span>
                                     </div>
-                                    <input type="range" className="w-full h-1 bg-[#1a1a1a] rounded-full appearance-none accent-[#f59e0b]" value={agentWeights.excitement} onChange={e => setAgentWeights({...agentWeights, excitement: parseInt(e.target.value)})} />
+                                    <input type="range" className="w-full h-1 bg-[#1a1a1a] rounded-full appearance-none accent-[#f59e0b]" value={agentWeights.excitement} onChange={e => setAgentWeights({...agentWeights, excitement: parseInt(e.target.value, 10)})} />
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase tracking-widest px-1"><span>Active Directive Overlay</span> <Target size={10} className="text-[#9d4edd]" /></div>

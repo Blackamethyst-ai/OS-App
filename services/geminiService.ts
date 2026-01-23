@@ -86,7 +86,7 @@ export const getAI = () => {
         return new GoogleGenAI({ apiKey: "MISSING_KEY" });
     }
 
-    console.log("🔐 AUTH: Using Gemini API key from local storage");
+    if (import.meta.env.DEV) console.log("🔐 AUTH: Using Gemini API key from local storage");
     return new GoogleGenAI({ apiKey });
 };
 
@@ -820,4 +820,60 @@ export async function convergeStrategicLattices(nodes: any[], goal: string) {
         config: { responseMimeType: 'application/json' }
     }));
     return safeParseJson<any>(response.text);
+}
+
+// --- MISSING EXPORTS: Compatibility stubs for action registries ---
+
+/**
+ * Generic text generation wrapper (alias for generateText)
+ */
+export async function generate(prompt: string, systemInstruction?: string): Promise<string> {
+    return generateText(prompt, 'gemini-2.0-flash', systemInstruction);
+}
+
+/**
+ * Video generation stub - not yet implemented
+ */
+export async function generateVideo(prompt: string): Promise<{ url: string; duration: number }> {
+    console.warn('generateVideo: Video generation is not yet implemented');
+    throw new Error('Video generation is not yet implemented. Use generateArchitectureImage for static images.');
+}
+
+/**
+ * Code completion generation
+ */
+export async function generateCodeCompletion(prompt: string, language: string): Promise<string> {
+    const ai = getAI();
+    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: `Complete the following ${language} code. Return ONLY the code, no explanations:\n\n${prompt}`,
+        config: { systemInstruction: `You are an expert ${language} developer. Output only valid ${language} code.` }
+    }));
+    return response.text || "";
+}
+
+/**
+ * Predict system anomalies based on current mode
+ */
+export async function predictSystemAnomalies(mode: string): Promise<{ anomalies: string[]; riskLevel: number; recommendations: string[] }> {
+    const ai = getAI();
+    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: `Analyze potential system anomalies for mode: "${mode}". Output JSON { anomalies: string[], riskLevel: number (0-100), recommendations: string[] }.`,
+        config: { responseMimeType: 'application/json' }
+    }));
+    return safeParseJson<{ anomalies: string[]; riskLevel: number; recommendations: string[] }>(response.text);
+}
+
+/**
+ * Classify user intent from natural language input
+ */
+export async function classifyIntent(input: string): Promise<{ intent: string; confidence: number; entities: Record<string, string> }> {
+    const ai = getAI();
+    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        contents: `Classify the intent of: "${input}". Output JSON { intent: string, confidence: number (0-1), entities: Record<string, string> }.`,
+        config: { responseMimeType: 'application/json' }
+    }));
+    return safeParseJson<{ intent: string; confidence: number; entities: Record<string, string> }>(response.text);
 }

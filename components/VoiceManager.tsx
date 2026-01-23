@@ -260,10 +260,10 @@ const VoiceManager: React.FC = () => {
 
                 // Log significant changes
                 if (event.reason === 'sector_changed') {
-                    console.log(`[VoiceManager] Sector changed during session: ${event.details}`);
+                    if (import.meta.env.DEV) console.log(`[VoiceManager] Sector changed during session: ${event.details}`);
                     addLog('SYSTEM', `VOICE_SYNC: Context drift detected - sector changed to ${event.details}`);
                 } else if (event.reason === 'bulk_update') {
-                    console.log(`[VoiceManager] Actions updated during session: ${event.details}`);
+                    if (import.meta.env.DEV) console.log(`[VoiceManager] Actions updated during session: ${event.details}`);
                 }
             }
         });
@@ -771,7 +771,7 @@ const VoiceManager: React.FC = () => {
 
                 // Optimization: Store lastConnectedName in a ref.
                 if (lastConnectedNameRef.current !== voice.voiceName) {
-                    console.log('[VoiceManager] Hot-Swapping Agent due to name change...');
+                    if (import.meta.env.DEV) console.log('[VoiceManager] Hot-Swapping Agent due to name change...');
                     liveSession.disconnect();
                     connectionAttemptRef.current = true; // Stay 'true' so we block duplicates
                     lastConnectedNameRef.current = null; // Clear old name

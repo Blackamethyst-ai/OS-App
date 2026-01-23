@@ -644,7 +644,7 @@ const ArchonDashboard: React.FC = () => {
 
     const handleEvent = (event: any) => {
       const streamEvent: StreamEvent = {
-        id: `${Date.now()}-${Math.random()}`,
+        id: `${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
         type: event.type,
         message: JSON.stringify(event.payload).slice(0, 100),
         timestamp: event.timestamp,

@@ -388,8 +388,8 @@ class REPLEngine {
         if (sliceMatch) {
             const [, varName, startStr, endStr] = sliceMatch;
             const arr = sandbox[varName] || this.namespace.variables[varName] || '';
-            const start = startStr ? parseInt(startStr) : 0;
-            const end = endStr ? parseInt(endStr) : undefined;
+            const start = startStr ? parseInt(startStr, 10) : 0;
+            const end = endStr ? parseInt(endStr, 10) : undefined;
             return typeof arr === 'string' ? arr.slice(start, end) : arr;
         }
 

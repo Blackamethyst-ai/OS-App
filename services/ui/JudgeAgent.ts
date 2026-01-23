@@ -59,7 +59,7 @@ class JudgeAgentService {
       const evaluation = await this.performEvaluation(layout, context);
       const latency = performance.now() - startTime;
 
-      console.log(`JUDGE: Evaluation complete in ${latency.toFixed(0)}ms - Score: ${evaluation.score}`);
+      if (import.meta.env.DEV) console.log(`JUDGE: Evaluation complete in ${latency.toFixed(0)}ms - Score: ${evaluation.score}`);
 
       this.evaluationHistory.push(evaluation);
       if (this.evaluationHistory.length > 50) {
@@ -381,7 +381,7 @@ Always respond with valid JSON. Be specific with improvement suggestions.`;
    */
   shouldIterate(evaluation: UIEvaluation): boolean {
     if (this.iterationCount >= MAX_ITERATIONS) {
-      console.log('JUDGE: Max iterations reached');
+      if (import.meta.env.DEV) console.log('JUDGE: Max iterations reached');
       return false;
     }
 

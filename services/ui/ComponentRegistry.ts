@@ -20,7 +20,7 @@ import { domRegenerator } from './DOMRegenerator';
  * Initialize the component registry with all available components
  */
 export async function initializeComponentRegistry(): Promise<void> {
-  console.log('COMPONENT_REGISTRY: Initializing...');
+  if (import.meta.env.DEV) console.log('COMPONENT_REGISTRY: Initializing...');
 
   const registrations: Array<{ name: string; loader: () => Promise<any> }> = [
     // Dashboard & Hub
@@ -187,7 +187,7 @@ export async function initializeComponentRegistry(): Promise<void> {
   const successful = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
   const failed = results.length - successful;
 
-  console.log(`COMPONENT_REGISTRY: Initialized ${successful} components (${failed} failed to load)`);
+  if (import.meta.env.DEV) console.log(`COMPONENT_REGISTRY: Initialized ${successful} components (${failed} failed to load)`);
 }
 
 /**

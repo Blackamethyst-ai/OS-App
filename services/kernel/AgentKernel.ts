@@ -88,7 +88,7 @@ class AgentKernelService {
       return;
     }
 
-    console.log(`⚡ KERNEL: Booting v${KERNEL_VERSION}...`);
+    if (import.meta.env.DEV) console.log(`⚡ KERNEL: Booting v${KERNEL_VERSION}...`);
     this.state = 'BOOTING';
     this.bootTime = Date.now();
 
@@ -103,7 +103,7 @@ class AgentKernelService {
 
       this.state = 'IDLE';
       this.emit('BOOT_COMPLETE', { version: KERNEL_VERSION, bootTime: this.bootTime });
-      console.log('⚡ KERNEL: Boot complete');
+      if (import.meta.env.DEV) console.log('⚡ KERNEL: Boot complete');
     } catch (error) {
       this.state = 'ERROR';
       console.error('⚡ KERNEL: Boot failed', error);
@@ -115,7 +115,7 @@ class AgentKernelService {
    * Gracefully shutdown the kernel
    */
   async shutdown(): Promise<void> {
-    console.log('⚡ KERNEL: Initiating shutdown...');
+    if (import.meta.env.DEV) console.log('⚡ KERNEL: Initiating shutdown...');
     this.state = 'SUSPENDED';
 
     // Complete pending tasks
@@ -125,7 +125,7 @@ class AgentKernelService {
     await this.semanticPager.flush();
 
     this.state = 'BOOTING'; // Ready for reboot
-    console.log('⚡ KERNEL: Shutdown complete');
+    if (import.meta.env.DEV) console.log('⚡ KERNEL: Shutdown complete');
   }
 
   // ============================================================================
@@ -371,15 +371,17 @@ class AgentKernelService {
         });
 
         // Log reasoning
-        console.log(`⚡ KERNEL: UI Evaluation [${iteration}] - Score: ${evaluation.score}, Verdict: ${evaluation.verdict}`);
-        console.log(`   Reasoning: ${evaluation.reasoning}`);
+        if (import.meta.env.DEV) {
+            console.log(`⚡ KERNEL: UI Evaluation [${iteration}] - Score: ${evaluation.score}, Verdict: ${evaluation.verdict}`);
+            console.log(`   Reasoning: ${evaluation.reasoning}`);
+        }
 
         // Check if iteration needed
         if (judgeAgent.shouldIterate(evaluation)) {
           judgeAgent.incrementIteration();
           iteration++;
           this.emit('UI_ITERATION', { iteration, evaluation });
-          console.log(`⚡ KERNEL: Iterating UI generation (${iteration}/3)...`);
+          if (import.meta.env.DEV) console.log(`⚡ KERNEL: Iterating UI generation (${iteration}/3)...`);
         } else {
           break;
         }
@@ -470,7 +472,7 @@ class AgentKernelService {
     this.lastRegenerationTime = now;
     this.isRegenerating = true;
 
-    console.log(`⚡ KERNEL: Triggering UI regeneration - ${reason}`);
+    if (import.meta.env.DEV) console.log(`⚡ KERNEL: Triggering UI regeneration - ${reason}`);
 
     try {
       await this.dispatch(`regenerate ui: ${reason}`, { priority: 'HIGH' });
@@ -484,7 +486,7 @@ class AgentKernelService {
    */
   setAUIEnabled(enabled: boolean): void {
     this.auiEnabled = enabled;
-    console.log(`⚡ KERNEL: AUI ${enabled ? 'enabled' : 'disabled'}`);
+    if (import.meta.env.DEV) console.log(`⚡ KERNEL: AUI ${enabled ? 'enabled' : 'disabled'}`);
   }
 
   /**
@@ -565,7 +567,7 @@ class AgentKernelService {
    */
   setAdaptiveUIEnabled(enabled: boolean): void {
     this.adaptiveUIEnabled = enabled;
-    console.log(`⚡ KERNEL: Adaptive UI ${enabled ? 'enabled' : 'disabled'}`);
+    if (import.meta.env.DEV) console.log(`⚡ KERNEL: Adaptive UI ${enabled ? 'enabled' : 'disabled'}`);
   }
 
   // ============================================================================

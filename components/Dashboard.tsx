@@ -241,9 +241,16 @@ const Dashboard: React.FC = () => {
   const { dashboard, user, voice, kernel, actions } = useAppStore();
   const { setDashboardState, setMode, setVoiceState, addLog, openHoloProjector, toggleProfile } = actions;
 
-  const [telemetry, setTelemetry] = useState({ cpu: 12.5, net: 0.8, mem: 58, health: 98 });
-  const [cpuHist, setCpuHist] = useState(Array.from({length: 20}, () => ({ value: 10 + Math.random() * 5 })));
-  const [netHist, setNetHist] = useState(Array.from({length: 20}, () => ({ value: 5 + Math.random() * 10 })));
+  // Initial telemetry constants
+  const INITIAL_CPU = 12.5;
+  const INITIAL_NET = 0.8;
+  const INITIAL_MEM = 58;
+  const INITIAL_HEALTH = 98;
+  const HISTORY_LENGTH = 20;
+
+  const [telemetry, setTelemetry] = useState({ cpu: INITIAL_CPU, net: INITIAL_NET, mem: INITIAL_MEM, health: INITIAL_HEALTH });
+  const [cpuHist, setCpuHist] = useState(Array.from({length: HISTORY_LENGTH}, () => ({ value: 10 + Math.random() * 5 })));
+  const [netHist, setNetHist] = useState(Array.from({length: HISTORY_LENGTH}, () => ({ value: 5 + Math.random() * 10 })));
 
   useEffect(() => {
       const interval = setInterval(() => {

@@ -71,7 +71,7 @@ export class IntentResolver {
 
     // Future: Load fine-tuned intent classification model
     this.initialized = true;
-    console.log('🧠 INTENT_RESOLVER: Initialized');
+    if (import.meta.env.DEV) console.log('🧠 INTENT_RESOLVER: Initialized');
   }
 
   /**
