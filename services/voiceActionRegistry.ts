@@ -764,6 +764,121 @@ const VOICE_ACTIONS: VoiceAction[] = [
             if (!proposal) return { error: 'No proposal provided' };
             return { success: true, status: 'proposal_submitted', proposal };
         }
+    },
+
+    // =========================================================================
+    // OS_TOOLS - Sovereign Tool Registry (backfilled to synchronized clock)
+    // =========================================================================
+    {
+        id: 'sovereign_architect_process',
+        category: 'generate',
+        description: 'Generate architectural topology (PARA drives, cloud systems, agentic orchestration)',
+        examples: ['architect a system', 'generate PARA structure', 'design cloud architecture'],
+        priority: 90,
+        handler: async (args) => {
+            const { OS_TOOLS } = await import('./toolRegistry');
+            const type = args.type || 'SYSTEM_ARCHITECTURE';
+            const description = args.description || args.prompt || args.text || 'Generate optimal architecture';
+            return OS_TOOLS.architect_generate_process({ description, type });
+        }
+    },
+    {
+        id: 'sovereign_adjust_dna',
+        category: 'execute',
+        description: 'Adjust agent DNA weights (skepticism, excitement, alignment)',
+        examples: ['adjust agent DNA', 'recalibrate weights', 'tune agent mindset'],
+        priority: 85,
+        handler: async (args) => {
+            const { OS_TOOLS } = await import('./toolRegistry');
+            return OS_TOOLS.adjust_agent_dna({
+                agentId: args.agentId || 'default',
+                weights: {
+                    skepticism: args.skepticism,
+                    excitement: args.excitement,
+                    alignment: args.alignment
+                },
+                reasoning: args.reasoning
+            });
+        }
+    },
+    {
+        id: 'sovereign_converge_lattices',
+        category: 'analyze',
+        description: 'Converge multiple strategic lattices into unified goal synthesis',
+        examples: ['converge lattices', 'synthesize strategies', 'unify goals'],
+        priority: 85,
+        handler: async (args) => {
+            const { OS_TOOLS } = await import('./toolRegistry');
+            return OS_TOOLS.converge_strategic_lattices({
+                targetGoal: args.goal || args.target || args.text || 'Optimize system coherence'
+            });
+        }
+    },
+    {
+        id: 'sovereign_focus_element',
+        category: 'navigate',
+        description: 'Focus UI context on a specific element selector',
+        examples: ['focus on element', 'highlight selector', 'target UI element'],
+        priority: 70,
+        handler: async (args) => {
+            const { OS_TOOLS } = await import('./toolRegistry');
+            return OS_TOOLS.focus_element({ selector: args.selector || args.element || args.target });
+        }
+    },
+    {
+        id: 'sovereign_update_task',
+        category: 'manage',
+        description: 'Update task priority (CRITICAL, HIGH, MEDIUM, LOW)',
+        examples: ['prioritize task', 'update task priority', 'mark as critical'],
+        priority: 75,
+        handler: async (args) => {
+            const { OS_TOOLS } = await import('./toolRegistry');
+            return OS_TOOLS.update_task_priority({
+                taskId: args.taskId || args.task,
+                priority: args.priority || 'HIGH'
+            });
+        }
+    },
+    {
+        id: 'sovereign_navigate',
+        category: 'navigate',
+        description: 'Navigate to a specific OS sector',
+        examples: ['go to sector', 'navigate to', 'switch mode'],
+        priority: 80,
+        handler: async (args) => {
+            const { OS_TOOLS } = await import('./toolRegistry');
+            return OS_TOOLS.system_navigate({ target: args.target || args.sector || args.mode });
+        }
+    },
+    {
+        id: 'sovereign_search_intel',
+        category: 'search',
+        description: 'Search grounded intelligence using AI with real-time data',
+        examples: ['search for intel', 'ground search', 'research topic'],
+        priority: 85,
+        handler: async (args) => {
+            const { OS_TOOLS } = await import('./toolRegistry');
+            return OS_TOOLS.search_intel({ query: args.query || args.text || args.topic });
+        }
+    },
+    {
+        id: 'sovereign_propose_change',
+        category: 'execute',
+        description: 'Propose a structural change to the swarm for review',
+        examples: ['propose change', 'submit structural proposal', 'swarm proposal'],
+        priority: 80,
+        handler: async (args) => {
+            const { OS_TOOLS } = await import('./toolRegistry');
+            return OS_TOOLS.propose_structural_change({
+                agentId: args.agentId || 'voice_agent',
+                agentName: args.agentName || 'Voice Executive',
+                type: args.type || 'OPTIMIZATION',
+                title: args.title || 'Voice-initiated proposal',
+                description: args.description || args.text || 'Structural optimization',
+                impact: args.impact || 'System efficiency improvement',
+                manifest_summary: args.manifest || args.summary || 'Standard optimization protocol'
+            });
+        }
     }
 ];
 

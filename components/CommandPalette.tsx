@@ -1,6 +1,7 @@
 import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useAppStore } from '../store';
+import { useSystemMind } from '../stores/useSystemMind';
 import { interpretIntent, predictNextActions, promptSelectKey } from '../services/geminiService';
 import { AppMode, SuggestedAction, AppTheme } from '../types';
 import { Command, Loader2, X, Sparkles, ChevronRight, Code, Cpu, Mic, Zap, Image, BookOpen, Layers, Terminal, Activity, Search, Shield, BrainCircuit, Split, Palette, History, User, HardDrive, Settings, FlaskConical, Target, Database } from 'lucide-react';
@@ -114,6 +115,85 @@ const CommandPalette: React.FC = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isCommandPaletteOpen, toggleCommandPalette]);
 
+    // SYNCHRONIZED CLOCK: Register CommandPalette shortcuts as voice-accessible actions
+    useEffect(() => {
+        const systemMind = useSystemMind.getState();
+
+        // Register command palette actions with SystemMind
+        systemMind.registerActions([
+            {
+                id: 'cmd_toggle_palette',
+                description: '[Keyboard] Toggle command palette (Cmd/Ctrl+K)',
+                callback: async () => {
+                    toggleCommandPalette();
+                    return { success: true };
+                },
+                sectors: [],  // Global
+                priority: 60
+            },
+            {
+                id: 'cmd_open_palette',
+                description: '[Keyboard] Open command palette',
+                callback: async () => {
+                    toggleCommandPalette(true);
+                    return { success: true };
+                },
+                sectors: [],
+                priority: 60
+            },
+            {
+                id: 'cmd_close_palette',
+                description: '[Keyboard] Close command palette',
+                callback: async () => {
+                    toggleCommandPalette(false);
+                    return { success: true };
+                },
+                sectors: [],
+                priority: 55
+            },
+            {
+                id: 'cmd_theme_midnight',
+                description: '[Theme] Switch to Midnight Core theme',
+                callback: async () => {
+                    setTheme(AppTheme.MIDNIGHT);
+                    return { success: true, theme: 'MIDNIGHT' };
+                },
+                sectors: [],
+                priority: 50
+            },
+            {
+                id: 'cmd_theme_amber',
+                description: '[Theme] Switch to Amber Protocol theme',
+                callback: async () => {
+                    setTheme(AppTheme.AMBER);
+                    return { success: true, theme: 'AMBER' };
+                },
+                sectors: [],
+                priority: 50
+            },
+            {
+                id: 'cmd_theme_dark',
+                description: '[Theme] Switch to Dark Mode theme',
+                callback: async () => {
+                    setTheme(AppTheme.DARK);
+                    return { success: true, theme: 'DARK' };
+                },
+                sectors: [],
+                priority: 50
+            },
+            {
+                id: 'cmd_theme_neon',
+                description: '[Theme] Switch to Neon Cyber theme',
+                callback: async () => {
+                    setTheme(AppTheme.NEON_CYBER);
+                    return { success: true, theme: 'NEON_CYBER' };
+                },
+                sectors: [],
+                priority: 50
+            }
+        ]);
+    }, [toggleCommandPalette, setTheme]);
+
     useEffect(() => {
         if (isCommandPaletteOpen) {
             setTimeout(() => inputRef.current?.focus(), 50);
@@ -143,6 +223,19 @@ const CommandPalette: React.FC = () => {
         setResult(null);
 
         const lowInput = input.toLowerCase();
+
+        // SYNCHRONIZED CLOCK: Notify SystemMind of command execution
+        // This ensures voice context knows when keyboard commands are used
+        try {
+            const systemMind = useSystemMind.getState();
+            systemMind.uplinkData('command_executed', {
+                command: input,
+                timestamp: Date.now(),
+                source: 'command_palette'
+            });
+        } catch (e) {
+            // SystemMind may not be initialized
+        }
 
         if (lowInput.startsWith("focus ") || lowInput.startsWith("target ")) {
             const selector = input.split(' ').slice(1).join(' ');

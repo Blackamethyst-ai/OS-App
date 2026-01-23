@@ -3,10 +3,28 @@
  *
  * Pub/sub system for inter-subsystem communication.
  * Enables loose coupling between ARCHON and OS-App subsystems.
+ *
+ * SYNCHRONIZED CLOCK INTEGRATION:
+ * Significant Archon events trigger SystemMind epoch updates,
+ * ensuring voice context stays fresh when Archon makes decisions.
  */
 
 import { ArchonEvent, ArchonEventType, EventHandler } from './types';
 import { generateId, archonLog } from './utils';
+import { useSystemMind } from '../../stores/useSystemMind';
+
+// Events that should trigger epoch updates (significant state changes)
+const EPOCH_TRIGGERING_EVENTS: Set<ArchonEventType> = new Set([
+  'goal:received',
+  'goal:decomposed',
+  'goal:completed',
+  'goal:blocked',
+  'decision:made',
+  'escalation:requested',
+  'escalation:resolved',
+  'pattern:learned',
+  'subsystem:completed',
+]);
 
 // =============================================================================
 // EVENT BUS IMPLEMENTATION
@@ -121,6 +139,28 @@ class ArchonEventBus {
         }
       })
     );
+
+    // SYNCHRONIZED CLOCK: Trigger epoch update for significant events
+    // This ensures voice context stays fresh when Archon makes decisions
+    if (EPOCH_TRIGGERING_EVENTS.has(type)) {
+      try {
+        const systemMind = useSystemMind.getState();
+        // Use telemetry update to signal Archon state change
+        systemMind.uplinkData('archon_event', {
+          type,
+          source,
+          timestamp: event.timestamp,
+          summary: typeof payload === 'object' && payload !== null
+            ? (payload as any).description || (payload as any).goalId || type
+            : String(payload)
+        });
+      } catch (e) {
+        // SystemMind may not be initialized during early boot
+        if (this.debugMode) {
+          archonLog('debug', `Could not sync epoch for ${type}`, e);
+        }
+      }
+    }
   }
 
   /**
