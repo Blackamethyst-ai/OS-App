@@ -104,8 +104,8 @@ export const DEFAULT_CPB_CONFIG: CPBConfig = {
 
     rlmConfig: {
         maxIterations: 25,         // ELITE: Deeper decomposition
-        rootModel: 'claude-opus-4-20250514',    // ELITE: Opus for root synthesis
-        subModel: 'claude-sonnet-4-20250514'   // ELITE: Sonnet for sub-tasks
+        rootModel: 'gemini-2.0-flash',    // RLM uses Gemini API directly
+        subModel: 'gemini-2.0-flash'     // RLM uses Gemini API directly
     },
     aceConfig: {
         maxRounds: 18,             // ELITE: More consensus rounds
