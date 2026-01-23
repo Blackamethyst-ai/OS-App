@@ -53,8 +53,25 @@ hooks/            # 20 custom hooks
 └── ...
 
 api/              # Express backend
-libs/             # Agentic Kernel libraries
+libs/             # Agentic Kernel libraries (npm packages)
 ```
+
+### Agentic Kernel Libraries
+
+Published npm packages in `libs/`:
+
+| Package | Version | Description |
+|---------|---------|-------------|
+| `@metaventionsai/cpb-core` | 1.1.0 | Cognitive Precision Bridge - AI orchestration with DQ scoring |
+| `@metaventionsai/voice-nexus` | 1.1.0 | Multi-provider voice architecture (STT/reasoning/TTS) |
+
+```bash
+# Build packages
+cd libs/cpb-core && npm run build
+cd libs/voice-nexus && npm run build
+```
+
+See `libs/README.md` for architecture details.
 
 ### State Management
 

@@ -2,7 +2,10 @@
 
 Universal multi-provider voice architecture - seamless routing between STT, reasoning, and TTS providers.
 
-## Quick Start
+[![npm version](https://img.shields.io/npm/v/@metaventionsai/voice-nexus.svg)](https://www.npmjs.com/package/@metaventionsai/voice-nexus)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+## Installation
 
 ```bash
 npm install @metaventionsai/voice-nexus
@@ -12,12 +15,7 @@ npm install @anthropic-ai/sdk  # for Claude reasoning
 npm install @google/genai      # for Gemini reasoning
 ```
 
-Set your API keys:
-```bash
-export ANTHROPIC_API_KEY=sk-...
-export GOOGLE_GENERATIVE_AI_API_KEY=AIza...
-export ELEVENLABS_API_KEY=...
-```
+## Quick Start
 
 ```typescript
 import { createVoiceNexus } from '@metaventionsai/voice-nexus';
@@ -36,67 +34,116 @@ const nexus = createVoiceNexus({
         }
     },
     events: {
-        onTranscriptUpdate: (t) => console.log(`[${t.role}] ${t.text}`),
-        onComplexityAnalyzed: (c) => console.log(`Complexity: ${c.score.toFixed(2)}`)
+        onTranscriptUpdate: (t) => console.log(`[${t.role}] ${t.text}`)
     }
 });
 
-// Process text input
 const response = await nexus.processTextInput('How do I implement authentication?');
 console.log(response?.text);
 ```
 
 ## Features
 
-- **Multi-provider**: Works with any combination of STT, reasoning, and TTS providers
-- **Complexity routing**: Automatically selects fast/balanced/deep tier based on query complexity
-- **Knowledge injection**: Optional integration with external knowledge bases
-- **Browser support**: Built-in Web Speech API providers for zero-dependency voice
+- **Multi-provider** - Mix and match STT, reasoning, and TTS providers
+- **Complexity routing** - Auto-selects fast/balanced/deep tier
+- **Knowledge injection** - Optional external knowledge integration
+- **Browser support** - Zero-dependency Web Speech API providers
+- **TypeScript** - Full type definitions included
+
+## Architecture
+
+```
+┌─────────────┐    ┌──────────────────┐    ┌─────────────┐
+│ Audio Input │───▶│   STT Provider   │───▶│    Text     │
+└─────────────┘    └──────────────────┘    └──────┬──────┘
+                                                   │
+                                                   ▼
+                                          ┌───────────────┐
+                                          │  Complexity   │
+                                          │    Router     │
+                                          └───────┬───────┘
+                              ┌───────────────────┼───────────────────┐
+                              ▼                   ▼                   ▼
+                        ┌──────────┐        ┌──────────┐        ┌──────────┐
+                        │   Fast   │        │ Balanced │        │   Deep   │
+                        │  Tier    │        │   Tier   │        │   Tier   │
+                        └────┬─────┘        └────┬─────┘        └────┬─────┘
+                              └───────────────────┼───────────────────┘
+                                                  ▼
+                                          ┌──────────────┐
+                                          │  Reasoning   │
+                                          │   Provider   │
+                                          └──────┬───────┘
+                                                 │
+                                                 ▼
+                                          ┌──────────────┐    ┌──────────────┐
+                                          │ TTS Provider │───▶│ Audio Output │
+                                          └──────────────┘    └──────────────┘
+```
 
 ## Providers
 
 ### Reasoning
 
 ```typescript
-import { createGeminiReasoning, createClaudeReasoning } from '@metaventionsai/voice-nexus/providers/reasoning';
+import {
+    createGeminiReasoning,
+    createClaudeReasoning,
+    createGroundedGeminiReasoning
+} from '@metaventionsai/voice-nexus/providers/reasoning';
 
-// Fast responses with Gemini
+// Gemini - fast responses
 const gemini = createGeminiReasoning();
 
-// Deep reasoning with Claude
+// Claude - deep reasoning
 const claude = createClaudeReasoning();
 
-// With Google Search grounding
+// Gemini with Google Search grounding
 const grounded = createGroundedGeminiReasoning();
 ```
+
+**Models:**
+- Gemini: `gemini-2.0-flash-exp` (fast), `gemini-1.5-pro` (balanced/deep)
+- Claude: `claude-3-5-haiku-20241022` (fast), `claude-sonnet-4-20250514` (balanced/deep)
 
 ### Text-to-Speech (TTS)
 
 ```typescript
 import { createElevenLabsTTS, createBrowserTTS } from '@metaventionsai/voice-nexus/providers/tts';
 
-// Premium quality with ElevenLabs
+// ElevenLabs - premium quality
 const elevenLabs = createElevenLabsTTS();
 
-// Free fallback with browser Web Speech API
+// Browser - free fallback
 const browser = createBrowserTTS();
 ```
+
+**ElevenLabs Voices:**
+| ID | Name | Gender | Style |
+|----|------|--------|-------|
+| `DR_IRA` | Dr. Ira | Male | Deep, authoritative |
+| `MIKE` | Mike | Male | Narrative, American |
+| `CALEB` | Caleb | Male | News anchor |
+| `PARAMDEEP` | Paramdeep | Male | Casual |
+| `BILAL` | Bilal | Male | Energetic |
+| `PERRI` | Perri | Female | Clear, American |
+| `HELEN` | Helen | Female | Strong, expressive |
+| `NOAH` | Noah | Female | Gentle, narrative |
 
 ### Speech-to-Text (STT)
 
 ```typescript
 import { createBrowserSTT } from '@metaventionsai/voice-nexus/providers/stt';
 
-// Browser Web Speech API (Chrome has best support)
 const stt = createBrowserSTT();
 
-// Start streaming
-await stt.startStreaming((text) => {
-    console.log('Partial:', text);
+// Start streaming transcription
+await stt.startStreaming((partialText) => {
+    console.log('Hearing:', partialText);
 });
 
 // Stop and get final text
-const final = await stt.stopStreaming();
+const finalText = await stt.stopStreaming();
 ```
 
 ### Auto-detection
@@ -104,66 +151,119 @@ const final = await stt.stopStreaming();
 ```typescript
 import { createDefaultProviders } from '@metaventionsai/voice-nexus/providers';
 
-// Creates providers based on available API keys
 const providers = createDefaultProviders();
+// Returns { stt, reasoning, tts } based on available API keys
+```
+
+## API Reference
+
+### createVoiceNexus(options)
+
+```typescript
 const nexus = createVoiceNexus({
-    config: { mode: 'turn-based', knowledgeInjection: false, providers }
+    config: VoiceNexusConfig,
+    events?: VoiceNexusEvents,
+    tools?: VoiceToolCall[],
+    knowledgeInjector?: KnowledgeInjector
 });
 ```
+
+### VoiceNexusConfig
+
+```typescript
+interface VoiceNexusConfig {
+    mode: 'realtime' | 'turn-based' | 'hybrid';
+    knowledgeInjection: boolean;
+    agent?: {
+        id: string;
+        name: string;
+        expertise?: string[];
+    };
+    providers?: {
+        stt?: STTProvider;
+        reasoning?: ReasoningProvider;
+        tts?: TTSProvider;
+    };
+    complexity?: {
+        balancedThreshold?: number;  // default: 0.3
+        deepThreshold?: number;      // default: 0.7
+    };
+}
+```
+
+### VoiceNexusEvents
+
+```typescript
+interface VoiceNexusEvents {
+    onTranscriptUpdate?: (transcript: Transcript) => void;
+    onPartialTranscript?: (partial: PartialTranscript) => void;
+    onProcessingStart?: () => void;
+    onProcessingEnd?: () => void;
+    onProviderSwitch?: (providers: { stt?: string; reasoning?: string; tts?: string }) => void;
+    onComplexityAnalyzed?: (result: ComplexityResult) => void;
+    onError?: (error: Error) => void;
+    onKnowledgeInjected?: (context: KnowledgeContext) => void;
+    onToolCall?: VoiceToolHandler;
+    onStateChange?: (state: VoiceNexusState) => void;
+}
+```
+
+### Provider Interfaces
+
+```typescript
+interface ReasoningProvider {
+    readonly name: string;
+    readonly models: { fast: string; balanced: string; deep: string };
+    generate(prompt: string, config: ReasoningConfig): Promise<ReasoningResult>;
+    isAvailable(): boolean;
+}
+
+interface TTSProvider {
+    readonly name: string;
+    readonly supportsStreaming: boolean;
+    readonly voices: VoiceConfig[];
+    synthesize(text: string, voice: string, settings?: TTSSettings): Promise<ArrayBuffer>;
+    synthesizeStream?(text: string, voice: string, onChunk: (chunk: ArrayBuffer) => void): Promise<void>;
+    getVoiceForAgent(agentName: string): string;
+    isAvailable(): boolean;
+}
+
+interface STTProvider {
+    readonly name: string;
+    readonly supportsStreaming: boolean;
+    transcribe(audio: Blob): Promise<string>;
+    startStreaming?(onPartial: (text: string) => void): Promise<void>;
+    stopStreaming?(): Promise<string>;
+    isAvailable(): boolean;
+}
+```
+
+## Complexity Routing
+
+Voice Nexus analyzes queries and routes to appropriate tiers:
+
+| Tier | Score Range | Use Case |
+|------|-------------|----------|
+| Fast | 0.0 - 0.3 | Simple questions, navigation |
+| Balanced | 0.3 - 0.7 | Standard conversations |
+| Deep | 0.7 - 1.0 | Complex reasoning, code |
+
+**Signals analyzed:**
+- Token count
+- Code indicators (`function`, `class`, `import`)
+- Reasoning words (`why`, `explain`, `compare`)
+- Creative words (`write`, `create`, `design`)
+- Navigation words (`go to`, `open`, `show`)
+- Question indicators (`?`, `what`, `how`)
+- Domain complexity
 
 ## Voice Modes
 
 | Mode | Description |
 |------|-------------|
-| `turn-based` | User speaks, model responds (like a conversation) |
-| `realtime` | Continuous back-and-forth (more interactive) |
+| `turn-based` | User speaks, wait for complete response |
+| `realtime` | Continuous back-and-forth |
 | `hybrid` | Adaptive based on context |
-
-## Complexity Routing
-
-Voice Nexus automatically analyzes query complexity and routes to the appropriate tier:
-
-- **Fast tier**: Simple questions, navigation commands
-- **Balanced tier**: Standard conversations, moderate analysis
-- **Deep tier**: Complex reasoning, code generation, architecture
-
-```typescript
-const nexus = createVoiceNexus({
-    config: {
-        mode: 'turn-based',
-        knowledgeInjection: false,
-        complexity: {
-            balancedThreshold: 0.3,  // Score above this uses balanced
-            deepThreshold: 0.7       // Score above this uses deep
-        }
-    }
-});
-```
-
-## ElevenLabs Voice Configuration
-
-```typescript
-import { createElevenLabsTTS, ELEVENLABS_VOICE_IDS } from '@metaventionsai/voice-nexus/providers/tts';
-
-const tts = createElevenLabsTTS({
-    apiKey: 'your-key',  // or use ELEVENLABS_API_KEY env var
-    modelId: 'eleven_turbo_v2_5',
-    agentVoiceMap: {
-        'assistant': ELEVENLABS_VOICE_IDS.MIKE,
-        'narrator': ELEVENLABS_VOICE_IDS.DR_IRA,
-    }
-});
-```
-
-Available voices:
-- `DR_IRA` - Deep, authoritative (male)
-- `MIKE` - Narrative, American (male)
-- `CALEB` - News anchor, professional (male)
-- `PARAMDEEP` - Casual, conversational (male)
-- `BILAL` - Energetic, gaming (male)
-- `PERRI` - Clear, American (female)
-- `HELEN` - Strong, expressive (female)
-- `NOAH` - Gentle, narrative (female)
 
 ## Custom Providers
 
@@ -175,42 +275,45 @@ const customReasoning: ReasoningProvider = {
     models: { fast: 'model-a', balanced: 'model-b', deep: 'model-c' },
     isAvailable: () => true,
     async generate(prompt, config) {
-        // Your LLM call
-        return { text: response, model: config.model || 'model-a' };
+        const result = await myLLM(prompt, config.tier);
+        return { text: result, model: config.model || 'model-a' };
     }
 };
 
 const customTTS: TTSProvider = {
-    name: 'custom',
+    name: 'custom-tts',
     supportsStreaming: false,
-    voices: [{ id: 'default', name: 'Default', gender: 'neutral' }],
+    voices: [{ id: 'v1', name: 'Voice 1', gender: 'neutral' }],
     isAvailable: () => true,
-    getVoiceForAgent: (agent) => 'default',
+    getVoiceForAgent: () => 'v1',
     async synthesize(text, voice) {
-        // Your TTS call
-        return audioBuffer;
+        return await myTTSService(text, voice);
     }
 };
 ```
 
-## Events
+## Environment Variables
 
-```typescript
-const nexus = createVoiceNexus({
-    config: { /* ... */ },
-    events: {
-        onTranscriptUpdate: (transcript) => { /* new message */ },
-        onPartialTranscript: (partial) => { /* streaming update */ },
-        onProcessingStart: () => { /* thinking started */ },
-        onProcessingEnd: () => { /* thinking complete */ },
-        onProviderSwitch: ({ reasoning, tts }) => { /* tier changed */ },
-        onComplexityAnalyzed: (result) => { /* complexity scored */ },
-        onError: (error) => { /* error occurred */ },
-        onKnowledgeInjected: (context) => { /* knowledge used */ },
-        onToolCall: async (name, args) => { /* tool called */ }
-    }
-});
-```
+| Variable | Provider | Required |
+|----------|----------|----------|
+| `ANTHROPIC_API_KEY` | Claude Reasoning | If using Claude |
+| `GOOGLE_GENERATIVE_AI_API_KEY` | Gemini Reasoning | If using Gemini |
+| `GEMINI_API_KEY` | Gemini Reasoning | Alternative |
+| `ELEVENLABS_API_KEY` | ElevenLabs TTS | If using ElevenLabs |
+
+## Examples
+
+See the [examples/](./examples) directory:
+- `basic-voice.ts` - Node.js usage with Gemini + ElevenLabs
+- `browser-voice.html` - Browser demo with Web Speech API
+
+## Browser Compatibility
+
+| Provider | Chrome | Firefox | Safari | Edge |
+|----------|--------|---------|--------|------|
+| Browser STT | ✅ Full | ⚠️ Limited | ⚠️ Limited | ✅ Full |
+| Browser TTS | ✅ | ✅ | ✅ | ✅ |
+| ElevenLabs | ✅ | ✅ | ✅ | ✅ |
 
 ## License
 
