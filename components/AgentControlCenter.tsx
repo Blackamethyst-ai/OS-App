@@ -821,7 +821,7 @@ const AgentControlCenter: React.FC = () => {
                                                         placeholder="New Mission Vector..."
                                                         className="bg-black/60 border border-white/10 px-6 py-3 rounded-2xl text-xs font-mono text-white focus:border-[#9d4edd] outline-none w-64 shadow-inner uppercase placeholder:text-gray-800"
                                                     />
-                                                    <button onClick={handleAddTask} className="p-3 bg-[#9d4edd] text-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl"><Plus size={20} /></button>
+                                                    <button onClick={handleAddTask} className="p-3 bg-[#9d4edd] text-black rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-xl" aria-label="Add task"><Plus size={20} /></button>
                                                 </div>
                                             </div>
                                             <div className="space-y-6 px-2">
@@ -865,10 +865,11 @@ const AgentControlCenter: React.FC = () => {
                                                         <div className="relative z-10 flex gap-4">
                                                             {task.status === 'COMPLETED' ? <CheckCircle2 size={36} className="text-[#10b981]" /> :
                                                                 task.status === 'IN_PROGRESS' ? <Loader2 size={36} className="text-[#9d4edd] animate-spin" /> :
-                                                                    <button onClick={() => toggleTaskStatus(task.id)} className="p-4 hover:bg-white/5 rounded-2xl text-gray-600 hover:text-white transition-all"><ChevronRight size={28} /></button>}
+                                                                    <button onClick={() => toggleTaskStatus(task.id)} className="p-4 hover:bg-white/5 rounded-2xl text-gray-600 hover:text-white transition-all" aria-label="Start task"><ChevronRight size={28} /></button>}
                                                             <button
                                                                 onClick={() => updateAgent(activeAgent.id, { tasks: activeAgent.tasks.filter(t => t.id !== task.id) })}
                                                                 className="p-4 opacity-0 group-hover:opacity-100 hover:bg-red-500/20 text-gray-700 hover:text-red-500 rounded-2xl transition-all"
+                                                                aria-label="Delete task"
                                                             >
                                                                 <Trash2 size={22} />
                                                             </button>
