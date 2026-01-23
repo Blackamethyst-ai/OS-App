@@ -457,6 +457,8 @@ export const BiometricPanel = memo(({
                     ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
                     : 'bg-green-500/20 text-green-300 hover:bg-green-500/30'
                 )}
+                data-voice-id="biometric-sensors-toggle"
+                aria-label={isActive ? 'Stop biometric sensors' : 'Start biometric sensors'}
               >
                 <Power className="w-3.5 h-3.5" />
                 {isActive ? 'Stop Sensors' : 'Start Sensors'}
@@ -469,6 +471,8 @@ export const BiometricPanel = memo(({
                     ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30'
                     : 'bg-white/5 text-white/40 hover:bg-white/10'
                 )}
+                data-voice-id="biometric-adaptive-ui-toggle"
+                aria-label="Toggle adaptive UI"
               >
                 <CheckCircle className="w-3.5 h-3.5" />
                 Adaptive UI
