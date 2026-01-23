@@ -9,7 +9,9 @@
  * - Gaze estimation from eye landmarks
  */
 
-import * as faceapi from 'face-api.js';
+// face-api.js is dynamically imported to reduce initial bundle size (~1.5MB)
+// It only loads when biometrics are actually initialized
+let faceapi: typeof import('face-api.js') | null = null;
 
 // ============================================================================
 // TYPES
@@ -89,15 +91,22 @@ class FaceDetectionService {
 
   /**
    * Initialize face-api.js models
+   * Dynamically imports face-api.js on first use to reduce initial bundle
    */
   async initialize(): Promise<boolean> {
     if (this.isInitialized) return true;
     if (this.isLoading) return false;
 
     this.isLoading = true;
-    if (import.meta.env.DEV) console.log('FACE_DETECTION: Loading models...');
+    if (import.meta.env.DEV) console.log('FACE_DETECTION: Loading face-api.js...');
 
     try {
+      // Dynamic import - only loads when biometrics are used
+      if (!faceapi) {
+        faceapi = await import('face-api.js');
+        if (import.meta.env.DEV) console.log('FACE_DETECTION: face-api.js loaded');
+      }
+
       // Load models from public folder
       const modelPath = '/models';
 
@@ -125,9 +134,9 @@ class FaceDetectionService {
    * Detect face in video frame
    */
   async detectFace(video: HTMLVideoElement): Promise<FaceDetectionResult> {
-    if (!this.isInitialized) {
+    if (!this.isInitialized || !faceapi) {
       const initialized = await this.initialize();
-      if (!initialized) {
+      if (!initialized || !faceapi) {
         return { detected: false, confidence: 0 };
       }
     }
