@@ -185,37 +185,28 @@ const refreshContextTool: FunctionDeclaration = {
 };
 
 // =============================================================================
-// CPB EXECUTION TOOL - Intelligent query routing through Cognitive Precision Bridge
+// THINK TOOL - Primary entry point for complex reasoning (routes through CPB)
 // =============================================================================
-const cpbExecuteTool: FunctionDeclaration = {
-    name: "cpb_execute",
-    description: `Execute a complex query through the Cognitive Precision Bridge with intelligent path routing. Use this for:
-- Complex analysis requiring multi-agent consensus
-- Architecture decisions needing verification
-- Code generation with quality scoring
-- Any query that needs more than a simple action
+const thinkTool: FunctionDeclaration = {
+    name: "think",
+    description: `REQUIRED FOR COMPLEX TASKS. Use this tool BEFORE answering when user asks you to:
+- Analyze anything (code, architecture, systems, data)
+- Generate or create something (code, plans, designs)
+- Decide between options or evaluate trade-offs
+- Research or investigate something
+- Solve problems or debug issues
 
-Execution paths:
-- auto: System determines optimal path based on query complexity
-- direct: Fast, simple queries (< 500ms)
-- rlm: Long context requiring compression (document analysis, large codebases)
-- ace: Multi-agent consensus (3+ agents vote on architecture decisions)
-- hybrid: RLM + ACE (complex analysis with long context)
-- cascade: Full verification pipeline (critical code, production decisions)
+This routes your reasoning through the Cognitive Precision Bridge for higher quality responses.
+Returns a well-reasoned response with quality scoring.
 
-Returns execution result with DQ (Decision Quality) score.`,
+DO NOT answer complex questions directly - always use this tool first to think through them.`,
     parameters: {
         type: Type.OBJECT,
         properties: {
-            query: { type: Type.STRING, description: "The query or task to execute through CPB" },
-            context: { type: Type.STRING, description: "Additional context for the query (optional)" },
-            path: {
-                type: Type.STRING,
-                enum: ['auto', 'direct', 'rlm', 'ace', 'hybrid', 'cascade'],
-                description: "Execution path. Use 'auto' to let the system decide (recommended)"
-            }
+            task: { type: Type.STRING, description: "What the user is asking you to do (summarize their request)" },
+            context: { type: Type.STRING, description: "Relevant context from the conversation or current view" }
         },
-        required: ["query"]
+        required: ["task"]
     }
 };
 
@@ -345,7 +336,39 @@ const VoiceManager: React.FC = () => {
                 const actionArgs = args.args || {};
                 addLog('SYSTEM', `VOICE_EXECUTIVE: Executing action [${actionId}]...`);
 
-                // Check if action exists directly
+                // Try unified registry first for CPB-routed execution
+                const { getAction, executeAction: executeUnifiedAction } = await import('../services/unifiedActionRegistry');
+                const unifiedAction = getAction(actionId);
+
+                if (unifiedAction) {
+                    // Route through CPB if action has complex execution path
+                    if (unifiedAction.complexity !== 'simple' && unifiedAction.complexity !== 'navigation') {
+                        addLog('SYSTEM', `VOICE_EXECUTIVE: Routing [${actionId}] through CPB (complexity: ${unifiedAction.complexity}, path: ${unifiedAction.executionPath})`);
+
+                        const cpbResult = await executeUnifiedAction(actionId, actionArgs, (status) => {
+                            if (status.message) {
+                                addLog('SYSTEM', `CPB [${status.phase}]: ${status.message}`);
+                            }
+                        });
+
+                        if (cpbResult.success) {
+                            addLog('SUCCESS', `VOICE_EXECUTIVE: CPB execution complete (DQ: ${cpbResult.dqScore ? (cpbResult.dqScore * 100).toFixed(0) + '%' : 'N/A'})`);
+                            audio.playSuccess();
+                            return {
+                                status: "CPB_ACTION_EXECUTED",
+                                actionId,
+                                executionPath: cpbResult.executionPath,
+                                dqScore: cpbResult.dqScore,
+                                result: cpbResult.output
+                            };
+                        } else {
+                            addLog('ERROR', `VOICE_EXECUTIVE: CPB execution failed: ${cpbResult.output?.error}`);
+                            return { error: cpbResult.output?.error, actionId };
+                        }
+                    }
+                }
+
+                // Fallback to SystemMind registry for simple actions
                 const actionExists = !!actionRegistry[actionId];
 
                 // If not found, try fuzzy matching
@@ -582,80 +605,54 @@ const VoiceManager: React.FC = () => {
             }
 
             // =================================================================
-            // CPB EXECUTION HANDLER - Intelligent query routing
+            // THINK HANDLER - Routes complex reasoning through CPB
             // =================================================================
-            if (name === 'cpb_execute') {
-                const query = args.query as string;
+            if (name === 'think') {
+                const task = args.task as string;
                 const context = args.context as string | undefined;
-                const requestedPath = args.path as CPBPath | 'auto' | undefined;
 
-                addLog('SYSTEM', `CPB_EXECUTE: Routing query through Cognitive Precision Bridge...`);
+                addLog('SYSTEM', `THINK: Processing "${task.slice(0, 50)}${task.length > 50 ? '...' : ''}"`);
 
-                // First, route the query to determine optimal path
-                const routing = routeQuery(query, context);
-
-                // Use requested path if specified and not 'auto', otherwise use routed path
-                const executionPath = (requestedPath && requestedPath !== 'auto')
-                    ? requestedPath
-                    : routing.path;
-
-                addLog('SYSTEM', `CPB_EXECUTE: Path=${executionPath} (confidence: ${(routing.confidence * 100).toFixed(0)}%) | Matched ${routing.matchedActions.length} actions`);
+                // Route through CPB
+                const routing = routeQuery(task, context);
+                addLog('SYSTEM', `THINK: Routed to ${routing.path} path (confidence: ${(routing.confidence * 100).toFixed(0)}%)`);
 
                 try {
-                    // Execute through CPB with status callback for streaming progress
-                    const result = await executeQuery(query, context, (status) => {
-                        // Log progress updates
-                        if (status.phase) {
-                            addLog('SYSTEM', `CPB_EXECUTE: [${status.phase}] ${status.message || ''}`);
+                    const result = await executeQuery(task, context, (status) => {
+                        if (status.phase && status.phase !== 'idle') {
+                            addLog('SYSTEM', `THINK [${status.phase}]: ${status.message || ''}`);
                         }
                     });
 
                     if (result.success) {
-                        addLog('SUCCESS', `CPB_EXECUTE: Completed via ${result.executionPath}${result.dqScore ? ` (DQ: ${(result.dqScore * 100).toFixed(0)}%)` : ''}`);
+                        const dqPercent = result.dqScore ? (result.dqScore * 100).toFixed(0) : 'N/A';
+                        addLog('SUCCESS', `THINK: Complete (${result.executionPath}, DQ: ${dqPercent}%)`);
                         audio.playSuccess();
 
+                        // Return the reasoning result for voice AI to use
                         return {
-                            status: "CPB_EXECUTION_COMPLETE",
-                            success: true,
-                            execution_path: result.executionPath,
-                            routing: {
-                                confidence: routing.confidence,
-                                reasoning: routing.reasoning,
-                                matched_action: routing.matchedActions[0]?.id || null
-                            },
-                            output: result.output,
-                            quality: {
-                                dq_score: result.dqScore,
-                                dq_percent: result.dqScore ? `${(result.dqScore * 100).toFixed(0)}%` : null,
-                                execution_time_ms: result.executionTimeMs
-                            },
-                            hint: `Query executed via ${result.executionPath} path. ${result.dqScore ? `Quality score: ${(result.dqScore * 100).toFixed(0)}%` : ''}`
+                            status: "THOUGHT_COMPLETE",
+                            reasoning_path: routing.path,
+                            reasoning: routing.reasoning,
+                            response: result.output,
+                            quality_score: dqPercent + '%',
+                            execution_time_ms: result.executionTimeMs,
+                            instruction: "Use this response to answer the user's question. The response has been validated for quality."
                         };
                     } else {
-                        addLog('ERROR', `CPB_EXECUTE: Failed - ${result.output?.error || 'Unknown error'}`);
+                        addLog('WARN', `THINK: Low quality result, providing anyway`);
                         return {
-                            status: "CPB_EXECUTION_FAILED",
-                            success: false,
-                            execution_path: result.executionPath,
-                            error: result.output?.error || 'Execution failed',
-                            routing: {
-                                confidence: routing.confidence,
-                                reasoning: routing.reasoning
-                            },
-                            hint: "Try with a different execution path or simplify the query"
+                            status: "THOUGHT_PARTIAL",
+                            response: result.output?.error || "Could not fully process the request",
+                            instruction: "The reasoning had issues. Answer based on your knowledge, acknowledging uncertainty."
                         };
                     }
                 } catch (error: any) {
-                    addLog('ERROR', `CPB_EXECUTE: Exception - ${error.message}`);
+                    addLog('ERROR', `THINK: Error - ${error.message}`);
                     return {
-                        status: "CPB_EXECUTION_ERROR",
-                        success: false,
+                        status: "THOUGHT_ERROR",
                         error: error.message,
-                        routing: {
-                            confidence: routing.confidence,
-                            path_attempted: executionPath
-                        },
-                        hint: "An error occurred during CPB execution. Check logs for details."
+                        instruction: "Reasoning failed. Answer based on your knowledge and apologize for limited processing."
                     };
                 }
             }
@@ -779,14 +776,13 @@ UNIVERSAL UI CONTROL (you can interact with ANY element):
 - execute_component_action: Trigger registered component actions
 - get_ui_context: Get full UI state snapshot
 
-COGNITIVE PRECISION BRIDGE (for complex reasoning):
-- cpb_execute: Route complex queries through intelligent execution paths
-  - Use for: architecture decisions, code generation, multi-step analysis, critical operations
-  - Paths: auto (recommended), direct, rlm, ace, hybrid, cascade
-  - Returns DQ (Decision Quality) score with each response
-  - Example: "Analyze the authentication flow and suggest improvements" → ace path
-  - Example: "Generate a React component for user settings" → hybrid path
-  - Example: "Deploy this change to production" → cascade path (full verification)
+CRITICAL - THINK BEFORE ANSWERING:
+- For ANY complex request (analyze, generate, decide, research, solve), FIRST call the "think" tool
+- The think tool routes your reasoning through the Cognitive Precision Bridge
+- This gives you higher quality, validated responses with quality scores
+- Example: User says "analyze the auth flow" → call think(task="analyze the authentication flow")
+- Example: User says "how should I structure this?" → call think(task="recommend architecture structure")
+- Simple requests (navigate, click, input text) don't need think - use direct tools
 
 TAB NAVIGATION (use navigate_to_tab for precise navigation):
 - "go to nexus" → Nexus Matrix (API explorer)
@@ -838,7 +834,7 @@ ${generateTabContext(currentMode)}
                 await liveSession.primeAudio();
                 await liveSession.connect(agentName, {
                     systemInstruction: constructHiveContext(agentId, sharedContext, voice.mentalState),
-                    tools: [{ functionDeclarations: [navigateTool, synthesizeTopologyTool, recalibrateDnaTool, switchAgentTool, executeActionTool, getAvailableActionsTool, inputTextTool, getUIContextTool, clickElementTool, selectOptionTool, scanUITool, navigateToTabTool, refreshContextTool, cpbExecuteTool] }],
+                    tools: [{ functionDeclarations: [thinkTool, navigateTool, synthesizeTopologyTool, recalibrateDnaTool, switchAgentTool, executeActionTool, getAvailableActionsTool, inputTextTool, getUIContextTool, clickElementTool, selectOptionTool, scanUITool, navigateToTabTool, refreshContextTool] }],
                     outputAudioTranscription: {},
                     inputAudioTranscription: {},
                     callbacks: {
