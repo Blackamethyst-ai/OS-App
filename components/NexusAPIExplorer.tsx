@@ -361,7 +361,7 @@ const NexusAPIExplorer: React.FC = () => {
                                                     <Loader2 size={40} className="text-[var(--amethyst)] animate-spin" />
                                                     <div className="absolute inset-0 blur-2xl bg-[var(--amethyst)]/30 animate-pulse" />
                                                 </div>
-                                                <p className="text-11px font-mono text-white animate-pulse tracking-[0.8em] uppercase">Synthesizing Protocol Logic...</p>
+                                                <p className="text-[11px] font-mono text-white/60 tracking-widest">Generating schema...</p>
                                             </motion.div>
                                         ) : generatedSchema ? (
                                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-full">

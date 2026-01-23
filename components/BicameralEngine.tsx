@@ -425,8 +425,8 @@ ${result.output}
                                 <div className="flex gap-4"><span className="text-gray-600 shrink-0">{">"} WEIGHTS:</span> <span className="text-white font-bold tracking-widest">S:{agentWeights.skepticism} E:{agentWeights.excitement} A:{agentWeights.alignment}</span></div>
                                 <div className="flex gap-4"><span className="text-gray-600 shrink-0">{">"} MARGIN_THRESHOLD:</span> <span className="text-[#10b981] font-black">+{swarmStatus.currentGap}</span></div>
                                 <div className="flex gap-4"><span className="text-gray-600 shrink-0">{">"} SPAWNED_NODES:</span> <span className="text-white">{swarmStatus.totalAttempts}</span></div>
-                                {swarmStatus.killedAgents > 0 && <div className="text-red-500 font-black animate-pulse">{" > "} CRITICAL_PURGE :: {swarmStatus.killedAgents} AGENTS_VOIDED_FOR_DRIFT</div>}
-                                {swarmStatus.consensusProgress === 100 && <div className="text-[#22d3ee] font-black bg-[#22d3ee]/10 px-2 py-0.5 rounded w-fit">{" > "} CONSENSUS_LOCKED_STABLE // ARCHIVING_LEDGER...</div>}
+                                {swarmStatus.killedAgents > 0 && <div className="text-gray-500">{" > "} Recycled: <span className="text-gray-400">{swarmStatus.killedAgents} agents</span></div>}
+                                {swarmStatus.consensusProgress === 100 && <div className="text-[#22d3ee]/70 bg-[#22d3ee]/5 px-2 py-0.5 rounded w-fit">{" > "} Consensus reached</div>}
                             </div>
                         </div>
                     </div>
