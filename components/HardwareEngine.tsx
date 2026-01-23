@@ -315,7 +315,7 @@ const HardwareEngine: React.FC = () => {
                                                     {selectedGpu.bom.map((item, i) => (
                                                         <div key={i} className="p-2.5 bg-black border border-white/5 rounded-xl flex items-center justify-between group/bom-item hover:border-[#22d3ee]/30 transition-all">
                                                             <span className="text-[9px] font-black text-gray-400 uppercase truncate">{item}</span>
-                                                            <button onClick={() => fetchSupplyChain(item)} className="p-1 text-gray-700 hover:text-[#22d3ee] rounded transition-all"><ExternalLink size={10}/></button>
+                                                            <button onClick={() => fetchSupplyChain(item)} className="p-1 text-gray-700 hover:text-[#22d3ee] rounded transition-all" aria-label="View supply chain"><ExternalLink size={10}/></button>
                                                         </div>
                                                     ))}
                                                 </div>

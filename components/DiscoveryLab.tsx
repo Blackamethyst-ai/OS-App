@@ -175,7 +175,7 @@ const DiscoveryLab: React.FC = () => {
                     <div className="bg-[#050505]/80 backdrop-blur-xl border border-[var(--border-main)] rounded-[2rem] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                         <div className="flex gap-2">
                             <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleResearchDispatch()} placeholder="Enter research vector..." className="flex-1 bg-[#111] border border-[#333] p-2 text-xs text-white font-mono rounded outline-none focus:border-[#22d3ee]" />
-                            <button onClick={() => handleResearchDispatch()} className="p-2 bg-[#22d3ee] text-black rounded hover:bg-[#67e8f9] transition-all shadow-lg"><ArrowRight className="w-4 h-4" /></button>
+                            <button onClick={() => handleResearchDispatch()} className="p-2 bg-[#22d3ee] text-black rounded hover:bg-[#67e8f9] transition-all shadow-lg" aria-label="Start research"><ArrowRight className="w-4 h-4" /></button>
                         </div>
                     </div>
 

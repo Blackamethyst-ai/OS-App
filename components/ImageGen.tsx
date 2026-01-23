@@ -171,7 +171,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
         try {
             const ai = getAI();
             // Select model based on Quality Tier: 1K = Fast (Flash), others = Pro
-            const model = imageGen.quality === ImageSize.SIZE_1K ? 'imagen-3.0-fast-generate-001' : 'imagen-3.0-generate-001';
+            const model = imageGen.quality === ImageSize.SIZE_1K ? 'imagen-4.0-fast-generate-001' : 'imagen-4.0-generate-001';
 
             const contextualPrompt = productionBible
                 ? `PRODUCTION_BIBLE_CONTEXT: ${productionBible.theme}. OPTICS: ${productionBible.opticProfile}. AESTHETIC: ${productionBible.visualLogic}. DIRECTIVE: ${imageGen.prompt}`
@@ -205,7 +205,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                 }
             }
 
-            // 2. GENERATION LAYER: Imagen 3.0
+            // 2. GENERATION LAYER: Imagen 4
             const response = await ai.models.generateImages({
                 model,
                 prompt: finalPrompt,
@@ -220,7 +220,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
             if (generatedImage) {
                 const url = `data:${generatedImage.mimeType};base64,${generatedImage.imageBytes}`;
                 actions.setImageGenState({ generatedImage: { url, prompt: finalPrompt, aspectRatio: imageGen.aspectRatio, size: imageGen.quality }, isLoading: false });
-                actions.addLog('SUCCESS', `ASSET_STUDIO: Render finalized via Imagen 3.0.`);
+                actions.addLog('SUCCESS', `ASSET_STUDIO: Render finalized via Imagen 4.`);
                 audio.playSuccess();
             } else {
                 throw new Error("Empty buffer from cinematic core.");
@@ -267,7 +267,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
         try {
             const ai = getAI();
-            const model = imageGen.quality === ImageSize.SIZE_1K ? 'imagen-3.0-fast-generate-001' : 'imagen-3.0-generate-001';
+            const model = imageGen.quality === ImageSize.SIZE_1K ? 'imagen-4.0-fast-generate-001' : 'imagen-4.0-generate-001';
 
             const resCurve = imageGen.resonanceCurve?.[idx];
             const resonance = resCurve
@@ -356,7 +356,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
             const characterAnchor = imageGen.characterRefs[0];
 
             let operation = await ai.models.generateVideos({
-                model: 'veo-3.1-fast-generate-preview',
+                model: 'veo-3.0-fast-generate',
                 prompt: veoDirective,
                 image: characterAnchor ? {
                     imageBytes: characterAnchor.inlineData.data,
@@ -376,7 +376,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
             }
 
             const downloadLink = operation.response?.generatedVideos?.[0]?.video?.uri;
-            const response = await fetch(`${downloadLink}&key=${process.env.GEMINI_API_KEY || process.env.API_KEY}`);
+            const response = await fetch(`${downloadLink}&key=${apiKeyService.getGeminiKey()}`);
             const blob = await response.blob();
             setVideoUrl(URL.createObjectURL(blob));
             actions.addLog('SUCCESS', 'VEO_COMPLETE: Temporal sequence stabilized at 1080p.');
@@ -983,8 +983,8 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                                     )}
                                                     <div className="absolute top-6 left-6 px-4 py-2 bg-black/70 backdrop-blur-xl border border-white/10 rounded-full text-[10px] font-black font-mono text-white z-10 shadow-2xl uppercase">Node_{i + 1}</div>
                                                     <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/frame:opacity-100 transition-opacity flex items-center justify-center gap-5 z-20">
-                                                        <button onClick={() => renderFrame(i)} className="p-4 bg-[var(--amethyst)] text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95"><RefreshCw size={24} /></button>
-                                                        {f.imageUrl && <button onClick={() => actions.openHoloProjector({ id: `f-${i}`, title: `Frame ${i + 1}`, type: 'IMAGE', content: f.imageUrl })} className="p-4 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95"><Maximize size={24} /></button>}
+                                                        <button onClick={() => renderFrame(i)} className="p-4 bg-[var(--amethyst)] text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95" aria-label="Regenerate frame"><RefreshCw size={24} /></button>
+                                                        {f.imageUrl && <button onClick={() => actions.openHoloProjector({ id: `f-${i}`, title: `Frame ${i + 1}`, type: 'IMAGE', content: f.imageUrl })} className="p-4 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95" aria-label="View full size"><Maximize size={24} /></button>}
                                                     </div>
                                                 </div>
                                                 <div className="p-8 space-y-6 overflow-y-auto max-h-[300px] custom-scrollbar">
@@ -1209,16 +1209,17 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                 {/* Refined Screening Room HUD */}
                                 <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-14 px-10 py-5 bg-[#0a0a0a]/90 backdrop-blur-3xl border border-white/10 rounded-full shadow-[0_100px_250px_rgba(0,0,0,1)] opacity-0 group-hover/theatre:opacity-100 transition-all duration-700 transform translate-y-6 group-hover/theatre:translate-y-0 max-w-[90%] flex-wrap justify-center pointer-events-auto">
                                     <div className="flex items-center gap-6">
-                                        <button onClick={() => setTeaserIdx(p => (p - 1 + frames.length) % frames.length)} className="p-3 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"><FastForward size={24} className="rotate-180" /></button>
+                                        <button onClick={() => setTeaserIdx(p => (p - 1 + frames.length) % frames.length)} className="p-3 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90" aria-label="Previous frame"><FastForward size={24} className="rotate-180" /></button>
                                         <button
                                             onClick={() => { setIsAutoPlaying(!isAutoPlaying); if (!isAutoPlaying) playFullSequence(); audio.playClick(); }}
                                             className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-[0_0_40px_rgba(0,0,0,0.4)] active:scale-95 shrink-0
                                             ${isAutoPlaying ? 'bg-white text-black shadow-white/20' : 'bg-[var(--amethyst)] text-black shadow-[var(--amethyst)]/50'}
                                         `}
+                                            aria-label={isAutoPlaying ? 'Pause playback' : 'Play sequence'}
                                         >
                                             {isAutoPlaying ? <Pause size={24} /> : <Play size={24} fill="currentColor" className="ml-1" />}
                                         </button>
-                                        <button onClick={() => setTeaserIdx(p => (p + 1) % frames.length)} className="p-3 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90"><FastForward size={24} /></button>
+                                        <button onClick={() => setTeaserIdx(p => (p + 1) % frames.length)} className="p-3 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90" aria-label="Next frame"><FastForward size={24} /></button>
                                     </div>
                                     <div className="h-8 w-px bg-white/10 hidden md:block" />
                                     <div className="flex items-center gap-6">
