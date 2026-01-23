@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Nexus - Browser Demo</title>
+    <style>
+        body {
+            font-family: system-ui, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #1a1a2e;
+            color: #eee;
+        }
+        h1 { color: #7c3aed; }
+        button {
+            background: #7c3aed;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 5px;
+        }
+        button:hover { background: #6d28d9; }
+        button:disabled { background: #4a4a5a; cursor: not-allowed; }
+        #transcript {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 8px;
+            min-height: 200px;
+            margin: 20px 0;
+        }
+        .user { color: #60a5fa; }
+        .model { color: #34d399; }
+        .system { color: #fbbf24; font-style: italic; }
+        #status { color: #a78bfa; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Voice Nexus Browser Demo</h1>
+    <p>Uses browser Web Speech API for STT and TTS (no API keys needed for basic demo).</p>
+
+    <div>
+        <button id="startBtn">Start Listening</button>
+        <button id="stopBtn" disabled>Stop</button>
+        <button id="clearBtn">Clear</button>
+    </div>
+
+    <div id="status">Ready</div>
+    <div id="transcript"></div>
+
+    <script type="module">
+        // Note: In a real app, you'd import from the npm package
+        // import { createVoiceNexus } from '@metaventionsai/voice-nexus';
+        // import { createBrowserSTT } from '@metaventionsai/voice-nexus/providers/stt/browser';
+        // import { createBrowserTTS } from '@metaventionsai/voice-nexus/providers/tts/browser';
+
+        // For this demo, we'll use the browser APIs directly
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const synth = window.speechSynthesis;
+
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const status = document.getElementById('status');
+        const transcript = document.getElementById('transcript');
+
+        let recognition = null;
+
+        function addMessage(role, text) {
+            const div = document.createElement('div');
+            div.className = role;
+            div.textContent = `[${role}] ${text}`;
+            transcript.appendChild(div);
+            transcript.scrollTop = transcript.scrollHeight;
+        }
+
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 0.9;
+            synth.speak(utterance);
+        }
+
+        async function processInput(text) {
+            addMessage('user', text);
+            status.textContent = 'Processing...';
+
+            // In a real app, this would call the reasoning provider
+            // For demo, we'll just echo back
+            const response = `You said: "${text}". In a real implementation, this would be processed by an LLM like Gemini or Claude.`;
+
+            addMessage('model', response);
+            speak(response);
+            status.textContent = 'Speaking...';
+
+            // Wait for speech to finish
+            return new Promise(resolve => {
+                const checkSpeaking = setInterval(() => {
+                    if (!synth.speaking) {
+                        clearInterval(checkSpeaking);
+                        status.textContent = 'Ready';
+                        resolve();
+                    }
+                }, 100);
+            });
+        }
+
+        startBtn.addEventListener('click', () => {
+            if (!SpeechRecognition) {
+                alert('Speech recognition not supported in this browser. Try Chrome.');
+                return;
+            }
+
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = () => {
+                status.textContent = 'Listening...';
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+            };
+
+            recognition.onresult = async (event) => {
+                const last = event.results[event.results.length - 1];
+                if (last.isFinal) {
+                    const text = last[0].transcript;
+                    await processInput(text);
+                } else {
+                    status.textContent = `Hearing: ${last[0].transcript}`;
+                }
+            };
+
+            recognition.onend = () => {
+                status.textContent = 'Ready';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            };
+
+            recognition.onerror = (e) => {
+                addMessage('system', `Error: ${e.error}`);
+                status.textContent = 'Error - try again';
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+            };
+
+            recognition.start();
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (recognition) {
+                recognition.stop();
+            }
+            synth.cancel();
+        });
+
+        clearBtn.addEventListener('click', () => {
+            transcript.innerHTML = '';
+        });
+
+        // Check browser support
+        if (!SpeechRecognition) {
+            addMessage('system', 'Speech recognition not supported. Try Chrome.');
+            startBtn.disabled = true;
+        }
+        if (!synth) {
+            addMessage('system', 'Speech synthesis not supported.');
+        }
+    </script>
+</body>
+</html>
