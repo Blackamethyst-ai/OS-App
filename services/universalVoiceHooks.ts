@@ -431,24 +431,63 @@ export function fillInput(identifier: string, text: string): { success: boolean;
 
 /**
  * Click a button by ID or fuzzy match
+ * Prioritizes data-voice-id for reliable targeting
  */
 export function clickButton(identifier: string): { success: boolean; element?: string; error?: string } {
     const snapshot = scanInteractiveElements();
+    const idLower = identifier.toLowerCase().replace(/[-_\s]/g, '');
 
     // Combine buttons and tabs for clicking
     const clickables = [...snapshot.buttons, ...snapshot.tabs, ...snapshot.links];
 
-    // Try exact match
-    let target = clickables.find(b => b.id === identifier);
+    // Priority 1: Exact data-voice-id match
+    let target = clickables.find(b => {
+        const voiceId = b.element.getAttribute('data-voice-id');
+        return voiceId && voiceId.toLowerCase().replace(/[-_\s]/g, '') === idLower;
+    });
 
-    // Fuzzy match
+    // Priority 2: Partial data-voice-id match
     if (!target) {
-        const idLower = identifier.toLowerCase();
+        target = clickables.find(b => {
+            const voiceId = b.element.getAttribute('data-voice-id');
+            if (!voiceId) return false;
+            const voiceIdNorm = voiceId.toLowerCase().replace(/[-_\s]/g, '');
+            return voiceIdNorm.includes(idLower) || idLower.includes(voiceIdNorm);
+        });
+    }
+
+    // Priority 3: Exact id match
+    if (!target) {
+        target = clickables.find(b => b.id === identifier);
+    }
+
+    // Priority 4: Fuzzy match by label, id, or description
+    if (!target) {
         target = clickables.find(b =>
-            b.label.toLowerCase().includes(idLower) ||
-            b.id.toLowerCase().includes(idLower) ||
-            b.description.toLowerCase().includes(idLower)
+            b.label.toLowerCase().includes(identifier.toLowerCase()) ||
+            b.id.toLowerCase().includes(identifier.toLowerCase()) ||
+            b.description.toLowerCase().includes(identifier.toLowerCase())
         );
+    }
+
+    // Priority 5: Match by aria-label
+    if (!target) {
+        target = clickables.find(b => {
+            const ariaLabel = b.element.getAttribute('aria-label');
+            return ariaLabel && ariaLabel.toLowerCase().includes(identifier.toLowerCase());
+        });
+    }
+
+    // Priority 6: Word-based matching (all words must appear)
+    if (!target) {
+        const words = identifier.toLowerCase().split(/\s+/).filter(w => w.length > 2);
+        if (words.length > 0) {
+            target = clickables.find(b => {
+                const labelLower = b.label.toLowerCase();
+                const descLower = b.description.toLowerCase();
+                return words.every(word => labelLower.includes(word) || descLower.includes(word));
+            });
+        }
     }
 
     if (target) {
