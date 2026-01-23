@@ -533,7 +533,199 @@ const HardwareEngine: React.FC = () => {
                                     )}
                                 </AnimatePresence>
                             </motion.div>
+                        ) : viewMode === '2D' ? (
+                            /* BLUEPRINT VIEW - Technical Schematic Analysis */
+                            <motion.div key="blueprint-view" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="h-full flex flex-col gap-6">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h2 className="text-xl font-black font-mono text-white uppercase tracking-tight">Technical Blueprint</h2>
+                                        <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest mt-1">Architecture visualization & schematic analysis</p>
+                                    </div>
+                                </div>
+
+                                {schematicImage || isometricImage || xrayImage ? (
+                                    <div className="flex-1 grid grid-cols-2 gap-4 overflow-hidden">
+                                        {schematicImage && (
+                                            <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 flex flex-col">
+                                                <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-3">Source Schematic</span>
+                                                <div className="flex-1 relative rounded-xl overflow-hidden">
+                                                    <img src={`data:${schematicImage.mimeType};base64,${schematicImage.data}`} className="w-full h-full object-contain" alt="Schematic" />
+                                                </div>
+                                            </div>
+                                        )}
+                                        {isometricImage && (
+                                            <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 flex flex-col">
+                                                <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-3">Isometric Render</span>
+                                                <div className="flex-1 relative rounded-xl overflow-hidden">
+                                                    <img src={isometricImage} className="w-full h-full object-contain" alt="Isometric" />
+                                                </div>
+                                            </div>
+                                        )}
+                                        {xrayImage && (
+                                            <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 flex flex-col">
+                                                <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-3">X-Ray Analysis</span>
+                                                <div className="flex-1 relative rounded-xl overflow-hidden">
+                                                    <img src={xrayImage} className="w-full h-full object-contain" alt="X-Ray" />
+                                                </div>
+                                            </div>
+                                        )}
+                                        {analysis && (
+                                            <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 flex flex-col">
+                                                <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-3">Analysis Summary</span>
+                                                <p className="text-[10px] text-gray-400 font-mono leading-relaxed">{analysis.summary}</p>
+                                                {analysis.components.length > 0 && (
+                                                    <div className="mt-4 space-y-1">
+                                                        <span className="text-[7px] text-gray-600 uppercase tracking-widest">Detected Components</span>
+                                                        <div className="flex flex-wrap gap-1.5">
+                                                            {analysis.components.map((c, i) => (
+                                                                <span key={i} className="px-2 py-1 bg-white/5 border border-white/10 rounded text-[8px] font-mono text-gray-400">{c}</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : (
+                                    <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-white/10 rounded-3xl bg-[#050505]/40 group hover:border-[#22d3ee]/20 transition-all">
+                                        <label className="flex flex-col items-center gap-6 cursor-pointer text-center p-12">
+                                            <div className="w-20 h-20 rounded-2xl bg-[#0a0a0a] border border-white/10 flex items-center justify-center group-hover:scale-110 transition-all shadow-2xl">
+                                                <Upload size={32} className="text-gray-700 group-hover:text-[#22d3ee] transition-colors" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <h2 className="text-lg font-black text-white font-mono uppercase tracking-[0.3em]">Import Blueprint</h2>
+                                                <p className="text-[9px] text-gray-600 font-mono max-w-xs mx-auto uppercase tracking-widest">Upload a schematic for AI-powered analysis and visualization.</p>
+                                            </div>
+                                            <input type="file" className="hidden" onChange={handleUpload} accept="image/*" />
+                                        </label>
+                                    </div>
+                                )}
+                            </motion.div>
+                        ) : viewMode === 'XRAY' ? (
+                            /* THERMAL VIEW - Power & Thermal Analysis */
+                            <motion.div key="thermal-view" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="h-full flex flex-col gap-6">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h2 className="text-xl font-black font-mono text-white uppercase tracking-tight">Thermal Analysis</h2>
+                                        <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest mt-1">Power distribution & heat dissipation modeling</p>
+                                    </div>
+                                    <div className="flex items-center gap-3 px-4 py-2 bg-[#0a0a0a] border border-white/10 rounded-xl">
+                                        <Thermometer size={14} className="text-amber-500" />
+                                        <span className="text-[10px] font-black font-mono text-white">{stressLevel.toFixed(0)}% Load</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 grid grid-cols-3 gap-4">
+                                    {/* Large Thermal Grid */}
+                                    <div className="col-span-2 bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 flex flex-col">
+                                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-4">Heat Distribution Matrix</span>
+                                        <div className="flex-1 relative">
+                                            <NeuralThermalGrid stressLevel={stressLevel} />
+                                        </div>
+                                    </div>
+
+                                    {/* Power Metrics */}
+                                    <div className="space-y-4">
+                                        <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5">
+                                            <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Power Draw</span>
+                                            <div className="mt-3 text-3xl font-black font-mono text-[#22d3ee]">{powerDraw}W</div>
+                                            <div className="mt-2 h-2 bg-white/5 rounded-full overflow-hidden">
+                                                <div className="h-full bg-gradient-to-r from-[#22d3ee] to-[#9d4edd] rounded-full transition-all" style={{ width: `${Math.min(100, (parseFloat(powerDraw) / 500) * 100)}%` }} />
+                                            </div>
+                                        </div>
+                                        <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5">
+                                            <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">MTBF Estimate</span>
+                                            <div className="mt-3 text-3xl font-black font-mono text-[#10b981]">{mtbf.toLocaleString()}h</div>
+                                            <p className="text-[8px] text-gray-600 mt-2">Based on current thermal profile</p>
+                                        </div>
+                                        <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5">
+                                            <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Cooling Efficiency</span>
+                                            <div className="mt-3 text-3xl font-black font-mono text-[#9d4edd]">{fanSpeed} RPM</div>
+                                            <p className="text-[8px] text-gray-600 mt-2">{fanSpeed > 4000 ? 'High performance mode' : fanSpeed > 2000 ? 'Balanced cooling' : 'Silent operation'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        ) : viewMode === 'SCHEMATIC' ? (
+                            /* LOGISTICS VIEW - Supply Chain & Procurement */
+                            <motion.div key="logistics-view" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="h-full flex flex-col gap-6">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <h2 className="text-xl font-black font-mono text-white uppercase tracking-tight">Supply Chain Logistics</h2>
+                                        <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest mt-1">Procurement pipeline & vendor network</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 grid grid-cols-2 gap-4 overflow-hidden">
+                                    {/* Supply Chain Data */}
+                                    <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5 flex flex-col">
+                                        <div className="flex items-center justify-between mb-4">
+                                            <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Live Supply Data</span>
+                                            {isFetchingSupply && <Loader2 size={12} className="text-[#22d3ee] animate-spin" />}
+                                        </div>
+                                        {liveSupplyData ? (
+                                            <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3">
+                                                <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl">
+                                                    <span className="text-[7px] text-gray-600 uppercase tracking-widest">Lead Time</span>
+                                                    <div className="text-sm font-black font-mono text-white mt-1">{liveSupplyData.leadTime || '2-4 weeks'}</div>
+                                                </div>
+                                                <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl">
+                                                    <span className="text-[7px] text-gray-600 uppercase tracking-widest">Primary Vendor</span>
+                                                    <div className="text-sm font-black font-mono text-white mt-1">{liveSupplyData.vendor || 'Direct from Manufacturer'}</div>
+                                                </div>
+                                                {liveSupplyData.summary && (
+                                                    <div className="p-3 bg-white/[0.02] border border-white/5 rounded-xl">
+                                                        <span className="text-[7px] text-gray-600 uppercase tracking-widest">Market Intelligence</span>
+                                                        <p className="text-[10px] text-gray-400 mt-2 leading-relaxed">{liveSupplyData.summary}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <div className="flex-1 flex flex-col items-center justify-center text-center opacity-40">
+                                                <Network size={48} className="text-gray-700 mb-4" />
+                                                <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest">Select a component from BOM to view supply chain data</p>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Procurement Status */}
+                                    <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5 flex flex-col">
+                                        <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-4">Procurement Pipeline</span>
+                                        {selectedGpu ? (
+                                            <div className="flex-1 space-y-3">
+                                                <div className="p-4 bg-[#10b981]/10 border border-[#10b981]/20 rounded-xl">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <CheckCircle2 size={16} className="text-[#10b981]" />
+                                                        <span className="text-[10px] font-black text-white uppercase">{selectedGpu.model}</span>
+                                                    </div>
+                                                    <p className="text-[9px] text-gray-500">{selectedGpu.manufacturer} • {selectedGpu.arch}</p>
+                                                    <div className="mt-3 flex items-center justify-between">
+                                                        <span className="text-lg font-black font-mono text-[#10b981]">${(selectedGpu.livePrice?.price || selectedGpu.msrp).toLocaleString()}</span>
+                                                        <span className={`text-[8px] font-mono px-2 py-1 rounded ${selectedGpu.livePrice?.stock === 'IN_STOCK' ? 'bg-[#10b981]/20 text-[#10b981]' : 'bg-amber-500/20 text-amber-500'}`}>
+                                                            {selectedGpu.livePrice?.stock === 'IN_STOCK' ? 'Ready to Ship' : 'Lead Time Applies'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <span className="text-[7px] text-gray-600 uppercase tracking-widest">BOM Components</span>
+                                                    {selectedGpu.bom.slice(0, 4).map((item, i) => (
+                                                        <div key={i} className="p-2 bg-white/[0.02] border border-white/5 rounded-lg flex items-center justify-between">
+                                                            <span className="text-[9px] font-mono text-gray-400">{item}</span>
+                                                            <button onClick={() => fetchSupplyChain(item)} className="text-[7px] text-[#22d3ee] hover:underline">Track</button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="flex-1 flex items-center justify-center opacity-40">
+                                                <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest">No GPU selected</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </motion.div>
                         ) : (
+                            /* FALLBACK - Upload Interface */
                             <div className="h-full flex flex-col gap-5">
                                 <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-white/10 rounded-3xl bg-[#050505]/40 group hover:border-[#22d3ee]/20 transition-all duration-700 relative">
                                     <label className="flex flex-col items-center gap-6 cursor-pointer text-center p-12">
