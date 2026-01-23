@@ -67,6 +67,7 @@ export function createClaudeProvider(options?: ClaudeProviderOptions): CPBProvid
             }
 
             // Dynamic import to avoid requiring SDK at load time
+            // @ts-ignore - SDK is a peer dependency
             const { default: Anthropic } = await import('@anthropic-ai/sdk');
 
             const client = new Anthropic({
@@ -108,6 +109,7 @@ export function createClaudeProvider(options?: ClaudeProviderOptions): CPBProvid
                 );
             }
 
+            // @ts-ignore - SDK is a peer dependency
             const { default: Anthropic } = await import('@anthropic-ai/sdk');
 
             const client = new Anthropic({
@@ -118,14 +120,18 @@ export function createClaudeProvider(options?: ClaudeProviderOptions): CPBProvid
             const model = opts?.model || defaultModel;
 
             // Build content array with images
-            const content: Anthropic.MessageCreateParams['messages'][0]['content'] = [];
+            type ContentBlock =
+                | { type: 'text'; text: string }
+                | { type: 'image'; source: { type: 'base64'; media_type: string; data: string } };
+
+            const content: ContentBlock[] = [];
 
             // Add images first
             for (const img of images) {
                 content.push({
-                    type: 'image' as const,
+                    type: 'image',
                     source: {
-                        type: 'base64' as const,
+                        type: 'base64',
                         media_type: img.mediaType,
                         data: img.base64,
                     },
@@ -134,7 +140,7 @@ export function createClaudeProvider(options?: ClaudeProviderOptions): CPBProvid
 
             // Add text prompt
             content.push({
-                type: 'text' as const,
+                type: 'text',
                 text: prompt,
             });
 

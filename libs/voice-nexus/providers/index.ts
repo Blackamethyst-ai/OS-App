@@ -26,7 +26,18 @@
  * ```
  */
 
-// Reasoning providers
+import type { STTProvider, ReasoningProvider, TTSProvider } from '../types';
+
+// Import and re-export reasoning providers
+import {
+    createClaudeReasoning,
+    createGeminiReasoning,
+    createGroundedGeminiReasoning,
+    createDefaultReasoning,
+    CLAUDE_REASONING_MODELS,
+    GEMINI_REASONING_MODELS,
+} from './reasoning';
+export type { ClaudeReasoningOptions, GeminiReasoningOptions } from './reasoning';
 export {
     createClaudeReasoning,
     createGeminiReasoning,
@@ -34,11 +45,19 @@ export {
     createDefaultReasoning,
     CLAUDE_REASONING_MODELS,
     GEMINI_REASONING_MODELS,
-    type ClaudeReasoningOptions,
-    type GeminiReasoningOptions,
-} from './reasoning';
+};
 
-// TTS providers
+// Import and re-export TTS providers
+import {
+    createElevenLabsTTS,
+    createBrowserTTS,
+    createDefaultTTS,
+    getElevenLabsVoices,
+    getBrowserVoices,
+    isBrowserTTSAvailable,
+    ELEVENLABS_VOICE_IDS,
+} from './tts';
+export type { ElevenLabsOptions, BrowserTTSOptions } from './tts';
 export {
     createElevenLabsTTS,
     createBrowserTTS,
@@ -47,17 +66,17 @@ export {
     getBrowserVoices,
     isBrowserTTSAvailable,
     ELEVENLABS_VOICE_IDS,
-    type ElevenLabsOptions,
-    type BrowserTTSOptions,
-} from './tts';
+};
 
-// STT providers
-export {
+// Import and re-export STT providers
+import {
     createBrowserSTT,
     createDefaultSTT,
-    isBrowserSTTAvailable,
-    type BrowserSTTOptions,
+    isBrowserSTTAvailable as isBrowserSTTAvailableFn,
 } from './stt';
+export type { BrowserSTTOptions } from './stt';
+export { createBrowserSTT, createDefaultSTT };
+export { isBrowserSTTAvailableFn as isBrowserSTTAvailable };
 
 /**
  * Create default providers based on available API keys
@@ -65,14 +84,10 @@ export {
  * Returns an object with configured providers ready for use with createVoiceNexus.
  */
 export function createDefaultProviders(): {
-    stt?: import('../types').STTProvider;
-    reasoning?: import('../types').ReasoningProvider;
-    tts?: import('../types').TTSProvider;
+    stt?: STTProvider;
+    reasoning?: ReasoningProvider;
+    tts?: TTSProvider;
 } {
-    const { createDefaultSTT } = require('./stt');
-    const { createDefaultReasoning } = require('./reasoning');
-    const { createDefaultTTS } = require('./tts');
-
     return {
         stt: createDefaultSTT(),
         reasoning: createDefaultReasoning(),

@@ -67,6 +67,7 @@ export function createGeminiProvider(options?: GeminiProviderOptions): CPBProvid
             }
 
             // Dynamic import to avoid requiring SDK at load time
+            // @ts-ignore - SDK is a peer dependency
             const { GoogleGenAI } = await import('@google/genai');
 
             const ai = new GoogleGenAI({ apiKey });
@@ -100,6 +101,7 @@ export function createGeminiProvider(options?: GeminiProviderOptions): CPBProvid
                 );
             }
 
+            // @ts-ignore - SDK is a peer dependency
             const { GoogleGenAI } = await import('@google/genai');
 
             const ai = new GoogleGenAI({ apiKey });
@@ -154,6 +156,7 @@ export function createGroundedGeminiProvider(options?: GeminiProviderOptions): C
                 throw new Error('Gemini API key not configured.');
             }
 
+            // @ts-ignore - SDK is a peer dependency
             const { GoogleGenAI } = await import('@google/genai');
 
             const ai = new GoogleGenAI({ apiKey });

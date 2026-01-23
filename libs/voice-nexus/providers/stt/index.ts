@@ -19,19 +19,20 @@
  * ```
  */
 
-// Browser (Web Speech API)
-export {
+import type { STTProvider } from '../../types';
+
+// Import and re-export Browser (Web Speech API)
+import {
     createBrowserSTT,
     isBrowserSTTAvailable,
-    type BrowserSTTOptions,
 } from './browser';
+export type { BrowserSTTOptions } from './browser';
+export { createBrowserSTT, isBrowserSTTAvailable };
 
 /**
  * Create a default STT provider based on availability
  */
-export function createDefaultSTT(): import('../../types').STTProvider | undefined {
-    const { createBrowserSTT, isBrowserSTTAvailable } = require('./browser');
-
+export function createDefaultSTT(): STTProvider | undefined {
     if (isBrowserSTTAvailable()) {
         return createBrowserSTT();
     }
