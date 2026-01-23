@@ -160,25 +160,39 @@ const enrichGpuData = (gpu: GpuSpec, livePrice?: LiveGpuPrice): GpuWithLiveData 
 const HardwareEngine: React.FC = () => {
     const { hardware, actions, metaventions } = useAppStore();
     const { setHardwareState, addLog } = actions;
-    const { currentEra, schematicImage, analysis, bom, isLoading, xrayImage, finTelemetry } = hardware;
-    
+    const {
+        currentEra, schematicImage, analysis, bom, isLoading, xrayImage, finTelemetry,
+        livePrices: storedPrices, selectedGpuId, tierFilter: storedTierFilter, gpuSearchQuery: storedSearchQuery
+    } = hardware;
+
     const [clockSpeed, setClockSpeed] = useState(3.4);
     const [voltage, setVoltage] = useState(1.2);
     const [fanSpeed, setFanSpeed] = useState(2200);
     const [viewMode, setViewMode] = useState<'2D' | '3D' | 'SCHEMATIC' | 'XRAY' | 'QUANTUM'>('QUANTUM');
     const [showComputeFlux, setShowComputeFlux] = useState(true);
-    
+
     const eraColor = useMemo(() => {
         if (currentEra === 'QUANTUM') return '#9d4edd';
         if (currentEra === 'BIOMIMETIC') return '#10b981';
         return '#22d3ee';
     }, [currentEra]);
 
-    // Tier filter state (null means show all tiers)
-    const [tierFilter, setTierFilter] = useState<GpuTier | null>(null);
+    // Convert stored prices to Map for efficient lookups
+    const livePrices = useMemo(() => {
+        const map = new Map<string, LiveGpuPrice>();
+        for (const [model, price] of Object.entries(storedPrices)) {
+            map.set(model, price as LiveGpuPrice);
+        }
+        return map;
+    }, [storedPrices]);
 
-    // Live pricing state
-    const [livePrices, setLivePrices] = useState<Map<string, LiveGpuPrice>>(new Map());
+    // Tier filter from store
+    const tierFilter = storedTierFilter as GpuTier | null;
+    const setTierFilter = useCallback((tier: GpuTier | null) => {
+        setHardwareState({ tierFilter: tier });
+    }, [setHardwareState]);
+
+    // Live pricing state (local for loading indicator)
     const [isFetchingPrice, setIsFetchingPrice] = useState(false);
     const [lastPriceUpdate, setLastPriceUpdate] = useState<number | null>(null);
 
@@ -191,24 +205,36 @@ const HardwareEngine: React.FC = () => {
         return gpus.map(gpu => enrichGpuData(gpu, livePrices.get(gpu.model)));
     }, [currentEra, tierFilter, livePrices]);
 
-    const [selectedGpu, setSelectedGpu] = useState<GpuWithLiveData | null>(
-        filteredGpus[0] ? enrichGpuData(filteredGpus[0]) : null
-    );
-    const [gpuSearchQuery, setGpuSearchQuery] = useState('');
+    // Selected GPU from store
+    const selectedGpu = useMemo(() => {
+        if (selectedGpuId) {
+            const gpu = GPU_CATALOG.find(g => g.id === selectedGpuId);
+            if (gpu) return enrichGpuData(gpu, livePrices.get(gpu.model));
+        }
+        return filteredGpus[0] || null;
+    }, [selectedGpuId, filteredGpus, livePrices]);
+
+    const setSelectedGpu = useCallback((gpu: GpuWithLiveData | null) => {
+        setHardwareState({ selectedGpuId: gpu?.id || null });
+    }, [setHardwareState]);
+
+    // GPU search query from store
+    const gpuSearchQuery = storedSearchQuery || '';
+    const setGpuSearchQuery = useCallback((query: string) => {
+        setHardwareState({ gpuSearchQuery: query });
+    }, [setHardwareState]);
     const [isometricImage, setIsometricImage] = useState<string | null>(null);
     const [liveSupplyData, setLiveSupplyData] = useState<any>(null);
     const [isFetchingSupply, setIsFetchingSupply] = useState(false);
     const [isAnalyzingFinImpact, setIsAnalyzingFinImpact] = useState(false);
 
-    // Reset selected GPU when era or tier changes
+    // Reset selected GPU when era or tier changes (only if current selection not in filtered list)
     useEffect(() => {
-        const firstGpu = filteredGpus[0];
-        if (firstGpu) {
-            setSelectedGpu(enrichGpuData(firstGpu, livePrices.get(firstGpu.model)));
-        } else {
-            setSelectedGpu(null);
+        if (selectedGpuId && !filteredGpus.find(g => g.id === selectedGpuId)) {
+            const firstGpu = filteredGpus[0];
+            setHardwareState({ selectedGpuId: firstGpu?.id || null });
         }
-    }, [currentEra, tierFilter, filteredGpus, livePrices]);
+    }, [currentEra, tierFilter, filteredGpus, selectedGpuId, setHardwareState]);
 
     // Fetch live price when GPU is selected
     const fetchGpuPrice = useCallback(async (gpu: GpuSpec) => {
@@ -217,14 +243,17 @@ const HardwareEngine: React.FC = () => {
         setIsFetchingPrice(true);
         try {
             const price = await fetchLivePrice(gpu.model, gpu.msrp);
-            setLivePrices(prev => new Map(prev).set(gpu.model, price));
+            // Update store with new price
+            setHardwareState(prev => ({
+                livePrices: { ...prev.livePrices, [gpu.model]: price }
+            }));
             setLastPriceUpdate(Date.now());
         } catch (error) {
             console.error('Failed to fetch GPU price:', error);
         } finally {
             setIsFetchingPrice(false);
         }
-    }, []);
+    }, [setHardwareState]);
 
     // Fetch price when selected GPU changes
     useEffect(() => {

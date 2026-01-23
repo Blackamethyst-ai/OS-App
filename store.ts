@@ -262,7 +262,7 @@ interface AppState {
         };
         schematicImage: FileData | null;
         analysis: { summary: string; components: string[]; specs: Record<string, string> } | null;
-        bom: { id: string; name: string; quantity: number; price: number; source: string }[];
+        bom: string[];
         isLoading: boolean;
         error: string | null;
         xrayImage: string | null;
@@ -273,6 +273,11 @@ interface AppState {
             roiProjection: number;
             maintenanceEst: number;
         };
+        // GPU procurement state (persisted)
+        livePrices: Record<string, { price: number; trend: number; stock: string; source: string; lastUpdated: number }>;
+        selectedGpuId: string | null;
+        tierFilter: string | null;
+        gpuSearchQuery: string;
     };
     memory: {
         driveManifest: TechnicalManifest | null;
@@ -608,7 +613,11 @@ export const useAppStore = create<AppState>((set, get) => ({
             totalBomCost: 0,
             roiProjection: 0,
             maintenanceEst: 0
-        }
+        },
+        livePrices: {},
+        selectedGpuId: null,
+        tierFilter: null,
+        gpuSearchQuery: ''
     },
     memory: {
         driveManifest: null,

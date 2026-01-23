@@ -16,9 +16,46 @@ interface PriceCache {
     };
 }
 
-// In-memory cache with 1-hour TTL
-const priceCache: PriceCache = {};
 const CACHE_TTL = 60 * 60 * 1000; // 1 hour in milliseconds
+const STORAGE_KEY = 'gpu_price_cache';
+
+/**
+ * Initialize cache from localStorage
+ */
+function initCache(): PriceCache {
+    try {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+            const parsed = JSON.parse(stored) as PriceCache;
+            // Filter out expired entries
+            const now = Date.now();
+            const valid: PriceCache = {};
+            for (const [key, value] of Object.entries(parsed)) {
+                if (now - value.timestamp < CACHE_TTL) {
+                    valid[key] = value;
+                }
+            }
+            return valid;
+        }
+    } catch (e) {
+        console.warn('[GPU Pricing] Failed to load cache from localStorage:', e);
+    }
+    return {};
+}
+
+/**
+ * Persist cache to localStorage
+ */
+function persistCache(cache: PriceCache): void {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
+    } catch (e) {
+        console.warn('[GPU Pricing] Failed to persist cache:', e);
+    }
+}
+
+// Initialize from localStorage, fallback to empty
+const priceCache: PriceCache = initCache();
 
 /**
  * Check if cached price is still valid
@@ -40,13 +77,14 @@ function getCachedPrice(gpuModel: string): LiveGpuPrice | null {
 }
 
 /**
- * Store price in cache
+ * Store price in cache and persist to localStorage
  */
 function setCachePrice(gpuModel: string, price: LiveGpuPrice): void {
     priceCache[gpuModel] = {
         data: price,
         timestamp: Date.now()
     };
+    persistCache(priceCache);
 }
 
 /**
@@ -179,6 +217,11 @@ export async function fetchBatchPrices(
  */
 export function clearPriceCache(): void {
     Object.keys(priceCache).forEach(key => delete priceCache[key]);
+    try {
+        localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+        // Ignore
+    }
     console.log('[GPU Pricing] Cache cleared');
 }
 
