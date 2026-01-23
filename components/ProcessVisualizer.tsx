@@ -493,8 +493,8 @@ const ProcessVisualizerContent = () => {
                                     </div>
                                     <div className="p-8 bg-black/40 crystalline border border-white/10 rounded-3xl pointer-events-auto">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                            <span className="text-[10px] text-gray-300 font-bold uppercase tracking-widest">Self-Evolution Risk Monitor Active</span>
+                                            <div className="w-2 h-2 rounded-full bg-[#22d3ee]/50" />
+                                            <span className="text-[10px] text-gray-500 font-medium uppercase tracking-widest">Evolution Monitor</span>
                                         </div>
                                     </div>
                                 </div>
@@ -507,7 +507,7 @@ const ProcessVisualizerContent = () => {
             <div className="h-12 bg-black/80 border-t border-[var(--border-main)] px-10 flex items-center justify-between text-[9px] font-mono text-gray-600 uppercase shrink-0 relative z-[60]">
                 <div className="flex gap-12 items-center">
                     <span className="flex items-center gap-3 text-[var(--cyan)] font-black tracking-widest">
-                        <Activity size={14} className="animate-pulse shadow-[0_0_10px_#18E6FF]" /> SYS_ACK_STABLE
+                        <Activity size={14} className="text-[var(--cyan)]/60" /> Operational
                     </span>
                     <span className="flex items-center gap-3 font-black tracking-widest uppercase">
                         <Binary size={14} className="text-[var(--amethyst)]" /> V9.5 - THE D-Ecosystem

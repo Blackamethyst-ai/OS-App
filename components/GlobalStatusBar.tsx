@@ -250,14 +250,14 @@ const GlobalStatusBar: React.FC = () => {
                             value={input}
                             onChange={e => setInput(e.target.value)}
                             disabled={agentState.isThinking}
-                            placeholder={agentState.isThinking ? "SYNCING..." : "INITIALIZE..."}
+                            placeholder={agentState.isThinking ? "Processing..." : "Search or command..."}
                             className="flex-1 bg-transparent border-none outline-none text-[10px] font-mono text-white placeholder:text-gray-800 uppercase tracking-[0.3em]"
                             autoComplete="off"
                         />
                     </form>
-                    <div className="flex items-center gap-3 ml-4 shrink-0 min-w-[100px]">
-                        <Radio size={12} className="text-[#10b981] animate-pulse" />
-                        <span className="text-[7px] font-mono text-[#10b981] font-black tracking-[0.2em] uppercase">Live_Link</span>
+                    <div className="flex items-center gap-2 ml-4 shrink-0">
+                        <Radio size={10} className="text-[#10b981]/60" />
+                        <span className="text-[7px] font-mono text-[#10b981]/60 tracking-wider">Connected</span>
                     </div>
                 </div>
 

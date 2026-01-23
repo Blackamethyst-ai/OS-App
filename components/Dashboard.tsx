@@ -337,8 +337,8 @@ const Dashboard: React.FC = () => {
                   <div className="flex-1 crystalline rounded-[2.5rem] overflow-hidden relative group flex flex-col border border-white/10 shadow-2xl">
                       <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-white/[0.01] shrink-0 z-20">
                           <div className="flex items-center gap-3">
-                              <Hexagon size={14} className="text-[#f1c21b] animate-pulse" />
-                              <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.3em]">Strategic Operations Center</span>
+                              <Hexagon size={14} className="text-[#f1c21b]/70" />
+                              <span className="text-[10px] font-medium font-mono text-white/80 uppercase tracking-widest">Operations</span>
                           </div>
                           <div className="flex gap-4">
                               <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">STATUS // STABLE</span>
@@ -376,7 +376,7 @@ const Dashboard: React.FC = () => {
                       </div>
                       <div className="h-20 bg-black/10 backdrop-blur-3xl border-t border-white/5 flex items-center justify-between px-8 shrink-0 z-20">
                          <AgentHive />
-                         <button onClick={handleIdentitySync} disabled={dashboard.isGenerating} className="px-6 py-2.5 bg-[#f1c21b] text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 hover:bg-yellow-400 active:scale-95 disabled:opacity-50 shadow-[0_0_20px_rgba(241,194,27,0.3)]">
+                         <button onClick={handleIdentitySync} disabled={dashboard.isGenerating} className="px-5 py-2 bg-white/10 text-white/80 border border-white/10 rounded-xl text-[10px] font-medium uppercase tracking-wider transition-all flex items-center gap-2 hover:bg-white/15 hover:border-white/20 active:scale-95 disabled:opacity-50">
                             {dashboard.isGenerating ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />} 
                             Sync
                          </button>
