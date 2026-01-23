@@ -5,6 +5,8 @@
  * This bridges the gap between component logic and voice commands.
  *
  * Usage: Import and call `initializeVoiceActions()` at app startup.
+ *
+ * NOTE: Core types and utilities are now centralized in services/actions/
  */
 
 import { useSystemMind } from '../stores/useSystemMind';
@@ -15,35 +17,12 @@ import { AppMode } from '../types';
 import * as gemini from './geminiService';
 import { getArchon } from './archon';
 
-// =============================================================================
-// Types
-// =============================================================================
+// Import centralized types and utilities from actions module
+import type { VoiceAction, ActionCategory } from './actions/types';
+import { getCategoryPriority } from './actions';
 
-export interface VoiceAction {
-    id: string;
-    category: 'generate' | 'execute' | 'analyze' | 'search' | 'deploy' | 'manage' | 'navigate';
-    sector?: AppMode;
-    description: string;
-    examples: string[];
-    handler: (args: any) => Promise<any>;
-    priority?: number;  // 0-100, higher = more prominent in voice context
-}
-
-/**
- * Get priority based on action category for synchronized clock
- */
-function getCategoryPriority(category: VoiceAction['category']): number {
-    switch (category) {
-        case 'generate': return 85;
-        case 'execute': return 80;
-        case 'deploy': return 75;
-        case 'analyze': return 70;
-        case 'search': return 65;
-        case 'manage': return 60;
-        case 'navigate': return 50;
-        default: return 50;
-    }
-}
+// Re-export for backward compatibility
+export type { VoiceAction };
 
 // =============================================================================
 // Action Definitions

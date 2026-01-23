@@ -5,6 +5,8 @@
  * This captures every meaningful user interaction across all 76 components.
  *
  * Auto-registers with SystemMind for voice accessibility.
+ *
+ * NOTE: Core types and utilities are now centralized in services/actions/
  */
 
 import { useSystemMind } from '../stores/useSystemMind';
@@ -17,72 +19,12 @@ import { convergenceMemory } from './convergenceMemory';
 import { audio } from './audioService';
 import { liveSession } from './liveSession';
 
-// =============================================================================
-// Types
-// =============================================================================
+// Import centralized types and utilities from actions module
+import type { ComponentAction, ActionCategory } from './actions/types';
+import { getSectorsForComponent, getCategoryPriority as getPriorityForCategory } from './actions';
 
-interface ComponentAction {
-    id: string;
-    component: string;
-    category: 'ui' | 'generate' | 'execute' | 'analyze' | 'manage' | 'navigate';
-    description: string;
-    handler: (args: any) => Promise<any>;
-    priority?: number;  // 0-100, higher = more prominent
-}
-
-// =============================================================================
-// SECTOR MAPPING - Maps components to their relevant AppMode sectors
-// This is part of the synchronized clock - actions know WHERE they belong
-// =============================================================================
-
-const COMPONENT_TO_SECTORS: Record<string, string[]> = {
-    'ImageGen': ['IMAGE_GEN', 'ASSETS'],
-    'CodeStudio': ['CODE_STUDIO', 'CODE'],
-    'ArchonDashboard': ['ARCHON'],
-    'MemoryCore': ['MEMORY_CORE', 'MEMORY'],
-    'AgentControlCenter': ['AGENT_CONTROL', 'AGENTS'],
-    'BicameralEngine': ['BICAMERAL', 'BIBLIOMORPHIC'],
-    'AutonomousFinance': ['AUTONOMOUS_FINANCE', 'FINANCE'],
-    'HardwareEngine': ['HARDWARE_ENGINEER', 'HARDWARE'],
-    'ProcessVisualizer': ['PROCESS_MAP', 'PROCESS'],
-    'Dashboard': ['DASHBOARD'],
-    'CommandPalette': [],  // Global - available everywhere
-    'Search': [],  // Global
-    'VoiceMode': ['VOICE_MODE', 'VOICE'],
-    'DiscoveryLab': ['BIBLIOMORPHIC', 'DISCOVERY'],
-    'Evolution': ['BIBLIOMORPHIC', 'EVOLUTION'],
-    'Agora': ['BIBLIOMORPHIC', 'AGORA'],
-    'CPB': ['CPB_TEST', 'CPB'],
-    'UI': [],  // Global UI actions
-    'KnowledgeGraph': ['PROCESS_MAP', 'KNOWLEDGE'],
-    'Hub': ['METAVENTIONS_HUB', 'HUB'],
-    'SynthesisBridge': ['SYNTHESIS_BRIDGE', 'BRIDGE'],
-    'BibliomorphicEngine': ['BIBLIOMORPHIC'],
-};
-
-/**
- * Get the relevant sectors for a component.
- * Empty array means the action is global (available everywhere).
- */
-function getSectorsForComponent(component: string): string[] {
-    return COMPONENT_TO_SECTORS[component] || [];
-}
-
-/**
- * Get priority based on action category.
- * Generate/Execute actions are more prominent than UI toggles.
- */
-function getPriorityForCategory(category: ComponentAction['category']): number {
-    switch (category) {
-        case 'generate': return 80;
-        case 'execute': return 75;
-        case 'analyze': return 70;
-        case 'manage': return 60;
-        case 'navigate': return 55;
-        case 'ui': return 40;
-        default: return 50;
-    }
-}
+// Re-export for backward compatibility
+export type { ComponentAction };
 
 // =============================================================================
 // IMAGE GEN ACTIONS
