@@ -181,7 +181,7 @@ export class VoiceCore {
     }
 
     /**
-     * Stop listening and process the transcript
+     * Stop listening - does NOT process remaining transcript (user is exiting)
      */
     async stopListening(): Promise<string> {
         if (!this.state.isListening) return '';
@@ -196,13 +196,10 @@ export class VoiceCore {
                 transcript = this.state.currentTranscript;
             }
 
-            this.updateState({ isListening: false });
-            this.onTranscript?.(transcript, true);
+            this.updateState({ isListening: false, currentTranscript: '' });
 
-            // Process the transcript if we have one
-            if (transcript && transcript.length > 2) {
-                await this.processTranscript(transcript);
-            }
+            // Don't process transcript on stop - user is explicitly exiting
+            // Processing here was causing unwanted navigation (e.g., "navigating to bibliomorphic")
 
             return transcript;
         } catch (error) {
