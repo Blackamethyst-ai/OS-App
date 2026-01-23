@@ -12,6 +12,8 @@
  *
  * SYNCHRONIZED CLOCK: All actions flow through SystemMind's epoch system.
  * CPB ROUTING: Actions are tagged with their optimal execution path.
+ *
+ * NOTE: Core types and utilities are now in services/actions/
  */
 
 import { useSystemMind } from '../stores/useSystemMind';
@@ -19,40 +21,13 @@ import { useAppStore } from '../store';
 import { cpbExecute, cpbExecutePath, extractPathSignals, selectPath } from './cognitivePrecisionBridge';
 import type { CPBPath, CPBResult, CPBStatus } from './cognitivePrecisionBridge/types';
 
-// =============================================================================
-// Types
-// =============================================================================
+// Import types and utilities from the new actions module
+import type { UnifiedAction, ActionComplexity, ActionSource, ExecutionResult } from './actions/types';
+import { getSectorsForComponent as getSectorsFromMap } from './actions/sectorMap';
+import { getCategoryPriority as getPriorityFromModule } from './actions/priority';
 
-export type ActionComplexity = 'simple' | 'navigation' | 'analysis' | 'architecture' | 'critical';
-export type ActionSource = 'component' | 'voice' | 'dom' | 'sovereign' | 'cpb';
-
-export interface UnifiedAction {
-    id: string;
-    description: string;
-    handler: (args: any) => Promise<any>;
-
-    // Synchronized clock (sectors + priority)
-    sectors: string[];
-    priority: number;
-
-    // CPB execution routing
-    executionPath: CPBPath | 'auto';
-    complexity: ActionComplexity;
-
-    // Metadata
-    source: ActionSource;
-    examples?: string[];
-    requiresContext?: boolean;
-}
-
-export interface ExecutionResult {
-    success: boolean;
-    actionId: string;
-    output: any;
-    executionPath: CPBPath;
-    dqScore?: number;
-    executionTimeMs?: number;
-}
+// Re-export types for backward compatibility
+export type { ActionComplexity, ActionSource, UnifiedAction, ExecutionResult };
 
 // =============================================================================
 // Complexity to CPB Path Mapping
@@ -474,32 +449,9 @@ export async function initializeUnifiedRegistry(): Promise<void> {
 // Helper Functions
 // =============================================================================
 
+// Use the centralized sector mapping from actions module
 function getSectorsForComponent(component: string): string[] {
-    const COMPONENT_TO_SECTORS: Record<string, string[]> = {
-        'ImageGen': ['IMAGE_GEN', 'ASSETS'],
-        'CodeStudio': ['CODE_STUDIO', 'CODE'],
-        'ArchonDashboard': ['ARCHON'],
-        'MemoryCore': ['MEMORY_CORE', 'MEMORY'],
-        'AgentControlCenter': ['AGENT_CONTROL', 'AGENTS'],
-        'BicameralEngine': ['BICAMERAL', 'BIBLIOMORPHIC'],
-        'AutonomousFinance': ['AUTONOMOUS_FINANCE', 'FINANCE'],
-        'HardwareEngine': ['HARDWARE_ENGINEER', 'HARDWARE'],
-        'ProcessVisualizer': ['PROCESS_MAP', 'PROCESS'],
-        'Dashboard': ['DASHBOARD'],
-        'CommandPalette': [],
-        'Search': [],
-        'VoiceMode': ['VOICE_MODE', 'VOICE'],
-        'DiscoveryLab': ['BIBLIOMORPHIC', 'DISCOVERY'],
-        'Evolution': ['BIBLIOMORPHIC', 'EVOLUTION'],
-        'Agora': ['BIBLIOMORPHIC', 'AGORA'],
-        'CPB': ['CPB_TEST', 'CPB'],
-        'UI': [],
-        'KnowledgeGraph': ['PROCESS_MAP', 'KNOWLEDGE'],
-        'Hub': ['METAVENTIONS_HUB', 'HUB'],
-        'SynthesisBridge': ['SYNTHESIS_BRIDGE', 'BRIDGE'],
-        'BibliomorphicEngine': ['BIBLIOMORPHIC'],
-    };
-    return COMPONENT_TO_SECTORS[component] || [];
+    return getSectorsFromMap(component);
 }
 
 function getPriorityForCategory(category: string): number {
