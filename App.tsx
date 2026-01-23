@@ -72,9 +72,9 @@ const App: React.FC = () => {
     useVisualCortex();
 
     // Agentic Kernel & Biometric Integration
-    const biometricSensor = useBiometricSensor();
-    const stressDetector = useStressDetector();
-    useFixationGlow(); // Apply glow effects to elements on gaze fixation
+    useBiometricSensor();
+    useStressDetector();
+    useFixationGlow();
 
     useEffect(() => {
         // Boot the Agentic Kernel
