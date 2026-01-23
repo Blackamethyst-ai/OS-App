@@ -131,10 +131,12 @@ const CodeStudio: React.FC = () => {
                   {isCopied ? <Check size={14} className="text-[#10b981]" /> : <Copy size={14} />}
                   {isCopied ? 'SYNCED' : 'BUFF_COPY'}
               </button>
-              <button 
-                onClick={handleGenerate} 
+              <button
+                onClick={handleGenerate}
                 disabled={codeStudio.isLoading}
                 className="px-6 py-2.5 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black font-mono text-[10px] uppercase rounded-xl transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(157,78,221,0.4)] disabled:opacity-50 active:scale-95"
+                data-voice-id="codestudio-generate-button"
+                aria-label="Generate code"
               >
                   {codeStudio.isLoading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
                   Synthesize Logic
@@ -256,11 +258,13 @@ const CodeStudio: React.FC = () => {
                     </div>
                     <div className="relative group">
                         <div className="absolute inset-0 bg-[#9d4edd]/5 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
-                        <textarea 
-                            value={codeStudio.prompt} 
-                            onChange={e => setCodeStudioState({ prompt: e.target.value })} 
-                            className="w-full bg-[#0a0a0a] border border-white/5 p-6 rounded-[2.5rem] text-xs font-mono text-gray-300 outline-none h-48 resize-none focus:border-[#9d4edd]/50 transition-all placeholder:text-gray-800 shadow-inner group-hover:border-white/10 relative z-10" 
-                            placeholder="Input strategic intent sequence..." 
+                        <textarea
+                            value={codeStudio.prompt}
+                            onChange={e => setCodeStudioState({ prompt: e.target.value })}
+                            className="w-full bg-[#0a0a0a] border border-white/5 p-6 rounded-[2.5rem] text-xs font-mono text-gray-300 outline-none h-48 resize-none focus:border-[#9d4edd]/50 transition-all placeholder:text-gray-800 shadow-inner group-hover:border-white/10 relative z-10"
+                            placeholder="Input strategic intent sequence..."
+                            data-voice-id="codestudio-prompt-input"
+                            aria-label="Code generation prompt"
                         />
                         <div className="absolute bottom-4 right-6 opacity-0 group-focus-within:opacity-100 transition-opacity z-20">
                             <span className="text-[8px] font-mono text-gray-600 font-black uppercase tracking-widest">CMD+ENTER TO SYNC</span>

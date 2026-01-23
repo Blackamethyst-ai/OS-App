@@ -199,6 +199,8 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
                             (isFocused || isBeingInspected) && !isIntegrated ? "border-[#f1c21b] shadow-[0_0_15px_rgba(241,194,27,0.3)]" : ""
                         )}
                         placeholder="Locate intelligence..."
+                        data-voice-id="global-search-input"
+                        aria-label="Global search"
                     />
 
                     <div className="absolute left-4 top-1/2 -translate-y-1/2">

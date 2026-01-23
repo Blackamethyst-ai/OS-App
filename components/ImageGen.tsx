@@ -656,6 +656,8 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                         onChange={e => actions.setImageGenState({ prompt: e.target.value })}
                                         className="w-full h-40 bg-[#0a0a0a] border border-[#222] p-6 rounded-[2.5rem] text-sm font-mono text-gray-300 outline-none focus:border-[var(--amethyst)] resize-none transition-all placeholder:text-gray-800 shadow-inner group-hover:border-[#333]"
                                         placeholder="Input core narrative intent sequence..."
+                                        data-voice-id="imagegen-prompt-input"
+                                        aria-label="Image generation prompt"
                                     />
                                 </div>
 
@@ -709,6 +711,8 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                                     onClick={generateSingleImage}
                                     disabled={imageGen.isLoading || (!imageGen.prompt?.trim() && imageGen.characterRefs.length === 0)}
                                     className="w-full py-6 bg-[var(--amethyst)] hover:bg-[#b06bf7] text-black font-black font-mono text-xs uppercase tracking-[0.5em] rounded-[2.5rem] transition-all shadow-[0_30px_60px_color-mix(in_srgb,var(--amethyst),transparent_60%)] flex items-center justify-center gap-5 group/btn active:scale-95 disabled:opacity-50 shrink-0 mb-10"
+                                    data-voice-id="imagegen-generate-button"
+                                    aria-label="Generate image"
                                 >
                                     {imageGen.isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Zap size={22} className="group-hover/btn:scale-125 transition-transform" />}
                                     {imageGen.isLoading ? 'Processing Scene...' : 'Render Master Frame'}

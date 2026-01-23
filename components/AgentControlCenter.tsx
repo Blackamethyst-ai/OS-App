@@ -1087,18 +1087,24 @@ const AgentControlCenter: React.FC = () => {
                                                     placeholder={activeAgent.status === 'THINKING' ? "NODE_BUSY: ALIGNING NEURAL VECTORS..." : `GIVE DIRECTIVE TO ${activeAgent.name.toUpperCase()}...`}
                                                     className="flex-1 bg-transparent border-none outline-none text-sm font-mono text-white placeholder:text-gray-800 uppercase tracking-[0.3em] py-3 px-4"
                                                     onKeyDown={e => e.key === 'Enter' && (e.shiftKey ? handleSearchGrounding() : handleDirectExecute())}
+                                                    data-voice-id="agent-directive-input"
+                                                    aria-label="Agent directive input"
                                                 />
                                                 <div className="flex gap-2 pr-2">
                                                     <button
                                                         onClick={handleSearchGrounding}
                                                         title="Search Grounding (SHIFT+ENTER)"
                                                         className="p-3 bg-black/40 hover:bg-[#22d3ee] border border-white/5 hover:text-black rounded-[1.8rem] text-[#22d3ee] transition-all active:scale-95 shadow-xl group/btn"
+                                                        data-voice-id="agent-search-button"
+                                                        aria-label="Search grounding"
                                                     >
                                                         <Search size={20} className="group-hover/btn:scale-110 transition-transform" />
                                                     </button>
                                                     <button
                                                         onClick={handleDirectExecute}
                                                         className="p-3 bg-[#9d4edd]/10 hover:bg-[#9d4edd] border border-[#9d4edd]/30 hover:text-black rounded-[1.8rem] text-[#9d4edd] transition-all active:scale-95 shadow-[0_0_40px_rgba(157,78,221,0.3)] group/btn"
+                                                        data-voice-id="agent-execute-button"
+                                                        aria-label="Execute directive"
                                                     >
                                                         <Send size={20} className="group-hover/btn:scale-110 transition-transform" />
                                                     </button>

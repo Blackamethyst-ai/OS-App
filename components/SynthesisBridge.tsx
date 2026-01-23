@@ -587,11 +587,15 @@ const SynthesisBridge: React.FC = () => {
                         onChange={e => setCustomIntent(e.target.value)}
                         placeholder="Input operational requirements..."
                         className="w-full h-32 bg-black/60 border border-white/5 rounded-[2rem] p-5 text-[10px] font-mono text-gray-300 outline-none focus:border-[var(--amethyst)]/60 transition-all placeholder:text-gray-800 shadow-inner resize-none"
+                        data-voice-id="synthesis-intent-input"
+                        aria-label="Synthesis intent input"
                     />
                     <button
                         onClick={() => generateBlueprint()}
                         disabled={isGenerating}
                         className="w-full py-4 bg-[var(--amethyst)] hover:brightness-125 text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.5em] transition-all shadow-[0_15px_40px_rgba(var(--amethyst),0.2)] active:scale-95 disabled:opacity-50 flex items-center justify-center gap-4 group/gen"
+                        data-voice-id="synthesis-forge-button"
+                        aria-label="Forge synthesis protocol"
                     >
                         {isGenerating ? <Loader2 size={15} className="w-5 h-5 animate-spin" /> : <RefreshCw size={18} className="group-hover/gen:rotate-180 transition-transform duration-700" />}
                         {isGenerating ? 'Synthesizing...' : 'Forge Protocol'}

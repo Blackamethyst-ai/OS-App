@@ -165,6 +165,8 @@ const CPBTest: React.FC = () => {
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Enter your query..."
                             className="w-full h-24 px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+                            data-voice-id="cpb-query-input"
+                            aria-label="CPB query input"
                         />
                     </div>
 
@@ -256,6 +258,8 @@ const CPBTest: React.FC = () => {
                         onClick={handleExecute}
                         disabled={isExecuting || !query.trim()}
                         className="w-full py-3 rounded-lg bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                        data-voice-id="cpb-execute-button"
+                        aria-label="Execute CPB query"
                     >
                         {isExecuting ? (
                             <>
