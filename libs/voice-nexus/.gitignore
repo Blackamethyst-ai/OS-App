@@ -1,0 +1,21 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+
+# Test coverage
+coverage/
+
+# Logs
+*.log
+
+# Tarballs
+*.tgz
