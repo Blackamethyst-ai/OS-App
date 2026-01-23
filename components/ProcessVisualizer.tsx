@@ -327,6 +327,8 @@ const ProcessVisualizerContent = () => {
                                         onChange={(e) => setArchitecturePrompt(e.target.value)}
                                         placeholder={`Specify structural constraints for ${processData.workflowType === 'DRIVE_ORGANIZATION' ? 'PARA Data Taxonomy' : 'Production Systems Blueprint'}...`}
                                         className="w-full h-48 bg-black/60 border border-white/10 rounded-[2.5rem] p-8 text-sm font-mono text-white outline-none focus:border-[var(--cyan)] transition-all placeholder:text-gray-800 shadow-inner group-hover/forge:border-white/20"
+                                        data-voice-id="process-intent-input"
+                                        aria-label="Process architecture prompt"
                                     />
                                 </div>
 
@@ -334,6 +336,8 @@ const ProcessVisualizerContent = () => {
                                     onClick={handleGenerateGraph}
                                     disabled={isGeneratingGraph || !architecturePrompt.trim()}
                                     className="w-full bg-[#f1c21b] text-black py-6 rounded-[2.5rem] font-black text-[12px] uppercase tracking-[0.5em] flex items-center justify-center gap-5 shadow-[0_20px_50px_rgba(241,194,27,0.3)] hover:bg-yellow-400 transition-all disabled:opacity-30 active:scale-95 relative z-10 group/gen"
+                                    data-voice-id="process-generate-button"
+                                    aria-label="Generate system manifest"
                                 >
                                     {isGeneratingGraph ? <Loader2 className="animate-spin" size={18} /> : <Sparkles className="w-5 h-5 group-hover/gen:scale-125 transition-transform" />}
                                     Synthesize System Manifest

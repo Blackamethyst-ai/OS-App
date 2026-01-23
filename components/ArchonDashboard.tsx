@@ -404,6 +404,8 @@ const GoalCommandCenter: React.FC<{
             placeholder="Enter mission objective..."
             className="flex-1 bg-transparent text-white placeholder-gray-500 focus:outline-none"
             disabled={!isReady}
+            data-voice-id="archon-mission-input"
+            aria-label="Mission objective input"
           />
           <motion.button
             whileHover={{ scale: 1.05 }}
@@ -411,6 +413,8 @@ const GoalCommandCenter: React.FC<{
             onClick={handleSubmit}
             disabled={!isReady || isSubmitting || !input.trim()}
             className="px-4 py-1.5 bg-gradient-to-r from-purple-500 to-blue-500 rounded-lg text-sm font-medium disabled:opacity-50"
+            data-voice-id="archon-execute-button"
+            aria-label="Execute mission"
           >
             {isSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : 'Execute'}
           </motion.button>

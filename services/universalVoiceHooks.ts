@@ -282,21 +282,47 @@ export function scanInteractiveElements(): VoiceSnapshot {
  */
 export function fillInput(identifier: string, text: string): { success: boolean; element?: string; error?: string } {
     const snapshot = scanInteractiveElements();
+    const idLower = identifier.toLowerCase().replace(/[-_\s]/g, '');
 
-    // Try exact match first
-    let target = snapshot.inputs.find(i => i.id === identifier);
+    // Priority 1: Exact data-voice-id match (most reliable)
+    let target = snapshot.inputs.find(i => {
+        const voiceId = i.element.getAttribute('data-voice-id');
+        return voiceId && voiceId.toLowerCase().replace(/[-_\s]/g, '') === idLower;
+    });
 
-    // Fuzzy match by label
+    // Priority 2: Partial data-voice-id match
     if (!target) {
-        const idLower = identifier.toLowerCase();
+        target = snapshot.inputs.find(i => {
+            const voiceId = i.element.getAttribute('data-voice-id');
+            if (!voiceId) return false;
+            const voiceIdNorm = voiceId.toLowerCase().replace(/[-_\s]/g, '');
+            return voiceIdNorm.includes(idLower) || idLower.includes(voiceIdNorm);
+        });
+    }
+
+    // Priority 3: Exact id match
+    if (!target) {
+        target = snapshot.inputs.find(i => i.id === identifier);
+    }
+
+    // Priority 4: Fuzzy match by label, id, or description
+    if (!target) {
         target = snapshot.inputs.find(i =>
-            i.label.toLowerCase().includes(idLower) ||
-            i.id.toLowerCase().includes(idLower) ||
-            i.description.toLowerCase().includes(idLower)
+            i.label.toLowerCase().includes(identifier.toLowerCase()) ||
+            i.id.toLowerCase().includes(identifier.toLowerCase()) ||
+            i.description.toLowerCase().includes(identifier.toLowerCase())
         );
     }
 
-    // Try matching any input if identifier is generic
+    // Priority 5: Match by aria-label
+    if (!target) {
+        target = snapshot.inputs.find(i => {
+            const ariaLabel = i.element.getAttribute('aria-label');
+            return ariaLabel && ariaLabel.toLowerCase().includes(identifier.toLowerCase());
+        });
+    }
+
+    // Priority 6: Generic input fallback
     if (!target && (identifier === 'input' || identifier === 'text' || identifier === 'field')) {
         target = snapshot.inputs[0]; // First available input
     }

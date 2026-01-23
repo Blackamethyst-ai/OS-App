@@ -265,11 +265,13 @@ const MemoryCore: React.FC = () => {
                 </div>
                 <div className="p-6 border-b border-white/5 space-y-4">
                     <form onSubmit={handleVectorSearch} className="relative group">
-                        <input 
-                            value={searchQuery} 
-                            onChange={e => setSearchQuery(e.target.value)} 
-                            placeholder="Semantic Probe..." 
-                            className="w-full bg-black/40 border border-white/10 pl-10 pr-4 py-3 text-[11px] font-mono text-white focus:border-[#9d4edd] outline-none rounded-xl shadow-inner transition-all placeholder:text-gray-800 uppercase" 
+                        <input
+                            value={searchQuery}
+                            onChange={e => setSearchQuery(e.target.value)}
+                            placeholder="Semantic Probe..."
+                            className="w-full bg-black/40 border border-white/10 pl-10 pr-4 py-3 text-[11px] font-mono text-white focus:border-[#9d4edd] outline-none rounded-xl shadow-inner transition-all placeholder:text-gray-800 uppercase"
+                            data-voice-id="memory-search-input"
+                            aria-label="Memory search input"
                         />
                         <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700 group-focus-within:text-[#9d4edd] transition-colors" />
                         {isSearching && <Loader2 size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin text-[#9d4edd]" />}
