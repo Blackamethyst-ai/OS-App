@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store';
-import { Shield, Fingerprint, ChevronRight, Loader2, Cpu, Globe, Lock } from 'lucide-react';
+import { Shield, Fingerprint, Key, ChevronRight, Loader2, Cpu, Globe, Lock } from 'lucide-react';
 
 const AuthModule: React.FC = () => {
     const { actions } = useAppStore();
