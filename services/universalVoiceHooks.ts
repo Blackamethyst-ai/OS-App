@@ -38,68 +38,205 @@ export interface VoiceSnapshot {
 }
 
 // =============================================================================
-// Element Discovery
+// Element Discovery - Smart Context Extraction
 // =============================================================================
 
 /**
+ * Extract component/section context by traversing up the DOM tree
+ * This is the KEY function that makes voice work without manual tagging
+ */
+function getComponentContext(el: HTMLElement): { component: string; section: string; path: string[] } {
+    const path: string[] = [];
+    let component = '';
+    let section = '';
+    let current: HTMLElement | null = el;
+    let depth = 0;
+    const maxDepth = 10;
+
+    while (current && depth < maxDepth) {
+        // Check for component indicators in class names
+        const classList = Array.from(current.classList || []);
+
+        // Look for semantic component names in classes
+        for (const cls of classList) {
+            const clsLower = cls.toLowerCase();
+            // Match patterns like "biometric-panel", "mission-control", "agent-control", etc.
+            if (clsLower.includes('panel') || clsLower.includes('control') ||
+                clsLower.includes('section') || clsLower.includes('module') ||
+                clsLower.includes('widget') || clsLower.includes('card') ||
+                clsLower.includes('hub') || clsLower.includes('engine') ||
+                clsLower.includes('studio') || clsLower.includes('core') ||
+                clsLower.includes('bridge') || clsLower.includes('lab')) {
+                if (!component) component = cls;
+            }
+        }
+
+        // Check for data attributes that indicate component
+        const dataComponent = current.getAttribute('data-component') ||
+                             current.getAttribute('data-testid') ||
+                             current.getAttribute('data-section');
+        if (dataComponent && !component) {
+            component = dataComponent;
+        }
+
+        // Check for role attributes
+        const role = current.getAttribute('role');
+        if (role === 'dialog' || role === 'region' || role === 'group') {
+            const ariaLabel = current.getAttribute('aria-label') || current.getAttribute('aria-labelledby');
+            if (ariaLabel && !section) section = ariaLabel;
+        }
+
+        // Look for headings nearby that describe this section
+        const heading = current.querySelector('h1, h2, h3, h4, h5, h6, [class*="title"], [class*="header"], [class*="heading"]');
+        if (heading?.textContent && !section) {
+            const headingText = heading.textContent.trim();
+            if (headingText.length < 40) section = headingText;
+        }
+
+        // Check ID for component hints
+        if (current.id && !component) {
+            const idLower = current.id.toLowerCase();
+            if (idLower.includes('-') || idLower.includes('_')) {
+                component = current.id;
+            }
+        }
+
+        // Build path for context
+        if (current.id) path.unshift(current.id);
+        else if (classList.length > 0 && classList[0].length < 30) path.unshift(classList[0]);
+
+        current = current.parentElement;
+        depth++;
+    }
+
+    return {
+        component: component.toLowerCase().replace(/[^a-z0-9]/g, '-').slice(0, 30),
+        section: section.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim().slice(0, 30),
+        path
+    };
+}
+
+/**
  * Generate a unique, descriptive ID for an element
+ * Now includes component context for disambiguation
  */
 function generateElementId(el: HTMLElement, index: number): string {
-    // Try various attributes for identification
-    const id = el.id;
-    const name = el.getAttribute('name');
+    // Priority 1: Explicit voice ID
     const dataVoiceId = el.getAttribute('data-voice-id');
-    const ariaLabel = el.getAttribute('aria-label');
-    const placeholder = el.getAttribute('placeholder');
-    const title = el.getAttribute('title');
-    const textContent = el.textContent?.trim().slice(0, 30);
-
     if (dataVoiceId) return dataVoiceId;
+
+    // Priority 2: Standard ID
+    const id = el.id;
     if (id) return id;
+
+    // Priority 3: Name attribute
+    const name = el.getAttribute('name');
     if (name) return name;
-    if (ariaLabel) return ariaLabel.toLowerCase().replace(/\s+/g, '-');
-    if (placeholder) return placeholder.toLowerCase().replace(/\s+/g, '-').slice(0, 20);
-    if (title) return title.toLowerCase().replace(/\s+/g, '-').slice(0, 20);
-    if (textContent) return textContent.toLowerCase().replace(/\s+/g, '-').slice(0, 20);
+
+    // Priority 4: Build contextual ID from component + label
+    const context = getComponentContext(el);
+    const label = getElementLabel(el);
+    const labelSlug = label.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 25);
+
+    // Combine component context with label
+    if (context.component && labelSlug && labelSlug !== 'button' && labelSlug !== 'input') {
+        return `${context.component}-${labelSlug}`;
+    }
+    if (context.section && labelSlug) {
+        const sectionSlug = context.section.replace(/\s+/g, '-').slice(0, 15);
+        return `${sectionSlug}-${labelSlug}`;
+    }
+
+    // Priority 5: Aria label
+    const ariaLabel = el.getAttribute('aria-label');
+    if (ariaLabel) return ariaLabel.toLowerCase().replace(/\s+/g, '-').slice(0, 30);
+
+    // Priority 6: Placeholder
+    const placeholder = el.getAttribute('placeholder');
+    if (placeholder) return placeholder.toLowerCase().replace(/\s+/g, '-').slice(0, 25);
+
+    // Priority 7: Title
+    const title = el.getAttribute('title');
+    if (title) return title.toLowerCase().replace(/\s+/g, '-').slice(0, 25);
+
+    // Priority 8: Text content with context
+    const textContent = el.textContent?.trim().slice(0, 25);
+    if (textContent) {
+        const textSlug = textContent.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+        if (context.component) return `${context.component}-${textSlug}`;
+        return textSlug;
+    }
 
     return `element-${index}`;
 }
 
 /**
  * Get a human-readable label for an element
+ * Enhanced to extract better labels from complex UI
  */
 function getElementLabel(el: HTMLElement): string {
-    // Check for associated label
+    // Priority 1: Explicit aria-label
+    const ariaLabel = el.getAttribute('aria-label');
+    if (ariaLabel) return ariaLabel;
+
+    // Priority 2: Associated label element
     if (el.id) {
         const label = document.querySelector(`label[for="${el.id}"]`);
         if (label?.textContent) return label.textContent.trim();
     }
 
-    // Check various attributes
-    const ariaLabel = el.getAttribute('aria-label');
-    if (ariaLabel) return ariaLabel;
-
-    const placeholder = el.getAttribute('placeholder');
-    if (placeholder) return placeholder;
-
-    const title = el.getAttribute('title');
-    if (title) return title;
-
+    // Priority 3: data-label attribute
     const dataLabel = el.getAttribute('data-label');
     if (dataLabel) return dataLabel;
 
-    // For buttons/links, use text content
-    const textContent = el.textContent?.trim();
-    if (textContent && textContent.length < 50) return textContent;
+    // Priority 4: title attribute
+    const title = el.getAttribute('title');
+    if (title) return title;
 
-    // For inputs, check parent for label text
-    const parent = el.parentElement;
-    if (parent) {
-        const siblingLabel = parent.querySelector('label, span, div');
-        if (siblingLabel?.textContent && siblingLabel.textContent.length < 50) {
-            return siblingLabel.textContent.trim();
+    // Priority 5: placeholder (for inputs)
+    const placeholder = el.getAttribute('placeholder');
+    if (placeholder) return placeholder;
+
+    // Priority 6: Direct text content (cleaned)
+    // For buttons, get only direct text, not nested element text
+    let textContent = '';
+    for (const node of el.childNodes) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            textContent += node.textContent?.trim() || '';
         }
     }
+    // If no direct text, use full text content
+    if (!textContent) {
+        textContent = el.textContent?.trim() || '';
+    }
+    // Clean up whitespace and limit length
+    textContent = textContent.replace(/\s+/g, ' ').trim();
+    if (textContent && textContent.length < 50 && textContent.length > 0) {
+        return textContent;
+    }
+
+    // Priority 7: Look for nearby label in parent
+    const parent = el.parentElement;
+    if (parent) {
+        // Check for label as previous sibling
+        const prevSibling = el.previousElementSibling;
+        if (prevSibling?.tagName === 'LABEL' || prevSibling?.classList.contains('label')) {
+            const sibText = prevSibling.textContent?.trim();
+            if (sibText && sibText.length < 50) return sibText;
+        }
+
+        // Check for span/label inside parent
+        const parentLabel = parent.querySelector(':scope > label, :scope > span:first-child');
+        if (parentLabel?.textContent && parentLabel !== el) {
+            const labelText = parentLabel.textContent.trim();
+            if (labelText.length < 50) return labelText;
+        }
+    }
+
+    // Priority 8: Use component context as fallback
+    const context = getComponentContext(el);
+    if (context.section) return context.section;
+    if (context.component) return context.component;
 
     return el.tagName.toLowerCase();
 }
