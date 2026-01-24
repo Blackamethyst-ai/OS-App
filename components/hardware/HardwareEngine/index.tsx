@@ -1,14 +1,14 @@
-import { apiKeyService } from '../../services/apiKeyService';
+import { apiKeyService } from '../../../services/apiKeyService';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useAppStore } from '../../store';
+import { useAppStore } from '../../../store';
 import {
     analyzeSchematic, researchComponents, fileToGenerativePart,
     promptSelectKey, generateXRayVariant, generateIsometricSchematic,
     getLiveSupplyChainData, generateHardwareDeploymentManifest, analyzeCrossSectorImpact
-} from '../../services/geminiService';
-import { fetchLivePrice, fetchBatchPrices, clearPriceCache, getCacheStats } from '../../services/gpuPricingService';
-import { GPU_CATALOG, getGpusByEra, getGpuById, getGpusByTier } from '../../data/gpuCatalog';
-import { enrichGpuData, calculateMTBF, calculateDynamicMTBF, calculatePowerDraw, getEraColor } from '../../utils/hardwareCalculations';
+} from '../../../services/geminiService';
+import { fetchLivePrice, fetchBatchPrices, clearPriceCache, getCacheStats } from '../../../services/gpuPricingService';
+import { GPU_CATALOG, getGpusByEra, getGpuById, getGpusByTier } from '../../../data/gpuCatalog';
+import { enrichGpuData, calculateMTBF, calculateDynamicMTBF, calculatePowerDraw, getEraColor } from '../../../utils/hardwareCalculations';
 import {
     Upload, Cpu, Zap, Activity, Loader2,
     Thermometer, X, Scan, FileText, Trash2, Download,
@@ -22,12 +22,12 @@ import {
     ShoppingBag, History, Microscope, ExternalLink, Gauge, Waves, Fingerprint,
     GitBranch, GitCommit, Filter
 } from 'lucide-react';
-import { TemporalEra, FileData, AppMode, ImageSize, AspectRatio, StoredArtifact, GpuSpec, GpuTier, LiveGpuPrice, GpuWithLiveData } from '../../types';
+import { TemporalEra, FileData, AppMode, ImageSize, AspectRatio, StoredArtifact, GpuSpec, GpuTier, LiveGpuPrice, GpuWithLiveData } from '../../../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useVoiceExpose } from '../../hooks/useVoiceExpose';
-import { audio } from '../../services/audioService';
+import { useVoiceExpose } from '../../../hooks/useVoiceExpose';
+import { audio } from '../../../services/audioService';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';
-import ProcurementModal from './ProcurementModal';
+import ProcurementModal from '../ProcurementModal';
 
 const ComputeFluxOverlay = ({ active, speed, color = '#22d3ee' }: { active: boolean, speed: number, color?: string }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
