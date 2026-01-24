@@ -14,8 +14,6 @@ import { audio } from '../../../services/audioService';
 import { CODEBASE_KNOWLEDGE, buildCodebaseContext } from '../../../services/archon';
 import { getFullSystemContext, getSectorContext } from '../../../services/voiceUIContext';
 import { universalVoice, fillInput, clickButton, selectOption, scanInteractiveElements } from '../../../services/universalVoiceHooks';
-import { initializeVoiceActions, generateActionContext, getVoiceActions } from '../../../services/voiceActionRegistry';
-import { initializeComponentActions, generateComponentActionContext } from '../../../services/componentActionRegistry';
 import { navigateToTab, generateTabContext, parseTabNavigation, TAB_REGISTRY } from '../../../services/tabNavigationRegistry';
 import { initializeUnifiedRegistry, routeQuery, executeQuery, generateVoiceContext } from '../../../services/unifiedActionRegistry';
 import type { CPBPath } from '../../../services/cognitivePrecisionBridge/types';
@@ -241,11 +239,9 @@ const VoiceManager: React.FC = () => {
     const lastContextDigestRef = useRef<string>('');  // Quick digest for staleness check
     const epochChangesPendingRef = useRef<EpochEvent[]>([]);  // Queued changes during session
 
-    // Initialize all voice and component actions on mount
+    // Initialize unified action registry on mount
+    // (consolidates all voice and component actions with CPB routing)
     useEffect(() => {
-        initializeVoiceActions();
-        initializeComponentActions();
-        // Initialize unified registry (merges all action sources with CPB routing)
         initializeUnifiedRegistry().catch(err => {
             console.error('[VoiceManager] Failed to initialize unified registry:', err);
         });
@@ -875,13 +871,9 @@ ${Object.entries(CODEBASE_KNOWLEDGE.subsystems).map(([name, info]: [string, any]
   `• ${name.toUpperCase()}: ${info.description} (Files: ${info.files.slice(0, 2).join(', ')})`
 ).join('\n')}
 
-=== SEMANTIC VOICE ACTIONS ===
+=== AVAILABLE ACTIONS ===
 Use execute_component_action with these IDs for complex operations:
-${generateActionContext()}
-
-=== COMPONENT-SPECIFIC ACTIONS ===
-Every UI component action, organized by component:
-${generateComponentActionContext()}
+${generateVoiceContext(currentMode)}
 
 ${generateTabContext(currentMode)}
 

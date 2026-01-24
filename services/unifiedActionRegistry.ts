@@ -398,51 +398,30 @@ AVAILABLE ACTIONS (sorted by relevance):
 let isInitialized = false;
 
 /**
- * Initialize the unified registry by importing from all sources
+ * Initialize the unified registry using consolidated handlers.
+ *
+ * NOTE: Actions are now defined in services/actions/handlers/ instead of
+ * the deprecated componentActionRegistry.ts and voiceActionRegistry.ts.
  */
 export async function initializeUnifiedRegistry(): Promise<void> {
     if (isInitialized) return;
 
     if (import.meta.env.DEV) console.log('[UnifiedRegistry] Initializing...');
 
-    // Import existing registries
-    const { getAllComponentActions } = await import('./componentActionRegistry');
-    const { getVoiceActions } = await import('./voiceActionRegistry');
+    // Import consolidated handler actions
+    const { ALL_HANDLER_ACTIONS, getHandlerStats } = await import('./actions/handlers');
 
-    // Convert component actions
-    const componentActions = getAllComponentActions();
-    const unifiedComponentActions: UnifiedAction[] = componentActions.map(action => ({
-        id: action.id,
-        description: action.description,
-        handler: action.handler,
-        sectors: getSectorsForComponent(action.component),
-        priority: action.priority || getPriorityForCategory(action.category),
-        executionPath: getPathForCategory(action.category),
-        complexity: getComplexityForCategory(action.category),
-        source: 'component' as ActionSource
-    }));
-
-    // Convert voice actions
-    const voiceActions = getVoiceActions();
-    const unifiedVoiceActions: UnifiedAction[] = voiceActions.map(action => ({
-        id: action.id,
-        description: action.description,
-        handler: action.handler,
-        sectors: action.sector ? [action.sector] : [],
-        priority: action.priority || 70,
-        executionPath: getPathForVoiceCategory(action.category),
-        complexity: getComplexityForVoiceCategory(action.category),
-        source: 'voice' as ActionSource,
-        examples: action.examples
-    }));
-
-    // Register all
-    registerUnifiedActions([...unifiedComponentActions, ...unifiedVoiceActions]);
+    // Register all consolidated actions
+    registerUnifiedActions(ALL_HANDLER_ACTIONS);
 
     isInitialized = true;
     registryState.initialized = true;
 
-    if (import.meta.env.DEV) console.log(`[UnifiedRegistry] Initialized with ${registryState.actions.size} actions`);
+    if (import.meta.env.DEV) {
+        const stats = getHandlerStats();
+        console.log(`[UnifiedRegistry] Initialized with ${registryState.actions.size} actions`);
+        console.log(`[UnifiedRegistry] By category:`, stats.byCategory);
+    }
 }
 
 // =============================================================================
