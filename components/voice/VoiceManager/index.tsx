@@ -1,24 +1,24 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import { useAppStore } from '../../store';
-import { useSystemMind, EpochEvent } from '../../stores/useSystemMind';
+import { useAppStore } from '../../../store';
+import { useSystemMind, EpochEvent } from '../../../stores/useSystemMind';
 import {
     liveSession,
     HIVE_AGENTS,
     constructHiveContext
-} from '../../services/geminiService';
-import { voiceNexus, analyzeComplexity } from '../../services/voiceNexus';
-import { OS_TOOLS } from '../../services/toolRegistry';
-import { AppMode } from '../../types';
+} from '../../../services/geminiService';
+import { voiceNexus, analyzeComplexity } from '../../../services/voiceNexus';
+import { OS_TOOLS } from '../../../services/toolRegistry';
+import { AppMode } from '../../../types';
 import { FunctionDeclaration, Type, LiveServerMessage } from '@google/genai';
-import { audio } from '../../services/audioService';
-import { CODEBASE_KNOWLEDGE, buildCodebaseContext } from '../../services/archon';
-import { getFullSystemContext, getSectorContext } from '../../services/voiceUIContext';
-import { universalVoice, fillInput, clickButton, selectOption, scanInteractiveElements } from '../../services/universalVoiceHooks';
-import { initializeVoiceActions, generateActionContext, getVoiceActions } from '../../services/voiceActionRegistry';
-import { initializeComponentActions, generateComponentActionContext } from '../../services/componentActionRegistry';
-import { navigateToTab, generateTabContext, parseTabNavigation, TAB_REGISTRY } from '../../services/tabNavigationRegistry';
-import { initializeUnifiedRegistry, routeQuery, executeQuery, generateVoiceContext } from '../../services/unifiedActionRegistry';
-import type { CPBPath } from '../../services/cognitivePrecisionBridge/types';
+import { audio } from '../../../services/audioService';
+import { CODEBASE_KNOWLEDGE, buildCodebaseContext } from '../../../services/archon';
+import { getFullSystemContext, getSectorContext } from '../../../services/voiceUIContext';
+import { universalVoice, fillInput, clickButton, selectOption, scanInteractiveElements } from '../../../services/universalVoiceHooks';
+import { initializeVoiceActions, generateActionContext, getVoiceActions } from '../../../services/voiceActionRegistry';
+import { initializeComponentActions, generateComponentActionContext } from '../../../services/componentActionRegistry';
+import { navigateToTab, generateTabContext, parseTabNavigation, TAB_REGISTRY } from '../../../services/tabNavigationRegistry';
+import { initializeUnifiedRegistry, routeQuery, executeQuery, generateVoiceContext } from '../../../services/unifiedActionRegistry';
+import type { CPBPath } from '../../../services/cognitivePrecisionBridge/types';
 
 const navigateTool: FunctionDeclaration = {
     name: 'navigate_to_sector',
@@ -337,7 +337,7 @@ const VoiceManager: React.FC = () => {
                 addLog('SYSTEM', `VOICE_EXECUTIVE: Executing action [${actionId}]...`);
 
                 // Try unified registry first for CPB-routed execution
-                const { getAction, executeAction: executeUnifiedAction } = await import('../../services/unifiedActionRegistry');
+                const { getAction, executeAction: executeUnifiedAction } = await import('../../../services/unifiedActionRegistry');
                 const unifiedAction = getAction(actionId);
 
                 if (unifiedAction) {
