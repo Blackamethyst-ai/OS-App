@@ -74,3 +74,15 @@ export {
     getRegistryStats,
     markInitialized,
 } from './registry';
+
+// Handler Actions (consolidated from componentActionRegistry + voiceActionRegistry)
+export {
+    ALL_HANDLER_ACTIONS,
+    NAVIGATION_ACTIONS,
+    GENERATION_ACTIONS,
+    EXECUTION_ACTIONS,
+    ANALYSIS_ACTIONS,
+    UI_ACTIONS,
+    getSectorMap,
+    getHandlerStats,
+} from './handlers';
