@@ -6,8 +6,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Pause, ChevronRight, Volume2, VolumeX, Loader2, FileArchive } from 'lucide-react';
 import JSZip from 'jszip';
-import { generateSpeech, generateAudioOverview } from '../../services/geminiService';
-import { audio } from '../../services/audioService';
+import { generateSpeech, generateAudioOverview } from '../../../../services/geminiService';
+import { audio } from '../../../../services/audioService';
 import { Frame } from './StoryboardPanel';
 import { ProductionBible } from './ProductionBiblePanel';
 

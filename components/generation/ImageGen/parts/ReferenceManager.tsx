@@ -5,9 +5,9 @@
  */
 import React from 'react';
 import { Plus, X, UserCircle, Map as MapIcon, Palette } from 'lucide-react';
-import { FileData } from '../../types';
-import { fileToGenerativePart } from '../../services/geminiService';
-import { audio } from '../../services/audioService';
+import { FileData } from '../../../../types';
+import { fileToGenerativePart } from '../../../../services/geminiService';
+import { audio } from '../../../../services/audioService';
 
 interface ReferenceManagerProps {
     characterRefs: FileData[];

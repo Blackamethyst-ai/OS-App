@@ -5,10 +5,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Loader2, Sparkles, Eye, Camera, Sun, Focus } from 'lucide-react';
-import { FileData } from '../../types';
-import { retryGeminiRequest, getAI, promptSelectKey } from '../../services/geminiService';
+import { FileData } from '../../../../types';
+import { retryGeminiRequest, getAI, promptSelectKey } from '../../../../services/geminiService';
 import { GenerateContentResponse, Type } from '@google/genai';
-import { audio } from '../../services/audioService';
+import { audio } from '../../../../services/audioService';
 
 export interface ProductionBible {
     theme: string;

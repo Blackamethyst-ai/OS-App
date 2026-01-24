@@ -1,14 +1,14 @@
-import { apiKeyService } from '../../services/apiKeyService';
+import { apiKeyService } from '../../../services/apiKeyService';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
 import JSZip from 'jszip';
-import { useAppStore } from '../../store';
-import { AspectRatio, ImageSize, FileData, SOVEREIGN_DEFAULT_COLORWAY } from '../../types';
+import { useAppStore } from '../../../store';
+import { AspectRatio, ImageSize, FileData, SOVEREIGN_DEFAULT_COLORWAY } from '../../../types';
 import {
     promptSelectKey, fileToGenerativePart, generateStoryboardPlan,
     constructCinematicPrompt, retryGeminiRequest,
     generateAudioOverview, getAI
-} from '../../services/geminiService';
+} from '../../../services/geminiService';
 import {
     ImageIcon, Loader2, RefreshCw, Download, Plus, Film, Wand2,
     Upload, X, Layers, Activity, Zap, Clapperboard, Play,
@@ -22,15 +22,15 @@ import {
     Scan, ZoomIn, SearchCode
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import EmotionalResonanceGraph from '../EmotionalResonanceGraph';
-import { audio } from '../../services/audioService';
+import EmotionalResonanceGraph from '../../EmotionalResonanceGraph';
+import { audio } from '../../../services/audioService';
 
 // Import types and shared components from extracted module
 import {
     Frame, ProductionBible, ImageGenProps,
     MetadataTag, CrewSlot,
     ActiveTab, ViewLayer, RefType
-} from '../ImageGenParts/types';
+} from './parts/types';
 
 const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     const imageGen = useAppStore(s => s.imageGen);
