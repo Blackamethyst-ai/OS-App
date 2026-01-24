@@ -7,6 +7,10 @@ export { default as StoryboardPanel, type Frame } from './StoryboardPanel';
 export { default as ScreeningRoom } from './ScreeningRoom';
 export { VideoMode } from './VideoMode';
 export { TeaserMode } from './TeaserMode';
+export { StudioHeader } from './StudioHeader';
+export { StudioFooter } from './StudioFooter';
+export { SingleImageMode } from './SingleImageMode';
+export { StoryboardMode } from './StoryboardMode';
 
 // Types
 export {
