@@ -161,13 +161,12 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
         try {
             const ai = getAI();
-            const model = imageGen.quality === ImageSize.SIZE_1K ? 'imagen-4.0-fast-generate-001' : 'imagen-4.0-generate-001';
 
             const contextualPrompt = productionBible
                 ? `PRODUCTION_BIBLE_CONTEXT: ${productionBible.theme}. OPTICS: ${productionBible.opticProfile}. AESTHETIC: ${productionBible.visualLogic}. DIRECTIVE: ${imageGen.prompt}`
                 : imageGen.prompt;
 
-            let finalPrompt = await constructCinematicPrompt(
+            let basePrompt = await constructCinematicPrompt(
                 contextualPrompt || "A cinematic still shot on 35mm.",
                 imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY,
                 imageGen.characterRefs.length > 0,
@@ -177,11 +176,47 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                 imageGen.activeStylePreset
             );
 
+            // Add character anchoring instruction if we have character refs
+            if (imageGen.characterRefs.length > 0) {
+                basePrompt += `\n\nCHARACTER_ANCHORING: Use the provided character reference images as the EXACT face and identity. Maintain perfect facial feature fidelity - same eyes, nose, mouth, jawline, skin tone. The character must be recognizably the same person.`;
+            }
+
             const allRefs = [...imageGen.characterRefs, ...imageGen.worldRefs, ...imageGen.styleRefs];
+
+            // Try Gemini native image generation first (preserves face from reference)
             if (allRefs.length > 0) {
-                actions.addLog('SYSTEM', 'OPTIC_LINK: Transcoding visual references to semantic tokens...');
+                actions.addLog('SYSTEM', 'OPTIC_LINK: Attempting native multimodal synthesis with direct reference anchoring...');
+
+                try {
+                    const parts: any[] = allRefs.map(r => ({ inlineData: r.inlineData }));
+                    parts.push({ text: basePrompt });
+
+                    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+                        model: 'gemini-2.0-flash-exp',
+                        contents: { parts },
+                        config: {
+                            responseModalities: ['IMAGE', 'TEXT'],
+                            imageDimensions: {
+                                aspectRatio: imageGen.aspectRatio
+                            }
+                        }
+                    }));
+
+                    const imagePart = response.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
+                    if (imagePart?.inlineData) {
+                        const url = `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
+                        actions.setImageGenState({ generatedImage: { url, prompt: basePrompt, aspectRatio: imageGen.aspectRatio, size: imageGen.quality }, isLoading: false });
+                        actions.addLog('SUCCESS', `ASSET_STUDIO: Render finalized via Gemini Native (Character Anchored).`);
+                        audio.playSuccess();
+                        return;
+                    }
+                } catch (e) {
+                    actions.addLog('INFO', 'Native synthesis unavailable, falling back to Imagen with enhanced context...');
+                }
+
+                // Fallback: Enhanced reference analysis for Imagen
                 const analysisParts: any[] = allRefs.map(r => ({ inlineData: r.inlineData }));
-                analysisParts.push({ text: "Analyze these reference images. Extract key visual traits (lighting, style, character features, composition) to guide an image generation model. Output a dense visual description." });
+                analysisParts.push({ text: "Analyze these reference images in EXTREME detail. For any faces: describe exact face shape, eye color/shape/spacing, nose shape/size, lip fullness/shape, jawline, cheekbones, skin tone, hair color/style, any distinctive features. For environments and styles: describe lighting, color palette, textures, mood, composition. Be extremely specific." });
 
                 const analysis = await retryGeminiRequest(() => ai.models.generateContent({
                     model: 'gemini-2.0-flash',
@@ -189,14 +224,17 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                 }));
 
                 if (analysis.text) {
-                    finalPrompt += `\n\nREFERENCE_CONTEXT: ${analysis.text}`;
-                    actions.addLog('INFO', 'OPTIC_LINK: References merged into synthesis vector.');
+                    basePrompt += `\n\nEXACT_REFERENCE_SPECIFICATION: ${analysis.text}`;
+                    actions.addLog('INFO', 'OPTIC_LINK: Enhanced references merged into synthesis vector.');
                 }
             }
 
+            // Use Imagen 4.0 for generation
+            const model = imageGen.quality === ImageSize.SIZE_1K ? 'imagen-4.0-fast-generate-001' : 'imagen-4.0-generate-001';
+
             const response = await ai.models.generateImages({
                 model,
-                prompt: finalPrompt,
+                prompt: basePrompt,
                 config: {
                     numberOfImages: 1,
                     aspectRatio: imageGen.aspectRatio as any
@@ -207,7 +245,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
             if (generatedImage) {
                 const url = `data:${generatedImage.mimeType};base64,${generatedImage.imageBytes}`;
-                actions.setImageGenState({ generatedImage: { url, prompt: finalPrompt, aspectRatio: imageGen.aspectRatio, size: imageGen.quality }, isLoading: false });
+                actions.setImageGenState({ generatedImage: { url, prompt: basePrompt, aspectRatio: imageGen.aspectRatio, size: imageGen.quality }, isLoading: false });
                 actions.addLog('SUCCESS', `ASSET_STUDIO: Render finalized via Imagen 4.`);
                 audio.playSuccess();
             } else {
