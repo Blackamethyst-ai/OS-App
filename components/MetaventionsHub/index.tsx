@@ -18,7 +18,7 @@ import {
     LineChart as ChartIcon, Download,
     FileSearch, ListChecks, Workflow, Code,
     X, Eye, EyeOff, Gauge,
-    UserCircle, Anchor, Bot
+    UserCircle, Anchor, Bot, Maximize2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
