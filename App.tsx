@@ -4,8 +4,8 @@ import { useAppStore } from './store';
 import { useSystemMind } from './stores/useSystemMind';
 import { AppTheme } from './types';
 import Starfield from './components/Starfield';
-import BackgroundEffect from './components/BackgroundEffect';
-import CommandPalette from './components/CommandPalette';
+import { BackgroundEffect } from './components/shared';
+import { CommandPalette } from './components/core';
 import SystemNotification from './components/SystemNotification';
 import OverlayOS from './components/OverlayOS';
 import HoloProjector from './components/HoloProjector';
@@ -40,11 +40,11 @@ import MasterStabilizationProtocol from './components/MasterStabilizationProtoco
 import FocusOverlay from './components/overlays/FocusOverlay';
 import AppHeader from './components/layout/AppHeader';
 
-import VoiceSystem from './components/VoiceSystem';
+import { VoiceSystem } from './components/voice';
 
 // Lazy-loaded components (conditionally rendered)
 const HelpCenter = lazy(() => import('./components/HelpCenter'));
-const AgenticHUD = lazy(() => import('./components/AgenticHUD'));
+const AgenticHUD = lazy(() => import('./components/agents/AgenticHUD'));
 const TimeTravelScrubber = lazy(() => import('./components/TimeTravelScrubber'));
 const ApiKeyModal = lazy(() => import('./components/ApiKeyModal'));
 const OperationalSidebar = lazy(() => import('./components/OperationalSidebar'));

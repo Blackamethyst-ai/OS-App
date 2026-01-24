@@ -9,8 +9,8 @@ import { useVisualCortex } from '../hooks/useVisualCortex';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import { powerService } from '../services/powerService';
-import EvolutionConsole from './EvolutionConsole';
-import PowerControlPanel from './PowerControlPanel';
+import EvolutionConsole from './research/EvolutionConsole';
+import PowerControlPanel from './hardware/PowerControlPanel';
 import { NeuralDebuggerPanel } from './NeuralDebuggerPanel';
 
 const DockIcon = memo(({ icon: Icon, color, onClick, isActive, glowColor, label }: any) => {

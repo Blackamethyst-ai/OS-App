@@ -34,13 +34,12 @@ import { cn } from '../utils/cn';
 import { renderSafe } from '../utils/renderSafe';
 import DEcosystem from './DEcosystem';
 import ContextVelocityChart from './ContextVelocityChart';
-import { BiometricPanel } from './BiometricPanel';
+import { BiometricPanel, BiometricErrorBoundary } from './biometric';
 
 // Lazy load ZenithDisplay (uses three.js - ~500KB)
 const ZenithDisplay = React.lazy(() => import('./ZenithDisplay').then(m => ({ default: m.ZenithDisplay })));
 import { StrategicConsole } from './StrategicConsole';
-import { AdaptiveContainer, AdaptivePanel, AdaptiveRegion } from './AdaptiveContainer';
-import { BiometricErrorBoundary } from './BiometricErrorBoundary';
+import { AdaptiveContainer, AdaptivePanel, AdaptiveRegion } from './shared/AdaptiveContainer';
 import { useAdaptiveUI } from '../hooks/useAdaptiveUI';
 
 

@@ -30,7 +30,7 @@ export async function initializeComponentRegistry(): Promise<void> {
     },
     {
       name: 'Dashboard',
-      loader: () => import('../../components/Dashboard').then(m => m.default),
+      loader: () => import('../../components/core/Dashboard').then(m => m.default),
     },
     {
       name: 'GlobalStatusBar',
@@ -44,25 +44,25 @@ export async function initializeComponentRegistry(): Promise<void> {
     // Biometrics
     {
       name: 'BiometricPanel',
-      loader: () => import('../../components/BiometricPanel').then(m => m.BiometricPanel),
+      loader: () => import('../../components/biometric/BiometricPanel').then(m => m.BiometricPanel),
     },
     {
       name: 'GazeReticle',
-      loader: () => import('../../components/GazeReticle').then(m => m.GazeReticle),
+      loader: () => import('../../components/biometric/GazeReticle').then(m => m.GazeReticle),
     },
 
     // Agent & Process
     {
       name: 'AgentControlCenter',
-      loader: () => import('../../components/AgentControlCenter').then(m => m.default),
+      loader: () => import('../../components/agents/AgentControlCenter').then(m => m.default),
     },
     {
       name: 'AgenticHUD',
-      loader: () => import('../../components/AgenticHUD').then(m => m.default),
+      loader: () => import('../../components/agents/AgenticHUD').then(m => m.default),
     },
     {
       name: 'ProcessVisualizer',
-      loader: () => import('../../components/ProcessVisualizer').then(m => m.default),
+      loader: () => import('../../components/generation/ProcessVisualizer').then(m => m.default),
     },
     {
       name: 'SynapticRouter',
@@ -76,7 +76,7 @@ export async function initializeComponentRegistry(): Promise<void> {
     // Code & Development
     {
       name: 'CodeStudio',
-      loader: () => import('../../components/CodeStudio').then(m => m.default),
+      loader: () => import('../../components/generation/CodeStudio').then(m => m.default),
     },
     {
       name: 'NexusAPIExplorer',
@@ -88,7 +88,7 @@ export async function initializeComponentRegistry(): Promise<void> {
     },
     {
       name: 'CommandPalette',
-      loader: () => import('../../components/CommandPalette').then(m => m.default),
+      loader: () => import('../../components/core/CommandPalette').then(m => m.default),
     },
 
     // Visualizations
@@ -116,15 +116,15 @@ export async function initializeComponentRegistry(): Promise<void> {
     // Voice & Media
     {
       name: 'VoiceMode',
-      loader: () => import('../../components/VoiceMode').then(m => m.default),
+      loader: () => import('../../components/voice/VoiceMode').then(m => m.default),
     },
     {
       name: 'VoiceManager',
-      loader: () => import('../../components/VoiceManager').then(m => m.default),
+      loader: () => import('../../components/voice/VoiceManager').then(m => m.default),
     },
     {
       name: 'ImageGen',
-      loader: () => import('../../components/ImageGen').then(m => m.default),
+      loader: () => import('../../components/generation/ImageGen').then(m => m.default),
     },
 
     // Memory & Knowledge
@@ -154,15 +154,15 @@ export async function initializeComponentRegistry(): Promise<void> {
     // Adaptive UI
     {
       name: 'AdaptiveContainer',
-      loader: () => import('../../components/AdaptiveContainer').then(m => m.AdaptiveContainer),
+      loader: () => import('../../components/shared/AdaptiveContainer').then(m => m.AdaptiveContainer),
     },
     {
       name: 'AdaptivePanel',
-      loader: () => import('../../components/AdaptiveContainer').then(m => m.AdaptivePanel),
+      loader: () => import('../../components/shared/AdaptiveContainer').then(m => m.AdaptivePanel),
     },
     {
       name: 'AdaptiveRegion',
-      loader: () => import('../../components/AdaptiveContainer').then(m => m.AdaptiveRegion),
+      loader: () => import('../../components/shared/AdaptiveContainer').then(m => m.AdaptiveRegion),
     },
   ];
 

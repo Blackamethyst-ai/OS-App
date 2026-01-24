@@ -2,7 +2,7 @@ import React from 'react';
 import { useAppStore } from '../store';
 import { motion } from 'framer-motion';
 import { X, ListTodo, Zap, Activity } from 'lucide-react';
-import ResearchTray from './ResearchTray';
+import ResearchTray from './research/ResearchTray';
 
 const OperationalSidebar: React.FC = () => {
     const actions = useAppStore(s => s.actions);

@@ -11,22 +11,22 @@ import { AppMode } from '../types';
 import { audio } from '../services/audioService';
 
 // Lazy Load Views for performance
-const Dashboard = lazy(() => import('./Dashboard'));
+const Dashboard = lazy(() => import('./core/Dashboard'));
 const MetaventionsHub = lazy(() => import('./MetaventionsHub'));
 const SynthesisBridge = lazy(() => import('./SynthesisBridge'));
-const BibliomorphicEngine = lazy(() => import('./BibliomorphicEngine'));
-const ProcessVisualizer = lazy(() => import('./ProcessVisualizer'));
+const BibliomorphicEngine = lazy(() => import('./research/BibliomorphicEngine'));
+const ProcessVisualizer = lazy(() => import('./generation/ProcessVisualizer'));
 const MemoryCore = lazy(() => import('./MemoryCore'));
-const ImageGen = lazy(() => import('./ImageGen'));
-const HardwareEngine = lazy(() => import('./HardwareEngine'));
-const VoiceMode = lazy(() => import('./VoiceMode'));
-const CodeStudio = lazy(() => import('./CodeStudio'));
-const AgentControlCenter = lazy(() => import('./AgentControlCenter'));
-const AutonomousFinance = lazy(() => import('./AutonomousFinance'));
+const ImageGen = lazy(() => import('./generation/ImageGen'));
+const HardwareEngine = lazy(() => import('./hardware/HardwareEngine'));
+const VoiceMode = lazy(() => import('./voice/VoiceMode'));
+const CodeStudio = lazy(() => import('./generation/CodeStudio'));
+const AgentControlCenter = lazy(() => import('./agents/AgentControlCenter'));
+const AutonomousFinance = lazy(() => import('./finance/AutonomousFinance'));
 const NexusAPIExplorer = lazy(() => import('./NexusAPIExplorer'));
 const AgentCoreTest = lazy(() => import('./AgentCoreTest'));
 const CPBTest = lazy(() => import('./CPBTest'));
-const ArchonDashboard = lazy(() => import('./ArchonDashboard'));
+const ArchonDashboard = lazy(() => import('./agents/ArchonDashboard'));
 
 // --- CYCLE 1: SPATIAL COORDINATE MAP ---
 const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> = {
