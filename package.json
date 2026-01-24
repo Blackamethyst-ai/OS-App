@@ -41,6 +41,11 @@
     "three": "^0.170.0",
     "zustand": "^5.0.3"
   },
+  "overrides": {
+    "node-fetch": "^2.7.0",
+    "lodash": "^4.17.21",
+    "lodash-es": "^4.17.21"
+  },
   "devDependencies": {
     "@testing-library/react": "^16.3.1",
     "@types/d3": "^7.4.3",
