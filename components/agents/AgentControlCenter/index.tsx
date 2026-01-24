@@ -1,7 +1,7 @@
-import { apiKeyService } from '../../services/apiKeyService';
-import { modelRouter } from '../../services/modelRouter';
+import { apiKeyService } from '../../../services/apiKeyService';
+import { modelRouter } from '../../../services/modelRouter';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useAppStore } from '../../store';
+import { useAppStore } from '../../../store';
 import {
     Bot, Cpu, Activity, Zap, Shield, Search, Send,
     Loader2, BrainCircuit, Terminal, Radio, Info,
@@ -15,15 +15,15 @@ import {
     BookOpen
 } from 'lucide-react';
 import { useSemanticSearch, useSessions } from '@antigravity/agent-core-sdk';
-import { elevenLabs, ELEVEN_LABS_VOICES } from '../../services/elevenLabsService';
+import { elevenLabs, ELEVEN_LABS_VOICES } from '../../../services/elevenLabsService';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AutonomousAgent, OperationalContext, MentalState, TaskStatus, AtomicTask } from '../../types';
+import { AutonomousAgent, OperationalContext, MentalState, TaskStatus, AtomicTask } from '../../../types';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest, getAI } from '../../services/geminiService';
-import { audio } from '../../services/audioService';
-import { cn } from '../../utils/cn';
-import { ModelSelector } from '../ModelSelector';
-import { convergenceMemory } from '../../services/bicameralService';
+import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest, getAI } from '../../../services/geminiService';
+import { audio } from '../../../services/audioService';
+import { cn } from '../../../utils/cn';
+import { ModelSelector } from '../../ModelSelector';
+import { convergenceMemory } from '../../../services/bicameralService';
 
 /**
  * LIVING SKILL CONSTELLATION
