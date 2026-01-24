@@ -16,7 +16,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { StoredArtifact } from '../types';
 import KnowledgeGraph from './KnowledgeGraph';
-import PowerXRay from './PowerXRay';
+import PowerXRay from './hardware/PowerXRay';
 import DynamicVisuals from './DynamicVisuals';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';

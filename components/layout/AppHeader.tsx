@@ -7,7 +7,7 @@ import { audio } from '../../services/audioService';
 import { useNavigation } from '../../hooks/useNavigation';
 import MetaventionsLogo from '../MetaventionsLogo';
 import ThemeSwitcher from '../ThemeSwitcher';
-import GlobalSearchBar from '../GlobalSearchBar';
+import GlobalSearchBar from '../core/GlobalSearchBar';
 
 const AppHeader: React.FC = () => {
     const mode = useAppStore(s => s.mode);
