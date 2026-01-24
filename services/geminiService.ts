@@ -258,10 +258,42 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
         2. MIDGROUND (0.5 Z): The Sovereign Architect (wearing the black leather jacket). High contrast.
         3. BACKGROUND (1.0 Z): Obsidian "Vantablack" void environment.
 
+        CHARACTER_ANCHORING: Use the provided reference image as the EXACT face and identity for the Sovereign Architect.
+        Maintain perfect facial feature fidelity - same eyes, nose, mouth, jawline, skin tone.
+        The character must be recognizably the same person as in the reference.
+
         TASK: ${prompt}. Indistinguishable from reality.
     `.trim();
 
-    // If reference image provided, analyze it first to extract visual traits
+    // Build parts array - reference image first (for character anchoring), then prompt
+    const parts: any[] = [];
+    if (reference) {
+        parts.push({ inlineData: reference.inlineData });
+    }
+    parts.push({ text: volumetricPrompt });
+
+    // Try Gemini native image generation first (preserves face from reference)
+    try {
+        const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+            model: 'gemini-2.0-flash-exp',
+            contents: { parts },
+            config: {
+                responseModalities: ['IMAGE', 'TEXT'],
+                imageDimensions: {
+                    aspectRatio: aspectRatio
+                }
+            }
+        }));
+
+        const imagePart = response.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
+        if (imagePart?.inlineData) {
+            return `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}`;
+        }
+    } catch (e) {
+        console.log('Gemini native image gen failed, falling back to Imagen:', e);
+    }
+
+    // Fallback: Use Imagen 4.0 with enhanced reference context
     let referenceContext = '';
     if (reference) {
         try {
@@ -269,18 +301,16 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
                 model: 'gemini-2.0-flash',
                 contents: { parts: [
                     { inlineData: reference.inlineData },
-                    { text: "Analyze this reference image. Extract key visual traits (face structure, lighting style, clothing details, composition) to guide cinematic image generation. Output a dense visual description for character anchoring." }
+                    { text: "Analyze this person's face in extreme detail. Describe: exact face shape, eye color/shape/spacing, nose shape/size, lip fullness/shape, jawline, cheekbones, skin tone, hair color/style, any distinctive features (moles, dimples, etc). Be extremely specific - this will be used to recreate their exact likeness." }
                 ]}
             }));
-            referenceContext = analysisResponse.text ? `\n\nCHARACTER_ANCHOR_CONTEXT: ${analysisResponse.text}` : '';
+            referenceContext = analysisResponse.text ? `\n\nEXACT_IDENTITY_SPECIFICATION: ${analysisResponse.text}` : '';
         } catch (e) {
             // Continue without reference context if analysis fails
         }
     }
 
     const finalPrompt = volumetricPrompt + referenceContext;
-
-    // Use Imagen 4.0 for high-fidelity image generation
     const model = quality === ImageSize.SIZE_1K ? 'imagen-4.0-fast-generate-001' : 'imagen-4.0-generate-001';
 
     const response = await ai.models.generateImages({
