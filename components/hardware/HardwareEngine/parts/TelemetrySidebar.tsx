@@ -10,7 +10,7 @@ import {
     Loader2, Microscope, FileText, Target
 } from 'lucide-react';
 import type { GpuWithLiveData } from '../../../../types';
-import { PerformanceMixer, NeuralThermalGrid } from './index';
+import { PerformanceMixer, NeuralThermalGrid } from './effects';
 
 interface FinTelemetry {
     totalBomCost: number;
