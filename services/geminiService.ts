@@ -244,28 +244,56 @@ export async function performGlobalSearch(query: string) {
 
 export async function generateArchitectureImage(prompt: string, aspectRatio: AspectRatio, quality: ImageSize, reference?: FileData | null) {
     const ai = getAI();
-    const parts: any[] = [];
-    if (reference) parts.push({ inlineData: reference.inlineData });
 
+    // THEME LOCK: Sovereign Architect + Black Leather Jacket + Cinematic Optics
     const volumetricPrompt = `
         PROTOCOL: ZENITH_VOLUMETRIC_DEPTH_L0
         THEME: Sovereign Imperial Architect wearing a high-end, tailored black leather jacket with visible fine grain texture and obsidian hardware. The character stands in a grand obsidian nexus.
         OPTICS: Arri Alexa 65, 35mm Prime. f/1.4 (Deep Cinematic Bokeh).
         LIGHTING: Rim lighting on leather texture, volumetric hazy atmosphere.
-        FIDELITY: 8K UHD, photorealistic CGI fusion. 
+        FIDELITY: 8K UHD, photorealistic CGI fusion.
+
+        DEPTH_MAPPING_PROTOCOL (Luminance heuristics):
+        1. FOREGROUND (0.0 - 0.3 Z): Hyper-luminous holographic PARA-Lattices. Max brightness.
+        2. MIDGROUND (0.5 Z): The Sovereign Architect (wearing the black leather jacket). High contrast.
+        3. BACKGROUND (1.0 Z): Obsidian "Vantablack" void environment.
+
         TASK: ${prompt}. Indistinguishable from reality.
     `.trim();
 
-    parts.push({ text: volumetricPrompt });
+    // If reference image provided, analyze it first to extract visual traits
+    let referenceContext = '';
+    if (reference) {
+        try {
+            const analysisResponse = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+                model: 'gemini-2.0-flash',
+                contents: { parts: [
+                    { inlineData: reference.inlineData },
+                    { text: "Analyze this reference image. Extract key visual traits (face structure, lighting style, clothing details, composition) to guide cinematic image generation. Output a dense visual description for character anchoring." }
+                ]}
+            }));
+            referenceContext = analysisResponse.text ? `\n\nCHARACTER_ANCHOR_CONTEXT: ${analysisResponse.text}` : '';
+        } catch (e) {
+            // Continue without reference context if analysis fails
+        }
+    }
 
-    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        // Using "Nano Banana" generation model (per docs)
-        model: 'gemini-2.0-flash-exp',
-        contents: { parts },
-        config: { imageConfig: { aspectRatio, imageSize: quality as any } }
-    }));
-    const imagePart = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-    return imagePart ? `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}` : "";
+    const finalPrompt = volumetricPrompt + referenceContext;
+
+    // Use Imagen 4.0 for high-fidelity image generation
+    const model = quality === ImageSize.SIZE_1K ? 'imagen-4.0-fast-generate-001' : 'imagen-4.0-generate-001';
+
+    const response = await ai.models.generateImages({
+        model,
+        prompt: finalPrompt,
+        config: {
+            numberOfImages: 1,
+            aspectRatio: aspectRatio as any
+        }
+    });
+
+    const generatedImage = response.generatedImages?.[0]?.image;
+    return generatedImage ? `data:${generatedImage.mimeType};base64,${generatedImage.imageBytes}` : "";
 }
 
 export async function generateAvatar(role: string, name: string, gender: string = 'male') {
