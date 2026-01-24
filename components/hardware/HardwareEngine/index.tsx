@@ -30,7 +30,7 @@ import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianG
 import ProcurementModal from '../ProcurementModal';
 
 // Extracted sub-components
-import { ComputeFluxOverlay, NeuralThermalGrid, PerformanceMixer } from './parts';
+import { ComputeFluxOverlay, NeuralThermalGrid, PerformanceMixer, GpuCard, GpuDetailPanel, TelemetrySidebar } from './parts';
 
 const HardwareEngine: React.FC = () => {
     const { hardware, actions, metaventions } = useAppStore();
@@ -455,122 +455,24 @@ const HardwareEngine: React.FC = () => {
                                 </div>
 
                                 <div className="flex-1 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto custom-scrollbar pr-1 pb-6">
-                                    {filteredGpus.filter(g => g.model.toLowerCase().includes(gpuSearchQuery.toLowerCase())).map(gpu => {
-                                        const displayPrice = gpu.livePrice?.price || gpu.msrp;
-                                        const stockStatus = gpu.livePrice?.stock || (gpu.era === 'SILICON' ? 'IN_STOCK' : 'LIMITED');
-                                        const priceTrend = gpu.livePrice?.trend || 0;
-
-                                        return (
-                                            <motion.div
-                                                key={gpu.id}
-                                                onClick={() => setSelectedGpu(gpu)}
-                                                className={`p-5 bg-[#0a0a0a] border rounded-2xl cursor-pointer transition-all relative overflow-hidden group/gpu ${selectedGpu?.id === gpu.id ? 'border-[#22d3ee] shadow-xl' : 'border-white/5 hover:border-white/15'}`}
-                                            >
-                                                <div className="flex justify-between items-start mb-5">
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="p-2 bg-white/5 rounded-xl text-gray-600 group-hover/gpu:text-[#22d3ee] transition-all"><Box size={18} /></div>
-                                                        {gpu.era === 'SILICON' && (
-                                                            <span className="text-[7px] font-mono text-gray-700 uppercase tracking-widest px-2 py-0.5 bg-white/5 rounded">{gpu.tier}</span>
-                                                        )}
-                                                    </div>
-                                                    <div className={`px-3 py-1 rounded-md text-[8px] font-medium font-mono uppercase tracking-widest border transition-colors ${stockStatus === 'IN_STOCK' ? 'text-[#10b981]/80 bg-[#10b981]/5 border-[#10b981]/20' : stockStatus === 'LIMITED' ? 'text-gray-400 bg-white/5 border-white/10' : 'text-gray-500 bg-white/[0.02] border-white/5'}`}>
-                                                        {stockStatus === 'IN_STOCK' ? 'Available' : stockStatus === 'LIMITED' ? 'Low Stock' : 'Unavailable'}
-                                                    </div>
-                                                </div>
-                                                <h3 className="text-[13px] font-black text-white uppercase font-mono tracking-tighter mb-1">{gpu.model}</h3>
-                                                <p className="text-[8px] text-gray-600 font-mono uppercase tracking-widest mb-1">{gpu.manufacturer} // {gpu.arch}</p>
-                                                <p className="text-[7px] text-gray-700 font-mono mb-6">{gpu.specs.vram} {gpu.specs.vramType} • {gpu.specs.tdp}</p>
-                                                <div className="flex justify-between items-end border-t border-white/5 pt-4">
-                                                    <div>
-                                                        <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest block mb-1">
-                                                            {gpu.livePrice ? 'Market Price' : 'MSRP'}
-                                                        </span>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-base font-black font-mono text-[#10b981] tracking-tighter">${displayPrice.toLocaleString()}</span>
-                                                            {priceTrend !== 0 && (
-                                                                <span className={`text-[9px] font-mono flex items-center gap-0.5 ${priceTrend > 0 ? 'text-amber-400/70' : 'text-[#10b981]/70'}`}>
-                                                                    {priceTrend > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
-                                                                    {Math.abs(priceTrend).toFixed(1)}%
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                    {isFetchingPrice && selectedGpu?.id === gpu.id && (
-                                                        <Loader2 size={14} className="text-[#22d3ee] animate-spin" />
-                                                    )}
-                                                </div>
-                                            </motion.div>
-                                        );
-                                    })}
+                                    {filteredGpus.filter(g => g.model.toLowerCase().includes(gpuSearchQuery.toLowerCase())).map(gpu => (
+                                        <GpuCard
+                                            key={gpu.id}
+                                            gpu={gpu}
+                                            isSelected={selectedGpu?.id === gpu.id}
+                                            isFetchingPrice={isFetchingPrice}
+                                            onSelect={setSelectedGpu}
+                                        />
+                                    ))}
                                 </div>
 
                                 <AnimatePresence>
                                     {selectedGpu && (
-                                        <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 220, opacity: 1 }} className="border-t border-white/10 bg-[#050505]/95 backdrop-blur-2xl -mx-6 -mb-6 p-6 flex gap-8 overflow-hidden shadow-2xl relative z-20 shrink-0">
-                                            <div className="w-[280px] flex flex-col gap-3 shrink-0">
-                                                <h4 className="text-[11px] font-black font-mono text-white uppercase tracking-tight">{selectedGpu.model} // BOM Specification</h4>
-                                                <div className="flex-1 overflow-y-auto custom-scrollbar space-y-1.5">
-                                                    {selectedGpu.bom.map((item, i) => (
-                                                        <div key={i} className="p-2.5 bg-black border border-white/5 rounded-xl flex items-center justify-between group/bom-item hover:border-[#22d3ee]/30 transition-all">
-                                                            <span className="text-[9px] font-black text-gray-400 uppercase truncate">{item}</span>
-                                                            <button onClick={() => fetchSupplyChain(item)} className="p-1 text-gray-700 hover:text-[#22d3ee] rounded transition-all" aria-label="View supply chain"><ExternalLink size={10}/></button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            {/* Specs Panel */}
-                                            <div className="w-[200px] flex flex-col gap-2 shrink-0">
-                                                <h4 className="text-[11px] font-black font-mono text-white uppercase tracking-tight mb-1">Technical Specs</h4>
-                                                <div className="grid grid-cols-2 gap-2 text-[8px] font-mono">
-                                                    <div className="p-2 bg-black border border-white/5 rounded-lg">
-                                                        <span className="text-gray-600 block">VRAM</span>
-                                                        <span className="text-white font-bold">{selectedGpu.specs.vram}</span>
-                                                    </div>
-                                                    <div className="p-2 bg-black border border-white/5 rounded-lg">
-                                                        <span className="text-gray-600 block">TDP</span>
-                                                        <span className="text-white font-bold">{selectedGpu.specs.tdp}</span>
-                                                    </div>
-                                                    <div className="p-2 bg-black border border-white/5 rounded-lg">
-                                                        <span className="text-gray-600 block">CORES</span>
-                                                        <span className="text-white font-bold">{selectedGpu.specs.cores}</span>
-                                                    </div>
-                                                    <div className="p-2 bg-black border border-white/5 rounded-lg">
-                                                        <span className="text-gray-600 block">BOOST</span>
-                                                        <span className="text-white font-bold">{selectedGpu.specs.boostClock}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="mt-2 p-2 bg-black border border-white/5 rounded-lg">
-                                                    <span className="text-gray-600 block text-[8px]">MTBF (Est.)</span>
-                                                    <span className="text-[#10b981] font-bold text-sm">{selectedGpu.mtbf.toLocaleString()}h</span>
-                                                </div>
-                                            </div>
-
-                                            <div className="flex-1 flex flex-col gap-4">
-                                                <div className="flex justify-between items-center px-1">
-                                                    <div className="flex items-center gap-4">
-                                                        <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Price History</span>
-                                                        {selectedGpu.livePrice?.source && (
-                                                            <span className="text-[7px] font-mono text-gray-700">Source: {selectedGpu.livePrice.source}</span>
-                                                        )}
-                                                    </div>
-                                                    <button onClick={() => handleOpenProcurement(selectedGpu)} className="px-4 py-2 bg-[#10b981] text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg">Procure Unit</button>
-                                                </div>
-                                                <div className="flex-1 bg-black rounded-2xl border border-white/5 p-4 relative overflow-hidden shadow-inner">
-                                                    <AreaChart
-                                                        data={Array.from({length: 20}, (_, i) => {
-                                                            const basePrice = selectedGpu.livePrice?.price || selectedGpu.msrp;
-                                                            const variance = basePrice * 0.08;
-                                                            return { t: i, v: basePrice - variance + Math.random() * variance * 2 };
-                                                        })}
-                                                        width={350}
-                                                        height={100}
-                                                    >
-                                                        <Area type="monotone" dataKey="v" stroke="#10b981" fill="rgba(16,185,129,0.08)" strokeWidth={2} />
-                                                    </AreaChart>
-                                                </div>
-                                            </div>
-                                        </motion.div>
+                                        <GpuDetailPanel
+                                            gpu={selectedGpu}
+                                            onFetchSupplyChain={fetchSupplyChain}
+                                            onOpenProcurement={handleOpenProcurement}
+                                        />
                                     )}
                                 </AnimatePresence>
                             </motion.div>
