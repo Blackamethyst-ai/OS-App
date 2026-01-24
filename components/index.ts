@@ -36,8 +36,6 @@ export * from './shared';
 // Graph components
 export * from './graph';
 
-// ImageGen parts
-export * from './ImageGenParts';
 
 // Visualizations
 export { default as AgentGraveyard } from './Visualizations/AgentGraveyard';
