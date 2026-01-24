@@ -1,15 +1,15 @@
-import { apiKeyService } from '../services/apiKeyService';
+import { apiKeyService } from '../../services/apiKeyService';
 
 import React, { useState, useEffect, useMemo, useRef, useCallback, Suspense } from 'react';
-import { useAppStore } from '../store';
+import { useAppStore } from '../../store';
 import {
     generateArchitectureImage,
     promptSelectKey,
     fileToGenerativePart,
     liveSession,
     generateStructuredWorkflow
-} from '../services/geminiService';
-import { AspectRatio, ImageSize } from '../types';
+} from '../../services/geminiService';
+import { AspectRatio, ImageSize } from '../../types';
 import {
     Activity, Shield, Cpu,
     Target, Loader2, RefreshCw, Upload,
@@ -28,19 +28,19 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
-import { audio } from '../services/audioService';
-import { cn } from '../utils/cn';
+import { audio } from '../../services/audioService';
+import { cn } from '../../utils/cn';
 // Fix: Import renderSafe to resolve missing name error during manifest visualization.
-import { renderSafe } from '../utils/renderSafe';
-import DEcosystem from './DEcosystem';
-import ContextVelocityChart from './ContextVelocityChart';
-import { BiometricPanel, BiometricErrorBoundary } from './biometric';
+import { renderSafe } from '../../utils/renderSafe';
+import DEcosystem from '../DEcosystem';
+import ContextVelocityChart from '../ContextVelocityChart';
+import { BiometricPanel, BiometricErrorBoundary } from '../biometric';
 
 // Lazy load ZenithDisplay (uses three.js - ~500KB)
-const ZenithDisplay = React.lazy(() => import('./ZenithDisplay').then(m => ({ default: m.ZenithDisplay })));
-import { StrategicConsole } from './StrategicConsole';
-import { AdaptiveContainer, AdaptivePanel, AdaptiveRegion } from './shared/AdaptiveContainer';
-import { useAdaptiveUI } from '../hooks/useAdaptiveUI';
+const ZenithDisplay = React.lazy(() => import('../ZenithDisplay').then(m => ({ default: m.ZenithDisplay })));
+import { StrategicConsole } from '../StrategicConsole';
+import { AdaptiveContainer, AdaptivePanel, AdaptiveRegion } from '../shared/AdaptiveContainer';
+import { useAdaptiveUI } from '../../hooks/useAdaptiveUI';
 
 
 const VISIONARY_DIRECTIVES = [
