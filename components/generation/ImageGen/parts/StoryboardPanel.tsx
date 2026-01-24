@@ -5,13 +5,13 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Clapperboard, Play, CheckCircle2, Camera, Sun } from 'lucide-react';
-import { FileData, SOVEREIGN_DEFAULT_COLORWAY } from '../../types';
+import { FileData, SOVEREIGN_DEFAULT_COLORWAY } from '../../../../types';
 import {
     generateStoryboardPlan, constructCinematicPrompt, retryGeminiRequest,
     getAI, promptSelectKey
-} from '../../services/geminiService';
+} from '../../../../services/geminiService';
 import { GenerateContentResponse } from '@google/genai';
-import { audio } from '../../services/audioService';
+import { audio } from '../../../../services/audioService';
 import { ProductionBible } from './ProductionBiblePanel';
 
 export interface Frame {
