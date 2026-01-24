@@ -41,66 +41,17 @@ const ZenithDisplay = React.lazy(() => import('../ZenithDisplay').then(m => ({ d
 import { StrategicConsole } from '../StrategicConsole';
 import { AdaptiveContainer, AdaptivePanel, AdaptiveRegion } from '../shared/AdaptiveContainer';
 import { useAdaptiveUI } from '../../hooks/useAdaptiveUI';
-import { VISIONARY_DIRECTIVES } from '../../data/directives';
 
-const VolumetricFog = () => (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-40">
-        <motion.div
-            animate={{
-                x: [-100, 100, -100],
-                y: [-50, 50, -50],
-                scale: [1, 1.2, 1],
-                rotate: [0, 15, 0]
-            }}
-            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-            className="absolute -inset-[100%] bg-[radial-gradient(circle_at_30%_40%,color-mix(in_srgb,var(--amethyst),transparent_92%)_0%,transparent_50%)]"
-        />
-        <motion.div
-            animate={{
-                x: [100, -100, 100],
-                y: [50, -50, 50],
-                scale: [1.2, 1, 1.2],
-                rotate: [0, -15, 0]
-            }}
-            transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
-            className="absolute -inset-[100%] bg-[radial-gradient(circle_at_70%_60%,color-mix(in_srgb,var(--cyan),transparent_95%)_0%,transparent_40%)]"
-        />
-    </div>
-);
-
-const DataStreamTether = () => (
-    <svg className="fixed inset-0 w-full h-full pointer-events-none z-30 opacity-40">
-        <defs>
-            <linearGradient id="streamGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="var(--amethyst)" stopOpacity="0" />
-                <stop offset="50%" stopColor="var(--cyan)" stopOpacity="1" />
-                <stop offset="100%" stopColor="var(--amethyst)" stopOpacity="0" />
-            </linearGradient>
-            <filter id="packetGlow">
-                <feGaussianBlur stdDeviation="2" result="blur" />
-                <feMerge>
-                    <feMergeNode in="blur" />
-                    <feMergeNode in="SourceGraphic" />
-                </feMerge>
-            </filter>
-        </defs>
-        <path
-            d="M 1200,280 C 1100,280 900,280 800,280"
-            fill="none"
-            stroke="rgba(255,255,255,0.03)"
-            strokeWidth="1"
-        />
-        <motion.circle
-            cx="1200"
-            r="2"
-            fill="var(--cyan)"
-            filter="url(#packetGlow)"
-            animate={{ cx: [1200, 800] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            style={{ cy: 280 }}
-        />
-    </svg>
-);
+// Extracted sub-components
+import {
+    VolumetricFog,
+    DataStreamTether,
+    NeuralFileStream,
+    CompactMetric,
+    CapitalVelocity,
+    SwarmBox,
+    VisionaryTicker
+} from './parts';
 
 const ProceduralHologram = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -195,101 +146,6 @@ const SwarmLattice = () => (
             transition={{ duration: 4, repeat: Infinity }}
         />
     </svg>
-);
-
-const VisionaryTicker = () => {
-    const [index, setIndex] = useState(0);
-    useEffect(() => {
-        const interval = setInterval(() => setIndex(i => (i + 1) % VISIONARY_DIRECTIVES.length), 8000);
-        return () => clearInterval(interval);
-    }, []);
-    return (
-        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-40 bg-black/60 backdrop-blur-xl border border-white/5 px-6 py-2 rounded-full shadow-2xl">
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={index}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="flex items-center gap-3"
-                >
-                    <Sparkles size={10} className="text-[#f1c21b] animate-pulse" />
-                    <span className="text-[8px] font-black font-mono text-gray-400 uppercase tracking-[0.4em] italic">
-                        {VISIONARY_DIRECTIVES[index]}
-                    </span>
-                </motion.div>
-            </AnimatePresence>
-        </div>
-    );
-};
-
-const NeuralFileStream = ({ active, isDraggingOver }: { active: boolean, isDraggingOver?: boolean }) => {
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-    useEffect(() => {
-        if (!active && !isDraggingOver) return;
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-        let frame = 0;
-        const count = isDraggingOver ? 100 : 40;
-        const particles: any[] = Array.from({ length: count }, () => ({
-            x: Math.random() * 800,
-            y: Math.random() * 400,
-            vx: (Math.random() - 0.5) * 2,
-            vy: (Math.random() - 0.5) * 2,
-            size: Math.random() * 2 + 1,
-            color: isDraggingOver ? '#ffffff' : ['#9d4edd', '#22d3ee', '#f1c21b', '#10b981'][Math.floor(Math.random() * 4)]
-        }));
-        const animate = () => {
-            frame++;
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                if (isDraggingOver) {
-                    // Particles gravitate towards center during drag
-                    const dx = canvas.width / 2 - p.x;
-                    const dy = canvas.height / 2 - p.y;
-                    p.vx += dx * 0.001;
-                    p.vy += dy * 0.001;
-                }
-                p.x += p.vx; p.y += p.vy;
-                p.vx *= 0.98; p.vy *= 0.98;
-                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-                ctx.fillStyle = p.color;
-                ctx.shadowBlur = 10;
-                ctx.shadowColor = p.color;
-                ctx.fill();
-            });
-            requestAnimationFrame(animate);
-        };
-        const handle = requestAnimationFrame(animate);
-        return () => cancelAnimationFrame(handle);
-    }, [active, isDraggingOver]);
-    return <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-10 opacity-30" />;
-};
-
-const CompactMetric = ({ title, value, detail, icon: Icon, color, trend }: any) => (
-    <div className="crystalline border-none rounded-2xl p-4 flex flex-col gap-2 hover:border-white/15 transition-all group shadow-inner relative overflow-hidden invisible-glass hover:scale-[1.02]">
-        <div className="flex justify-between items-center relative z-10">
-            <div className="p-1.5 rounded-lg bg-white/5 text-gray-500 group-hover:text-white transition-all">
-                <Icon size={12} style={{ color }} />
-            </div>
-            <div className={`text-[8px] font-mono font-black flex items-center gap-0.5 ${trend === 'up' ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
-                {trend === 'up' ? <TrendingUp size={8} /> : <TrendingDown size={8} />}
-                {detail}
-            </div>
-        </div>
-        <div className="relative z-10">
-            <div className="text-[7px] font-black font-mono text-gray-500 uppercase tracking-widest mb-0.5">{title}</div>
-            <div className="text-lg font-black font-mono text-white tracking-tighter leading-none">{value}</div>
-        </div>
-        <div className="absolute bottom-0 right-0 w-full h-0.5 bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-20" />
-    </div>
 );
 
 const CapitalVelocity = ({ telemetry }: { telemetry: any }) => {
