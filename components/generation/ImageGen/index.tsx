@@ -31,6 +31,8 @@ import {
     MetadataTag, CrewSlot,
     ActiveTab, ViewLayer, RefType
 } from './parts/types';
+import { VideoMode } from './parts/VideoMode';
+import { TeaserMode } from './parts/TeaserMode';
 
 const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     const imageGen = useAppStore(s => s.imageGen);
@@ -1007,276 +1009,34 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                     )}
 
                     {activeTab === 'VIDEO' && (
-                        <motion.div key="video" initial={{ opacity: 0, scale: 1.02 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.98 }} className="w-full h-full flex gap-8 p-10 overflow-hidden">
-                            {/* High-Fidelity Motion Controls */}
-                            <div className="w-[420px] flex flex-col gap-6 shrink-0 overflow-y-auto custom-scrollbar pr-2 border-r border-[var(--border-main)]">
-                                <div className="p-10 bg-[#0a0a0a]/95 backdrop-blur-3xl border border-white/5 rounded-[3rem] flex flex-col gap-8 shadow-2xl relative overflow-hidden shrink-0 group/panel">
-                                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover/panel:opacity-[0.08] transition-opacity rotate-12"><Video size={140} /></div>
-
-                                    <div className="flex items-center gap-4 relative z-10">
-                                        <div className="p-3 bg-[#d946ef]/10 border border-[#d946ef]/30 rounded-2xl">
-                                            <Waves className="w-6 h-6 text-[#d946ef]" />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-base font-black font-mono text-white uppercase tracking-[0.5em]">Temporal Loom</h2>
-                                            <p className="text-[9px] text-gray-500 font-mono uppercase tracking-widest mt-1 uppercase">V8.1 - THE D-Ecosystem</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="space-y-6 relative z-10">
-                                        <div className="space-y-4">
-                                            <div className="flex justify-between items-center px-3">
-                                                <label className="text-[10px] font-black text-gray-400 font-mono uppercase tracking-widest flex items-center gap-2"><Compass size={12} /> Motion Directive</label>
-                                                <span className="text-[8px] font-mono text-gray-700">VEO_CORE_V3</span>
-                                            </div>
-                                            <textarea
-                                                value={videoPrompt}
-                                                onChange={e => setVideoPrompt(e.target.value)}
-                                                className="w-full h-40 bg-black border border-[#222] p-6 rounded-3xl text-sm font-mono text-gray-300 outline-none focus:border-[#d946ef] resize-none transition-all shadow-inner placeholder:text-gray-800"
-                                                placeholder="Describe cinematic travel, panning speed..."
-                                            />
-                                        </div>
-
-                                        <div className="space-y-6 bg-white/[0.02] p-6 rounded-3xl border border-white/5">
-                                            <div className="space-y-4">
-                                                <div className="flex justify-between items-end">
-                                                    <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Neural Motion Bias</span>
-                                                    <span className="text-xs font-black font-mono text-[#d946ef]">{videoMotionBias}%</span>
-                                                </div>
-                                                <div className="relative h-1.5 w-full bg-black rounded-full overflow-hidden border border-white/5 shadow-inner">
-                                                    <motion.div
-                                                        className="h-full bg-gradient-to-r from-[#d946ef] to-[#f0abfc] shadow-[0_0_15px_#d946ef]"
-                                                        animate={{ width: `${videoMotionBias}%` }}
-                                                    />
-                                                    <input
-                                                        type="range"
-                                                        min="0" max="100"
-                                                        value={videoMotionBias}
-                                                        onChange={e => setVideoMotionBias(parseInt(e.target.value, 10))}
-                                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-2">
-                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Target Res</label>
-                                                    <div className="flex gap-1.5 p-1 bg-black rounded-xl border border-white/5">
-                                                        {['720p', '1080p'].map(res => (
-                                                            <button
-                                                                key={res}
-                                                                onClick={() => { setVideoRes(res as any); audio.playClick(); }}
-                                                                className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${videoRes === res ? 'bg-[#d946ef] text-black shadow-lg shadow-[#d946ef]/20' : 'text-gray-500 hover:text-white'}`}
-                                                            >
-                                                                {res}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <label className="text-[8px] font-black text-gray-600 uppercase tracking-widest pl-1">Coherence</label>
-                                                    <div className="flex items-center gap-2 h-9 bg-black border border-white/5 rounded-xl px-3">
-                                                        <ShieldCheck size={14} className="text-[var(--plasma-green)]" />
-                                                        <span className="text-[9px] font-mono text-[var(--plasma-green)] font-black uppercase">Max_Stable</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <button
-                                        onClick={handleVideoGenerate}
-                                        disabled={isVideoLoading || !videoPrompt.trim()}
-                                        className="w-full py-5 bg-[#d946ef] hover:bg-[#f0abfc] text-black font-black font-mono text-[10px] uppercase tracking-[0.4em] rounded-[2.5rem] transition-all shadow-[0_20px_50px_rgba(217,70,239,0.4)] flex items-center justify-center gap-5 disabled:opacity-50 active:scale-95 relative z-10 mb-2 group/btn"
-                                    >
-                                        {isVideoLoading ? <Loader2 size={7} className="w-7 h-7 animate-spin" /> : <MoveUpRight size={24} className="group-hover/btn:scale-125 transition-transform" />}
-                                        {isVideoLoading ? 'Synthesizing...' : 'Forge Motion Sequence'}
-                                    </button>
-                                </div>
-
-                                <div className="p-8 bg-[#d946ef]/5 border border-[#d946ef]/20 rounded-[2.5rem] shrink-0 mb-10 overflow-hidden relative group">
-                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(217,70,239,0.1),transparent)] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                                    <div className="flex items-center gap-3 mb-4 relative z-10">
-                                        <Cpu size={16} className="text-[#d946ef]" />
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-white font-mono">Temporal Context Lock</span>
-                                    </div>
-                                    <p className="text-[10px] text-gray-500 font-mono leading-relaxed relative z-10 italic">
-                                        "Continuity protocols maintained by Production Bible."
-                                    </p>
-                                </div>
-                            </div>
-
-                            {/* Enhanced Video Viewport */}
-                            <div className="flex-1 bg-[#020202] border border-white/10 rounded-[4rem] overflow-hidden relative shadow-[0_50px_150px_rgba(0,0,0,1)] flex items-center justify-center group/v-view">
-                                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,rgba(217,70,239,0.02)_0%,transparent_70%)] group-hover/v-view:opacity-100 opacity-50 transition-opacity duration-1000" />
-
-                                <AnimatePresence mode="wait">
-                                    {isVideoLoading ? (
-                                        <motion.div key="loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-12 relative z-10">
-                                            <div className="relative">
-                                                <div className="w-40 h-40 rounded-full border-4 border-t-[#d946ef] border-white/5 animate-spin" />
-                                                <div className="absolute inset-0 blur-3xl bg-[var(--amethyst)]/20 animate-pulse" />
-                                            </div>
-                                            <div className="text-center space-y-4">
-                                                <p className="text-3xl font-black font-mono text-white uppercase tracking-[1em] animate-pulse">{videoProgressMsg}</p>
-                                                <p className="text-[10px] font-mono text-gray-600 uppercase tracking-[0.4em]">Maintaining global temporal alignment nodes...</p>
-                                            </div>
-                                        </motion.div>
-                                    ) : videoUrl ? (
-                                        <motion.div key="video-out" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full h-full relative group/controls bg-black">
-                                            <video src={videoUrl} controls autoPlay loop className="w-full h-full object-contain" />
-                                            <div className="absolute top-10 right-10 opacity-0 group-hover/controls:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0">
-                                                <div className="px-6 py-2.5 bg-black/80 backdrop-blur-2xl border border-[#d946ef]/40 rounded-full text-[#d946ef] text-[10px] font-black font-mono tracking-[0.2em] uppercase shadow-2xl flex items-center gap-3">
-                                                    <div className="w-2 h-2 rounded-full bg-[#d946ef] animate-pulse" />
-                                                    DELIVERY_LOCKED // {videoRes}
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    ) : (
-                                        <div className="flex flex-col items-center opacity-10 group-hover/v-view:opacity-20 transition-all duration-1000 gap-12">
-                                            <Video size={180} className="text-gray-500" />
-                                            <p className="text-2xl font-mono uppercase tracking-[1.5em] text-center">Temporal Hub Standby</p>
-                                        </div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        </motion.div>
+                        <VideoMode
+                            videoPrompt={videoPrompt}
+                            setVideoPrompt={setVideoPrompt}
+                            videoMotionBias={videoMotionBias}
+                            setVideoMotionBias={setVideoMotionBias}
+                            videoRes={videoRes}
+                            setVideoRes={setVideoRes}
+                            isVideoLoading={isVideoLoading}
+                            videoProgressMsg={videoProgressMsg}
+                            videoUrl={videoUrl}
+                            onGenerateVideo={handleVideoGenerate}
+                        />
                     )}
 
                     {activeTab === 'TEASER' && (
-                        <motion.div key="teaser" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 1.05 }} className="w-full h-full flex flex-col p-10 gap-10 overflow-hidden">
-                            <div className="flex-1 bg-black rounded-[4rem] border border-white/5 relative overflow-hidden group/theatre shadow-[0_80px_200px_rgba(0,0,0,1)] flex items-center justify-center min-h-0">
-
-                                {/* Ambient Production Glow */}
-                                <AnimatePresence mode="wait">
-                                    {frames[teaserIdx]?.imageUrl && (
-                                        <motion.div
-                                            key={`blur-${teaserIdx}`}
-                                            initial={{ opacity: 0 }} animate={{ opacity: 0.4 }} exit={{ opacity: 0 }}
-                                            transition={{ duration: 2 }}
-                                            className="absolute inset-0 blur-[150px] scale-150 saturate-200"
-                                        >
-                                            <img src={frames[teaserIdx].imageUrl} className="w-full h-full object-cover" alt="blur" />
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-
-                                <div className="absolute inset-0 bg-black/70 backdrop-blur-3xl z-0" />
-
-                                <div className="relative z-10 w-full h-full flex flex-col items-center justify-center p-12 overflow-y-auto custom-scrollbar">
-                                    <AnimatePresence mode="wait">
-                                        {frames[teaserIdx]?.imageUrl ? (
-                                            <motion.div
-                                                key={teaserIdx}
-                                                initial={{ opacity: 0, y: 40, scale: 0.98 }}
-                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                exit={{ opacity: 0, y: -40, scale: 1.02 }}
-                                                transition={{ duration: 1.4, ease: [0.16, 1, 0.3, 1] }}
-                                                className="relative flex flex-col items-center gap-10 w-full max-w-7xl"
-                                            >
-                                                <div className="w-full aspect-video rounded-[3rem] overflow-hidden shadow-[0_0_150px_rgba(0,0,0,1)] border border-white/10 rounded-full text-[11px] font-black font-mono text-white shadow-2xl relative group/hero shrink-0">
-                                                    <img src={frames[teaserIdx].imageUrl} className="w-full h-full object-cover group-hover/hero:scale-105 transition-transform duration-[15s] ease-linear" alt="Theater View" />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-black/30 opacity-60" />
-
-                                                    <div className="absolute top-10 left-10 flex items-center gap-6">
-                                                        <div className="flex items-center gap-3 px-5 py-2.5 bg-black/70 backdrop-blur-2xl border border-white/10 rounded-full text-[11px] font-black font-mono text-white shadow-2xl">
-                                                            <Target size={16} className="text-[var(--amethyst)] animate-pulse" />
-                                                            <span className="tracking-[0.2em] uppercase">Node_Protocol_{String(teaserIdx + 1).padStart(2, '0')}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="text-center space-y-8 max-w-5xl overflow-y-auto max-h-[300px] custom-scrollbar px-4">
-                                                    <div className="flex justify-center items-center gap-8 shrink-0">
-                                                        <div className="h-px w-32 bg-gradient-to-r from-transparent via-[var(--amethyst)] to-transparent opacity-40" />
-                                                        <span className="text-[12px] font-black text-[var(--amethyst)] uppercase tracking-[1em] whitespace-nowrap uppercase">V8.1 - THE D-Ecosystem</span>
-                                                        <div className="h-px w-32 bg-gradient-to-r from-transparent via-[var(--amethyst)] to-transparent opacity-40" />
-                                                    </div>
-                                                    <p className="text-4xl font-mono text-white leading-relaxed italic font-medium selection:bg-[var(--amethyst)]/40 tracking-tight drop-shadow-[0_10px_30px_rgba(0,0,0,1)] pb-4">
-                                                        "{frames[teaserIdx].scenePrompt}"
-                                                    </p>
-                                                </div>
-                                            </motion.div>
-                                        ) : (
-                                            <div className="flex flex-col items-center opacity-10 gap-8">
-                                                <Monitor size={120} className="text-gray-500" />
-                                                <p className="text-2xl font-mono uppercase tracking-[1em]">Screening Cache Empty</p>
-                                            </div>
-                                        )}
-                                    </AnimatePresence>
-                                </div>
-
-                                {/* Refined Screening Room HUD */}
-                                <div className="absolute bottom-12 left-1/2 -translate-x-1/2 z-30 flex items-center gap-14 px-10 py-5 bg-[#0a0a0a]/90 backdrop-blur-3xl border border-white/10 rounded-full shadow-[0_100px_250px_rgba(0,0,0,1)] opacity-0 group-hover/theatre:opacity-100 transition-all duration-700 transform translate-y-6 group-hover/theatre:translate-y-0 max-w-[90%] flex-wrap justify-center pointer-events-auto">
-                                    <div className="flex items-center gap-6">
-                                        <button onClick={() => setTeaserIdx(p => (p - 1 + frames.length) % frames.length)} className="p-3 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90" aria-label="Previous frame"><FastForward size={24} className="rotate-180" /></button>
-                                        <button
-                                            onClick={() => { setIsAutoPlaying(!isAutoPlaying); if (!isAutoPlaying) playFullSequence(); audio.playClick(); }}
-                                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all shadow-[0_0_40px_rgba(0,0,0,0.4)] active:scale-95 shrink-0
-                                            ${isAutoPlaying ? 'bg-white text-black shadow-white/20' : 'bg-[var(--amethyst)] text-black shadow-[var(--amethyst)]/50'}
-                                        `}
-                                            aria-label={isAutoPlaying ? 'Pause playback' : 'Play sequence'}
-                                        >
-                                            {isAutoPlaying ? <Pause size={24} /> : <Play size={24} fill="currentColor" className="ml-1" />}
-                                        </button>
-                                        <button onClick={() => setTeaserIdx(p => (p + 1) % frames.length)} className="p-3 text-gray-500 hover:text-white hover:bg-white/5 rounded-full transition-all active:scale-90" aria-label="Next frame"><FastForward size={24} /></button>
-                                    </div>
-                                    <div className="h-8 w-px bg-white/10 hidden md:block" />
-                                    <div className="flex items-center gap-6">
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={generateAllSequenceAudio}
-                                                disabled={isGeneratingTeaserAudio || frames.length === 0}
-                                                className={`p-3 rounded-2xl transition-all shadow-2xl bg-white/5 text-gray-500 hover:text-[var(--amethyst)] hover:bg-[var(--amethyst)]/10 flex items-center gap-2`}
-                                                title="Synthesize All Narrations"
-                                            >
-                                                <Speaker size={18} />
-                                                <span className="text-[8px] font-black uppercase tracking-widest hidden sm:block">Sync All</span>
-                                            </button>
-                                            <button
-                                                onClick={() => generateTeaserAudioForIndex(teaserIdx)}
-                                                disabled={isGeneratingTeaserAudio || !frames[teaserIdx]?.imageUrl}
-                                                className={`p-3 rounded-2xl transition-all shadow-2xl ${isGeneratingTeaserAudio ? 'bg-[var(--amethyst)] text-black animate-pulse shadow-[var(--amethyst)]/30' : 'bg-white/5 text-gray-500 hover:text-[var(--amethyst)] hover:bg-[var(--amethyst)]/10'}`}
-                                                title="Regenerate Active Node Audio"
-                                            >
-                                                <Volume2 size={18} />
-                                            </button>
-                                        </div>
-                                        <div className="h-8 w-px bg-white/10 hidden md:block" />
-                                        <button
-                                            onClick={exportProductionBundle}
-                                            disabled={isExportingBundle || frames.filter(f => f.imageUrl).length === 0}
-                                            className="flex items-center gap-3 px-5 py-2.5 bg-[var(--amethyst)]/10 border border-[var(--amethyst)]/40 text-[var(--amethyst)] hover:bg-[var(--amethyst)] hover:text-black rounded-full transition-all group/bundle active:scale-95 disabled:opacity-30"
-                                        >
-                                            {isExportingBundle ? <Loader2 size={14} className="animate-spin" /> : <FileArchive size={14} className="group-hover/bundle:scale-110 transition-transform" />}
-                                            <span className="text-[8px] font-black uppercase tracking-widest whitespace-nowrap">Secure Bundle</span>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Enhanced Screening Strip */}
-                            <div className="h-32 bg-[#0a0a0a]/40 backdrop-blur-2xl rounded-[2.5rem] border border-[#1f1f1f] p-5 flex gap-6 overflow-x-auto no-scrollbar shadow-2xl shrink-0 group/timeline-strip">
-                                {frames.map((f, i) => (
-                                    <button
-                                        key={i}
-                                        onClick={() => { setTeaserIdx(i); setIsAutoPlaying(false); audio.playClick(); }}
-                                        className={`relative w-56 h-full rounded-2xl border-2 overflow-hidden transition-all duration-700 shrink-0 group/tn
-                                        ${teaserIdx === i ? 'border-[var(--amethyst)] ring-8 ring-[var(--amethyst)]/10 scale-105 shadow-[0_0_40px_rgba(157,78,221,0.4)] z-10' : 'border-transparent opacity-30 hover:opacity-100 hover:border-white/20'}
-                                    `}
-                                    >
-                                        {f.imageUrl ? (
-                                            <img src={f.imageUrl} className="w-full h-full object-cover group-hover/tn:scale-110 transition-transform duration-1000" alt="tn" />
-                                        ) : (
-                                            <div className="w-full h-full bg-[#050505] flex items-center justify-center text-[11px] font-mono text-gray-700 uppercase tracking-widest">Node_{i + 1}</div>
-                                        )}
-                                        <div className="absolute bottom-3 left-3 px-2.5 py-1 bg-black/80 rounded-lg text-[8px] font-black font-mono text-white opacity-60 uppercase tracking-widest shadow-2xl">F_{i + 1}</div>
-                                        {teaserIdx === i && <div className="absolute inset-0 bg-[var(--amethyst)]/10 pointer-events-none" />}
-                                        {f.audioUrl && <div className="absolute top-2 right-2 p-1 bg-[var(--plasma-green)]/80 rounded-full border border-white/20 shadow-[0_0_10px_var(--plasma-green)]"><Volume2 size={8} className="text-white" /></div>}
-                                    </button>
-                                ))}
-                            </div>
-                        </motion.div>
+                        <TeaserMode
+                            frames={frames}
+                            teaserIdx={teaserIdx}
+                            setTeaserIdx={setTeaserIdx}
+                            isAutoPlaying={isAutoPlaying}
+                            setIsAutoPlaying={setIsAutoPlaying}
+                            isGeneratingTeaserAudio={isGeneratingTeaserAudio}
+                            isExportingBundle={isExportingBundle}
+                            onPlayFullSequence={playFullSequence}
+                            onGenerateAllAudio={generateAllSequenceAudio}
+                            onGenerateAudioForIndex={generateTeaserAudioForIndex}
+                            onExportBundle={exportProductionBundle}
+                        />
                     )}
                 </AnimatePresence>
             </div>
