@@ -3,7 +3,15 @@
  */
 
 // Visual Effects
-export { VolumetricFog, DataStreamTether, NeuralFileStream } from './effects';
+export {
+    VolumetricFog,
+    DataStreamTether,
+    NeuralFileStream,
+    ProceduralHologram,
+    Scanline,
+    SwarmLattice,
+    DirectoryPeek
+} from './effects';
 
 // Metrics & Stats
 export { CompactMetric, CapitalVelocity, SwarmBox, SystemPulse } from './metrics';

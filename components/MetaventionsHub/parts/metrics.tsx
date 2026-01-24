@@ -5,8 +5,10 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, DollarSign, Bot, Radio, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Bot, Hexagon } from 'lucide-react';
 import { useAppStore } from '../../../store';
+import { cn } from '../../../utils/cn';
+import { SwarmLattice } from './effects';
 import type { LucideIcon } from 'lucide-react';
 
 interface CompactMetricProps {
@@ -117,45 +119,75 @@ export const CapitalVelocity: React.FC<CapitalVelocityProps> = ({ telemetry }) =
 };
 
 /**
- * Swarm status box showing active agents.
+ * Swarm matrix box with hexagonal grid showing active agents.
  */
 export const SwarmBox: React.FC = () => {
     const agents = useAppStore(s => s.agents.activeAgents);
+    const hexCount = 6;
 
     return (
-        <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col gap-4 relative overflow-hidden invisible-glass border border-white/5 hover:border-white/20 transition-all shrink-0">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.02)_0%,transparent_60%)] pointer-events-none" />
-            <div className="flex items-center gap-4 relative z-10">
-                <div className="p-2 bg-[var(--cyan)]/10 rounded-xl text-[var(--cyan)] border border-[var(--cyan)]/20">
-                    <Bot size={16} />
+        <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/swarm shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(157,78,221,0.02)_0%,transparent_70%)] pointer-events-none" />
+            <div className="flex items-center justify-between px-1 relative z-10">
+                <div className="flex items-center gap-2.5">
+                    <Hexagon size={12} className="text-[#9d4edd] animate-pulse" />
+                    <span className="text-[8px] font-black font-mono text-white uppercase tracking-[0.4em]">
+                        Swarm Matrix
+                    </span>
                 </div>
-                <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">
-                    Swarm Intel
-                </span>
+                <div className="flex items-center gap-1.5">
+                    <div className="w-1 h-1 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]" />
+                    <span className="text-[6px] font-mono text-gray-600 uppercase tracking-widest">
+                        Active
+                    </span>
+                </div>
             </div>
-            <div className="space-y-3 relative z-10">
-                {agents.slice(0, 4).map((agent, i) => (
-                    <div
-                        key={agent.id || i}
-                        className="flex items-center gap-3 p-2 rounded-xl bg-white/[0.02] border border-white/5"
-                    >
-                        <div className={`w-2 h-2 rounded-full ${
-                            agent.status === 'THINKING' ? 'bg-[var(--amethyst)] animate-pulse' :
-                            agent.status === 'WORKING' ? 'bg-[#10b981]' : 'bg-gray-600'
-                        }`} />
-                        <span className="text-[9px] font-mono text-gray-400 uppercase tracking-wider flex-1 truncate">
-                            {agent.name || `Agent_${i + 1}`}
-                        </span>
-                        <span className="text-[8px] font-mono text-gray-600 uppercase">
-                            {agent.status}
-                        </span>
-                    </div>
-                ))}
-                {agents.length === 0 && (
-                    <div className="text-[9px] font-mono text-gray-600 italic text-center py-4">
-                        No active agents
-                    </div>
-                )}
+            <div className="grid grid-cols-3 gap-2 relative z-10 px-1">
+                <SwarmLattice />
+                {Array.from({ length: hexCount }).map((_, i) => {
+                    const agent = agents[i];
+                    const isActive = !!agent;
+                    const isThinking = agent?.status === 'THINKING';
+                    return (
+                        <motion.div
+                            key={i}
+                            animate={isActive ? { scale: [1, 1.05, 1] } : {}}
+                            transition={{ duration: 3 + i, repeat: Infinity, ease: "easeInOut" }}
+                            className={cn(
+                                "aspect-square flex flex-col items-center justify-center rounded-xl border transition-all duration-700 shadow-inner relative overflow-hidden",
+                                isActive
+                                    ? "bg-black/60 border-[#9d4edd]/30 shadow-[0_0_10px_rgba(157,78,221,0.1)]"
+                                    : "bg-black/10 border-white/5 opacity-10"
+                            )}
+                        >
+                            {isActive ? (
+                                <>
+                                    <Bot
+                                        size={14}
+                                        className={cn(
+                                            isThinking ? "text-[#f1c21b] animate-spin" : "text-[#9d4edd]"
+                                        )}
+                                    />
+                                    {isThinking && (
+                                        <motion.div
+                                            animate={{ opacity: [0, 0.4, 0] }}
+                                            transition={{ duration: 1.5, repeat: Infinity }}
+                                            className="absolute inset-0 bg-[#f1c21b]/10"
+                                        />
+                                    )}
+                                </>
+                            ) : (
+                                <div className="w-0.5 h-0.5 rounded-full bg-white/5" />
+                            )}
+                        </motion.div>
+                    );
+                })}
+            </div>
+            <div className="pt-2 border-t border-white/5 relative z-10">
+                <div className="flex justify-between items-center text-[6px] font-mono text-gray-700 uppercase tracking-widest">
+                    <span>LATTICE_OK</span>
+                    <span className="text-[#10b981] font-black opacity-60">The D-Ecosystem</span>
+                </div>
             </div>
         </div>
     );
