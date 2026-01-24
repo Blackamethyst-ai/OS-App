@@ -41,19 +41,7 @@ const ZenithDisplay = React.lazy(() => import('../ZenithDisplay').then(m => ({ d
 import { StrategicConsole } from '../StrategicConsole';
 import { AdaptiveContainer, AdaptivePanel, AdaptiveRegion } from '../shared/AdaptiveContainer';
 import { useAdaptiveUI } from '../../hooks/useAdaptiveUI';
-
-
-const VISIONARY_DIRECTIVES = [
-    "Architecture is the frozen music of logic.",
-    "Metaventions: Sovereign architecture secured.",
-    "Entropy is the architect's primary adversary.",
-    "System coherence emerges from recursive symmetry.",
-    "Identity is the first anchor of any autonomous lattice.",
-    "Complexity must be distilled, not merely managed.",
-    "The D-Ecosystem thrives on decentralized integrity.",
-    "Vision is the roadmap of implementation.",
-    "Data without structure is noise; structure without data is an empty shell."
-];
+import { VISIONARY_DIRECTIVES } from '../../data/directives';
 
 const VolumetricFog = () => (
     <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 opacity-40">
