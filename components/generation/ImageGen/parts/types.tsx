@@ -20,6 +20,25 @@ export interface Frame {
     error?: string;
 }
 
+export interface CharacterAnchor {
+    id: string;
+    name: string;
+    // Detailed facial features for continuity
+    faceShape: string;
+    eyeDescription: string;
+    noseDescription: string;
+    mouthDescription: string;
+    skinTone: string;
+    hairDescription: string;
+    distinctiveFeatures: string[];
+    // Full analysis text for prompt injection
+    fullAnalysis: string;
+    // Reference image data URL for visual comparison
+    referenceThumb?: string;
+    // Timestamp for cache management
+    createdAt: number;
+}
+
 export interface ProductionBible {
     theme: string;
     atmosphere: string;
@@ -27,6 +46,12 @@ export interface ProductionBible {
     narrativeArc: string;
     opticProfile: string;
     cinematicNotes: string[];
+    // Character continuity anchors
+    characterAnchors?: CharacterAnchor[];
+    // World/environment continuity
+    worldDescription?: string;
+    // Style continuity
+    styleDescription?: string;
 }
 
 export interface ImageGenProps {
