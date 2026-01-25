@@ -41,7 +41,7 @@ interface VoiceCoreManagerProps {
 
 const VoiceCoreManager: React.FC<VoiceCoreManagerProps> = ({
     showDebug = true, // Force debug on for troubleshooting
-    forceSTTProvider = 'browser', // Force browser STT for reliability
+    forceSTTProvider = 'auto', // Allow auto-selection (Gemini Live preferred)
     forceTTSProvider = 'auto'
 }) => {
     const {
