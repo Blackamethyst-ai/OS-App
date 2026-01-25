@@ -515,11 +515,14 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
         }
 
         // Hybrid mode: route based on complexity
+        // UPDATED: Upgrade all tiers to use ElevenLabs if available per user request for "SOTA" experience
         switch (tier) {
             case 'fast':
                 return {
-                    reasoning: 'gemini-flash',
-                    tts: geminiLiveSTT.isAvailable() ? 'gemini' : 'browser',
+                    // Upgrade low-complexity queries to Sonnet so they still feel smart
+                    reasoning: 'claude-sonnet',
+                    // accurate TTS is better than fast-but-robotic TTS
+                    tts: elevenLabsTTS.isAvailable() ? 'elevenlabs' : 'browser',
                     reasoningTier: 'fast',
                 };
 
