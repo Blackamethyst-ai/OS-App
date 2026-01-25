@@ -278,7 +278,9 @@ export class VoiceCore {
             const complexity = analyzeComplexity(text);
             this.updateState({ complexityScore: complexity.score });
 
-            // Check for navigation intent first
+            // Legacy Regex Navigation removed in favor of Orchestrator Intent Analysis
+            // This allows the AI to "speak and act" simultaneously with full context
+            /* 
             if (this.config.enableCodebaseAwareness) {
                 const navResult = this.tryNavigate(text);
                 if (navResult.success) {
@@ -287,7 +289,8 @@ export class VoiceCore {
                     await this.speak(response);
                     return response;
                 }
-            }
+            } 
+            */
 
             // Process through reasoning pipeline
             let promptToSend = text;
