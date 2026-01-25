@@ -40,37 +40,43 @@ class GeminiReasoningProvider implements ReasoningProvider {
         }
 
         const startTime = Date.now();
-
         // Select model based on tier or explicit override
-        const modelName = config.model || this.models[config.tier];
+        let modelName = config.model || this.models[config.tier];
 
-        try {
+        const executeRequest = async (targetModel: string) => {
             const ai = getAI();
-
-            // Build system instruction
             const systemInstruction = config.systemPrompt
                 ? `${VOICE_SYSTEM_PROMPT}\n\n${config.systemPrompt}`
                 : VOICE_SYSTEM_PROMPT;
 
-            // For voice, we use a simpler prompt without the full SOVEREIGN instruction
-            // unless explicitly needed for complex tasks
-            const useFullInstruction = config.tier === 'deep';
-
-            const model = ai.models.generateContent({
-                model: modelName,
+            // Check if using unified SDK style
+            return ai.models.generateContent({
+                model: targetModel,
                 contents: prompt,
                 config: {
-                    systemInstruction: useFullInstruction
-                        ? SOVEREIGN_SYSTEM_INSTRUCTION + '\n\n' + systemInstruction
-                        : systemInstruction,
+                    systemInstruction,
                     maxOutputTokens: config.maxTokens || 1024,
                     temperature: config.temperature ?? 0.7,
                 },
             });
+        };
 
-            const response = await model;
+        try {
+            // Try primary model
+            // Import retry utility lazily or assume it's available via module scope if we import it
+            const { retryGeminiRequest } = await import('../../../geminiService');
+
+            let response;
+            try {
+                response = await retryGeminiRequest(() => executeRequest(modelName));
+            } catch (primaryError) {
+                console.warn(`Gemini primary model (${modelName}) failed, trying Flash fallback...`, primaryError);
+                // Fallback to Flash for reliability
+                modelName = 'gemini-1.5-flash';
+                response = await retryGeminiRequest(() => executeRequest(modelName));
+            }
+
             const text = response.text || '';
-
             const latencyMs = Date.now() - startTime;
 
             return {
