@@ -102,21 +102,15 @@ const VoiceMode: React.FC = () => {
         if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }, [voice.transcripts, voice.partialTranscript]);
 
-    const toggleSession = async () => {
+    const toggleSession = () => {
         if (voice.isActive || voice.isConnecting) {
-            liveSession.disconnect();
             setVoiceState({ isActive: false, isConnecting: false });
             addLog('SYSTEM', 'COMMS: Link severed.');
             audio.playError();
         } else {
-            await liveSession.primeAudio();
-            setVoiceState({ isConnecting: true });
-            try {
-                if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); setVoiceState({ isConnecting: false }); return; }
-                setVoiceState({ isActive: true });
-                addLog('SUCCESS', `COMMS: Unified uplink established with ${voice.voiceName}.`);
-                audio.playSuccess();
-            } catch (err: any) { setVoiceState({ isConnecting: false }); }
+            setVoiceState({ isConnecting: true, isActive: true });
+            addLog('SUCCESS', `COMMS: Unified uplink established with ${voice.voiceName}.`);
+            audio.playSuccess();
         }
     };
 

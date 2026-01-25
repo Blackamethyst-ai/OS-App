@@ -154,6 +154,12 @@ export class VoiceCore {
     /**
      * Start listening for voice input
      */
+    private silenceTimer: any = null;
+    private lastProcessedTranscript: string = '';
+
+    /**
+     * Start listening for voice input
+     */
     async startListening(): Promise<void> {
         if (this.state.isListening) return;
 
@@ -165,6 +171,22 @@ export class VoiceCore {
                 await browserSTT.startStreaming((transcript) => {
                     this.updateState({ currentTranscript: transcript });
                     this.onTranscript?.(transcript, false);
+
+                    // Silence Detection Logic
+                    if (this.silenceTimer) clearTimeout(this.silenceTimer);
+
+                    // Only set timer if we have content
+                    if (transcript.trim().length > 0) {
+                        this.silenceTimer = setTimeout(() => {
+                            if (transcript !== this.lastProcessedTranscript) {
+                                this.log('Silence detected, processing transcript...');
+                                this.processTranscript(transcript);
+                                this.lastProcessedTranscript = transcript;
+                                // Reset for next turn? Or let orchestrator handle it? 
+                                // For now, we update lastProcessed so we don't loop.
+                            }
+                        }, 1200); // 1.2s silence threshold
+                    }
                 });
                 this.updateState({ sttProvider: 'browser' });
             } else {
@@ -187,6 +209,9 @@ export class VoiceCore {
         if (!this.state.isListening) return '';
 
         try {
+            if (this.silenceTimer) clearTimeout(this.silenceTimer);
+            this.lastProcessedTranscript = '';
+
             let transcript = '';
 
             if (this.state.sttProvider === 'browser') {
