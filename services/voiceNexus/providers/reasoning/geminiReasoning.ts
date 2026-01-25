@@ -12,8 +12,8 @@ import { apiKeyService } from '../../../apiKeyService';
 // Model mappings for each tier
 const GEMINI_MODELS = {
     fast: 'gemini-2.0-flash-exp',
-    balanced: 'gemini-1.5-pro',
-    deep: 'gemini-1.5-pro',
+    balanced: 'gemini-2.0-flash-exp', // Higher rate limits (RPM) than 1.5 Pro
+    deep: 'gemini-2.0-flash-exp',     // Using Flash 2.0 for all tiers to avoid 429s
 } as const;
 
 // Voice-optimized system prompt
