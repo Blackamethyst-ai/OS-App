@@ -21,8 +21,10 @@ const VoiceSystem: React.FC = () => {
     return (
         <>
             <VoiceCoreOverlay />
-            {/* <VoiceManager /> - Legacy, replaced by VoiceCoreManager */}
-            <VoiceCoreManager />
+            {/* Gemini Live - Primary Voice System (Full Duplex, Native TTS) */}
+            <VoiceManager />
+            {/* VoiceCoreManager disabled - was causing echo loops and random navigation */}
+            {/* <VoiceCoreManager /> */}
             <UniversalVoiceProvider />
         </>
     );
