@@ -279,7 +279,15 @@ export class VoiceCore {
             }
 
             // Process through reasoning pipeline
-            const response = await this.orchestrator.processText(text);
+            let promptToSend = text;
+            if (this.config.enableCodebaseAwareness) {
+                const codebaseContext = this.getCodebaseContext();
+                if (codebaseContext) {
+                    promptToSend = `[CURRENT_APP_STATE: ${codebaseContext}]\n\nUSER_QUERY: ${text}`;
+                }
+            }
+
+            const response = await this.orchestrator.processText(promptToSend);
             this.updateState({ lastResponse: response, isProcessing: false });
             this.onResponse?.(response);
 
