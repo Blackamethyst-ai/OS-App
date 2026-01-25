@@ -47,12 +47,23 @@ class ApiKeyService {
     /**
      * Check vault status on load
      */
-    private checkVaultStatus() {
+    private async checkVaultStatus() {
         // If there's no vault, we're in "setup" mode
         if (!this.hasVault()) {
             this.isUnlocked = false;
             return;
         }
+
+        // Try to auto-unlock from session
+        const sessionPassword = sessionStorage.getItem(SESSION_KEY);
+        if (sessionPassword) {
+            const success = await this.unlockVault(sessionPassword);
+            if (success) {
+                console.log('[ApiKeyService] Vault auto-unlocked from session');
+                return;
+            }
+        }
+
         // Vault exists but needs to be unlocked
         this.isUnlocked = false;
     }
@@ -71,6 +82,9 @@ class ApiKeyService {
             this.masterPassword = password;
             this.isUnlocked = true;
             await this.saveToStorage();
+
+            // Persist session
+            sessionStorage.setItem(SESSION_KEY, password);
 
             this.notifyListeners();
             return true;
@@ -94,6 +108,10 @@ class ApiKeyService {
             this.masterPassword = password;
             await this.loadFromStorage();
             this.isUnlocked = true;
+
+            // Persist session
+            sessionStorage.setItem(SESSION_KEY, password);
+
             this.notifyListeners();
             return true;
         } catch (e) {
