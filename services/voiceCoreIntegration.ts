@@ -152,6 +152,27 @@ export class VoiceCore {
     }
 
     /**
+     * Prime audio context (must be called on user interaction)
+     */
+    async primeAudio(): Promise<void> {
+        try {
+            // Prime ElevenLabs (AudioContext)
+            if (this.state.ttsProvider === 'elevenlabs' || this.config.ttsProvider === 'elevenlabs') {
+                // We'd need to expose a prime method on elevenLabsTTS or just call a dummy play
+                // For now, we'll try to resume if we can access the context, but strictly 
+                // elevenLabsTTS handles its own context. We should add a prime method there.
+            }
+
+            // Prime Browser TTS (cancel clears any stuck queue)
+            if (this.state.ttsProvider === 'browser' || this.config.ttsProvider === 'browser') {
+                window.speechSynthesis.cancel();
+            }
+        } catch (e) {
+            console.warn('VoiceCore: Failed to prime audio', e);
+        }
+    }
+
+    /**
      * Start listening for voice input
      */
     private silenceTimer: any = null;
@@ -604,11 +625,16 @@ export function useVoiceCore(config?: Partial<VoiceCoreConfig>) {
         }
     }, []);
 
+    const primeAudio = useCallback(async () => {
+        await coreRef.current?.primeAudio();
+    }, []);
+
     return {
         state,
         core: coreRef.current,
         startListening,
         stopListening,
+        primeAudio,
         processText,
         speak,
         navigateTo,
