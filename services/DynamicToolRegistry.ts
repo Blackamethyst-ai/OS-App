@@ -3,6 +3,7 @@ import { OS_TOOLS } from './toolRegistry';
 import { neuralVault } from './persistenceService';
 import { useAppStore } from '../store';
 import { validateAndSanitize } from '../utils/validateToolCode';
+import { getGeminiManifests, executeAction, getAction } from './unifiedActionRegistry';
 
 /**
  * DynamicToolRegistry: Orchestrates evolutionary capability expansion.
@@ -83,71 +84,39 @@ class DynamicToolRegistry {
     /**
      * EXPOSE: Returns full toolset for Gemini API consumption.
      */
+    /**
+     * EXPOSE: Returns full toolset for Gemini API consumption.
+     */
     getCombinedManifests(): FunctionDeclaration[] {
-        const staticManifests: FunctionDeclaration[] = [
-            {
-                name: 'system_navigate',
-                parameters: {
-                    type: Type.OBJECT,
-                    properties: {
-                        target: { type: Type.STRING, description: 'Target sector (e.g. DASHBOARD, CODE_STUDIO)' }
-                    },
-                    required: ['target']
-                },
-                description: 'Migrate OS focus to a specific functional sector.'
-            },
-            {
-                name: 'search_intel',
-                parameters: {
-                    type: Type.OBJECT,
-                    properties: {
-                        query: { type: Type.STRING, description: 'Grounding query.' }
-                    },
-                    required: ['query']
-                },
-                description: 'Search grounded technical or strategic intelligence.'
-            },
-            {
-                name: 'architect_generate_process',
-                parameters: {
-                    type: Type.OBJECT,
-                    properties: {
-                        description: { type: Type.STRING },
-                        type: { type: Type.STRING, enum: ['DRIVE_ORGANIZATION', 'SYSTEM_ARCHITECTURE'] }
-                    },
-                    required: ['description', 'type']
-                },
-                description: 'Generate high-fidelity topologies.'
-            },
-            {
-                name: 'propose_structural_change',
-                parameters: {
-                    type: Type.OBJECT,
-                    properties: {
-                        agentId: { type: Type.STRING },
-                        agentName: { type: Type.STRING },
-                        type: { type: Type.STRING, enum: ['OPTIMIZATION', 'EXPANSION', 'SECURITY'] },
-                        title: { type: Type.STRING },
-                        description: { type: Type.STRING },
-                        impact: { type: Type.STRING },
-                        manifest_summary: { type: Type.STRING }
-                    },
-                    required: ['agentId', 'agentName', 'type', 'title', 'description', 'impact', 'manifest_summary']
-                },
-                description: 'Issue a formal structural change proposal to the user via the Neural Queue.'
-            }
-        ];
+        // Use the Unified Registry as the source of truth for static OS tools
+        const unifiedManifests = getGeminiManifests();
 
-        return [...staticManifests, ...this.dynamicManifests];
+        // Merge with dynamic/evolved tools
+        return [...unifiedManifests, ...this.dynamicManifests];
     }
 
     /**
      * EXECUTE: Routes call to appropriate registry.
      */
     async execute(name: string, args: any) {
+        // 1. Check Dynamic (Evolved) Tools
         if (this.dynamicLogic[name]) {
             return this.dynamicLogic[name](args);
         }
+
+        // 2. Check Unified Action Registry (The new Sovereign Standard)
+        const action = getAction(name);
+        if (action) {
+            const result = await executeAction(name, args);
+            return {
+                toolName: name,
+                status: result.success ? 'SUCCESS' : 'ERROR',
+                data: result.output,
+                uiHint: 'MESSAGE'
+            };
+        }
+
+        // 3. Legacy Fallback
         if ((OS_TOOLS as any)[name]) {
             return (OS_TOOLS as any)[name](args);
         }

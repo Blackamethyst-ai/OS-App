@@ -7,6 +7,7 @@
 
 import { AppMode } from '../../types';
 import type { CPBPath } from '../cognitivePrecisionBridge/types';
+import { Schema } from "@google/genai";
 
 // =============================================================================
 // Core Action Types
@@ -104,6 +105,8 @@ export interface UnifiedAction extends BaseAction {
     examples?: string[];
     /** Whether action requires additional context */
     requiresContext?: boolean;
+    /** JSON Schema for Gemini Tool definition */
+    schema?: Schema;
 }
 
 // =============================================================================

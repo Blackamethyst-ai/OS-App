@@ -20,6 +20,7 @@ import { useSystemMind } from '../stores/useSystemMind';
 import { useAppStore } from '../store';
 import { cpbExecute, cpbExecutePath, extractPathSignals, selectPath } from './cognitivePrecisionBridge';
 import type { CPBPath, CPBResult, CPBStatus } from './cognitivePrecisionBridge/types';
+import { FunctionDeclaration } from "@google/genai";
 
 // Import types and utilities from the new actions module
 import type { UnifiedAction, ActionComplexity, ActionSource, ExecutionResult } from './actions/types';
@@ -177,6 +178,23 @@ export function findActions(query: string, limit = 10): UnifiedAction[] {
         .sort((a, b) => b.score - a.score)
         .slice(0, limit)
         .map(item => item.action);
+}
+
+/**
+ * Generate Gemini Tool Manifests for all compatible actions
+ */
+export function getGeminiManifests(): FunctionDeclaration[] {
+    const manifests: FunctionDeclaration[] = [];
+    for (const action of registryState.actions.values()) {
+        if (action.schema) {
+            manifests.push({
+                name: action.id,
+                description: action.description,
+                parameters: action.schema
+            });
+        }
+    }
+    return manifests;
 }
 
 /**
