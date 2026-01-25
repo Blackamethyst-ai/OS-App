@@ -180,10 +180,9 @@ export class VoiceCore {
                         this.silenceTimer = setTimeout(() => {
                             if (transcript !== this.lastProcessedTranscript) {
                                 this.log('Silence detected, processing transcript...');
+                                this.onTranscript?.(transcript, true); // Signal finality
                                 this.processTranscript(transcript);
                                 this.lastProcessedTranscript = transcript;
-                                // Reset for next turn? Or let orchestrator handle it? 
-                                // For now, we update lastProcessed so we don't loop.
                             }
                         }, 1200); // 1.2s silence threshold
                     }
@@ -593,6 +592,18 @@ export function useVoiceCore(config?: Partial<VoiceCoreConfig>) {
         }
     }, []);
 
+    const setOnTranscript = useCallback((handler: (text: string, isFinal: boolean) => void) => {
+        if (coreRef.current) {
+            coreRef.current.onTranscript = handler;
+        }
+    }, []);
+
+    const setOnResponse = useCallback((handler: (text: string) => void) => {
+        if (coreRef.current) {
+            coreRef.current.onResponse = handler;
+        }
+    }, []);
+
     return {
         state,
         core: coreRef.current,
@@ -605,7 +616,9 @@ export function useVoiceCore(config?: Partial<VoiceCoreConfig>) {
         findComponent,
         getCodebaseContext,
         setOnNavigate,
-        setOnAction
+        setOnAction,
+        setOnTranscript,
+        setOnResponse
     };
 }
 
