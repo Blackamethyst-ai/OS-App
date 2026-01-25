@@ -199,11 +199,22 @@ export class VoiceCore {
                     // Only set timer if we have content
                     if (transcript.trim().length > 0) {
                         this.silenceTimer = setTimeout(() => {
-                            if (transcript !== this.lastProcessedTranscript) {
-                                this.log('Silence detected, processing transcript...');
-                                this.onTranscript?.(transcript, true); // Signal finality
-                                this.processTranscript(transcript);
-                                this.lastProcessedTranscript = transcript;
+                            // Calculate new segment (Delta)
+                            // We do this to prevent re-processing the entire history
+                            const currentFull = transcript;
+                            const previous = this.lastProcessedTranscript;
+
+                            if (currentFull.length > previous.length) {
+                                const newSegment = currentFull.slice(previous.length).trim();
+
+                                if (newSegment) {
+                                    this.log('Silence detected, processing segment:', newSegment);
+                                    this.onTranscript?.(newSegment, true);
+                                    this.processTranscript(newSegment);
+
+                                    // Update marker to current end
+                                    this.lastProcessedTranscript = currentFull;
+                                }
                             }
                         }, 1200); // 1.2s silence threshold
                     }
