@@ -40,8 +40,8 @@ interface VoiceCoreManagerProps {
 // =============================================================================
 
 const VoiceCoreManager: React.FC<VoiceCoreManagerProps> = ({
-    showDebug = false,
-    forceSTTProvider = 'auto',
+    showDebug = true, // Force debug on for troubleshooting
+    forceSTTProvider = 'browser', // Force browser STT for reliability
     forceTTSProvider = 'auto'
 }) => {
     const {
