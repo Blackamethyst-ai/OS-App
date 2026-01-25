@@ -605,9 +605,15 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
                 systemPrompt,
             });
             return result.text;
-        } catch (error) {
+        } catch (error: any) {
             console.error('VoiceNexus: All reasoning providers failed:', error);
-            throw new Error('I could not generate a response. Please check your API usage.');
+            const msg = error.message || String(error);
+
+            if (msg.includes('429') || msg.includes('Quota')) {
+                throw new Error('API Rate Limit Exceeded. Please wait a minute and try again.');
+            }
+
+            throw new Error('I could not generate a response. Please check your API usage or keys.');
         }
     }
 
