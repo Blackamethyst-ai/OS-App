@@ -63,7 +63,9 @@ const VoiceCoreManager: React.FC<VoiceCoreManagerProps> = ({
         navigateTo,
         setCurrentMode,
         setOnNavigate,
-        setOnAction
+        setOnAction,
+        setOnTranscript,
+        setOnResponse
     } = useVoiceCore({
         sttProvider: forceSTTProvider,
         ttsProvider: forceTTSProvider,
