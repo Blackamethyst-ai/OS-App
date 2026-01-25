@@ -87,6 +87,7 @@ class LiveSession {
     private activeSources = new Set<AudioBufferSourceNode>();
 
     public onAgentSwitch: ((agentName: string) => void) | null = null;
+    private isSpeaking: boolean = false; // Mute input while AI is speaking to prevent echo
 
     public onToolCall: (name: string, args: any) => Promise<any> = async (name, args) => {
         if (name === 'switch_agent') {
@@ -132,10 +133,20 @@ class LiveSession {
             callbacks: {
                 onopen: async () => {
                     try {
-                        this.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                        // Enable echo cancellation to prevent AI from hearing itself
+                        this.stream = await navigator.mediaDevices.getUserMedia({
+                            audio: {
+                                echoCancellation: true,
+                                noiseSuppression: true,
+                                autoGainControl: true
+                            }
+                        });
                         const source = this.audioContext!.createMediaStreamSource(this.stream);
                         const scriptProcessor = this.audioContext!.createScriptProcessor(4096, 1, 1);
                         scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
+                            // Don't send audio while AI is speaking to prevent echo loops
+                            if (this.isSpeaking) return;
+
                             const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
                             const pcmBlob = createBlob(inputData);
                             sessionPromise.then((s) => s.sendRealtimeInput({ media: pcmBlob }));
@@ -159,12 +170,21 @@ class LiveSession {
                     }
                     const base64EncodedAudioString = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
                     if (base64EncodedAudioString && this.audioContext && this.outputNode) {
+                        // MUTE MIC: AI is about to speak
+                        this.isSpeaking = true;
+
                         this.nextStartTime = Math.max(this.nextStartTime, this.audioContext.currentTime);
                         const audioBuffer = await decodeAudioData(decode(base64EncodedAudioString), this.audioContext, 24000, 1);
                         const source = this.audioContext.createBufferSource();
                         source.buffer = audioBuffer;
                         source.connect(this.outputNode);
-                        source.addEventListener('ended', () => this.activeSources.delete(source));
+                        source.addEventListener('ended', () => {
+                            this.activeSources.delete(source);
+                            // UNMUTE MIC: Only when ALL audio sources are done
+                            if (this.activeSources.size === 0) {
+                                this.isSpeaking = false;
+                            }
+                        });
                         source.start(this.nextStartTime);
                         this.nextStartTime += audioBuffer.duration;
                         this.activeSources.add(source);
@@ -173,6 +193,7 @@ class LiveSession {
                         this.activeSources.forEach(s => { try { s.stop(); } catch (e) { } });
                         this.activeSources.clear();
                         this.nextStartTime = 0;
+                        this.isSpeaking = false; // Unmute on interrupt
                     }
                     if (config.callbacks?.onmessage) await config.callbacks.onmessage(message);
                 },
