@@ -558,19 +558,31 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
 
         // Route to appropriate provider
         if (providers.reasoning.startsWith('claude')) {
-            const result = await claudeReasoning.generate(prompt, {
+            try {
+                const result = await claudeReasoning.generate(prompt, {
+                    tier,
+                    systemPrompt,
+                });
+                return result.text;
+            } catch (error) {
+                console.warn('VoiceNexus: Claude reasoning failed, falling back to Gemini:', error);
+                // Fallback to Gemini
+                this.state.currentProvider.reasoning = 'gemini-fallback';
+                this.events.onProviderSwitch?.({ reasoning: 'gemini-fallback' });
+            }
+        }
+
+        // Default to Gemini (or fallback execution)
+        try {
+            const result = await geminiReasoning.generate(prompt, {
                 tier,
                 systemPrompt,
             });
             return result.text;
+        } catch (error) {
+            console.error('VoiceNexus: All reasoning providers failed:', error);
+            throw new Error('I could not generate a response. Please check your API usage.');
         }
-
-        // Default to Gemini
-        const result = await geminiReasoning.generate(prompt, {
-            tier,
-            systemPrompt,
-        });
-        return result.text;
     }
 
     /**
