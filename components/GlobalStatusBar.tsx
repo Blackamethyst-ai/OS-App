@@ -270,7 +270,12 @@ const GlobalStatusBar: React.FC = () => {
                     {/* Voice Overlay Toggle */}
                     <button
                         onClick={() => {
-                            setVoiceState({ isOverlayVisible: !voice.isOverlayVisible });
+                            if (!voice.isActive) {
+                                setVoiceState({ isActive: true, isOverlayVisible: true });
+                                addLog('SYSTEM', 'VOICE_CORE: Initializing neural handshake...');
+                            } else {
+                                setVoiceState({ isOverlayVisible: !voice.isOverlayVisible });
+                            }
                             audio.playClick();
                         }}
                         className={cn(

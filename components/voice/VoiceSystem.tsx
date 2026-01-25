@@ -21,7 +21,7 @@ const VoiceSystem: React.FC = () => {
     return (
         <>
             <VoiceCoreOverlay />
-            <VoiceManager />
+            {/* <VoiceManager /> - Legacy, replaced by VoiceCoreManager */}
             <VoiceCoreManager />
             <UniversalVoiceProvider />
         </>

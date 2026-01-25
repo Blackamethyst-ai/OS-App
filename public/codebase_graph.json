@@ -1874,11 +1874,12 @@
       "label": "types.tsx",
       "type": "file",
       "parentId": "folder-components-generation-ImageGen-parts",
-      "radius": 0.2,
+      "radius": 2,
       "risk": "LOW",
       "tier": 3,
       "exports": [
         "Frame",
+        "CharacterAnchor",
         "ProductionBible",
         "ImageGenProps",
         "ActiveTab",
@@ -14339,7 +14340,7 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-01-24T06:13:54.083Z",
+    "generatedAt": "2026-01-24T08:24:00.610Z",
     "rootDir": "/Users/dicoangelo/OS-App",
     "nodeCount": 443,
     "edgeCount": 1239,
