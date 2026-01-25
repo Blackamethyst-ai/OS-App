@@ -7,6 +7,7 @@ import { useAppStore } from '../../../store';
 import { AppMode } from '../../../types';
 import { audio } from '../../audioService';
 import type { UnifiedAction } from '../types';
+import { Type } from "@google/genai";
 
 // Sector name to AppMode mapping
 const SECTOR_MAP: Record<string, AppMode> = {
@@ -58,6 +59,16 @@ export const NAVIGATION_ACTIONS: UnifiedAction[] = [
         return { success: true, sector: mode };
       }
       return { success: false, error: `Unknown sector: ${target}`, available: Object.keys(SECTOR_MAP) };
+    },
+    schema: {
+      type: Type.OBJECT,
+      properties: {
+        sector: {
+          type: Type.STRING,
+          description: 'Target sector (e.g. DASHBOARD, CODE_STUDIO, ARCHON)'
+        }
+      },
+      required: ['sector']
     },
     sectors: [],
     priority: 95,
