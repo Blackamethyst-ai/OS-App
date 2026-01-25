@@ -231,10 +231,14 @@ const VoiceCoreManager: React.FC<VoiceCoreManagerProps> = ({
 
     useEffect(() => {
         // Keep VoiceCore aware of current mode
-        if (operationalContext?.mode) {
-            setCurrentMode(operationalContext.mode as AppMode);
+        // Handle potentially inconsistent store types (string vs object)
+        const contextAny = operationalContext as any;
+        const mode = typeof contextAny === 'string' ? contextAny : contextAny?.mode;
+
+        if (mode) {
+            setCurrentMode(mode as AppMode);
         }
-    }, [operationalContext?.mode, setCurrentMode]);
+    }, [operationalContext, setCurrentMode]);
 
     // ==========================================================================
     // Sync VoiceCore State to Store
