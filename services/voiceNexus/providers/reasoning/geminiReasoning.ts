@@ -45,9 +45,16 @@ class GeminiReasoningProvider implements ReasoningProvider {
 
         const executeRequest = async (targetModel: string) => {
             const ai = getAI();
-            const systemInstruction = config.systemPrompt
-                ? `${VOICE_SYSTEM_PROMPT}\n\n${config.systemPrompt}`
-                : VOICE_SYSTEM_PROMPT;
+            // INJECT SOVEREIGN INTELLIGENCE
+            // We combine the Core Architecture (Sovereign) + Voice Constraints + Agent Persona
+            // This ensures the model is "Smart" (Sovereign) but "Talks" (Voice) and "Acts" (Agent)
+            const fullSystemInstruction = [
+                SOVEREIGN_SYSTEM_INSTRUCTION,
+                VOICE_SYSTEM_PROMPT,
+                config.systemPrompt || ''
+            ].join('\n\n');
+
+            const systemInstruction = fullSystemInstruction;
 
             // Check if using unified SDK style
             return ai.models.generateContent({

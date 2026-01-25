@@ -8,6 +8,7 @@
 import type { ReasoningProvider, ReasoningConfig, ReasoningResult } from '../../types';
 import { claudeService } from '../../../claudeService';
 import { apiKeyService } from '../../../apiKeyService';
+import { SOVEREIGN_SYSTEM_INSTRUCTION } from '../../../geminiService';
 
 // Model mappings for each tier
 const CLAUDE_MODELS = {
@@ -50,14 +51,17 @@ class ClaudeReasoningProvider implements ReasoningProvider {
         const model = config.model || this.models[config.tier];
 
         // Build system prompt
-        const systemPrompt = config.systemPrompt
-            ? `${VOICE_SYSTEM_PROMPT}\n\n${config.systemPrompt}`
-            : VOICE_SYSTEM_PROMPT;
+        // INJECT SOVEREIGN INTELLIGENCE for Claude
+        const fullSystemPrompt = [
+            SOVEREIGN_SYSTEM_INSTRUCTION,
+            VOICE_SYSTEM_PROMPT,
+            config.systemPrompt || ''
+        ].join('\n\n');
 
         try {
             const response = await claudeService.generateContent(
                 [{ role: 'user', content: prompt }],
-                systemPrompt,
+                fullSystemPrompt,
                 model
             );
 
