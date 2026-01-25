@@ -169,7 +169,27 @@ const VoiceCoreManager: React.FC<VoiceCoreManagerProps> = ({
     useEffect(() => {
         setOnNavigate(handleNavigation);
         setOnAction(handleAction);
-    }, [setOnNavigate, setOnAction, handleNavigation, handleAction]);
+
+        // Handle finalized user speech
+        setOnTranscript((text: string, isFinal: boolean) => {
+            if (isFinal && text.trim()) {
+                if (showDebug) console.log('[VoiceCoreManager] Finalizing User Transcript:', text);
+                setVoiceState(prev => ({
+                    transcripts: [...prev.transcripts, { role: 'user', text, timestamp: Date.now() }],
+                    partialTranscript: null
+                }));
+            }
+        });
+
+        // Handle AI response
+        setOnResponse((text: string) => {
+            if (showDebug) console.log('[VoiceCoreManager] Received AI Response:', text);
+            setVoiceState(prev => ({
+                transcripts: [...prev.transcripts, { role: 'model', text, timestamp: Date.now() }],
+                partialTranscript: null
+            }));
+        });
+    }, [setOnNavigate, setOnAction, setOnTranscript, setOnResponse, setVoiceState, showDebug]);
 
     // ==========================================================================
     // Sync Voice State
