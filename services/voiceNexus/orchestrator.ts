@@ -36,6 +36,7 @@ import type { STTProvider } from './types';
 
 // Utilities
 import { analyzeComplexity, hasExplicitOverride, formatComplexityResult } from './complexityRouter';
+import { interpretIntent } from '../geminiService';
 import { knowledgeInjector } from './knowledgeInjector';
 
 // Existing services
@@ -224,6 +225,9 @@ export class VoiceNexusOrchestrator {
                 this.state.knowledgeContext = context.injectedPrompt;
                 this.events.onKnowledgeInjected?.(context);
             }
+
+            // 4.5. Detect and execute intents (Parallel Action Layer)
+            this.detectAndExecuteIntents(text).catch(err => console.warn('Intent detection warning:', err));
 
             // 5. Generate response
             const response = await this.generateResponse(enrichedPrompt, providers, tier);
@@ -539,6 +543,28 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
                     tts: elevenLabsTTS.isAvailable() ? 'elevenlabs' : 'browser',
                     reasoningTier: 'deep',
                 };
+        }
+    }
+
+    /**
+     * Detect and execute intents from user text
+     */
+    private async detectAndExecuteIntents(text: string): Promise<void> {
+        if (!this.toolHandler) return;
+
+        try {
+            const intent = await interpretIntent(text);
+            if (!intent || !intent.action) return;
+
+            console.log('[VoiceNexus] Analyzed Intent:', intent);
+
+            if (intent.action === 'NAVIGATE' && intent.target) {
+                await this.toolHandler('navigate', { destination: intent.target });
+            } else if (intent.action === 'SWITCH_AGENT' && intent.target) {
+                await this.toolHandler('switch_agent', { agentName: intent.target });
+            }
+        } catch (error) {
+            // Non-blocking error
         }
     }
 
