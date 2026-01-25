@@ -114,3 +114,5 @@ export type {
     VoiceToolResult,
     VoiceToolHandler,
 } from './types';
+// Core Integration
+export { getVoiceCore, useVoiceCore, VoiceCore } from '../voiceCoreIntegration';

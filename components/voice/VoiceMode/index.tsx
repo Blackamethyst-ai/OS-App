@@ -9,7 +9,12 @@ import { apiKeyService } from '../../../services/apiKeyService';
 import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useAppStore } from '../../../store';
 import { liveSession, promptSelectKey, HIVE_AGENTS, generateAvatar } from '../../../services/geminiService';
-import { voiceNexus } from '../../../services/voiceNexus';
+import { voiceNexus, getVoiceCore } from '../../../services/voiceNexus';
+// ... (imports)
+
+// ...
+
+
 import type { VoiceMode as VoiceModeType } from '../../../services/voiceNexus';
 import {
     Mic, Activity, Power, Settings, Sliders, X, RotateCcw, Loader2,
@@ -108,6 +113,13 @@ const VoiceMode: React.FC = () => {
             addLog('SYSTEM', 'COMMS: Link severed.');
             audio.playError();
         } else {
+            // Prime audio on user click to unlock AudioContext/TTS
+            try {
+                getVoiceCore().primeAudio();
+            } catch (e) {
+                console.warn('Failed to prime audio:', e);
+            }
+
             setVoiceState({ isConnecting: true, isActive: true });
             addLog('SUCCESS', `COMMS: Unified uplink established with ${voice.voiceName}.`);
             audio.playSuccess();
@@ -308,7 +320,7 @@ const VoiceMode: React.FC = () => {
                             <div className="flex items-center gap-2">
                                 <Gauge size={12} className="text-[var(--amethyst)]" />
                                 <span className="text-[8px] font-mono text-gray-600 uppercase">
-                                    DQ:{nexusState.lastComplexityScore.toFixed(2)} → {nexusState.currentProvider.reasoning}
+                                    DQ:{nexusState.lastComplexityScore.toFixed(2)} → {nexusState.currentProvider.reasoning} + {nexusState.currentProvider.tts === 'elevenlabs' ? '11Labs' : 'Browser'}
                                 </span>
                             </div>
                         )}
