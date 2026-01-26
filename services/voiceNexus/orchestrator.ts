@@ -45,6 +45,13 @@ import type { VoiceSystemHealth } from './healthCheck';
 import { liveSession } from '../liveSession';
 import type { LiveServerMessage } from '@google/genai';
 
+// Persistence
+import { neuralVault } from '../persistenceService';
+import { SovereignMemory } from '../memory/MemoryStore';
+
+// Singleton for voice transcript memory
+const sovereignMemory = new SovereignMemory();
+
 // =============================================================================
 // Default Configuration
 // =============================================================================
@@ -80,11 +87,14 @@ export class VoiceNexusOrchestrator {
     private transcripts: Transcript[] = [];
     private toolHandler: VoiceToolHandler | null = null;
     private sttProvider: STTProvider;
+    private sessionId: string;
+    private persistenceEnabled: boolean = true;
 
     constructor(options: Partial<VoiceNexusOptions> = {}) {
         this.config = { ...DEFAULT_CONFIG, ...options.config };
         this.events = options.events || {};
         this.toolHandler = options.events?.onToolCall || null;
+        this.sessionId = `voice_session_${Date.now()}`;
 
         // Select STT provider based on config and availability
         this.sttProvider = this.selectSTTProvider();
@@ -103,6 +113,9 @@ export class VoiceNexusOrchestrator {
             knowledgeContext: null,
             error: null,
         };
+
+        // Load recent transcripts from previous sessions
+        this.loadRecentContext();
     }
 
     /**
@@ -764,6 +777,168 @@ ${agent.expertise?.length ? `## Expertise Areas\n${agent.expertise.join(', ')}` 
         this.transcripts.push(transcript);
         this.state.transcripts = [...this.transcripts];
         this.events.onTranscriptUpdate?.(transcript);
+
+        // Persist to neuralVault + SovereignMemory
+        if (this.persistenceEnabled) {
+            this.persistTranscript(transcript);
+        }
+    }
+
+    /**
+     * Persist a transcript to long-term memory
+     */
+    private async persistTranscript(transcript: Transcript): Promise<void> {
+        try {
+            // Store in SovereignMemory for semantic search
+            await sovereignMemory.store(transcript.id, JSON.stringify({
+                type: 'voice_transcript',
+                sessionId: this.sessionId,
+                ...transcript
+            }));
+
+            // Also store session transcripts in neuralVault for quick access
+            const sessionKey = `voice_transcripts_${this.sessionId}`;
+            const existing = await neuralVault.get(sessionKey) || [];
+            existing.push(transcript);
+            // Keep last 100 transcripts per session
+            if (existing.length > 100) existing.shift();
+            await neuralVault.set(sessionKey, existing);
+
+            // Update session index
+            await this.updateSessionIndex();
+        } catch (error) {
+            console.warn('[VoiceNexus] Failed to persist transcript:', error);
+        }
+    }
+
+    /**
+     * Update the session index for retrieval
+     */
+    private async updateSessionIndex(): Promise<void> {
+        try {
+            const sessions = await neuralVault.get('voice_sessions') || [];
+            const existingIdx = sessions.findIndex((s: any) => s.id === this.sessionId);
+
+            const sessionMeta = {
+                id: this.sessionId,
+                startTime: parseInt(this.sessionId.split('_').pop() || '0'),
+                lastActivity: Date.now(),
+                transcriptCount: this.transcripts.length,
+                mode: this.config.mode,
+                agent: this.config.agent?.name || 'unknown'
+            };
+
+            if (existingIdx >= 0) {
+                sessions[existingIdx] = sessionMeta;
+            } else {
+                sessions.push(sessionMeta);
+            }
+
+            // Keep last 50 sessions
+            if (sessions.length > 50) sessions.shift();
+            await neuralVault.set('voice_sessions', sessions);
+        } catch (error) {
+            // Silent fail - index update is non-critical
+        }
+    }
+
+    /**
+     * Load recent context from previous sessions
+     */
+    private async loadRecentContext(): Promise<void> {
+        try {
+            const sessions = await neuralVault.get('voice_sessions') || [];
+            if (sessions.length === 0) return;
+
+            // Get the most recent session
+            const lastSession = sessions[sessions.length - 1];
+            if (!lastSession) return;
+
+            // Only load if within last 30 minutes
+            const thirtyMinutesAgo = Date.now() - 30 * 60 * 1000;
+            if (lastSession.lastActivity < thirtyMinutesAgo) return;
+
+            const lastTranscripts = await neuralVault.get(`voice_transcripts_${lastSession.id}`) || [];
+            if (lastTranscripts.length > 0) {
+                // Load last 10 transcripts as context
+                const recentContext = lastTranscripts.slice(-10);
+                console.log(`[VoiceNexus] Loaded ${recentContext.length} transcripts from previous session`);
+                // Store as context but don't add to current transcripts
+                this.state.knowledgeContext = {
+                    previousSession: recentContext,
+                    sessionId: lastSession.id
+                } as any;
+            }
+        } catch (error) {
+            console.warn('[VoiceNexus] Failed to load recent context:', error);
+        }
+    }
+
+    /**
+     * End current session and finalize persistence
+     */
+    async endSession(): Promise<{ sessionId: string; transcriptCount: number }> {
+        const result = {
+            sessionId: this.sessionId,
+            transcriptCount: this.transcripts.length
+        };
+
+        // Final session update
+        await this.updateSessionIndex();
+
+        // Start a new session ID for next time
+        this.sessionId = `voice_session_${Date.now()}`;
+
+        return result;
+    }
+
+    /**
+     * Get past voice sessions
+     */
+    async getPastSessions(): Promise<Array<{
+        id: string;
+        startTime: number;
+        lastActivity: number;
+        transcriptCount: number;
+        mode: string;
+        agent: string;
+    }>> {
+        try {
+            return await neuralVault.get('voice_sessions') || [];
+        } catch {
+            return [];
+        }
+    }
+
+    /**
+     * Search past transcripts semantically
+     */
+    async searchTranscripts(query: string, limit: number = 10): Promise<Transcript[]> {
+        try {
+            const results = await sovereignMemory.search(query, limit * 2);
+            return results
+                .filter((r: any) => r.type === 'voice_transcript' || r.content?.includes('voice_transcript'))
+                .slice(0, limit)
+                .map((r: any) => {
+                    try {
+                        const parsed = typeof r.content === 'string' ? JSON.parse(r.content) : r;
+                        return {
+                            id: parsed.id,
+                            role: parsed.role,
+                            text: parsed.text,
+                            timestamp: parsed.timestamp,
+                            complexity: parsed.complexity,
+                            provider: parsed.provider
+                        } as Transcript;
+                    } catch {
+                        return null;
+                    }
+                })
+                .filter(Boolean) as Transcript[];
+        } catch (error) {
+            console.warn('[VoiceNexus] Failed to search transcripts:', error);
+            return [];
+        }
     }
 }
 
