@@ -57,11 +57,15 @@ interface SpeechRecognition extends EventTarget {
     abort(): void;
 }
 
-declare global {
-    interface Window {
-        SpeechRecognition: new () => SpeechRecognition;
-        webkitSpeechRecognition: new () => SpeechRecognition;
-    }
+// Use type assertion for window properties to avoid global declaration conflicts
+type SpeechRecognitionConstructor = new () => SpeechRecognition;
+
+/**
+ * Get the SpeechRecognition constructor from window
+ */
+function getSpeechRecognitionConstructor(): SpeechRecognitionConstructor | undefined {
+    if (typeof window === 'undefined') return undefined;
+    return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 }
 
 /**
@@ -86,17 +90,15 @@ class BrowserSTTProvider implements STTProvider {
      * Check if Web Speech API is available
      */
     isAvailable(): boolean {
-        return typeof window !== 'undefined' &&
-            ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+        return getSpeechRecognitionConstructor() !== undefined;
     }
 
     /**
      * Create a new SpeechRecognition instance
      */
     private createRecognition(): SpeechRecognition | null {
-        if (!this.isAvailable()) return null;
-
-        const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+        const SpeechRecognitionAPI = getSpeechRecognitionConstructor();
+        if (!SpeechRecognitionAPI) return null;
         return new SpeechRecognitionAPI();
     }
 

@@ -38,6 +38,8 @@ import type { STTProvider } from './types';
 import { analyzeComplexity, hasExplicitOverride, formatComplexityResult } from './complexityRouter';
 import { interpretIntent } from '../geminiService';
 import { knowledgeInjector } from './knowledgeInjector';
+import { checkVoiceSystemHealth, formatHealthReport, isVoiceSystemViable } from './healthCheck';
+import type { VoiceSystemHealth } from './healthCheck';
 
 // Existing services
 import { liveSession } from '../liveSession';
@@ -310,6 +312,29 @@ export class VoiceNexusOrchestrator {
             input: liveSession.getInputFrequencies(),
             output: liveSession.getOutputFrequencies(),
         };
+    }
+
+    /**
+     * Check health of all voice providers
+     * Returns detailed health status for diagnostics
+     */
+    async getProviderHealth(): Promise<VoiceSystemHealth> {
+        return checkVoiceSystemHealth();
+    }
+
+    /**
+     * Print a formatted health report to console
+     */
+    async logHealthReport(): Promise<void> {
+        const health = await checkVoiceSystemHealth();
+        console.log(formatHealthReport(health));
+    }
+
+    /**
+     * Check if voice system has minimum viable configuration
+     */
+    async isViable(): Promise<{ viable: boolean; reason?: string }> {
+        return isVoiceSystemViable();
     }
 
     // =========================================================================

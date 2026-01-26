@@ -19,9 +19,12 @@ import { browserSTT } from './voiceNexus/providers/stt/browserSTT';
 import { elevenLabsTTS } from './voiceNexus/providers/tts/elevenLabsTTS';
 import { browserTTS } from './voiceNexus/providers/tts/browserTTS';
 import { analyzeComplexity } from './voiceNexus/complexityRouter';
+import { checkVoiceSystemHealth, formatHealthReport, isVoiceSystemViable } from './voiceNexus/healthCheck';
+import type { VoiceSystemHealth } from './voiceNexus/healthCheck';
 import type { VoiceNexusState, Transcript, VoiceNexusEvents } from './voiceNexus/types';
 import type { HiveAgent, MentalState } from '../types/domain/agents';
 import { AppMode } from '../types';
+import { apiKeyService } from './apiKeyService';
 
 // =============================================================================
 // Types
@@ -458,11 +461,33 @@ export class VoiceCore {
     private isGeminiAvailable(): boolean {
         // Check if Gemini API key is configured
         try {
-            // Would need to check apiKeyService, but for now assume browser fallback
-            return false;
+            return apiKeyService.hasGeminiKey();
         } catch {
             return false;
         }
+    }
+
+    /**
+     * Run diagnostics on the voice system
+     * Returns health status and recommendations
+     */
+    async diagnose(): Promise<VoiceSystemHealth> {
+        return checkVoiceSystemHealth();
+    }
+
+    /**
+     * Print diagnostic report to console
+     */
+    async printDiagnostics(): Promise<void> {
+        const health = await checkVoiceSystemHealth();
+        console.log(formatHealthReport(health));
+    }
+
+    /**
+     * Check if voice system can work at all
+     */
+    async checkViability(): Promise<{ viable: boolean; reason?: string }> {
+        return isVoiceSystemViable();
     }
 
     private getDefaultAgent(): HiveAgent {
@@ -691,6 +716,27 @@ if (typeof window !== 'undefined') {
             globalVoiceCore = new VoiceCore({ debugMode: true, ...config });
             globalVoiceCore.initialize();
             return globalVoiceCore;
+        },
+        // Diagnostic methods
+        diagnose: async () => {
+            const core = globalVoiceCore || new VoiceCore();
+            const health = await core.diagnose();
+            console.log(formatHealthReport(health));
+            return health;
+        },
+        checkHealth: async () => {
+            const health = await checkVoiceSystemHealth();
+            console.log(formatHealthReport(health));
+            return health;
+        },
+        isViable: async () => {
+            const result = await isVoiceSystemViable();
+            if (result.viable) {
+                console.log('✅ Voice system is viable');
+            } else {
+                console.log(`❌ Voice system NOT viable: ${result.reason}`);
+            }
+            return result;
         }
     };
 

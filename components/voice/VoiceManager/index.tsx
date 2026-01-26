@@ -6,7 +6,7 @@ import {
     HIVE_AGENTS,
     constructHiveContext
 } from '../../../services/geminiService';
-import { voiceNexus, analyzeComplexity } from '../../../services/voiceNexus';
+import { voiceNexus, analyzeComplexity, runPreflightCheck, formatPreflightResult } from '../../../services/voiceNexus';
 import { OS_TOOLS } from '../../../services/toolRegistry';
 import { AppMode } from '../../../types';
 import { LiveServerMessage } from '@google/genai';
@@ -64,7 +64,7 @@ const VoiceManager: React.FC = () => {
     useEffect(() => {
         const unsubscribe = subscribeToEpoch((event: EpochEvent) => {
             // If we have an active voice session, track the change
-            if (voice.isSessionActive) {
+            if (voice.isActive) {
                 epochChangesPendingRef.current.push(event);
 
                 // Log significant changes
@@ -78,7 +78,7 @@ const VoiceManager: React.FC = () => {
         });
 
         return unsubscribe;
-    }, [voice.isSessionActive, addLog, subscribeToEpoch]);
+    }, [voice.isActive, addLog, subscribeToEpoch]);
 
     useEffect(() => {
         liveSession.onToolCall = async (name, args) => {
@@ -171,8 +171,9 @@ const VoiceManager: React.FC = () => {
                                 result: cpbResult.output
                             };
                         } else {
-                            addLog('ERROR', `VOICE_EXECUTIVE: CPB execution failed: ${cpbResult.output?.error}`);
-                            return { error: cpbResult.output?.error, actionId };
+                            const errorMsg = (cpbResult.output as any)?.error || 'Unknown error';
+                            addLog('ERROR', `VOICE_EXECUTIVE: CPB execution failed: ${errorMsg}`);
+                            return { error: errorMsg, actionId };
                         }
                     }
                 }
@@ -499,7 +500,7 @@ const VoiceManager: React.FC = () => {
 
                         return {
                             status: "THOUGHT_PARTIAL",
-                            response: result.output?.error || "Could not fully process the request",
+                            response: (result.output as any)?.error || "Could not fully process the request",
                             instruction: "The reasoning had issues. Answer based on your knowledge, acknowledging uncertainty."
                         };
                     }
@@ -594,6 +595,28 @@ const VoiceManager: React.FC = () => {
             const thisSessionVersion = sessionVersionRef.current;
             const agentName = name || 'Puck';
             const agentId = Object.keys(HIVE_AGENTS).find(k => HIVE_AGENTS[k].name === agentName) || 'Puck';
+
+            // =================================================================
+            // PRE-FLIGHT CHECK - Validate requirements before attempting connection
+            // =================================================================
+            if (retryCount === 0) {
+                const preflight = runPreflightCheck();
+                if (!preflight.canProceed) {
+                    const errorMsg = preflight.errors[0] || 'Voice system requirements not met';
+                    addLog('ERROR', `VOICE_PREFLIGHT: ${errorMsg}`);
+                    if (import.meta.env.DEV) {
+                        console.error('[VoiceManager] Preflight failed:');
+                        console.log(formatPreflightResult(preflight));
+                    }
+                    connectionAttemptRef.current = false;
+                    setVoiceState({ isActive: false, isConnecting: false });
+                    return;
+                }
+                if (preflight.warnings.length > 0 && import.meta.env.DEV) {
+                    console.warn('[VoiceManager] Preflight warnings:', preflight.warnings);
+                }
+                addLog('SYSTEM', `VOICE_PREFLIGHT: Ready in ${preflight.mode} mode`);
+            }
 
             // =================================================================
             // SYNCHRONIZED CLOCK - Record starting epoch for freshness tracking
@@ -766,6 +789,10 @@ ${generateTabContext(currentMode)}
                             connectionAttemptRef.current = false;
                             setVoiceState({ isActive: false, isConnecting: false });
                             lastConnectedNameRef.current = null;
+                            // Actually log the error so we know what went wrong
+                            const errorMsg = err?.message || err?.error || String(err);
+                            console.error('[VoiceManager] Connection error:', err);
+                            addLog('ERROR', `VOICE_CORE: ${errorMsg}`);
                         },
                         onclose: () => {
                             // Ignore stale callbacks from old sessions
@@ -776,14 +803,17 @@ ${generateTabContext(currentMode)}
                         }
                     }
                 });
-            } catch (e) {
+            } catch (e: any) {
+                const errorMsg = e?.message || String(e);
+                console.error('[VoiceManager] Connection exception:', e);
+
                 if (retryCount < 3) {
-                    addLog('WARN', `VOICE_CORE: Connection failed. Retrying in 2s... (${retryCount + 1}/3)`);
+                    addLog('WARN', `VOICE_CORE: ${errorMsg}. Retrying in 2s... (${retryCount + 1}/3)`);
                     setTimeout(() => initiateConnection(name, retryCount + 1), 2000);
                 } else {
                     connectionAttemptRef.current = false;
                     setVoiceState({ isActive: false, isConnecting: false });
-                    addLog('ERROR', 'VOICE_CORE: Connection failed after multiple attempts.');
+                    addLog('ERROR', `VOICE_CORE: ${errorMsg} (failed after 3 attempts)`);
                 }
             }
         };
