@@ -4409,46 +4409,147 @@ Output the code with brief explanation.`,
 
             if (name === 'pinned_items') {
                 const { action: pinAction, item, category: pinCategory } = args;
-                const pinned = JSON.parse(localStorage.getItem('pinned_items') || '[]');
 
-                if (pinAction === 'pin') {
-                    pinned.push({ item, category: pinCategory, pinned: Date.now() });
-                    localStorage.setItem('pinned_items', JSON.stringify(pinned));
-                    addLog('SYSTEM', `📌 PINNED: ${item}`);
-                    return { status: "ITEM_PINNED", item, message: "Pinned for quick access, Sir." };
+                try {
+                    const pinned = await neuralVault.get('pinned_items') || [];
+
+                    if (pinAction === 'pin') {
+                        const pinId = `pin_${Date.now()}`;
+                        const newPin = {
+                            id: pinId,
+                            item,
+                            category: pinCategory || 'general',
+                            pinned: Date.now()
+                        };
+                        pinned.push(newPin);
+                        await neuralVault.set('pinned_items', pinned);
+
+                        // Store in SovereignMemory for quick recall
+                        await sovereignMemory.store(pinId, JSON.stringify({
+                            type: 'pinned_item',
+                            ...newPin
+                        }));
+
+                        addLog('SYSTEM', `📌 PINNED: ${item} (persisted)`);
+                        return {
+                            status: "ITEM_PINNED",
+                            id: pinId,
+                            item,
+                            category: pinCategory || 'general',
+                            message: "Pinned for quick access, Sir."
+                        };
+                    }
+
+                    if (pinAction === 'list') {
+                        const byCategory: Record<string, any[]> = {};
+                        pinned.forEach((p: any) => {
+                            const cat = p.category || 'general';
+                            if (!byCategory[cat]) byCategory[cat] = [];
+                            byCategory[cat].push(p);
+                        });
+                        return {
+                            status: "PINNED_LISTED",
+                            items: pinned,
+                            byCategory,
+                            count: pinned.length,
+                            message: `You have ${pinned.length} pinned item${pinned.length !== 1 ? 's' : ''}, Sir.`
+                        };
+                    }
+
+                    if (pinAction === 'unpin') {
+                        const newPinned = pinned.filter((p: any) => p.item !== item);
+                        await neuralVault.set('pinned_items', newPinned);
+                        return { status: "ITEM_UNPINNED", item, message: "Unpinned, Sir." };
+                    }
+
+                    if (pinAction === 'clear') {
+                        await neuralVault.set('pinned_items', []);
+                        return { status: "PINS_CLEARED", message: "All pins cleared, Sir." };
+                    }
+
+                    return { status: "PIN_ACTION", action: pinAction };
+                } catch (e: any) {
+                    addLog('WARN', `PINNED_ITEMS: Fallback to localStorage - ${e.message}`);
+                    const pinned = JSON.parse(localStorage.getItem('pinned_items') || '[]');
+                    if (pinAction === 'pin') {
+                        pinned.push({ item, category: pinCategory, pinned: Date.now() });
+                        localStorage.setItem('pinned_items', JSON.stringify(pinned));
+                        return { status: "ITEM_PINNED", item, message: "Pinned for quick access, Sir." };
+                    }
+                    if (pinAction === 'list') {
+                        return { status: "PINNED_LISTED", items: pinned, count: pinned.length };
+                    }
+                    if (pinAction === 'unpin') {
+                        const newPinned = pinned.filter((p: any) => p.item !== item);
+                        localStorage.setItem('pinned_items', JSON.stringify(newPinned));
+                        return { status: "ITEM_UNPINNED", item, message: "Unpinned." };
+                    }
+                    return { status: "PIN_ACTION", action: pinAction };
                 }
-
-                if (pinAction === 'list') {
-                    return { status: "PINNED_LISTED", items: pinned, count: pinned.length };
-                }
-
-                if (pinAction === 'unpin') {
-                    const newPinned = pinned.filter((p: any) => p.item !== item);
-                    localStorage.setItem('pinned_items', JSON.stringify(newPinned));
-                    return { status: "ITEM_UNPINNED", item, message: "Unpinned." };
-                }
-
-                return { status: "PIN_ACTION", action: pinAction };
             }
 
             if (name === 'daily_brief') {
                 const { type: briefType, include } = args;
                 addLog('SYSTEM', `☀️ DAILY BRIEF: ${briefType || 'morning'}`);
                 const state = useStore.getState();
-                const goals = JSON.parse(localStorage.getItem('tracked_goals') || '[]');
-                const quickNotes = JSON.parse(localStorage.getItem('quick_notes') || '[]');
-                return {
-                    status: "BRIEF_READY",
-                    type: briefType || 'morning',
-                    include: include || ['tasks', 'goals', 'calendar'],
-                    data: {
-                        currentMode: state.mode,
-                        activeGoals: goals.filter((g: any) => g.progress < 100).length,
-                        pendingNotes: quickNotes.length,
-                        timestamp: new Date().toLocaleString()
-                    },
-                    instruction: `Generate a ${briefType || 'morning'} brief. Include: ${(include || ['tasks', 'goals', 'reminders']).join(', ')}. Be concise but comprehensive.`
-                };
+
+                try {
+                    // Pull from real neuralVault data
+                    const goals = await neuralVault.get('tracked_goals') || [];
+                    const quickNotes = await neuralVault.get('quick_notes') || [];
+                    const monitors = await neuralVault.get('active_monitors') || [];
+                    const moods = await neuralVault.get('mood_log') || [];
+
+                    // Get dream protocol insights
+                    const dreamStatus = dreamProtocol.getStatus();
+                    const recentSessions = dreamProtocol.getPastSessions().slice(-3);
+
+                    // Get biometric summary
+                    const biometricSummary = faceDetectionService.isReady() ? {
+                        stressLevel: faceDetectionService.estimateStress().level,
+                        blinkRate: faceDetectionService.getBlinkRate()
+                    } : null;
+
+                    const activeGoals = goals.filter((g: any) => (g.progress || 0) < 100);
+                    const recentMoods = moods.slice(-5);
+                    const avgMoodEnergy = recentMoods.length > 0
+                        ? recentMoods.reduce((sum: number, m: any) => sum + (m.energy || 5), 0) / recentMoods.length
+                        : null;
+
+                    return {
+                        status: "BRIEF_READY",
+                        type: briefType || 'morning',
+                        include: include || ['tasks', 'goals', 'calendar'],
+                        data: {
+                            currentMode: state.mode,
+                            activeGoals: activeGoals.length,
+                            goalsSummary: activeGoals.slice(0, 3).map((g: any) => ({ goal: g.goal, progress: g.progress || 0 })),
+                            pendingNotes: quickNotes.length,
+                            activeMonitors: monitors.filter((m: any) => m.active).length,
+                            recentMoodTrend: avgMoodEnergy ? (avgMoodEnergy > 6 ? 'positive' : avgMoodEnergy < 4 ? 'low' : 'neutral') : null,
+                            biometrics: biometricSummary,
+                            dreamInsights: recentSessions.reduce((acc: number, s: any) => acc + (s.insights?.length || 0), 0),
+                            timestamp: new Date().toLocaleString()
+                        },
+                        instruction: `Generate a ${briefType || 'morning'} brief. Include: ${(include || ['tasks', 'goals', 'reminders']).join(', ')}. Be concise but comprehensive. Use the data provided for accurate status.`
+                    };
+                } catch (e: any) {
+                    addLog('WARN', `DAILY_BRIEF: Fallback to localStorage - ${e.message}`);
+                    const goals = JSON.parse(localStorage.getItem('tracked_goals') || '[]');
+                    const quickNotes = JSON.parse(localStorage.getItem('quick_notes') || '[]');
+                    return {
+                        status: "BRIEF_READY",
+                        type: briefType || 'morning',
+                        include: include || ['tasks', 'goals', 'calendar'],
+                        data: {
+                            currentMode: state.mode,
+                            activeGoals: goals.filter((g: any) => g.progress < 100).length,
+                            pendingNotes: quickNotes.length,
+                            timestamp: new Date().toLocaleString()
+                        },
+                        instruction: `Generate a ${briefType || 'morning'} brief.`
+                    };
+                }
             }
 
             return { error: "Unknown executive protocol." };
