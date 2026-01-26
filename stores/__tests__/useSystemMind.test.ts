@@ -282,6 +282,32 @@ describe('useSystemMind', () => {
             store.setSector('ANOTHER');
             expect(listener).toHaveBeenCalledTimes(1); // Not called again after unsubscribe
         });
+
+        it('should handle listener errors gracefully', () => {
+            const store = useSystemMind.getState();
+            const errorListener = vi.fn(() => {
+                throw new Error('Listener crashed');
+            });
+            const normalListener = vi.fn();
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+            store.subscribeToEpoch(errorListener);
+            store.subscribeToEpoch(normalListener);
+
+            // Should not throw despite error listener
+            expect(() => store.setSector('ERROR_TEST')).not.toThrow();
+
+            // Error should have been logged
+            expect(consoleSpy).toHaveBeenCalledWith(
+                '[SystemMind] Epoch listener error:',
+                expect.any(Error)
+            );
+
+            // Normal listener should still be called
+            expect(normalListener).toHaveBeenCalled();
+
+            consoleSpy.mockRestore();
+        });
     });
 
     describe('getSnapshot', () => {
