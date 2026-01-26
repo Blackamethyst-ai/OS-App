@@ -22,6 +22,7 @@ import { SovereignMemory } from '../../../services/memory/MemoryStore';
 import { neuralVault } from '../../../services/persistenceService';
 import { faceDetectionService } from '../../../services/faceDetectionService';
 import { dreamProtocol, DreamInsight } from '../../../services/dreamProtocol';
+import { adaptiveConsensusEngine, quickConsensus, ACEStatus, ACEResult } from '../../../services/bicameralService';
 
 // Initialize memory service singleton
 const sovereignMemory = new SovereignMemory();
@@ -1061,23 +1062,119 @@ const VoiceManager: React.FC = () => {
 
             if (name === 'run_consensus') {
                 const question = args.question as string;
-                addLog('SYSTEM', `CONSENSUS: Running swarm analysis on "${question}"...`);
-                // Route through think for multi-perspective analysis
-                return {
-                    status: "CONSENSUS_ROUTED",
-                    instruction: `Analyze this question from multiple agent perspectives (skeptic, optimist, pragmatist), then synthesize a consensus recommendation: "${question}"`
+                addLog('SYSTEM', `CONSENSUS: Running ACE swarm analysis on "${question}"...`);
+
+                // Create atomic task for ACE
+                const task = {
+                    id: `consensus-${Date.now()}`,
+                    instruction: question,
+                    isolated_input: question,
+                    description: `Voice-initiated consensus: ${question}`,
+                    weight: 1
                 };
+
+                let lastStatus: ACEStatus | null = null;
+
+                try {
+                    // Run through Adaptive Consensus Engine
+                    const result: ACEResult = await adaptiveConsensusEngine(
+                        task,
+                        (status: ACEStatus) => {
+                            lastStatus = status;
+                            if (import.meta.env.DEV) {
+                                console.log(`[ACE] Phase: ${status.phase}, Gap: ${status.currentGap}/${status.targetGap}`);
+                            }
+                        },
+                        {
+                            adaptiveThresholds: true,
+                            enableAuction: true,
+                            enableDQScoring: true,
+                            enableLearning: true
+                        }
+                    );
+
+                    addLog('SUCCESS', `CONSENSUS: Reached with ${result.confidence}% confidence in ${result.voteLedger?.totalRounds} rounds`);
+
+                    return {
+                        status: "CONSENSUS_ACHIEVED",
+                        answer: result.output,
+                        confidence: result.confidence,
+                        executionTimeMs: result.executionTime,
+                        votingDetails: result.voteLedger ? {
+                            totalRounds: result.voteLedger.totalRounds,
+                            winnerVotes: result.voteLedger.count,
+                            runnerUpVotes: result.voteLedger.runnerUpCount,
+                            agentsParticipated: result.voteLedger.participatingAgents?.length || 'unknown'
+                        } : null,
+                        dqScore: result.dqScore ? {
+                            score: result.dqScore.score,
+                            validity: result.dqScore.validity,
+                            specificity: result.dqScore.specificity
+                        } : null,
+                        complexity: result.complexity ? {
+                            taskType: result.complexity.taskType,
+                            tokenEstimate: result.complexity.tokenEstimate
+                        } : null,
+                        instruction: "Present the consensus answer conversationally, mentioning confidence level and that multiple agents voted."
+                    };
+                } catch (error: any) {
+                    addLog('ERROR', `CONSENSUS: Failed - ${error.message}`);
+                    return {
+                        status: "CONSENSUS_FAILED",
+                        error: error.message,
+                        lastPhase: lastStatus?.phase || 'unknown',
+                        instruction: `Consensus engine failed: ${error.message}. Offer to try again or analyze the question yourself.`
+                    };
+                }
             }
 
             if (name === 'bicameral_dialogue') {
                 const topic = args.topic as string;
-                addLog('SYSTEM', `BICAMERAL: Starting dialogue on "${topic}"...`);
-                // Route through think tool for deep analysis
-                return {
-                    status: "DIALOGUE_MODE",
-                    topic,
-                    instruction: `Engage in internal bicameral dialogue: Present both a skeptical and optimistic perspective on "${topic}", then synthesize.`
+                addLog('SYSTEM', `BICAMERAL: Starting skeptic vs optimist dialogue on "${topic}"...`);
+
+                // Create task specifically for bicameral analysis
+                const task = {
+                    id: `bicameral-${Date.now()}`,
+                    instruction: `Analyze from contrasting perspectives: ${topic}`,
+                    isolated_input: topic,
+                    description: `Bicameral dialogue: skeptic vs optimist on ${topic}`,
+                    weight: 1
                 };
+
+                try {
+                    // Run quick consensus with minimal agents for faster bicameral
+                    const result: ACEResult = await quickConsensus(task, (status: ACEStatus) => {
+                        if (import.meta.env.DEV) {
+                            console.log(`[BICAMERAL] Phase: ${status.phase}, DNA: ${status.activeDNA || 'swarm'}`);
+                        }
+                    });
+
+                    // Generate the bicameral synthesis
+                    const synthesisResult = await runAgentReasoning(
+                        'paramdeep',  // The Strategist - good at synthesis
+                        `Synthesize contrasting viewpoints into a unified recommendation:\n\nTopic: ${topic}\n\nConsensus Output: ${result.output}\n\nProvide: 1) Skeptic's main concern, 2) Optimist's opportunity, 3) Your synthesis.`,
+                        'Bicameral dialogue synthesis'
+                    );
+
+                    addLog('SUCCESS', `BICAMERAL: Dialogue complete with synthesized recommendation`);
+
+                    return {
+                        status: "DIALOGUE_COMPLETE",
+                        topic,
+                        consensusOutput: result.output,
+                        confidence: result.confidence,
+                        synthesis: synthesisResult.response,
+                        synthesizedBy: synthesisResult.agentName,
+                        instruction: "Present the bicameral dialogue naturally: share the skeptic's concern, the optimist's opportunity, then the synthesized recommendation."
+                    };
+                } catch (error: any) {
+                    addLog('ERROR', `BICAMERAL: Dialogue failed - ${error.message}`);
+                    return {
+                        status: "DIALOGUE_FAILED",
+                        error: error.message,
+                        instruction: `Bicameral dialogue failed: ${error.message}. Offer to analyze the topic yourself instead.`
+                    };
+                }
             }
 
             // =================================================================
