@@ -20,6 +20,7 @@ import { initializeUnifiedRegistry, routeQuery, executeQuery, generateVoiceConte
 import type { CPBPath } from '../../../services/cognitivePrecisionBridge/types';
 import { SovereignMemory } from '../../../services/memory/MemoryStore';
 import { neuralVault } from '../../../services/persistenceService';
+import { faceDetectionService } from '../../../services/faceDetectionService';
 
 // Initialize memory service singleton
 const sovereignMemory = new SovereignMemory();
@@ -1135,28 +1136,80 @@ const VoiceManager: React.FC = () => {
             // BIOMETRICS & SENSING - Human interface
             // =================================================================
             if (name === 'read_biometrics') {
-                addLog('SYSTEM', `BIOMETRICS: Reading current state...`);
+                addLog('SYSTEM', `BIOMETRICS: Reading current state from face detection service...`);
                 const state = useAppStore.getState();
                 const biometric = (state as any).biometric || {};
+
+                // Get real data from face detection service
+                const lastDetection = faceDetectionService.getLastDetection();
+                const stressEstimate = faceDetectionService.estimateStress();
+                const blinkRate = faceDetectionService.getBlinkRate();
+                const serviceStats = faceDetectionService.getStats();
+                const detectionQuality = faceDetectionService.getDetectionQuality();
+                const isServiceReady = faceDetectionService.isReady();
+
+                // Determine dominant emotion from expressions if available
+                let dominantEmotion = 'neutral';
+                if (lastDetection?.expressions) {
+                    const expressions = lastDetection.expressions;
+                    const sorted = Object.entries(expressions).sort((a, b) => b[1] - a[1]);
+                    if (sorted[0] && sorted[0][1] > 0.3) {
+                        dominantEmotion = sorted[0][0];
+                    }
+                }
+
                 return {
                     status: "BIOMETRICS_READ",
+                    serviceReady: isServiceReady,
                     data: {
-                        faceDetectionActive: biometric.isCameraOn || false,
-                        mood: biometric.dominantEmotion || 'neutral',
-                        attention: biometric.attentionScore || 0.5
+                        faceDetected: lastDetection?.detected || false,
+                        faceConfidence: lastDetection?.confidence || 0,
+                        detectionQuality,
+                        mood: dominantEmotion,
+                        expressions: lastDetection?.expressions || null,
+                        gaze: lastDetection?.gazeEstimate ? {
+                            direction: lastDetection.gazeEstimate.direction,
+                            confidence: lastDetection.gazeEstimate.confidence,
+                            pupilDilation: lastDetection.gazeEstimate.pupilDilation
+                        } : null,
+                        stress: {
+                            level: stressEstimate.level,
+                            confidence: stressEstimate.confidence,
+                            eyeStrain: stressEstimate.indicators.eyeStrainScore,
+                            expressionTension: stressEstimate.indicators.expressionTension
+                        },
+                        blinkRate,
+                        stats: {
+                            frameCount: serviceStats.frameCount,
+                            detectionCount: serviceStats.detectionCount,
+                            detectionRate: Math.round(serviceStats.detectionRate * 100)
+                        }
                     },
-                    instruction: "Report biometric state naturally."
+                    instruction: "Report biometric readings conversationally. Mention face detection status, mood, stress level, and gaze direction if detected."
                 };
             }
 
             if (name === 'toggle_biometrics') {
                 const enabled = args.enabled as boolean;
-                addLog('SYSTEM', `BIOMETRICS: ${enabled ? 'Enabling' : 'Disabling'}...`);
+                addLog('SYSTEM', `BIOMETRICS: ${enabled ? 'Enabling' : 'Disabling'} face detection...`);
                 const { setBiometricState } = useAppStore.getState().actions as any;
                 if (setBiometricState) {
                     setBiometricState({ isCameraOn: enabled });
                 }
-                return { status: enabled ? "BIOMETRICS_ENABLED" : "BIOMETRICS_DISABLED" };
+
+                // Reset service stats when disabling
+                if (!enabled) {
+                    faceDetectionService.reset();
+                    addLog('SYSTEM', 'BIOMETRICS: Service reset, statistics cleared.');
+                }
+
+                return {
+                    status: enabled ? "BIOMETRICS_ENABLED" : "BIOMETRICS_DISABLED",
+                    serviceReady: faceDetectionService.isReady(),
+                    message: enabled
+                        ? "Face detection enabled, Sir. I'll begin monitoring your biometric state."
+                        : "Face detection disabled, Sir. Biometric data cleared."
+                };
             }
 
             // =================================================================
