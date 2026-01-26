@@ -134,7 +134,7 @@ const BibliomorphicEngine: React.FC = () => {
                   { id: 'discovery', icon: FlaskConical, label: 'LAB' },
                   { id: 'dna', icon: Dna, label: 'DNA' },
                   { id: 'agora', icon: Users, label: 'AGORA' },
-                  { id: 'bicameral', icon: Split, label: 'SWARM' },
+                  { id: 'bicameral', icon: Split, label: 'BICAMERAL SWARM' },
               ].map(tab => (
                   <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex-1 flex flex-col items-center justify-center py-4 px-2 rounded-2xl transition-all ${activeTab === tab.id ? 'bg-[var(--bg-card-top)] text-[var(--text-main)] border border-[var(--border-main)] shadow-md' : 'text-[var(--text-muted)] hover:bg-black/5 hover:text-[var(--text-main)]'}`}>
                       <tab.icon className="w-5 h-5 mb-1.5" />

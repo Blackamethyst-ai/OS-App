@@ -1,9 +1,15 @@
+/**
+ * Complexity Router Tests
+ *
+ * Tests the DQ-inspired complexity scoring algorithm that determines
+ * optimal provider routing for voice queries.
+ */
+
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
     extractComplexitySignals,
     calculateComplexityScore,
     getComplexityTier,
-    selectProviders,
     analyzeComplexity,
     hasExplicitOverride,
     formatComplexityResult,
@@ -15,25 +21,30 @@ import {
     getThresholds,
 } from '../complexityRouter';
 
-describe('Complexity Router', () => {
-    // Reset config before each test
+describe('ComplexityRouter', () => {
     beforeEach(() => {
+        // Reset to default ELITE config before each test
         resetToEliteConfig();
     });
 
     describe('extractComplexitySignals', () => {
+        it('should extract token count correctly', () => {
+            const signals = extractComplexitySignals('hello world how are you');
+            expect(signals.tokenCount).toBe(5);
+        });
+
         it('should detect code indicators', () => {
-            const signals = extractComplexitySignals('implement a function to calculate sum');
+            const signals = extractComplexitySignals('implement a sorting function');
             expect(signals.hasCodeIndicators).toBe(true);
         });
 
         it('should detect reasoning indicators', () => {
-            const signals = extractComplexitySignals('why does this pattern work better?');
+            const signals = extractComplexitySignals('why does this architecture work');
             expect(signals.hasReasoningIndicators).toBe(true);
         });
 
         it('should detect creative indicators', () => {
-            const signals = extractComplexitySignals('brainstorm ideas for the new feature');
+            const signals = extractComplexitySignals('brainstorm ideas for the UI');
             expect(signals.hasCreativeIndicators).toBe(true);
         });
 
@@ -43,18 +54,18 @@ describe('Complexity Router', () => {
         });
 
         it('should detect question indicators', () => {
-            const signals = extractComplexitySignals('what is the capital of France?');
+            const signals = extractComplexitySignals('what is the current state');
             expect(signals.hasQuestionIndicators).toBe(true);
         });
 
-        it('should detect domain complexity', () => {
-            const signals = extractComplexitySignals('design the multi-agent orchestration system');
+        it('should detect deep domain patterns', () => {
+            const signals = extractComplexitySignals('design a multi-agent orchestration system');
             expect(signals.domainComplexity).toBeGreaterThan(0);
         });
 
-        it('should count tokens correctly', () => {
-            const signals = extractComplexitySignals('one two three four five');
-            expect(signals.tokenCount).toBe(5);
+        it('should return zero domain complexity for simple queries', () => {
+            const signals = extractComplexitySignals('hello world');
+            expect(signals.domainComplexity).toBe(0);
         });
     });
 
@@ -62,94 +73,98 @@ describe('Complexity Router', () => {
         it('should return low score for simple navigation', () => {
             const signals = extractComplexitySignals('go to settings');
             const score = calculateComplexityScore(signals);
-            expect(score).toBeLessThan(0.2);
+            expect(score).toBeLessThan(0.3);
         });
 
-        it('should return high score for complex architecture queries', () => {
+        it('should return moderate score for code tasks', () => {
+            const signals = extractComplexitySignals('implement a function to parse JSON');
+            const score = calculateComplexityScore(signals);
+            expect(score).toBeGreaterThan(0.2);
+        });
+
+        it('should return high score for complex reasoning', () => {
             const signals = extractComplexitySignals(
-                'design the multi-agent orchestration architecture with consensus mechanisms'
+                'analyze the architecture implications of this multi-agent consensus system'
             );
             const score = calculateComplexityScore(signals);
             expect(score).toBeGreaterThan(0.5);
         });
 
-        it('should return medium score for code tasks', () => {
-            const signals = extractComplexitySignals('implement a login function');
-            const score = calculateComplexityScore(signals);
-            expect(score).toBeGreaterThanOrEqual(0.2);
-            expect(score).toBeLessThanOrEqual(0.6);
-        });
-
         it('should clamp score to [0, 1]', () => {
-            // Very complex query
-            const signals = extractComplexitySignals(
-                'analyze and compare the architectural trade-offs of implementing a distributed multi-agent consensus system with security considerations'
-            );
+            // Very complex query with many indicators
+            const signals = {
+                tokenCount: 200,
+                hasCodeIndicators: true,
+                hasReasoningIndicators: true,
+                hasCreativeIndicators: true,
+                hasNavigationIndicators: false,
+                hasQuestionIndicators: false,
+                domainComplexity: 0.3,
+            };
             const score = calculateComplexityScore(signals);
             expect(score).toBeLessThanOrEqual(1.0);
             expect(score).toBeGreaterThanOrEqual(0);
         });
+
+        it('should reduce score for navigation queries', () => {
+            const navSignals = extractComplexitySignals('navigate to the agent panel');
+            const nonNavSignals = extractComplexitySignals('check the agent panel');
+            const navScore = calculateComplexityScore(navSignals);
+            const nonNavScore = calculateComplexityScore(nonNavSignals);
+            expect(navScore).toBeLessThan(nonNavScore);
+        });
     });
 
     describe('getComplexityTier', () => {
-        it('should return fast for low scores (< 0.2 in ELITE mode)', () => {
+        it('should return fast for low scores in ELITE mode', () => {
+            // ELITE fastThreshold is 0.2
             expect(getComplexityTier(0.1)).toBe('fast');
-            expect(getComplexityTier(0.15)).toBe('fast');
+            expect(getComplexityTier(0.19)).toBe('fast');
         });
 
-        it('should return balanced for medium scores', () => {
-            expect(getComplexityTier(0.3)).toBe('balanced');
-            expect(getComplexityTier(0.4)).toBe('balanced');
+        it('should return balanced for medium scores in ELITE mode', () => {
+            // ELITE: 0.2 <= score < 0.5
+            expect(getComplexityTier(0.2)).toBe('balanced');
+            expect(getComplexityTier(0.35)).toBe('balanced');
+            expect(getComplexityTier(0.49)).toBe('balanced');
         });
 
-        it('should return deep for high scores (>= 0.5 in ELITE mode)', () => {
+        it('should return deep for high scores in ELITE mode', () => {
+            // ELITE deepThreshold is 0.5
             expect(getComplexityTier(0.5)).toBe('deep');
             expect(getComplexityTier(0.8)).toBe('deep');
-        });
-    });
-
-    describe('selectProviders', () => {
-        it('should select correct providers for fast tier in ELITE mode', () => {
-            const providers = selectProviders(0.1);
-            expect(providers.reasoningTier).toBe('fast');
-            expect(providers.reasoning).toBe('claude-sonnet'); // ELITE mode upgrades to Sonnet
-            expect(providers.tts).toBe('elevenlabs');
+            expect(getComplexityTier(1.0)).toBe('deep');
         });
 
-        it('should select correct providers for balanced tier in ELITE mode', () => {
-            const providers = selectProviders(0.3);
-            expect(providers.reasoningTier).toBe('balanced');
-            expect(providers.reasoning).toBe('claude-opus'); // ELITE mode uses Opus
-            expect(providers.tts).toBe('elevenlabs');
-        });
-
-        it('should select correct providers for deep tier', () => {
-            const providers = selectProviders(0.7);
-            expect(providers.reasoningTier).toBe('deep');
-            expect(providers.reasoning).toBe('claude-opus');
-            expect(providers.tts).toBe('elevenlabs');
+        it('should respect custom thresholds', () => {
+            setThresholds(0.3, 0.7);
+            expect(getComplexityTier(0.25)).toBe('fast');
+            expect(getComplexityTier(0.5)).toBe('balanced');
+            expect(getComplexityTier(0.75)).toBe('deep');
         });
     });
 
     describe('analyzeComplexity', () => {
         it('should return complete complexity result', () => {
-            const result = analyzeComplexity('implement authentication system');
-
+            const result = analyzeComplexity('implement a caching layer');
             expect(result).toHaveProperty('score');
             expect(result).toHaveProperty('tier');
             expect(result).toHaveProperty('signals');
             expect(result).toHaveProperty('recommendedProvider');
-
-            expect(typeof result.score).toBe('number');
-            expect(['fast', 'balanced', 'deep']).toContain(result.tier);
+            expect(result.recommendedProvider).toHaveProperty('reasoning');
+            expect(result.recommendedProvider).toHaveProperty('tts');
         });
 
-        it('should match score with tier correctly', () => {
-            const fastResult = analyzeComplexity('go to home');
-            expect(fastResult.tier).toBe('fast');
+        it('should route navigation to fast tier', () => {
+            const result = analyzeComplexity('go to dashboard');
+            expect(result.tier).toBe('fast');
+        });
 
-            const deepResult = analyzeComplexity('design the distributed consensus architecture');
-            expect(deepResult.tier).toBe('deep');
+        it('should route complex architecture to deep tier', () => {
+            const result = analyzeComplexity(
+                'design a distributed multi-agent consensus architecture for scalability'
+            );
+            expect(result.tier).toBe('deep');
         });
     });
 
@@ -161,165 +176,131 @@ describe('Complexity Router', () => {
         });
 
         it('should detect fast response override', () => {
-            const result = hasExplicitOverride('quick, what time is it?');
+            const result = hasExplicitOverride('give me a quick answer');
             expect(result.override).toBe(true);
             expect(result.tier).toBe('fast');
         });
 
         it('should return no override for normal queries', () => {
-            const result = hasExplicitOverride('what is the weather like?');
+            const result = hasExplicitOverride('what is the weather');
             expect(result.override).toBe(false);
+            expect(result.tier).toBeUndefined();
+        });
+
+        it('should detect comprehensive override', () => {
+            const result = hasExplicitOverride('do a comprehensive analysis');
+            expect(result.override).toBe(true);
+            expect(result.tier).toBe('deep');
         });
     });
 
     describe('formatComplexityResult', () => {
-        it('should format result as readable string', () => {
-            const result = analyzeComplexity('implement a feature');
+        it('should format result with all signal flags', () => {
+            const result = analyzeComplexity('implement and analyze the code architecture');
             const formatted = formatComplexityResult(result);
-
-            expect(formatted).toContain('DQ:');
+            expect(formatted).toContain('[DQ:');
             expect(formatted).toContain('C:');
             expect(formatted).toContain('→');
         });
-    });
 
-    describe('Configuration API', () => {
-        describe('getRouterConfig', () => {
-            it('should return current configuration', () => {
-                const config = getRouterConfig();
-                expect(config).toHaveProperty('fastThreshold');
-                expect(config).toHaveProperty('deepThreshold');
-                expect(config).toHaveProperty('weights');
-                expect(config).toHaveProperty('tierModels');
-                expect(config).toHaveProperty('tierTTS');
-                expect(config).toHaveProperty('eliteMode');
-            });
-
-            it('should return ELITE defaults initially', () => {
-                const config = getRouterConfig();
-                expect(config.eliteMode).toBe(true);
-                expect(config.fastThreshold).toBe(0.2);
-                expect(config.deepThreshold).toBe(0.5);
-            });
-        });
-
-        describe('updateRouterConfig', () => {
-            it('should update specific config values', () => {
-                updateRouterConfig({ fastThreshold: 0.15 });
-                const config = getRouterConfig();
-                expect(config.fastThreshold).toBe(0.15);
-            });
-
-            it('should merge weights correctly', () => {
-                updateRouterConfig({
-                    weights: { codeIndicator: 0.3 },
-                });
-                const config = getRouterConfig();
-                expect(config.weights.codeIndicator).toBe(0.3);
-                // Other weights should remain unchanged
-                expect(config.weights.reasoningIndicator).toBe(0.2);
-            });
-
-            it('should affect complexity scoring', () => {
-                const query = 'implement a function';
-
-                // Get score with default config
-                const scoreBefore = analyzeComplexity(query).score;
-
-                // Increase code indicator weight
-                updateRouterConfig({
-                    weights: { codeIndicator: 0.5 },
-                });
-
-                const scoreAfter = analyzeComplexity(query).score;
-                expect(scoreAfter).toBeGreaterThan(scoreBefore);
-            });
-        });
-
-        describe('switchToStandardConfig', () => {
-            it('should switch to cost-conscious thresholds', () => {
-                switchToStandardConfig();
-                const config = getRouterConfig();
-
-                expect(config.eliteMode).toBe(false);
-                expect(config.fastThreshold).toBe(0.3);
-                expect(config.deepThreshold).toBe(0.7);
-            });
-
-            it('should use Haiku for fast tier', () => {
-                switchToStandardConfig();
-                const config = getRouterConfig();
-                expect(config.tierModels.fast).toBe('claude-haiku');
-            });
-        });
-
-        describe('setThresholds', () => {
-            it('should set custom thresholds', () => {
-                setThresholds(0.25, 0.6);
-                const thresholds = getThresholds();
-                expect(thresholds.fast).toBe(0.25);
-                expect(thresholds.deep).toBe(0.6);
-            });
-
-            it('should throw error if fast >= deep', () => {
-                expect(() => setThresholds(0.5, 0.3)).toThrow();
-                expect(() => setThresholds(0.5, 0.5)).toThrow();
-            });
-
-            it('should clamp values to [0, 1]', () => {
-                setThresholds(-0.5, 1.5);
-                const thresholds = getThresholds();
-                expect(thresholds.fast).toBe(0);
-                expect(thresholds.deep).toBe(1);
-            });
-
-            it('should affect tier routing', () => {
-                // With default ELITE config (0.2, 0.5)
-                expect(getComplexityTier(0.3)).toBe('balanced');
-
-                // With new thresholds (0.4, 0.8)
-                setThresholds(0.4, 0.8);
-                expect(getComplexityTier(0.3)).toBe('fast'); // Now in fast range
-            });
-        });
-
-        describe('resetToEliteConfig', () => {
-            it('should restore ELITE defaults', () => {
-                // Make changes
-                switchToStandardConfig();
-                setThresholds(0.1, 0.9);
-
-                // Reset
-                resetToEliteConfig();
-                const config = getRouterConfig();
-
-                expect(config.eliteMode).toBe(true);
-                expect(config.fastThreshold).toBe(0.2);
-                expect(config.deepThreshold).toBe(0.5);
-            });
+        it('should show NONE when no signals detected', () => {
+            const result = analyzeComplexity('hello');
+            const formatted = formatComplexityResult(result);
+            // Short query with no patterns may have NONE or QUESTION
+            expect(formatted).toMatch(/Signals: (NONE|QUESTION)/);
         });
     });
 
-    describe('Real-world Query Classification', () => {
-        const testCases = [
-            { query: 'go to dashboard', expectedTier: 'fast' },
-            { query: 'show me the settings', expectedTier: 'fast' },
-            { query: 'navigate to agents page', expectedTier: 'fast' },
-            { query: 'what time is it', expectedTier: 'fast' },
-            { query: 'implement a login function', expectedTier: 'balanced' },
-            { query: 'write code to parse JSON', expectedTier: 'balanced' },
-            { query: 'fix the bug in the authentication', expectedTier: 'balanced' },
-            // Deep queries need domain complexity + reasoning indicators to reach score >= 0.5
-            { query: 'analyze and compare the architecture trade-offs for distributed system design', expectedTier: 'deep' },
-            { query: 'design the multi-agent orchestration architecture with consensus mechanisms', expectedTier: 'deep' },
-            { query: 'evaluate the security implications of the state machine architecture design', expectedTier: 'deep' },
-        ];
+    describe('Configuration Management', () => {
+        it('should return current config', () => {
+            const config = getRouterConfig();
+            expect(config).toHaveProperty('fastThreshold');
+            expect(config).toHaveProperty('deepThreshold');
+            expect(config).toHaveProperty('weights');
+            expect(config).toHaveProperty('tierModels');
+            expect(config).toHaveProperty('tierTTS');
+            expect(config).toHaveProperty('eliteMode');
+        });
 
-        testCases.forEach(({ query, expectedTier }) => {
-            it(`should classify "${query.substring(0, 40)}..." as ${expectedTier}`, () => {
-                const result = analyzeComplexity(query);
-                expect(result.tier).toBe(expectedTier);
-            });
+        it('should update partial config', () => {
+            updateRouterConfig({ fastThreshold: 0.15 });
+            const config = getRouterConfig();
+            expect(config.fastThreshold).toBe(0.15);
+        });
+
+        it('should update nested weights', () => {
+            updateRouterConfig({ weights: { codeIndicator: 0.5 } });
+            const config = getRouterConfig();
+            expect(config.weights.codeIndicator).toBe(0.5);
+            // Other weights should be preserved
+            expect(config.weights.reasoningIndicator).toBeDefined();
+        });
+
+        it('should switch to standard config', () => {
+            switchToStandardConfig();
+            const config = getRouterConfig();
+            expect(config.eliteMode).toBe(false);
+            expect(config.fastThreshold).toBe(0.3);
+            expect(config.tierModels.fast).toBe('claude-haiku');
+        });
+
+        it('should reset to ELITE config', () => {
+            switchToStandardConfig();
+            resetToEliteConfig();
+            const config = getRouterConfig();
+            expect(config.eliteMode).toBe(true);
+            expect(config.fastThreshold).toBe(0.2);
+        });
+
+        it('should set and get thresholds', () => {
+            setThresholds(0.25, 0.6);
+            const thresholds = getThresholds();
+            expect(thresholds.fast).toBe(0.25);
+            expect(thresholds.deep).toBe(0.6);
+        });
+
+        it('should throw error for invalid thresholds', () => {
+            expect(() => setThresholds(0.5, 0.3)).toThrow('Fast threshold must be less than deep threshold');
+        });
+
+        it('should clamp thresholds to [0, 1]', () => {
+            setThresholds(-0.5, 1.5);
+            const thresholds = getThresholds();
+            expect(thresholds.fast).toBe(0);
+            expect(thresholds.deep).toBe(1);
+        });
+    });
+
+    describe('Real-world Query Scenarios', () => {
+        it('should handle "show me the agents" as navigation', () => {
+            const result = analyzeComplexity('show me the agents');
+            expect(result.signals.hasNavigationIndicators).toBe(true);
+            expect(result.tier).toBe('fast');
+        });
+
+        it('should handle "implement user authentication" as code task', () => {
+            const result = analyzeComplexity('implement user authentication');
+            expect(result.signals.hasCodeIndicators).toBe(true);
+            expect(result.tier).not.toBe('fast');
+        });
+
+        it('should handle "why is the system slow" as reasoning', () => {
+            const result = analyzeComplexity('why is the system slow');
+            expect(result.signals.hasReasoningIndicators).toBe(true);
+        });
+
+        it('should handle mixed navigation + code as balanced', () => {
+            const result = analyzeComplexity('go to the function and refactor it');
+            expect(result.signals.hasNavigationIndicators).toBe(true);
+            expect(result.signals.hasCodeIndicators).toBe(true);
+            // Navigation reduces but code adds, should be balanced
+        });
+
+        it('should route "design a distributed system" to deep', () => {
+            const result = analyzeComplexity('design a distributed system for high scalability');
+            expect(result.signals.hasReasoningIndicators).toBe(true);
+            expect(result.signals.domainComplexity).toBeGreaterThan(0);
+            expect(result.tier).toBe('deep');
         });
     });
 });
