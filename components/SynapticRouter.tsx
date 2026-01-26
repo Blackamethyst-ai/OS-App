@@ -27,6 +27,7 @@ const NexusAPIExplorer = lazy(() => import('./NexusAPIExplorer'));
 const AgentCoreTest = lazy(() => import('./AgentCoreTest'));
 const CPBTest = lazy(() => import('./CPBTest'));
 const ArchonDashboard = lazy(() => import('./agents/ArchonDashboard'));
+const MetaLearningDashboard = lazy(() => import('./predictions/MetaLearningDashboard'));
 
 // --- CYCLE 1: SPATIAL COORDINATE MAP ---
 const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> = {
@@ -45,7 +46,8 @@ const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> =
     [AppMode.BICAMERAL]: { x: -0.5, y: 0.5, z: 0.5 },
     [AppMode.AGENT_CORE_TEST]: { x: -0.5, y: -0.5, z: 0.5 },
     [AppMode.CPB_TEST]: { x: 0.5, y: -0.5, z: 0.5 },
-    [AppMode.ARCHON]: { x: 0, y: 0, z: 2 }
+    [AppMode.ARCHON]: { x: 0, y: 0, z: 2 },
+    [AppMode.META_LEARNING]: { x: -1, y: 1, z: 1 }
 };
 
 const SynapticRouter: React.FC = () => {
@@ -91,7 +93,8 @@ const SynapticRouter: React.FC = () => {
                 'nexus': 'NEXUS' as any,
                 'sdk-test': AppMode.AGENT_CORE_TEST,
                 'cpb-test': AppMode.CPB_TEST,
-                'archon': AppMode.ARCHON
+                'archon': AppMode.ARCHON,
+                'predictions': AppMode.META_LEARNING
             };
 
             const targetMode = routeMap[mainPath];
@@ -172,6 +175,7 @@ const SynapticRouter: React.FC = () => {
                         {mode === AppMode.AGENT_CORE_TEST && <AgentCoreTest />}
                         {mode === AppMode.CPB_TEST && <CPBTest />}
                         {mode === AppMode.ARCHON && <ArchonDashboard />}
+                        {mode === AppMode.META_LEARNING && <MetaLearningDashboard />}
                     </motion.main>
                 </AnimatePresence>
             </Suspense>

@@ -14,6 +14,7 @@ export const DEFAULT_NAV_CONFIG: NavItem[] = [
     { id: AppMode.METAVENTIONS_HUB, label: 'ECOSYSTEM', path: '/metaventions-hub', fixedLayout: true },
     { id: AppMode.ARCHON, label: 'ARCHON', path: '/archon', requiredClearance: 7 },
     { id: AppMode.BIBLIOMORPHIC, label: 'RESEARCH', path: '/bibliomorphic' },
+    { id: AppMode.META_LEARNING, label: 'PREDICTIONS', path: '/predictions', fixedLayout: true },
     { id: AppMode.PROCESS_MAP, label: 'TOPOLOGY', path: '/process', fixedLayout: true },
     { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance', fixedLayout: true, requiredClearance: 3 },
     { id: AppMode.CODE_STUDIO, label: 'LOGIC', path: '/code', fixedLayout: true },
