@@ -1623,11 +1623,60 @@ Output the code with brief explanation.`,
 
             if (name === 'quick_capture') {
                 const thought = args.thought as string;
-                addLog('SYSTEM', `CAPTURE: "${thought.slice(0, 50)}..."`);
-                const captures = JSON.parse(localStorage.getItem('quick_captures') || '[]');
-                captures.push({ thought, timestamp: Date.now() });
-                localStorage.setItem('quick_captures', JSON.stringify(captures));
-                return { status: "CAPTURED", message: "Captured, Sir." };
+                const category = (args.category as string) || 'thought';
+                const action = args.action as string;
+
+                try {
+                    if (action === 'list') {
+                        const captures = await neuralVault.get('quick_captures') || [];
+                        return {
+                            status: "CAPTURES_LIST",
+                            captures: captures.slice(-20),
+                            count: captures.length,
+                            message: `You have ${captures.length} captured thought${captures.length !== 1 ? 's' : ''}, Sir.`
+                        };
+                    }
+
+                    if (action === 'clear') {
+                        await neuralVault.set('quick_captures', []);
+                        return { status: "CAPTURES_CLEARED", message: "All captures cleared, Sir." };
+                    }
+
+                    // Default: capture thought
+                    const captureId = `cap_${Date.now()}`;
+                    const captures = await neuralVault.get('quick_captures') || [];
+                    const newCapture = {
+                        id: captureId,
+                        thought,
+                        category,
+                        timestamp: Date.now()
+                    };
+                    captures.push(newCapture);
+                    // Keep last 500 captures
+                    if (captures.length > 500) captures.shift();
+                    await neuralVault.set('quick_captures', captures);
+
+                    // Store in SovereignMemory for semantic search/recall
+                    await sovereignMemory.store(captureId, JSON.stringify({
+                        type: 'quick_capture',
+                        ...newCapture
+                    }));
+
+                    addLog('SYSTEM', `CAPTURE: "${thought.slice(0, 50)}..." [${category}]`);
+                    return {
+                        status: "CAPTURED",
+                        id: captureId,
+                        category,
+                        semanticIndexed: true,
+                        message: "Captured, Sir."
+                    };
+                } catch (e: any) {
+                    addLog('WARN', `QUICK_CAPTURE: Fallback to localStorage - ${e.message}`);
+                    const captures = JSON.parse(localStorage.getItem('quick_captures') || '[]');
+                    captures.push({ thought, timestamp: Date.now() });
+                    localStorage.setItem('quick_captures', JSON.stringify(captures));
+                    return { status: "CAPTURED", message: "Captured, Sir." };
+                }
             }
 
             // =================================================================
@@ -1698,35 +1747,137 @@ Output the code with brief explanation.`,
             if (name === 'create_macro') {
                 const { trigger, actions, description } = args;
                 addLog('SYSTEM', `MACRO: Creating "${trigger}"...`);
-                const macros = JSON.parse(localStorage.getItem('voice_macros') || '{}');
-                macros[trigger as string] = { actions, description, created: Date.now() };
-                localStorage.setItem('voice_macros', JSON.stringify(macros));
-                addLog('SUCCESS', `MACRO: Created.`);
-                return { status: "MACRO_CREATED", trigger, message: `Macro "${trigger}" created, Sir. Say "${trigger}" to execute.` };
+
+                try {
+                    const macros = await neuralVault.get('voice_macros') || {};
+                    macros[trigger as string] = {
+                        actions,
+                        description,
+                        created: Date.now(),
+                        useCount: 0
+                    };
+                    await neuralVault.set('voice_macros', macros);
+                    addLog('SUCCESS', `MACRO: Created and persisted.`);
+                    return {
+                        status: "MACRO_CREATED",
+                        trigger,
+                        persistedTo: 'neuralVault',
+                        message: `Macro "${trigger}" created, Sir. Say "${trigger}" to execute.`
+                    };
+                } catch (e: any) {
+                    addLog('WARN', `CREATE_MACRO: Fallback to localStorage - ${e.message}`);
+                    const macros = JSON.parse(localStorage.getItem('voice_macros') || '{}');
+                    macros[trigger as string] = { actions, description, created: Date.now() };
+                    localStorage.setItem('voice_macros', JSON.stringify(macros));
+                    addLog('SUCCESS', `MACRO: Created.`);
+                    return { status: "MACRO_CREATED", trigger, message: `Macro "${trigger}" created, Sir. Say "${trigger}" to execute.` };
+                }
             }
 
             if (name === 'manage_macros') {
                 const { action, macroName } = args;
-                const macros = JSON.parse(localStorage.getItem('voice_macros') || '{}');
 
-                if (action === 'list') {
-                    const macroList = Object.entries(macros).map(([k, v]: [string, any]) => ({ trigger: k, ...v }));
-                    return { status: "MACROS_LISTED", macros: macroList, count: macroList.length };
-                } else if (action === 'delete' && macroName) {
-                    delete macros[macroName as string];
-                    localStorage.setItem('voice_macros', JSON.stringify(macros));
-                    return { status: "MACRO_DELETED", macroName };
+                try {
+                    const macros = await neuralVault.get('voice_macros') || {};
+
+                    if (action === 'list') {
+                        const macroList = Object.entries(macros).map(([k, v]: [string, any]) => ({
+                            trigger: k,
+                            ...v
+                        }));
+                        return {
+                            status: "MACROS_LISTED",
+                            macros: macroList,
+                            count: macroList.length,
+                            message: `You have ${macroList.length} macro${macroList.length !== 1 ? 's' : ''}, Sir.`
+                        };
+                    } else if (action === 'delete' && macroName) {
+                        delete macros[macroName as string];
+                        await neuralVault.set('voice_macros', macros);
+                        return { status: "MACRO_DELETED", macroName, message: `Macro "${macroName}" deleted, Sir.` };
+                    } else if (action === 'execute' && macroName) {
+                        const macro = macros[macroName as string];
+                        if (macro) {
+                            // Track usage
+                            macro.useCount = (macro.useCount || 0) + 1;
+                            macro.lastUsed = Date.now();
+                            await neuralVault.set('voice_macros', macros);
+                            return {
+                                status: "MACRO_EXECUTING",
+                                macroName,
+                                actions: macro.actions,
+                                instruction: `Execute these actions in sequence: ${macro.actions.join(', ')}`
+                            };
+                        }
+                        return { status: "MACRO_NOT_FOUND", macroName };
+                    }
+                    return { status: "ACTION_COMPLETE", action };
+                } catch (e: any) {
+                    addLog('WARN', `MANAGE_MACROS: Fallback to localStorage - ${e.message}`);
+                    const macros = JSON.parse(localStorage.getItem('voice_macros') || '{}');
+                    if (action === 'list') {
+                        const macroList = Object.entries(macros).map(([k, v]: [string, any]) => ({ trigger: k, ...v }));
+                        return { status: "MACROS_LISTED", macros: macroList, count: macroList.length };
+                    } else if (action === 'delete' && macroName) {
+                        delete macros[macroName as string];
+                        localStorage.setItem('voice_macros', JSON.stringify(macros));
+                        return { status: "MACRO_DELETED", macroName };
+                    }
+                    return { status: "ACTION_COMPLETE", action };
                 }
-                return { status: "ACTION_COMPLETE", action };
             }
 
             if (name === 'schedule_action') {
                 const { action, when, recurring } = args;
+                const scheduleAction = args.scheduleAction as string;
                 addLog('SYSTEM', `SCHEDULE: "${action}" for ${when} (${recurring || 'once'})...`);
-                const schedules = JSON.parse(localStorage.getItem('voice_schedules') || '[]');
-                schedules.push({ action, when, recurring: recurring || 'once', created: Date.now() });
-                localStorage.setItem('voice_schedules', JSON.stringify(schedules));
-                return { status: "SCHEDULED", message: `Scheduled "${action}" for ${when}, Sir.` };
+
+                try {
+                    if (scheduleAction === 'list') {
+                        const schedules = await neuralVault.get('voice_schedules') || [];
+                        return {
+                            status: "SCHEDULES_LISTED",
+                            schedules: schedules.slice(-20),
+                            count: schedules.length,
+                            message: `You have ${schedules.length} scheduled action${schedules.length !== 1 ? 's' : ''}, Sir.`
+                        };
+                    }
+
+                    if (scheduleAction === 'clear') {
+                        await neuralVault.set('voice_schedules', []);
+                        return { status: "SCHEDULES_CLEARED", message: "All schedules cleared, Sir." };
+                    }
+
+                    // Default: add schedule
+                    const scheduleId = `sched_${Date.now()}`;
+                    const schedules = await neuralVault.get('voice_schedules') || [];
+                    const newSchedule = {
+                        id: scheduleId,
+                        action,
+                        when,
+                        recurring: recurring || 'once',
+                        created: Date.now(),
+                        status: 'pending'
+                    };
+                    schedules.push(newSchedule);
+                    await neuralVault.set('voice_schedules', schedules);
+
+                    // Queue to dream protocol for background execution monitoring
+                    dreamProtocol.queueQuery(`Monitor scheduled action: ${action} at ${when}`);
+
+                    return {
+                        status: "SCHEDULED",
+                        id: scheduleId,
+                        persistedTo: 'neuralVault',
+                        message: `Scheduled "${action}" for ${when}, Sir.`
+                    };
+                } catch (e: any) {
+                    addLog('WARN', `SCHEDULE_ACTION: Fallback to localStorage - ${e.message}`);
+                    const schedules = JSON.parse(localStorage.getItem('voice_schedules') || '[]');
+                    schedules.push({ action, when, recurring: recurring || 'once', created: Date.now() });
+                    localStorage.setItem('voice_schedules', JSON.stringify(schedules));
+                    return { status: "SCHEDULED", message: `Scheduled "${action}" for ${when}, Sir.` };
+                }
             }
 
             if (name === 'emergency_stop') {
@@ -2306,32 +2457,83 @@ Output the code with brief explanation.`,
 
             if (name === 'workspace') {
                 const { action, name: wsName, includeState } = args;
-                const workspaces = JSON.parse(localStorage.getItem('workspaces') || '{}');
-                const state = useStore.getState();
+                const state = useAppStore.getState();
 
-                if (action === 'save') {
-                    workspaces[wsName as string] = {
-                        mode: state.mode,
-                        saved: Date.now(),
-                        state: includeState ? { mode: state.mode } : undefined
-                    };
-                    localStorage.setItem('workspaces', JSON.stringify(workspaces));
-                    addLog('SYSTEM', `💾 WORKSPACE SAVED: ${wsName}`);
-                    return { status: "WORKSPACE_SAVED", name: wsName, message: `Workspace "${wsName}" saved, Sir.` };
+                try {
+                    const workspaces = await neuralVault.get('workspaces') || {};
+
+                    if (action === 'save') {
+                        workspaces[wsName as string] = {
+                            mode: state.mode,
+                            saved: Date.now(),
+                            voiceMode: state.voice.mode,
+                            state: includeState ? {
+                                mode: state.mode,
+                                voiceActive: state.voice.isActive,
+                                tasksCount: (state.research?.tasks || []).length
+                            } : undefined
+                        };
+                        await neuralVault.set('workspaces', workspaces);
+                        addLog('SYSTEM', `💾 WORKSPACE SAVED: ${wsName} (persisted to Neural Vault)`);
+                        return {
+                            status: "WORKSPACE_SAVED",
+                            name: wsName,
+                            totalWorkspaces: Object.keys(workspaces).length,
+                            message: `Workspace "${wsName}" saved, Sir.`
+                        };
+                    }
+
+                    if (action === 'load' && wsName && workspaces[wsName as string]) {
+                        const ws = workspaces[wsName as string];
+                        setMode(ws.mode);
+                        addLog('SYSTEM', `📂 WORKSPACE LOADED: ${wsName}`);
+                        return {
+                            status: "WORKSPACE_LOADED",
+                            name: wsName,
+                            restoredMode: ws.mode,
+                            savedAt: new Date(ws.saved).toLocaleString(),
+                            message: `Workspace "${wsName}" restored, Sir.`
+                        };
+                    }
+
+                    if (action === 'list') {
+                        const wsNames = Object.keys(workspaces);
+                        return {
+                            status: "WORKSPACES_LISTED",
+                            workspaces: wsNames.map(name => ({
+                                name,
+                                mode: workspaces[name].mode,
+                                saved: new Date(workspaces[name].saved).toLocaleString()
+                            })),
+                            count: wsNames.length,
+                            message: wsNames.length > 0 ? `You have ${wsNames.length} saved workspace(s), Sir.` : "No saved workspaces yet, Sir."
+                        };
+                    }
+
+                    if (action === 'delete' && wsName && workspaces[wsName as string]) {
+                        delete workspaces[wsName as string];
+                        await neuralVault.set('workspaces', workspaces);
+                        return { status: "WORKSPACE_DELETED", name: wsName, message: `Workspace "${wsName}" deleted, Sir.` };
+                    }
+
+                    return { status: "WORKSPACE_ACTION", action, name: wsName };
+                } catch (e: any) {
+                    // Fallback to localStorage
+                    const workspaces = JSON.parse(localStorage.getItem('workspaces') || '{}');
+                    if (action === 'save') {
+                        workspaces[wsName as string] = { mode: state.mode, saved: Date.now() };
+                        localStorage.setItem('workspaces', JSON.stringify(workspaces));
+                        return { status: "WORKSPACE_SAVED", name: wsName, message: `Workspace "${wsName}" saved, Sir.` };
+                    }
+                    if (action === 'load' && wsName && workspaces[wsName as string]) {
+                        setMode(workspaces[wsName as string].mode);
+                        return { status: "WORKSPACE_LOADED", name: wsName, message: `Workspace "${wsName}" restored, Sir.` };
+                    }
+                    if (action === 'list') {
+                        return { status: "WORKSPACES_LISTED", workspaces: Object.keys(workspaces), count: Object.keys(workspaces).length };
+                    }
+                    return { status: "WORKSPACE_ACTION", action, name: wsName };
                 }
-
-                if (action === 'load' && wsName && workspaces[wsName as string]) {
-                    const ws = workspaces[wsName as string];
-                    setMode(ws.mode);
-                    addLog('SYSTEM', `📂 WORKSPACE LOADED: ${wsName}`);
-                    return { status: "WORKSPACE_LOADED", name: wsName, message: `Workspace "${wsName}" restored, Sir.` };
-                }
-
-                if (action === 'list') {
-                    return { status: "WORKSPACES_LISTED", workspaces: Object.keys(workspaces), count: Object.keys(workspaces).length };
-                }
-
-                return { status: "WORKSPACE_ACTION", action, name: wsName };
             }
 
             if (name === 'explain_concept') {
@@ -2710,9 +2912,8 @@ Output the code with brief explanation.`,
                         `Priority: ${priority || 'normal'}. Current sector: ${useAppStore.getState().mode}`
                     );
 
-                    // Store delegation record with response
-                    const delegations = JSON.parse(localStorage.getItem('delegations') || '[]');
-                    delegations.push({
+                    // Store delegation record in neuralVault
+                    const delegationRecord = {
                         id: `del_${Date.now()}`,
                         agent: result.agentName,
                         agentId: result.agentId,
@@ -2721,10 +2922,28 @@ Output the code with brief explanation.`,
                         status: 'completed',
                         response: result.response,
                         created: result.timestamp
-                    });
-                    localStorage.setItem('delegations', JSON.stringify(delegations));
+                    };
 
-                    addLog('SUCCESS', `✅ ${result.agentName} responded`);
+                    try {
+                        const delegations = await neuralVault.get('delegations') || [];
+                        delegations.push(delegationRecord);
+                        // Keep last 50 delegations
+                        if (delegations.length > 50) delegations.shift();
+                        await neuralVault.set('delegations', delegations);
+
+                        // Also store in SovereignMemory for semantic recall
+                        await sovereignMemory.store(delegationRecord.id, JSON.stringify({
+                            type: 'agent_delegation',
+                            ...delegationRecord
+                        }));
+                    } catch {
+                        // Fallback to localStorage
+                        const delegations = JSON.parse(localStorage.getItem('delegations') || '[]');
+                        delegations.push(delegationRecord);
+                        localStorage.setItem('delegations', JSON.stringify(delegations));
+                    }
+
+                    addLog('SUCCESS', `✅ ${result.agentName} responded (delegation logged)`);
                     audio.playClick();
 
                     return {
@@ -2733,6 +2952,7 @@ Output the code with brief explanation.`,
                         agentId: result.agentId,
                         task,
                         response: result.response,
+                        delegationId: delegationRecord.id,
                         message: `${result.agentName}'s analysis: ${result.response}`
                     };
                 } catch (e: any) {
@@ -2870,23 +3090,87 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'annotate_item') {
-                const { target, annotation, type } = args;
-                const annotations = JSON.parse(localStorage.getItem('voice_annotations') || '[]');
-                annotations.push({
-                    id: `ann_${Date.now()}`,
-                    target: target || 'current',
-                    annotation,
-                    type: type || 'note',
-                    timestamp: Date.now()
-                });
-                localStorage.setItem('voice_annotations', JSON.stringify(annotations));
-                addLog('SYSTEM', `📌 ANNOTATED: ${type || 'note'}`);
-                return {
-                    status: "ANNOTATION_ADDED",
-                    target: target || 'current item',
-                    type: type || 'note',
-                    message: `${type === 'warning' ? '⚠️ Warning' : type === 'idea' ? '💡 Idea' : '📝 Note'} added, Sir.`
-                };
+                const { target, annotation, type, action: annAction } = args;
+                const annotationType = (type as string) || 'note';
+                const targetItem = (target as string) || 'current';
+
+                try {
+                    if (annAction === 'list') {
+                        // List annotations for target
+                        const allAnnotations = await neuralVault.get('voice_annotations') || [];
+                        const filtered = targetItem === 'all'
+                            ? allAnnotations
+                            : allAnnotations.filter((a: any) => a.target === targetItem || a.target === 'current');
+                        return {
+                            status: "ANNOTATIONS_LIST",
+                            annotations: filtered.slice(-20),
+                            count: filtered.length,
+                            message: `Found ${filtered.length} annotation${filtered.length !== 1 ? 's' : ''}, Sir.`
+                        };
+                    }
+
+                    if (annAction === 'clear') {
+                        // Clear annotations for target
+                        const allAnnotations = await neuralVault.get('voice_annotations') || [];
+                        const remaining = targetItem === 'all'
+                            ? []
+                            : allAnnotations.filter((a: any) => a.target !== targetItem);
+                        await neuralVault.set('voice_annotations', remaining);
+                        return {
+                            status: "ANNOTATIONS_CLEARED",
+                            clearedCount: allAnnotations.length - remaining.length,
+                            message: `Annotations cleared, Sir.`
+                        };
+                    }
+
+                    // Default: add annotation
+                    const annotationId = `ann_${Date.now()}`;
+                    const annotations = await neuralVault.get('voice_annotations') || [];
+                    const newAnnotation = {
+                        id: annotationId,
+                        target: targetItem,
+                        annotation,
+                        type: annotationType,
+                        timestamp: Date.now()
+                    };
+                    annotations.push(newAnnotation);
+                    // Keep last 200 annotations
+                    if (annotations.length > 200) annotations.shift();
+                    await neuralVault.set('voice_annotations', annotations);
+
+                    // Store in SovereignMemory for semantic search
+                    await sovereignMemory.store(annotationId, JSON.stringify({
+                        type: 'annotation',
+                        ...newAnnotation
+                    }));
+
+                    addLog('SYSTEM', `📌 ANNOTATED: ${annotationType} on ${targetItem}`);
+                    return {
+                        status: "ANNOTATION_ADDED",
+                        id: annotationId,
+                        target: targetItem,
+                        type: annotationType,
+                        persistedTo: 'neuralVault + SovereignMemory',
+                        message: `${annotationType === 'warning' ? '⚠️ Warning' : annotationType === 'idea' ? '💡 Idea' : '📝 Note'} added, Sir.`
+                    };
+                } catch (e: any) {
+                    addLog('WARN', `ANNOTATE_ITEM: Fallback to localStorage - ${e.message}`);
+                    const annotations = JSON.parse(localStorage.getItem('voice_annotations') || '[]');
+                    annotations.push({
+                        id: `ann_${Date.now()}`,
+                        target: targetItem,
+                        annotation,
+                        type: annotationType,
+                        timestamp: Date.now()
+                    });
+                    localStorage.setItem('voice_annotations', JSON.stringify(annotations));
+                    return {
+                        status: "ANNOTATION_ADDED",
+                        target: targetItem,
+                        type: annotationType,
+                        message: `${annotationType === 'warning' ? '⚠️ Warning' : annotationType === 'idea' ? '💡 Idea' : '📝 Note'} added, Sir.`
+                    };
+                }
             }
 
             if (name === 'mood_check') {
@@ -3029,32 +3313,87 @@ Output the code with brief explanation.`,
 
             if (name === 'voice_bookmark') {
                 const { action: bmAction, name: bmName, description } = args;
-                const bookmarks = JSON.parse(localStorage.getItem('voice_bookmarks') || '{}');
                 const state = useStore.getState();
 
-                if (bmAction === 'create') {
-                    bookmarks[bmName as string || `bookmark_${Object.keys(bookmarks).length + 1}`] = {
-                        mode: state.mode,
-                        description,
-                        created: Date.now()
-                    };
-                    localStorage.setItem('voice_bookmarks', JSON.stringify(bookmarks));
-                    addLog('SYSTEM', `🔖 BOOKMARK: ${bmName || 'created'}`);
-                    return { status: "BOOKMARK_CREATED", name: bmName, message: `Bookmark saved, Sir.` };
-                }
+                try {
+                    const bookmarks = await neuralVault.get('voice_bookmarks') || {};
 
-                if (bmAction === 'list') {
-                    return { status: "BOOKMARKS_LISTED", bookmarks: Object.keys(bookmarks), count: Object.keys(bookmarks).length };
-                }
+                    if (bmAction === 'create') {
+                        const bookmarkName = (bmName as string) || `bookmark_${Object.keys(bookmarks).length + 1}`;
+                        bookmarks[bookmarkName] = {
+                            mode: state.mode,
+                            description,
+                            created: Date.now(),
+                            useCount: 0
+                        };
+                        await neuralVault.set('voice_bookmarks', bookmarks);
+                        addLog('SYSTEM', `🔖 BOOKMARK: ${bookmarkName} persisted`);
+                        return {
+                            status: "BOOKMARK_CREATED",
+                            name: bookmarkName,
+                            persistedTo: 'neuralVault',
+                            message: `Bookmark saved, Sir.`
+                        };
+                    }
 
-                if (bmAction === 'go' && bmName && bookmarks[bmName as string]) {
-                    const bm = bookmarks[bmName as string];
-                    setMode(bm.mode);
-                    addLog('SYSTEM', `🔖 BOOKMARK: Going to ${bmName}`);
-                    return { status: "BOOKMARK_NAVIGATED", name: bmName, message: `Returning to ${bmName}, Sir.` };
-                }
+                    if (bmAction === 'list') {
+                        const bookmarkList = Object.entries(bookmarks).map(([k, v]: [string, any]) => ({
+                            name: k,
+                            mode: v.mode,
+                            description: v.description,
+                            useCount: v.useCount || 0
+                        }));
+                        return {
+                            status: "BOOKMARKS_LISTED",
+                            bookmarks: bookmarkList,
+                            count: bookmarkList.length,
+                            message: `You have ${bookmarkList.length} bookmark${bookmarkList.length !== 1 ? 's' : ''}, Sir.`
+                        };
+                    }
 
-                return { status: "BOOKMARK_ACTION", action: bmAction };
+                    if (bmAction === 'go' && bmName && bookmarks[bmName as string]) {
+                        const bm = bookmarks[bmName as string];
+                        bm.useCount = (bm.useCount || 0) + 1;
+                        bm.lastUsed = Date.now();
+                        await neuralVault.set('voice_bookmarks', bookmarks);
+                        setMode(bm.mode);
+                        addLog('SYSTEM', `🔖 BOOKMARK: Going to ${bmName}`);
+                        return {
+                            status: "BOOKMARK_NAVIGATED",
+                            name: bmName,
+                            mode: bm.mode,
+                            message: `Returning to ${bmName}, Sir.`
+                        };
+                    }
+
+                    if (bmAction === 'delete' && bmName && bookmarks[bmName as string]) {
+                        delete bookmarks[bmName as string];
+                        await neuralVault.set('voice_bookmarks', bookmarks);
+                        return { status: "BOOKMARK_DELETED", name: bmName, message: `Bookmark "${bmName}" deleted, Sir.` };
+                    }
+
+                    return { status: "BOOKMARK_ACTION", action: bmAction };
+                } catch (e: any) {
+                    addLog('WARN', `VOICE_BOOKMARK: Fallback to localStorage - ${e.message}`);
+                    const bookmarks = JSON.parse(localStorage.getItem('voice_bookmarks') || '{}');
+                    if (bmAction === 'create') {
+                        bookmarks[bmName as string || `bookmark_${Object.keys(bookmarks).length + 1}`] = {
+                            mode: state.mode,
+                            description,
+                            created: Date.now()
+                        };
+                        localStorage.setItem('voice_bookmarks', JSON.stringify(bookmarks));
+                        return { status: "BOOKMARK_CREATED", name: bmName, message: `Bookmark saved, Sir.` };
+                    }
+                    if (bmAction === 'list') {
+                        return { status: "BOOKMARKS_LISTED", bookmarks: Object.keys(bookmarks), count: Object.keys(bookmarks).length };
+                    }
+                    if (bmAction === 'go' && bmName && bookmarks[bmName as string]) {
+                        setMode(bookmarks[bmName as string].mode);
+                        return { status: "BOOKMARK_NAVIGATED", name: bmName, message: `Returning to ${bmName}, Sir.` };
+                    }
+                    return { status: "BOOKMARK_ACTION", action: bmAction };
+                }
             }
 
             if (name === 'smart_notify') {
@@ -3195,86 +3534,239 @@ Output the code with brief explanation.`,
 
             if (name === 'teach_command') {
                 const { trigger, action: cmdAction, context } = args;
-                const commands = JSON.parse(localStorage.getItem('custom_commands') || '{}');
-                commands[trigger as string] = { action: cmdAction, context, taught: Date.now() };
-                localStorage.setItem('custom_commands', JSON.stringify(commands));
-                addLog('SYSTEM', `🎓 TAUGHT: "${trigger}"`);
-                return {
-                    status: "COMMAND_LEARNED",
-                    trigger,
-                    action: cmdAction,
-                    message: `Understood, Sir. When you say "${trigger}", I'll ${cmdAction}.`
-                };
+                const cmdTrigger = trigger as string;
+
+                try {
+                    const commands = await neuralVault.get('custom_commands') || {};
+                    commands[cmdTrigger] = {
+                        action: cmdAction,
+                        context,
+                        taught: Date.now(),
+                        useCount: 0
+                    };
+                    await neuralVault.set('custom_commands', commands);
+
+                    // Store in SovereignMemory for pattern learning
+                    await sovereignMemory.store(`cmd_${cmdTrigger}`, JSON.stringify({
+                        type: 'custom_command',
+                        trigger: cmdTrigger,
+                        action: cmdAction,
+                        context,
+                        taught: Date.now()
+                    }));
+
+                    addLog('SYSTEM', `🎓 TAUGHT: "${cmdTrigger}" (persisted)`);
+                    return {
+                        status: "COMMAND_LEARNED",
+                        trigger: cmdTrigger,
+                        action: cmdAction,
+                        persistedTo: 'neuralVault + SovereignMemory',
+                        message: `Understood, Sir. When you say "${cmdTrigger}", I'll ${cmdAction}.`
+                    };
+                } catch (e: any) {
+                    addLog('WARN', `TEACH_COMMAND: Fallback to localStorage - ${e.message}`);
+                    const commands = JSON.parse(localStorage.getItem('custom_commands') || '{}');
+                    commands[cmdTrigger] = { action: cmdAction, context, taught: Date.now() };
+                    localStorage.setItem('custom_commands', JSON.stringify(commands));
+                    return {
+                        status: "COMMAND_LEARNED",
+                        trigger: cmdTrigger,
+                        action: cmdAction,
+                        message: `Understood, Sir. When you say "${cmdTrigger}", I'll ${cmdAction}.`
+                    };
+                }
             }
 
             if (name === 'rate_feedback') {
                 const { rating, feedback, about } = args;
-                const feedbackLog = JSON.parse(localStorage.getItem('feedback_log') || '[]');
-                feedbackLog.push({ rating, feedback, about, timestamp: Date.now() });
-                localStorage.setItem('feedback_log', JSON.stringify(feedbackLog));
-                addLog('SYSTEM', `⭐ FEEDBACK: ${rating}`);
-                const responses: Record<string, string> = {
-                    excellent: "Delighted to be of service, Sir.",
-                    good: "Thank you for the feedback, Sir.",
-                    ok: "Noted. I'll aim higher next time.",
-                    poor: "My apologies, Sir. I'll improve.",
-                    wrong: "I apologize for the error. Noted for learning."
-                };
-                return {
-                    status: "FEEDBACK_RECORDED",
-                    rating,
-                    message: responses[rating as string] || "Feedback noted."
-                };
+
+                try {
+                    const feedbackLog = await neuralVault.get('feedback_log') || [];
+                    const entry = {
+                        id: `fb_${Date.now()}`,
+                        rating,
+                        feedback,
+                        about,
+                        timestamp: Date.now()
+                    };
+                    feedbackLog.push(entry);
+                    // Keep last 500 feedback entries
+                    if (feedbackLog.length > 500) feedbackLog.shift();
+                    await neuralVault.set('feedback_log', feedbackLog);
+
+                    // Store in SovereignMemory for learning
+                    await sovereignMemory.store(entry.id, JSON.stringify({
+                        type: 'user_feedback',
+                        ...entry
+                    }));
+
+                    addLog('SYSTEM', `⭐ FEEDBACK: ${rating} (logged for learning)`);
+                    const responses: Record<string, string> = {
+                        excellent: "Delighted to be of service, Sir.",
+                        good: "Thank you for the feedback, Sir.",
+                        ok: "Noted. I'll aim higher next time.",
+                        poor: "My apologies, Sir. I'll improve.",
+                        wrong: "I apologize for the error. Noted for learning."
+                    };
+                    return {
+                        status: "FEEDBACK_RECORDED",
+                        rating,
+                        persistedTo: 'neuralVault + SovereignMemory',
+                        message: responses[rating as string] || "Feedback noted."
+                    };
+                } catch (e: any) {
+                    addLog('WARN', `RATE_FEEDBACK: Fallback to localStorage - ${e.message}`);
+                    const feedbackLog = JSON.parse(localStorage.getItem('feedback_log') || '[]');
+                    feedbackLog.push({ rating, feedback, about, timestamp: Date.now() });
+                    localStorage.setItem('feedback_log', JSON.stringify(feedbackLog));
+                    const responses: Record<string, string> = {
+                        excellent: "Delighted to be of service, Sir.",
+                        good: "Thank you for the feedback, Sir.",
+                        ok: "Noted. I'll aim higher next time.",
+                        poor: "My apologies, Sir. I'll improve.",
+                        wrong: "I apologize for the error. Noted for learning."
+                    };
+                    return {
+                        status: "FEEDBACK_RECORDED",
+                        rating,
+                        message: responses[rating as string] || "Feedback noted."
+                    };
+                }
             }
 
             if (name === 'voice_templates') {
                 const { action: tplAction, name: tplName, steps } = args;
-                const templates = JSON.parse(localStorage.getItem('voice_templates') || '{}');
 
-                if (tplAction === 'save' && tplName && steps) {
-                    templates[tplName as string] = { steps, created: Date.now() };
-                    localStorage.setItem('voice_templates', JSON.stringify(templates));
-                    addLog('SYSTEM', `📋 TEMPLATE SAVED: ${tplName}`);
-                    return { status: "TEMPLATE_SAVED", name: tplName, message: `Template "${tplName}" saved with ${(steps as string[]).length} steps, Sir.` };
+                try {
+                    const templates = await neuralVault.get('voice_templates') || {};
+
+                    if (tplAction === 'save' && tplName && steps) {
+                        templates[tplName as string] = {
+                            steps,
+                            created: Date.now(),
+                            useCount: 0
+                        };
+                        await neuralVault.set('voice_templates', templates);
+                        addLog('SYSTEM', `📋 TEMPLATE SAVED: ${tplName} (persisted)`);
+                        return {
+                            status: "TEMPLATE_SAVED",
+                            name: tplName,
+                            stepCount: (steps as string[]).length,
+                            persistedTo: 'neuralVault',
+                            message: `Template "${tplName}" saved with ${(steps as string[]).length} steps, Sir.`
+                        };
+                    }
+
+                    if (tplAction === 'list') {
+                        const templateList = Object.entries(templates).map(([k, v]: [string, any]) => ({
+                            name: k,
+                            stepCount: v.steps?.length || 0,
+                            useCount: v.useCount || 0
+                        }));
+                        return {
+                            status: "TEMPLATES_LISTED",
+                            templates: templateList,
+                            count: templateList.length,
+                            message: `You have ${templateList.length} template${templateList.length !== 1 ? 's' : ''}, Sir.`
+                        };
+                    }
+
+                    if (tplAction === 'run' && tplName && templates[tplName as string]) {
+                        const tpl = templates[tplName as string];
+                        tpl.useCount = (tpl.useCount || 0) + 1;
+                        tpl.lastUsed = Date.now();
+                        await neuralVault.set('voice_templates', templates);
+                        addLog('SYSTEM', `▶️ RUNNING TEMPLATE: ${tplName}`);
+                        return {
+                            status: "TEMPLATE_RUNNING",
+                            name: tplName,
+                            steps: tpl.steps,
+                            message: `Running "${tplName}", Sir.`
+                        };
+                    }
+
+                    if (tplAction === 'delete' && tplName && templates[tplName as string]) {
+                        delete templates[tplName as string];
+                        await neuralVault.set('voice_templates', templates);
+                        return { status: "TEMPLATE_DELETED", name: tplName, message: `Template "${tplName}" deleted, Sir.` };
+                    }
+
+                    return { status: "TEMPLATE_ACTION", action: tplAction };
+                } catch (e: any) {
+                    addLog('WARN', `VOICE_TEMPLATES: Fallback to localStorage - ${e.message}`);
+                    const templates = JSON.parse(localStorage.getItem('voice_templates') || '{}');
+                    if (tplAction === 'save' && tplName && steps) {
+                        templates[tplName as string] = { steps, created: Date.now() };
+                        localStorage.setItem('voice_templates', JSON.stringify(templates));
+                        return { status: "TEMPLATE_SAVED", name: tplName, message: `Template "${tplName}" saved.` };
+                    }
+                    if (tplAction === 'list') {
+                        return { status: "TEMPLATES_LISTED", templates: Object.keys(templates), count: Object.keys(templates).length };
+                    }
+                    if (tplAction === 'run' && tplName && templates[tplName as string]) {
+                        return { status: "TEMPLATE_RUNNING", name: tplName, steps: templates[tplName as string].steps };
+                    }
+                    return { status: "TEMPLATE_ACTION", action: tplAction };
                 }
-
-                if (tplAction === 'list') {
-                    return { status: "TEMPLATES_LISTED", templates: Object.keys(templates), count: Object.keys(templates).length };
-                }
-
-                if (tplAction === 'run' && tplName && templates[tplName as string]) {
-                    const tpl = templates[tplName as string];
-                    addLog('SYSTEM', `▶️ RUNNING TEMPLATE: ${tplName}`);
-                    return { status: "TEMPLATE_RUNNING", name: tplName, steps: tpl.steps, message: `Running "${tplName}", Sir.` };
-                }
-
-                return { status: "TEMPLATE_ACTION", action: tplAction };
             }
 
             if (name === 'context_switch') {
                 const { to, saveCurrentAs, restore } = args;
-                const contexts = JSON.parse(localStorage.getItem('saved_contexts') || '{}');
                 const state = useStore.getState();
 
-                if (saveCurrentAs) {
-                    contexts[saveCurrentAs as string] = { mode: state.mode, saved: Date.now() };
-                    localStorage.setItem('saved_contexts', JSON.stringify(contexts));
-                }
+                try {
+                    const contexts = await neuralVault.get('saved_contexts') || {};
 
-                if (to) {
-                    addLog('SYSTEM', `🔀 CONTEXT SWITCH: → ${to}`);
-                    return { status: "CONTEXT_SWITCHED", to, savedCurrent: saveCurrentAs, message: `Switching context to ${to}, Sir.` };
-                }
-
-                if (restore) {
-                    const lastContext = Object.keys(contexts).pop();
-                    if (lastContext && contexts[lastContext]) {
-                        setMode(contexts[lastContext].mode);
-                        return { status: "CONTEXT_RESTORED", restored: lastContext, message: `Restored to ${lastContext}, Sir.` };
+                    if (saveCurrentAs) {
+                        contexts[saveCurrentAs as string] = {
+                            mode: state.mode,
+                            saved: Date.now()
+                        };
+                        await neuralVault.set('saved_contexts', contexts);
                     }
-                }
 
-                return { status: "CONTEXT_ACTION", instruction: "Context switch requested. Clarify destination." };
+                    if (to) {
+                        addLog('SYSTEM', `🔀 CONTEXT SWITCH: → ${to}`);
+                        return {
+                            status: "CONTEXT_SWITCHED",
+                            to,
+                            savedCurrent: saveCurrentAs,
+                            message: `Switching context to ${to}, Sir.`
+                        };
+                    }
+
+                    if (restore) {
+                        const lastContext = Object.keys(contexts).pop();
+                        if (lastContext && contexts[lastContext]) {
+                            setMode(contexts[lastContext].mode);
+                            return {
+                                status: "CONTEXT_RESTORED",
+                                restored: lastContext,
+                                message: `Restored to ${lastContext}, Sir.`
+                            };
+                        }
+                    }
+
+                    return { status: "CONTEXT_ACTION", instruction: "Context switch requested. Clarify destination." };
+                } catch (e: any) {
+                    addLog('WARN', `CONTEXT_SWITCH: Fallback to localStorage - ${e.message}`);
+                    const contexts = JSON.parse(localStorage.getItem('saved_contexts') || '{}');
+                    if (saveCurrentAs) {
+                        contexts[saveCurrentAs as string] = { mode: state.mode, saved: Date.now() };
+                        localStorage.setItem('saved_contexts', JSON.stringify(contexts));
+                    }
+                    if (to) {
+                        return { status: "CONTEXT_SWITCHED", to, savedCurrent: saveCurrentAs, message: `Switching context to ${to}, Sir.` };
+                    }
+                    if (restore) {
+                        const lastContext = Object.keys(contexts).pop();
+                        if (lastContext && contexts[lastContext]) {
+                            setMode(contexts[lastContext].mode);
+                            return { status: "CONTEXT_RESTORED", restored: lastContext };
+                        }
+                    }
+                    return { status: "CONTEXT_ACTION", instruction: "Context switch requested." };
+                }
             }
 
             if (name === 'focus_entity') {
@@ -3683,25 +4175,86 @@ Output the code with brief explanation.`,
 
             if (name === 'quick_note') {
                 const { action: noteAction, content: noteContent, tag } = args;
-                const quickNotes = JSON.parse(localStorage.getItem('quick_notes') || '[]');
 
-                if (noteAction === 'add') {
-                    quickNotes.push({ content: noteContent, tag, timestamp: Date.now() });
-                    localStorage.setItem('quick_notes', JSON.stringify(quickNotes));
-                    addLog('SYSTEM', `📝 QUICK NOTE: Added`);
-                    return { status: "NOTE_ADDED", count: quickNotes.length, message: "Noted, Sir." };
+                try {
+                    const quickNotes = await neuralVault.get('quick_notes') || [];
+
+                    if (noteAction === 'add') {
+                        const noteId = `note_${Date.now()}`;
+                        const newNote = {
+                            id: noteId,
+                            content: noteContent,
+                            tag: tag || null,
+                            timestamp: Date.now()
+                        };
+                        quickNotes.push(newNote);
+                        // Keep last 500 notes
+                        if (quickNotes.length > 500) quickNotes.shift();
+                        await neuralVault.set('quick_notes', quickNotes);
+
+                        // Store in SovereignMemory for semantic search
+                        await sovereignMemory.store(noteId, JSON.stringify({
+                            type: 'quick_note',
+                            ...newNote
+                        }));
+
+                        addLog('SYSTEM', `📝 QUICK NOTE: Added (semantically indexed)`);
+                        return {
+                            status: "NOTE_ADDED",
+                            id: noteId,
+                            count: quickNotes.length,
+                            semanticIndexed: true,
+                            message: "Noted, Sir."
+                        };
+                    }
+
+                    if (noteAction === 'list') {
+                        return {
+                            status: "NOTES_LISTED",
+                            notes: quickNotes.slice(-10),
+                            count: quickNotes.length,
+                            message: `You have ${quickNotes.length} quick note${quickNotes.length !== 1 ? 's' : ''}, Sir.`
+                        };
+                    }
+
+                    if (noteAction === 'search' && noteContent) {
+                        // Semantic search for notes
+                        const searchResults = await sovereignMemory.search(noteContent as string, 5);
+                        const noteMatches = searchResults
+                            .filter((r: any) => r.type === 'quick_note' || r.content?.includes('quick_note'))
+                            .slice(0, 5);
+                        return {
+                            status: "NOTES_SEARCH",
+                            query: noteContent,
+                            results: noteMatches,
+                            count: noteMatches.length,
+                            message: `Found ${noteMatches.length} matching note${noteMatches.length !== 1 ? 's' : ''}, Sir.`
+                        };
+                    }
+
+                    if (noteAction === 'clear') {
+                        await neuralVault.set('quick_notes', []);
+                        return { status: "NOTES_CLEARED", message: "Quick notes cleared, Sir." };
+                    }
+
+                    return { status: "NOTE_ACTION", action: noteAction };
+                } catch (e: any) {
+                    addLog('WARN', `QUICK_NOTE: Fallback to localStorage - ${e.message}`);
+                    const quickNotes = JSON.parse(localStorage.getItem('quick_notes') || '[]');
+                    if (noteAction === 'add') {
+                        quickNotes.push({ content: noteContent, tag, timestamp: Date.now() });
+                        localStorage.setItem('quick_notes', JSON.stringify(quickNotes));
+                        return { status: "NOTE_ADDED", count: quickNotes.length, message: "Noted, Sir." };
+                    }
+                    if (noteAction === 'list') {
+                        return { status: "NOTES_LISTED", notes: quickNotes.slice(-10), count: quickNotes.length };
+                    }
+                    if (noteAction === 'clear') {
+                        localStorage.setItem('quick_notes', '[]');
+                        return { status: "NOTES_CLEARED", message: "Quick notes cleared, Sir." };
+                    }
+                    return { status: "NOTE_ACTION", action: noteAction };
                 }
-
-                if (noteAction === 'list') {
-                    return { status: "NOTES_LISTED", notes: quickNotes.slice(-10), count: quickNotes.length };
-                }
-
-                if (noteAction === 'clear') {
-                    localStorage.setItem('quick_notes', '[]');
-                    return { status: "NOTES_CLEARED", message: "Quick notes cleared, Sir." };
-                }
-
-                return { status: "NOTE_ACTION", action: noteAction };
             }
 
             if (name === 'transcribe') {
