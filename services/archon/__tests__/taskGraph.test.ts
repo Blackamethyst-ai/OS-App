@@ -273,6 +273,20 @@ describe('TaskGraph', () => {
 
                 expect(graph.getTotalTokens()).toBe(800);
             });
+
+            it('should skip tasks without results or tokenUsage', () => {
+                const t1 = createTask({ name: 'T1', description: '1' });
+                const t2 = createTask({ name: 'T2', description: '2' });
+                const t3 = createTask({ name: 'T3', description: '3' });
+                t1.result = { output: '', dqScore: 0.8, executionTimeMs: 100, tokenUsage: 500, cost: 0.01 };
+                // t2 has no result
+                t3.result = { output: '', dqScore: 0.6, executionTimeMs: 100 } as any; // result without tokenUsage
+                graph.addTask(t1);
+                graph.addTask(t2);
+                graph.addTask(t3);
+
+                expect(graph.getTotalTokens()).toBe(500);
+            });
         });
 
         describe('getTotalCost', () => {
@@ -285,6 +299,20 @@ describe('TaskGraph', () => {
                 graph.addTask(t2);
 
                 expect(graph.getTotalCost()).toBeCloseTo(0.08);
+            });
+
+            it('should skip tasks without results or cost', () => {
+                const t1 = createTask({ name: 'T1', description: '1' });
+                const t2 = createTask({ name: 'T2', description: '2' });
+                const t3 = createTask({ name: 'T3', description: '3' });
+                t1.result = { output: '', dqScore: 0.8, executionTimeMs: 100, tokenUsage: 500, cost: 0.05 };
+                // t2 has no result
+                t3.result = { output: '', dqScore: 0.6, executionTimeMs: 100, tokenUsage: 300 } as any; // result without cost
+                graph.addTask(t1);
+                graph.addTask(t2);
+                graph.addTask(t3);
+
+                expect(graph.getTotalCost()).toBeCloseTo(0.05);
             });
         });
 
@@ -369,6 +397,28 @@ describe('TaskGraph', () => {
 
                 expect(restored.goal).toBe(graph.goal);
                 expect(restored.tasks.size).toBe(2);
+            });
+
+            it('should handle tasks without id in fromJSON', () => {
+                const json = {
+                    id: 'graph-test',
+                    goal: 'Test goal',
+                    complexityRating: 0.5,
+                    createdAt: Date.now(),
+                    tasks: [
+                        { name: 'T1', description: 'No id provided' }, // No id field
+                        { id: 'custom-id', name: 'T2', description: 'Has id' }
+                    ]
+                };
+
+                const restored = TaskGraph.fromJSON(json);
+                expect(restored.tasks.size).toBe(2);
+
+                // First task should have generated id
+                const tasks = Array.from(restored.tasks.values());
+                expect(tasks[0].id).toContain('task-');
+                // Second task should keep its custom id
+                expect(tasks[1].id).toBe('custom-id');
             });
         });
     });
