@@ -773,27 +773,104 @@ const VoiceManager: React.FC = () => {
             }
 
             // =================================================================
-            // SYSTEM STATUS - Health check
+            // SYSTEM STATUS - Comprehensive real-time status
             // =================================================================
             if (name === 'system_status') {
                 const state = useAppStore.getState();
-                const activeSector = state.mode;
-                const agentCount = Object.keys(HIVE_AGENTS).length;
-                const voiceActive = state.voice.isActive;
-                const cpbPhase = (state as any).cpbState?.phase || 'idle';
+                addLog('SYSTEM', `📊 STATUS: Compiling comprehensive system report...`);
 
-                addLog('SYSTEM', `STATUS: Compiling system report...`);
+                // Task statistics
+                const tasks = state.tasks || [];
+                const taskStats = {
+                    total: tasks.length,
+                    todo: tasks.filter(t => t.status === 'TODO').length,
+                    inProgress: tasks.filter(t => t.status === 'IN_PROGRESS').length,
+                    done: tasks.filter(t => t.status === 'DONE' || t.status === 'COMPLETED').length,
+                    highPriority: tasks.filter(t => t.priority === 'HIGH' || t.priority === 'CRITICAL').length
+                };
+
+                // Voice system status
+                const voiceStatus = {
+                    active: state.voice.isActive,
+                    mode: state.voice.mode,
+                    currentVoice: state.voice.voiceName,
+                    isConnecting: state.voice.isConnecting
+                };
+
+                // Biometrics status
+                const biometricState = (state as any).biometric || {};
+                const biometricStatus = {
+                    active: biometricState.isActive || false,
+                    faceDetected: biometricState.faceDetected || false,
+                    attentionScore: biometricState.attentionScore || 0
+                };
+
+                // CPB status
+                const cpbState = (state as any).cpbState || {};
+                const cpbStatus = {
+                    phase: cpbState.phase || 'idle',
+                    currentPath: cpbState.currentPath,
+                    confidence: cpbState.confidence || 0
+                };
+
+                // Memory status (from localStorage for quick check)
+                const delegations = JSON.parse(localStorage.getItem('delegations') || '[]');
+                const monitors = JSON.parse(localStorage.getItem('active_monitors') || '[]');
+                const goals = JSON.parse(localStorage.getItem('tracked_goals') || '[]');
+
+                // System performance
+                const perfMetrics = {
+                    uptime: Math.round(performance.now() / 1000),
+                    memoryUsage: (performance as any).memory?.usedJSHeapSize
+                        ? Math.round((performance as any).memory.usedJSHeapSize / 1024 / 1024)
+                        : null
+                };
+
+                const report = {
+                    timestamp: new Date().toISOString(),
+                    sector: state.mode,
+                    voice: voiceStatus,
+                    tasks: taskStats,
+                    biometrics: biometricStatus,
+                    cpb: cpbStatus,
+                    agents: {
+                        available: Object.keys(HIVE_AGENTS).length,
+                        recentDelegations: delegations.length
+                    },
+                    monitoring: {
+                        activeMonitors: monitors.filter((m: any) => m.triggered === 0).length,
+                        trackedGoals: goals.length
+                    },
+                    performance: perfMetrics
+                };
+
+                // Generate natural status message
+                const statusMessages: string[] = [];
+                statusMessages.push(`Currently in ${state.mode} sector.`);
+                if (taskStats.highPriority > 0) {
+                    statusMessages.push(`${taskStats.highPriority} high-priority task${taskStats.highPriority > 1 ? 's' : ''} pending.`);
+                }
+                if (taskStats.total > 0) {
+                    statusMessages.push(`${taskStats.done}/${taskStats.total} tasks completed.`);
+                }
+                if (voiceStatus.active) {
+                    statusMessages.push(`Voice interface active with ${voiceStatus.currentVoice}.`);
+                }
+                if (biometricStatus.active && biometricStatus.faceDetected) {
+                    statusMessages.push(`Biometrics tracking. Attention: ${biometricStatus.attentionScore}%.`);
+                }
+                if (monitors.filter((m: any) => m.triggered === 0).length > 0) {
+                    statusMessages.push(`${monitors.filter((m: any) => m.triggered === 0).length} active monitor${monitors.length > 1 ? 's' : ''}.`);
+                }
+
+                addLog('SUCCESS', `✅ STATUS: Report compiled`);
 
                 return {
                     status: "SYSTEM_OPERATIONAL",
-                    report: {
-                        activeSector,
-                        voiceStatus: voiceActive ? 'ONLINE' : 'STANDBY',
-                        agentsAvailable: agentCount,
-                        cpbStatus: cpbPhase,
-                        timestamp: new Date().toISOString()
-                    },
-                    instruction: "Report this status to the user naturally, like a butler giving a status update."
+                    report,
+                    summary: statusMessages.join(' '),
+                    message: `System status, Sir: ${statusMessages.join(' ')}`,
+                    instruction: `Provide this status naturally: ${statusMessages.join(' ')}`
                 };
             }
 
