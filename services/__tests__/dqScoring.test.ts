@@ -248,6 +248,46 @@ describe('DQ Scoring Module', () => {
                 // Contextual output should have higher correctness due to keyword overlap
                 expect(contextualScore.components.correctness).toBeGreaterThanOrEqual(genericScore.components.correctness);
             });
+
+            it('should handle instruction with only short words', () => {
+                const task = createTestTask({
+                    instruction: 'do it now' // All words <= 3 chars
+                });
+
+                const output = 'The task has been completed successfully.';
+                const score = scoreDQHeuristic(output, task);
+
+                // Should still return a valid score
+                expect(score.components.correctness).toBeGreaterThanOrEqual(0);
+                expect(score.components.correctness).toBeLessThanOrEqual(1);
+            });
+
+            it('should handle input with only short words', () => {
+                const task = createTestTask({
+                    instruction: 'Process the input',
+                    isolated_input: 'a b c d e f' // All words <= 3 chars
+                });
+
+                const output = 'Processed the short input values.';
+                const score = scoreDQHeuristic(output, task);
+
+                // Should still return a valid score
+                expect(score.components.correctness).toBeGreaterThanOrEqual(0);
+                expect(score.components.correctness).toBeLessThanOrEqual(1);
+            });
+        });
+
+        describe('specificity edge cases', () => {
+            it('should reward snake_case identifiers', () => {
+                const task = createTestTask();
+                const snakeCaseOutput = 'Use the user_profile and order_history tables';
+                const plainOutput = 'Use the user profile and order history tables';
+
+                const snakeScore = scoreDQHeuristic(snakeCaseOutput, task);
+                const plainScore = scoreDQHeuristic(plainOutput, task);
+
+                expect(snakeScore.components.specificity).toBeGreaterThan(plainScore.components.specificity);
+            });
         });
 
         describe('overall DQ score', () => {
