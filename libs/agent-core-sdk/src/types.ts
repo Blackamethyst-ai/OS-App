@@ -212,6 +212,109 @@ export interface SessionsGraphResult {
 }
 
 // ============================================================
+// Meta-Learning Prediction Types (Phase 6)
+// ============================================================
+
+export interface CognitiveState {
+  mode?: 'peak' | 'dip' | 'morning' | 'evening' | 'deep_night' | 'flow' | 'distracted' | string;
+  hour?: number;
+  energy_level?: number;
+  flow_score?: number;
+}
+
+export interface PredictionRequest {
+  intent: string;
+  cognitive_state?: CognitiveState;
+  available_research?: string[];
+  track_prediction?: boolean;
+}
+
+export interface ErrorPattern {
+  error_type: string;
+  context: string;
+  solution: string;
+  success_rate: number;
+  severity: 'high' | 'medium';
+  score: number;
+}
+
+export interface SessionPrediction {
+  predicted_quality: number;
+  success_probability: number;
+  optimal_time: number;
+  recommended_research: SearchResult[];
+  potential_errors: ErrorPattern[];
+  similar_sessions: Array<{
+    intent: string;
+    outcome: string;
+    quality: number;
+    score?: number;
+  }>;
+  confidence: number;
+  signals: {
+    outcome_score: number;
+    cognitive_alignment: number;
+    research_availability: number;
+    error_probability: number;
+  };
+  prediction_id?: string;
+}
+
+export interface ErrorPredictionRequest {
+  intent: string;
+  include_preventable_only?: boolean;
+}
+
+export interface ErrorPredictionResponse {
+  errors: ErrorPattern[];
+  count: number;
+}
+
+export interface OptimalTimeRequest {
+  intent: string;
+  current_hour?: number;
+}
+
+export interface OptimalTimeResponse {
+  optimal_hour: number;
+  is_optimal_now: boolean;
+  wait_hours: number;
+  reasoning: string;
+}
+
+export interface PredictionAccuracy {
+  total_predictions: number;
+  accurate_predictions: number;
+  accuracy: number;
+  avg_quality_error: number;
+  success_prediction_rate: number;
+  period_days: number;
+}
+
+export interface PredictionOutcomeUpdate {
+  prediction_id: string;
+  actual_quality: number;
+  actual_outcome: 'success' | 'partial' | 'failed';
+  session_id: string;
+}
+
+export interface MultiSearchResults {
+  outcomes: any[];
+  cognitive: any[];
+  research: SearchResult[];
+  errors: ErrorPattern[];
+  total_results: number;
+}
+
+export interface CalibrationWeights {
+  outcome_weight: number;
+  cognitive_weight: number;
+  research_weight: number;
+  error_weight: number;
+  recommended_update: boolean;
+}
+
+// ============================================================
 // Client Options
 // ============================================================
 

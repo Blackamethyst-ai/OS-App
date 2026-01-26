@@ -20,6 +20,16 @@ import type {
   RelatedConceptsResult,
   SessionLineageResult,
   SessionsGraphResult,
+  PredictionRequest,
+  SessionPrediction,
+  ErrorPredictionRequest,
+  ErrorPredictionResponse,
+  OptimalTimeRequest,
+  OptimalTimeResponse,
+  PredictionAccuracy,
+  PredictionOutcomeUpdate,
+  MultiSearchResults,
+  CalibrationWeights,
 } from './types';
 
 const DEFAULT_BASE_URL = 'http://localhost:3847';
@@ -298,6 +308,118 @@ export class AgentCoreClient {
       project: options.project || this.project,
     });
     return this.fetch<SessionsGraphResult>(`/api/graph/sessions${params}`);
+  }
+
+  // ============================================================
+  // Meta-Learning Predictions (Phase 6)
+  // ============================================================
+
+  /**
+   * Predict session outcome based on multi-dimensional correlation
+   * Analyzes historical outcomes, cognitive state, available research, and error patterns
+   */
+  async predictSession(request: PredictionRequest): Promise<SessionPrediction> {
+    return this.fetch<SessionPrediction>('/api/v2/predict/session', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  /**
+   * Predict potential errors for a given task intent
+   * Returns preventable error patterns with solutions
+   */
+  async predictErrors(request: ErrorPredictionRequest): Promise<ErrorPredictionResponse> {
+    return this.fetch<ErrorPredictionResponse>('/api/v2/predict/errors', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  /**
+   * Find optimal time for a task based on cognitive patterns
+   */
+  async predictOptimalTime(request: OptimalTimeRequest): Promise<OptimalTimeResponse> {
+    return this.fetch<OptimalTimeResponse>('/api/v2/predict/optimal-time', {
+      method: 'POST',
+      body: JSON.stringify(request),
+    });
+  }
+
+  /**
+   * Get prediction accuracy metrics for calibration
+   */
+  async getPredictionAccuracy(days: number = 30): Promise<PredictionAccuracy> {
+    const params = this.buildQuery({ days });
+    return this.fetch<PredictionAccuracy>(`/api/v2/predict/accuracy${params}`);
+  }
+
+  /**
+   * Update a prediction with actual outcome for calibration loop
+   */
+  async updatePredictionOutcome(
+    update: PredictionOutcomeUpdate
+  ): Promise<{ status: string; prediction_id: string }> {
+    return this.fetch('/api/v2/predict/update-outcome', {
+      method: 'POST',
+      body: JSON.stringify(update),
+    });
+  }
+
+  /**
+   * Multi-dimensional semantic search across outcomes, cognitive states, research, and errors
+   */
+  async multiVectorSearch(query: string, limit: number = 5): Promise<MultiSearchResults> {
+    const params = this.buildQuery({ query, limit });
+    return this.fetch<MultiSearchResults>(`/api/v2/predict/multi-search${params}`);
+  }
+
+  /**
+   * Get recommended calibration weights based on prediction accuracy
+   */
+  async calibrateWeights(): Promise<CalibrationWeights> {
+    return this.fetch<CalibrationWeights>('/api/v2/predict/calibrate-weights');
+  }
+
+  /**
+   * Convenience method: Get prediction with current cognitive state
+   * Automatically includes error prediction and optimal timing
+   */
+  async getPredictionWithContext(
+    intent: string,
+    options: {
+      track?: boolean;
+      includeErrors?: boolean;
+      includeOptimalTime?: boolean;
+    } = {}
+  ): Promise<{
+    prediction: SessionPrediction;
+    errors?: ErrorPredictionResponse;
+    optimalTime?: OptimalTimeResponse;
+  }> {
+    const { track = false, includeErrors = true, includeOptimalTime = true } = options;
+
+    const promises: Promise<unknown>[] = [
+      this.predictSession({ intent, track_prediction: track }),
+    ];
+
+    if (includeErrors) {
+      promises.push(this.predictErrors({ intent, include_preventable_only: true }));
+    }
+
+    if (includeOptimalTime) {
+      promises.push(this.predictOptimalTime({ intent }));
+    }
+
+    const results = await Promise.all(promises);
+
+    return {
+      prediction: results[0] as SessionPrediction,
+      errors: includeErrors ? (results[1] as ErrorPredictionResponse) : undefined,
+      optimalTime: includeOptimalTime
+        ? (results[includeErrors ? 2 : 1] as OptimalTimeResponse)
+        : undefined,
+    };
   }
 }
 
