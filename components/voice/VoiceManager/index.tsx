@@ -1908,28 +1908,133 @@ Output the code with brief explanation.`,
 
             if (name === 'run_diagnostics') {
                 const { scope, verbose } = args;
-                addLog('SYSTEM', `🔍 DIAGNOSTICS: Running ${scope || 'full'} scan...`);
+                addLog('SYSTEM', `🔍 DIAGNOSTICS: Running ${scope || 'full'} comprehensive scan...`);
                 audio.playClick();
-                const state = useStore.getState();
+
+                const state = useAppStore.getState();
+
+                // Gather real diagnostics from all services
+                const faceDetectionStats = faceDetectionService.getStats();
+                const faceDetectionQuality = faceDetectionService.getDetectionQuality();
+                const dreamStatus = dreamProtocol.getStatus();
+                const dreamSessions = dreamProtocol.getPastSessions();
+
+                // Calculate health indicators
+                const issues: string[] = [];
+                let healthScore = 100;
+
+                // Check voice
+                if (!state.voice.isActive) {
+                    issues.push('Voice system not active');
+                    healthScore -= 10;
+                }
+
+                // Check biometrics
+                if (!faceDetectionService.isReady()) {
+                    issues.push('Biometrics not initialized');
+                    healthScore -= 5;
+                } else if (faceDetectionQuality === 'NONE' || faceDetectionQuality === 'LOW') {
+                    issues.push('Face detection quality low');
+                    healthScore -= 5;
+                }
+
+                // Check dream protocol
+                if (dreamSessions.length === 0 && !dreamStatus.isDreaming) {
+                    issues.push('No dream sessions recorded - idle analysis not yet triggered');
+                }
+
+                // Check tasks
+                const tasks = state.research?.tasks || [];
+                const criticalPending = tasks.filter((t: any) =>
+                    (t.status === 'TODO' || t.status === 'IN_PROGRESS') &&
+                    (t.priority === 'CRITICAL' || t.priority === 'HIGH')
+                ).length;
+                if (criticalPending > 3) {
+                    issues.push(`${criticalPending} critical/high priority tasks pending`);
+                    healthScore -= criticalPending * 2;
+                }
+
+                // Determine overall health status
+                let healthStatus = 'OPTIMAL';
+                if (healthScore < 90) healthStatus = 'GOOD';
+                if (healthScore < 75) healthStatus = 'DEGRADED';
+                if (healthScore < 50) healthStatus = 'ATTENTION_NEEDED';
+
                 const diagnostics = {
                     system: {
-                        uptime: performance.now(),
-                        memory: (performance as any).memory?.usedJSHeapSize || 'unavailable',
-                        agents: Object.keys(state.agents || {}).length,
-                        activeTasks: ((state as any).tasks || []).filter((t: any) => t.status === 'active').length
+                        uptime: `${Math.round(performance.now() / 1000 / 60)} minutes`,
+                        memory: (performance as any).memory ? {
+                            usedHeap: `${Math.round((performance as any).memory.usedJSHeapSize / 1024 / 1024)} MB`,
+                            totalHeap: `${Math.round((performance as any).memory.totalJSHeapSize / 1024 / 1024)} MB`,
+                            heapLimit: `${Math.round((performance as any).memory.jsHeapSizeLimit / 1024 / 1024)} MB`
+                        } : 'Memory API unavailable',
+                        mode: state.mode,
+                        logsCount: state.system?.logs?.length || 0
                     },
-                    services: {
-                        voice: voice.isActive ? 'ACTIVE' : 'STANDBY',
-                        biometrics: (state as any).biometric?.isActive ? 'ACTIVE' : 'STANDBY',
-                        dreamProtocol: 'READY'
+                    agents: {
+                        registeredCount: Object.keys(HIVE_AGENTS).length,
+                        availableNames: Object.values(HIVE_AGENTS).map(a => a.name).slice(0, 8)
                     },
-                    health: 'OPTIMAL'
+                    tasks: {
+                        total: tasks.length,
+                        pending: tasks.filter((t: any) => t.status === 'TODO').length,
+                        inProgress: tasks.filter((t: any) => t.status === 'IN_PROGRESS').length,
+                        completed: tasks.filter((t: any) => t.status === 'DONE').length,
+                        criticalPending
+                    },
+                    voice: {
+                        status: state.voice.isActive ? 'ACTIVE' : 'STANDBY',
+                        transcriptCount: state.voice.transcripts?.length || 0,
+                        nexusMode: state.voiceNexus?.mode || 'unknown',
+                        nexusActive: state.voiceNexus?.isActive || false
+                    },
+                    biometrics: {
+                        serviceReady: faceDetectionService.isReady(),
+                        detectionQuality: faceDetectionQuality,
+                        stats: {
+                            framesProcessed: faceDetectionStats.frameCount,
+                            facesDetected: faceDetectionStats.detectionCount,
+                            detectionRate: `${Math.round(faceDetectionStats.detectionRate * 100)}%`
+                        },
+                        blinkRate: faceDetectionService.getBlinkRate(),
+                        stressLevel: faceDetectionService.estimateStress().level
+                    },
+                    dreamProtocol: {
+                        status: dreamStatus.isDreaming ? 'DREAMING' : 'STANDBY',
+                        idleTimeSec: Math.round(dreamStatus.idleTime / 1000),
+                        pendingQueries: dreamStatus.pendingQueries,
+                        currentSessionInsights: dreamStatus.currentSession?.insights.length || 0,
+                        pastSessionsCount: dreamSessions.length,
+                        totalInsightsGenerated: dreamSessions.reduce((acc, s) => acc + s.insights.length, 0)
+                    },
+                    cpb: {
+                        state: (state as any).cpb?.state || 'unknown',
+                        pathHistory: (state as any).cpb?.pathHistory?.length || 0
+                    },
+                    healthSummary: {
+                        score: healthScore,
+                        status: healthStatus,
+                        issues: issues.length > 0 ? issues : ['No issues detected']
+                    }
                 };
+
                 return {
                     status: "DIAGNOSTICS_COMPLETE",
                     scope: scope || 'full',
-                    results: diagnostics,
-                    message: verbose ? JSON.stringify(diagnostics, null, 2) : "All systems operational, Sir."
+                    healthScore,
+                    healthStatus,
+                    issues: issues.length > 0 ? issues : null,
+                    results: verbose ? diagnostics : {
+                        health: healthStatus,
+                        score: healthScore,
+                        voice: diagnostics.voice.status,
+                        biometrics: diagnostics.biometrics.detectionQuality,
+                        dreamProtocol: diagnostics.dreamProtocol.status,
+                        tasks: `${diagnostics.tasks.pending} pending, ${diagnostics.tasks.inProgress} in progress`
+                    },
+                    instruction: verbose
+                        ? "Present the full diagnostic report section by section."
+                        : `Summarize: Health is ${healthStatus} (${healthScore}%). ${issues.length > 0 ? `Note: ${issues.join(', ')}.` : 'All systems operational.'}`
                 };
             }
 
