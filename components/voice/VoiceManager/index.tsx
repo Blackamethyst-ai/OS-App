@@ -573,19 +573,162 @@ const VoiceManager: React.FC = () => {
             }
 
             // =================================================================
-            // TASK PRIORITY - Update task priority
+            // TASK MANAGEMENT - Real store integration
             // =================================================================
-            if (name === 'update_task_priority') {
-                const { taskId, priority } = args;
-                addLog('SYSTEM', `TASK: Updating ${taskId} to ${priority}...`);
+
+            if (name === 'create_task') {
+                const { title, description, priority, tags } = args;
+                addLog('SYSTEM', `📋 CREATING TASK: "${title}"`);
 
                 try {
-                    const result = await (OS_TOOLS.update_task_priority as any)({ taskId, priority });
-                    if (result.status === 'SUCCESS') {
-                        addLog('SUCCESS', `TASK: Priority updated.`);
-                        return { status: "PRIORITY_UPDATED", taskId, priority };
+                    const { addTask } = useAppStore.getState().actions;
+                    addTask({
+                        title: title as string,
+                        description: (description as string) || '',
+                        status: 'TODO' as any,
+                        priority: (priority as string) || 'MEDIUM',
+                        tags: (tags as string[]) || []
+                    });
+
+                    audio.playClick();
+                    addLog('SUCCESS', `✅ TASK CREATED: "${title}"`);
+                    return {
+                        status: "TASK_CREATED",
+                        title,
+                        priority: priority || 'MEDIUM',
+                        message: `Task created, Sir: "${title}". Priority: ${priority || 'MEDIUM'}.`
+                    };
+                } catch (e: any) {
+                    addLog('ERROR', `Task creation failed: ${e.message}`);
+                    return { error: e.message };
+                }
+            }
+
+            if (name === 'update_task_priority') {
+                const { taskId, priority } = args;
+                addLog('SYSTEM', `📋 UPDATING PRIORITY: ${taskId} → ${priority}`);
+
+                try {
+                    const state = useAppStore.getState();
+                    const { updateTask } = state.actions;
+
+                    // Find task by ID or partial match
+                    const task = state.tasks.find(t =>
+                        t.id === taskId ||
+                        t.title.toLowerCase().includes((taskId as string).toLowerCase())
+                    );
+
+                    if (!task) {
+                        return { error: `Task not found: ${taskId}`, availableTasks: state.tasks.map(t => t.title) };
                     }
-                    return { error: result.data?.error || 'Update failed' };
+
+                    updateTask(task.id, { priority: priority as any });
+                    audio.playClick();
+                    addLog('SUCCESS', `✅ PRIORITY UPDATED: "${task.title}" → ${priority}`);
+                    return {
+                        status: "PRIORITY_UPDATED",
+                        taskId: task.id,
+                        title: task.title,
+                        priority,
+                        message: `Priority updated to ${priority}, Sir.`
+                    };
+                } catch (e: any) {
+                    return { error: e.message };
+                }
+            }
+
+            if (name === 'complete_task') {
+                const { taskId, taskTitle } = args;
+                addLog('SYSTEM', `✅ COMPLETING TASK...`);
+
+                try {
+                    const state = useAppStore.getState();
+                    const { updateTask } = state.actions;
+
+                    let task;
+                    if (taskId === 'last' || (!taskId && !taskTitle)) {
+                        // Get the most recent non-completed task
+                        task = [...state.tasks]
+                            .filter(t => t.status !== 'DONE' && t.status !== 'COMPLETED')
+                            .sort((a, b) => b.timestamp - a.timestamp)[0];
+                    } else if (taskTitle) {
+                        task = state.tasks.find(t =>
+                            t.title.toLowerCase().includes((taskTitle as string).toLowerCase())
+                        );
+                    } else {
+                        task = state.tasks.find(t => t.id === taskId);
+                    }
+
+                    if (!task) {
+                        return { error: "No matching task found", availableTasks: state.tasks.filter(t => t.status !== 'DONE').map(t => t.title) };
+                    }
+
+                    updateTask(task.id, { status: 'DONE' as any });
+                    audio.playClick();
+                    addLog('SUCCESS', `✅ COMPLETED: "${task.title}"`);
+                    return {
+                        status: "TASK_COMPLETED",
+                        taskId: task.id,
+                        title: task.title,
+                        message: `Task completed, Sir: "${task.title}". Well done.`
+                    };
+                } catch (e: any) {
+                    return { error: e.message };
+                }
+            }
+
+            if (name === 'list_tasks') {
+                const { filter, limit } = args;
+                addLog('SYSTEM', `📋 LISTING TASKS: ${filter || 'all'}`);
+
+                try {
+                    const state = useAppStore.getState();
+                    let tasks = [...state.tasks];
+
+                    // Apply filter
+                    if (filter === 'todo') {
+                        tasks = tasks.filter(t => t.status === 'TODO');
+                    } else if (filter === 'in_progress') {
+                        tasks = tasks.filter(t => t.status === 'IN_PROGRESS');
+                    } else if (filter === 'done') {
+                        tasks = tasks.filter(t => t.status === 'DONE' || t.status === 'COMPLETED');
+                    } else if (filter === 'high_priority') {
+                        tasks = tasks.filter(t => t.priority === 'HIGH' || t.priority === 'CRITICAL');
+                    }
+
+                    // Sort by priority and timestamp
+                    const priorityOrder = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 };
+                    tasks.sort((a, b) => {
+                        const pDiff = (priorityOrder[a.priority as keyof typeof priorityOrder] || 2) -
+                                      (priorityOrder[b.priority as keyof typeof priorityOrder] || 2);
+                        return pDiff !== 0 ? pDiff : b.timestamp - a.timestamp;
+                    });
+
+                    // Apply limit
+                    if (limit) {
+                        tasks = tasks.slice(0, limit as number);
+                    }
+
+                    const taskSummary = tasks.map(t => ({
+                        id: t.id,
+                        title: t.title,
+                        status: t.status,
+                        priority: t.priority
+                    }));
+
+                    return {
+                        status: "TASKS_LISTED",
+                        filter: filter || 'all',
+                        count: tasks.length,
+                        total: state.tasks.length,
+                        tasks: taskSummary,
+                        message: tasks.length === 0
+                            ? `No ${filter || ''} tasks found, Sir.`
+                            : `You have ${tasks.length} ${filter || ''} task${tasks.length === 1 ? '' : 's'}, Sir.`,
+                        instruction: tasks.length > 0
+                            ? `List these tasks: ${tasks.map(t => `"${t.title}" (${t.priority}, ${t.status})`).join(', ')}`
+                            : undefined
+                    };
                 } catch (e: any) {
                     return { error: e.message };
                 }

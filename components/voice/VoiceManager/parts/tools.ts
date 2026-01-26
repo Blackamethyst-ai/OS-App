@@ -281,6 +281,56 @@ export const updateTaskPriorityTool: FunctionDeclaration = {
 };
 
 /**
+ * Create a new task in the system.
+ */
+export const createTaskTool: FunctionDeclaration = {
+    name: "create_task",
+    description: "Create a new task in the task management system. Use when user says 'create a task', 'add a task', 'new task', 'I need to', 'remind me to', 'todo'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            title: { type: Type.STRING, description: "Task title - what needs to be done" },
+            description: { type: Type.STRING, description: "Detailed description of the task" },
+            priority: { type: Type.STRING, enum: ["CRITICAL", "HIGH", "MEDIUM", "LOW"], description: "Task priority level" },
+            tags: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Tags for categorization" }
+        },
+        required: ["title"]
+    }
+};
+
+/**
+ * Complete/close a task.
+ */
+export const completeTaskTool: FunctionDeclaration = {
+    name: "complete_task",
+    description: "Mark a task as complete. Use when user says 'done with', 'finished', 'complete the task', 'mark as done'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            taskId: { type: Type.STRING, description: "Task ID to complete (or 'last' for most recent)" },
+            taskTitle: { type: Type.STRING, description: "Task title to find and complete (alternative to ID)" }
+        },
+        required: []
+    }
+};
+
+/**
+ * List current tasks.
+ */
+export const listTasksTool: FunctionDeclaration = {
+    name: "list_tasks",
+    description: "List current tasks. Use when user says 'show my tasks', 'what are my tasks', 'task list', 'what do I need to do'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            filter: { type: Type.STRING, enum: ["all", "todo", "in_progress", "done", "high_priority"], description: "Filter tasks by status" },
+            limit: { type: Type.NUMBER, description: "Maximum tasks to return" }
+        },
+        required: []
+    }
+};
+
+/**
  * Submit a structural change proposal to the swarm.
  */
 export const proposeChangeTool: FunctionDeclaration = {
@@ -2400,7 +2450,10 @@ export const VOICE_TOOLS: FunctionDeclaration[] = [
     searchIntelTool,
 
     // === TASK & PROPOSAL MANAGEMENT ===
+    createTaskTool,
     updateTaskPriorityTool,
+    completeTaskTool,
+    listTasksTool,
     proposeChangeTool,
 
     // === SYSTEM OPERATIONS ===
