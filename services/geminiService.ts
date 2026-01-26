@@ -955,11 +955,108 @@ export async function generate(prompt: string, systemInstruction?: string): Prom
 }
 
 /**
- * Video generation stub - not yet implemented
+ * Multimodal generation - text with images
+ * Supports base64 data URLs or raw base64 strings
  */
-export async function generateVideo(prompt: string): Promise<{ url: string; duration: number }> {
-    console.warn('generateVideo: Video generation is not yet implemented');
-    throw new Error('Video generation is not yet implemented. Use generateArchitectureImage for static images.');
+export async function generateWithVision(
+    prompt: string,
+    images: Array<{ data: string; mimeType?: string }>,
+    model: string = 'gemini-2.0-flash',
+    systemInstruction?: string
+): Promise<string> {
+    const ai = getAI();
+
+    // Build content parts: images first, then text prompt
+    const parts: Array<{ text?: string; inlineData?: { data: string; mimeType: string } }> = [];
+
+    // Add images
+    for (const image of images) {
+        let data = image.data;
+        let mimeType = image.mimeType || 'image/png';
+
+        // Handle data URLs (e.g., "data:image/png;base64,...")
+        if (data.startsWith('data:')) {
+            const match = data.match(/^data:([^;]+);base64,(.+)$/);
+            if (match) {
+                mimeType = match[1];
+                data = match[2];
+            }
+        }
+
+        parts.push({
+            inlineData: { data, mimeType }
+        });
+    }
+
+    // Add text prompt
+    parts.push({ text: prompt });
+
+    try {
+        const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+            model,
+            contents: [{ role: 'user', parts }],
+            config: {
+                systemInstruction: systemInstruction || SOVEREIGN_SYSTEM_INSTRUCTION
+            }
+        }), 3, 1000, model);
+
+        return response.text || "";
+    } catch (e) {
+        console.error("Gemini Multimodal Generation Error:", e);
+        throw e;
+    }
+}
+
+/**
+ * Video generation via Gemini Veo 2
+ * Returns a data URL with the generated video
+ */
+export async function generateVideo(
+    prompt: string,
+    options?: {
+        duration?: number;  // 5-8 seconds
+        aspectRatio?: '16:9' | '9:16' | '1:1';
+        style?: string;
+    }
+): Promise<{ url: string; duration: number }> {
+    const ai = getAI();
+
+    try {
+        // Use Veo 2 for video generation
+        const response = await ai.models.generateContent({
+            model: 'veo-2.0-generate-001',
+            contents: prompt,
+            config: {
+                responseModalities: ['VIDEO'],
+                // @ts-ignore - Veo config options
+                videoDuration: options?.duration || 5,
+                aspectRatio: options?.aspectRatio || '16:9',
+            }
+        });
+
+        // Extract video from response
+        const videoPart = response.candidates?.[0]?.content?.parts?.find(
+            (p: any) => p.inlineData?.mimeType?.startsWith('video/')
+        );
+
+        if (videoPart?.inlineData) {
+            const url = `data:${videoPart.inlineData.mimeType};base64,${videoPart.inlineData.data}`;
+            return {
+                url,
+                duration: options?.duration || 5
+            };
+        }
+
+        throw new Error('No video generated in response');
+    } catch (e: any) {
+        // Veo may not be available - provide helpful error
+        if (e.message?.includes('not found') || e.message?.includes('not supported')) {
+            console.warn('generateVideo: Veo 2 not available. Video generation requires Gemini API access to Veo.');
+            throw new Error('Video generation requires Veo 2 access. Contact Google to enable this feature.');
+        }
+        console.error("Gemini Video Generation Error:", e);
+        throw e;
+    }
 }
 
 /**
