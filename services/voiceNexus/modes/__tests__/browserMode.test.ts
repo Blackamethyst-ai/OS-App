@@ -256,4 +256,49 @@ describe('BrowserModeHandler', () => {
             expect((browserMode as any).lastProcessedTranscript).toBe('');
         });
     });
+
+    describe('handleTranscriptUpdate edge cases', () => {
+        it('should not process if mode is stopped', async () => {
+            await browserMode.start(mockContext);
+            const callback = (global as any).__sttCallback;
+
+            // Stop the mode
+            browserMode.stop(mockContext);
+
+            // Try to process text - should be ignored
+            callback('Hello world');
+            await vi.advanceTimersByTimeAsync(1500);
+
+            // processText should not have been called because isRunning is false
+            expect(mockContext.processText).not.toHaveBeenCalled();
+        });
+
+        it('should handle errors during text processing', async () => {
+            const testError = new Error('Processing failed');
+            mockContext.processText = vi.fn().mockRejectedValue(testError);
+
+            await browserMode.start(mockContext);
+            const callback = (global as any).__sttCallback;
+
+            // Trigger processing with enough text
+            callback('Hello world this is a test');
+            await vi.advanceTimersByTimeAsync(1500);
+
+            // Error should be emitted
+            expect(mockContext.events.onError).toHaveBeenCalledWith(testError);
+        });
+
+        it('should handle non-Error objects in catch block', async () => {
+            mockContext.processText = vi.fn().mockRejectedValue('string error');
+
+            await browserMode.start(mockContext);
+            const callback = (global as any).__sttCallback;
+
+            callback('Hello world this is a test');
+            await vi.advanceTimersByTimeAsync(1500);
+
+            // Should wrap string in Error
+            expect(mockContext.events.onError).toHaveBeenCalledWith(expect.any(Error));
+        });
+    });
 });

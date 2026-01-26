@@ -661,4 +661,78 @@ describe('Adaptive Consensus Engine', () => {
             expect(result.dqScore).toBeDefined();
         });
     });
+
+    describe('Hop Grouping', () => {
+        it('should use hop grouping winner for expert tasks', async () => {
+            const { performHopGrouping } = await import('../hopGrouping');
+
+            // Set expert complexity with gap of 3
+            vi.mocked(estimateComplexity).mockReturnValue({
+                tokenEstimate: 1000,
+                taskType: 'expert',
+                suggestedRounds: 20,
+                suggestedGap: 3, // Need 3 gap to converge
+                domain: 'security'
+            });
+
+            // Mock hop grouping to return a winning group
+            vi.mocked(performHopGrouping).mockReturnValue({
+                groups: [
+                    {
+                        answers: ['Grouped Answer'],
+                        representativeAnswer: 'Grouped Answer',
+                        votingStrength: 5,
+                        agentContributors: ['agent-1', 'agent-2']
+                    }
+                ],
+                winningGroup: {
+                    answers: ['Grouped Answer'],
+                    representativeAnswer: 'Grouped Answer',
+                    votingStrength: 5,
+                    agentContributors: ['agent-1', 'agent-2']
+                },
+                method: 'levenshtein',
+                groupingDuration: 15
+            });
+
+            // Build up 3+ unique answers then converge on one
+            // Sequence: A, B, C, A, A, A (3 gap: A=4, B=1, C=1, 3 unique answers)
+            let callCount = 0;
+            vi.mocked(retryGeminiRequest).mockImplementation(async () => {
+                callCount++;
+                let answer: string;
+                if (callCount <= 3) {
+                    // First 3 calls: unique answers A, B, C
+                    answer = ['Answer A', 'Answer B', 'Answer C'][callCount - 1];
+                } else {
+                    // Subsequent calls: all vote for A to create gap
+                    answer = 'Answer A';
+                }
+                return {
+                    text: JSON.stringify({
+                        output: answer,
+                        confidence: 0.8,
+                        reasoning: 'Expert analysis'
+                    })
+                };
+            });
+
+            const task = createTestTask();
+
+            const result = await adaptiveConsensusEngine(
+                task,
+                () => {},
+                {
+                    enableAuction: false,
+                    enableDQScoring: false,
+                    enableHopGrouping: true,
+                    hopMinVotes: 3,
+                    adaptiveThresholds: false // Use fixed to control behavior
+                }
+            );
+
+            expect(performHopGrouping).toHaveBeenCalled();
+            expect(result.output).toBe('Grouped Answer');
+        });
+    });
 });
