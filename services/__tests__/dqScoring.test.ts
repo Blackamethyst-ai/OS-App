@@ -4,20 +4,25 @@ import {
     isActionable,
     createDQScore,
     scoreDQHeuristic,
+    scoreDQWithLLM,
     rankByDQ,
     getBestByDQ
 } from '../dqScoring';
 import { AtomicTask } from '../../types';
 import { DecisionQuality, DEFAULT_ACE_CONFIG } from '../../types/domain/convergence';
 
+// Mock functions for geminiService
+const mockGenerateContent = vi.fn();
+const mockRetryGeminiRequest = vi.fn(async (fn) => fn());
+
 // Mock the geminiService to avoid actual API calls
 vi.mock('../geminiService', () => ({
     getAI: vi.fn(() => ({
         models: {
-            generateContent: vi.fn()
+            generateContent: mockGenerateContent
         }
     })),
-    retryGeminiRequest: vi.fn(async (fn) => fn())
+    retryGeminiRequest: (fn: () => Promise<any>) => mockRetryGeminiRequest(fn)
 }));
 
 // Helper to create test tasks
@@ -327,6 +332,122 @@ describe('DQ Scoring Module', () => {
             const task = createTestTask();
             const best = await getBestByDQ([], task, false);
             expect(best).toBeNull();
+        });
+    });
+
+    describe('scoreDQWithLLM', () => {
+        beforeEach(() => {
+            mockGenerateContent.mockReset();
+            mockRetryGeminiRequest.mockReset();
+            mockRetryGeminiRequest.mockImplementation(async (fn) => fn());
+        });
+
+        it('should return DQ score from LLM response', async () => {
+            mockGenerateContent.mockResolvedValue({
+                text: JSON.stringify({
+                    validity: 0.9,
+                    specificity: 0.8,
+                    correctness: 0.7,
+                    reasoning: 'Good output'
+                })
+            });
+
+            const task = createTestTask();
+            const score = await scoreDQWithLLM('Test output', task);
+
+            expect(score.components.validity).toBeCloseTo(0.9);
+            expect(score.components.specificity).toBeCloseTo(0.8);
+            expect(score.components.correctness).toBeCloseTo(0.7);
+            expect(score.isActionable).toBe(true);
+        });
+
+        it('should clamp values to 0-1 range', async () => {
+            mockGenerateContent.mockResolvedValue({
+                text: JSON.stringify({
+                    validity: 1.5,
+                    specificity: -0.5,
+                    correctness: 0.5
+                })
+            });
+
+            const task = createTestTask();
+            const score = await scoreDQWithLLM('Test output', task);
+
+            expect(score.components.validity).toBe(1.0);
+            expect(score.components.specificity).toBe(0);
+            expect(score.components.correctness).toBe(0.5);
+        });
+
+        it('should include ground truth in prompt when provided', async () => {
+            mockGenerateContent.mockResolvedValue({
+                text: JSON.stringify({
+                    validity: 0.8,
+                    specificity: 0.7,
+                    correctness: 0.9
+                })
+            });
+
+            const task = createTestTask();
+            await scoreDQWithLLM('Test output', task, 'Expected output');
+
+            // Check that generateContent was called
+            expect(mockGenerateContent).toHaveBeenCalled();
+        });
+
+        it('should fall back to heuristic scoring on error', async () => {
+            mockGenerateContent.mockRejectedValue(new Error('API Error'));
+
+            const task = createTestTask({
+                instruction: 'Calculate the sum'
+            });
+            const output = '```javascript\nconst sum = a + b;\n``` version 1.0.0';
+
+            const score = await scoreDQWithLLM(output, task);
+
+            // Should return heuristic score, not fail
+            expect(score).toBeDefined();
+            expect(score.components.validity).toBeGreaterThan(0);
+            expect(score.components.specificity).toBeGreaterThan(0);
+        });
+
+        it('should handle malformed JSON response', async () => {
+            mockGenerateContent.mockResolvedValue({
+                text: 'not valid json'
+            });
+
+            const task = createTestTask();
+            const score = await scoreDQWithLLM('Test output', task);
+
+            // Should fall back to heuristic
+            expect(score).toBeDefined();
+        });
+
+        it('should handle missing fields with defaults', async () => {
+            mockGenerateContent.mockResolvedValue({
+                text: JSON.stringify({
+                    validity: 0.8
+                    // specificity and correctness missing
+                })
+            });
+
+            const task = createTestTask();
+            const score = await scoreDQWithLLM('Test output', task);
+
+            expect(score.components.validity).toBe(0.8);
+            expect(score.components.specificity).toBe(0);
+            expect(score.components.correctness).toBe(0);
+        });
+
+        it('should handle empty text response', async () => {
+            mockGenerateContent.mockResolvedValue({
+                text: ''
+            });
+
+            const task = createTestTask();
+            const score = await scoreDQWithLLM('Test output', task);
+
+            // Should fall back to heuristic
+            expect(score).toBeDefined();
         });
     });
 });
