@@ -13,7 +13,7 @@ export { SingleImageMode } from './SingleImageMode';
 export { StoryboardMode } from './StoryboardMode';
 
 // Types
-export {
+export type {
     Frame as FrameType,
     ProductionBible as ProductionBibleType,
     ImageGenProps,
@@ -22,6 +22,10 @@ export {
     ActiveTab,
     ViewLayer,
     RefType,
+} from './types';
+
+// Constants (not types)
+export {
     IMAGEGEN_TABS,
     VIEW_LAYERS
 } from './types';
