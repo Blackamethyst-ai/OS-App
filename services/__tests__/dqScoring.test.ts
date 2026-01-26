@@ -309,6 +309,21 @@ describe('DQ Scoring Module', () => {
             expect(ranked[0].dq.score).toBeGreaterThanOrEqual(ranked[1].dq.score);
             expect(ranked[1].dq.score).toBeGreaterThanOrEqual(ranked[2].dq.score);
         });
+
+        it('should use LLM scoring when useLLM is true', async () => {
+            mockRetryGeminiRequest.mockImplementation(async (fn) => fn());
+            mockGenerateContent.mockResolvedValue({
+                text: JSON.stringify({ validity: 0.9, specificity: 0.8, correctness: 0.85 })
+            });
+
+            const task = createTestTask({ instruction: 'Test instruction' });
+            const outputs = ['Output 1', 'Output 2'];
+
+            const ranked = await rankByDQ(outputs, task, true);
+
+            expect(ranked).toHaveLength(2);
+            expect(mockGenerateContent).toHaveBeenCalled();
+        });
     });
 
     describe('getBestByDQ', () => {
