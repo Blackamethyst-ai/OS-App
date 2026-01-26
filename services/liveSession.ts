@@ -116,6 +116,14 @@ class LiveSession {
     }
 
     async connect(agentName: string, config: LiveSessionConfig): Promise<void> {
+        // Pre-flight: Check API key before attempting connection
+        const { apiKeyService } = await import('./apiKeyService');
+        if (!apiKeyService.hasGeminiKey()) {
+            const error = new Error('Gemini API key not configured. Go to Settings > API Keys to add it.');
+            if (config.callbacks?.onerror) config.callbacks.onerror(error);
+            throw error;
+        }
+
         const ai = getAI();
         await this.primeAudio();
         this.nextStartTime = 0;
@@ -128,11 +136,14 @@ class LiveSession {
 
         const voiceName = agent?.voice || 'Zephyr';
 
+        console.log('[LiveSession] 🎤 Connecting with:', { agentName, voiceName, model: 'gemini-2.0-flash-exp' });
+
         const sessionPromise = ai.live.connect({
             model: 'gemini-2.0-flash-exp',
             callbacks: {
                 onopen: async () => {
                     try {
+                        console.log('[LiveSession] ✅ WebSocket OPENED, requesting microphone...');
                         // Enable echo cancellation to prevent AI from hearing itself
                         this.stream = await navigator.mediaDevices.getUserMedia({
                             audio: {
@@ -141,6 +152,7 @@ class LiveSession {
                                 autoGainControl: true
                             }
                         });
+                        console.log('[LiveSession] ✅ Microphone access GRANTED, setting up audio pipeline...');
                         const source = this.audioContext!.createMediaStreamSource(this.stream);
                         const scriptProcessor = this.audioContext!.createScriptProcessor(4096, 1, 1);
                         scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
@@ -154,12 +166,30 @@ class LiveSession {
                         source.connect(this.inputAnalyser!);
                         source.connect(scriptProcessor);
                         scriptProcessor.connect(this.audioContext!.destination);
+                        console.log('[LiveSession] ✅ Audio pipeline READY - voice session is ACTIVE');
                         if (config.callbacks?.onopen) config.callbacks.onopen();
                     } catch (e: any) {
-                        if (config.callbacks?.onerror) config.callbacks.onerror(e);
+                        // Provide specific error messages for common failures
+                        let error = e;
+                        if (e.name === 'NotAllowedError') {
+                            error = new Error('Microphone permission denied. Please allow microphone access and try again.');
+                        } else if (e.name === 'NotFoundError') {
+                            error = new Error('No microphone found. Please connect a microphone and try again.');
+                        } else if (e.name === 'NotReadableError') {
+                            error = new Error('Microphone is in use by another application.');
+                        }
+                        console.error('[LiveSession] Failed to setup audio:', error);
+                        if (config.callbacks?.onerror) config.callbacks.onerror(error);
                     }
                 },
                 onmessage: async (message: LiveServerMessage) => {
+                    // Log all messages for debugging
+                    console.log('[LiveSession] 📨 Message received:', {
+                        hasToolCall: !!message.toolCall,
+                        hasAudio: !!message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data,
+                        interrupted: !!message.serverContent?.interrupted,
+                    });
+
                     if (message.toolCall) {
                         for (const fc of message.toolCall.functionCalls) {
                             const result = await this.onToolCall(fc.name, fc.args);

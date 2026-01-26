@@ -33,6 +33,35 @@ export { VoiceNexusOrchestrator, voiceNexus, createVoiceNexus } from './orchestr
 export { knowledgeInjector } from './knowledgeInjector';
 
 // =============================================================================
+// Health Check System
+// =============================================================================
+
+export {
+    voiceHealthCheck,
+    checkVoiceSystemHealth,
+    formatHealthReport,
+    isVoiceSystemViable,
+} from './healthCheck';
+
+export type {
+    ProviderHealth,
+    ProviderHealthStatus,
+    VoiceSystemHealth,
+} from './healthCheck';
+
+// =============================================================================
+// Pre-flight Check
+// =============================================================================
+
+export {
+    runPreflightCheck,
+    formatPreflightResult,
+    canStartVoice,
+} from './preflightCheck';
+
+export type { PreflightResult } from './preflightCheck';
+
+// =============================================================================
 // Complexity Router
 // =============================================================================
 
@@ -45,7 +74,16 @@ export {
     selectProvider,
     hasExplicitOverride,
     formatComplexityResult,
+    // Configuration API
+    getRouterConfig,
+    updateRouterConfig,
+    resetToEliteConfig,
+    switchToStandardConfig,
+    setThresholds,
+    getThresholds,
 } from './complexityRouter';
+
+export type { ComplexityRouterConfig } from './complexityRouter';
 
 // =============================================================================
 // Providers - STT
@@ -66,6 +104,21 @@ export { geminiReasoning } from './providers/reasoning/geminiReasoning';
 
 export { elevenLabsTTS } from './providers/tts/elevenLabsTTS';
 export { browserTTS } from './providers/tts/browserTTS';
+
+// =============================================================================
+// Mode Handlers
+// =============================================================================
+
+export {
+    realtimeMode,
+    hybridMode,
+    browserMode,
+    getModeHandler,
+    getBestAvailableMode,
+    getAvailableModes,
+} from './modes';
+
+export type { ModeHandler, ModeContext } from './modes';
 
 // =============================================================================
 // Types
