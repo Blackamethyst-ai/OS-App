@@ -618,6 +618,28 @@ describe('Recursive Language Model Service', () => {
             expect(result.answer).toBe('recovered');
         });
 
+        it('should return unrecognized expressions as-is (fallback)', async () => {
+            // An expression that doesn't match any known patterns
+            const response = {
+                text: JSON.stringify({
+                    thinking: 'Unknown expression',
+                    code: 'result = some_unknown_func(x, y, z)\nFINAL(result)'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest).mockResolvedValue(response);
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { enableDQScoring: false }
+            );
+
+            // Fallback should return the expression as-is
+            expect(result.answer).toContain('some_unknown_func');
+        });
+
         it('should handle string literals with single quotes', async () => {
             const response = {
                 text: JSON.stringify({
@@ -678,6 +700,26 @@ describe('Recursive Language Model Service', () => {
             );
 
             expect(result.answer).toContain('a');
+        });
+
+        it('should handle len() function', async () => {
+            const response = {
+                text: JSON.stringify({
+                    thinking: 'Get length of variable',
+                    code: 'text = "hello world"\nlength = len(text)\nFINAL(length)'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest).mockResolvedValue(response);
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { enableDQScoring: false }
+            );
+
+            expect(result.answer).toBe('11');
         });
 
         it('should track status through synthesizing phase', async () => {
