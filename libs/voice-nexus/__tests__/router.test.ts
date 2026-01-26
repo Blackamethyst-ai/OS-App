@@ -139,6 +139,31 @@ describe('selectProviders', () => {
         expect(selection.reasoning).toBe('gemini-flash');
         expect(selection.tts).toBe('browser');
     });
+
+    it('should fallback to opus for balanced if no sonnet available', () => {
+        const selection = selectProviders('balanced', ['opus-4', 'gemini-flash']);
+        expect(selection.reasoning).toBe('opus-4');
+    });
+
+    it('should fallback to first available for balanced if no sonnet or opus', () => {
+        const selection = selectProviders('balanced', ['gemini-flash', 'gpt-4']);
+        expect(selection.reasoning).toBe('gemini-flash');
+    });
+
+    it('should prefer sonnet for fast tier in Elite mode', () => {
+        const selection = selectProviders('fast', ['sonnet-3.5', 'gemini-flash']);
+        expect(selection.reasoning).toBe('sonnet-3.5');
+    });
+
+    it('should fallback to flash for fast tier if no sonnet', () => {
+        const selection = selectProviders('fast', ['gemini-flash', 'gpt-4']);
+        expect(selection.reasoning).toBe('gemini-flash');
+    });
+
+    it('should fallback to first available for fast tier if no sonnet or flash', () => {
+        const selection = selectProviders('fast', ['gpt-4', 'llama']);
+        expect(selection.reasoning).toBe('gpt-4');
+    });
 });
 
 describe('analyzeComplexity', () => {
@@ -216,6 +241,24 @@ describe('formatComplexityResult', () => {
         const codeResult = analyzeComplexity('Debug this function');
         const formatted = formatComplexityResult(codeResult);
         expect(formatted).toContain('CODE');
+    });
+
+    it('should include REASONING indicator', () => {
+        const result = analyzeComplexity('Explain why this architecture scales well');
+        const formatted = formatComplexityResult(result);
+        expect(formatted).toContain('REASONING');
+    });
+
+    it('should include CREATIVE indicator', () => {
+        const result = analyzeComplexity('Brainstorm some creative ideas for the UI');
+        const formatted = formatComplexityResult(result);
+        expect(formatted).toContain('CREATIVE');
+    });
+
+    it('should include NAV indicator', () => {
+        const result = analyzeComplexity('Go to the home screen');
+        const formatted = formatComplexityResult(result);
+        expect(formatted).toContain('NAV');
     });
 });
 
