@@ -235,21 +235,135 @@ DO NOT answer complex questions directly - always use this tool first to think t
 };
 
 /**
+ * Search for real-time information via grounded intelligence.
+ */
+export const searchIntelTool: FunctionDeclaration = {
+    name: "search_intel",
+    description: "Search for real-time information, news, documentation, or any query that needs current data. Uses grounded search intelligence. Use this when user asks about current events, wants to look something up, or needs information you don't have.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            query: { type: Type.STRING, description: "The search query" }
+        },
+        required: ["query"]
+    }
+};
+
+/**
+ * Converge multiple strategic concepts into unified synthesis.
+ */
+export const convergeLatticesTool: FunctionDeclaration = {
+    name: "converge_lattices",
+    description: "Synthesize and converge multiple strategic concepts, ideas, or architectural patterns into a unified coherent framework. Use when user wants to combine ideas, merge strategies, or create synthesis from multiple inputs.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            targetGoal: { type: Type.STRING, description: "The goal or outcome to converge toward" }
+        },
+        required: ["targetGoal"]
+    }
+};
+
+/**
+ * Update task priority in the system.
+ */
+export const updateTaskPriorityTool: FunctionDeclaration = {
+    name: "update_task_priority",
+    description: "Change the priority of a task in the task management system. Use when user wants to reprioritize, escalate, or deprioritize tasks.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            taskId: { type: Type.STRING, description: "The ID of the task to update" },
+            priority: { type: Type.STRING, enum: ["CRITICAL", "HIGH", "MEDIUM", "LOW"], description: "The new priority level" }
+        },
+        required: ["taskId", "priority"]
+    }
+};
+
+/**
+ * Submit a structural change proposal to the swarm.
+ */
+export const proposeChangeTool: FunctionDeclaration = {
+    name: "propose_change",
+    description: "Submit a structural change proposal for swarm review. Use when you or the user want to propose optimizations, expansions, or security improvements to the system architecture.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            type: { type: Type.STRING, enum: ["OPTIMIZATION", "EXPANSION", "SECURITY"], description: "Type of structural change" },
+            title: { type: Type.STRING, description: "Brief title for the proposal" },
+            description: { type: Type.STRING, description: "Detailed description of the proposed change" },
+            impact: { type: Type.STRING, description: "Expected impact of the change" }
+        },
+        required: ["type", "title", "description"]
+    }
+};
+
+/**
+ * Get system status and health metrics.
+ */
+export const systemStatusTool: FunctionDeclaration = {
+    name: "system_status",
+    description: "Get current system status, health metrics, active processes, and operational state. Use when user asks 'how are systems', 'status report', 'what's running', or wants a general health check.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {},
+        required: []
+    }
+};
+
+/**
+ * Set a reminder or timer.
+ */
+export const setReminderTool: FunctionDeclaration = {
+    name: "set_reminder",
+    description: "Set a reminder or timer for the user. Use when user says 'remind me', 'set a timer', 'alert me in X minutes', etc.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            message: { type: Type.STRING, description: "What to remind the user about" },
+            delayMinutes: { type: Type.NUMBER, description: "Minutes from now to trigger the reminder" }
+        },
+        required: ["message", "delayMinutes"]
+    }
+};
+
+/**
  * All voice tools for Gemini Live API.
  */
 export const VOICE_TOOLS: FunctionDeclaration[] = [
+    // Core reasoning
     thinkTool,
+
+    // Navigation
     navigateTool,
-    synthesizeTopologyTool,
-    recalibrateDnaTool,
-    switchAgentTool,
+    navigateToTabTool,
+
+    // UI Interaction
+    scanUITool,
+    clickElementTool,
+    inputTextTool,
+    selectOptionTool,
+    getUIContextTool,
     executeActionTool,
     getAvailableActionsTool,
-    inputTextTool,
-    getUIContextTool,
-    clickElementTool,
-    selectOptionTool,
-    scanUITool,
-    navigateToTabTool,
-    refreshContextTool
+    refreshContextTool,
+
+    // Agent control
+    switchAgentTool,
+    recalibrateDnaTool,
+
+    // Architecture & synthesis
+    synthesizeTopologyTool,
+    convergeLatticesTool,
+
+    // Intelligence & search
+    searchIntelTool,
+
+    // Task & proposal management
+    updateTaskPriorityTool,
+    proposeChangeTool,
+
+    // System operations
+    systemStatusTool,
+    setReminderTool,
 ];
