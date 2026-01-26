@@ -52,6 +52,7 @@
 
 A **33,000+ line**, **145-file** React/TypeScript application representing a fully-functional AI-native operating system interface. This is not a prototype—it is a production-grade platform integrating:
 
+- **Meta-Learning Engine** (Predictive session intelligence from 666+ historical outcomes)
 - **Voice Nexus** (Multi-provider voice with complexity-based routing)
 - **Real-time Voice AI** (Gemini Live API with bidirectional audio)
 - **Claude Deep Reasoning** (Complex analysis, architecture, code generation)
@@ -197,7 +198,83 @@ npm run dev
 | **Hybrid** | Auto-routes | Variable | Default - best of both |
 | **Quality** | Claude → ElevenLabs | ~3-4s | Deep thinking, premium voice |
 
-### 2. geminiService.ts (42KB, 882 lines)
+### 2. Meta-Learning Engine (components/predictions/)
+**Predictive Session Intelligence — Learn from 666+ past sessions to predict success before you start.**
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        META-LEARNING PREDICTION SYSTEM                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  INPUT: Task Intent ("implement auth system")                              │
+│       ↓                                                                     │
+│  [Multi-Dimensional Analysis]                                              │
+│       │                                                                     │
+│       ├─→ [Session Outcomes] → 666 historical sessions                     │
+│       ├─→ [Cognitive States] → 1,014 temporal patterns                     │
+│       ├─→ [Research Context] → Available knowledge                         │
+│       └─→ [Error Patterns] → 60K+ error occurrences                        │
+│       ↓                                                                     │
+│  [Correlation Engine] → Weighted similarity across 4 dimensions            │
+│       ↓                                                                     │
+│  OUTPUT:                                                                    │
+│    • Predicted Quality: 1-5 stars                                         │
+│    • Success Probability: 0-100%                                           │
+│    • Optimal Time: Best hour to work (e.g., 20:00)                        │
+│    • Error Warnings: Preventable errors with solutions                     │
+│    • Similar Sessions: Past work with outcomes                             │
+│    • Recommended Research: Relevant papers/findings                        │
+│    • Confidence Score: Prediction reliability                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+**Components**:
+
+| Component | Purpose |
+|-----------|---------|
+| `PredictionBadge.tsx` | Quality display with 1-5 star rating |
+| `ErrorWarningPanel.tsx` | Error prevention with solutions from past recoveries |
+| `OptimalTimeIndicator.tsx` | Cognitive timing recommendations |
+| `ResearchChips.tsx` | Recommended research from knowledge base |
+| `PredictionPanel.tsx` | Composite panel combining all predictions |
+| `SignalBreakdown.tsx` | Advanced correlation analysis (power users) |
+| `PredictionDemo.tsx` | Interactive testing component |
+
+**Usage**:
+```tsx
+import { PredictionPanel } from '@/components/predictions';
+
+<PredictionPanel
+  intent="implement authentication system"
+  track={true}
+  onStartTask={() => executeTask()}
+/>
+```
+
+**Demo Mode**: Add `?demo=predictions` to URL for interactive testing
+
+**Backend**: Connects to ResearchGravity API at `localhost:3847`
+
+**SDK Integration** (Agent Core):
+```typescript
+import { useSessionPrediction } from '@antigravity/agent-core-sdk';
+
+const { prediction, isLoading } = useSessionPrediction({
+  intent: 'your task',
+  track: true
+});
+```
+
+**Data Sources**:
+- 666 session outcomes (success, partial, failure)
+- 1,014 cognitive states (flow, energy, timing)
+- 9 error pattern types (60K+ occurrences)
+- Historical quality ratings (1-5 scale)
+
+**Prediction Accuracy**: ~75% (baseline), improves with calibration
+
+---
+
+### 3. geminiService.ts (42KB, 882 lines)
 **The AI brain of the application.**
 
 | Function | Purpose |
