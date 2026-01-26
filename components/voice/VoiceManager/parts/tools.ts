@@ -327,18 +327,387 @@ export const setReminderTool: FunctionDeclaration = {
     }
 };
 
+// =============================================================================
+// DREAM PROTOCOL - Autonomous Background Intelligence
+// =============================================================================
+
+/**
+ * Activate dream mode for autonomous research.
+ */
+export const startDreamingTool: FunctionDeclaration = {
+    name: "start_dreaming",
+    description: "Activate autonomous dream mode. The OS will run background research, pattern analysis, and insight generation while idle. Use when user says 'start dreaming', 'background research', 'autonomous mode'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            focusArea: { type: Type.STRING, description: "Optional area to focus dream research on" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Get dream insights from last session.
+ */
+export const getDreamInsightsTool: FunctionDeclaration = {
+    name: "get_dream_insights",
+    description: "Retrieve insights from the last dream session. Use when user asks 'what did you find', 'dream results', 'any insights'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {},
+        required: []
+    }
+};
+
+/**
+ * Get morning briefing.
+ */
+export const morningBriefingTool: FunctionDeclaration = {
+    name: "morning_briefing",
+    description: "Generate a comprehensive morning briefing with overnight insights, priorities, and recommendations. Use when user says 'morning briefing', 'daily summary', 'what do I need to know'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {},
+        required: []
+    }
+};
+
+// =============================================================================
+// MULTI-AGENT REASONING - Swarm Intelligence
+// =============================================================================
+
+/**
+ * Decompose a complex goal into atomic tasks.
+ */
+export const decomposeTaskTool: FunctionDeclaration = {
+    name: "decompose_task",
+    description: "Break down a complex goal into atomic, executable sub-tasks. Use for complex problems that need structured decomposition. Say 'break this down', 'decompose this goal', 'create a task breakdown'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            goal: { type: Type.STRING, description: "The complex goal to decompose" }
+        },
+        required: ["goal"]
+    }
+};
+
+/**
+ * Run multi-agent consensus on a decision.
+ */
+export const runConsensusTool: FunctionDeclaration = {
+    name: "run_consensus",
+    description: "Run a multi-agent swarm consensus to reach a decision. Multiple AI agents debate and vote. Use for important decisions: 'get consensus on this', 'what do the agents think', 'swarm vote'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            question: { type: Type.STRING, description: "The question or decision to reach consensus on" },
+            options: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Optional: specific options to vote on" }
+        },
+        required: ["question"]
+    }
+};
+
+/**
+ * Start a bicameral dialogue between two AI perspectives.
+ */
+export const bicameralDialogueTool: FunctionDeclaration = {
+    name: "bicameral_dialogue",
+    description: "Start a bicameral dialogue - two AI perspectives (skeptic vs optimist, or custom) debate a topic. Use for nuanced analysis: 'debate this', 'bicameral analysis', 'two perspectives on'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            topic: { type: Type.STRING, description: "The topic to debate" },
+            perspective1: { type: Type.STRING, description: "First perspective (default: skeptic)" },
+            perspective2: { type: Type.STRING, description: "Second perspective (default: optimist)" }
+        },
+        required: ["topic"]
+    }
+};
+
+// =============================================================================
+// MEMORY & KNOWLEDGE - Persistent Intelligence
+// =============================================================================
+
+/**
+ * Save something to long-term memory.
+ */
+export const saveMemoryTool: FunctionDeclaration = {
+    name: "save_memory",
+    description: "Save important information to long-term memory. Use when user says 'remember this', 'save this', 'store this for later', 'don't forget'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            content: { type: Type.STRING, description: "The information to remember" },
+            category: { type: Type.STRING, enum: ["fact", "preference", "decision", "insight", "task"], description: "Category of memory" },
+            tags: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Tags for retrieval" }
+        },
+        required: ["content"]
+    }
+};
+
+/**
+ * Recall from memory.
+ */
+export const recallMemoryTool: FunctionDeclaration = {
+    name: "recall_memory",
+    description: "Search and recall from long-term memory. Use when user asks 'what did I say about', 'do you remember', 'recall', 'what do you know about'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            query: { type: Type.STRING, description: "What to search for in memory" }
+        },
+        required: ["query"]
+    }
+};
+
+/**
+ * Clear or manage memories.
+ */
+export const manageMemoryTool: FunctionDeclaration = {
+    name: "manage_memory",
+    description: "Manage memories - list, clear, or organize. Use when user says 'what do you remember', 'clear memories', 'forget about X'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["list", "clear_all", "clear_category", "forget"], description: "Action to take" },
+            target: { type: Type.STRING, description: "Target for clear_category or forget actions" }
+        },
+        required: ["action"]
+    }
+};
+
+// =============================================================================
+// CODE & DEVELOPMENT - Engineering Tools
+// =============================================================================
+
+/**
+ * Analyze code structure or architecture.
+ */
+export const analyzeCodeTool: FunctionDeclaration = {
+    name: "analyze_code",
+    description: "Analyze code, architecture, or technical concepts. Routes through CPB for deep analysis. Use when user wants code review, architecture analysis, or technical deep-dive.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            target: { type: Type.STRING, description: "What to analyze (file, component, system, concept)" },
+            analysisType: { type: Type.STRING, enum: ["architecture", "security", "performance", "quality", "dependencies"], description: "Type of analysis" }
+        },
+        required: ["target"]
+    }
+};
+
+/**
+ * Generate code or technical artifacts.
+ */
+export const generateCodeTool: FunctionDeclaration = {
+    name: "generate_code",
+    description: "Generate code, components, functions, or technical artifacts. Use when user says 'write code for', 'generate a function', 'create a component'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            description: { type: Type.STRING, description: "What to generate" },
+            language: { type: Type.STRING, description: "Programming language (default: TypeScript)" },
+            style: { type: Type.STRING, enum: ["minimal", "documented", "production"], description: "Code style" }
+        },
+        required: ["description"]
+    }
+};
+
+// =============================================================================
+// DATA & EXPORT - Information Management
+// =============================================================================
+
+/**
+ * Export data or generate reports.
+ */
+export const exportDataTool: FunctionDeclaration = {
+    name: "export_data",
+    description: "Export data, generate reports, or create summaries. Use when user says 'export this', 'generate a report', 'summarize the data', 'create a CSV'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            dataType: { type: Type.STRING, enum: ["logs", "transcripts", "insights", "tasks", "session"], description: "Type of data to export" },
+            format: { type: Type.STRING, enum: ["json", "csv", "markdown", "summary"], description: "Export format" }
+        },
+        required: ["dataType"]
+    }
+};
+
+/**
+ * Save current state/snapshot.
+ */
+export const saveSnapshotTool: FunctionDeclaration = {
+    name: "save_snapshot",
+    description: "Save a snapshot of current state for later restoration. Use when user says 'save state', 'checkpoint', 'save progress', 'bookmark this'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            label: { type: Type.STRING, description: "Label for this snapshot" }
+        },
+        required: ["label"]
+    }
+};
+
+/**
+ * Load a previous snapshot.
+ */
+export const loadSnapshotTool: FunctionDeclaration = {
+    name: "load_snapshot",
+    description: "Load a previously saved snapshot. Use when user says 'restore state', 'load checkpoint', 'go back to'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            label: { type: Type.STRING, description: "Label of snapshot to load (or 'latest')" }
+        },
+        required: ["label"]
+    }
+};
+
+// =============================================================================
+// BIOMETRICS & SENSING - Human Interface
+// =============================================================================
+
+/**
+ * Read current biometric/mood state.
+ */
+export const readBiometricsTool: FunctionDeclaration = {
+    name: "read_biometrics",
+    description: "Read current biometric state including detected mood, stress level, attention. Use when user asks 'how am I doing', 'read my state', 'what's my mood'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {},
+        required: []
+    }
+};
+
+/**
+ * Toggle biometric sensing.
+ */
+export const toggleBiometricsTool: FunctionDeclaration = {
+    name: "toggle_biometrics",
+    description: "Turn biometric sensing (face detection, mood tracking) on or off. Use when user says 'enable face tracking', 'disable biometrics', 'turn off camera'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            enabled: { type: Type.BOOLEAN, description: "Enable or disable biometric sensing" }
+        },
+        required: ["enabled"]
+    }
+};
+
+// =============================================================================
+// FOCUS & PRODUCTIVITY - Work Management
+// =============================================================================
+
+/**
+ * Enter focus mode.
+ */
+export const focusModeTool: FunctionDeclaration = {
+    name: "focus_mode",
+    description: "Enter or exit focus mode - minimizes distractions, hides non-essential UI, enables deep work. Use when user says 'focus mode', 'deep work', 'minimize distractions', 'I need to concentrate'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            enabled: { type: Type.BOOLEAN, description: "Enable or disable focus mode" },
+            duration: { type: Type.NUMBER, description: "Optional duration in minutes" }
+        },
+        required: ["enabled"]
+    }
+};
+
+/**
+ * Quick capture - capture a thought without breaking flow.
+ */
+export const quickCaptureTool: FunctionDeclaration = {
+    name: "quick_capture",
+    description: "Quickly capture a thought, idea, or note without breaking flow. Use when user says 'note this', 'quick thought', 'capture', 'jot down'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            thought: { type: Type.STRING, description: "The thought to capture" }
+        },
+        required: ["thought"]
+    }
+};
+
+// =============================================================================
+// CLIPBOARD & QUICK ACTIONS
+// =============================================================================
+
+/**
+ * Copy to clipboard.
+ */
+export const copyToClipboardTool: FunctionDeclaration = {
+    name: "copy_to_clipboard",
+    description: "Copy text or data to the clipboard. Use when user says 'copy that', 'copy to clipboard', 'save to clipboard'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            content: { type: Type.STRING, description: "Content to copy (or 'last_response' for your last response)" }
+        },
+        required: ["content"]
+    }
+};
+
+/**
+ * Read from clipboard.
+ */
+export const readClipboardTool: FunctionDeclaration = {
+    name: "read_clipboard",
+    description: "Read current clipboard contents. Use when user says 'what's in clipboard', 'read clipboard', 'paste what I copied'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {},
+        required: []
+    }
+};
+
+// =============================================================================
+// VOICE CONTROL
+// =============================================================================
+
+/**
+ * Adjust voice settings.
+ */
+export const voiceSettingsTool: FunctionDeclaration = {
+    name: "voice_settings",
+    description: "Adjust voice settings like speed, volume, or mode. Use when user says 'speak slower', 'speak faster', 'louder', 'quieter', 'change voice mode'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            speed: { type: Type.STRING, enum: ["slower", "normal", "faster"], description: "Speaking speed" },
+            volume: { type: Type.STRING, enum: ["quieter", "normal", "louder"], description: "Volume level" },
+            mode: { type: Type.STRING, enum: ["realtime", "hybrid", "quality"], description: "Voice mode" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Repeat last response.
+ */
+export const repeatResponseTool: FunctionDeclaration = {
+    name: "repeat_response",
+    description: "Repeat the last spoken response. Use when user says 'repeat that', 'say that again', 'what did you say'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {},
+        required: []
+    }
+};
+
 /**
  * All voice tools for Gemini Live API.
  */
 export const VOICE_TOOLS: FunctionDeclaration[] = [
-    // Core reasoning
+    // === CORE REASONING ===
     thinkTool,
 
-    // Navigation
+    // === NAVIGATION ===
     navigateTool,
     navigateToTabTool,
 
-    // UI Interaction
+    // === UI INTERACTION ===
     scanUITool,
     clickElementTool,
     inputTextTool,
@@ -348,22 +717,62 @@ export const VOICE_TOOLS: FunctionDeclaration[] = [
     getAvailableActionsTool,
     refreshContextTool,
 
-    // Agent control
+    // === AGENT CONTROL ===
     switchAgentTool,
     recalibrateDnaTool,
 
-    // Architecture & synthesis
+    // === ARCHITECTURE & SYNTHESIS ===
     synthesizeTopologyTool,
     convergeLatticesTool,
 
-    // Intelligence & search
+    // === INTELLIGENCE & SEARCH ===
     searchIntelTool,
 
-    // Task & proposal management
+    // === TASK & PROPOSAL MANAGEMENT ===
     updateTaskPriorityTool,
     proposeChangeTool,
 
-    // System operations
+    // === SYSTEM OPERATIONS ===
     systemStatusTool,
     setReminderTool,
+
+    // === DREAM PROTOCOL ===
+    startDreamingTool,
+    getDreamInsightsTool,
+    morningBriefingTool,
+
+    // === MULTI-AGENT REASONING ===
+    decomposeTaskTool,
+    runConsensusTool,
+    bicameralDialogueTool,
+
+    // === MEMORY & KNOWLEDGE ===
+    saveMemoryTool,
+    recallMemoryTool,
+    manageMemoryTool,
+
+    // === CODE & DEVELOPMENT ===
+    analyzeCodeTool,
+    generateCodeTool,
+
+    // === DATA & EXPORT ===
+    exportDataTool,
+    saveSnapshotTool,
+    loadSnapshotTool,
+
+    // === BIOMETRICS & SENSING ===
+    readBiometricsTool,
+    toggleBiometricsTool,
+
+    // === FOCUS & PRODUCTIVITY ===
+    focusModeTool,
+    quickCaptureTool,
+
+    // === CLIPBOARD & QUICK ACTIONS ===
+    copyToClipboardTool,
+    readClipboardTool,
+
+    // === VOICE CONTROL ===
+    voiceSettingsTool,
+    repeatResponseTool,
 ];
