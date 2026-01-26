@@ -6,7 +6,7 @@
  */
 
 import type { CPBProvider, GenerateOptions, ImageInput } from '@metaventionsai/cpb-core';
-import { generateText } from './geminiService';
+import { generateText, generateWithVision } from './geminiService';
 import { claudeService, type ClaudeContentBlock } from './claudeService';
 import { apiKeyService } from './apiKeyService';
 
@@ -37,9 +37,20 @@ export const geminiProvider: CPBProvider = {
         images: ImageInput[],
         options?: GenerateOptions
     ): Promise<string> {
-        // For now, use text-only generation
-        // TODO: Implement multimodal generation with Gemini
-        return this.generate(prompt, options);
+        const model = options?.model || 'gemini-2.0-flash';
+
+        // Convert ImageInput to format expected by generateWithVision
+        const imageData = images.map(img => ({
+            data: img.base64 || img.url || '',
+            mimeType: img.mimeType
+        }));
+
+        // Prepend system prompt if provided
+        const fullPrompt = options?.systemPrompt
+            ? `${options.systemPrompt}\n\n${prompt}`
+            : prompt;
+
+        return generateWithVision(fullPrompt, imageData, model);
     }
 };
 
