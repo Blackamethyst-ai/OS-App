@@ -1609,6 +1609,341 @@ const VoiceManager: React.FC = () => {
                 };
             }
 
+            // ================================================================
+            // CONVERSATIONAL INTELLIGENCE
+            // ================================================================
+
+            if (name === 'delegate_to_agent') {
+                const { agent, task, priority, waitForResponse } = args;
+                addLog('SYSTEM', `🤝 DELEGATING TO ${agent}: ${task}`);
+                audio.playClick();
+                const delegations = JSON.parse(localStorage.getItem('delegations') || '[]');
+                delegations.push({
+                    id: `del_${Date.now()}`,
+                    agent,
+                    task,
+                    priority: priority || 'normal',
+                    status: 'pending',
+                    created: Date.now()
+                });
+                localStorage.setItem('delegations', JSON.stringify(delegations));
+                return {
+                    status: "DELEGATED",
+                    agent,
+                    task,
+                    priority: priority || 'normal',
+                    waitForResponse: waitForResponse || false,
+                    message: `Very well, Sir. I've delegated "${task}" to ${agent}. ${waitForResponse ? 'Awaiting their response.' : 'They\'ll handle it.'}`
+                };
+            }
+
+            if (name === 'voice_journal') {
+                const { entry, category, mood, private: isPrivate } = args;
+                const journal = JSON.parse(localStorage.getItem('voice_journal') || '[]');
+                journal.push({
+                    id: `entry_${Date.now()}`,
+                    entry,
+                    category: category || 'thought',
+                    mood,
+                    private: isPrivate || false,
+                    timestamp: Date.now()
+                });
+                localStorage.setItem('voice_journal', JSON.stringify(journal));
+                addLog('SYSTEM', `📓 JOURNAL: ${category || 'thought'} logged`);
+                return {
+                    status: "JOURNAL_ENTRY_SAVED",
+                    category: category || 'thought',
+                    entryCount: journal.length,
+                    message: `Noted, Sir. ${category === 'gratitude' ? 'That\'s a lovely thought.' : 'Your reflection has been recorded.'}`
+                };
+            }
+
+            if (name === 'smart_query') {
+                const { query, timeframe, format } = args;
+                addLog('SYSTEM', `📊 QUERY: ${query}`);
+                return {
+                    status: "QUERY_PROCESSING",
+                    query,
+                    timeframe: timeframe || 'today',
+                    format: format || 'verbal',
+                    instruction: `Answer this query about user data/activity: "${query}". Timeframe: ${timeframe || 'today'}. Format: ${format || 'verbal'}.`
+                };
+            }
+
+            if (name === 'set_scene') {
+                const { scene, duration, music } = args;
+                localStorage.setItem('current_scene', JSON.stringify({ scene, activated: Date.now(), duration }));
+                addLog('SYSTEM', `🎬 SCENE: ${scene}`);
+                audio.playClick();
+                const sceneMessages: Record<string, string> = {
+                    deep_work: "Deep work environment activated. Distractions minimized.",
+                    creative: "Creative mode engaged. Let inspiration flow.",
+                    meeting: "Meeting mode active. Recording enabled.",
+                    brainstorm: "Brainstorm space ready. All ideas welcome.",
+                    review: "Review mode set. Analytical focus engaged.",
+                    wind_down: "Winding down. Pace slowing.",
+                    energy: "Energy mode! Let's move fast.",
+                    calm: "Calm atmosphere established.",
+                    presentation: "Presentation mode. Looking sharp, Sir."
+                };
+                return {
+                    status: "SCENE_SET",
+                    scene,
+                    duration,
+                    suggestMusic: music,
+                    message: sceneMessages[scene as string] || `${scene} mode activated, Sir.`
+                };
+            }
+
+            if (name === 'quick_command') {
+                const { command } = args;
+                addLog('SYSTEM', `⚡ QUICK: ${command}`);
+                const quickResponses: Record<string, any> = {
+                    status: { action: 'get_status', message: 'Checking status, Sir.' },
+                    help: { action: 'show_help', message: 'How may I assist you, Sir?' },
+                    back: { action: 'navigate_back', message: 'Going back.' },
+                    forward: { action: 'navigate_forward', message: 'Going forward.' },
+                    refresh: { action: 'refresh', message: 'Refreshing.' },
+                    clear: { action: 'clear', message: 'Cleared, Sir.' },
+                    save: { action: 'save', message: 'Saved.' },
+                    done: { action: 'complete', message: 'Marking complete.' },
+                    cancel: { action: 'cancel', message: 'Cancelled, Sir.' },
+                    confirm: { action: 'confirm', message: 'Confirmed.' },
+                    yes: { action: 'affirm', message: 'Proceeding.' },
+                    no: { action: 'decline', message: 'Understood, declining.' },
+                    more: { action: 'expand', message: 'Showing more.' },
+                    less: { action: 'collapse', message: 'Showing less.' },
+                    next: { action: 'next', message: 'Next item.' },
+                    previous: { action: 'previous', message: 'Previous item.' },
+                    stop: { action: 'stop', message: 'Stopping.' },
+                    go: { action: 'proceed', message: 'Proceeding.' },
+                    wait: { action: 'pause', message: 'Waiting, Sir.' },
+                    skip: { action: 'skip', message: 'Skipping.' }
+                };
+                return {
+                    status: "QUICK_COMMAND",
+                    ...(quickResponses[command as string] || { action: command, message: `${command} executed.` })
+                };
+            }
+
+            if (name === 'annotate_item') {
+                const { target, annotation, type } = args;
+                const annotations = JSON.parse(localStorage.getItem('voice_annotations') || '[]');
+                annotations.push({
+                    id: `ann_${Date.now()}`,
+                    target: target || 'current',
+                    annotation,
+                    type: type || 'note',
+                    timestamp: Date.now()
+                });
+                localStorage.setItem('voice_annotations', JSON.stringify(annotations));
+                addLog('SYSTEM', `📌 ANNOTATED: ${type || 'note'}`);
+                return {
+                    status: "ANNOTATION_ADDED",
+                    target: target || 'current item',
+                    type: type || 'note',
+                    message: `${type === 'warning' ? '⚠️ Warning' : type === 'idea' ? '💡 Idea' : '📝 Note'} added, Sir.`
+                };
+            }
+
+            if (name === 'mood_check') {
+                const { action: moodAction, mood, energy } = args;
+                if (moodAction === 'log') {
+                    const moods = JSON.parse(localStorage.getItem('mood_log') || '[]');
+                    moods.push({ mood, energy, timestamp: Date.now() });
+                    localStorage.setItem('mood_log', JSON.stringify(moods));
+                    addLog('SYSTEM', `😊 MOOD: ${mood || 'logged'}`);
+                    return { status: "MOOD_LOGGED", mood, energy, message: `Mood logged, Sir. ${energy && energy < 4 ? 'Perhaps a short break would help?' : ''}` };
+                }
+                if (moodAction === 'history') {
+                    const moods = JSON.parse(localStorage.getItem('mood_log') || '[]');
+                    return { status: "MOOD_HISTORY", entries: moods.slice(-10), count: moods.length };
+                }
+                return {
+                    status: "MOOD_CHECK",
+                    instruction: `Perform a mood check. Ask how the user is feeling and provide supportive response.`
+                };
+            }
+
+            if (name === 'contextual_repeat') {
+                const { what, modification } = args;
+                addLog('SYSTEM', `🔄 REPEAT: ${what || 'last action'}`);
+                return {
+                    status: "REPEAT_REQUESTED",
+                    what: what || 'last_action',
+                    modification,
+                    instruction: `Repeat the ${what || 'last action'}${modification ? ` with modification: ${modification}` : ''}.`
+                };
+            }
+
+            if (name === 'chain_commands') {
+                const { commands, waitBetween } = args;
+                addLog('SYSTEM', `⛓️ CHAIN: ${(commands as string[]).length} commands`);
+                return {
+                    status: "CHAIN_INITIATED",
+                    commands,
+                    waitBetween: waitBetween || false,
+                    instruction: `Execute these commands in sequence${waitBetween ? ' (waiting for confirmation between each)' : ''}: ${(commands as string[]).join(' → ')}`
+                };
+            }
+
+            if (name === 'conditional_action') {
+                const { condition, ifTrue, ifFalse } = args;
+                addLog('SYSTEM', `❓ CONDITIONAL: if ${condition}`);
+                return {
+                    status: "CONDITIONAL_PROCESSING",
+                    condition,
+                    ifTrue,
+                    ifFalse,
+                    instruction: `Evaluate condition: "${condition}". If true: ${ifTrue}. ${ifFalse ? `If false: ${ifFalse}.` : ''}`
+                };
+            }
+
+            if (name === 'voice_bookmark') {
+                const { action: bmAction, name: bmName, description } = args;
+                const bookmarks = JSON.parse(localStorage.getItem('voice_bookmarks') || '{}');
+                const state = useStore.getState();
+
+                if (bmAction === 'create') {
+                    bookmarks[bmName as string || `bookmark_${Object.keys(bookmarks).length + 1}`] = {
+                        mode: state.mode,
+                        description,
+                        created: Date.now()
+                    };
+                    localStorage.setItem('voice_bookmarks', JSON.stringify(bookmarks));
+                    addLog('SYSTEM', `🔖 BOOKMARK: ${bmName || 'created'}`);
+                    return { status: "BOOKMARK_CREATED", name: bmName, message: `Bookmark saved, Sir.` };
+                }
+
+                if (bmAction === 'list') {
+                    return { status: "BOOKMARKS_LISTED", bookmarks: Object.keys(bookmarks), count: Object.keys(bookmarks).length };
+                }
+
+                if (bmAction === 'go' && bmName && bookmarks[bmName as string]) {
+                    const bm = bookmarks[bmName as string];
+                    setMode(bm.mode);
+                    addLog('SYSTEM', `🔖 BOOKMARK: Going to ${bmName}`);
+                    return { status: "BOOKMARK_NAVIGATED", name: bmName, message: `Returning to ${bmName}, Sir.` };
+                }
+
+                return { status: "BOOKMARK_ACTION", action: bmAction };
+            }
+
+            if (name === 'smart_notify') {
+                const { mode: notifyMode, filter, duration: notifyDuration } = args;
+                localStorage.setItem('notification_settings', JSON.stringify({ mode: notifyMode, filter, until: notifyDuration }));
+                addLog('SYSTEM', `🔔 NOTIFY: ${notifyMode}`);
+                const modeMessages: Record<string, string> = {
+                    all: "All notifications enabled.",
+                    priority: "Only priority notifications will come through.",
+                    urgent: "Only urgent matters will interrupt, Sir.",
+                    none: "Do not disturb mode activated.",
+                    custom: "Custom notification filter applied."
+                };
+                return {
+                    status: "NOTIFICATIONS_SET",
+                    mode: notifyMode,
+                    message: modeMessages[notifyMode as string] || "Notification settings updated."
+                };
+            }
+
+            if (name === 'conversation_mode') {
+                const { style, verbosity } = args;
+                localStorage.setItem('conversation_prefs', JSON.stringify({ style, verbosity }));
+                addLog('SYSTEM', `💬 CONVERSATION: ${style}`);
+                return {
+                    status: "CONVERSATION_MODE_SET",
+                    style,
+                    verbosity: verbosity || 'normal',
+                    message: `Understood, Sir. I'll be more ${style}.`,
+                    instruction: `Adjust response style to: ${style}. Verbosity: ${verbosity || 'normal'}.`
+                };
+            }
+
+            if (name === 'quick_answer') {
+                const { question } = args;
+                addLog('SYSTEM', `❓ QUICK ANSWER: ${question}`);
+                // Handle some quick answers directly
+                if (question.toLowerCase().includes('time')) {
+                    return { status: "ANSWERED", answer: new Date().toLocaleTimeString(), question };
+                }
+                if (question.toLowerCase().includes('date') || question.toLowerCase().includes('day')) {
+                    return { status: "ANSWERED", answer: new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), question };
+                }
+                return {
+                    status: "QUICK_ANSWER",
+                    question,
+                    instruction: `Provide a quick, direct answer to: "${question}"`
+                };
+            }
+
+            if (name === 'interpret_intent') {
+                const { utterance, context: intentContext } = args;
+                addLog('SYSTEM', `🎯 INTENT: Interpreting...`);
+                return {
+                    status: "INTENT_ANALYSIS",
+                    utterance,
+                    context: intentContext,
+                    instruction: `Analyze and clarify intent. ${utterance ? `Utterance: "${utterance}".` : 'Clarify the last request.'} ${intentContext ? `Context: ${intentContext}` : ''}`
+                };
+            }
+
+            if (name === 'confirm_understanding') {
+                const { about } = args;
+                addLog('SYSTEM', `✅ CONFIRM: Understanding check`);
+                return {
+                    status: "UNDERSTANDING_CONFIRMED",
+                    about,
+                    instruction: `Confirm understanding${about ? ` about: ${about}` : ''}. Summarize what was understood and ask if correct.`
+                };
+            }
+
+            if (name === 'suggest_completion') {
+                const { partial, category } = args;
+                addLog('SYSTEM', `💡 SUGGEST: Command completion`);
+                return {
+                    status: "SUGGESTIONS_READY",
+                    partial,
+                    category,
+                    instruction: `Suggest voice commands${partial ? ` that match "${partial}"` : ''}${category ? ` in category: ${category}` : ''}. Provide 3-5 relevant commands.`
+                };
+            }
+
+            if (name === 'voice_search') {
+                const { query: searchQuery, scope, limit: searchLimit } = args;
+                addLog('SYSTEM', `🔍 SEARCH: ${searchQuery}`);
+                return {
+                    status: "SEARCH_INITIATED",
+                    query: searchQuery,
+                    scope: scope || 'all',
+                    limit: searchLimit || 10,
+                    instruction: `Search for "${searchQuery}" across ${scope || 'all'} sources. Return top ${searchLimit || 10} results.`
+                };
+            }
+
+            if (name === 'narrate_actions') {
+                const { enabled, detail } = args;
+                localStorage.setItem('narration_enabled', JSON.stringify({ enabled, detail: detail || 'normal' }));
+                addLog('SYSTEM', `🎙️ NARRATION: ${enabled ? 'ON' : 'OFF'}`);
+                return {
+                    status: "NARRATION_SET",
+                    enabled,
+                    detail: detail || 'normal',
+                    message: enabled ? `I'll narrate my actions, Sir.` : `Silent mode, Sir. Actions without commentary.`
+                };
+            }
+
+            if (name === 'pause_resume') {
+                const { action: prAction, target: prTarget } = args;
+                addLog('SYSTEM', `⏸️ ${prAction.toUpperCase()}: ${prTarget || 'operations'}`);
+                return {
+                    status: prAction === 'pause' ? 'PAUSED' : prAction === 'resume' ? 'RESUMED' : 'TOGGLED',
+                    action: prAction,
+                    target: prTarget,
+                    message: prAction === 'pause' ? `Holding, Sir. Say "resume" when ready.` : `Continuing, Sir.`
+                };
+            }
+
             return { error: "Unknown executive protocol." };
         };
 

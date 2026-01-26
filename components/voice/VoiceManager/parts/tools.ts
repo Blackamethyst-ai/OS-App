@@ -1525,6 +1525,339 @@ export const performanceProfileTool: FunctionDeclaration = {
     }
 };
 
+// ============================================================================
+// CONVERSATIONAL INTELLIGENCE - Natural Dialogue & Delegation
+// ============================================================================
+
+/**
+ * Delegate task to a specific agent.
+ */
+export const delegateToAgentTool: FunctionDeclaration = {
+    name: "delegate_to_agent",
+    description: "Delegate a task to a specific agent. 'Have Dr. Ira analyze this', 'Let Mike handle the architecture', 'Ask Caleb to execute', 'Get Noah's opinion'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            agent: { type: Type.STRING, description: "Agent name (Dr. Ira, Mike, Caleb, Noah, Helen, etc.)" },
+            task: { type: Type.STRING, description: "Task to delegate" },
+            priority: { type: Type.STRING, enum: ["low", "normal", "high", "urgent"], description: "Task priority" },
+            waitForResponse: { type: Type.BOOLEAN, description: "Wait for agent response before continuing" }
+        },
+        required: ["agent", "task"]
+    }
+};
+
+/**
+ * Voice journaling and notes.
+ */
+export const voiceJournalTool: FunctionDeclaration = {
+    name: "voice_journal",
+    description: "Voice journaling and personal notes. 'Note to self', 'Add to journal', 'Personal note', 'Remember this thought', 'Log this idea'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            entry: { type: Type.STRING, description: "Journal entry content" },
+            category: { type: Type.STRING, enum: ["thought", "idea", "decision", "reflection", "reminder", "gratitude"], description: "Entry category" },
+            mood: { type: Type.STRING, description: "Current mood tag" },
+            private: { type: Type.BOOLEAN, description: "Mark as private entry" }
+        },
+        required: ["entry"]
+    }
+};
+
+/**
+ * Natural language data queries.
+ */
+export const smartQueryTool: FunctionDeclaration = {
+    name: "smart_query",
+    description: "Natural language queries about data. 'How many tasks did I complete today?', 'What's my most productive time?', 'Show me my patterns', 'Analyze my week'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            query: { type: Type.STRING, description: "Natural language query" },
+            timeframe: { type: Type.STRING, description: "Time period (e.g., 'today', 'this week', 'last month')" },
+            format: { type: Type.STRING, enum: ["verbal", "chart", "list", "summary"], description: "Response format" }
+        },
+        required: ["query"]
+    }
+};
+
+/**
+ * Set scene/mood for work.
+ */
+export const setSceneTool: FunctionDeclaration = {
+    name: "set_scene",
+    description: "Set the scene/mood for a work session. 'Set the mood for deep work', 'Creative mode', 'Prepare for a meeting', 'Wind down', 'Energy mode'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            scene: { type: Type.STRING, enum: ["deep_work", "creative", "meeting", "brainstorm", "review", "wind_down", "energy", "calm", "presentation"], description: "Scene/mood to set" },
+            duration: { type: Type.STRING, description: "Scene duration" },
+            music: { type: Type.BOOLEAN, description: "Include ambient audio suggestions" }
+        },
+        required: ["scene"]
+    }
+};
+
+/**
+ * Ultra-short quick commands.
+ */
+export const quickCommandTool: FunctionDeclaration = {
+    name: "quick_command",
+    description: "Ultra-short voice commands. 'Status', 'Help', 'Back', 'Forward', 'Refresh', 'Clear', 'Save', 'Done', 'Cancel', 'Confirm', 'Yes', 'No'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            command: { type: Type.STRING, enum: ["status", "help", "back", "forward", "refresh", "clear", "save", "done", "cancel", "confirm", "yes", "no", "more", "less", "next", "previous", "stop", "go", "wait", "skip"], description: "Quick command" }
+        },
+        required: ["command"]
+    }
+};
+
+/**
+ * Add voice annotations to items.
+ */
+export const annotateItemTool: FunctionDeclaration = {
+    name: "annotate_item",
+    description: "Add voice annotation to an item. 'Add note to this task', 'Annotate this', 'Comment on current item', 'Voice note for this'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            target: { type: Type.STRING, description: "What to annotate (e.g., 'current task', 'selected item', specific ID)" },
+            annotation: { type: Type.STRING, description: "Annotation content" },
+            type: { type: Type.STRING, enum: ["note", "warning", "idea", "question", "todo"], description: "Annotation type" }
+        },
+        required: ["annotation"]
+    }
+};
+
+/**
+ * Mood check and emotional awareness.
+ */
+export const moodCheckTool: FunctionDeclaration = {
+    name: "mood_check",
+    description: "Check or log mood and emotional state. 'How am I doing?', 'Mood check', 'I'm feeling...', 'Track my energy', 'Stress level'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["check", "log", "history", "suggest"], description: "Mood action" },
+            mood: { type: Type.STRING, description: "Mood to log (if logging)" },
+            energy: { type: Type.NUMBER, description: "Energy level 1-10" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Contextual repeat/redo.
+ */
+export const contextualRepeatTool: FunctionDeclaration = {
+    name: "contextual_repeat",
+    description: "Repeat or redo contextual actions. 'Do that again', 'Repeat', 'One more time', 'Same thing', 'Again but different'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            what: { type: Type.STRING, enum: ["last_action", "last_response", "last_command", "last_navigation"], description: "What to repeat" },
+            modification: { type: Type.STRING, description: "How to modify the repeat (optional)" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Chain multiple commands together.
+ */
+export const chainCommandsTool: FunctionDeclaration = {
+    name: "chain_commands",
+    description: "Chain multiple commands in natural language. 'Navigate to tasks then show me urgent ones', 'Save this and then switch to dashboard', 'After you finish that, remind me'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            commands: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Commands to chain" },
+            waitBetween: { type: Type.BOOLEAN, description: "Wait for confirmation between commands" }
+        },
+        required: ["commands"]
+    }
+};
+
+/**
+ * Conditional actions.
+ */
+export const conditionalActionTool: FunctionDeclaration = {
+    name: "conditional_action",
+    description: "Execute action based on conditions. 'If there are no urgent tasks, start focus mode', 'When the timer ends, notify me', 'Unless I'm in a meeting, play music'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            condition: { type: Type.STRING, description: "Condition to check" },
+            ifTrue: { type: Type.STRING, description: "Action if condition is true" },
+            ifFalse: { type: Type.STRING, description: "Action if condition is false (optional)" }
+        },
+        required: ["condition", "ifTrue"]
+    }
+};
+
+/**
+ * Voice bookmarks.
+ */
+export const voiceBookmarkTool: FunctionDeclaration = {
+    name: "voice_bookmark",
+    description: "Create voice bookmarks for quick access. 'Bookmark this', 'Save this spot', 'Mark this location', 'Quick save', 'Remember this place'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["create", "list", "go", "delete"], description: "Bookmark action" },
+            name: { type: Type.STRING, description: "Bookmark name" },
+            description: { type: Type.STRING, description: "Bookmark description" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Smart notifications control.
+ */
+export const smartNotifyTool: FunctionDeclaration = {
+    name: "smart_notify",
+    description: "Smart notification control. 'Notify me when done', 'Don't disturb unless urgent', 'Only alert for errors', 'Mute notifications', 'Priority alerts only'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            mode: { type: Type.STRING, enum: ["all", "priority", "urgent", "none", "custom"], description: "Notification mode" },
+            filter: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Notification types to allow" },
+            duration: { type: Type.STRING, description: "How long this setting lasts" }
+        },
+        required: ["mode"]
+    }
+};
+
+/**
+ * Conversation mode settings.
+ */
+export const conversationModeTool: FunctionDeclaration = {
+    name: "conversation_mode",
+    description: "Set conversation mode/style. 'Be more concise', 'Explain in detail', 'Talk casually', 'Be formal', 'Quick responses only'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            style: { type: Type.STRING, enum: ["concise", "detailed", "casual", "formal", "technical", "friendly", "professional"], description: "Conversation style" },
+            verbosity: { type: Type.STRING, enum: ["minimal", "normal", "verbose"], description: "Response length preference" }
+        },
+        required: ["style"]
+    }
+};
+
+/**
+ * Quick factual answers.
+ */
+export const quickAnswerTool: FunctionDeclaration = {
+    name: "quick_answer",
+    description: "Get quick factual answers. 'What time is it?', 'What day is today?', 'How long have I been working?', 'What's 15% of 200?'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            question: { type: Type.STRING, description: "Quick question to answer" }
+        },
+        required: ["question"]
+    }
+};
+
+/**
+ * Interpret user intent.
+ */
+export const interpretIntentTool: FunctionDeclaration = {
+    name: "interpret_intent",
+    description: "Clarify or interpret ambiguous user intent. 'What did I mean by that?', 'Clarify my last request', 'Did you understand?', 'What are my options?'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            utterance: { type: Type.STRING, description: "Utterance to interpret" },
+            context: { type: Type.STRING, description: "Additional context" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Confirm understanding.
+ */
+export const confirmUnderstandingTool: FunctionDeclaration = {
+    name: "confirm_understanding",
+    description: "Confirm AI understood correctly. 'Is that right?', 'Did you get that?', 'Confirm', 'Am I clear?', 'You understand?'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            about: { type: Type.STRING, description: "What to confirm understanding about" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Suggest command completion.
+ */
+export const suggestCompletionTool: FunctionDeclaration = {
+    name: "suggest_completion",
+    description: "Get command suggestions and completions. 'What can I say?', 'Suggest commands', 'How do I...', 'What are my options?'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            partial: { type: Type.STRING, description: "Partial command or intent" },
+            category: { type: Type.STRING, description: "Command category to suggest from" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Voice-activated search.
+ */
+export const voiceSearchTool: FunctionDeclaration = {
+    name: "voice_search",
+    description: "Voice-activated search across the system. 'Find', 'Search for', 'Look up', 'Where is', 'Show me anything about'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            query: { type: Type.STRING, description: "Search query" },
+            scope: { type: Type.STRING, enum: ["all", "tasks", "memory", "files", "agents", "settings"], description: "Search scope" },
+            limit: { type: Type.NUMBER, description: "Max results" }
+        },
+        required: ["query"]
+    }
+};
+
+/**
+ * Narrate actions as they happen.
+ */
+export const narrateActionsTool: FunctionDeclaration = {
+    name: "narrate_actions",
+    description: "Toggle narration of actions. 'Narrate what you're doing', 'Tell me as you go', 'Silent mode', 'Explain your actions'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            enabled: { type: Type.BOOLEAN, description: "Enable/disable narration" },
+            detail: { type: Type.STRING, enum: ["minimal", "normal", "verbose"], description: "Narration detail level" }
+        },
+        required: ["enabled"]
+    }
+};
+
+/**
+ * Pause and resume operations.
+ */
+export const pauseResumeTool: FunctionDeclaration = {
+    name: "pause_resume",
+    description: "Pause or resume ongoing operations. 'Pause', 'Hold on', 'Wait a moment', 'Continue', 'Resume', 'Go ahead', 'Proceed'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["pause", "resume", "toggle"], description: "Pause/resume action" },
+            target: { type: Type.STRING, description: "What to pause/resume (optional, defaults to current operation)" }
+        },
+        required: ["action"]
+    }
+};
+
 /**
  * All voice tools for Gemini Live API.
  */
@@ -1658,4 +1991,26 @@ export const VOICE_TOOLS: FunctionDeclaration[] = [
     situationalAwarenessTool,
     debugAssistTool,
     performanceProfileTool,
+
+    // === CONVERSATIONAL INTELLIGENCE ===
+    delegateToAgentTool,
+    voiceJournalTool,
+    smartQueryTool,
+    setSceneTool,
+    quickCommandTool,
+    annotateItemTool,
+    moodCheckTool,
+    contextualRepeatTool,
+    chainCommandsTool,
+    conditionalActionTool,
+    voiceBookmarkTool,
+    smartNotifyTool,
+    conversationModeTool,
+    quickAnswerTool,
+    interpretIntentTool,
+    confirmUnderstandingTool,
+    suggestCompletionTool,
+    voiceSearchTool,
+    narrateActionsTool,
+    pauseResumeTool,
 ];
