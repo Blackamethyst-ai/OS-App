@@ -7,6 +7,7 @@
 
 import { Pattern, PatternType, PatternContext, PatternOutcome, SubsystemType } from '../types';
 import { archonLog, generateId } from '../utils';
+import { neuralVault } from '../../persistenceService';
 
 // =============================================================================
 // PATTERN MEMORY CONFIGURATION
@@ -546,6 +547,34 @@ export class PatternMemory {
   }
 
   private loadFromStorage(): void {
+    // Try neuralVault first, then fall back to localStorage
+    this.loadFromNeuralVault().catch(() => {
+      this.loadFromLocalStorage();
+    });
+  }
+
+  private async loadFromNeuralVault(): Promise<void> {
+    try {
+      const data = await neuralVault.get(this.config.storageKey);
+      if (!data) {
+        // Try localStorage as backup on first load
+        this.loadFromLocalStorage();
+        return;
+      }
+
+      for (const pattern of data.patterns ?? []) {
+        this.patterns.set(pattern.id, pattern);
+        this.indexPattern(pattern);
+      }
+
+      archonLog('debug', `Loaded ${this.patterns.size} patterns from neuralVault`);
+    } catch (error) {
+      archonLog('warn', 'Failed to load patterns from neuralVault, trying localStorage', { error });
+      this.loadFromLocalStorage();
+    }
+  }
+
+  private loadFromLocalStorage(): void {
     try {
       if (typeof localStorage === 'undefined') return;
 
@@ -558,26 +587,30 @@ export class PatternMemory {
         this.indexPattern(pattern);
       }
 
-      archonLog('debug', `Loaded ${this.patterns.size} patterns from storage`);
+      archonLog('debug', `Loaded ${this.patterns.size} patterns from localStorage`);
     } catch (error) {
-      archonLog('warn', 'Failed to load patterns from storage', { error });
+      archonLog('warn', 'Failed to load patterns from localStorage', { error });
     }
   }
 
   private persistToStorage(): void {
-    try {
-      if (typeof localStorage === 'undefined') return;
+    const data = {
+      version: 1,
+      timestamp: Date.now(),
+      patterns: Array.from(this.patterns.values()),
+    };
 
-      const data = {
-        version: 1,
-        timestamp: Date.now(),
-        patterns: Array.from(this.patterns.values()),
-      };
-
-      localStorage.setItem(this.config.storageKey, JSON.stringify(data));
-    } catch (error) {
-      archonLog('warn', 'Failed to persist patterns to storage', { error });
-    }
+    // Persist to neuralVault (async, with localStorage fallback)
+    neuralVault.set(this.config.storageKey, data).catch(() => {
+      // Fallback to localStorage
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem(this.config.storageKey, JSON.stringify(data));
+        }
+      } catch (error) {
+        archonLog('warn', 'Failed to persist patterns to storage', { error });
+      }
+    });
   }
 }
 

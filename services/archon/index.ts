@@ -1133,8 +1133,9 @@ class Archon {
   }
 
   private async initializePersistence(): Promise<void> {
-    // TODO: Initialize SQLite connection via ResearchGravity
-    archonLog('info', 'Persistence initialized (stub)');
+    // PatternMemory now uses neuralVault for persistence
+    // This is initialized automatically in PatternMemory constructor
+    archonLog('info', 'Persistence initialized via neuralVault (PatternMemory)');
   }
 }
 
