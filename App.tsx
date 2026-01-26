@@ -48,6 +48,7 @@ const AgenticHUD = lazy(() => import('./components/agents/AgenticHUD'));
 const TimeTravelScrubber = lazy(() => import('./components/TimeTravelScrubber'));
 const ApiKeyModal = lazy(() => import('./components/ApiKeyModal'));
 const OperationalSidebar = lazy(() => import('./components/OperationalSidebar'));
+const PredictionDemo = lazy(() => import('./components/predictions/PredictionDemo'));
 
 const App: React.FC = () => {
     const mode = useAppStore(s => s.mode);
@@ -61,6 +62,12 @@ const App: React.FC = () => {
     const isDiagnosticsOpen = useAppStore(s => s.isDiagnosticsOpen);
     const isSidebarOpen = useAppStore(s => s.isSidebarOpen);
     const isHUDClosed = useAppStore(s => s.isHUDClosed);
+
+    // Prediction demo toggle (via URL param: ?demo=predictions)
+    const [showPredictionDemo, setShowPredictionDemo] = React.useState(() => {
+        const params = new URLSearchParams(window.location.search);
+        return params.get('demo') === 'predictions';
+    });
 
     const { setSector } = useSystemMind();
 
@@ -164,6 +171,22 @@ const App: React.FC = () => {
                             {isHelpOpen && (
                                 <Suspense fallback={null}>
                                     <HelpCenter onClose={() => actions.setHelpOpen(false)} />
+                                </Suspense>
+                            )}
+                        </AnimatePresence>
+
+                        <AnimatePresence>
+                            {showPredictionDemo && (
+                                <Suspense fallback={null}>
+                                    <div className="fixed inset-0 z-[9999] bg-black/95 overflow-y-auto">
+                                        <button
+                                            onClick={() => setShowPredictionDemo(false)}
+                                            className="fixed top-4 right-4 z-[10000] px-4 py-2 bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 rounded-lg text-white font-mono text-sm transition-all"
+                                        >
+                                            ✕ Close Demo
+                                        </button>
+                                        <PredictionDemo />
+                                    </div>
                                 </Suspense>
                             )}
                         </AnimatePresence>

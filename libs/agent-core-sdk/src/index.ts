@@ -35,6 +35,12 @@ export {
   useRelatedConcepts,
   useSessionLineage,
   useSessionsGraph,
+  // Meta-Learning Prediction Hooks (Phase 6)
+  useSessionPrediction,
+  useErrorPrediction,
+  useOptimalTime,
+  usePredictionAccuracy,
+  usePredictionWithContext,
 } from './hooks';
 
 // React Context Provider
@@ -85,4 +91,18 @@ export type {
   RelatedConceptsResult,
   SessionLineageResult,
   SessionsGraphResult,
+
+  // Meta-Learning Prediction types (Phase 6)
+  CognitiveState,
+  PredictionRequest,
+  ErrorPattern,
+  SessionPrediction,
+  ErrorPredictionRequest,
+  ErrorPredictionResponse,
+  OptimalTimeRequest,
+  OptimalTimeResponse,
+  PredictionAccuracy,
+  PredictionOutcomeUpdate,
+  MultiSearchResults,
+  CalibrationWeights,
 } from './types';

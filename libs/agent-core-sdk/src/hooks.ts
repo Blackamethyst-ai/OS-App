@@ -16,6 +16,11 @@ import type {
   RelatedConceptsResult,
   SessionLineageResult,
   SessionsGraphResult,
+  CognitiveState,
+  SessionPrediction,
+  ErrorPredictionResponse,
+  OptimalTimeResponse,
+  PredictionAccuracy,
 } from './types';
 
 // ============================================================
@@ -541,4 +546,310 @@ export function useSessionsGraph(options: {
   }, [defaultClient, limit, project]);
 
   return { graph, isLoading, error };
+}
+
+// ============================================================
+// Meta-Learning Prediction Hooks (Phase 6)
+// ============================================================
+
+/**
+ * Predict session outcome based on intent and cognitive state
+ * Returns quality prediction, success probability, and recommended actions
+ */
+export function useSessionPrediction(options: {
+  intent: string;
+  cognitiveState?: CognitiveState;
+  track?: boolean;
+  debounceMs?: number;
+  client?: AgentCoreClient;
+}) {
+  const [prediction, setPrediction] = useState<SessionPrediction | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const { intent, cognitiveState, track = false, debounceMs = 500, client } = options;
+  const defaultClient = useMemo(
+    () => client || new AgentCoreClient(),
+    [client]
+  );
+
+  useEffect(() => {
+    if (!intent || intent.length < 3) {
+      setPrediction(null);
+      return;
+    }
+
+    let mounted = true;
+    const timeoutId = setTimeout(async () => {
+      setIsLoading(true);
+
+      try {
+        const result = await defaultClient.predictSession({
+          intent,
+          cognitive_state: cognitiveState,
+          track_prediction: track,
+        });
+        if (mounted) {
+          setPrediction(result);
+          setError(null);
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err as Error);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }, debounceMs);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [defaultClient, intent, cognitiveState, track, debounceMs]);
+
+  return { prediction, isLoading, error };
+}
+
+/**
+ * Predict potential errors for a given task
+ * Returns preventable error patterns with solutions
+ */
+export function useErrorPrediction(options: {
+  intent: string;
+  preventableOnly?: boolean;
+  debounceMs?: number;
+  client?: AgentCoreClient;
+}) {
+  const [errors, setErrors] = useState<ErrorPredictionResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const { intent, preventableOnly = true, debounceMs = 500, client } = options;
+  const defaultClient = useMemo(
+    () => client || new AgentCoreClient(),
+    [client]
+  );
+
+  useEffect(() => {
+    if (!intent || intent.length < 3) {
+      setErrors(null);
+      return;
+    }
+
+    let mounted = true;
+    const timeoutId = setTimeout(async () => {
+      setIsLoading(true);
+
+      try {
+        const result = await defaultClient.predictErrors({
+          intent,
+          include_preventable_only: preventableOnly,
+        });
+        if (mounted) {
+          setErrors(result);
+          setError(null);
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err as Error);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }, debounceMs);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [defaultClient, intent, preventableOnly, debounceMs]);
+
+  return { errors, isLoading, error };
+}
+
+/**
+ * Find optimal time for a task based on cognitive patterns
+ */
+export function useOptimalTime(options: {
+  intent: string;
+  currentHour?: number;
+  debounceMs?: number;
+  client?: AgentCoreClient;
+}) {
+  const [optimalTime, setOptimalTime] = useState<OptimalTimeResponse | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const { intent, currentHour, debounceMs = 500, client } = options;
+  const defaultClient = useMemo(
+    () => client || new AgentCoreClient(),
+    [client]
+  );
+
+  useEffect(() => {
+    if (!intent || intent.length < 3) {
+      setOptimalTime(null);
+      return;
+    }
+
+    let mounted = true;
+    const timeoutId = setTimeout(async () => {
+      setIsLoading(true);
+
+      try {
+        const result = await defaultClient.predictOptimalTime({
+          intent,
+          current_hour: currentHour,
+        });
+        if (mounted) {
+          setOptimalTime(result);
+          setError(null);
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err as Error);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }, debounceMs);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [defaultClient, intent, currentHour, debounceMs]);
+
+  return { optimalTime, isLoading, error };
+}
+
+/**
+ * Get prediction accuracy metrics
+ * Useful for calibration dashboards
+ */
+export function usePredictionAccuracy(options: {
+  days?: number;
+  client?: AgentCoreClient;
+} = {}) {
+  const [accuracy, setAccuracy] = useState<PredictionAccuracy | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  const { days = 30, client } = options;
+  const defaultClient = useMemo(
+    () => client || new AgentCoreClient(),
+    [client]
+  );
+
+  useEffect(() => {
+    let mounted = true;
+    setIsLoading(true);
+
+    const fetchAccuracy = async () => {
+      try {
+        const result = await defaultClient.getPredictionAccuracy(days);
+        if (mounted) {
+          setAccuracy(result);
+          setError(null);
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err as Error);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    fetchAccuracy();
+
+    return () => {
+      mounted = false;
+    };
+  }, [defaultClient, days]);
+
+  return { accuracy, isLoading, error };
+}
+
+/**
+ * Comprehensive prediction hook combining all prediction features
+ * Returns session prediction, errors, and optimal timing in one call
+ */
+export function usePredictionWithContext(options: {
+  intent: string;
+  track?: boolean;
+  includeErrors?: boolean;
+  includeOptimalTime?: boolean;
+  debounceMs?: number;
+  client?: AgentCoreClient;
+}) {
+  const [data, setData] = useState<{
+    prediction: SessionPrediction;
+    errors?: ErrorPredictionResponse;
+    optimalTime?: OptimalTimeResponse;
+  } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const {
+    intent,
+    track = false,
+    includeErrors = true,
+    includeOptimalTime = true,
+    debounceMs = 500,
+    client,
+  } = options;
+
+  const defaultClient = useMemo(
+    () => client || new AgentCoreClient(),
+    [client]
+  );
+
+  useEffect(() => {
+    if (!intent || intent.length < 3) {
+      setData(null);
+      return;
+    }
+
+    let mounted = true;
+    const timeoutId = setTimeout(async () => {
+      setIsLoading(true);
+
+      try {
+        const result = await defaultClient.getPredictionWithContext(intent, {
+          track,
+          includeErrors,
+          includeOptimalTime,
+        });
+        if (mounted) {
+          setData(result);
+          setError(null);
+        }
+      } catch (err) {
+        if (mounted) {
+          setError(err as Error);
+        }
+      } finally {
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }, debounceMs);
+
+    return () => {
+      mounted = false;
+      clearTimeout(timeoutId);
+    };
+  }, [defaultClient, intent, track, includeErrors, includeOptimalTime, debounceMs]);
+
+  return { data, isLoading, error };
 }
