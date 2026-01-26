@@ -18,6 +18,11 @@ import { universalVoice, fillInput, clickButton, selectOption, scanInteractiveEl
 import { navigateToTab, generateTabContext, parseTabNavigation, TAB_REGISTRY } from '../../../services/tabNavigationRegistry';
 import { initializeUnifiedRegistry, routeQuery, executeQuery, generateVoiceContext } from '../../../services/unifiedActionRegistry';
 import type { CPBPath } from '../../../services/cognitivePrecisionBridge/types';
+import { SovereignMemory } from '../../../services/memory/MemoryStore';
+import { neuralVault } from '../../../services/persistenceService';
+
+// Initialize memory service singleton
+const sovereignMemory = new SovereignMemory();
 
 // Import extracted tool declarations
 import { VOICE_TOOLS } from './parts/tools';
@@ -876,43 +881,120 @@ const VoiceManager: React.FC = () => {
             }
 
             // =================================================================
-            // MEMORY & KNOWLEDGE - Persistent intelligence
+            // MEMORY & KNOWLEDGE - Real SovereignMemory integration
             // =================================================================
             if (name === 'save_memory') {
                 const { content, category, tags } = args;
-                addLog('SYSTEM', `MEMORY: Storing "${(content as string).slice(0, 50)}..."...`);
-                // Store in local storage for simplicity
-                const memories = JSON.parse(localStorage.getItem('voice_memories') || '[]');
-                memories.push({ content, category: category || 'fact', tags: tags || [], timestamp: Date.now() });
-                localStorage.setItem('voice_memories', JSON.stringify(memories));
-                addLog('SUCCESS', `MEMORY: Stored.`);
-                return { status: "MEMORY_SAVED", message: "I'll remember that, Sir." };
+                const memoryKey = `voice_${category || 'fact'}_${Date.now()}`;
+                addLog('SYSTEM', `🧠 MEMORY: Storing to SovereignMemory...`);
+
+                try {
+                    // Store in real SovereignMemory (IndexedDB + vector embeddings)
+                    await sovereignMemory.store(
+                        memoryKey,
+                        JSON.stringify({
+                            content,
+                            category: category || 'fact',
+                            tags: tags || [],
+                            source: 'voice',
+                            timestamp: Date.now()
+                        })
+                    );
+
+                    audio.playClick();
+                    addLog('SUCCESS', `✅ MEMORY: Stored with vector embedding`);
+                    return {
+                        status: "MEMORY_SAVED",
+                        key: memoryKey,
+                        category: category || 'fact',
+                        message: "I'll remember that, Sir. Stored in the Neural Vault with semantic indexing."
+                    };
+                } catch (e: any) {
+                    addLog('ERROR', `Memory storage failed: ${e.message}`);
+                    return { error: e.message, message: "I apologize, Sir. Memory storage encountered an issue." };
+                }
             }
 
             if (name === 'recall_memory') {
                 const query = args.query as string;
-                addLog('SYSTEM', `MEMORY: Searching for "${query}"...`);
+                const limit = (args.limit as number) || 5;
+                addLog('SYSTEM', `🧠 MEMORY: Semantic search for "${query}"...`);
+
                 try {
-                    const memories = JSON.parse(localStorage.getItem('voice_memories') || '[]');
-                    const matches = memories.filter((m: any) =>
-                        m.content.toLowerCase().includes(query.toLowerCase())
-                    );
-                    return { status: "MEMORIES_FOUND", memories: matches, count: matches.length };
-                } catch (e) {
-                    return { status: "NO_MEMORIES", message: "I don't have any memories matching that, Sir." };
+                    // Real vector similarity search in SovereignMemory
+                    const results = await sovereignMemory.query(query, limit);
+
+                    if (results.length === 0) {
+                        return {
+                            status: "NO_MEMORIES",
+                            query,
+                            message: "I don't have any memories matching that, Sir."
+                        };
+                    }
+
+                    // Parse results
+                    const parsedResults = results.map(r => {
+                        try {
+                            // Extract score from [RECALL_XX%] prefix
+                            const scoreMatch = r.match(/\[RECALL_(\d+)%\]/);
+                            const score = scoreMatch ? parseInt(scoreMatch[1]) : 0;
+                            const content = r.replace(/\[RECALL_\d+%\]\s*/, '');
+                            const parsed = JSON.parse(content);
+                            return { ...parsed, relevance: score };
+                        } catch {
+                            return { content: r, relevance: 0 };
+                        }
+                    });
+
+                    addLog('SUCCESS', `✅ MEMORY: Found ${results.length} relevant memories`);
+                    return {
+                        status: "MEMORIES_FOUND",
+                        query,
+                        memories: parsedResults,
+                        count: results.length,
+                        message: `I found ${results.length} relevant memor${results.length === 1 ? 'y' : 'ies'}, Sir.`,
+                        instruction: `Present these memories to the user: ${parsedResults.map(m => m.content).join('; ')}`
+                    };
+                } catch (e: any) {
+                    addLog('ERROR', `Memory recall failed: ${e.message}`);
+                    return { error: e.message };
                 }
             }
 
             if (name === 'manage_memory') {
                 const { action, target } = args;
+                addLog('SYSTEM', `🧠 MEMORY: ${action}`);
+
                 if (action === 'list') {
-                    const memories = JSON.parse(localStorage.getItem('voice_memories') || '[]');
-                    return { status: "MEMORIES_LISTED", memories, count: memories.length };
-                } else if (action === 'clear_all') {
-                    localStorage.removeItem('voice_memories');
-                    return { status: "MEMORIES_CLEARED", message: "All memories cleared, Sir." };
+                    try {
+                        // Get knowledge layers from Neural Vault
+                        const layers = await neuralVault.getKnowledgeLayers();
+                        const artifacts = await neuralVault.getArtifacts();
+                        const memoryArtifacts = artifacts.filter(a =>
+                            a.analysis?.classification === 'MEMORY_FRAGMENT'
+                        );
+
+                        return {
+                            status: "MEMORIES_LISTED",
+                            knowledgeLayers: layers.length,
+                            memoryFragments: memoryArtifacts.length,
+                            total: layers.length + memoryArtifacts.length,
+                            message: `You have ${layers.length} knowledge layers and ${memoryArtifacts.length} memory fragments, Sir.`
+                        };
+                    } catch (e: any) {
+                        return { error: e.message };
+                    }
                 }
-                return { status: "ACTION_COMPLETE", action };
+
+                if (action === 'clear_all') {
+                    addLog('WARN', `⚠️ Clearing all memories is a destructive operation`);
+                    return {
+                        status: "CONFIRMATION_REQUIRED",
+                        message: "Clearing all memories is permanent, Sir. Please confirm by saying 'confirm clear memories'."
+                    };
+                }
+
+                return { status: "MEMORY_ACTION", action };
             }
 
             // =================================================================
