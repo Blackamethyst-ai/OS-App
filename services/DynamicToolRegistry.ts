@@ -116,8 +116,9 @@ class DynamicToolRegistry {
             };
         }
 
-        // 3. Legacy Fallback
+        // 3. Legacy Fallback (DEPRECATED - all tools should be in unified registry)
         if ((OS_TOOLS as any)[name]) {
+            console.warn(`[DynamicToolRegistry] DEPRECATED: Tool "${name}" using legacy OS_TOOLS fallback. Migrate to unified registry.`);
             return (OS_TOOLS as any)[name](args);
         }
         throw new Error(`Protocol [${name}] unreachable.`);

@@ -8,7 +8,7 @@ import {
     runAgentReasoning
 } from '../../../services/geminiService';
 import { voiceNexus, analyzeComplexity, runPreflightCheck, formatPreflightResult } from '../../../services/voiceNexus';
-import { OS_TOOLS } from '../../../services/toolRegistry';
+import { executeAction } from '../../../services/unifiedActionRegistry';
 import { AppMode } from '../../../types';
 import { LiveServerMessage } from '@google/genai';
 import { audio } from '../../../services/audioService';
@@ -132,16 +132,16 @@ const VoiceManager: React.FC = () => {
 
             if (name === 'synthesize_topology') {
                 addLog('SYSTEM', `VOICE_ARCHITECT: Initializing ${args.type} logic crystallization...`);
-                const result = await (OS_TOOLS.architect_generate_process as any)(args);
-                return result.data;
+                const result = await executeAction('architect_generate_process', args);
+                return result.output;
             }
 
             if (name === 'recalibrate_dna') {
-                const result = await (OS_TOOLS.adjust_agent_dna as any)({
+                const result = await executeAction('adjust_agent_dna', {
                     agentId: args.agentId,
                     weights: { skepticism: args.skepticism, excitement: args.excitement, alignment: args.alignment }
                 });
-                return result.data;
+                return result.output;
             }
 
             if (name === 'switch_agent') {
@@ -542,16 +542,16 @@ const VoiceManager: React.FC = () => {
                 addLog('SYSTEM', `INTEL: Searching for "${query}"...`);
 
                 try {
-                    const result = await (OS_TOOLS.search_intel as any)({ query });
-                    if (result.status === 'SUCCESS') {
+                    const result = await executeAction('search_intel', { query });
+                    if (result.success) {
                         addLog('SUCCESS', `INTEL: Search complete.`);
                         return {
                             status: "SEARCH_COMPLETE",
-                            result: result.data.message,
+                            result: (result.output as any)?.result,
                             instruction: "Present this information to the user conversationally."
                         };
                     }
-                    return { error: result.data?.error || 'Search failed' };
+                    return { error: (result.output as any)?.error || 'Search failed' };
                 } catch (e: any) {
                     return { error: e.message };
                 }
@@ -565,17 +565,18 @@ const VoiceManager: React.FC = () => {
                 addLog('SYSTEM', `CONVERGENCE: Synthesizing lattices toward "${targetGoal}"...`);
 
                 try {
-                    const result = await (OS_TOOLS.converge_strategic_lattices as any)({ targetGoal });
-                    if (result.status === 'SUCCESS') {
-                        addLog('SUCCESS', `CONVERGENCE: Synthesis complete. Coherence: ${result.data.coherence}`);
+                    const result = await executeAction('converge_strategic_lattices', { targetGoal });
+                    if (result.success) {
+                        const output = result.output as any;
+                        addLog('SUCCESS', `CONVERGENCE: Synthesis complete. Coherence: ${output.coherence}`);
                         audio.playSuccess();
                         return {
                             status: "CONVERGENCE_COMPLETE",
-                            goal: result.data.goal,
-                            coherence: result.data.coherence
+                            goal: output.goal,
+                            coherence: output.coherence
                         };
                     }
-                    return { error: result.data?.error || 'Convergence failed' };
+                    return { error: (result.output as any)?.error || 'Convergence failed' };
                 } catch (e: any) {
                     return { error: e.message };
                 }
@@ -751,7 +752,7 @@ const VoiceManager: React.FC = () => {
                 addLog('SYSTEM', `PROPOSAL: Submitting ${type} proposal "${title}"...`);
 
                 try {
-                    const result = await (OS_TOOLS.propose_structural_change as any)({
+                    const result = await executeAction('propose_structural_change', {
                         agentId: voice.voiceName.toLowerCase().replace(/\s+/g, '_'),
                         agentName: voice.voiceName,
                         type,
@@ -760,16 +761,16 @@ const VoiceManager: React.FC = () => {
                         impact: impact || 'To be assessed',
                         manifest_summary: description
                     });
-                    if (result.status === 'SUCCESS') {
+                    if (result.success) {
                         addLog('SUCCESS', `PROPOSAL: Staged for review.`);
                         audio.playSuccess();
                         return {
                             status: "PROPOSAL_SUBMITTED",
-                            proposalId: result.data.proposalId,
+                            proposalId: (result.output as any).proposalId,
                             message: "Proposal submitted for swarm review, Sir."
                         };
                     }
-                    return { error: result.data?.error || 'Proposal failed' };
+                    return { error: (result.output as any)?.error || 'Proposal failed' };
                 } catch (e: any) {
                     return { error: e.message };
                 }

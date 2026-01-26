@@ -3,8 +3,18 @@ import { useAppStore } from '../store';
 import { generateStructuredWorkflow, searchGroundedIntel, convergeStrategicLattices } from './geminiService';
 
 /**
- * SOVEREIGN TOOL REGISTRY
- * Maps MCP Manifest Identifiers to actual executable code.
+ * @deprecated SOVEREIGN TOOL REGISTRY - LEGACY
+ *
+ * This file is DEPRECATED. All tools have been migrated to:
+ *   - services/actions/handlers/sovereign.ts (UnifiedAction format)
+ *   - services/unifiedActionRegistry.ts (Canonical registry)
+ *
+ * Use `executeAction(actionId, args)` from unifiedActionRegistry instead.
+ *
+ * This file is kept for backward compatibility with DynamicToolRegistry fallback.
+ * It will be removed in a future version.
+ *
+ * Migration: 2026-01-26
  */
 export const OS_TOOLS = {
     // 1. ARCHITECTURAL PROTOCOLS (Enhanced with RAG-Anything Multi-modal Logic)
