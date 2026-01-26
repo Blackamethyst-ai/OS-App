@@ -618,6 +618,63 @@ ${shared}
 ${cognitiveProtocol}`;
 }
 
+/**
+ * Run agent reasoning on a specific task.
+ * This is the core function for agent delegation via voice.
+ */
+export interface AgentReasoningResult {
+    agentId: string;
+    agentName: string;
+    response: string;
+    reasoning?: string;
+    confidence?: number;
+    timestamp: number;
+}
+
+export async function runAgentReasoning(
+    agentName: string,
+    task: string,
+    context?: string
+): Promise<AgentReasoningResult> {
+    const ai = getAI();
+
+    // Find agent by name (case-insensitive)
+    const agent = Object.values(HIVE_AGENTS).find(a =>
+        a.name.toLowerCase() === agentName.toLowerCase() ||
+        a.id.toLowerCase() === agentName.toLowerCase()
+    ) || HIVE_AGENTS['mike']; // Default to Mike if not found
+
+    // Build agent context with balanced mental state
+    const mentalState = {
+        skepticism: Math.round((agent.weights?.skepticism || 0.5) * 100),
+        excitement: Math.round((agent.weights?.creativity || 0.5) * 100),
+        alignment: Math.round((agent.weights?.empathy || 0.5) * 100)
+    };
+
+    const systemContext = constructHiveContext(
+        agent.id,
+        `DELEGATED TASK: ${task}${context ? `\n\nADDITIONAL CONTEXT: ${context}` : ''}`,
+        mentalState
+    );
+
+    const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
+        model: 'gemini-2.0-flash',
+        systemInstruction: systemContext,
+        contents: `You have been delegated a task. Analyze it using your unique perspective and expertise.
+
+TASK: ${task}
+
+Provide your analysis and recommendation. Be concise but thorough. Draw on your archetype (${agent.archetype}) and expertise (${agent.expertise?.join(', ') || 'general'}).`
+    }));
+
+    return {
+        agentId: agent.id,
+        agentName: agent.name,
+        response: response.text || 'No response generated.',
+        timestamp: Date.now()
+    };
+}
+
 export async function searchRealWorldOpportunities(domain: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({

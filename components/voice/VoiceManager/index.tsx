@@ -4,7 +4,8 @@ import { useSystemMind, EpochEvent } from '../../../stores/useSystemMind';
 import {
     liveSession,
     HIVE_AGENTS,
-    constructHiveContext
+    constructHiveContext,
+    runAgentReasoning
 } from '../../../services/geminiService';
 import { voiceNexus, analyzeComplexity, runPreflightCheck, formatPreflightResult } from '../../../services/voiceNexus';
 import { OS_TOOLS } from '../../../services/toolRegistry';
@@ -1758,26 +1759,53 @@ const VoiceManager: React.FC = () => {
 
             if (name === 'delegate_to_agent') {
                 const { agent, task, priority, waitForResponse } = args;
-                addLog('SYSTEM', `🤝 DELEGATING TO ${agent}: ${task}`);
+                addLog('SYSTEM', `🤝 DELEGATING TO ${agent}: "${task}"`);
                 audio.playClick();
-                const delegations = JSON.parse(localStorage.getItem('delegations') || '[]');
-                delegations.push({
-                    id: `del_${Date.now()}`,
-                    agent,
-                    task,
-                    priority: priority || 'normal',
-                    status: 'pending',
-                    created: Date.now()
-                });
-                localStorage.setItem('delegations', JSON.stringify(delegations));
-                return {
-                    status: "DELEGATED",
-                    agent,
-                    task,
-                    priority: priority || 'normal',
-                    waitForResponse: waitForResponse || false,
-                    message: `Very well, Sir. I've delegated "${task}" to ${agent}. ${waitForResponse ? 'Awaiting their response.' : 'They\'ll handle it.'}`
-                };
+
+                try {
+                    // Actually run agent reasoning
+                    addLog('SYSTEM', `🧠 ${agent} is analyzing...`);
+                    const result = await runAgentReasoning(
+                        agent as string,
+                        task as string,
+                        `Priority: ${priority || 'normal'}. Current sector: ${useAppStore.getState().mode}`
+                    );
+
+                    // Store delegation record with response
+                    const delegations = JSON.parse(localStorage.getItem('delegations') || '[]');
+                    delegations.push({
+                        id: `del_${Date.now()}`,
+                        agent: result.agentName,
+                        agentId: result.agentId,
+                        task,
+                        priority: priority || 'normal',
+                        status: 'completed',
+                        response: result.response,
+                        created: result.timestamp
+                    });
+                    localStorage.setItem('delegations', JSON.stringify(delegations));
+
+                    addLog('SUCCESS', `✅ ${result.agentName} responded`);
+                    audio.playClick();
+
+                    return {
+                        status: "DELEGATION_COMPLETE",
+                        agent: result.agentName,
+                        agentId: result.agentId,
+                        task,
+                        response: result.response,
+                        message: `${result.agentName}'s analysis: ${result.response}`
+                    };
+                } catch (e: any) {
+                    addLog('ERROR', `Agent reasoning failed: ${e.message}`);
+                    return {
+                        status: "DELEGATION_FAILED",
+                        agent,
+                        task,
+                        error: e.message,
+                        message: `I apologize, Sir. ${agent} encountered an issue: ${e.message}`
+                    };
+                }
             }
 
             if (name === 'voice_journal') {
