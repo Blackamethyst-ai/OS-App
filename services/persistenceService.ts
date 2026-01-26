@@ -225,6 +225,32 @@ class NeuralVaultService {
     await db.put('knowledge_layers', layer);
   }
 
+  /**
+   * Generic key-value get (uses profile store with type coercion)
+   */
+  async get<T = any>(key: string): Promise<T | undefined> {
+    const db = await this.db;
+    // Profile store is typed for UserProfile but we use it for generic KV
+    return db.get('profile', key) as unknown as Promise<T | undefined>;
+  }
+
+  /**
+   * Generic key-value set (uses profile store with type coercion)
+   */
+  async set<T = any>(key: string, value: T): Promise<void> {
+    const db = await this.db;
+    // Profile store is typed for UserProfile but we use it for generic KV
+    await db.put('profile', value as unknown as UserProfile, key);
+  }
+
+  /**
+   * Generic key-value delete
+   */
+  async delete(key: string): Promise<void> {
+    const db = await this.db;
+    await db.delete('profile', key);
+  }
+
   async wipeSystem() {
     const db = await this.db;
     await db.clear('artifacts');
