@@ -8,6 +8,7 @@ import { GENERATION_ACTIONS } from './generation';
 import { EXECUTION_ACTIONS } from './execution';
 import { ANALYSIS_ACTIONS } from './analysis';
 import { UI_ACTIONS } from './ui';
+import { SOVEREIGN_ACTIONS } from './sovereign';
 import type { UnifiedAction } from '../types';
 
 // Export individual handler groups
@@ -16,6 +17,7 @@ export { GENERATION_ACTIONS } from './generation';
 export { EXECUTION_ACTIONS } from './execution';
 export { ANALYSIS_ACTIONS } from './analysis';
 export { UI_ACTIONS } from './ui';
+export { SOVEREIGN_ACTIONS } from './sovereign';
 
 /**
  * All consolidated actions from handlers.
@@ -28,6 +30,7 @@ export const ALL_HANDLER_ACTIONS: UnifiedAction[] = [
   ...EXECUTION_ACTIONS,
   ...ANALYSIS_ACTIONS,
   ...UI_ACTIONS,
+  ...SOVEREIGN_ACTIONS,
 ];
 
 /**
@@ -43,6 +46,7 @@ export function getHandlerStats(): {
     execution: EXECUTION_ACTIONS.length,
     analysis: ANALYSIS_ACTIONS.length,
     ui: UI_ACTIONS.length,
+    sovereign: SOVEREIGN_ACTIONS.length,
   };
 
   return {
