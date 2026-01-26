@@ -53,6 +53,7 @@
     "@types/node": "^22.14.0",
     "@types/three": "^0.170.0",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^4.0.18",
     "happy-dom": "^20.3.1",
     "tsx": "^4.21.0",
     "typescript": "^5.7.3",

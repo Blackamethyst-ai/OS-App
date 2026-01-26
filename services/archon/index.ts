@@ -628,8 +628,8 @@ class Archon {
             executionTimeMs: latencyMs,
           });
 
-          // Record success for learning
-          this.recordSuccess(goal, routing.modelId, lastDqScore.score, latencyMs);
+          // Record success for learning (with actual token count)
+          this.recordSuccess(goal, routing.modelId, lastDqScore.score, latencyMs, result.tokensUsed);
 
           // Update telemetry
           store.recordGoalCompletion(lastDqScore.score, result.tokensUsed);
@@ -758,10 +758,33 @@ class Archon {
 
     // Continue processing based on decision
     if (decision.selectedOptionId === 'retry') {
-      // Re-queue the goal
+      // Re-queue the goal for retry
       const store = useArchonStore.getState();
-      // Find the goal for this escalation and restart
-      // TODO: Implement retry logic
+      const goal = store.getGoal(decision.escalationId);
+
+      if (goal) {
+        // Reset goal status and re-execute
+        store.updateGoal(goal.id, {
+          status: 'pending',
+          completedAt: undefined,
+          output: undefined,
+          dqScore: undefined,
+        });
+
+        archonLog('info', `Retrying goal after escalation: ${goal.id}`);
+
+        // Re-execute the goal
+        this.executeGoal(goal.id).catch((error) => {
+          archonLog('error', `Retry failed for goal ${goal.id}`, error);
+          emitErrorEvent({
+            error,
+            context: 'retryAfterEscalation',
+            goalId: goal.id,
+          });
+        });
+      } else {
+        archonLog('warn', `Could not find goal to retry: ${decision.escalationId}`);
+      }
     }
   }
 
@@ -772,7 +795,8 @@ class Archon {
     goal: Goal,
     modelId: string,
     dqScore: number,
-    latencyMs: number
+    latencyMs: number,
+    tokensUsed?: number
   ): void {
     // Update meta-cognition
     this.metacognition.recordTaskCompletion(modelId, dqScore, latencyMs);
@@ -780,14 +804,14 @@ class Archon {
     // Update router
     this.router.recordOutcome(modelId, dqScore, latencyMs);
 
-    // Update learner
+    // Update learner with actual token count from execution
     this.learner.processTaskFeedback({
       taskId: goal.id,
       goalText: goal.text,
       success: true,
       dqScore,
       latencyMs,
-      tokenCost: 0, // TODO: Track actual tokens
+      tokenCost: tokensUsed ?? 0,
       modelUsed: modelId,
       subsystemsUsed: goal.metadata.estimatedSubsystems,
       humanIntervention: false,
