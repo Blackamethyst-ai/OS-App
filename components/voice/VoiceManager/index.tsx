@@ -2226,6 +2226,315 @@ const VoiceManager: React.FC = () => {
                 };
             }
 
+            // ================================================================
+            // PRODUCTIVITY, DOCUMENTS & DEVELOPER TOOLS
+            // ================================================================
+
+            if (name === 'document_ops') {
+                const { action: docAction, type: docType, name: docName, content: docContent } = args;
+                addLog('SYSTEM', `📄 DOCUMENT: ${docAction} ${docType || 'document'}`);
+                if (docAction === 'create') {
+                    const docs = JSON.parse(localStorage.getItem('voice_documents') || '[]');
+                    docs.push({ id: `doc_${Date.now()}`, type: docType, name: docName, content: docContent, created: Date.now() });
+                    localStorage.setItem('voice_documents', JSON.stringify(docs));
+                    return { status: "DOCUMENT_CREATED", type: docType, name: docName, message: `${docType || 'Document'} created, Sir.` };
+                }
+                return { status: "DOCUMENT_ACTION", action: docAction, type: docType };
+            }
+
+            if (name === 'meeting_mode') {
+                const { action: mtgAction, meetingName, content: mtgContent } = args;
+                const meetings = JSON.parse(localStorage.getItem('meeting_state') || '{}');
+
+                if (mtgAction === 'start') {
+                    meetings.current = { name: meetingName, started: Date.now(), notes: [], actionItems: [] };
+                    localStorage.setItem('meeting_state', JSON.stringify(meetings));
+                    addLog('SYSTEM', `🎙️ MEETING STARTED: ${meetingName || 'Untitled'}`);
+                    return { status: "MEETING_STARTED", name: meetingName, message: `Meeting started, Sir. I'll track notes and action items.` };
+                }
+
+                if (mtgAction === 'note' && meetings.current) {
+                    meetings.current.notes.push({ content: mtgContent, time: Date.now() });
+                    localStorage.setItem('meeting_state', JSON.stringify(meetings));
+                    return { status: "NOTE_ADDED", message: "Noted." };
+                }
+
+                if (mtgAction === 'action_item' && meetings.current) {
+                    meetings.current.actionItems.push({ content: mtgContent, time: Date.now() });
+                    localStorage.setItem('meeting_state', JSON.stringify(meetings));
+                    return { status: "ACTION_ITEM_ADDED", message: "Action item captured." };
+                }
+
+                if (mtgAction === 'end' && meetings.current) {
+                    const ended = { ...meetings.current, ended: Date.now() };
+                    if (!meetings.history) meetings.history = [];
+                    meetings.history.push(ended);
+                    meetings.current = null;
+                    localStorage.setItem('meeting_state', JSON.stringify(meetings));
+                    addLog('SYSTEM', `🎙️ MEETING ENDED`);
+                    return { status: "MEETING_ENDED", notes: ended.notes.length, actionItems: ended.actionItems.length, message: `Meeting concluded, Sir. ${ended.notes.length} notes, ${ended.actionItems.length} action items captured.` };
+                }
+
+                return { status: "MEETING_ACTION", action: mtgAction };
+            }
+
+            if (name === 'presentation_mode') {
+                const { action: presAction, slideNumber, notes: presNotes } = args;
+                const presState = JSON.parse(localStorage.getItem('presentation_state') || '{}');
+                addLog('SYSTEM', `📊 PRESENTATION: ${presAction}`);
+
+                if (presAction === 'start') {
+                    presState.active = true;
+                    presState.currentSlide = 1;
+                    presState.started = Date.now();
+                    localStorage.setItem('presentation_state', JSON.stringify(presState));
+                    return { status: "PRESENTATION_STARTED", message: "Presentation mode activated. Good luck, Sir." };
+                }
+
+                if (presAction === 'next') {
+                    presState.currentSlide = (presState.currentSlide || 1) + 1;
+                    localStorage.setItem('presentation_state', JSON.stringify(presState));
+                    return { status: "NEXT_SLIDE", slide: presState.currentSlide };
+                }
+
+                if (presAction === 'previous') {
+                    presState.currentSlide = Math.max(1, (presState.currentSlide || 1) - 1);
+                    localStorage.setItem('presentation_state', JSON.stringify(presState));
+                    return { status: "PREVIOUS_SLIDE", slide: presState.currentSlide };
+                }
+
+                if (presAction === 'goto') {
+                    presState.currentSlide = slideNumber;
+                    localStorage.setItem('presentation_state', JSON.stringify(presState));
+                    return { status: "GOTO_SLIDE", slide: slideNumber };
+                }
+
+                if (presAction === 'end') {
+                    presState.active = false;
+                    localStorage.setItem('presentation_state', JSON.stringify(presState));
+                    return { status: "PRESENTATION_ENDED", message: "Presentation concluded, Sir." };
+                }
+
+                return { status: "PRESENTATION_ACTION", action: presAction };
+            }
+
+            if (name === 'quick_note') {
+                const { action: noteAction, content: noteContent, tag } = args;
+                const quickNotes = JSON.parse(localStorage.getItem('quick_notes') || '[]');
+
+                if (noteAction === 'add') {
+                    quickNotes.push({ content: noteContent, tag, timestamp: Date.now() });
+                    localStorage.setItem('quick_notes', JSON.stringify(quickNotes));
+                    addLog('SYSTEM', `📝 QUICK NOTE: Added`);
+                    return { status: "NOTE_ADDED", count: quickNotes.length, message: "Noted, Sir." };
+                }
+
+                if (noteAction === 'list') {
+                    return { status: "NOTES_LISTED", notes: quickNotes.slice(-10), count: quickNotes.length };
+                }
+
+                if (noteAction === 'clear') {
+                    localStorage.setItem('quick_notes', '[]');
+                    return { status: "NOTES_CLEARED", message: "Quick notes cleared, Sir." };
+                }
+
+                return { status: "NOTE_ACTION", action: noteAction };
+            }
+
+            if (name === 'transcribe') {
+                const { action: transAction, format: transFormat } = args;
+                addLog('SYSTEM', `📜 TRANSCRIBE: ${transAction}`);
+                if (transAction === 'start') {
+                    localStorage.setItem('transcription_active', 'true');
+                    return { status: "TRANSCRIPTION_STARTED", message: "Transcription active, Sir. I'm recording everything." };
+                }
+                if (transAction === 'stop') {
+                    localStorage.setItem('transcription_active', 'false');
+                    return { status: "TRANSCRIPTION_STOPPED", message: "Transcription stopped." };
+                }
+                return { status: "TRANSCRIPTION_ACTION", action: transAction, format: transFormat || 'text' };
+            }
+
+            if (name === 'dictate_to_doc') {
+                const { action: dictAction, target: dictTarget, formatting } = args;
+                addLog('SYSTEM', `🎤 DICTATE: ${dictAction}`);
+                if (dictAction === 'start') {
+                    localStorage.setItem('dictation_state', JSON.stringify({ active: true, target: dictTarget, formatting }));
+                    return { status: "DICTATION_STARTED", target: dictTarget, message: "Ready for dictation, Sir. Speak naturally." };
+                }
+                if (dictAction === 'stop') {
+                    localStorage.setItem('dictation_state', JSON.stringify({ active: false }));
+                    return { status: "DICTATION_STOPPED", message: "Dictation complete." };
+                }
+                return { status: "DICTATION_ACTION", action: dictAction };
+            }
+
+            if (name === 'screen_layout') {
+                const { layout, target: layoutTarget } = args;
+                addLog('SYSTEM', `🖥️ LAYOUT: ${layout}`);
+                localStorage.setItem('screen_layout', JSON.stringify({ layout, target: layoutTarget }));
+                const messages: Record<string, string> = {
+                    full: "Full screen mode.",
+                    split: "Split screen activated.",
+                    pip: "Picture-in-picture enabled.",
+                    minimize: "Minimized.",
+                    maximize: "Maximized.",
+                    sidebar: "Sidebar layout.",
+                    compact: "Compact view."
+                };
+                return { status: "LAYOUT_SET", layout, message: messages[layout as string] || `Layout set to ${layout}.` };
+            }
+
+            if (name === 'parallel_ops') {
+                const { operations, reportProgress } = args;
+                addLog('SYSTEM', `⚡ PARALLEL: ${(operations as string[]).length} operations`);
+                return {
+                    status: "PARALLEL_INITIATED",
+                    operations,
+                    reportProgress: reportProgress || false,
+                    message: `Executing ${(operations as string[]).length} operations in parallel, Sir.`,
+                    instruction: `Execute these operations simultaneously: ${(operations as string[]).join(' AND ')}`
+                };
+            }
+
+            if (name === 'interrupt_handle') {
+                const { action: intAction, note: intNote } = args;
+                const interruptStack = JSON.parse(localStorage.getItem('interrupt_stack') || '[]');
+                addLog('SYSTEM', `⏸️ INTERRUPT: ${intAction}`);
+
+                if (intAction === 'pause' || intAction === 'sidebar') {
+                    interruptStack.push({ note: intNote, context: 'current', timestamp: Date.now() });
+                    localStorage.setItem('interrupt_stack', JSON.stringify(interruptStack));
+                    return { status: "CONTEXT_PAUSED", stackSize: interruptStack.length, message: "Pausing current thread, Sir. Go ahead with your interruption." };
+                }
+
+                if (intAction === 'return' || intAction === 'pop') {
+                    const popped = interruptStack.pop();
+                    localStorage.setItem('interrupt_stack', JSON.stringify(interruptStack));
+                    return { status: "CONTEXT_RESTORED", restored: popped, message: "Returning to where we left off, Sir." };
+                }
+
+                return { status: "INTERRUPT_ACTION", action: intAction };
+            }
+
+            if (name === 'dev_commands') {
+                const { command: devCmd, args: devArgs, watch } = args;
+                addLog('SYSTEM', `💻 DEV: ${devCmd}`);
+                const cmdDescriptions: Record<string, string> = {
+                    test: "Running tests",
+                    build: "Building project",
+                    serve: "Starting development server",
+                    deploy: "Initiating deployment",
+                    logs: "Fetching logs",
+                    lint: "Running linter",
+                    format: "Formatting code",
+                    install: "Installing dependencies"
+                };
+                return {
+                    status: "DEV_COMMAND_INITIATED",
+                    command: devCmd,
+                    args: devArgs,
+                    watch: watch || false,
+                    message: `${cmdDescriptions[devCmd as string] || devCmd}, Sir.${watch ? ' Watch mode enabled.' : ''}`
+                };
+            }
+
+            if (name === 'git_voice') {
+                const { command: gitCmd, message: gitMsg, branch } = args;
+                addLog('SYSTEM', `🔀 GIT: ${gitCmd}`);
+                const gitResponses: Record<string, string> = {
+                    status: "Checking git status.",
+                    commit: `Committing changes${gitMsg ? `: "${gitMsg}"` : ''}.`,
+                    push: `Pushing to ${branch || 'remote'}.`,
+                    pull: "Pulling latest changes.",
+                    branch: `Branch operation${branch ? ` on ${branch}` : ''}.`,
+                    checkout: `Checking out ${branch || 'branch'}.`,
+                    diff: "Showing differences.",
+                    log: "Retrieving commit history.",
+                    stash: "Stashing changes."
+                };
+                return {
+                    status: "GIT_COMMAND_INITIATED",
+                    command: gitCmd,
+                    message: gitResponses[gitCmd as string] || `Git ${gitCmd}.`
+                };
+            }
+
+            if (name === 'build_run') {
+                const { action: buildAction, environment } = args;
+                addLog('SYSTEM', `🔨 BUILD: ${buildAction} (${environment || 'development'})`);
+                return {
+                    status: "BUILD_ACTION_INITIATED",
+                    action: buildAction,
+                    environment: environment || 'development',
+                    message: buildAction === 'build' ? `Building for ${environment || 'development'}, Sir.` :
+                             buildAction === 'run' ? `Starting ${environment || 'development'} server.` :
+                             buildAction === 'build_run' ? `Building and running, Sir.` :
+                             buildAction === 'stop' ? `Stopping server.` :
+                             `Restarting ${environment || 'development'} server.`
+                };
+            }
+
+            if (name === 'smart_context') {
+                const { depth, focus: ctxFocus } = args;
+                addLog('SYSTEM', `🧠 SMART CONTEXT: ${depth || 'surface'}`);
+                const state = useStore.getState();
+                return {
+                    status: "CONTEXT_ANALYZED",
+                    depth: depth || 'surface',
+                    focus: ctxFocus,
+                    currentView: {
+                        mode: state.mode,
+                        voiceActive: voice.isActive
+                    },
+                    instruction: `Analyze current screen/context at ${depth || 'surface'} level. ${ctxFocus ? `Focus on: ${ctxFocus}.` : ''} Provide intelligent insights.`
+                };
+            }
+
+            if (name === 'pinned_items') {
+                const { action: pinAction, item, category: pinCategory } = args;
+                const pinned = JSON.parse(localStorage.getItem('pinned_items') || '[]');
+
+                if (pinAction === 'pin') {
+                    pinned.push({ item, category: pinCategory, pinned: Date.now() });
+                    localStorage.setItem('pinned_items', JSON.stringify(pinned));
+                    addLog('SYSTEM', `📌 PINNED: ${item}`);
+                    return { status: "ITEM_PINNED", item, message: "Pinned for quick access, Sir." };
+                }
+
+                if (pinAction === 'list') {
+                    return { status: "PINNED_LISTED", items: pinned, count: pinned.length };
+                }
+
+                if (pinAction === 'unpin') {
+                    const newPinned = pinned.filter((p: any) => p.item !== item);
+                    localStorage.setItem('pinned_items', JSON.stringify(newPinned));
+                    return { status: "ITEM_UNPINNED", item, message: "Unpinned." };
+                }
+
+                return { status: "PIN_ACTION", action: pinAction };
+            }
+
+            if (name === 'daily_brief') {
+                const { type: briefType, include } = args;
+                addLog('SYSTEM', `☀️ DAILY BRIEF: ${briefType || 'morning'}`);
+                const state = useStore.getState();
+                const goals = JSON.parse(localStorage.getItem('tracked_goals') || '[]');
+                const quickNotes = JSON.parse(localStorage.getItem('quick_notes') || '[]');
+                return {
+                    status: "BRIEF_READY",
+                    type: briefType || 'morning',
+                    include: include || ['tasks', 'goals', 'calendar'],
+                    data: {
+                        currentMode: state.mode,
+                        activeGoals: goals.filter((g: any) => g.progress < 100).length,
+                        pendingNotes: quickNotes.length,
+                        timestamp: new Date().toLocaleString()
+                    },
+                    instruction: `Generate a ${briefType || 'morning'} brief. Include: ${(include || ['tasks', 'goals', 'reminders']).join(', ')}. Be concise but comprehensive.`
+                };
+            }
+
             return { error: "Unknown executive protocol." };
         };
 
