@@ -662,6 +662,106 @@ describe('Adaptive Consensus Engine', () => {
         });
     });
 
+    describe('Historical Thresholds', () => {
+        it('should use historical thresholds when learning is enabled', async () => {
+            const { convergenceMemory } = await import('../convergenceMemory');
+
+            // Mock historical thresholds
+            vi.mocked(convergenceMemory.getOptimalThresholds).mockResolvedValue({
+                gap: 4,
+                rounds: 12
+            });
+
+            let callCount = 0;
+            vi.mocked(retryGeminiRequest).mockImplementation(async () => {
+                callCount++;
+                return {
+                    text: JSON.stringify({
+                        output: callCount <= 4 ? 'Winner' : 'Other',
+                        confidence: 0.9,
+                        reasoning: 'Test'
+                    })
+                };
+            });
+
+            const task = createTestTask();
+
+            const result = await adaptiveConsensusEngine(
+                task,
+                () => {},
+                {
+                    enableAuction: false,
+                    enableDQScoring: false,
+                    enableLearning: true,
+                    adaptiveThresholds: true
+                }
+            );
+
+            expect(convergenceMemory.getOptimalThresholds).toHaveBeenCalled();
+            expect(result.output).toBeDefined();
+        });
+    });
+
+    describe('Single Answer Convergence', () => {
+        it('should handle convergence with only one unique answer (no runner up)', async () => {
+            // All responses return the same answer - no runner up
+            vi.mocked(retryGeminiRequest).mockResolvedValue({
+                text: JSON.stringify({
+                    output: 'Only answer',
+                    confidence: 0.9,
+                    reasoning: 'Test'
+                })
+            });
+
+            const task = createTestTask();
+
+            const result = await adaptiveConsensusEngine(
+                task,
+                () => {},
+                { enableAuction: false, enableDQScoring: false }
+            );
+
+            expect(result.output).toBe('Only answer');
+            expect(result.voteLedger.runnerUp).toBe(''); // No runner up
+            expect(result.voteLedger.runnerUpCount).toBe(0);
+        });
+    });
+
+    describe('Agent Context', () => {
+        it('should handle missing agent gracefully', async () => {
+            // Mock auction to return non-existent agent
+            vi.mocked(runAuction).mockResolvedValue({
+                selectedAgents: ['non-existent-agent', 'agent-1'],
+                allBids: [],
+                auctionDuration: 50,
+                fastTracked: false
+            });
+
+            let callCount = 0;
+            vi.mocked(retryGeminiRequest).mockImplementation(async () => {
+                callCount++;
+                return {
+                    text: JSON.stringify({
+                        output: callCount <= 3 ? 'Winner' : 'Other',
+                        confidence: 0.8,
+                        reasoning: 'Test'
+                    })
+                };
+            });
+
+            const task = createTestTask();
+
+            const result = await adaptiveConsensusEngine(
+                task,
+                () => {},
+                { enableAuction: true, enableDQScoring: false }
+            );
+
+            // Should complete without throwing
+            expect(result.output).toBeDefined();
+        });
+    });
+
     describe('Hop Grouping', () => {
         it('should use hop grouping winner for expert tasks', async () => {
             const { performHopGrouping } = await import('../hopGrouping');

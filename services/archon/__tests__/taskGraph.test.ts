@@ -171,6 +171,50 @@ describe('TaskGraph', () => {
                 expect(path[1].id).toBe(task2.id);
                 expect(path[2].id).toBe(task3.id);
             });
+
+            it('should pick longest path when task has multiple dependencies', () => {
+                // Create a diamond pattern where the critical path must pick the longer branch
+                // T1 (base) - length 1
+                // T2 depends on T1 - length 2
+                // T3 depends on T1 - length 2
+                // T4 depends on T3 - length 3 (longer branch)
+                // T5 depends on T2 AND T4 - should pick T4's branch
+                const t1 = createTask({ name: 'T1', description: 'Base task' });
+                const t2 = createTask({ name: 'T2', description: 'Short branch', dependsOn: [t1.id] });
+                const t3 = createTask({ name: 'T3', description: 'Long branch start', dependsOn: [t1.id] });
+                const t4 = createTask({ name: 'T4', description: 'Long branch end', dependsOn: [t3.id] });
+                const t5 = createTask({ name: 'T5', description: 'Join node', dependsOn: [t2.id, t4.id] });
+
+                graph.addTask(t1);
+                graph.addTask(t2);
+                graph.addTask(t3);
+                graph.addTask(t4);
+                graph.addTask(t5);
+
+                const path = graph.getCriticalPath();
+                // Should be T1 -> T3 -> T4 -> T5 (length 4, the longer path)
+                expect(path).toHaveLength(4);
+                expect(path[0].id).toBe(t1.id);
+                expect(path[1].id).toBe(t3.id);
+                expect(path[2].id).toBe(t4.id);
+                expect(path[3].id).toBe(t5.id);
+            });
+
+            it('should handle task with dependency that does not exist in graph', () => {
+                const t1 = createTask({ name: 'T1', description: 'First' });
+                const t2 = createTask({
+                    name: 'T2',
+                    description: 'Has missing dep',
+                    dependsOn: [t1.id, 'non-existent-task']
+                });
+
+                graph.addTask(t1);
+                graph.addTask(t2);
+
+                // Should not throw, should find path through valid dependencies
+                const path = graph.getCriticalPath();
+                expect(path.length).toBeGreaterThanOrEqual(1);
+            });
         });
 
         describe('isComplete', () => {

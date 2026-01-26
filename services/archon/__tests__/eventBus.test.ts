@@ -29,6 +29,29 @@ describe('ArchonEventBus', () => {
         bus = new ArchonEventBus({ maxHistorySize: 10, debugMode: false });
     });
 
+    describe('constructor', () => {
+        it('should use default maxHistorySize when not specified', async () => {
+            const defaultBus = new ArchonEventBus({ debugMode: false });
+            // Emit 150 events (default max is 100)
+            for (let i = 0; i < 150; i++) {
+                await defaultBus.emit('goal:received', { goalId: `g${i}` });
+            }
+            const history = defaultBus.getHistory();
+            expect(history).toHaveLength(100);
+            defaultBus.removeAllHandlers();
+            defaultBus.clearHistory();
+        });
+
+        it('should use default debugMode when not specified', async () => {
+            const defaultBus = new ArchonEventBus({ maxHistorySize: 10 });
+            // Should not throw and not log debug messages
+            await defaultBus.emit('goal:received', { goalId: 'g1' });
+            expect(mockArchonLog).not.toHaveBeenCalled();
+            defaultBus.removeAllHandlers();
+            defaultBus.clearHistory();
+        });
+    });
+
     afterEach(() => {
         bus.removeAllHandlers();
         bus.clearHistory();
@@ -245,6 +268,12 @@ describe('ArchonEventBus', () => {
             expect(bus.getSubscriberCount('goal:completed')).toBe(1);
         });
 
+        it('should return only wildcard count for event with no handlers', () => {
+            bus.onAll(vi.fn());
+            // decision:made has no handlers, only wildcard
+            expect(bus.getSubscriberCount('decision:made')).toBe(1);
+        });
+
         it('should include wildcard handlers in count', () => {
             bus.on('goal:received', vi.fn());
             bus.onAll(vi.fn());
@@ -349,6 +378,80 @@ describe('ArchonEventBus', () => {
 
             const event = handler.mock.calls[0][0] as ArchonEvent;
             expect(event.source).toBe('archon');
+        });
+    });
+
+    describe('epoch sync summary', () => {
+        it('should use type as fallback when payload has no description or goalId', async () => {
+            const mockUplinkData = vi.fn();
+            mockGetState.mockImplementation(() => ({
+                uplinkData: mockUplinkData,
+            }));
+
+            // decision:made is in EPOCH_TRIGGERING_EVENTS
+            // payload has neither description nor goalId
+            await bus.emit('decision:made', { decisionId: 'd1', type: 'model_selection' });
+
+            expect(mockUplinkData).toHaveBeenCalledWith('archon_event', expect.objectContaining({
+                type: 'decision:made',
+                summary: 'decision:made' // Falls back to type
+            }));
+
+            mockGetState.mockImplementation(() => ({
+                uplinkData: vi.fn(),
+            }));
+        });
+
+        it('should use description when available', async () => {
+            const mockUplinkData = vi.fn();
+            mockGetState.mockImplementation(() => ({
+                uplinkData: mockUplinkData,
+            }));
+
+            await bus.emit('goal:received', { goalId: 'g1', goalText: 'test', description: 'Custom desc' });
+
+            expect(mockUplinkData).toHaveBeenCalledWith('archon_event', expect.objectContaining({
+                summary: 'Custom desc'
+            }));
+
+            mockGetState.mockImplementation(() => ({
+                uplinkData: vi.fn(),
+            }));
+        });
+
+        it('should stringify non-object payload', async () => {
+            const mockUplinkData = vi.fn();
+            mockGetState.mockImplementation(() => ({
+                uplinkData: mockUplinkData,
+            }));
+
+            // pattern:learned is in EPOCH_TRIGGERING_EVENTS
+            await bus.emit('pattern:learned', 'string-payload' as any);
+
+            expect(mockUplinkData).toHaveBeenCalledWith('archon_event', expect.objectContaining({
+                summary: 'string-payload'
+            }));
+
+            mockGetState.mockImplementation(() => ({
+                uplinkData: vi.fn(),
+            }));
+        });
+
+        it('should handle null payload', async () => {
+            const mockUplinkData = vi.fn();
+            mockGetState.mockImplementation(() => ({
+                uplinkData: mockUplinkData,
+            }));
+
+            await bus.emit('pattern:learned', null as any);
+
+            expect(mockUplinkData).toHaveBeenCalledWith('archon_event', expect.objectContaining({
+                summary: 'null'
+            }));
+
+            mockGetState.mockImplementation(() => ({
+                uplinkData: vi.fn(),
+            }));
         });
     });
 });

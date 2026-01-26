@@ -108,6 +108,15 @@ describe('Archon Utils', () => {
             // 35 words > 20, so score = 0.1 (no indicators to add/subtract)
             expect(mediumLengthGoal).toBe(0.1);
         });
+
+        it('should add extra complexity for very long goals (>50 words)', () => {
+            // Goal with 60+ words - triggers wordCount > 50 branch
+            const veryLongGoal = estimateGoalComplexity(
+                'Please work on the complete system transformation project where we need to update every single component in the entire codebase and then make sure that all the modules are properly connected to each other and that the data flows correctly between all the different parts of the application while also ensuring that the user interface remains responsive and accessible to all users across different platforms and devices'
+            );
+            // >50 words should add 0.2 to score
+            expect(veryLongGoal).toBeGreaterThanOrEqual(0.2);
+        });
     });
 
     describe('inferSubsystems', () => {
