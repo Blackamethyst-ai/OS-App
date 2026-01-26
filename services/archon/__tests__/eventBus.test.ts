@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { ArchonEventBus } from '../eventBus';
 import type { ArchonEvent, ArchonEventType } from '../types';
+import { archonLog } from '../utils';
+import { useSystemMind } from '../../../stores/useSystemMind';
 
 // Mock dependencies
 vi.mock('../utils', () => ({
@@ -15,6 +17,10 @@ vi.mock('../../../stores/useSystemMind', () => ({
         })),
     },
 }));
+
+// Get typed mocks
+const mockArchonLog = vi.mocked(archonLog);
+const mockGetState = vi.mocked(useSystemMind.getState);
 
 describe('ArchonEventBus', () => {
     let bus: ArchonEventBus;
@@ -270,6 +276,55 @@ describe('ArchonEventBus', () => {
 
             expect(errorHandler).toHaveBeenCalled();
             expect(successHandler).toHaveBeenCalled();
+        });
+    });
+
+    describe('debug mode', () => {
+        let debugBus: ArchonEventBus;
+
+        beforeEach(() => {
+            mockArchonLog.mockClear();
+            debugBus = new ArchonEventBus({ maxHistorySize: 10, debugMode: true });
+        });
+
+        afterEach(() => {
+            debugBus.removeAllHandlers();
+            debugBus.clearHistory();
+        });
+
+        it('should log when subscribing with on()', () => {
+            debugBus.on('goal:received', vi.fn());
+            expect(mockArchonLog).toHaveBeenCalledWith('debug', 'Subscribed to goal:received');
+        });
+
+        it('should log when subscribing with onAll()', () => {
+            debugBus.onAll(vi.fn());
+            expect(mockArchonLog).toHaveBeenCalledWith('debug', 'Subscribed to all events');
+        });
+
+        it('should log when emitting events', async () => {
+            await debugBus.emit('goal:received', { goalId: 'g1' });
+            expect(mockArchonLog).toHaveBeenCalledWith('debug', 'Emitting goal:received', { goalId: 'g1' });
+        });
+
+        it('should log epoch sync error in debug mode', async () => {
+            mockGetState.mockImplementation(() => {
+                throw new Error('SystemMind not ready');
+            });
+
+            // goal:completed is in EPOCH_TRIGGERING_EVENTS
+            await debugBus.emit('goal:completed', { goalId: 'g1', dqScore: 0.8 });
+
+            expect(mockArchonLog).toHaveBeenCalledWith(
+                'debug',
+                'Could not sync epoch for goal:completed',
+                expect.any(Error)
+            );
+
+            // Reset mock for other tests
+            mockGetState.mockImplementation(() => ({
+                uplinkData: vi.fn(),
+            }));
         });
     });
 
