@@ -1,14 +1,20 @@
 
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Eye, Copy, Search, ArrowUpRight, Activity, 
+import {
+    Eye, Copy, Search, ArrowUpRight, Activity,
     Terminal, Hash, ShieldCheck, Zap, X
 } from 'lucide-react';
 import { useAppStore } from '../store';
 import { audio } from '../services/audioService';
 import { AppMode } from '../types';
 import { cn } from '../utils/cn';
+
+/** Get currently selected text from the window */
+const getSelectedText = (): string => {
+    const selection = window.getSelection();
+    return selection?.toString().trim() || '';
+};
 
 interface HubItemProps {
     icon: any;
@@ -33,8 +39,53 @@ const HubItem = ({ icon: Icon, label, onClick, color }: HubItemProps) => (
 const SynapticContextHub: React.FC = () => {
     const { contextMenu, actions } = useAppStore();
     const { isOpen, x, y } = contextMenu;
-    const { closeContextMenu, toggleTerminal, setDiagnosticsOpen, setMode } = actions;
+    const { closeContextMenu, toggleTerminal, setDiagnosticsOpen, setMode, openHoloProjector, toggleCommandPalette, addLog } = actions;
     const menuRef = useRef<HTMLDivElement>(null);
+
+    /** Holo Project: Analyze selected text in HoloProjector */
+    const handleHoloProject = () => {
+        const text = getSelectedText();
+        if (text) {
+            openHoloProjector({
+                id: crypto.randomUUID(),
+                name: 'Context Selection',
+                type: 'TEXT',
+                data: new Blob([text], { type: 'text/plain' }),
+                content: text,
+                analysis: null,
+                timestamp: Date.now(),
+                tags: ['context-hub', 'selection']
+            });
+            addLog('SYSTEM', `HOLO_PROJECT: Projecting ${text.length} chars for analysis`);
+        } else {
+            addLog('WARN', 'HOLO_PROJECT: No text selected');
+        }
+        closeContextMenu();
+    };
+
+    /** Buffer Copy: Copy selected text to clipboard */
+    const handleBufferCopy = async () => {
+        const text = getSelectedText();
+        if (text) {
+            await navigator.clipboard.writeText(text);
+            addLog('SYSTEM', `BUFFER_COPY: ${text.length} chars copied to clipboard`);
+            audio.playClick();
+        } else {
+            addLog('WARN', 'BUFFER_COPY: No text selected');
+        }
+        closeContextMenu();
+    };
+
+    /** Grounding Search: Open command palette with search mode */
+    const handleGroundingSearch = () => {
+        const text = getSelectedText();
+        // Open command palette - user can refine the search
+        toggleCommandPalette(true);
+        if (text) {
+            addLog('SYSTEM', `GROUNDING_SEARCH: Initiated for "${text.slice(0, 50)}..."`);
+        }
+        closeContextMenu();
+    };
 
     useEffect(() => {
         if (!isOpen) return;
@@ -87,20 +138,20 @@ const SynapticContextHub: React.FC = () => {
 
                     {/* Primary Actions */}
                     <div className="flex flex-col gap-0.5 py-1">
-                        <HubItem 
-                            icon={Eye} 
-                            label="Holo Project" 
-                            onClick={() => { closeContextMenu(); }} 
+                        <HubItem
+                            icon={Eye}
+                            label="Holo Project"
+                            onClick={handleHoloProject}
                         />
-                        <HubItem 
-                            icon={Copy} 
-                            label="Buffer Copy" 
-                            onClick={() => { audio.playClick(); closeContextMenu(); }} 
+                        <HubItem
+                            icon={Copy}
+                            label="Buffer Copy"
+                            onClick={handleBufferCopy}
                         />
-                        <HubItem 
-                            icon={Search} 
-                            label="Grounding Search" 
-                            onClick={() => { closeContextMenu(); }} 
+                        <HubItem
+                            icon={Search}
+                            label="Grounding Search"
+                            onClick={handleGroundingSearch}
                         />
                     </div>
 
