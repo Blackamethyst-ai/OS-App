@@ -98,6 +98,16 @@ describe('Archon Utils', () => {
             const withoutSimple = estimateGoalComplexity('Research and analyze with substantial scope');
             expect(withSimple).toBeLessThan(withoutSimple);
         });
+
+        it('should increase complexity for medium-length goals (21-50 words)', () => {
+            // Goal with 25+ words - no complexity or simplicity indicators
+            // Avoid: one, single, just, simple, quick, small, minor, fix typo, rename, update comment
+            const mediumLengthGoal = estimateGoalComplexity(
+                'please update the user interface now to show the new dashboard widgets that display the current status of each module in the main section and make sure everything is properly aligned with the grid layout'
+            );
+            // 35 words > 20, so score = 0.1 (no indicators to add/subtract)
+            expect(mediumLengthGoal).toBe(0.1);
+        });
     });
 
     describe('inferSubsystems', () => {
