@@ -21,6 +21,7 @@ import type { CPBPath } from '../../../services/cognitivePrecisionBridge/types';
 import { SovereignMemory } from '../../../services/memory/MemoryStore';
 import { neuralVault } from '../../../services/persistenceService';
 import { faceDetectionService } from '../../../services/faceDetectionService';
+import { dreamProtocol, DreamInsight } from '../../../services/dreamProtocol';
 
 // Initialize memory service singleton
 const sovereignMemory = new SovereignMemory();
@@ -900,27 +901,148 @@ const VoiceManager: React.FC = () => {
             // DREAM PROTOCOL - Autonomous background intelligence
             // =================================================================
             if (name === 'start_dreaming') {
+                const { topic } = args;
                 addLog('SYSTEM', `DREAM: Initiating autonomous dream mode...`);
-                return { status: "DREAM_AVAILABLE", message: "Dream protocol standing by, Sir. I'll begin autonomous research when you're idle." };
+
+                // Get current dream status
+                const dreamStatus = dreamProtocol.getStatus();
+
+                if (dreamStatus.isDreaming) {
+                    // Already dreaming - queue the topic if provided
+                    if (topic) {
+                        dreamProtocol.queueQuery(topic as string);
+                        return {
+                            status: "TOPIC_QUEUED",
+                            currentSession: dreamStatus.currentSession,
+                            pendingQueries: dreamStatus.pendingQueries + 1,
+                            message: `Topic "${topic}" queued for autonomous analysis, Sir. Dream protocol already active.`
+                        };
+                    }
+                    return {
+                        status: "ALREADY_DREAMING",
+                        currentInsights: dreamStatus.currentSession?.insights.length || 0,
+                        message: "Dream protocol is already active, Sir. I'm generating insights in the background."
+                    };
+                }
+
+                // Queue topic if provided, then trigger dream
+                if (topic) {
+                    dreamProtocol.queueQuery(topic as string);
+                }
+                dreamProtocol.triggerDream();
+
+                return {
+                    status: "DREAM_INITIATED",
+                    topicQueued: topic || null,
+                    message: `Dream protocol activated, Sir.${topic ? ` I'll focus my autonomous research on "${topic}".` : ' Beginning pattern analysis and predictive processing.'}`
+                };
             }
 
             if (name === 'get_dream_insights') {
-                addLog('SYSTEM', `DREAM: Retrieving insights...`);
-                return { status: "NO_INSIGHTS", message: "No dream insights available yet, Sir. The dream protocol activates during idle periods." };
+                addLog('SYSTEM', `DREAM: Retrieving insights from dream protocol...`);
+                const dreamStatus = dreamProtocol.getStatus();
+                const pastSessions = dreamProtocol.getPastSessions();
+
+                // Current session insights
+                const currentInsights = dreamStatus.currentSession?.insights || [];
+
+                // Gather all insights from past sessions
+                const allPastInsights: DreamInsight[] = pastSessions
+                    .flatMap(session => session.insights)
+                    .sort((a, b) => b.timestamp - a.timestamp)
+                    .slice(0, 10);
+
+                const totalInsights = currentInsights.length + allPastInsights.length;
+
+                if (totalInsights === 0) {
+                    return {
+                        status: "NO_INSIGHTS",
+                        isDreaming: dreamStatus.isDreaming,
+                        idleTimeSeconds: Math.round(dreamStatus.idleTime / 1000),
+                        message: "No dream insights available yet, Sir. The dream protocol activates automatically after 5 minutes of idle time, or you can trigger it manually."
+                    };
+                }
+
+                return {
+                    status: "INSIGHTS_AVAILABLE",
+                    isDreaming: dreamStatus.isDreaming,
+                    currentSessionInsights: currentInsights.map(i => ({
+                        type: i.type,
+                        title: i.title,
+                        content: i.content.slice(0, 200),
+                        confidence: Math.round(i.confidence * 100),
+                        actionable: i.actionable,
+                        suggestedAction: i.suggestedAction
+                    })),
+                    pastInsightsCount: allPastInsights.length,
+                    recentPastInsight: allPastInsights[0] ? {
+                        type: allPastInsights[0].type,
+                        title: allPastInsights[0].title,
+                        timestamp: new Date(allPastInsights[0].timestamp).toLocaleString()
+                    } : null,
+                    instruction: "Summarize the dream insights naturally. Highlight actionable ones."
+                };
             }
 
             if (name === 'morning_briefing') {
-                addLog('SYSTEM', `BRIEFING: Compiling morning briefing...`);
+                addLog('SYSTEM', `BRIEFING: Compiling comprehensive morning briefing...`);
                 const state = useAppStore.getState();
+                const dreamStatus = dreamProtocol.getStatus();
+                const pastSessions = dreamProtocol.getPastSessions();
+                const lastSession = pastSessions[pastSessions.length - 1];
+
+                // Get task summary
+                const tasks = state.research.tasks || [];
+                const pendingTasks = tasks.filter((t: any) => t.status === 'TODO' || t.status === 'IN_PROGRESS');
+                const criticalTasks = pendingTasks.filter((t: any) => t.priority === 'CRITICAL' || t.priority === 'HIGH');
+
+                // Get biometric status
+                const biometricReady = faceDetectionService.isReady();
+
+                // Get overnight insights
+                const overnightInsights = lastSession?.insights || [];
+                const actionableInsights = overnightInsights.filter(i => i.actionable);
+
+                // Determine time of day greeting
+                const hour = new Date().getHours();
+                let greeting = "Good morning";
+                if (hour >= 12 && hour < 17) greeting = "Good afternoon";
+                else if (hour >= 17 && hour < 21) greeting = "Good evening";
+                else if (hour >= 21 || hour < 5) greeting = "Working late I see";
+
                 return {
                     status: "BRIEFING_READY",
                     briefing: {
-                        greeting: `Good morning, Sir.`,
-                        systemStatus: state.mode,
-                        pendingTasks: "No critical tasks pending.",
-                        recommendations: ["Review overnight insights", "Check system health"]
+                        greeting: `${greeting}, Sir.`,
+                        timestamp: new Date().toLocaleString(),
+                        systemStatus: {
+                            mode: state.mode,
+                            biometricsReady: biometricReady,
+                            voiceActive: state.voice.isActive
+                        },
+                        taskSummary: {
+                            total: tasks.length,
+                            pending: pendingTasks.length,
+                            critical: criticalTasks.length,
+                            topCritical: criticalTasks[0]?.title || null
+                        },
+                        overnightActivity: {
+                            dreamSessionOccurred: !!lastSession,
+                            insightsGenerated: overnightInsights.length,
+                            actionableInsights: actionableInsights.length,
+                            topInsight: actionableInsights[0] ? {
+                                type: actionableInsights[0].type,
+                                title: actionableInsights[0].title,
+                                action: actionableInsights[0].suggestedAction
+                            } : null
+                        },
+                        recommendations: [
+                            criticalTasks.length > 0 ? `Address ${criticalTasks.length} critical task(s)` : "No critical tasks pending",
+                            actionableInsights.length > 0 ? `Review ${actionableInsights.length} actionable insight(s) from overnight` : "Dream protocol ready for tonight",
+                            !biometricReady ? "Consider enabling biometrics for stress monitoring" : "Biometrics online"
+                        ]
                     },
-                    instruction: "Deliver this briefing naturally and conversationally."
+                    instruction: "Deliver this briefing naturally and conversationally, like a personal assistant. Prioritize critical items."
                 };
             }
 
