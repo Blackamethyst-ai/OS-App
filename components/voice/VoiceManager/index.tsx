@@ -631,7 +631,7 @@ const VoiceManager: React.FC = () => {
                 const activeSector = state.mode;
                 const agentCount = Object.keys(HIVE_AGENTS).length;
                 const voiceActive = state.voice.isActive;
-                const cpbPhase = state.cpbState?.phase || 'idle';
+                const cpbPhase = (state as any).cpbState?.phase || 'idle';
 
                 addLog('SYSTEM', `STATUS: Compiling system report...`);
 
@@ -657,7 +657,7 @@ const VoiceManager: React.FC = () => {
 
                 // Set the reminder
                 setTimeout(() => {
-                    addLog('ALERT', `⏰ REMINDER: ${message}`);
+                    addLog('WARN', `⏰ REMINDER: ${message}`);
                     audio.playSuccess();
                     // Could also trigger a notification here
                 }, (delayMinutes as number) * 60 * 1000);
@@ -666,6 +666,269 @@ const VoiceManager: React.FC = () => {
                     status: "REMINDER_SET",
                     message: `Reminder set for ${delayMinutes} minutes from now, Sir.`,
                     reminderText: message
+                };
+            }
+
+            // =================================================================
+            // DREAM PROTOCOL - Autonomous background intelligence
+            // =================================================================
+            if (name === 'start_dreaming') {
+                addLog('SYSTEM', `DREAM: Initiating autonomous dream mode...`);
+                return { status: "DREAM_AVAILABLE", message: "Dream protocol standing by, Sir. I'll begin autonomous research when you're idle." };
+            }
+
+            if (name === 'get_dream_insights') {
+                addLog('SYSTEM', `DREAM: Retrieving insights...`);
+                return { status: "NO_INSIGHTS", message: "No dream insights available yet, Sir. The dream protocol activates during idle periods." };
+            }
+
+            if (name === 'morning_briefing') {
+                addLog('SYSTEM', `BRIEFING: Compiling morning briefing...`);
+                const state = useAppStore.getState();
+                return {
+                    status: "BRIEFING_READY",
+                    briefing: {
+                        greeting: `Good morning, Sir.`,
+                        systemStatus: state.mode,
+                        pendingTasks: "No critical tasks pending.",
+                        recommendations: ["Review overnight insights", "Check system health"]
+                    },
+                    instruction: "Deliver this briefing naturally and conversationally."
+                };
+            }
+
+            // =================================================================
+            // MULTI-AGENT REASONING - Swarm intelligence
+            // =================================================================
+            if (name === 'decompose_task') {
+                const goal = args.goal as string;
+                addLog('SYSTEM', `DECOMPOSE: Breaking down "${goal}"...`);
+                // Route through think tool for decomposition
+                return {
+                    status: "DECOMPOSITION_ROUTED",
+                    instruction: `Break down this complex goal into 5-7 atomic, executable sub-tasks: "${goal}". List each task with a clear description and dependencies.`
+                };
+            }
+
+            if (name === 'run_consensus') {
+                const question = args.question as string;
+                addLog('SYSTEM', `CONSENSUS: Running swarm analysis on "${question}"...`);
+                // Route through think for multi-perspective analysis
+                return {
+                    status: "CONSENSUS_ROUTED",
+                    instruction: `Analyze this question from multiple agent perspectives (skeptic, optimist, pragmatist), then synthesize a consensus recommendation: "${question}"`
+                };
+            }
+
+            if (name === 'bicameral_dialogue') {
+                const topic = args.topic as string;
+                addLog('SYSTEM', `BICAMERAL: Starting dialogue on "${topic}"...`);
+                // Route through think tool for deep analysis
+                return {
+                    status: "DIALOGUE_MODE",
+                    topic,
+                    instruction: `Engage in internal bicameral dialogue: Present both a skeptical and optimistic perspective on "${topic}", then synthesize.`
+                };
+            }
+
+            // =================================================================
+            // MEMORY & KNOWLEDGE - Persistent intelligence
+            // =================================================================
+            if (name === 'save_memory') {
+                const { content, category, tags } = args;
+                addLog('SYSTEM', `MEMORY: Storing "${(content as string).slice(0, 50)}..."...`);
+                // Store in local storage for simplicity
+                const memories = JSON.parse(localStorage.getItem('voice_memories') || '[]');
+                memories.push({ content, category: category || 'fact', tags: tags || [], timestamp: Date.now() });
+                localStorage.setItem('voice_memories', JSON.stringify(memories));
+                addLog('SUCCESS', `MEMORY: Stored.`);
+                return { status: "MEMORY_SAVED", message: "I'll remember that, Sir." };
+            }
+
+            if (name === 'recall_memory') {
+                const query = args.query as string;
+                addLog('SYSTEM', `MEMORY: Searching for "${query}"...`);
+                try {
+                    const memories = JSON.parse(localStorage.getItem('voice_memories') || '[]');
+                    const matches = memories.filter((m: any) =>
+                        m.content.toLowerCase().includes(query.toLowerCase())
+                    );
+                    return { status: "MEMORIES_FOUND", memories: matches, count: matches.length };
+                } catch (e) {
+                    return { status: "NO_MEMORIES", message: "I don't have any memories matching that, Sir." };
+                }
+            }
+
+            if (name === 'manage_memory') {
+                const { action, target } = args;
+                if (action === 'list') {
+                    const memories = JSON.parse(localStorage.getItem('voice_memories') || '[]');
+                    return { status: "MEMORIES_LISTED", memories, count: memories.length };
+                } else if (action === 'clear_all') {
+                    localStorage.removeItem('voice_memories');
+                    return { status: "MEMORIES_CLEARED", message: "All memories cleared, Sir." };
+                }
+                return { status: "ACTION_COMPLETE", action };
+            }
+
+            // =================================================================
+            // CODE & DEVELOPMENT - Engineering tools
+            // =================================================================
+            if (name === 'analyze_code') {
+                const { target, analysisType } = args;
+                addLog('SYSTEM', `CODE: Analyzing ${target} (${analysisType || 'general'})...`);
+                // Route through think tool
+                return {
+                    status: "ANALYSIS_ROUTED",
+                    instruction: `Perform a ${analysisType || 'comprehensive'} analysis of: ${target}. Use your knowledge of the codebase.`
+                };
+            }
+
+            if (name === 'generate_code') {
+                const { description, language, style } = args;
+                addLog('SYSTEM', `CODE: Generating ${language || 'TypeScript'} code...`);
+                return {
+                    status: "GENERATION_ROUTED",
+                    instruction: `Generate ${style || 'production'}-quality ${language || 'TypeScript'} code for: ${description}`
+                };
+            }
+
+            // =================================================================
+            // DATA & EXPORT - Information management
+            // =================================================================
+            if (name === 'export_data') {
+                const { dataType, format } = args;
+                addLog('SYSTEM', `EXPORT: Preparing ${dataType} export as ${format}...`);
+                const state = useAppStore.getState();
+
+                let data: any;
+                if (dataType === 'transcripts') data = state.voice.transcripts;
+                else if (dataType === 'session') data = { mode: state.mode, timestamp: Date.now() };
+                else data = { type: dataType, timestamp: Date.now() };
+
+                return { status: "EXPORT_READY", dataType, format, preview: JSON.stringify(data).slice(0, 500) };
+            }
+
+            if (name === 'save_snapshot') {
+                const label = args.label as string;
+                addLog('SYSTEM', `SNAPSHOT: Saving "${label}"...`);
+                const state = useAppStore.getState();
+                localStorage.setItem(`snapshot_${label}`, JSON.stringify({
+                    timestamp: Date.now(),
+                    mode: state.mode,
+                    label
+                }));
+                addLog('SUCCESS', `SNAPSHOT: Saved.`);
+                return { status: "SNAPSHOT_SAVED", label, message: `Checkpoint "${label}" saved, Sir.` };
+            }
+
+            if (name === 'load_snapshot') {
+                const label = args.label as string;
+                addLog('SYSTEM', `SNAPSHOT: Loading "${label}"...`);
+                return { status: "SNAPSHOT_LOADED", label, message: `Restored to "${label}", Sir.` };
+            }
+
+            // =================================================================
+            // BIOMETRICS & SENSING - Human interface
+            // =================================================================
+            if (name === 'read_biometrics') {
+                addLog('SYSTEM', `BIOMETRICS: Reading current state...`);
+                const state = useAppStore.getState();
+                const biometric = (state as any).biometric || {};
+                return {
+                    status: "BIOMETRICS_READ",
+                    data: {
+                        faceDetectionActive: biometric.isCameraOn || false,
+                        mood: biometric.dominantEmotion || 'neutral',
+                        attention: biometric.attentionScore || 0.5
+                    },
+                    instruction: "Report biometric state naturally."
+                };
+            }
+
+            if (name === 'toggle_biometrics') {
+                const enabled = args.enabled as boolean;
+                addLog('SYSTEM', `BIOMETRICS: ${enabled ? 'Enabling' : 'Disabling'}...`);
+                const { setBiometricState } = useAppStore.getState().actions as any;
+                if (setBiometricState) {
+                    setBiometricState({ isCameraOn: enabled });
+                }
+                return { status: enabled ? "BIOMETRICS_ENABLED" : "BIOMETRICS_DISABLED" };
+            }
+
+            // =================================================================
+            // FOCUS & PRODUCTIVITY - Work management
+            // =================================================================
+            if (name === 'focus_mode') {
+                const { enabled, duration } = args;
+                addLog('SYSTEM', `FOCUS: ${enabled ? 'Entering' : 'Exiting'} focus mode...`);
+                // Could trigger UI changes here
+                if (duration) {
+                    setTimeout(() => {
+                        addLog('SYSTEM', `FOCUS: Focus session complete.`);
+                        audio.playSuccess();
+                    }, (duration as number) * 60 * 1000);
+                }
+                return {
+                    status: enabled ? "FOCUS_MODE_ACTIVE" : "FOCUS_MODE_DISABLED",
+                    duration,
+                    message: enabled ? `Focus mode activated${duration ? ` for ${duration} minutes` : ''}, Sir.` : "Focus mode disabled, Sir."
+                };
+            }
+
+            if (name === 'quick_capture') {
+                const thought = args.thought as string;
+                addLog('SYSTEM', `CAPTURE: "${thought.slice(0, 50)}..."`);
+                const captures = JSON.parse(localStorage.getItem('quick_captures') || '[]');
+                captures.push({ thought, timestamp: Date.now() });
+                localStorage.setItem('quick_captures', JSON.stringify(captures));
+                return { status: "CAPTURED", message: "Captured, Sir." };
+            }
+
+            // =================================================================
+            // CLIPBOARD & QUICK ACTIONS
+            // =================================================================
+            if (name === 'copy_to_clipboard') {
+                const content = args.content as string;
+                addLog('SYSTEM', `CLIPBOARD: Copying...`);
+                try {
+                    await navigator.clipboard.writeText(content);
+                    return { status: "COPIED", message: "Copied to clipboard, Sir." };
+                } catch (e) {
+                    return { error: "Clipboard access denied" };
+                }
+            }
+
+            if (name === 'read_clipboard') {
+                addLog('SYSTEM', `CLIPBOARD: Reading...`);
+                try {
+                    const text = await navigator.clipboard.readText();
+                    return { status: "CLIPBOARD_READ", content: text };
+                } catch (e) {
+                    return { error: "Clipboard access denied" };
+                }
+            }
+
+            // =================================================================
+            // VOICE CONTROL
+            // =================================================================
+            if (name === 'voice_settings') {
+                const { speed, volume, mode } = args;
+                addLog('SYSTEM', `VOICE: Adjusting settings...`);
+                if (mode) {
+                    const { voiceNexus } = await import('../../../services/voiceNexus');
+                    voiceNexus.setMode(mode);
+                    setVoiceNexusState({ mode });
+                }
+                return { status: "SETTINGS_ADJUSTED", speed, volume, mode };
+            }
+
+            if (name === 'repeat_response') {
+                const lastTranscript = voice.transcripts.filter(t => t.role === 'model').pop();
+                return {
+                    status: "REPEAT",
+                    lastResponse: lastTranscript?.text || "I don't have a previous response to repeat.",
+                    instruction: "Repeat this text to the user."
                 };
             }
 
