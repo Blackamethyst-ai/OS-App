@@ -113,6 +113,25 @@ describe('ComplexityRouter', () => {
             const nonNavScore = calculateComplexityScore(nonNavSignals);
             expect(navScore).toBeLessThan(nonNavScore);
         });
+
+        it('should reduce score for simple questions without reasoning', () => {
+            const simpleQuestionSignals = {
+                tokenCount: 50,
+                hasCodeIndicators: false,
+                hasReasoningIndicators: false,
+                hasCreativeIndicators: false,
+                hasNavigationIndicators: false,
+                hasQuestionIndicators: true,
+                domainComplexity: 0.1,
+            };
+            const reasoningQuestionSignals = {
+                ...simpleQuestionSignals,
+                hasReasoningIndicators: true,
+            };
+            const simpleScore = calculateComplexityScore(simpleQuestionSignals);
+            const reasoningScore = calculateComplexityScore(reasoningQuestionSignals);
+            expect(simpleScore).toBeLessThan(reasoningScore);
+        });
     });
 
     describe('getComplexityTier', () => {
