@@ -316,6 +316,14 @@ describe('CPB Router', () => {
             expect(needsRLMPath('Query', mediumContext, { contextThreshold: 10000 })).toBe(true);
             expect(needsRLMPath('Query', mediumContext, { contextThreshold: 50000 })).toBe(false);
         });
+
+        it('should handle undefined context', () => {
+            // Only query length is used when context is undefined
+            expect(needsRLMPath('Short query')).toBe(false);
+            // Long query alone shouldn't trigger RLM
+            const longQuery = 'x'.repeat(50000);
+            expect(needsRLMPath(longQuery)).toBe(false);
+        });
     });
 
     describe('wouldBenefitFromConsensus', () => {
