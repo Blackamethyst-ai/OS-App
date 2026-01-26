@@ -24,20 +24,24 @@ vi.mock('../../../store', () => ({
     }
 }));
 
-// Mock gemini service
+// Mock gemini service - create mock functions for access in tests
+const mockGenerateStructuredWorkflow = vi.fn(async () => ({
+    title: 'Test Workflow',
+    coherenceScore: 85,
+    protocols: [],
+    taxonomy: { root: ['node1', 'node2'] }
+}));
+const mockSearchGroundedIntel = vi.fn(async () => 'Test search results');
+const mockConvergeStrategicLattices = vi.fn(async () => ({
+    nodes: [{ id: 'n1', label: 'Node 1' }],
+    coherence_index: 0.9,
+    unified_goal: 'Test goal'
+}));
+
 vi.mock('../../geminiService', () => ({
-    generateStructuredWorkflow: vi.fn(async () => ({
-        title: 'Test Workflow',
-        coherenceScore: 85,
-        protocols: [],
-        taxonomy: { root: ['node1', 'node2'] }
-    })),
-    searchGroundedIntel: vi.fn(async () => 'Test search results'),
-    convergeStrategicLattices: vi.fn(async () => ({
-        nodes: [{ id: 'n1', label: 'Node 1' }],
-        coherence_index: 0.9,
-        unified_goal: 'Test goal'
-    }))
+    generateStructuredWorkflow: (...args: any[]) => mockGenerateStructuredWorkflow(...args),
+    searchGroundedIntel: (...args: any[]) => mockSearchGroundedIntel(...args),
+    convergeStrategicLattices: (...args: any[]) => mockConvergeStrategicLattices(...args)
 }));
 
 describe('Sovereign Actions', () => {
@@ -164,6 +168,14 @@ describe('Sovereign Actions', () => {
             expect(result.success).toBe(true);
             expect(result.result).toBe('Test search results');
         });
+
+        it('should handle service errors gracefully', async () => {
+            mockSearchGroundedIntel.mockRejectedValueOnce(new Error('Service unavailable'));
+            const action = SOVEREIGN_ACTIONS.find(a => a.id === 'search_intel')!;
+            const result = await action.handler({ query: 'test search' });
+            expect(result.success).toBe(false);
+            expect(result.error).toBe('Service unavailable');
+        });
     });
 
     describe('propose_structural_change', () => {
@@ -201,6 +213,17 @@ describe('Sovereign Actions', () => {
             expect(result.success).toBe(true);
             expect(result.coherence).toBe(85);
         });
+
+        it('should handle workflow generation errors', async () => {
+            mockGenerateStructuredWorkflow.mockRejectedValueOnce(new Error('Generation failed'));
+            const action = SOVEREIGN_ACTIONS.find(a => a.id === 'architect_generate_process')!;
+            const result = await action.handler({
+                description: 'Create a data pipeline',
+                type: 'SYSTEM_ARCHITECTURE'
+            });
+            expect(result.success).toBe(false);
+            expect(result.error).toBe('Generation failed');
+        });
     });
 
     describe('converge_strategic_lattices', () => {
@@ -216,6 +239,14 @@ describe('Sovereign Actions', () => {
             const result = await action.handler({ targetGoal: 'Increase revenue' });
             expect(result.success).toBe(true);
             expect(result.goal).toBe('Test goal');
+        });
+
+        it('should handle convergence errors', async () => {
+            mockConvergeStrategicLattices.mockRejectedValueOnce(new Error('Convergence failed'));
+            const action = SOVEREIGN_ACTIONS.find(a => a.id === 'converge_strategic_lattices')!;
+            const result = await action.handler({ targetGoal: 'Increase revenue' });
+            expect(result.success).toBe(false);
+            expect(result.error).toBe('Convergence failed');
         });
     });
 });
