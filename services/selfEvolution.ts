@@ -20,6 +20,7 @@
 import { useAppStore } from '../store';
 import { generateText } from './geminiService';
 import { powerService } from './powerService';
+import { neuralVault } from './persistenceService';
 import {
     MigrationPlan,
     EvolutionStep,
@@ -317,36 +318,72 @@ Output ONLY the code, no markdown fences.`;
 
     /**
      * Approve an evolution and stage for real deployment
-     * The approved code is saved to localStorage where it can be 
-     * written to a real file by an external agent (Claude)
+     * Persisted to neuralVault for cross-session survival
      */
-    approveEvolution(id: string) {
+    async approveEvolution(id: string) {
         const evolution = this.hypotheses.find(h => h.id === id);
         if (evolution) {
             evolution.status = 'APPROVED';
 
-            // Stage for real deployment - save to localStorage
-            const pending = this.getPendingDeployments();
-            pending.push({
-                id: evolution.id,
-                fileName: evolution.fileName,
-                fileType: evolution.fileType,
-                code: evolution.generatedCode,
-                hypothesis: evolution.hypothesis,
-                approvedAt: Date.now()
-            });
-            localStorage.setItem('evolution_pending_deployments', JSON.stringify(pending));
+            try {
+                // Stage for real deployment - persist to neuralVault
+                const pending = await this.getPendingDeployments();
+                pending.push({
+                    id: evolution.id,
+                    fileName: evolution.fileName,
+                    fileType: evolution.fileType,
+                    code: evolution.generatedCode,
+                    hypothesis: evolution.hypothesis,
+                    approvedAt: Date.now()
+                });
+                await neuralVault.set('evolution_pending_deployments', pending);
 
-            useAppStore.getState().actions.addLog('SUCCESS',
-                `🧬 SELF-EVOLUTION: "${evolution.fileName}" approved and staged for deployment. Say "deploy evolutions" to write to filesystem.`
-            );
+                useAppStore.getState().actions.addLog('SUCCESS',
+                    `🧬 SELF-EVOLUTION: "${evolution.fileName}" approved and staged for deployment. Say "deploy evolutions" to write to filesystem.`
+                );
+            } catch (e) {
+                // Fallback to localStorage
+                const pending = this.getPendingDeploymentsSync();
+                pending.push({
+                    id: evolution.id,
+                    fileName: evolution.fileName,
+                    fileType: evolution.fileType,
+                    code: evolution.generatedCode,
+                    hypothesis: evolution.hypothesis,
+                    approvedAt: Date.now()
+                });
+                localStorage.setItem('evolution_pending_deployments', JSON.stringify(pending));
+                useAppStore.getState().actions.addLog('SUCCESS',
+                    `🧬 SELF-EVOLUTION: "${evolution.fileName}" approved (localStorage fallback).`
+                );
+            }
         }
     }
 
     /**
      * Get pending deployments (approved but not yet written to filesystem)
+     * Async version - reads from neuralVault
      */
-    getPendingDeployments(): Array<{
+    async getPendingDeployments(): Promise<Array<{
+        id: string;
+        fileName: string;
+        fileType: string;
+        code: string;
+        hypothesis: string;
+        approvedAt: number;
+    }>> {
+        try {
+            const pending = await neuralVault.get('evolution_pending_deployments');
+            return pending || [];
+        } catch {
+            return this.getPendingDeploymentsSync();
+        }
+    }
+
+    /**
+     * Sync fallback for pending deployments
+     */
+    getPendingDeploymentsSync(): Array<{
         id: string;
         fileName: string;
         fileType: string;
@@ -364,15 +401,22 @@ Output ONLY the code, no markdown fences.`;
     /**
      * Mark an evolution as deployed (called after file is written)
      */
-    markDeployed(id: string) {
+    async markDeployed(id: string) {
         const evolution = this.hypotheses.find(h => h.id === id);
         if (evolution) {
             evolution.status = 'DEPLOYED';
         }
 
-        // Remove from pending
-        const pending = this.getPendingDeployments().filter(p => p.id !== id);
-        localStorage.setItem('evolution_pending_deployments', JSON.stringify(pending));
+        try {
+            // Remove from pending in neuralVault
+            const pending = await this.getPendingDeployments();
+            const filtered = pending.filter(p => p.id !== id);
+            await neuralVault.set('evolution_pending_deployments', filtered);
+        } catch {
+            // Fallback to localStorage
+            const pending = this.getPendingDeploymentsSync().filter(p => p.id !== id);
+            localStorage.setItem('evolution_pending_deployments', JSON.stringify(pending));
+        }
 
         useAppStore.getState().actions.addLog('SUCCESS',
             `🧬 SELF-EVOLUTION: "${evolution?.fileName}" deployed to filesystem. Vite HMR will pick it up.`
@@ -382,8 +426,12 @@ Output ONLY the code, no markdown fences.`;
     /**
      * Clear all pending deployments
      */
-    clearPendingDeployments() {
-        localStorage.setItem('evolution_pending_deployments', JSON.stringify([]));
+    async clearPendingDeployments() {
+        try {
+            await neuralVault.set('evolution_pending_deployments', []);
+        } catch {
+            localStorage.setItem('evolution_pending_deployments', JSON.stringify([]));
+        }
     }
 
     /**
