@@ -1944,6 +1944,288 @@ const VoiceManager: React.FC = () => {
                 };
             }
 
+            // ================================================================
+            // META-COMMANDS, LEARNING & ADVANCED MEMORY
+            // ================================================================
+
+            if (name === 'voice_capabilities') {
+                const { category, detail } = args;
+                addLog('SYSTEM', `📚 CAPABILITIES: ${category || 'all'}`);
+                const categories = [
+                    'navigation', 'ui_interaction', 'agents', 'memory', 'automation',
+                    'monitoring', 'diagnostics', 'research', 'workspace', 'productivity',
+                    'conversation', 'learning', 'collaboration'
+                ];
+                return {
+                    status: "CAPABILITIES_LISTED",
+                    categories: category ? [category] : categories,
+                    detail: detail || 'brief',
+                    totalCommands: 124,
+                    instruction: `List voice capabilities${category ? ` for ${category}` : ''}. Detail: ${detail || 'brief'}. Provide helpful examples.`
+                };
+            }
+
+            if (name === 'teach_command') {
+                const { trigger, action: cmdAction, context } = args;
+                const commands = JSON.parse(localStorage.getItem('custom_commands') || '{}');
+                commands[trigger as string] = { action: cmdAction, context, taught: Date.now() };
+                localStorage.setItem('custom_commands', JSON.stringify(commands));
+                addLog('SYSTEM', `🎓 TAUGHT: "${trigger}"`);
+                return {
+                    status: "COMMAND_LEARNED",
+                    trigger,
+                    action: cmdAction,
+                    message: `Understood, Sir. When you say "${trigger}", I'll ${cmdAction}.`
+                };
+            }
+
+            if (name === 'rate_feedback') {
+                const { rating, feedback, about } = args;
+                const feedbackLog = JSON.parse(localStorage.getItem('feedback_log') || '[]');
+                feedbackLog.push({ rating, feedback, about, timestamp: Date.now() });
+                localStorage.setItem('feedback_log', JSON.stringify(feedbackLog));
+                addLog('SYSTEM', `⭐ FEEDBACK: ${rating}`);
+                const responses: Record<string, string> = {
+                    excellent: "Delighted to be of service, Sir.",
+                    good: "Thank you for the feedback, Sir.",
+                    ok: "Noted. I'll aim higher next time.",
+                    poor: "My apologies, Sir. I'll improve.",
+                    wrong: "I apologize for the error. Noted for learning."
+                };
+                return {
+                    status: "FEEDBACK_RECORDED",
+                    rating,
+                    message: responses[rating as string] || "Feedback noted."
+                };
+            }
+
+            if (name === 'voice_templates') {
+                const { action: tplAction, name: tplName, steps } = args;
+                const templates = JSON.parse(localStorage.getItem('voice_templates') || '{}');
+
+                if (tplAction === 'save' && tplName && steps) {
+                    templates[tplName as string] = { steps, created: Date.now() };
+                    localStorage.setItem('voice_templates', JSON.stringify(templates));
+                    addLog('SYSTEM', `📋 TEMPLATE SAVED: ${tplName}`);
+                    return { status: "TEMPLATE_SAVED", name: tplName, message: `Template "${tplName}" saved with ${(steps as string[]).length} steps, Sir.` };
+                }
+
+                if (tplAction === 'list') {
+                    return { status: "TEMPLATES_LISTED", templates: Object.keys(templates), count: Object.keys(templates).length };
+                }
+
+                if (tplAction === 'run' && tplName && templates[tplName as string]) {
+                    const tpl = templates[tplName as string];
+                    addLog('SYSTEM', `▶️ RUNNING TEMPLATE: ${tplName}`);
+                    return { status: "TEMPLATE_RUNNING", name: tplName, steps: tpl.steps, message: `Running "${tplName}", Sir.` };
+                }
+
+                return { status: "TEMPLATE_ACTION", action: tplAction };
+            }
+
+            if (name === 'context_switch') {
+                const { to, saveCurrentAs, restore } = args;
+                const contexts = JSON.parse(localStorage.getItem('saved_contexts') || '{}');
+                const state = useStore.getState();
+
+                if (saveCurrentAs) {
+                    contexts[saveCurrentAs as string] = { mode: state.mode, saved: Date.now() };
+                    localStorage.setItem('saved_contexts', JSON.stringify(contexts));
+                }
+
+                if (to) {
+                    addLog('SYSTEM', `🔀 CONTEXT SWITCH: → ${to}`);
+                    return { status: "CONTEXT_SWITCHED", to, savedCurrent: saveCurrentAs, message: `Switching context to ${to}, Sir.` };
+                }
+
+                if (restore) {
+                    const lastContext = Object.keys(contexts).pop();
+                    if (lastContext && contexts[lastContext]) {
+                        setMode(contexts[lastContext].mode);
+                        return { status: "CONTEXT_RESTORED", restored: lastContext, message: `Restored to ${lastContext}, Sir.` };
+                    }
+                }
+
+                return { status: "CONTEXT_ACTION", instruction: "Context switch requested. Clarify destination." };
+            }
+
+            if (name === 'focus_entity') {
+                const { entity, entityType } = args;
+                localStorage.setItem('focused_entity', JSON.stringify({ entity, type: entityType, since: Date.now() }));
+                addLog('SYSTEM', `🎯 FOCUS: ${entity} (${entityType || 'entity'})`);
+                return {
+                    status: "ENTITY_FOCUSED",
+                    entity,
+                    type: entityType || 'entity',
+                    message: `Focusing on ${entity}, Sir. All relevant information will be prioritized.`
+                };
+            }
+
+            if (name === 'time_aware') {
+                const { query: timeQuery, action: timeAction } = args;
+                const now = new Date();
+                addLog('SYSTEM', `⏰ TIME-AWARE: ${timeAction || 'query'}`);
+                return {
+                    status: "TIME_AWARE_RESPONSE",
+                    currentTime: now.toLocaleTimeString(),
+                    currentDate: now.toLocaleDateString(),
+                    dayOfWeek: now.toLocaleDateString('en-US', { weekday: 'long' }),
+                    query: timeQuery,
+                    action: timeAction || 'query',
+                    instruction: `Time-aware query: "${timeQuery || 'What should I do now?'}". Current: ${now.toLocaleString()}.`
+                };
+            }
+
+            if (name === 'remember_person') {
+                const { action: personAction, person, info, category } = args;
+                const people = JSON.parse(localStorage.getItem('people_memory') || '{}');
+
+                if (personAction === 'remember') {
+                    if (!people[person as string]) people[person as string] = {};
+                    people[person as string][category as string || 'note'] = info;
+                    people[person as string].lastUpdated = Date.now();
+                    localStorage.setItem('people_memory', JSON.stringify(people));
+                    addLog('SYSTEM', `👤 REMEMBERED: ${person}`);
+                    return { status: "PERSON_REMEMBERED", person, category, message: `Noted about ${person}, Sir.` };
+                }
+
+                if (personAction === 'recall') {
+                    const personData = people[person as string];
+                    if (personData) {
+                        return { status: "PERSON_RECALLED", person, data: personData };
+                    }
+                    return { status: "PERSON_NOT_FOUND", person, message: `I don't have records on ${person}, Sir.` };
+                }
+
+                if (personAction === 'list') {
+                    return { status: "PEOPLE_LISTED", people: Object.keys(people), count: Object.keys(people).length };
+                }
+
+                return { status: "PERSON_ACTION", action: personAction, person };
+            }
+
+            if (name === 'topic_memory') {
+                const { action: topicAction, topic, content } = args;
+                const topics = JSON.parse(localStorage.getItem('topic_memory') || '{}');
+
+                if (topicAction === 'add') {
+                    if (!topics[topic as string]) topics[topic as string] = [];
+                    topics[topic as string].push({ content, added: Date.now() });
+                    localStorage.setItem('topic_memory', JSON.stringify(topics));
+                    addLog('SYSTEM', `📝 TOPIC: Added to ${topic}`);
+                    return { status: "TOPIC_UPDATED", topic, entries: topics[topic as string].length, message: `Added to ${topic} notes, Sir.` };
+                }
+
+                if (topicAction === 'recall') {
+                    const topicData = topics[topic as string];
+                    if (topicData && topicData.length > 0) {
+                        return { status: "TOPIC_RECALLED", topic, entries: topicData };
+                    }
+                    return { status: "TOPIC_EMPTY", topic, message: `No notes on ${topic} yet, Sir.` };
+                }
+
+                if (topicAction === 'list') {
+                    return { status: "TOPICS_LISTED", topics: Object.keys(topics), count: Object.keys(topics).length };
+                }
+
+                return { status: "TOPIC_ACTION", action: topicAction, topic };
+            }
+
+            if (name === 'voice_shortcut') {
+                const { action: scAction, phrase, expansion } = args;
+                const shortcuts = JSON.parse(localStorage.getItem('voice_shortcuts') || '{}');
+
+                if (scAction === 'create' && phrase && expansion) {
+                    shortcuts[phrase as string] = { expansion, created: Date.now() };
+                    localStorage.setItem('voice_shortcuts', JSON.stringify(shortcuts));
+                    addLog('SYSTEM', `⚡ SHORTCUT: "${phrase}"`);
+                    return { status: "SHORTCUT_CREATED", phrase, message: `Shortcut created. Say "${phrase}" and I'll ${expansion}, Sir.` };
+                }
+
+                if (scAction === 'list') {
+                    return { status: "SHORTCUTS_LISTED", shortcuts: Object.entries(shortcuts).map(([p, v]: [string, any]) => ({ phrase: p, expansion: v.expansion })) };
+                }
+
+                return { status: "SHORTCUT_ACTION", action: scAction };
+            }
+
+            if (name === 'ambient_listen') {
+                const { mode: ambMode, triggers, action: ambAction } = args;
+                localStorage.setItem('ambient_listen', JSON.stringify({ mode: ambMode, triggers, action: ambAction }));
+                addLog('SYSTEM', `👂 AMBIENT: ${ambMode}`);
+                return {
+                    status: "AMBIENT_CONFIGURED",
+                    mode: ambMode,
+                    triggers: triggers || [],
+                    message: ambMode === 'on' ? `Ambient listening enabled, Sir. ${triggers ? `Listening for: ${(triggers as string[]).join(', ')}` : ''}` : `Ambient listening disabled.`
+                };
+            }
+
+            if (name === 'proactive_suggest') {
+                const { level, areas } = args;
+                localStorage.setItem('proactive_settings', JSON.stringify({ level, areas }));
+                addLog('SYSTEM', `💡 PROACTIVE: ${level}`);
+                const messages: Record<string, string> = {
+                    off: "I'll only speak when spoken to, Sir.",
+                    minimal: "I'll make occasional suggestions when highly relevant.",
+                    moderate: "I'll offer helpful suggestions at appropriate moments.",
+                    active: "I'll proactively assist and suggest throughout our session."
+                };
+                return {
+                    status: "PROACTIVE_SET",
+                    level,
+                    areas: areas || [],
+                    message: messages[level as string] || "Proactivity adjusted."
+                };
+            }
+
+            if (name === 'voice_history') {
+                const { range, search: historySearch, action: histAction } = args;
+                addLog('SYSTEM', `📜 HISTORY: ${histAction || 'list'}`);
+                // History would come from session logs
+                return {
+                    status: "HISTORY_REQUEST",
+                    action: histAction || 'list',
+                    range: range || 'recent',
+                    search: historySearch,
+                    instruction: `${histAction === 'search' ? `Search voice history for: "${historySearch}"` : `Show ${range || 'recent'} voice history`}.`
+                };
+            }
+
+            if (name === 'personality_mode') {
+                const { personality, intensity } = args;
+                localStorage.setItem('personality_mode', JSON.stringify({ personality, intensity: intensity || 'moderate' }));
+                addLog('SYSTEM', `🎭 PERSONALITY: ${personality}`);
+                const intros: Record<string, string> = {
+                    professional: "Understood, Sir. Maintaining professional decorum.",
+                    friendly: "Of course! Happy to keep things light and friendly.",
+                    serious: "Very well. Adopting a more serious tone.",
+                    casual: "Sure thing! Keeping it casual.",
+                    mentor: "I'll take a more guiding approach, Sir.",
+                    assistant: "At your service. Pure assistance mode.",
+                    collaborator: "Let's work together on this. Partners in thought."
+                };
+                return {
+                    status: "PERSONALITY_SET",
+                    personality,
+                    intensity: intensity || 'moderate',
+                    message: intros[personality as string] || `${personality} mode activated.`
+                };
+            }
+
+            if (name === 'collaborate_share') {
+                const { action: colAction, target, content: shareContent, format } = args;
+                addLog('SYSTEM', `🤝 COLLABORATE: ${colAction}`);
+                return {
+                    status: "COLLABORATION_INITIATED",
+                    action: colAction,
+                    target: target || 'team',
+                    content: shareContent,
+                    format: format || 'link',
+                    message: `Preparing to ${colAction}${target ? ` with ${target}` : ''}, Sir.`
+                };
+            }
+
             return { error: "Unknown executive protocol." };
         };
 
