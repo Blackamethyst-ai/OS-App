@@ -1102,6 +1102,429 @@ export const readAloudTool: FunctionDeclaration = {
     }
 };
 
+// ============================================================================
+// ADVANCED JARVIS CAPABILITIES - Monitoring, Diagnostics, Intelligence
+// ============================================================================
+
+/**
+ * Set up condition monitoring and alerts.
+ */
+export const monitorConditionTool: FunctionDeclaration = {
+    name: "monitor_condition",
+    description: "Set up continuous monitoring for a condition. Get alerted when something happens. 'Monitor the system', 'Alert me if errors occur', 'Watch for changes in X', 'Notify me when complete'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            condition: { type: Type.STRING, description: "What to monitor for (e.g., 'task completion', 'error threshold', 'data change')" },
+            action: { type: Type.STRING, enum: ["alert", "log", "execute", "notify"], description: "What to do when condition triggers" },
+            threshold: { type: Type.STRING, description: "Trigger threshold if applicable (e.g., '>5 errors', 'changes detected')" },
+            duration: { type: Type.STRING, description: "How long to monitor (e.g., '1h', '24h', 'continuous')" }
+        },
+        required: ["condition", "action"]
+    }
+};
+
+/**
+ * Get active monitors.
+ */
+export const getActiveMonitorsTool: FunctionDeclaration = {
+    name: "get_active_monitors",
+    description: "List all active monitoring conditions. 'What am I monitoring?', 'Show active alerts', 'List watchers'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            includeHistory: { type: Type.BOOLEAN, description: "Include recently triggered monitors" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Run comprehensive system diagnostics.
+ */
+export const runDiagnosticsTool: FunctionDeclaration = {
+    name: "run_diagnostics",
+    description: "Run comprehensive system diagnostics. 'Run diagnostics', 'System health check', 'Check all systems', 'Is everything working?'",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            scope: { type: Type.STRING, enum: ["full", "quick", "network", "memory", "performance", "services"], description: "Diagnostic scope" },
+            verbose: { type: Type.BOOLEAN, description: "Include detailed output" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Security threat assessment.
+ */
+export const threatAssessmentTool: FunctionDeclaration = {
+    name: "threat_assessment",
+    description: "Run security threat assessment. 'Security scan', 'Check for threats', 'Vulnerability check', 'Is the system secure?', 'Run security audit'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            scope: { type: Type.STRING, enum: ["full", "quick", "api", "data", "access"], description: "Assessment scope" },
+            reportFormat: { type: Type.STRING, enum: ["summary", "detailed", "critical_only"], description: "Report detail level" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Predictive intelligence and forecasting.
+ */
+export const predictOutcomeTool: FunctionDeclaration = {
+    name: "predict_outcome",
+    description: "Use AI to predict outcomes and forecast trends. 'Predict the result', 'What will happen if...', 'Forecast for this project', 'Estimate success probability'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            scenario: { type: Type.STRING, description: "The scenario or decision to predict outcomes for" },
+            timeframe: { type: Type.STRING, description: "Prediction timeframe (e.g., '1 week', '1 month')" },
+            factors: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Key factors to consider" }
+        },
+        required: ["scenario"]
+    }
+};
+
+/**
+ * Run operations in background autonomously.
+ */
+export const backgroundOperationTool: FunctionDeclaration = {
+    name: "background_operation",
+    description: "Start a long-running operation in the background. 'Handle this in the background', 'Continue autonomously', 'Run this while I work on something else', 'Process this offline'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            operation: { type: Type.STRING, description: "Operation to run in background" },
+            notifyOn: { type: Type.STRING, enum: ["completion", "error", "milestone", "all"], description: "When to notify user" },
+            priority: { type: Type.STRING, enum: ["low", "normal", "high"], description: "Operation priority" }
+        },
+        required: ["operation"]
+    }
+};
+
+/**
+ * Triage and prioritize work items.
+ */
+export const triagePrioritiesTool: FunctionDeclaration = {
+    name: "triage_priorities",
+    description: "Analyze and prioritize work items intelligently. 'What's most urgent?', 'Prioritize my work', 'Triage these tasks', 'What should I focus on?'",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            items: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Items to triage (optional, uses current tasks if empty)" },
+            criteria: { type: Type.STRING, enum: ["urgency", "impact", "effort", "deadline", "balanced"], description: "Prioritization criteria" },
+            limit: { type: Type.NUMBER, description: "Max items to return" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Compare and analyze multiple items.
+ */
+export const compareAnalyzeTool: FunctionDeclaration = {
+    name: "compare_analyze",
+    description: "Compare and analyze multiple items, options, or approaches. 'Compare these', 'What's the difference between...', 'Analyze trade-offs', 'Which is better?'",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            items: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Items to compare (2-5)" },
+            dimensions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Comparison dimensions (e.g., 'cost', 'speed', 'quality')" },
+            format: { type: Type.STRING, enum: ["table", "prose", "bullets", "recommendation"], description: "Output format" }
+        },
+        required: ["items"]
+    }
+};
+
+/**
+ * Research a topic in depth.
+ */
+export const researchTopicTool: FunctionDeclaration = {
+    name: "research_topic",
+    description: "Conduct research on a topic. 'Research this', 'Find out about...', 'Investigate X', 'Deep dive into...', 'What do we know about...'",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            topic: { type: Type.STRING, description: "Topic to research" },
+            depth: { type: Type.STRING, enum: ["quick", "standard", "comprehensive"], description: "Research depth" },
+            sources: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Preferred sources (e.g., 'memory', 'web', 'codebase')" }
+        },
+        required: ["topic"]
+    }
+};
+
+/**
+ * Generate status brief/report.
+ */
+export const statusBriefTool: FunctionDeclaration = {
+    name: "status_brief",
+    description: "Generate a status brief or report. 'Give me a brief', 'Status report', 'Update me on everything', 'What's the situation?'",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            scope: { type: Type.STRING, enum: ["session", "project", "system", "all"], description: "Brief scope" },
+            format: { type: Type.STRING, enum: ["verbal", "bullets", "detailed"], description: "Report format" },
+            includeRecommendations: { type: Type.BOOLEAN, description: "Include recommended actions" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Contextual awareness - where am I, what's happening.
+ */
+export const whereAmITool: FunctionDeclaration = {
+    name: "where_am_i",
+    description: "Get contextual awareness of current state. 'Where am I?', 'What's on screen?', 'Current context', 'What view is this?', 'What was I doing?'",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            includeHistory: { type: Type.BOOLEAN, description: "Include recent navigation history" },
+            includeState: { type: Type.BOOLEAN, description: "Include detailed state information" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Cross-reference and find connections.
+ */
+export const crossReferenceTool: FunctionDeclaration = {
+    name: "cross_reference",
+    description: "Find connections and cross-references between items. 'Find connections', 'How is X related to Y?', 'Link related items', 'What's connected to this?'",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            item: { type: Type.STRING, description: "Item to find connections for" },
+            searchScope: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Where to search (e.g., 'tasks', 'memory', 'files', 'agents')" },
+            maxDepth: { type: Type.NUMBER, description: "Maximum connection depth (1-3)" }
+        },
+        required: ["item"]
+    }
+};
+
+/**
+ * Workspace management.
+ */
+export const workspaceTool: FunctionDeclaration = {
+    name: "workspace",
+    description: "Manage workspaces - save and restore complete working contexts. 'Save workspace', 'Load workspace', 'Switch to my coding setup', 'Restore yesterday's context'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["save", "load", "list", "delete"], description: "Workspace action" },
+            name: { type: Type.STRING, description: "Workspace name" },
+            includeState: { type: Type.BOOLEAN, description: "Include full app state (not just layout)" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Explain concepts and terminology.
+ */
+export const explainConceptTool: FunctionDeclaration = {
+    name: "explain_concept",
+    description: "Explain a concept, term, or piece of code. 'What is X?', 'Explain this', 'Tell me about...', 'How does X work?', 'Define Y'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            concept: { type: Type.STRING, description: "Concept to explain" },
+            level: { type: Type.STRING, enum: ["simple", "standard", "technical", "expert"], description: "Explanation level" },
+            context: { type: Type.STRING, description: "Context for tailored explanation" }
+        },
+        required: ["concept"]
+    }
+};
+
+/**
+ * Proactive suggestions - what should I do next.
+ */
+export const whatNextTool: FunctionDeclaration = {
+    name: "what_next",
+    description: "Get proactive suggestions for what to do next. 'What should I do?', 'What's next?', 'Suggest something', 'I'm stuck', 'Help me decide'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            context: { type: Type.STRING, description: "Current context or goal" },
+            mood: { type: Type.STRING, enum: ["productive", "creative", "exploratory", "routine"], description: "Current mood/energy" },
+            timeAvailable: { type: Type.STRING, description: "Time available (e.g., '30min', '2h')" }
+        },
+        required: []
+    }
+};
+
+/**
+ * System mode switching.
+ */
+export const systemModeTool: FunctionDeclaration = {
+    name: "system_mode",
+    description: "Switch system operation modes. 'Stealth mode', 'Performance mode', 'Power save', 'Night mode', 'Focus mode', 'Demo mode'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            mode: { type: Type.STRING, enum: ["normal", "stealth", "performance", "power_save", "night", "focus", "demo", "presentation"], description: "Mode to activate" },
+            duration: { type: Type.STRING, description: "Mode duration (e.g., '1h', 'until I say stop')" }
+        },
+        required: ["mode"]
+    }
+};
+
+/**
+ * Integration sync and push.
+ */
+export const syncIntegrationTool: FunctionDeclaration = {
+    name: "sync_integration",
+    description: "Sync with external integrations. 'Sync with GitHub', 'Push to cloud', 'Update integration', 'Sync everything', 'Refresh data'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            integration: { type: Type.STRING, description: "Integration to sync (e.g., 'github', 'calendar', 'all')" },
+            direction: { type: Type.STRING, enum: ["pull", "push", "both"], description: "Sync direction" },
+            scope: { type: Type.STRING, description: "What to sync" }
+        },
+        required: ["integration"]
+    }
+};
+
+/**
+ * Learn patterns from user behavior.
+ */
+export const learnPatternTool: FunctionDeclaration = {
+    name: "learn_pattern",
+    description: "Learn a pattern or behavior. 'Learn this pattern', 'Remember I prefer X', 'Always do Y when Z', 'Adapt to my style'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            pattern: { type: Type.STRING, description: "Pattern to learn" },
+            trigger: { type: Type.STRING, description: "When to apply this pattern" },
+            category: { type: Type.STRING, enum: ["behavior", "preference", "workflow", "response"], description: "Pattern category" }
+        },
+        required: ["pattern"]
+    }
+};
+
+/**
+ * Access previous session context.
+ */
+export const previousSessionTool: FunctionDeclaration = {
+    name: "previous_session",
+    description: "Access previous session context and history. 'What did I do last time?', 'Previous session', 'Yesterday's work', 'Resume where I left off'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            when: { type: Type.STRING, description: "Which session (e.g., 'last', 'yesterday', '3 days ago')" },
+            what: { type: Type.STRING, enum: ["summary", "tasks", "decisions", "all"], description: "What to retrieve" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Track goals and progress.
+ */
+export const trackGoalTool: FunctionDeclaration = {
+    name: "track_goal",
+    description: "Track goals and progress. 'Track my goal', 'Set a goal', 'Progress on X', 'How am I doing?', 'Update goal status'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["create", "update", "check", "list", "complete"], description: "Goal action" },
+            goal: { type: Type.STRING, description: "Goal description" },
+            progress: { type: Type.NUMBER, description: "Progress percentage (0-100)" },
+            notes: { type: Type.STRING, description: "Progress notes" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Quick TLDR summary.
+ */
+export const quickSummaryTool: FunctionDeclaration = {
+    name: "quick_summary",
+    description: "Get a quick TLDR summary. 'TLDR', 'Quick summary', 'Summarize', 'Bottom line', 'In a nutshell'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            of: { type: Type.STRING, description: "What to summarize (e.g., 'this conversation', 'the document', 'today's work')" },
+            length: { type: Type.STRING, enum: ["one_line", "short", "medium"], description: "Summary length" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Start autonomous mission.
+ */
+export const autonomousMissionTool: FunctionDeclaration = {
+    name: "autonomous_mission",
+    description: "Start an autonomous mission - AI works independently toward a goal. 'Take over', 'Handle this autonomously', 'You drive', 'Autopilot mode', 'Complete this on your own'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            objective: { type: Type.STRING, description: "Mission objective" },
+            constraints: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Constraints and boundaries" },
+            checkpointInterval: { type: Type.STRING, description: "How often to report progress" },
+            canMakeDecisions: { type: Type.BOOLEAN, description: "Allow AI to make decisions without confirmation" }
+        },
+        required: ["objective"]
+    }
+};
+
+/**
+ * Full situational awareness.
+ */
+export const situationalAwarenessTool: FunctionDeclaration = {
+    name: "situational_awareness",
+    description: "Get complete situational awareness - everything that's happening. 'What's going on?', 'Full situation report', 'Brief me on everything', 'Status of all systems'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            detail: { type: Type.STRING, enum: ["executive", "operational", "tactical"], description: "Detail level" },
+            focus: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Areas to focus on" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Debug assistance.
+ */
+export const debugAssistTool: FunctionDeclaration = {
+    name: "debug_assist",
+    description: "Get AI assistance for debugging. 'Help me debug this', 'What's wrong?', 'Analyze this error', 'Why isn't this working?', 'Debug mode'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            problem: { type: Type.STRING, description: "Problem description or error message" },
+            context: { type: Type.STRING, description: "Relevant context" },
+            triedSolutions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "What you've already tried" }
+        },
+        required: ["problem"]
+    }
+};
+
+/**
+ * Performance profiling and optimization.
+ */
+export const performanceProfileTool: FunctionDeclaration = {
+    name: "performance_profile",
+    description: "Profile and optimize performance. 'Check performance', 'Why is this slow?', 'Optimize', 'Profile this', 'Speed up'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            target: { type: Type.STRING, description: "What to profile (e.g., 'app', 'current view', 'query')" },
+            duration: { type: Type.NUMBER, description: "Profile duration in seconds" },
+            detailed: { type: Type.BOOLEAN, description: "Include detailed breakdown" }
+        },
+        required: []
+    }
+};
+
 /**
  * All voice tools for Gemini Live API.
  */
@@ -1208,4 +1631,31 @@ export const VOICE_TOOLS: FunctionDeclaration[] = [
     askAssistantTool,
     screenshotTool,
     readAloudTool,
+
+    // === ADVANCED JARVIS CAPABILITIES ===
+    monitorConditionTool,
+    getActiveMonitorsTool,
+    runDiagnosticsTool,
+    threatAssessmentTool,
+    predictOutcomeTool,
+    backgroundOperationTool,
+    triagePrioritiesTool,
+    compareAnalyzeTool,
+    researchTopicTool,
+    statusBriefTool,
+    whereAmITool,
+    crossReferenceTool,
+    workspaceTool,
+    explainConceptTool,
+    whatNextTool,
+    systemModeTool,
+    syncIntegrationTool,
+    learnPatternTool,
+    previousSessionTool,
+    trackGoalTool,
+    quickSummaryTool,
+    autonomousMissionTool,
+    situationalAwarenessTool,
+    debugAssistTool,
+    performanceProfileTool,
 ];
