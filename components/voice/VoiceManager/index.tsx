@@ -22,7 +22,7 @@ import { SovereignMemory } from '../../../services/memory/MemoryStore';
 import { neuralVault } from '../../../services/persistenceService';
 import { faceDetectionService } from '../../../services/faceDetectionService';
 import { dreamProtocol, DreamInsight } from '../../../services/dreamProtocol';
-import { adaptiveConsensusEngine, quickConsensus, ACEStatus, ACEResult } from '../../../services/bicameralService';
+import { adaptiveConsensusEngine, quickConsensus, ACEStatus, ACEResult, generateDecompositionMap } from '../../../services/bicameralService';
 
 // Initialize memory service singleton
 const sovereignMemory = new SovereignMemory();
@@ -782,14 +782,14 @@ const VoiceManager: React.FC = () => {
                 const state = useAppStore.getState();
                 addLog('SYSTEM', `📊 STATUS: Compiling comprehensive system report...`);
 
-                // Task statistics
-                const tasks = state.tasks || [];
+                // Task statistics (from store)
+                const tasks = state.research?.tasks || state.tasks || [];
                 const taskStats = {
                     total: tasks.length,
-                    todo: tasks.filter(t => t.status === 'TODO').length,
-                    inProgress: tasks.filter(t => t.status === 'IN_PROGRESS').length,
-                    done: tasks.filter(t => t.status === 'DONE' || t.status === 'COMPLETED').length,
-                    highPriority: tasks.filter(t => t.priority === 'HIGH' || t.priority === 'CRITICAL').length
+                    todo: tasks.filter((t: any) => t.status === 'TODO').length,
+                    inProgress: tasks.filter((t: any) => t.status === 'IN_PROGRESS').length,
+                    done: tasks.filter((t: any) => t.status === 'DONE' || t.status === 'COMPLETED').length,
+                    highPriority: tasks.filter((t: any) => t.priority === 'HIGH' || t.priority === 'CRITICAL').length
                 };
 
                 // Voice system status
@@ -797,37 +797,60 @@ const VoiceManager: React.FC = () => {
                     active: state.voice.isActive,
                     mode: state.voice.mode,
                     currentVoice: state.voice.voiceName,
-                    isConnecting: state.voice.isConnecting
+                    isConnecting: state.voice.isConnecting,
+                    nexusMode: state.voiceNexus?.mode || 'unknown'
                 };
 
-                // Biometrics status
-                const biometricState = (state as any).biometric || {};
+                // Real biometrics status from faceDetectionService
+                const faceServiceReady = faceDetectionService.isReady();
+                const lastDetection = faceDetectionService.getLastDetection();
+                const stressEstimate = faceDetectionService.estimateStress();
                 const biometricStatus = {
-                    active: biometricState.isActive || false,
-                    faceDetected: biometricState.faceDetected || false,
-                    attentionScore: biometricState.attentionScore || 0
+                    serviceReady: faceServiceReady,
+                    faceDetected: lastDetection?.detected || false,
+                    confidence: lastDetection?.confidence || 0,
+                    detectionQuality: faceDetectionService.getDetectionQuality(),
+                    stressLevel: stressEstimate.level,
+                    blinkRate: faceDetectionService.getBlinkRate()
                 };
+
+                // Dream protocol status
+                const dreamStatus = dreamProtocol.getStatus();
+                const dreamSessions = dreamProtocol.getPastSessions();
 
                 // CPB status
-                const cpbState = (state as any).cpbState || {};
+                const cpbState = (state as any).cpb || (state as any).cpbState || {};
                 const cpbStatus = {
-                    phase: cpbState.phase || 'idle',
+                    phase: cpbState.phase || cpbState.state || 'idle',
                     currentPath: cpbState.currentPath,
                     confidence: cpbState.confidence || 0
                 };
 
-                // Memory status (from localStorage for quick check)
-                const delegations = JSON.parse(localStorage.getItem('delegations') || '[]');
-                const monitors = JSON.parse(localStorage.getItem('active_monitors') || '[]');
-                const goals = JSON.parse(localStorage.getItem('tracked_goals') || '[]');
+                // Memory status (from neuralVault with localStorage fallback)
+                let monitors: any[] = [];
+                let goals: any[] = [];
+                let delegations: any[] = [];
+                try {
+                    monitors = await neuralVault.get('active_monitors') || [];
+                    goals = await neuralVault.get('tracked_goals') || [];
+                    // Delegations might still be in localStorage for now
+                    delegations = JSON.parse(localStorage.getItem('delegations') || '[]');
+                } catch {
+                    monitors = JSON.parse(localStorage.getItem('active_monitors') || '[]');
+                    goals = JSON.parse(localStorage.getItem('tracked_goals') || '[]');
+                    delegations = JSON.parse(localStorage.getItem('delegations') || '[]');
+                }
 
                 // System performance
                 const perfMetrics = {
-                    uptime: Math.round(performance.now() / 1000),
+                    uptime: `${Math.round(performance.now() / 1000 / 60)} minutes`,
                     memoryUsage: (performance as any).memory?.usedJSHeapSize
-                        ? Math.round((performance as any).memory.usedJSHeapSize / 1024 / 1024)
-                        : null
+                        ? `${Math.round((performance as any).memory.usedJSHeapSize / 1024 / 1024)} MB`
+                        : 'unavailable'
                 };
+
+                const activeMonitors = monitors.filter((m: any) => m.status === 'active' && m.triggered === 0);
+                const activeGoals = goals.filter((g: any) => g.status !== 'completed');
 
                 const report = {
                     timestamp: new Date().toISOString(),
@@ -835,14 +858,22 @@ const VoiceManager: React.FC = () => {
                     voice: voiceStatus,
                     tasks: taskStats,
                     biometrics: biometricStatus,
+                    dream: {
+                        isDreaming: dreamStatus.isDreaming,
+                        pendingQueries: dreamStatus.pendingQueries,
+                        currentInsights: dreamStatus.currentSession?.insights.length || 0,
+                        totalSessions: dreamSessions.length
+                    },
                     cpb: cpbStatus,
                     agents: {
                         available: Object.keys(HIVE_AGENTS).length,
+                        names: Object.values(HIVE_AGENTS).slice(0, 8).map(a => a.name),
                         recentDelegations: delegations.length
                     },
                     monitoring: {
-                        activeMonitors: monitors.filter((m: any) => m.triggered === 0).length,
-                        trackedGoals: goals.length
+                        activeMonitors: activeMonitors.length,
+                        trackedGoals: activeGoals.length,
+                        totalGoals: goals.length
                     },
                     performance: perfMetrics
                 };
@@ -859,14 +890,20 @@ const VoiceManager: React.FC = () => {
                 if (voiceStatus.active) {
                     statusMessages.push(`Voice interface active with ${voiceStatus.currentVoice}.`);
                 }
-                if (biometricStatus.active && biometricStatus.faceDetected) {
-                    statusMessages.push(`Biometrics tracking. Attention: ${biometricStatus.attentionScore}%.`);
+                if (biometricStatus.faceDetected) {
+                    statusMessages.push(`Biometrics tracking. Stress: ${biometricStatus.stressLevel}%.`);
                 }
-                if (monitors.filter((m: any) => m.triggered === 0).length > 0) {
-                    statusMessages.push(`${monitors.filter((m: any) => m.triggered === 0).length} active monitor${monitors.length > 1 ? 's' : ''}.`);
+                if (dreamStatus.isDreaming) {
+                    statusMessages.push(`Dream protocol active with ${dreamStatus.currentSession?.insights.length || 0} insights.`);
+                }
+                if (activeMonitors.length > 0) {
+                    statusMessages.push(`${activeMonitors.length} active monitor${activeMonitors.length > 1 ? 's' : ''}.`);
+                }
+                if (activeGoals.length > 0) {
+                    statusMessages.push(`${activeGoals.length} goal${activeGoals.length > 1 ? 's' : ''} in progress.`);
                 }
 
-                addLog('SUCCESS', `✅ STATUS: Report compiled`);
+                addLog('SUCCESS', `✅ STATUS: Comprehensive report compiled`);
 
                 return {
                     status: "SYSTEM_OPERATIONAL",
@@ -1052,12 +1089,61 @@ const VoiceManager: React.FC = () => {
             // =================================================================
             if (name === 'decompose_task') {
                 const goal = args.goal as string;
-                addLog('SYSTEM', `DECOMPOSE: Breaking down "${goal}"...`);
-                // Route through think tool for decomposition
-                return {
-                    status: "DECOMPOSITION_ROUTED",
-                    instruction: `Break down this complex goal into 5-7 atomic, executable sub-tasks: "${goal}". List each task with a clear description and dependencies.`
-                };
+                addLog('SYSTEM', `DECOMPOSE: Breaking down "${goal}" via Gemini...`);
+
+                try {
+                    // Use real decomposition engine
+                    const atomicTasks = await generateDecompositionMap(goal);
+
+                    if (atomicTasks.length === 0) {
+                        return {
+                            status: "DECOMPOSITION_EMPTY",
+                            goal,
+                            message: "Couldn't decompose that goal into tasks, Sir. Perhaps it's already atomic?"
+                        };
+                    }
+
+                    // Optionally create tasks in the store
+                    const { addTask } = useAppStore.getState().actions;
+                    const createdTasks: string[] = [];
+
+                    for (const task of atomicTasks.slice(0, 7)) { // Cap at 7 tasks
+                        addTask({
+                            title: task.description || task.instruction,
+                            description: `Atomic task from goal: "${goal}"\n\nInstruction: ${task.instruction}\nInput: ${task.isolated_input}`,
+                            status: 'TODO' as any,
+                            priority: task.weight > 0.7 ? 'HIGH' : 'MEDIUM',
+                            tags: ['decomposed', 'voice-created']
+                        });
+                        createdTasks.push(task.description || task.instruction);
+                    }
+
+                    addLog('SUCCESS', `DECOMPOSE: Created ${createdTasks.length} atomic tasks`);
+
+                    return {
+                        status: "DECOMPOSITION_COMPLETE",
+                        goal,
+                        taskCount: atomicTasks.length,
+                        tasks: atomicTasks.map(t => ({
+                            id: t.id,
+                            description: t.description,
+                            instruction: t.instruction,
+                            weight: t.weight
+                        })),
+                        createdInStore: createdTasks.length,
+                        message: `Decomposed into ${atomicTasks.length} atomic tasks, Sir. ${createdTasks.length} have been added to your task list.`,
+                        instruction: "Summarize the decomposed tasks conversationally, highlighting the most important ones."
+                    };
+                } catch (e: any) {
+                    addLog('ERROR', `DECOMPOSE: Failed - ${e.message}`);
+                    // Fallback to routed instruction
+                    return {
+                        status: "DECOMPOSITION_ROUTED",
+                        goal,
+                        error: e.message,
+                        instruction: `Decomposition engine failed. Break down this goal manually into 5-7 atomic, executable sub-tasks: "${goal}". List each task with a clear description and dependencies.`
+                    };
+                }
             }
 
             if (name === 'run_consensus') {
