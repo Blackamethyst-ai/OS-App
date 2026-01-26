@@ -208,6 +208,17 @@ describe('VoiceNexus Health Check', () => {
             expect(health.status).toBe('error');
             expect(health.error).toBe('Gemini service error');
         });
+
+        it('should handle non-Error exceptions', async () => {
+            mockGeminiReasoningIsAvailable.mockImplementation(() => {
+                throw 'String error'; // Non-Error thrown
+            });
+
+            const health = await checkGeminiReasoningHealth();
+
+            expect(health.status).toBe('error');
+            expect(health.error).toBe('String error');
+        });
     });
 
     describe('checkElevenLabsHealth', () => {
@@ -239,6 +250,17 @@ describe('VoiceNexus Health Check', () => {
             expect(health.status).toBe('error');
             expect(health.error).toBe('ElevenLabs service error');
         });
+
+        it('should handle non-Error exceptions', async () => {
+            mockElevenLabsTTSIsAvailable.mockImplementation(() => {
+                throw 'ElevenLabs string error';
+            });
+
+            const health = await checkElevenLabsHealth();
+
+            expect(health.status).toBe('error');
+            expect(health.error).toBe('ElevenLabs string error');
+        });
     });
 
     describe('checkBrowserTTSHealth', () => {
@@ -266,6 +288,17 @@ describe('VoiceNexus Health Check', () => {
 
             expect(health.status).toBe('error');
             expect(health.error).toBe('Browser TTS error');
+        });
+
+        it('should handle non-Error exceptions', async () => {
+            mockBrowserTTSIsAvailable.mockImplementation(() => {
+                throw { message: 'Object error' };
+            });
+
+            const health = await checkBrowserTTSHealth();
+
+            expect(health.status).toBe('error');
+            expect(health.error).toContain('Object');
         });
     });
 
