@@ -2246,17 +2246,58 @@ Output the code with brief explanation.`,
 
             if (name === 'learn_pattern') {
                 const { pattern, trigger, category } = args;
-                const patterns = JSON.parse(localStorage.getItem('learned_patterns') || '[]');
-                patterns.push({ pattern, trigger, category: category || 'behavior', learned: Date.now() });
-                localStorage.setItem('learned_patterns', JSON.stringify(patterns));
-                addLog('SYSTEM', `🧠 LEARNED: ${pattern}`);
-                return {
-                    status: "PATTERN_LEARNED",
-                    pattern,
-                    trigger,
-                    category: category || 'behavior',
-                    message: `Pattern noted, Sir. I'll ${trigger ? `apply this when ${trigger}` : 'incorporate this going forward'}.`
-                };
+                const patternText = pattern as string;
+                const triggerText = trigger as string;
+                const cat = (category as string) || 'behavior';
+
+                try {
+                    // Store in SovereignMemory for semantic retrieval
+                    const patternKey = `pattern_${cat}_${Date.now()}`;
+                    await sovereignMemory.store(patternKey, JSON.stringify({
+                        type: 'learned_pattern',
+                        pattern: patternText,
+                        trigger: triggerText || null,
+                        category: cat,
+                        learned: Date.now()
+                    }));
+
+                    // Also persist to neuralVault for structured access
+                    const patterns = await neuralVault.get('learned_patterns') || [];
+                    patterns.push({
+                        id: patternKey,
+                        pattern: patternText,
+                        trigger: triggerText || null,
+                        category: cat,
+                        learned: Date.now()
+                    });
+                    // Keep last 50 patterns
+                    if (patterns.length > 50) patterns.shift();
+                    await neuralVault.set('learned_patterns', patterns);
+
+                    addLog('SYSTEM', `🧠 LEARNED: ${patternText} - stored in Neural Vault`);
+                    return {
+                        status: "PATTERN_LEARNED",
+                        pattern: patternText,
+                        trigger: triggerText,
+                        category: cat,
+                        semanticIndexed: true,
+                        totalPatterns: patterns.length,
+                        message: `Pattern noted, Sir. I'll ${triggerText ? `apply this when ${triggerText}` : 'incorporate this going forward'}. This is now part of my behavioral memory.`
+                    };
+                } catch (e: any) {
+                    addLog('WARN', `LEARN_PATTERN: Fallback to localStorage - ${e.message}`);
+                    // Fallback to localStorage
+                    const patterns = JSON.parse(localStorage.getItem('learned_patterns') || '[]');
+                    patterns.push({ pattern: patternText, trigger: triggerText, category: cat, learned: Date.now() });
+                    localStorage.setItem('learned_patterns', JSON.stringify(patterns));
+                    return {
+                        status: "PATTERN_LEARNED",
+                        pattern: patternText,
+                        trigger: triggerText,
+                        category: cat,
+                        message: `Pattern noted, Sir. I'll ${triggerText ? `apply this when ${triggerText}` : 'incorporate this going forward'}.`
+                    };
+                }
             }
 
             if (name === 'previous_session') {
@@ -2430,23 +2471,56 @@ Output the code with brief explanation.`,
 
             if (name === 'voice_journal') {
                 const { entry, category, mood, private: isPrivate } = args;
-                const journal = JSON.parse(localStorage.getItem('voice_journal') || '[]');
-                journal.push({
-                    id: `entry_${Date.now()}`,
-                    entry,
-                    category: category || 'thought',
-                    mood,
-                    private: isPrivate || false,
-                    timestamp: Date.now()
-                });
-                localStorage.setItem('voice_journal', JSON.stringify(journal));
-                addLog('SYSTEM', `📓 JOURNAL: ${category || 'thought'} logged`);
-                return {
-                    status: "JOURNAL_ENTRY_SAVED",
-                    category: category || 'thought',
-                    entryCount: journal.length,
-                    message: `Noted, Sir. ${category === 'gratitude' ? 'That\'s a lovely thought.' : 'Your reflection has been recorded.'}`
-                };
+                const entryId = `journal_${Date.now()}`;
+                const cat = (category as string) || 'thought';
+
+                // Store in SovereignMemory with semantic indexing
+                try {
+                    await sovereignMemory.store(entryId, JSON.stringify({
+                        type: 'journal_entry',
+                        entry,
+                        category: cat,
+                        mood: mood || null,
+                        private: isPrivate || false,
+                        source: 'voice',
+                        timestamp: Date.now()
+                    }));
+
+                    // Also store in neuralVault for cross-session persistence
+                    const existingJournal = await neuralVault.get('voice_journal') || [];
+                    existingJournal.push({
+                        id: entryId,
+                        entry,
+                        category: cat,
+                        mood,
+                        private: isPrivate || false,
+                        timestamp: Date.now()
+                    });
+                    // Keep last 100 entries
+                    if (existingJournal.length > 100) existingJournal.shift();
+                    await neuralVault.set('voice_journal', existingJournal);
+
+                    addLog('SYSTEM', `📓 JOURNAL: ${cat} stored in Neural Vault with semantic indexing`);
+                    return {
+                        status: "JOURNAL_ENTRY_SAVED",
+                        category: cat,
+                        entryId,
+                        semanticIndexed: true,
+                        message: `Noted, Sir. ${cat === 'gratitude' ? 'That\'s a lovely thought.' : 'Your reflection has been recorded and semantically indexed.'}`
+                    };
+                } catch (e: any) {
+                    addLog('WARN', `JOURNAL: Fallback to localStorage - ${e.message}`);
+                    // Fallback to localStorage
+                    const journal = JSON.parse(localStorage.getItem('voice_journal') || '[]');
+                    journal.push({ id: entryId, entry, category: cat, mood, private: isPrivate || false, timestamp: Date.now() });
+                    localStorage.setItem('voice_journal', JSON.stringify(journal));
+                    return {
+                        status: "JOURNAL_ENTRY_SAVED",
+                        category: cat,
+                        semanticIndexed: false,
+                        message: `Noted, Sir. Your reflection has been recorded.`
+                    };
+                }
             }
 
             if (name === 'smart_query') {
@@ -2869,57 +2943,192 @@ Output the code with brief explanation.`,
 
             if (name === 'remember_person') {
                 const { action: personAction, person, info, category } = args;
-                const people = JSON.parse(localStorage.getItem('people_memory') || '{}');
+                const personName = person as string;
+                const cat = (category as string) || 'note';
 
-                if (personAction === 'remember') {
-                    if (!people[person as string]) people[person as string] = {};
-                    people[person as string][category as string || 'note'] = info;
-                    people[person as string].lastUpdated = Date.now();
-                    localStorage.setItem('people_memory', JSON.stringify(people));
-                    addLog('SYSTEM', `👤 REMEMBERED: ${person}`);
-                    return { status: "PERSON_REMEMBERED", person, category, message: `Noted about ${person}, Sir.` };
-                }
+                try {
+                    if (personAction === 'remember') {
+                        // Store in SovereignMemory with semantic indexing for recall
+                        const memoryKey = `person_${personName.toLowerCase().replace(/\s+/g, '_')}_${cat}`;
+                        await sovereignMemory.store(memoryKey, JSON.stringify({
+                            type: 'person_memory',
+                            person: personName,
+                            category: cat,
+                            info,
+                            timestamp: Date.now()
+                        }));
 
-                if (personAction === 'recall') {
-                    const personData = people[person as string];
-                    if (personData) {
-                        return { status: "PERSON_RECALLED", person, data: personData };
+                        // Also persist to neuralVault for structured access
+                        const people = await neuralVault.get('people_memory') || {};
+                        if (!people[personName]) people[personName] = {};
+                        people[personName][cat] = info;
+                        people[personName].lastUpdated = Date.now();
+                        await neuralVault.set('people_memory', people);
+
+                        addLog('SYSTEM', `👤 REMEMBERED: ${personName} (${cat}) - semantically indexed`);
+                        return {
+                            status: "PERSON_REMEMBERED",
+                            person: personName,
+                            category: cat,
+                            semanticIndexed: true,
+                            message: `Noted about ${personName}, Sir. I'll remember this for future conversations.`
+                        };
                     }
-                    return { status: "PERSON_NOT_FOUND", person, message: `I don't have records on ${person}, Sir.` };
-                }
 
-                if (personAction === 'list') {
-                    return { status: "PEOPLE_LISTED", people: Object.keys(people), count: Object.keys(people).length };
-                }
+                    if (personAction === 'recall') {
+                        // Try semantic search first
+                        const searchResults = await sovereignMemory.query(`person ${personName}`, 5);
+                        const people = await neuralVault.get('people_memory') || {};
+                        const personData = people[personName];
 
-                return { status: "PERSON_ACTION", action: personAction, person };
+                        if (searchResults.length > 0 || personData) {
+                            // Parse semantic results
+                            const semanticInfo = searchResults.map(r => {
+                                try {
+                                    const parsed = JSON.parse(r.value);
+                                    return { category: parsed.category, info: parsed.info, relevance: r.similarity };
+                                } catch { return null; }
+                            }).filter(Boolean);
+
+                            return {
+                                status: "PERSON_RECALLED",
+                                person: personName,
+                                structuredData: personData || null,
+                                semanticMatches: semanticInfo,
+                                instruction: "Present what you know about this person conversationally."
+                            };
+                        }
+                        return { status: "PERSON_NOT_FOUND", person: personName, message: `I don't have records on ${personName}, Sir.` };
+                    }
+
+                    if (personAction === 'list') {
+                        const people = await neuralVault.get('people_memory') || {};
+                        const names = Object.keys(people);
+                        return {
+                            status: "PEOPLE_LISTED",
+                            people: names,
+                            count: names.length,
+                            message: names.length > 0 ? `I have notes on ${names.length} people, Sir.` : "I don't have any people in memory yet, Sir."
+                        };
+                    }
+
+                    return { status: "PERSON_ACTION", action: personAction, person: personName };
+                } catch (e: any) {
+                    addLog('WARN', `PERSON_MEMORY: Fallback to localStorage - ${e.message}`);
+                    // Fallback to localStorage
+                    const people = JSON.parse(localStorage.getItem('people_memory') || '{}');
+                    if (personAction === 'remember') {
+                        if (!people[personName]) people[personName] = {};
+                        people[personName][cat] = info;
+                        people[personName].lastUpdated = Date.now();
+                        localStorage.setItem('people_memory', JSON.stringify(people));
+                        return { status: "PERSON_REMEMBERED", person: personName, category: cat, message: `Noted about ${personName}, Sir.` };
+                    }
+                    if (personAction === 'recall') {
+                        const personData = people[personName];
+                        if (personData) return { status: "PERSON_RECALLED", person: personName, data: personData };
+                        return { status: "PERSON_NOT_FOUND", person: personName };
+                    }
+                    if (personAction === 'list') {
+                        return { status: "PEOPLE_LISTED", people: Object.keys(people), count: Object.keys(people).length };
+                    }
+                    return { status: "PERSON_ACTION", action: personAction, person: personName };
+                }
             }
 
             if (name === 'topic_memory') {
                 const { action: topicAction, topic, content } = args;
-                const topics = JSON.parse(localStorage.getItem('topic_memory') || '{}');
+                const topicName = topic as string;
 
-                if (topicAction === 'add') {
-                    if (!topics[topic as string]) topics[topic as string] = [];
-                    topics[topic as string].push({ content, added: Date.now() });
-                    localStorage.setItem('topic_memory', JSON.stringify(topics));
-                    addLog('SYSTEM', `📝 TOPIC: Added to ${topic}`);
-                    return { status: "TOPIC_UPDATED", topic, entries: topics[topic as string].length, message: `Added to ${topic} notes, Sir.` };
-                }
+                try {
+                    if (topicAction === 'add') {
+                        // Store in SovereignMemory with semantic indexing
+                        const memoryKey = `topic_${topicName.toLowerCase().replace(/\s+/g, '_')}_${Date.now()}`;
+                        await sovereignMemory.store(memoryKey, JSON.stringify({
+                            type: 'topic_memory',
+                            topic: topicName,
+                            content,
+                            timestamp: Date.now()
+                        }));
 
-                if (topicAction === 'recall') {
-                    const topicData = topics[topic as string];
-                    if (topicData && topicData.length > 0) {
-                        return { status: "TOPIC_RECALLED", topic, entries: topicData };
+                        // Also persist to neuralVault for structured access
+                        const topics = await neuralVault.get('topic_memory') || {};
+                        if (!topics[topicName]) topics[topicName] = [];
+                        topics[topicName].push({ content, added: Date.now() });
+                        await neuralVault.set('topic_memory', topics);
+
+                        addLog('SYSTEM', `📝 TOPIC: Added to ${topicName} - semantically indexed`);
+                        return {
+                            status: "TOPIC_UPDATED",
+                            topic: topicName,
+                            entries: topics[topicName].length,
+                            semanticIndexed: true,
+                            message: `Added to ${topicName} notes, Sir. This is now searchable across all your memories.`
+                        };
                     }
-                    return { status: "TOPIC_EMPTY", topic, message: `No notes on ${topic} yet, Sir.` };
-                }
 
-                if (topicAction === 'list') {
-                    return { status: "TOPICS_LISTED", topics: Object.keys(topics), count: Object.keys(topics).length };
-                }
+                    if (topicAction === 'recall') {
+                        // Try semantic search for richer results
+                        const searchResults = await sovereignMemory.query(`topic ${topicName}`, 10);
+                        const topics = await neuralVault.get('topic_memory') || {};
+                        const topicData = topics[topicName] || [];
 
-                return { status: "TOPIC_ACTION", action: topicAction, topic };
+                        // Parse semantic results
+                        const semanticEntries = searchResults.map(r => {
+                            try {
+                                const parsed = JSON.parse(r.value);
+                                if (parsed.topic?.toLowerCase() === topicName.toLowerCase()) {
+                                    return { content: parsed.content, timestamp: parsed.timestamp, relevance: r.similarity };
+                                }
+                                return null;
+                            } catch { return null; }
+                        }).filter(Boolean);
+
+                        if (topicData.length > 0 || semanticEntries.length > 0) {
+                            return {
+                                status: "TOPIC_RECALLED",
+                                topic: topicName,
+                                structuredEntries: topicData,
+                                semanticMatches: semanticEntries,
+                                totalEntries: Math.max(topicData.length, semanticEntries.length),
+                                instruction: "Present the topic notes conversationally, highlighting the most relevant information."
+                            };
+                        }
+                        return { status: "TOPIC_EMPTY", topic: topicName, message: `No notes on ${topicName} yet, Sir.` };
+                    }
+
+                    if (topicAction === 'list') {
+                        const topics = await neuralVault.get('topic_memory') || {};
+                        const topicNames = Object.keys(topics);
+                        return {
+                            status: "TOPICS_LISTED",
+                            topics: topicNames,
+                            count: topicNames.length,
+                            message: topicNames.length > 0 ? `You have notes on ${topicNames.length} topics, Sir.` : "No topic notes yet, Sir."
+                        };
+                    }
+
+                    return { status: "TOPIC_ACTION", action: topicAction, topic: topicName };
+                } catch (e: any) {
+                    addLog('WARN', `TOPIC_MEMORY: Fallback to localStorage - ${e.message}`);
+                    // Fallback to localStorage
+                    const topics = JSON.parse(localStorage.getItem('topic_memory') || '{}');
+                    if (topicAction === 'add') {
+                        if (!topics[topicName]) topics[topicName] = [];
+                        topics[topicName].push({ content, added: Date.now() });
+                        localStorage.setItem('topic_memory', JSON.stringify(topics));
+                        return { status: "TOPIC_UPDATED", topic: topicName, entries: topics[topicName].length, message: `Added to ${topicName} notes, Sir.` };
+                    }
+                    if (topicAction === 'recall') {
+                        const topicData = topics[topicName];
+                        if (topicData?.length > 0) return { status: "TOPIC_RECALLED", topic: topicName, entries: topicData };
+                        return { status: "TOPIC_EMPTY", topic: topicName };
+                    }
+                    if (topicAction === 'list') {
+                        return { status: "TOPICS_LISTED", topics: Object.keys(topics), count: Object.keys(topics).length };
+                    }
+                    return { status: "TOPIC_ACTION", action: topicAction, topic: topicName };
+                }
             }
 
             if (name === 'voice_shortcut') {
