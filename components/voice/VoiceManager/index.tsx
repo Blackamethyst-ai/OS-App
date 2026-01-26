@@ -1299,21 +1299,105 @@ const VoiceManager: React.FC = () => {
             // =================================================================
             if (name === 'analyze_code') {
                 const { target, analysisType } = args;
-                addLog('SYSTEM', `CODE: Analyzing ${target} (${analysisType || 'general'})...`);
-                // Route through think tool
-                return {
-                    status: "ANALYSIS_ROUTED",
-                    instruction: `Perform a ${analysisType || 'comprehensive'} analysis of: ${target}. Use your knowledge of the codebase.`
-                };
+                addLog('SYSTEM', `CODE: Analyzing ${target} (${analysisType || 'general'}) with Archon...`);
+
+                // Build relevant codebase context for the analysis target
+                const codebaseContext = buildCodebaseContext(target as string);
+
+                // Also get general codebase structure info
+                const structureInfo = Object.entries(CODEBASE_KNOWLEDGE.structure)
+                    .map(([path, desc]) => `- **${path}**: ${desc}`)
+                    .join('\n');
+
+                // Get pattern info
+                const patternInfo = Object.entries(CODEBASE_KNOWLEDGE.patterns)
+                    .map(([pattern, desc]) => `- **${pattern}**: ${desc}`)
+                    .join('\n');
+
+                // Run through Dr. Ira (The Sentinel) for thorough code analysis
+                try {
+                    const analysisResult = await runAgentReasoning(
+                        'dr_ira',  // Risk-focused, thorough analysis
+                        `Perform a ${analysisType || 'comprehensive'} code analysis of: ${target}
+
+CODEBASE STRUCTURE:
+${structureInfo}
+
+RELEVANT SUBSYSTEM CONTEXT:
+${codebaseContext || 'No specific subsystem detected - general codebase analysis.'}
+
+PATTERNS USED:
+${patternInfo}
+
+Provide: 1) Overview, 2) Key findings, 3) Potential issues, 4) Recommendations`,
+                        `Code analysis request for ${target}`
+                    );
+
+                    addLog('SUCCESS', `CODE: Analysis complete by ${analysisResult.agentName}`);
+
+                    return {
+                        status: "ANALYSIS_COMPLETE",
+                        target,
+                        analysisType: analysisType || 'general',
+                        analyzedBy: analysisResult.agentName,
+                        codebaseContextFound: !!codebaseContext,
+                        analysis: analysisResult.response,
+                        instruction: "Present the code analysis findings conversationally, highlighting key points and recommendations."
+                    };
+                } catch (error: any) {
+                    return {
+                        status: "ANALYSIS_FAILED",
+                        error: error.message,
+                        codebaseContext: codebaseContext || structureInfo,
+                        instruction: `Analysis failed: ${error.message}. Share the codebase context I gathered and offer to try again.`
+                    };
+                }
             }
 
             if (name === 'generate_code') {
                 const { description, language, style } = args;
-                addLog('SYSTEM', `CODE: Generating ${language || 'TypeScript'} code...`);
-                return {
-                    status: "GENERATION_ROUTED",
-                    instruction: `Generate ${style || 'production'}-quality ${language || 'TypeScript'} code for: ${description}`
-                };
+                const lang = (language as string) || 'TypeScript';
+                const codeStyle = (style as string) || 'production';
+                addLog('SYSTEM', `CODE: Generating ${lang} code with Mike...`);
+
+                // Get relevant codebase context
+                const codebaseContext = buildCodebaseContext(description as string);
+
+                try {
+                    // Run through Mike (The Builder) for code generation
+                    const generationResult = await runAgentReasoning(
+                        'mike',  // The Builder - energetic, implementation-focused
+                        `Generate ${codeStyle}-quality ${lang} code for: ${description}
+
+${codebaseContext ? `RELEVANT CODEBASE CONTEXT:\n${codebaseContext}` : ''}
+
+REQUIREMENTS:
+- Follow ${lang} best practices
+- ${codeStyle === 'production' ? 'Include error handling, types, and documentation' : 'Keep it clean and readable'}
+- Match existing codebase patterns if applicable
+
+Output the code with brief explanation.`,
+                        `Code generation: ${description}`
+                    );
+
+                    addLog('SUCCESS', `CODE: Generation complete by ${generationResult.agentName}`);
+
+                    return {
+                        status: "CODE_GENERATED",
+                        description,
+                        language: lang,
+                        style: codeStyle,
+                        generatedBy: generationResult.agentName,
+                        code: generationResult.response,
+                        instruction: "Present the generated code, explaining what it does and how to use it."
+                    };
+                } catch (error: any) {
+                    return {
+                        status: "GENERATION_FAILED",
+                        error: error.message,
+                        instruction: `Code generation failed: ${error.message}. Offer to try again or describe what you would generate.`
+                    };
+                }
             }
 
             // =================================================================
