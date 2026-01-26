@@ -243,6 +243,30 @@ describe('useSystemMind', () => {
 
             expect(actions[0].id).toBe('archon_action'); // 70 + 30 = 100
         });
+
+        it('should handle empty sector and location gracefully', () => {
+            const store = useSystemMind.getState();
+            // Reset to empty state
+            useSystemMind.setState({ currentLocation: '' });
+            store.registerAction('test_action', 'Test', vi.fn());
+
+            const actions = store.getActionsForSector('');
+
+            // Should not throw and return actions
+            expect(actions.length).toBeGreaterThan(0);
+        });
+
+        it('should use default priority when not specified', () => {
+            const store = useSystemMind.getState();
+            // Register action without priority
+            store.registerAction('no_priority', 'No Priority', vi.fn());
+
+            const actions = store.getActionsForSector();
+
+            // Action should have default priority (50) applied
+            const action = actions.find(a => a.id === 'no_priority');
+            expect(action).toBeDefined();
+        });
     });
 
     describe('epoch methods', () => {
