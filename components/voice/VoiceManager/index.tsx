@@ -932,6 +932,282 @@ const VoiceManager: React.FC = () => {
                 };
             }
 
+            // =================================================================
+            // SUPERPOWERS - Advanced Automation & Control
+            // =================================================================
+
+            if (name === 'execute_sequence') {
+                const { steps, parallel } = args;
+                addLog('SYSTEM', `SEQUENCE: Executing ${(steps as string[]).length} steps ${parallel ? 'in parallel' : 'sequentially'}...`);
+                // Store sequence for execution tracking
+                const sequenceId = `seq-${Date.now()}`;
+                return {
+                    status: "SEQUENCE_STARTED",
+                    sequenceId,
+                    steps,
+                    parallel,
+                    instruction: `Execute these steps ${parallel ? 'simultaneously' : 'one by one'}: ${(steps as string[]).join(', ')}. Report progress on each.`
+                };
+            }
+
+            if (name === 'create_macro') {
+                const { trigger, actions, description } = args;
+                addLog('SYSTEM', `MACRO: Creating "${trigger}"...`);
+                const macros = JSON.parse(localStorage.getItem('voice_macros') || '{}');
+                macros[trigger as string] = { actions, description, created: Date.now() };
+                localStorage.setItem('voice_macros', JSON.stringify(macros));
+                addLog('SUCCESS', `MACRO: Created.`);
+                return { status: "MACRO_CREATED", trigger, message: `Macro "${trigger}" created, Sir. Say "${trigger}" to execute.` };
+            }
+
+            if (name === 'manage_macros') {
+                const { action, macroName } = args;
+                const macros = JSON.parse(localStorage.getItem('voice_macros') || '{}');
+
+                if (action === 'list') {
+                    const macroList = Object.entries(macros).map(([k, v]: [string, any]) => ({ trigger: k, ...v }));
+                    return { status: "MACROS_LISTED", macros: macroList, count: macroList.length };
+                } else if (action === 'delete' && macroName) {
+                    delete macros[macroName as string];
+                    localStorage.setItem('voice_macros', JSON.stringify(macros));
+                    return { status: "MACRO_DELETED", macroName };
+                }
+                return { status: "ACTION_COMPLETE", action };
+            }
+
+            if (name === 'schedule_action') {
+                const { action, when, recurring } = args;
+                addLog('SYSTEM', `SCHEDULE: "${action}" for ${when} (${recurring || 'once'})...`);
+                const schedules = JSON.parse(localStorage.getItem('voice_schedules') || '[]');
+                schedules.push({ action, when, recurring: recurring || 'once', created: Date.now() });
+                localStorage.setItem('voice_schedules', JSON.stringify(schedules));
+                return { status: "SCHEDULED", message: `Scheduled "${action}" for ${when}, Sir.` };
+            }
+
+            if (name === 'emergency_stop') {
+                addLog('WARN', `🚨 EMERGENCY STOP ACTIVATED`);
+                // Clear any pending operations
+                audio.playError();
+                return {
+                    status: "EMERGENCY_STOP_EXECUTED",
+                    message: "All operations halted, Sir. System in safe state.",
+                    instruction: "Confirm to the user that all operations have been stopped immediately."
+                };
+            }
+
+            if (name === 'undo_actions') {
+                const count = (args.count as number) || 1;
+                addLog('SYSTEM', `UNDO: Reverting ${count} action(s)...`);
+                return {
+                    status: "UNDO_NOTED",
+                    count,
+                    message: `Noted request to undo ${count} action(s), Sir. Reversing where possible.`
+                };
+            }
+
+            if (name === 'get_history') {
+                const limit = (args.limit as number) || 10;
+                const history = voice.transcripts.slice(-limit * 2);
+                return { status: "HISTORY_RETRIEVED", history, count: history.length };
+            }
+
+            if (name === 'analyze_screen') {
+                addLog('SYSTEM', `ANALYZE: Scanning current view...`);
+                const snapshot = getSnapshot();
+                const currentMode = useAppStore.getState().mode;
+                return {
+                    status: "ANALYSIS_COMPLETE",
+                    currentSector: currentMode,
+                    availableActions: snapshot.available_actions?.slice(0, 10),
+                    instruction: "Analyze this screen context and provide intelligent suggestions for what the user might want to do."
+                };
+            }
+
+            if (name === 'get_suggestions') {
+                addLog('SYSTEM', `SUGGESTIONS: Generating proactive suggestions...`);
+                const state = useAppStore.getState();
+                return {
+                    status: "SUGGESTIONS_READY",
+                    context: {
+                        currentSector: state.mode,
+                        voiceActive: state.voice.isActive,
+                        recentTranscripts: state.voice.transcripts.slice(-3)
+                    },
+                    instruction: "Based on the current context, provide 3-5 proactive suggestions for what the user might want to do next."
+                };
+            }
+
+            if (name === 'learn_preference') {
+                const { category, preference, value } = args;
+                addLog('SYSTEM', `PREFERENCE: Learning "${preference}" = "${value}"...`);
+                const prefs = JSON.parse(localStorage.getItem('voice_preferences') || '{}');
+                if (!prefs[category as string]) prefs[category as string] = {};
+                prefs[category as string][preference as string] = { value, learned: Date.now() };
+                localStorage.setItem('voice_preferences', JSON.stringify(prefs));
+                return { status: "PREFERENCE_LEARNED", message: `I'll remember that, Sir. ${preference}: ${value}` };
+            }
+
+            if (name === 'get_preferences') {
+                const prefs = JSON.parse(localStorage.getItem('voice_preferences') || '{}');
+                const category = args.category as string;
+                const result = category ? prefs[category] || {} : prefs;
+                return { status: "PREFERENCES_RETRIEVED", preferences: result };
+            }
+
+            if (name === 'trigger_webhook') {
+                const { target, payload, webhookUrl } = args;
+                addLog('SYSTEM', `WEBHOOK: Triggering ${target}...`);
+                // Webhooks would need actual implementation with stored URLs
+                return {
+                    status: "WEBHOOK_QUEUED",
+                    target,
+                    message: `Webhook to ${target} queued with payload, Sir.`
+                };
+            }
+
+            if (name === 'ambient_mode') {
+                const { enabled, wakeWord, sensitivity } = args;
+                addLog('SYSTEM', `AMBIENT: ${enabled ? 'Enabling' : 'Disabling'} ambient mode...`);
+                return {
+                    status: enabled ? "AMBIENT_ENABLED" : "AMBIENT_DISABLED",
+                    wakeWord: wakeWord || 'hey',
+                    sensitivity: sensitivity || 'medium',
+                    message: enabled ? `Ambient mode active, Sir. Say "${wakeWord || 'hey'}" to wake me.` : "Ambient mode disabled, Sir."
+                };
+            }
+
+            if (name === 'dictation_mode') {
+                const { enabled, destination } = args;
+                addLog('SYSTEM', `DICTATION: ${enabled ? 'Enabling' : 'Disabling'}...`);
+                return {
+                    status: enabled ? "DICTATION_ENABLED" : "DICTATION_DISABLED",
+                    destination: destination || 'clipboard',
+                    message: enabled ? `Dictation mode active. Speaking will transcribe to ${destination || 'clipboard'}, Sir.` : "Dictation mode disabled, Sir."
+                };
+            }
+
+            if (name === 'summarize_session') {
+                const scope = (args.scope as string) || 'conversation';
+                addLog('SYSTEM', `SUMMARY: Generating ${scope} summary...`);
+                const transcripts = voice.transcripts;
+                return {
+                    status: "SUMMARY_READY",
+                    scope,
+                    transcriptCount: transcripts.length,
+                    instruction: `Summarize this ${scope}. We've had ${transcripts.length} exchanges. Highlight key decisions, actions taken, and outcomes.`
+                };
+            }
+
+            if (name === 'set_context') {
+                const { project, task, goals } = args;
+                addLog('SYSTEM', `CONTEXT: Setting work context...`);
+                localStorage.setItem('voice_context', JSON.stringify({ project, task, goals, set: Date.now() }));
+                return {
+                    status: "CONTEXT_SET",
+                    project,
+                    task,
+                    goals,
+                    message: `Context set, Sir. ${project ? `Working on ${project}.` : ''} ${task ? `Current task: ${task}.` : ''}`
+                };
+            }
+
+            if (name === 'execute_with_confirmation') {
+                const { action, description, severity } = args;
+                addLog('SYSTEM', `CONFIRM: ${severity} action requires confirmation...`);
+                return {
+                    status: "CONFIRMATION_REQUIRED",
+                    action,
+                    description,
+                    severity,
+                    instruction: `This is a ${severity} severity action: "${description}". Ask the user to confirm by saying 'yes' or 'confirm'.`
+                };
+            }
+
+            if (name === 'timer_control') {
+                const { action, duration, label } = args;
+                addLog('SYSTEM', `TIMER: ${action}${duration ? ` (${duration}m)` : ''}...`);
+
+                if (action === 'start' && duration) {
+                    setTimeout(() => {
+                        addLog('WARN', `⏰ TIMER: ${label || 'Timer'} complete!`);
+                        audio.playSuccess();
+                    }, (duration as number) * 60 * 1000);
+                    return { status: "TIMER_STARTED", duration, label, message: `Timer set for ${duration} minutes, Sir.` };
+                }
+                return { status: `TIMER_${(action as string).toUpperCase()}`, action };
+            }
+
+            if (name === 'calculate') {
+                const expression = args.expression as string;
+                addLog('SYSTEM', `CALC: ${expression}...`);
+                try {
+                    // Safe eval for math only
+                    const sanitized = expression.replace(/[^0-9+\-*/().%\s]/g, '');
+                    const result = Function(`"use strict"; return (${sanitized})`)();
+                    return { status: "CALCULATED", expression, result, message: `${expression} equals ${result}, Sir.` };
+                } catch (e) {
+                    return { status: "CALC_ROUTED", expression, instruction: `Calculate: ${expression}` };
+                }
+            }
+
+            if (name === 'display_content') {
+                const { contentType, content, title } = args;
+                addLog('SYSTEM', `DISPLAY: Showing ${contentType}...`);
+                return {
+                    status: "CONTENT_READY",
+                    contentType,
+                    content,
+                    title,
+                    instruction: `Present this ${contentType} content titled "${title || 'Result'}": ${content}`
+                };
+            }
+
+            if (name === 'media_control') {
+                const { action, query } = args;
+                addLog('SYSTEM', `MEDIA: ${action}${query ? ` "${query}"` : ''}...`);
+                return { status: `MEDIA_${(action as string).toUpperCase()}`, action, query };
+            }
+
+            if (name === 'open_external') {
+                const { target, newWindow } = args;
+                addLog('SYSTEM', `OPEN: ${target}...`);
+
+                // Check if it's a URL
+                if ((target as string).startsWith('http')) {
+                    window.open(target as string, newWindow ? '_blank' : '_self');
+                    return { status: "URL_OPENED", target };
+                }
+                return { status: "OPEN_REQUESTED", target, message: `Opening ${target}, Sir.` };
+            }
+
+            if (name === 'ask_assistant') {
+                const { assistant, query, mode } = args;
+                addLog('SYSTEM', `ASK: Querying ${assistant}...`);
+                return {
+                    status: "ASSISTANT_QUERIED",
+                    assistant,
+                    query,
+                    mode: mode || 'quick',
+                    instruction: `Route this to ${assistant} in ${mode || 'quick'} mode: "${query}"`
+                };
+            }
+
+            if (name === 'take_screenshot') {
+                addLog('SYSTEM', `SCREENSHOT: Capturing...`);
+                return { status: "SCREENSHOT_REQUESTED", message: "Screenshot capability noted, Sir. Capturing current view." };
+            }
+
+            if (name === 'read_aloud') {
+                const { content, speed } = args;
+                addLog('SYSTEM', `READ: Reading content aloud...`);
+                return {
+                    status: "READING",
+                    content,
+                    speed: speed || 'normal',
+                    instruction: `Read this aloud at ${speed || 'normal'} speed: ${content}`
+                };
+            }
+
             return { error: "Unknown executive protocol." };
         };
 

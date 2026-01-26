@@ -696,6 +696,412 @@ export const repeatResponseTool: FunctionDeclaration = {
     }
 };
 
+// =============================================================================
+// SUPERPOWERS - Advanced Automation & Control
+// =============================================================================
+
+/**
+ * Execute a multi-step automation sequence.
+ */
+export const executeSequenceTool: FunctionDeclaration = {
+    name: "execute_sequence",
+    description: "Execute a multi-step automation sequence. Chain multiple actions together. Use when user says 'do X then Y then Z', 'automate this workflow', 'chain these actions'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            steps: {
+                type: Type.ARRAY,
+                items: { type: Type.STRING },
+                description: "List of actions to execute in sequence"
+            },
+            parallel: { type: Type.BOOLEAN, description: "Execute steps in parallel instead of sequence" }
+        },
+        required: ["steps"]
+    }
+};
+
+/**
+ * Create a voice macro - custom command shortcut.
+ */
+export const createMacroTool: FunctionDeclaration = {
+    name: "create_macro",
+    description: "Create a custom voice macro - when user says trigger phrase, execute actions. Use when user says 'when I say X, do Y', 'create shortcut for', 'make a macro'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            trigger: { type: Type.STRING, description: "The phrase that triggers this macro" },
+            actions: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Actions to execute when triggered" },
+            description: { type: Type.STRING, description: "What this macro does" }
+        },
+        required: ["trigger", "actions"]
+    }
+};
+
+/**
+ * List and manage macros.
+ */
+export const manageMacrosTool: FunctionDeclaration = {
+    name: "manage_macros",
+    description: "List, edit, or delete voice macros. Use when user asks 'what macros do I have', 'list shortcuts', 'delete macro X'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["list", "delete", "edit"], description: "Action to perform" },
+            macroName: { type: Type.STRING, description: "Name of macro for delete/edit" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Schedule a future action.
+ */
+export const scheduleActionTool: FunctionDeclaration = {
+    name: "schedule_action",
+    description: "Schedule an action for later - specific time or recurring. Use when user says 'at 3pm do X', 'every morning run Y', 'schedule this for tomorrow'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, description: "The action to schedule" },
+            when: { type: Type.STRING, description: "When to execute (e.g., '3pm', 'in 2 hours', 'tomorrow 9am')" },
+            recurring: { type: Type.STRING, enum: ["once", "daily", "weekly", "hourly"], description: "Recurrence pattern" }
+        },
+        required: ["action", "when"]
+    }
+};
+
+/**
+ * Emergency stop - halt all operations.
+ */
+export const emergencyStopTool: FunctionDeclaration = {
+    name: "emergency_stop",
+    description: "EMERGENCY STOP - immediately halt all running operations, cancel pending actions, and return to safe state. Use when user says 'stop', 'cancel everything', 'abort', 'halt', 'emergency stop'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {},
+        required: []
+    }
+};
+
+/**
+ * Undo recent actions.
+ */
+export const undoActionsTool: FunctionDeclaration = {
+    name: "undo_actions",
+    description: "Undo recent actions. Use when user says 'undo', 'go back', 'revert that', 'undo last 3 actions'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            count: { type: Type.NUMBER, description: "Number of actions to undo (default: 1)" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Get action history.
+ */
+export const getHistoryTool: FunctionDeclaration = {
+    name: "get_history",
+    description: "Get history of recent actions and commands. Use when user asks 'what did I do', 'show history', 'recent actions'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            limit: { type: Type.NUMBER, description: "Number of actions to show (default: 10)" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Analyze current screen/context.
+ */
+export const analyzeScreenTool: FunctionDeclaration = {
+    name: "analyze_screen",
+    description: "Analyze what's currently on screen and provide intelligent suggestions. Use when user asks 'what am I looking at', 'analyze this view', 'what should I do here', 'help me with this'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            focusArea: { type: Type.STRING, description: "Specific area to focus analysis on" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Get proactive suggestions.
+ */
+export const getSuggestionsTool: FunctionDeclaration = {
+    name: "get_suggestions",
+    description: "Get intelligent proactive suggestions based on current context, time, and patterns. Use when user asks 'what should I do', 'any suggestions', 'what's next'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {},
+        required: []
+    }
+};
+
+/**
+ * Learn a preference.
+ */
+export const learnPreferenceTool: FunctionDeclaration = {
+    name: "learn_preference",
+    description: "Learn and remember a user preference for future interactions. Use when user says 'I prefer X', 'always do Y', 'remember I like Z', 'default to'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            category: { type: Type.STRING, description: "Category of preference (e.g., 'voice', 'ui', 'workflow', 'code')" },
+            preference: { type: Type.STRING, description: "The preference to remember" },
+            value: { type: Type.STRING, description: "The preferred value or behavior" }
+        },
+        required: ["preference", "value"]
+    }
+};
+
+/**
+ * Get learned preferences.
+ */
+export const getPreferencesTool: FunctionDeclaration = {
+    name: "get_preferences",
+    description: "Retrieve learned preferences. Use when user asks 'what are my preferences', 'how do I like things', 'show my settings'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            category: { type: Type.STRING, description: "Filter by category (optional)" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Trigger external webhook/integration.
+ */
+export const triggerWebhookTool: FunctionDeclaration = {
+    name: "trigger_webhook",
+    description: "Trigger an external webhook or integration. Use when user says 'notify Slack', 'send to webhook', 'trigger integration', 'post to Discord'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            target: { type: Type.STRING, description: "Target service or webhook name" },
+            payload: { type: Type.STRING, description: "Message or data to send" },
+            webhookUrl: { type: Type.STRING, description: "Direct webhook URL (optional)" }
+        },
+        required: ["target", "payload"]
+    }
+};
+
+/**
+ * Control ambient/always-on mode.
+ */
+export const ambientModeTool: FunctionDeclaration = {
+    name: "ambient_mode",
+    description: "Control ambient/always-listening mode. When enabled, the AI listens passively and responds to wake words. Use when user says 'stay listening', 'ambient mode', 'always on', 'wake word mode'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            enabled: { type: Type.BOOLEAN, description: "Enable or disable ambient mode" },
+            wakeWord: { type: Type.STRING, description: "Custom wake word (default: 'hey')" },
+            sensitivity: { type: Type.STRING, enum: ["low", "medium", "high"], description: "Wake word sensitivity" }
+        },
+        required: ["enabled"]
+    }
+};
+
+/**
+ * Dictation mode - pure transcription.
+ */
+export const dictationModeTool: FunctionDeclaration = {
+    name: "dictation_mode",
+    description: "Enter dictation mode - pure speech-to-text without AI responses. Use when user says 'dictation mode', 'just transcribe', 'take notes', 'transcription only'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            enabled: { type: Type.BOOLEAN, description: "Enable or disable dictation mode" },
+            destination: { type: Type.STRING, description: "Where to send transcribed text (clipboard, file, input field)" }
+        },
+        required: ["enabled"]
+    }
+};
+
+/**
+ * Summarize conversation/session.
+ */
+export const summarizeSessionTool: FunctionDeclaration = {
+    name: "summarize_session",
+    description: "Summarize the current conversation or work session. Use when user says 'summarize this', 'what did we cover', 'session summary', 'recap'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            scope: { type: Type.STRING, enum: ["conversation", "session", "day", "week"], description: "Scope of summary" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Set context/working on.
+ */
+export const setContextTool: FunctionDeclaration = {
+    name: "set_context",
+    description: "Set what you're currently working on so AI can provide relevant assistance. Use when user says 'I'm working on X', 'context is Y', 'focusing on Z'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            project: { type: Type.STRING, description: "Current project name" },
+            task: { type: Type.STRING, description: "Current task description" },
+            goals: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Session goals" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Execute with confirmation.
+ */
+export const executeWithConfirmationTool: FunctionDeclaration = {
+    name: "execute_with_confirmation",
+    description: "Execute a potentially destructive or important action with user confirmation. The AI will describe what will happen and ask for confirmation.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, description: "The action to execute" },
+            description: { type: Type.STRING, description: "Human-readable description of what will happen" },
+            severity: { type: Type.STRING, enum: ["low", "medium", "high", "critical"], description: "Severity/importance level" }
+        },
+        required: ["action", "description"]
+    }
+};
+
+/**
+ * Voice-controlled timer/stopwatch.
+ */
+export const timerControlTool: FunctionDeclaration = {
+    name: "timer_control",
+    description: "Control timers and stopwatches by voice. Use when user says 'start timer', 'stop timer', 'how much time left', 'start stopwatch', 'lap time'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["start", "stop", "pause", "resume", "lap", "status", "reset"], description: "Timer action" },
+            duration: { type: Type.NUMBER, description: "Duration in minutes (for countdown timer)" },
+            label: { type: Type.STRING, description: "Label for this timer" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Quick math/calculation.
+ */
+export const calculateTool: FunctionDeclaration = {
+    name: "calculate",
+    description: "Perform quick calculations. Use when user asks math questions, conversions, or says 'calculate', 'what is X times Y', 'convert X to Y'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            expression: { type: Type.STRING, description: "Math expression or conversion to calculate" }
+        },
+        required: ["expression"]
+    }
+};
+
+/**
+ * Generate and display content.
+ */
+export const displayContentTool: FunctionDeclaration = {
+    name: "display_content",
+    description: "Generate and display content in a modal or overlay. Use when user wants to see generated content, charts, or visualizations.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            contentType: { type: Type.STRING, enum: ["text", "code", "chart", "diagram", "table"], description: "Type of content to display" },
+            content: { type: Type.STRING, description: "Content to display or instructions for generation" },
+            title: { type: Type.STRING, description: "Title for the display" }
+        },
+        required: ["contentType", "content"]
+    }
+};
+
+/**
+ * Control music/media playback.
+ */
+export const mediaControlTool: FunctionDeclaration = {
+    name: "media_control",
+    description: "Control media playback - play/pause music, adjust volume, skip tracks. Use when user says 'play music', 'pause', 'next track', 'volume up'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["play", "pause", "stop", "next", "previous", "volume_up", "volume_down", "mute"], description: "Media action" },
+            query: { type: Type.STRING, description: "Search query for play action" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Open external app/URL.
+ */
+export const openExternalTool: FunctionDeclaration = {
+    name: "open_external",
+    description: "Open an external application, URL, or file. Use when user says 'open Chrome', 'go to github.com', 'open the document', 'launch Slack'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            target: { type: Type.STRING, description: "App name, URL, or file path to open" },
+            newWindow: { type: Type.BOOLEAN, description: "Open in new window/tab" }
+        },
+        required: ["target"]
+    }
+};
+
+/**
+ * Query/interact with AI assistants.
+ */
+export const askAssistantTool: FunctionDeclaration = {
+    name: "ask_assistant",
+    description: "Query a specific AI model or assistant for a task. Use when user wants to specifically use Claude, GPT, or another model. 'Ask Claude about X', 'Get GPT's opinion on Y'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            assistant: { type: Type.STRING, enum: ["claude", "gemini", "gpt", "local"], description: "Which assistant to query" },
+            query: { type: Type.STRING, description: "The question or task" },
+            mode: { type: Type.STRING, enum: ["quick", "deep", "creative"], description: "Response mode" }
+        },
+        required: ["assistant", "query"]
+    }
+};
+
+/**
+ * Take a screenshot.
+ */
+export const screenshotTool: FunctionDeclaration = {
+    name: "take_screenshot",
+    description: "Take a screenshot of current view. Use when user says 'screenshot', 'capture screen', 'save this view'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            area: { type: Type.STRING, enum: ["full", "visible", "element"], description: "Area to capture" },
+            elementId: { type: Type.STRING, description: "Element ID if capturing specific element" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Text-to-speech for reading content.
+ */
+export const readAloudTool: FunctionDeclaration = {
+    name: "read_aloud",
+    description: "Read text content aloud. Use when user says 'read this', 'read aloud', 'read the article', 'read selected text'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            content: { type: Type.STRING, description: "Text to read (or 'selected' for selected text, 'clipboard' for clipboard)" },
+            speed: { type: Type.STRING, enum: ["slow", "normal", "fast"], description: "Reading speed" }
+        },
+        required: ["content"]
+    }
+};
+
 /**
  * All voice tools for Gemini Live API.
  */
@@ -775,4 +1181,31 @@ export const VOICE_TOOLS: FunctionDeclaration[] = [
     // === VOICE CONTROL ===
     voiceSettingsTool,
     repeatResponseTool,
+
+    // === SUPERPOWERS ===
+    executeSequenceTool,
+    createMacroTool,
+    manageMacrosTool,
+    scheduleActionTool,
+    emergencyStopTool,
+    undoActionsTool,
+    getHistoryTool,
+    analyzeScreenTool,
+    getSuggestionsTool,
+    learnPreferenceTool,
+    getPreferencesTool,
+    triggerWebhookTool,
+    ambientModeTool,
+    dictationModeTool,
+    summarizeSessionTool,
+    setContextTool,
+    executeWithConfirmationTool,
+    timerControlTool,
+    calculateTool,
+    displayContentTool,
+    mediaControlTool,
+    openExternalTool,
+    askAssistantTool,
+    screenshotTool,
+    readAloudTool,
 ];
