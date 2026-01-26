@@ -119,6 +119,27 @@ describe('BrowserModeHandler', () => {
 
             expect(mockStopStreaming).not.toHaveBeenCalled();
         });
+
+        it('should clear pending processingTimeout when stopped during debounce', async () => {
+            await browserMode.start(mockContext);
+            const callback = (global as any).__sttCallback;
+
+            // Trigger transcript which sets processingTimeout
+            callback('Hello world');
+
+            // Verify timeout was set
+            expect((browserMode as any).processingTimeout).not.toBeNull();
+
+            // Stop before debounce completes (before 1.5s)
+            browserMode.stop(mockContext);
+
+            // Verify timeout was cleared
+            expect((browserMode as any).processingTimeout).toBeNull();
+
+            // Advance time to verify processing doesn't happen
+            await vi.advanceTimersByTimeAsync(2000);
+            expect(mockContext.processText).not.toHaveBeenCalled();
+        });
     });
 
     describe('transcript handling', () => {

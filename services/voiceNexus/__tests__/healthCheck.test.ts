@@ -169,6 +169,17 @@ describe('VoiceNexus Health Check', () => {
             expect(health.status).toBe('unavailable');
             expect(health.error).toContain('Claude API key');
         });
+
+        it('should handle exceptions', async () => {
+            mockClaudeReasoningIsAvailable.mockImplementation(() => {
+                throw new Error('Claude service error');
+            });
+
+            const health = await checkClaudeHealth();
+
+            expect(health.status).toBe('error');
+            expect(health.error).toBe('Claude service error');
+        });
     });
 
     describe('checkGeminiReasoningHealth', () => {
@@ -185,6 +196,17 @@ describe('VoiceNexus Health Check', () => {
             const health = await checkGeminiReasoningHealth();
 
             expect(health.status).toBe('unavailable');
+        });
+
+        it('should handle exceptions', async () => {
+            mockGeminiReasoningIsAvailable.mockImplementation(() => {
+                throw new Error('Gemini service error');
+            });
+
+            const health = await checkGeminiReasoningHealth();
+
+            expect(health.status).toBe('error');
+            expect(health.error).toBe('Gemini service error');
         });
     });
 
@@ -206,6 +228,17 @@ describe('VoiceNexus Health Check', () => {
             expect(health.status).toBe('unavailable');
             expect(health.error).toContain('ElevenLabs API key');
         });
+
+        it('should handle exceptions', async () => {
+            mockElevenLabsTTSIsAvailable.mockImplementation(() => {
+                throw new Error('ElevenLabs service error');
+            });
+
+            const health = await checkElevenLabsHealth();
+
+            expect(health.status).toBe('error');
+            expect(health.error).toBe('ElevenLabs service error');
+        });
     });
 
     describe('checkBrowserTTSHealth', () => {
@@ -222,6 +255,17 @@ describe('VoiceNexus Health Check', () => {
             const health = await checkBrowserTTSHealth();
 
             expect(health.status).toBe('unavailable');
+        });
+
+        it('should handle exceptions', async () => {
+            mockBrowserTTSIsAvailable.mockImplementation(() => {
+                throw new Error('Browser TTS error');
+            });
+
+            const health = await checkBrowserTTSHealth();
+
+            expect(health.status).toBe('error');
+            expect(health.error).toBe('Browser TTS error');
         });
     });
 
