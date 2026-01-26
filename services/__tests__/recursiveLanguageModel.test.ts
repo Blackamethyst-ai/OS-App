@@ -484,4 +484,281 @@ describe('Recursive Language Model Service', () => {
             expect(result.dqScore).toBeUndefined();
         });
     });
+
+    describe('Empty and Edge Cases', () => {
+        it('should handle empty code blocks', async () => {
+            const emptyCodeResponse = {
+                text: JSON.stringify({
+                    thinking: 'Empty thinking',
+                    code: ''
+                })
+            };
+
+            const finalResponse = {
+                text: JSON.stringify({
+                    thinking: 'Now finish',
+                    code: 'FINAL("after empty")'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest)
+                .mockResolvedValueOnce(emptyCodeResponse)
+                .mockResolvedValueOnce(finalResponse);
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { enableDQScoring: false, verbose: false }
+            );
+
+            expect(result.answer).toBe('after empty');
+        });
+
+        it('should handle malformed JSON response', async () => {
+            const malformedResponse = {
+                text: 'not json at all'
+            };
+
+            const validResponse = {
+                text: JSON.stringify({
+                    thinking: 'Valid',
+                    code: 'FINAL("recovered")'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest)
+                .mockResolvedValueOnce(malformedResponse)
+                .mockResolvedValueOnce(validResponse);
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { enableDQScoring: false }
+            );
+
+            // Should recover on next iteration
+            expect(result.answer).toBe('recovered');
+        });
+
+        it('should handle string literals with single quotes', async () => {
+            const response = {
+                text: JSON.stringify({
+                    thinking: 'Test single quotes',
+                    code: "x = 'single quoted'\nFINAL(x)"
+                })
+            };
+
+            vi.mocked(retryGeminiRequest).mockResolvedValue(response);
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { enableDQScoring: false }
+            );
+
+            expect(result.answer).toBe('single quoted');
+        });
+
+        it('should handle numeric expressions', async () => {
+            const response = {
+                text: JSON.stringify({
+                    thinking: 'Test numbers',
+                    code: 'x = 123.45\nFINAL(x)'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest).mockResolvedValue(response);
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { enableDQScoring: false }
+            );
+
+            expect(result.answer).toBe('123.45');
+        });
+
+        it('should handle split string operation', async () => {
+            const responses = [
+                {
+                    text: JSON.stringify({
+                        thinking: 'Split string',
+                        code: 'text = "a,b,c"\nparts = text.split(",")\nFINAL(parts)'
+                    })
+                }
+            ];
+
+            vi.mocked(retryGeminiRequest).mockResolvedValue(responses[0]);
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { enableDQScoring: false }
+            );
+
+            expect(result.answer).toContain('a');
+        });
+
+        it('should track status through synthesizing phase', async () => {
+            const response = {
+                text: JSON.stringify({
+                    thinking: 'Answer',
+                    code: 'FINAL("done")'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest).mockResolvedValue(response);
+
+            const statusUpdates: RLMStatus[] = [];
+            await recursiveLLMQuery(
+                'context',
+                'query',
+                (status) => statusUpdates.push({ ...status }),
+                { enableDQScoring: true }
+            );
+
+            const phases = statusUpdates.map(s => s.phase);
+            expect(phases).toContain('synthesizing');
+        });
+    });
+
+    describe('REPL Code Block Extraction', () => {
+        it('should extract code from repl markdown blocks', async () => {
+            const response = {
+                text: JSON.stringify({
+                    thinking: 'REPL block',
+                    code: '```repl\nFINAL("from repl block")\n```'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest).mockResolvedValue(response);
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { enableDQScoring: false }
+            );
+
+            expect(result.answer).toBe('from repl block');
+        });
+
+        it('should handle context_length variable', async () => {
+            const response = {
+                text: JSON.stringify({
+                    thinking: 'Get context length',
+                    code: 'length = context_length\nFINAL(length)'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest).mockResolvedValue(response);
+
+            const result = await recursiveLLMQuery(
+                'Hello World!', // 12 chars
+                'query',
+                undefined,
+                { enableDQScoring: false }
+            );
+
+            expect(result.answer).toBe('12');
+        });
+
+        it('should skip comment lines', async () => {
+            const response = {
+                text: JSON.stringify({
+                    thinking: 'With comments',
+                    code: '# This is a comment\n# Another comment\nFINAL("no comments")'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest).mockResolvedValue(response);
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { enableDQScoring: false }
+            );
+
+            expect(result.answer).toBe('no comments');
+        });
+    });
+
+    describe('Verbose Logging', () => {
+        it('should log when verbose is enabled', async () => {
+            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+            const response = {
+                text: JSON.stringify({
+                    thinking: 'Verbose test',
+                    code: 'FINAL("done")'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest).mockResolvedValue(response);
+
+            await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { enableDQScoring: false, verbose: true }
+            );
+
+            // Check that verbose logging occurred
+            expect(consoleSpy).toHaveBeenCalled();
+            const calls = consoleSpy.mock.calls.flat();
+            expect(calls.some(c => String(c).includes('[RLM]'))).toBe(true);
+
+            consoleSpy.mockRestore();
+        });
+    });
+
+    describe('Timeout Behavior', () => {
+        it('should return last output when max iterations reached without FINAL', async () => {
+            const nonFinalResponse = {
+                text: JSON.stringify({
+                    thinking: 'Keep working',
+                    code: 'print("partial result")'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest).mockResolvedValue(nonFinalResponse);
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { maxIterations: 2, enableDQScoring: false }
+            );
+
+            expect(result.iterations).toBe(2);
+            expect(result.answer).toContain('partial result');
+        });
+
+        it('should return "No answer found" when no output generated', async () => {
+            const emptyResponse = {
+                text: JSON.stringify({
+                    thinking: 'Nothing',
+                    code: '# just a comment'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest).mockResolvedValue(emptyResponse);
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { maxIterations: 1, enableDQScoring: false }
+            );
+
+            // Comment lines are skipped, no output, trajectory empty
+            expect(result.answer).toBe('No answer found');
+        });
+    });
 });
