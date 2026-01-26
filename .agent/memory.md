@@ -36,3 +36,17 @@
 - `components/voice/VoiceManager/parts/tools.ts` = Gemini API schemas (FunctionDeclarations)
 - `services/actions/handlers/sovereign.ts` = Handler implementations (UnifiedAction)
 - These are complementary layers, not duplicates
+
+### ✅ Archon Improvements (2026-01-26)
+- Implemented retry logic for escalation decisions (line 760)
+- Added token tracking to recordSuccess() with actual usage
+- Coverage: 69.67% statements, 60.6% branches, 60.48% functions
+
+### ✅ Supabase RLS Hardening (2026-01-26)
+- Replaced permissive "Allow public access" policies on voice tables
+- Added rate-limited anon policies (100 sessions/hr, 1000 transcripts/hr)
+- Separate authenticated vs anon access policies
+
+### ✅ Tooling (2026-01-26)
+- Installed @vitest/coverage-v8 for coverage reports
+- Added coverage/ to .gitignore
