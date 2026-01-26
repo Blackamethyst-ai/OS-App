@@ -2193,23 +2193,39 @@ Output the code with brief explanation.`,
 
             if (name === 'background_operation') {
                 const { operation, notifyOn, priority } = args;
-                const bgOps = JSON.parse(localStorage.getItem('background_operations') || '[]');
-                const newOp = {
-                    id: `bg_${Date.now()}`,
-                    operation,
-                    notifyOn: notifyOn || 'completion',
-                    priority: priority || 'normal',
-                    status: 'running',
-                    started: Date.now()
-                };
-                bgOps.push(newOp);
-                localStorage.setItem('background_operations', JSON.stringify(bgOps));
-                addLog('SYSTEM', `⚙️ BACKGROUND: ${operation}`);
-                return {
-                    status: "OPERATION_STARTED",
-                    operationId: newOp.id,
-                    message: `Understood, Sir. Processing "${operation}" in the background. I'll notify you ${notifyOn === 'all' ? 'at each milestone' : `upon ${notifyOn || 'completion'}`}.`
-                };
+
+                try {
+                    const bgOps = await neuralVault.get('background_operations') || [];
+                    const newOp = {
+                        id: `bg_${Date.now()}`,
+                        operation,
+                        notifyOn: notifyOn || 'completion',
+                        priority: priority || 'normal',
+                        status: 'running',
+                        started: Date.now()
+                    };
+                    bgOps.push(newOp);
+                    await neuralVault.set('background_operations', bgOps);
+
+                    // Queue for dream protocol if complex
+                    if ((operation as string).length > 50) {
+                        dreamProtocol.queueQuery(operation as string);
+                    }
+
+                    addLog('SYSTEM', `⚙️ BACKGROUND: ${operation} (persisted to Neural Vault)`);
+                    return {
+                        status: "OPERATION_STARTED",
+                        operationId: newOp.id,
+                        totalOperations: bgOps.filter((o: any) => o.status === 'running').length,
+                        message: `Understood, Sir. Processing "${operation}" in the background. I'll notify you ${notifyOn === 'all' ? 'at each milestone' : `upon ${notifyOn || 'completion'}`}.`
+                    };
+                } catch (e: any) {
+                    const bgOps = JSON.parse(localStorage.getItem('background_operations') || '[]');
+                    const newOp = { id: `bg_${Date.now()}`, operation, notifyOn: notifyOn || 'completion', priority: priority || 'normal', status: 'running', started: Date.now() };
+                    bgOps.push(newOp);
+                    localStorage.setItem('background_operations', JSON.stringify(bgOps));
+                    return { status: "OPERATION_STARTED", operationId: newOp.id, message: `Processing "${operation}" in the background, Sir.` };
+                }
             }
 
             if (name === 'triage_priorities') {
@@ -2562,39 +2578,87 @@ Output the code with brief explanation.`,
                 const { objective, constraints, checkpointInterval, canMakeDecisions } = args;
                 addLog('WARN', `🚀 AUTONOMOUS MISSION: ${objective}`);
                 audio.playClick();
-                localStorage.setItem('autonomous_mission', JSON.stringify({
+
+                const mission = {
+                    id: `mission_${Date.now()}`,
                     objective,
                     constraints,
                     checkpointInterval: checkpointInterval || '5min',
                     canMakeDecisions: canMakeDecisions !== false,
                     started: Date.now(),
                     status: 'active'
-                }));
-                return {
-                    status: "MISSION_STARTED",
-                    objective,
-                    constraints,
-                    autonomy: canMakeDecisions !== false ? 'FULL' : 'LIMITED',
-                    message: `Understood, Sir. Taking autonomous control to achieve: "${objective}". ${canMakeDecisions !== false ? 'Full decision authority granted.' : 'I\'ll check in for major decisions.'}`
                 };
+
+                try {
+                    // Persist mission to neuralVault
+                    await neuralVault.set('autonomous_mission', mission);
+
+                    // Store in SovereignMemory for recall
+                    await sovereignMemory.store(mission.id, JSON.stringify({
+                        type: 'autonomous_mission',
+                        ...mission
+                    }));
+
+                    // Queue objective for dream protocol background analysis
+                    dreamProtocol.queueQuery(`Mission objective: ${objective}`);
+
+                    return {
+                        status: "MISSION_STARTED",
+                        missionId: mission.id,
+                        objective,
+                        constraints,
+                        autonomy: canMakeDecisions !== false ? 'FULL' : 'LIMITED',
+                        persistedToVault: true,
+                        message: `Understood, Sir. Taking autonomous control to achieve: "${objective}". ${canMakeDecisions !== false ? 'Full decision authority granted.' : 'I\'ll check in for major decisions.'} Mission logged to Neural Vault.`
+                    };
+                } catch (e: any) {
+                    localStorage.setItem('autonomous_mission', JSON.stringify(mission));
+                    return {
+                        status: "MISSION_STARTED",
+                        objective,
+                        constraints,
+                        autonomy: canMakeDecisions !== false ? 'FULL' : 'LIMITED',
+                        message: `Understood, Sir. Taking autonomous control to achieve: "${objective}".`
+                    };
+                }
             }
 
             if (name === 'situational_awareness') {
                 const { detail, focus } = args;
                 addLog('SYSTEM', `🎯 SITREP: ${detail || 'operational'} level`);
-                const state = useStore.getState();
-                const monitors = JSON.parse(localStorage.getItem('active_monitors') || '[]');
-                const bgOps = JSON.parse(localStorage.getItem('background_operations') || '[]');
+                const state = useAppStore.getState();
+
+                // Pull from real services
+                let monitors: any[] = [];
+                let bgOps: any[] = [];
+                let mission: any = null;
+                try {
+                    monitors = await neuralVault.get('active_monitors') || [];
+                    bgOps = await neuralVault.get('background_operations') || [];
+                    mission = await neuralVault.get('autonomous_mission');
+                } catch {
+                    monitors = JSON.parse(localStorage.getItem('active_monitors') || '[]');
+                    bgOps = JSON.parse(localStorage.getItem('background_operations') || '[]');
+                }
+
+                const dreamStatus = dreamProtocol.getStatus();
+                const biometricReady = faceDetectionService.isReady();
+                const stressLevel = faceDetectionService.estimateStress().level;
+
                 return {
                     status: "SITREP_READY",
                     detailLevel: detail || 'operational',
                     focus,
                     snapshot: {
                         currentSector: state.mode,
-                        voiceActive: voice.isActive,
-                        activeMonitors: monitors.length,
+                        voiceActive: state.voice.isActive,
+                        voiceMode: state.voice.mode,
+                        activeMonitors: monitors.filter((m: any) => m.status === 'active').length,
                         backgroundOperations: bgOps.filter((op: any) => op.status === 'running').length,
-                        systemMode: JSON.parse(localStorage.getItem('system_mode') || '{}').mode || 'normal'
+                        activeMission: mission?.status === 'active' ? mission.objective : null,
+                        dreamProtocol: dreamStatus.isDreaming ? 'ACTIVE' : 'STANDBY',
+                        biometrics: biometricReady ? { ready: true, stressLevel } : { ready: false },
+                        systemMode: (state as any).systemMode || 'normal'
                     },
                     instruction: `Provide ${detail || 'operational'} situational awareness. ${focus ? `Focus on: ${(focus as string[]).join(', ')}.` : ''}`
                 };
