@@ -1858,6 +1858,262 @@ export const pauseResumeTool: FunctionDeclaration = {
     }
 };
 
+// ============================================================================
+// META-COMMANDS, LEARNING & ADVANCED MEMORY
+// ============================================================================
+
+/**
+ * List voice capabilities.
+ */
+export const voiceCapabilitiesTool: FunctionDeclaration = {
+    name: "voice_capabilities",
+    description: "List voice capabilities and commands. 'What can you do?', 'Show me your powers', 'List capabilities', 'Voice commands', 'Help me use voice'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            category: { type: Type.STRING, description: "Specific category to list (e.g., 'navigation', 'memory', 'automation')" },
+            detail: { type: Type.STRING, enum: ["brief", "full", "examples"], description: "Detail level" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Teach a new command.
+ */
+export const teachCommandTool: FunctionDeclaration = {
+    name: "teach_command",
+    description: "Teach the AI a new command or behavior. 'When I say X, do Y', 'Teach you something', 'Learn this command', 'Add new command'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            trigger: { type: Type.STRING, description: "The phrase that triggers this command" },
+            action: { type: Type.STRING, description: "What to do when triggered" },
+            context: { type: Type.STRING, description: "When this command applies" }
+        },
+        required: ["trigger", "action"]
+    }
+};
+
+/**
+ * Rate/feedback on responses.
+ */
+export const rateFeedbackTool: FunctionDeclaration = {
+    name: "rate_feedback",
+    description: "Rate or give feedback on AI responses. 'That was good', 'Not helpful', 'Perfect', 'Try again', 'Better', 'Worse'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            rating: { type: Type.STRING, enum: ["excellent", "good", "ok", "poor", "wrong"], description: "Rating" },
+            feedback: { type: Type.STRING, description: "Specific feedback" },
+            about: { type: Type.STRING, description: "What the feedback is about" }
+        },
+        required: ["rating"]
+    }
+};
+
+/**
+ * Voice workflow templates.
+ */
+export const voiceTemplatesTool: FunctionDeclaration = {
+    name: "voice_templates",
+    description: "Manage voice workflow templates. 'Save this as a template', 'Load morning routine', 'Show my templates', 'Run template X'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["save", "load", "list", "run", "delete"], description: "Template action" },
+            name: { type: Type.STRING, description: "Template name" },
+            steps: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Template steps (for save)" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Context switching.
+ */
+export const contextSwitchTool: FunctionDeclaration = {
+    name: "context_switch",
+    description: "Switch focus context. 'Switch to project X', 'Focus on task Y', 'Put this aside', 'Come back to this later', 'Change context'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            to: { type: Type.STRING, description: "Context to switch to" },
+            saveCurrentAs: { type: Type.STRING, description: "Save current context with this name" },
+            restore: { type: Type.BOOLEAN, description: "Restore previous context instead" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Focus on specific entity.
+ */
+export const focusEntityTool: FunctionDeclaration = {
+    name: "focus_entity",
+    description: "Focus on a specific entity (task, person, project). 'Focus on the login bug', 'Let's talk about Project X', 'Regarding the API'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            entity: { type: Type.STRING, description: "Entity to focus on" },
+            entityType: { type: Type.STRING, enum: ["task", "project", "person", "topic", "feature", "bug"], description: "Type of entity" }
+        },
+        required: ["entity"]
+    }
+};
+
+/**
+ * Time-aware actions.
+ */
+export const timeAwareTool: FunctionDeclaration = {
+    name: "time_aware",
+    description: "Time-aware actions and queries. 'What should I do now?', 'Is it time for lunch?', 'How long until meeting?', 'Schedule based on my patterns'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            query: { type: Type.STRING, description: "Time-related query" },
+            action: { type: Type.STRING, enum: ["query", "suggest", "schedule", "remind"], description: "Time action" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Remember a person and context.
+ */
+export const rememberPersonTool: FunctionDeclaration = {
+    name: "remember_person",
+    description: "Remember information about a person. 'Remember John prefers morning meetings', 'Note that Sarah is the lead', 'Who is the contact for X?'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["remember", "recall", "list", "forget"], description: "Memory action" },
+            person: { type: Type.STRING, description: "Person name" },
+            info: { type: Type.STRING, description: "Information to remember" },
+            category: { type: Type.STRING, enum: ["preference", "role", "contact", "note", "relationship"], description: "Info category" }
+        },
+        required: ["action", "person"]
+    }
+};
+
+/**
+ * Topic-based memory.
+ */
+export const topicMemoryTool: FunctionDeclaration = {
+    name: "topic_memory",
+    description: "Remember and recall topic-based information. 'What do we know about X?', 'Add to our notes on Y', 'Remember this about the project'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["add", "recall", "list", "search"], description: "Memory action" },
+            topic: { type: Type.STRING, description: "Topic name" },
+            content: { type: Type.STRING, description: "Content to remember" }
+        },
+        required: ["action", "topic"]
+    }
+};
+
+/**
+ * Voice shortcuts.
+ */
+export const voiceShortcutTool: FunctionDeclaration = {
+    name: "voice_shortcut",
+    description: "Manage personal voice shortcuts. 'Create shortcut', 'My shortcuts', 'Shortcut: X means Y'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["create", "list", "delete", "edit"], description: "Shortcut action" },
+            phrase: { type: Type.STRING, description: "Shortcut phrase" },
+            expansion: { type: Type.STRING, description: "What the shortcut expands to" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Ambient listening mode.
+ */
+export const ambientListenTool: FunctionDeclaration = {
+    name: "ambient_listen",
+    description: "Enable ambient listening for specific triggers. 'Listen for my name', 'Alert me if someone says X', 'Wake word mode'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            mode: { type: Type.STRING, enum: ["on", "off", "configure"], description: "Ambient mode" },
+            triggers: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Trigger phrases to listen for" },
+            action: { type: Type.STRING, description: "Action when triggered" }
+        },
+        required: ["mode"]
+    }
+};
+
+/**
+ * Proactive suggestions.
+ */
+export const proactiveSuggestTool: FunctionDeclaration = {
+    name: "proactive_suggest",
+    description: "Enable/configure proactive suggestions. 'Be more proactive', 'Suggest things', 'Don't interrupt', 'Only suggest when asked'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            level: { type: Type.STRING, enum: ["off", "minimal", "moderate", "active"], description: "Proactivity level" },
+            areas: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Areas to be proactive about" }
+        },
+        required: ["level"]
+    }
+};
+
+/**
+ * Voice interaction history.
+ */
+export const voiceHistoryTool: FunctionDeclaration = {
+    name: "voice_history",
+    description: "Access voice interaction history. 'What did I say before?', 'Repeat my last command', 'Voice history', 'Recent conversations'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            range: { type: Type.STRING, description: "Time range (e.g., 'last 5', 'today', 'yesterday')" },
+            search: { type: Type.STRING, description: "Search term in history" },
+            action: { type: Type.STRING, enum: ["list", "search", "replay", "clear"], description: "History action" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Personality mode.
+ */
+export const personalityModeTool: FunctionDeclaration = {
+    name: "personality_mode",
+    description: "Switch AI personality mode. 'Be more serious', 'Lighten up', 'Professional mode', 'Friendly mode', 'Focus mode personality'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            personality: { type: Type.STRING, enum: ["professional", "friendly", "serious", "casual", "mentor", "assistant", "collaborator"], description: "Personality mode" },
+            intensity: { type: Type.STRING, enum: ["subtle", "moderate", "strong"], description: "How strongly to adopt personality" }
+        },
+        required: ["personality"]
+    }
+};
+
+/**
+ * Collaborate and share.
+ */
+export const collaborateShareTool: FunctionDeclaration = {
+    name: "collaborate_share",
+    description: "Collaboration and sharing actions. 'Share this with...', 'Collaborate on...', 'Send to...', 'Export for team'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["share", "collaborate", "export", "send"], description: "Collaboration action" },
+            target: { type: Type.STRING, description: "Who/where to share with" },
+            content: { type: Type.STRING, description: "What to share" },
+            format: { type: Type.STRING, enum: ["link", "file", "message", "embed"], description: "Share format" }
+        },
+        required: ["action"]
+    }
+};
+
 /**
  * All voice tools for Gemini Live API.
  */
@@ -2013,4 +2269,21 @@ export const VOICE_TOOLS: FunctionDeclaration[] = [
     voiceSearchTool,
     narrateActionsTool,
     pauseResumeTool,
+
+    // === META-COMMANDS & LEARNING ===
+    voiceCapabilitiesTool,
+    teachCommandTool,
+    rateFeedbackTool,
+    voiceTemplatesTool,
+    contextSwitchTool,
+    focusEntityTool,
+    timeAwareTool,
+    rememberPersonTool,
+    topicMemoryTool,
+    voiceShortcutTool,
+    ambientListenTool,
+    proactiveSuggestTool,
+    voiceHistoryTool,
+    personalityModeTool,
+    collaborateShareTool,
 ];
