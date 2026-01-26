@@ -525,6 +525,150 @@ const VoiceManager: React.FC = () => {
                 }
             }
 
+            // =================================================================
+            // SEARCH INTELLIGENCE - Grounded search
+            // =================================================================
+            if (name === 'search_intel') {
+                const query = args.query as string;
+                addLog('SYSTEM', `INTEL: Searching for "${query}"...`);
+
+                try {
+                    const result = await (OS_TOOLS.search_intel as any)({ query });
+                    if (result.status === 'SUCCESS') {
+                        addLog('SUCCESS', `INTEL: Search complete.`);
+                        return {
+                            status: "SEARCH_COMPLETE",
+                            result: result.data.message,
+                            instruction: "Present this information to the user conversationally."
+                        };
+                    }
+                    return { error: result.data?.error || 'Search failed' };
+                } catch (e: any) {
+                    return { error: e.message };
+                }
+            }
+
+            // =================================================================
+            // CONVERGE LATTICES - Strategic synthesis
+            // =================================================================
+            if (name === 'converge_lattices') {
+                const targetGoal = args.targetGoal as string;
+                addLog('SYSTEM', `CONVERGENCE: Synthesizing lattices toward "${targetGoal}"...`);
+
+                try {
+                    const result = await (OS_TOOLS.converge_strategic_lattices as any)({ targetGoal });
+                    if (result.status === 'SUCCESS') {
+                        addLog('SUCCESS', `CONVERGENCE: Synthesis complete. Coherence: ${result.data.coherence}`);
+                        audio.playSuccess();
+                        return {
+                            status: "CONVERGENCE_COMPLETE",
+                            goal: result.data.goal,
+                            coherence: result.data.coherence
+                        };
+                    }
+                    return { error: result.data?.error || 'Convergence failed' };
+                } catch (e: any) {
+                    return { error: e.message };
+                }
+            }
+
+            // =================================================================
+            // TASK PRIORITY - Update task priority
+            // =================================================================
+            if (name === 'update_task_priority') {
+                const { taskId, priority } = args;
+                addLog('SYSTEM', `TASK: Updating ${taskId} to ${priority}...`);
+
+                try {
+                    const result = await (OS_TOOLS.update_task_priority as any)({ taskId, priority });
+                    if (result.status === 'SUCCESS') {
+                        addLog('SUCCESS', `TASK: Priority updated.`);
+                        return { status: "PRIORITY_UPDATED", taskId, priority };
+                    }
+                    return { error: result.data?.error || 'Update failed' };
+                } catch (e: any) {
+                    return { error: e.message };
+                }
+            }
+
+            // =================================================================
+            // PROPOSE CHANGE - Submit swarm proposal
+            // =================================================================
+            if (name === 'propose_change') {
+                const { type, title, description, impact } = args;
+                addLog('SYSTEM', `PROPOSAL: Submitting ${type} proposal "${title}"...`);
+
+                try {
+                    const result = await (OS_TOOLS.propose_structural_change as any)({
+                        agentId: voice.voiceName.toLowerCase().replace(/\s+/g, '_'),
+                        agentName: voice.voiceName,
+                        type,
+                        title,
+                        description,
+                        impact: impact || 'To be assessed',
+                        manifest_summary: description
+                    });
+                    if (result.status === 'SUCCESS') {
+                        addLog('SUCCESS', `PROPOSAL: Staged for review.`);
+                        audio.playSuccess();
+                        return {
+                            status: "PROPOSAL_SUBMITTED",
+                            proposalId: result.data.proposalId,
+                            message: "Proposal submitted for swarm review, Sir."
+                        };
+                    }
+                    return { error: result.data?.error || 'Proposal failed' };
+                } catch (e: any) {
+                    return { error: e.message };
+                }
+            }
+
+            // =================================================================
+            // SYSTEM STATUS - Health check
+            // =================================================================
+            if (name === 'system_status') {
+                const state = useAppStore.getState();
+                const activeSector = state.mode;
+                const agentCount = Object.keys(HIVE_AGENTS).length;
+                const voiceActive = state.voice.isActive;
+                const cpbPhase = state.cpbState?.phase || 'idle';
+
+                addLog('SYSTEM', `STATUS: Compiling system report...`);
+
+                return {
+                    status: "SYSTEM_OPERATIONAL",
+                    report: {
+                        activeSector,
+                        voiceStatus: voiceActive ? 'ONLINE' : 'STANDBY',
+                        agentsAvailable: agentCount,
+                        cpbStatus: cpbPhase,
+                        timestamp: new Date().toISOString()
+                    },
+                    instruction: "Report this status to the user naturally, like a butler giving a status update."
+                };
+            }
+
+            // =================================================================
+            // SET REMINDER - Timer/reminder
+            // =================================================================
+            if (name === 'set_reminder') {
+                const { message, delayMinutes } = args;
+                addLog('SYSTEM', `REMINDER: Setting for ${delayMinutes} minutes: "${message}"`);
+
+                // Set the reminder
+                setTimeout(() => {
+                    addLog('ALERT', `⏰ REMINDER: ${message}`);
+                    audio.playSuccess();
+                    // Could also trigger a notification here
+                }, (delayMinutes as number) * 60 * 1000);
+
+                return {
+                    status: "REMINDER_SET",
+                    message: `Reminder set for ${delayMinutes} minutes from now, Sir.`,
+                    reminderText: message
+                };
+            }
+
             return { error: "Unknown executive protocol." };
         };
 
