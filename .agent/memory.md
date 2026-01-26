@@ -26,3 +26,13 @@
 
 **Unified Registry Stats:** 50+ actions across 6 categories
 (navigation, generation, execution, analysis, ui, sovereign)
+
+### ✅ Test Coverage (2026-01-26)
+- Created `services/actions/__tests__/sovereign.test.ts` with 22 tests
+- Full test suite: 264 tests passing
+- Covers: action registration, validation, error handling, success cases
+
+### Architecture Notes
+- `components/voice/VoiceManager/parts/tools.ts` = Gemini API schemas (FunctionDeclarations)
+- `services/actions/handlers/sovereign.ts` = Handler implementations (UnifiedAction)
+- These are complementary layers, not duplicates
