@@ -2114,6 +2114,259 @@ export const collaborateShareTool: FunctionDeclaration = {
     }
 };
 
+// ============================================================================
+// PRODUCTIVITY, DOCUMENTS & DEVELOPER TOOLS
+// ============================================================================
+
+/**
+ * Document operations.
+ */
+export const documentOpsTool: FunctionDeclaration = {
+    name: "document_ops",
+    description: "Document operations. 'Create a document', 'Open file', 'Save as', 'New note', 'Create report'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["create", "open", "save", "export", "template"], description: "Document action" },
+            type: { type: Type.STRING, enum: ["note", "document", "report", "template", "spreadsheet"], description: "Document type" },
+            name: { type: Type.STRING, description: "Document name" },
+            content: { type: Type.STRING, description: "Initial content" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Meeting mode.
+ */
+export const meetingModeTool: FunctionDeclaration = {
+    name: "meeting_mode",
+    description: "Meeting mode controls. 'Start meeting', 'Take meeting notes', 'Record meeting', 'End meeting', 'Meeting summary'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["start", "end", "note", "action_item", "summary", "attendees"], description: "Meeting action" },
+            meetingName: { type: Type.STRING, description: "Meeting name/topic" },
+            content: { type: Type.STRING, description: "Note or action item content" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Presentation mode.
+ */
+export const presentationModeTool: FunctionDeclaration = {
+    name: "presentation_mode",
+    description: "Presentation controls. 'Start presentation', 'Next slide', 'Previous slide', 'Go to slide 5', 'End presentation'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["start", "end", "next", "previous", "goto", "pause", "notes"], description: "Presentation action" },
+            slideNumber: { type: Type.NUMBER, description: "Slide number for goto" },
+            notes: { type: Type.STRING, description: "Speaker notes" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Quick notes/scratch pad.
+ */
+export const quickNoteTool: FunctionDeclaration = {
+    name: "quick_note",
+    description: "Quick notes and scratch pad. 'Quick note', 'Jot this down', 'Scratch pad', 'Temporary note', 'Quick capture'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["add", "list", "clear", "search"], description: "Note action" },
+            content: { type: Type.STRING, description: "Note content" },
+            tag: { type: Type.STRING, description: "Optional tag" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Transcription.
+ */
+export const transcribeTool: FunctionDeclaration = {
+    name: "transcribe",
+    description: "Transcription controls. 'Start transcribing', 'Transcribe this', 'Stop transcription', 'Show transcript'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["start", "stop", "show", "export", "clear"], description: "Transcription action" },
+            format: { type: Type.STRING, enum: ["text", "timestamped", "speaker_labeled"], description: "Transcript format" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Dictate to document.
+ */
+export const dictateToDocTool: FunctionDeclaration = {
+    name: "dictate_to_doc",
+    description: "Dictate directly to a document. 'Dictate to document', 'Type what I say', 'Voice to text in doc', 'Speak into document'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["start", "stop", "pause", "format"], description: "Dictation action" },
+            target: { type: Type.STRING, description: "Target document or field" },
+            formatting: { type: Type.BOOLEAN, description: "Apply auto-formatting" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Screen layout control.
+ */
+export const screenLayoutTool: FunctionDeclaration = {
+    name: "screen_layout",
+    description: "Screen and layout controls. 'Split screen', 'Full screen', 'Side by side', 'Picture in picture', 'Minimize'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            layout: { type: Type.STRING, enum: ["full", "split", "pip", "minimize", "maximize", "sidebar", "compact"], description: "Layout mode" },
+            target: { type: Type.STRING, description: "Target panel/window" }
+        },
+        required: ["layout"]
+    }
+};
+
+/**
+ * Parallel operations.
+ */
+export const parallelOpsTool: FunctionDeclaration = {
+    name: "parallel_ops",
+    description: "Run operations in parallel. 'While doing X, also Y', 'At the same time', 'Simultaneously', 'In parallel'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            operations: { type: Type.ARRAY, items: { type: Type.STRING }, description: "Operations to run in parallel" },
+            reportProgress: { type: Type.BOOLEAN, description: "Report progress of each operation" }
+        },
+        required: ["operations"]
+    }
+};
+
+/**
+ * Handle interruptions.
+ */
+export const interruptHandleTool: FunctionDeclaration = {
+    name: "interrupt_handle",
+    description: "Handle interruptions gracefully. 'Pause that thought', 'Hold that', 'Sidebar', 'Quick interruption', 'Back to what we were doing'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["pause", "sidebar", "return", "stack", "pop"], description: "Interruption handling" },
+            note: { type: Type.STRING, description: "Note about the interruption" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Developer voice commands.
+ */
+export const devCommandsTool: FunctionDeclaration = {
+    name: "dev_commands",
+    description: "Developer voice commands. 'Run tests', 'Start server', 'Build project', 'Deploy', 'Check logs'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            command: { type: Type.STRING, enum: ["test", "build", "serve", "deploy", "logs", "lint", "format", "install"], description: "Dev command" },
+            args: { type: Type.STRING, description: "Command arguments" },
+            watch: { type: Type.BOOLEAN, description: "Run in watch mode" }
+        },
+        required: ["command"]
+    }
+};
+
+/**
+ * Git voice commands.
+ */
+export const gitVoiceTool: FunctionDeclaration = {
+    name: "git_voice",
+    description: "Git operations via voice. 'Git status', 'Commit changes', 'Push to main', 'Create branch', 'Pull latest'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            command: { type: Type.STRING, enum: ["status", "commit", "push", "pull", "branch", "checkout", "diff", "log", "stash"], description: "Git command" },
+            message: { type: Type.STRING, description: "Commit message" },
+            branch: { type: Type.STRING, description: "Branch name" }
+        },
+        required: ["command"]
+    }
+};
+
+/**
+ * Build and run commands.
+ */
+export const buildRunTool: FunctionDeclaration = {
+    name: "build_run",
+    description: "Build and run project. 'Build the app', 'Run development server', 'Production build', 'Start app'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["build", "run", "build_run", "stop", "restart"], description: "Build/run action" },
+            environment: { type: Type.STRING, enum: ["development", "production", "test"], description: "Environment" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Smart context from current view.
+ */
+export const smartContextTool: FunctionDeclaration = {
+    name: "smart_context",
+    description: "Get smart context from current view. 'Based on what I'm looking at', 'Analyze current view', 'Context from screen', 'What am I seeing?'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            depth: { type: Type.STRING, enum: ["surface", "detailed", "comprehensive"], description: "Analysis depth" },
+            focus: { type: Type.STRING, description: "Specific area to focus on" }
+        },
+        required: []
+    }
+};
+
+/**
+ * Pinned items management.
+ */
+export const pinnedItemsTool: FunctionDeclaration = {
+    name: "pinned_items",
+    description: "Manage pinned items for quick access. 'Pin this', 'Show pinned', 'Unpin', 'Go to pinned item'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            action: { type: Type.STRING, enum: ["pin", "unpin", "list", "goto", "clear"], description: "Pin action" },
+            item: { type: Type.STRING, description: "Item to pin/unpin" },
+            category: { type: Type.STRING, description: "Pin category" }
+        },
+        required: ["action"]
+    }
+};
+
+/**
+ * Daily brief generation.
+ */
+export const dailyBriefTool: FunctionDeclaration = {
+    name: "daily_brief",
+    description: "Get or configure daily brief. 'Morning brief', 'What's on today?', 'Daily summary', 'End of day recap'.",
+    parameters: {
+        type: Type.OBJECT,
+        properties: {
+            type: { type: Type.STRING, enum: ["morning", "midday", "evening", "custom"], description: "Brief type" },
+            include: { type: Type.ARRAY, items: { type: Type.STRING }, description: "What to include (tasks, calendar, goals, etc.)" }
+        },
+        required: []
+    }
+};
+
 /**
  * All voice tools for Gemini Live API.
  */
@@ -2286,4 +2539,21 @@ export const VOICE_TOOLS: FunctionDeclaration[] = [
     voiceHistoryTool,
     personalityModeTool,
     collaborateShareTool,
+
+    // === PRODUCTIVITY & DOCUMENTS ===
+    documentOpsTool,
+    meetingModeTool,
+    presentationModeTool,
+    quickNoteTool,
+    transcribeTool,
+    dictateToDocTool,
+    screenLayoutTool,
+    parallelOpsTool,
+    interruptHandleTool,
+    devCommandsTool,
+    gitVoiceTool,
+    buildRunTool,
+    smartContextTool,
+    pinnedItemsTool,
+    dailyBriefTool,
 ];
