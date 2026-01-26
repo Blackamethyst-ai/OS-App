@@ -440,6 +440,82 @@ describe('Recursive Language Model Service', () => {
 
             expect(result.answer).toBe('11');
         });
+
+        it('should handle llm_query sub-query function', async () => {
+            // First response makes a sub-LLM call, second response finalizes
+            const responses = [
+                {
+                    text: JSON.stringify({
+                        thinking: 'Make a sub-query',
+                        code: 'result = await llm_query("What is 2+2?")\nFINAL(result)'
+                    })
+                }
+            ];
+
+            // Mock both the main RLM call and the sub-LLM call
+            vi.mocked(retryGeminiRequest)
+                .mockResolvedValueOnce(responses[0])  // Main RLM iteration
+                .mockResolvedValueOnce({ text: '4' }); // Sub-LLM response
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { enableDQScoring: false }
+            );
+
+            // Sub-LLM call should have been made
+            expect(retryGeminiRequest).toHaveBeenCalledTimes(2);
+            expect(result.subCalls).toBeGreaterThan(0);
+        });
+
+        it('should handle llm_query with context parameter', async () => {
+            const response = {
+                text: JSON.stringify({
+                    thinking: 'Make a sub-query with context',
+                    code: 'result = await llm_query("Summarize", context)\nFINAL(result)'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest)
+                .mockResolvedValueOnce(response)
+                .mockResolvedValueOnce({ text: 'Summary' });
+
+            const result = await recursiveLLMQuery(
+                'Some long context to summarize',
+                'query',
+                undefined,
+                { enableDQScoring: false }
+            );
+
+            expect(result.answer).toBe('Summary');
+        });
+
+        it('should handle llm_query errors gracefully', async () => {
+            const response = {
+                text: JSON.stringify({
+                    thinking: 'Make a failing sub-query',
+                    code: 'result = await llm_query("fail")\nFINAL(result)'
+                })
+            };
+
+            vi.mocked(retryGeminiRequest)
+                .mockResolvedValueOnce(response)
+                .mockRejectedValueOnce(new Error('Sub-query failed'));
+
+            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+
+            const result = await recursiveLLMQuery(
+                'context',
+                'query',
+                undefined,
+                { enableDQScoring: false }
+            );
+
+            // Error should be caught and returned as string
+            expect(result.answer).toContain('Error: Sub-query failed');
+            consoleSpy.mockRestore();
+        });
     });
 
     describe('DQ Scoring Integration', () => {
