@@ -34,7 +34,7 @@ export class SovereignMemory implements LongTermMemory {
    */
   async query(searchText: string, limit: number): Promise<string[]> {
     const start = performance.now();
-    
+
     // 1. Vectorize query intent
     const queryVector = await generateEmbedding(searchText);
     if (queryVector.length === 0) return [];
@@ -53,5 +53,12 @@ export class SovereignMemory implements LongTermMemory {
 
     console.debug(`[SovereignMemory] Vector Recall took ${(performance.now() - start).toFixed(2)}ms`);
     return results.filter((r): r is string => r !== null);
+  }
+
+  /**
+   * Alias for query - semantic search over stored memories.
+   */
+  async search(searchText: string, limit: number = 5): Promise<string[]> {
+    return this.query(searchText, limit);
   }
 }

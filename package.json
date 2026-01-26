@@ -23,6 +23,7 @@
     "@metaventionsai/cpb-core": "file:./libs/cpb-core",
     "@metaventionsai/voice-nexus": "file:./libs/voice-nexus",
     "@react-three/fiber": "^9.0.0-rc.0",
+    "@supabase/supabase-js": "^2.91.1",
     "@xyflow/react": "^12.10.0",
     "clsx": "^2.1.1",
     "d3": "^7.9.0",

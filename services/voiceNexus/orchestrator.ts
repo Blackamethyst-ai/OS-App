@@ -48,6 +48,7 @@ import type { LiveServerMessage } from '@google/genai';
 // Persistence
 import { neuralVault } from '../persistenceService';
 import { SovereignMemory } from '../memory/MemoryStore';
+import { voiceStorage } from '../supabaseService';
 
 // Singleton for voice transcript memory
 const sovereignMemory = new SovereignMemory();
@@ -175,6 +176,18 @@ export class VoiceNexusOrchestrator {
         try {
             this.state.isActive = true;
             this.state.error = null;
+
+            // Create cloud session (fire and forget)
+            voiceStorage.createSession({
+                id: this.sessionId,
+                started_at: new Date().toISOString(),
+                mode: this.config.mode,
+                metadata: {
+                    agent: this.config.agent.id,
+                    sttProvider: this.config.sttProvider,
+                    ttsProvider: this.config.ttsProvider
+                }
+            }).catch(err => console.warn('[VoiceNexus] Supabase session create failed:', err));
 
             // Determine which mode to use
             if (this.config.mode === 'realtime' && !this.isUsingBrowserSTT()) {
@@ -789,14 +802,14 @@ ${agent.expertise?.length ? `## Expertise Areas\n${agent.expertise.join(', ')}` 
      */
     private async persistTranscript(transcript: Transcript): Promise<void> {
         try {
-            // Store in SovereignMemory for semantic search
+            // Store in SovereignMemory for semantic search (local)
             await sovereignMemory.store(transcript.id, JSON.stringify({
                 type: 'voice_transcript',
                 sessionId: this.sessionId,
                 ...transcript
             }));
 
-            // Also store session transcripts in neuralVault for quick access
+            // Also store session transcripts in neuralVault for quick access (local)
             const sessionKey = `voice_transcripts_${this.sessionId}`;
             const existing = await neuralVault.get(sessionKey) || [];
             existing.push(transcript);
@@ -806,6 +819,25 @@ ${agent.expertise?.length ? `## Expertise Areas\n${agent.expertise.join(', ')}` 
 
             // Update session index
             await this.updateSessionIndex();
+
+            // Persist to Supabase (cloud) - fire and forget
+            // Map 'model' role to 'assistant' for Supabase schema
+            const supabaseRole = transcript.role === 'model' ? 'assistant' :
+                                 transcript.role === 'user' ? 'user' : 'assistant';
+            // Derive tier from complexity score
+            const tier = this.state.lastComplexityScore > 0.7 ? 'deep' :
+                        this.state.lastComplexityScore > 0.4 ? 'balanced' : 'fast';
+
+            voiceStorage.saveTranscript({
+                id: transcript.id,
+                session_id: this.sessionId,
+                role: supabaseRole,
+                text: transcript.text,
+                timestamp: new Date(transcript.timestamp).toISOString(),
+                complexity_score: this.state.lastComplexityScore,
+                complexity_tier: tier,
+                provider: this.state.currentProvider?.reasoning
+            }).catch(err => console.warn('[VoiceNexus] Supabase persist failed:', err));
         } catch (error) {
             console.warn('[VoiceNexus] Failed to persist transcript:', error);
         }
@@ -883,8 +915,12 @@ ${agent.expertise?.length ? `## Expertise Areas\n${agent.expertise.join(', ')}` 
             transcriptCount: this.transcripts.length
         };
 
-        // Final session update
+        // Final session update (local)
         await this.updateSessionIndex();
+
+        // End cloud session (fire and forget)
+        voiceStorage.endSession(this.sessionId, this.transcripts.length)
+            .catch(err => console.warn('[VoiceNexus] Supabase session end failed:', err));
 
         // Start a new session ID for next time
         this.sessionId = `voice_session_${Date.now()}`;
