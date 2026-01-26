@@ -94,6 +94,24 @@ describe('CPB Router', () => {
             expect(['rlm', 'hybrid']).toContain(decision.path);
         });
 
+        it('should boost rlm and penalize direct for very long context', () => {
+            const signals: PathSignals = {
+                contextLength: 150000, // Exceeds contextThreshold (100000)
+                queryComplexity: 0.3,
+                requiresConsensus: false,
+                requiresReasoning: false,
+                hasGroundTruth: false,
+                timeBudgetMs: 30000,
+                qualityTarget: 0.6
+            };
+
+            const decision = selectPath(signals);
+
+            // Long context should boost RLM and hybrid, penalize direct
+            expect(['rlm', 'hybrid']).toContain(decision.path);
+            expect(decision.reasoning).toContain('compression');
+        });
+
         it('should select ace path for consensus needs', () => {
             const signals: PathSignals = {
                 contextLength: 1000,
@@ -218,6 +236,26 @@ describe('CPB Router', () => {
             if (decisionWithGT.path === 'ace') {
                 expect(decisionWithGT.reasoning).toContain('ground truth');
             }
+        });
+
+        it('should process long time budget without error', () => {
+            // This test ensures the timeBudgetMs > hybridPathMs branch is covered
+            const signals: PathSignals = {
+                contextLength: 5000,
+                queryComplexity: 0.5,
+                requiresConsensus: false,
+                requiresReasoning: false,
+                hasGroundTruth: false,
+                timeBudgetMs: 100000, // Exceeds hybridPathMs (90000)
+                qualityTarget: 0.7
+            };
+
+            const decision = selectPath(signals);
+
+            // Should return a valid decision
+            expect(decision).toBeDefined();
+            expect(decision.path).toBeDefined();
+            expect(decision.confidence).toBeGreaterThan(0);
         });
 
         it('should prefer direct for time-constrained queries', () => {
