@@ -540,4 +540,125 @@ describe('Adaptive Consensus Engine', () => {
             expect(DEFAULT_ACE_CONFIG.dqWeights.correctness).toBe(0.3);
         });
     });
+
+    describe('Pattern Storage', () => {
+        it('should handle pattern storage failure gracefully', async () => {
+            const { convergenceMemory } = await import('../convergenceMemory');
+            const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+            // Mock pattern storage to fail
+            vi.mocked(convergenceMemory.storePattern).mockRejectedValue(
+                new Error('Storage failed')
+            );
+
+            let callCount = 0;
+            vi.mocked(retryGeminiRequest).mockImplementation(async () => {
+                callCount++;
+                return {
+                    text: JSON.stringify({
+                        output: callCount <= 3 ? 'Winner' : 'Other',
+                        confidence: 0.8,
+                        reasoning: 'Test'
+                    })
+                };
+            });
+
+            const task = createTestTask();
+
+            const result = await adaptiveConsensusEngine(
+                task,
+                () => {},
+                {
+                    enableAuction: false,
+                    enableDQScoring: true,
+                    enableLearning: true
+                }
+            );
+
+            // Should complete despite storage failure
+            expect(result.output).toBe('Winner');
+            expect(result.patternStored).toBe(false);
+            expect(consoleSpy).toHaveBeenCalledWith(
+                expect.stringContaining('[ACE] Failed to store convergence pattern:'),
+                expect.any(Error)
+            );
+
+            consoleSpy.mockRestore();
+        });
+    });
+
+    describe('Timeout with DQ Scoring', () => {
+        it('should score output on timeout when DQ enabled', async () => {
+            let callCount = 0;
+            vi.mocked(retryGeminiRequest).mockImplementation(async () => {
+                callCount++;
+                // Alternate answers so gap never reaches threshold
+                return {
+                    text: JSON.stringify({
+                        output: `Answer ${callCount % 2}`,
+                        confidence: 0.6,
+                        reasoning: 'Test'
+                    })
+                };
+            });
+
+            const task = createTestTask();
+
+            const result = await adaptiveConsensusEngine(
+                task,
+                () => {},
+                {
+                    enableAuction: false,
+                    enableDQScoring: true, // Enable DQ scoring
+                    adaptiveThresholds: false
+                }
+            );
+
+            // Should have hit max rounds and still scored
+            expect(result.voteLedger.totalRounds).toBeGreaterThan(0);
+            expect(result.dqScore).toBeDefined();
+            expect(result.dqScore!.score).toBeGreaterThan(0);
+        });
+    });
+
+    describe('LLM DQ Scoring for Expert Tasks', () => {
+        it('should use LLM scoring for expert complexity', async () => {
+            const { scoreDQWithLLM } = await import('../dqScoring');
+
+            vi.mocked(estimateComplexity).mockReturnValue({
+                tokenEstimate: 1000,
+                taskType: 'expert',
+                suggestedRounds: 20,
+                suggestedGap: 6,
+                domain: 'security'
+            });
+
+            let callCount = 0;
+            vi.mocked(retryGeminiRequest).mockImplementation(async () => {
+                callCount++;
+                return {
+                    text: JSON.stringify({
+                        output: callCount <= 3 ? 'Expert Answer' : 'Other',
+                        confidence: 0.9,
+                        reasoning: 'Deep analysis'
+                    })
+                };
+            });
+
+            const task = createTestTask();
+
+            const result = await adaptiveConsensusEngine(
+                task,
+                () => {},
+                {
+                    enableAuction: false,
+                    enableDQScoring: true,
+                    enableHopGrouping: false
+                }
+            );
+
+            expect(scoreDQWithLLM).toHaveBeenCalled();
+            expect(result.dqScore).toBeDefined();
+        });
+    });
 });
