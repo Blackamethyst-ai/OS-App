@@ -1873,37 +1873,74 @@ Output the code with brief explanation.`,
 
             if (name === 'monitor_condition') {
                 const { condition, action, threshold, duration } = args;
-                const monitors = JSON.parse(localStorage.getItem('active_monitors') || '[]');
-                const newMonitor = {
-                    id: `mon_${Date.now()}`,
-                    condition,
-                    action,
-                    threshold,
-                    duration: duration || 'continuous',
-                    created: Date.now(),
-                    triggered: 0
-                };
-                monitors.push(newMonitor);
-                localStorage.setItem('active_monitors', JSON.stringify(monitors));
-                addLog('SYSTEM', `📡 MONITOR SET: ${condition} → ${action}`);
-                audio.playClick();
-                return {
-                    status: "MONITOR_ACTIVE",
-                    monitorId: newMonitor.id,
-                    message: `Monitoring established, Sir. I'll ${action} when ${condition}.`
-                };
+
+                try {
+                    const monitors = await neuralVault.get('active_monitors') || [];
+                    const newMonitor = {
+                        id: `mon_${Date.now()}`,
+                        condition,
+                        action,
+                        threshold: threshold || null,
+                        duration: duration || 'continuous',
+                        created: Date.now(),
+                        triggered: 0,
+                        status: 'active'
+                    };
+                    monitors.push(newMonitor);
+                    await neuralVault.set('active_monitors', monitors);
+
+                    // Also store in SovereignMemory for recall
+                    await sovereignMemory.store(newMonitor.id, JSON.stringify({
+                        type: 'monitor',
+                        ...newMonitor
+                    }));
+
+                    addLog('SYSTEM', `📡 MONITOR SET: ${condition} → ${action} (persisted to Neural Vault)`);
+                    audio.playClick();
+                    return {
+                        status: "MONITOR_ACTIVE",
+                        monitorId: newMonitor.id,
+                        totalMonitors: monitors.filter((m: any) => m.status === 'active').length,
+                        message: `Monitoring established, Sir. I'll ${action} when ${condition}.`
+                    };
+                } catch (e: any) {
+                    addLog('WARN', `MONITOR: Fallback to localStorage - ${e.message}`);
+                    const monitors = JSON.parse(localStorage.getItem('active_monitors') || '[]');
+                    const newMonitor = { id: `mon_${Date.now()}`, condition, action, threshold, duration: duration || 'continuous', created: Date.now(), triggered: 0 };
+                    monitors.push(newMonitor);
+                    localStorage.setItem('active_monitors', JSON.stringify(monitors));
+                    return { status: "MONITOR_ACTIVE", monitorId: newMonitor.id, message: `Monitoring established, Sir.` };
+                }
             }
 
             if (name === 'get_active_monitors') {
-                const monitors = JSON.parse(localStorage.getItem('active_monitors') || '[]');
                 const { includeHistory } = args;
-                addLog('SYSTEM', `MONITORS: ${monitors.length} active`);
-                return {
-                    status: "MONITORS_RETRIEVED",
-                    activeMonitors: monitors.filter((m: any) => m.triggered === 0),
-                    triggeredMonitors: includeHistory ? monitors.filter((m: any) => m.triggered > 0) : undefined,
-                    total: monitors.length
-                };
+
+                try {
+                    const monitors = await neuralVault.get('active_monitors') || [];
+                    const activeMonitors = monitors.filter((m: any) => m.status === 'active' && m.triggered === 0);
+                    const triggeredMonitors = monitors.filter((m: any) => m.triggered > 0);
+
+                    addLog('SYSTEM', `MONITORS: ${activeMonitors.length} active, ${triggeredMonitors.length} triggered`);
+                    return {
+                        status: "MONITORS_RETRIEVED",
+                        activeMonitors,
+                        triggeredMonitors: includeHistory ? triggeredMonitors : undefined,
+                        total: monitors.length,
+                        activeCount: activeMonitors.length,
+                        message: activeMonitors.length > 0
+                            ? `You have ${activeMonitors.length} active monitor(s), Sir.`
+                            : "No active monitors, Sir."
+                    };
+                } catch (e: any) {
+                    const monitors = JSON.parse(localStorage.getItem('active_monitors') || '[]');
+                    return {
+                        status: "MONITORS_RETRIEVED",
+                        activeMonitors: monitors.filter((m: any) => m.triggered === 0),
+                        triggeredMonitors: includeHistory ? monitors.filter((m: any) => m.triggered > 0) : undefined,
+                        total: monitors.length
+                    };
+                }
             }
 
             if (name === 'run_diagnostics') {
@@ -2313,24 +2350,115 @@ Output the code with brief explanation.`,
 
             if (name === 'track_goal') {
                 const { action: goalAction, goal, progress, notes } = args;
-                const goals = JSON.parse(localStorage.getItem('tracked_goals') || '[]');
+                const goalText = goal as string;
 
-                if (goalAction === 'create') {
-                    goals.push({ id: `goal_${Date.now()}`, goal, progress: 0, notes: [], created: Date.now() });
-                    localStorage.setItem('tracked_goals', JSON.stringify(goals));
-                    addLog('SYSTEM', `🎯 GOAL SET: ${goal}`);
-                    return { status: "GOAL_CREATED", goal, message: `Goal tracked, Sir: "${goal}"` };
+                try {
+                    if (goalAction === 'create') {
+                        const goalId = `goal_${Date.now()}`;
+
+                        // Store in neuralVault for persistence
+                        const goals = await neuralVault.get('tracked_goals') || [];
+                        goals.push({
+                            id: goalId,
+                            goal: goalText,
+                            progress: 0,
+                            notes: [],
+                            status: 'active',
+                            created: Date.now()
+                        });
+                        await neuralVault.set('tracked_goals', goals);
+
+                        // Also create a task in the store for visibility
+                        const { addTask } = useAppStore.getState().actions;
+                        addTask({
+                            title: `🎯 GOAL: ${goalText}`,
+                            description: `Voice-tracked goal created at ${new Date().toLocaleString()}`,
+                            status: 'TODO' as any,
+                            priority: 'HIGH',
+                            tags: ['goal', 'voice-created']
+                        });
+
+                        // Store in SovereignMemory for semantic recall
+                        await sovereignMemory.store(goalId, JSON.stringify({
+                            type: 'goal',
+                            goal: goalText,
+                            created: Date.now()
+                        }));
+
+                        addLog('SYSTEM', `🎯 GOAL SET: ${goalText} - tracked in Neural Vault + Tasks`);
+                        return {
+                            status: "GOAL_CREATED",
+                            goalId,
+                            goal: goalText,
+                            totalGoals: goals.length,
+                            message: `Goal tracked, Sir: "${goalText}". It's now visible in your task list.`
+                        };
+                    }
+
+                    if (goalAction === 'update' && goalText && progress !== undefined) {
+                        const goals = await neuralVault.get('tracked_goals') || [];
+                        const goalIndex = goals.findIndex((g: any) =>
+                            g.goal.toLowerCase().includes(goalText.toLowerCase()) ||
+                            g.id === goalText
+                        );
+                        if (goalIndex >= 0) {
+                            goals[goalIndex].progress = progress as number;
+                            goals[goalIndex].lastUpdated = Date.now();
+                            if (notes) goals[goalIndex].notes.push({ note: notes, added: Date.now() });
+                            if ((progress as number) >= 100) goals[goalIndex].status = 'completed';
+                            await neuralVault.set('tracked_goals', goals);
+                            addLog('SYSTEM', `🎯 GOAL UPDATED: ${goals[goalIndex].goal} - ${progress}%`);
+                            return {
+                                status: "GOAL_UPDATED",
+                                goal: goals[goalIndex].goal,
+                                progress,
+                                message: `Goal progress updated to ${progress}%, Sir.`
+                            };
+                        }
+                        return { status: "GOAL_NOT_FOUND", goal: goalText, message: `Couldn't find that goal, Sir.` };
+                    }
+
+                    if (goalAction === 'list') {
+                        const goals = await neuralVault.get('tracked_goals') || [];
+                        const activeGoals = goals.filter((g: any) => g.status !== 'completed');
+                        return {
+                            status: "GOALS_LISTED",
+                            goals: goals.map((g: any) => ({
+                                goal: g.goal,
+                                progress: g.progress,
+                                status: g.status || 'active'
+                            })),
+                            activeCount: activeGoals.length,
+                            totalCount: goals.length,
+                            message: `You have ${activeGoals.length} active goals, Sir.`
+                        };
+                    }
+
+                    if (goalAction === 'check') {
+                        const goals = await neuralVault.get('tracked_goals') || [];
+                        const activeGoals = goals.filter((g: any) => g.status !== 'completed').slice(-3);
+                        return {
+                            status: "GOAL_STATUS",
+                            goals: activeGoals,
+                            instruction: `Provide a progress update on these tracked goals. Be encouraging.`
+                        };
+                    }
+
+                    return { status: "GOAL_ACTION", action: goalAction, goal: goalText };
+                } catch (e: any) {
+                    addLog('WARN', `TRACK_GOAL: Fallback to localStorage - ${e.message}`);
+                    // Fallback to localStorage
+                    const goals = JSON.parse(localStorage.getItem('tracked_goals') || '[]');
+                    if (goalAction === 'create') {
+                        goals.push({ id: `goal_${Date.now()}`, goal: goalText, progress: 0, notes: [], created: Date.now() });
+                        localStorage.setItem('tracked_goals', JSON.stringify(goals));
+                        return { status: "GOAL_CREATED", goal: goalText, message: `Goal tracked, Sir: "${goalText}"` };
+                    }
+                    if (goalAction === 'list') {
+                        return { status: "GOALS_LISTED", goals: goals.map((g: any) => ({ goal: g.goal, progress: g.progress })), count: goals.length };
+                    }
+                    return { status: "GOAL_ACTION", action: goalAction, goal: goalText };
                 }
-
-                if (goalAction === 'list') {
-                    return { status: "GOALS_LISTED", goals: goals.map((g: any) => ({ goal: g.goal, progress: g.progress })), count: goals.length };
-                }
-
-                if (goalAction === 'check') {
-                    return { status: "GOAL_STATUS", goals: goals.slice(-3), instruction: `Provide progress update on tracked goals.` };
-                }
-
-                return { status: "GOAL_ACTION", action: goalAction, goal };
             }
 
             if (name === 'quick_summary') {
@@ -2613,21 +2741,106 @@ Output the code with brief explanation.`,
 
             if (name === 'mood_check') {
                 const { action: moodAction, mood, energy } = args;
-                if (moodAction === 'log') {
+
+                // Get biometric data if available to enrich mood logging
+                const biometricData = faceDetectionService.isReady() ? {
+                    detectedMood: (() => {
+                        const detection = faceDetectionService.getLastDetection();
+                        if (detection?.expressions) {
+                            const sorted = Object.entries(detection.expressions).sort((a, b) => b[1] - a[1]);
+                            return sorted[0]?.[1] > 0.3 ? sorted[0][0] : null;
+                        }
+                        return null;
+                    })(),
+                    stressLevel: faceDetectionService.estimateStress().level,
+                    blinkRate: faceDetectionService.getBlinkRate()
+                } : null;
+
+                try {
+                    if (moodAction === 'log') {
+                        const moods = await neuralVault.get('mood_log') || [];
+                        const entry = {
+                            id: `mood_${Date.now()}`,
+                            mood: mood || biometricData?.detectedMood || 'unspecified',
+                            energy: energy || null,
+                            biometrics: biometricData,
+                            timestamp: Date.now()
+                        };
+                        moods.push(entry);
+                        // Keep last 100 mood entries
+                        if (moods.length > 100) moods.shift();
+                        await neuralVault.set('mood_log', moods);
+
+                        // Also store in SovereignMemory for pattern analysis
+                        await sovereignMemory.store(entry.id, JSON.stringify({
+                            type: 'mood_entry',
+                            ...entry
+                        }));
+
+                        addLog('SYSTEM', `😊 MOOD: ${mood || biometricData?.detectedMood || 'logged'} (with biometrics: ${biometricData ? 'yes' : 'no'})`);
+
+                        // Generate contextual message
+                        let message = `Mood logged, Sir.`;
+                        if (energy && (energy as number) < 4) message += ' Perhaps a short break would help?';
+                        if (biometricData?.stressLevel > 50) message += ' I notice elevated stress indicators - consider a brief respite.';
+                        if (biometricData?.detectedMood && mood && biometricData.detectedMood !== mood) {
+                            message += ` (Interesting: biometrics suggest ${biometricData.detectedMood}.)`;
+                        }
+
+                        return {
+                            status: "MOOD_LOGGED",
+                            mood: mood || biometricData?.detectedMood,
+                            energy,
+                            biometricInsight: biometricData ? {
+                                detectedMood: biometricData.detectedMood,
+                                stressLevel: biometricData.stressLevel,
+                                blinkRate: biometricData.blinkRate
+                            } : null,
+                            message
+                        };
+                    }
+
+                    if (moodAction === 'history') {
+                        const moods = await neuralVault.get('mood_log') || [];
+                        const recentMoods = moods.slice(-10);
+
+                        // Analyze patterns
+                        const moodCounts: Record<string, number> = {};
+                        recentMoods.forEach((m: any) => {
+                            if (m.mood) moodCounts[m.mood] = (moodCounts[m.mood] || 0) + 1;
+                        });
+                        const dominantMood = Object.entries(moodCounts).sort((a, b) => b[1] - a[1])[0];
+
+                        return {
+                            status: "MOOD_HISTORY",
+                            entries: recentMoods,
+                            count: moods.length,
+                            pattern: dominantMood ? { mood: dominantMood[0], frequency: dominantMood[1] } : null,
+                            instruction: "Summarize mood history conversationally, noting any patterns."
+                        };
+                    }
+
+                    // Default mood check with biometric awareness
+                    return {
+                        status: "MOOD_CHECK",
+                        currentBiometrics: biometricData,
+                        instruction: biometricData
+                            ? `Perform a mood check. Biometrics suggest: ${biometricData.detectedMood || 'neutral'}, stress: ${biometricData.stressLevel}%. Ask how the user is actually feeling and provide supportive response.`
+                            : `Perform a mood check. Ask how the user is feeling and provide supportive response.`
+                    };
+                } catch (e: any) {
+                    addLog('WARN', `MOOD_CHECK: Fallback to localStorage - ${e.message}`);
                     const moods = JSON.parse(localStorage.getItem('mood_log') || '[]');
-                    moods.push({ mood, energy, timestamp: Date.now() });
-                    localStorage.setItem('mood_log', JSON.stringify(moods));
-                    addLog('SYSTEM', `😊 MOOD: ${mood || 'logged'}`);
-                    return { status: "MOOD_LOGGED", mood, energy, message: `Mood logged, Sir. ${energy && energy < 4 ? 'Perhaps a short break would help?' : ''}` };
+                    if (moodAction === 'log') {
+                        moods.push({ mood, energy, timestamp: Date.now() });
+                        localStorage.setItem('mood_log', JSON.stringify(moods));
+                        return { status: "MOOD_LOGGED", mood, energy, message: `Mood logged, Sir.` };
+                    }
+                    if (moodAction === 'history') {
+                        return { status: "MOOD_HISTORY", entries: moods.slice(-10), count: moods.length };
+                    }
+                    return { status: "MOOD_CHECK", instruction: `Perform a mood check.` };
                 }
-                if (moodAction === 'history') {
-                    const moods = JSON.parse(localStorage.getItem('mood_log') || '[]');
-                    return { status: "MOOD_HISTORY", entries: moods.slice(-10), count: moods.length };
-                }
-                return {
-                    status: "MOOD_CHECK",
-                    instruction: `Perform a mood check. Ask how the user is feeling and provide supportive response.`
-                };
             }
 
             if (name === 'contextual_repeat') {
