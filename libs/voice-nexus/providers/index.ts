@@ -71,12 +71,23 @@ export {
 // Import and re-export STT providers
 import {
     createBrowserSTT,
+    createDeepgramSTT,
     createDefaultSTT,
     isBrowserSTTAvailable as isBrowserSTTAvailableFn,
+    isDeepgramSTTAvailable,
 } from './stt';
-export type { BrowserSTTOptions } from './stt';
-export { createBrowserSTT, createDefaultSTT };
+export type { BrowserSTTOptions, DeepgramSTTOptions } from './stt';
+export { createBrowserSTT, createDeepgramSTT, createDefaultSTT, isDeepgramSTTAvailable };
 export { isBrowserSTTAvailableFn as isBrowserSTTAvailable };
+
+// Import and re-export VAD providers
+import {
+    createSileroVAD,
+    createDefaultVAD,
+    isSileroVADAvailable,
+} from './vad';
+export type { SileroVADOptions } from './vad';
+export { createSileroVAD, createDefaultVAD, isSileroVADAvailable };
 
 /**
  * Create default providers based on available API keys

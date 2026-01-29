@@ -14,6 +14,10 @@ export default defineConfig({
         'providers/tts/browser': 'providers/tts/browser.ts',
         'providers/stt/index': 'providers/stt/index.ts',
         'providers/stt/browser': 'providers/stt/browser.ts',
+        'providers/stt/deepgram': 'providers/stt/deepgram.ts',
+        'providers/vad/index': 'providers/vad/index.ts',
+        'providers/vad/silero': 'providers/vad/silero.ts',
+        'audio/index': 'audio/index.ts',
     },
     format: ['cjs', 'esm'],
     dts: true,
@@ -23,5 +27,6 @@ export default defineConfig({
     external: [
         '@anthropic-ai/sdk',
         '@google/genai',
+        '@ricky0123/vad-web',
     ],
 });
