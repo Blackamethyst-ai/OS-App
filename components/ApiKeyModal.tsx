@@ -17,9 +17,11 @@ type ModalView = 'create-vault' | 'unlock-vault' | 'manage-keys';
 
 const PROVIDERS = [
     { id: 'gemini' as const, name: 'Gemini', color: '#4285F4', description: 'Google AI - Required for core features' },
-    { id: 'claude' as const, name: 'Claude', color: '#cc785c', description: 'Anthropic - Coming soon' },
+    { id: 'claude' as const, name: 'Claude', color: '#cc785c', description: 'Anthropic - Advanced reasoning' },
+    { id: 'openai' as const, name: 'OpenAI', color: '#10a37f', description: 'GPT models - Coming soon' },
     { id: 'grok' as const, name: 'Grok', color: '#1DA1F2', description: 'xAI - Coming soon' },
     { id: 'eleven_labs' as const, name: 'ElevenLabs', color: '#1f2937', description: 'Neural Voice Synthesis (Creator)' },
+    { id: 'deepgram' as const, name: 'Deepgram', color: '#13EF93', description: 'Streaming STT (Nova-3)' },
 ];
 
 const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
@@ -30,7 +32,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
     const [passwordError, setPasswordError] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const [activeProvider, setActiveProvider] = useState<'gemini' | 'claude' | 'grok' | 'eleven_labs'>('gemini');
+    const [activeProvider, setActiveProvider] = useState<'gemini' | 'claude' | 'openai' | 'grok' | 'eleven_labs' | 'deepgram'>('gemini');
     const [inputValue, setInputValue] = useState('');
     const [showKey, setShowKey] = useState(false);
     const [isValidating, setIsValidating] = useState(false);
@@ -123,10 +125,21 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
         setIsValidating(true);
         setValidationResult(null);
 
-        if (activeProvider === 'gemini') {
-            const result = await apiKeyService.validateGeminiKey(inputValue);
-            setValidationResult(result);
+        let result: { valid: boolean; error?: string } | null = null;
 
+        // Validate based on provider
+        if (activeProvider === 'gemini') {
+            result = await apiKeyService.validateGeminiKey(inputValue);
+        } else if (activeProvider === 'eleven_labs') {
+            result = await apiKeyService.validateElevenLabsKey(inputValue);
+        } else if (activeProvider === 'deepgram') {
+            result = await apiKeyService.validateDeepgramKey(inputValue);
+        } else if (activeProvider === 'openai') {
+            result = await apiKeyService.validateOpenAIKey(inputValue);
+        }
+
+        if (result) {
+            setValidationResult(result);
             if (result.valid) {
                 await apiKeyService.setKey(activeProvider, inputValue);
                 window.dispatchEvent(new CustomEvent('api-key-saved'));
@@ -135,6 +148,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                 audio.playError();
             }
         } else {
+            // No validation available - just save
             await apiKeyService.setKey(activeProvider, inputValue);
             setValidationResult({ valid: true });
             window.dispatchEvent(new CustomEvent('api-key-saved'));
@@ -441,16 +455,38 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                     </button>
                 </div>
 
-                {/* Help Link */}
+                {/* Help Links */}
                 <div className="text-center pt-2">
-                    <a
-                        href="https://aistudio.google.com/app/apikey"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-[9px] text-[var(--amethyst)] hover:underline"
-                    >
-                        Get a Gemini API key from Google AI Studio →
-                    </a>
+                    {activeProvider === 'gemini' && (
+                        <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[9px] text-[var(--amethyst)] hover:underline">
+                            Get a Gemini API key from Google AI Studio →
+                        </a>
+                    )}
+                    {activeProvider === 'claude' && (
+                        <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener noreferrer" className="text-[9px] text-[var(--amethyst)] hover:underline">
+                            Get a Claude API key from Anthropic Console →
+                        </a>
+                    )}
+                    {activeProvider === 'openai' && (
+                        <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener noreferrer" className="text-[9px] text-[var(--amethyst)] hover:underline">
+                            Get an OpenAI API key from OpenAI Platform →
+                        </a>
+                    )}
+                    {activeProvider === 'grok' && (
+                        <a href="https://console.x.ai/" target="_blank" rel="noopener noreferrer" className="text-[9px] text-[var(--amethyst)] hover:underline">
+                            Get a Grok API key from xAI Console →
+                        </a>
+                    )}
+                    {activeProvider === 'eleven_labs' && (
+                        <a href="https://elevenlabs.io/app/settings/api-keys" target="_blank" rel="noopener noreferrer" className="text-[9px] text-[var(--amethyst)] hover:underline">
+                            Get an ElevenLabs API key from your profile →
+                        </a>
+                    )}
+                    {activeProvider === 'deepgram' && (
+                        <a href="https://console.deepgram.com/project" target="_blank" rel="noopener noreferrer" className="text-[9px] text-[var(--amethyst)] hover:underline">
+                            Get a Deepgram API key from Deepgram Console →
+                        </a>
+                    )}
                 </div>
             </div>
         </>

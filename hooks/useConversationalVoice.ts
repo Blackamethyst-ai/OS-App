@@ -51,6 +51,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { apiKeyService } from '../services/apiKeyService';
 
 // Types
 export type ConversationalVoiceState =
@@ -359,10 +360,14 @@ export function useConversationalVoice(
                 import('@metaventionsai/voice-nexus/audio'),
             ]);
 
-            // Initialize STT (prefer Deepgram with Supabase, fallback to browser)
-            if (supabaseClient || deepgramApiKey) {
+            // Initialize STT (prefer Deepgram with Supabase or vault key, fallback to browser)
+            // Check vault for Deepgram key if not provided directly
+            const vaultDeepgramKey = apiKeyService.isVaultUnlocked() ? apiKeyService.getKey('deepgram') : undefined;
+            const effectiveDeepgramKey = deepgramApiKey || vaultDeepgramKey;
+
+            if (supabaseClient || effectiveDeepgramKey) {
                 const deepgramOpts: { apiKey?: string; supabaseClient?: typeof supabaseClient } = {};
-                if (deepgramApiKey) deepgramOpts.apiKey = deepgramApiKey;
+                if (effectiveDeepgramKey) deepgramOpts.apiKey = effectiveDeepgramKey;
                 if (supabaseClient) deepgramOpts.supabaseClient = supabaseClient;
 
                 if (sttModule.isDeepgramSTTAvailable(deepgramOpts)) {
@@ -397,9 +402,12 @@ export function useConversationalVoice(
                 });
             }
 
-            // Initialize TTS
-            if (elevenLabsApiKey && ttsModule.createElevenLabsTTS) {
-                ttsRef.current = ttsModule.createElevenLabsTTS({ apiKey: elevenLabsApiKey });
+            // Initialize TTS (check vault for ElevenLabs key if not provided)
+            const vaultElevenLabsKey = apiKeyService.isVaultUnlocked() ? apiKeyService.getKey('eleven_labs') : undefined;
+            const effectiveElevenLabsKey = elevenLabsApiKey || vaultElevenLabsKey;
+
+            if (effectiveElevenLabsKey && ttsModule.createElevenLabsTTS) {
+                ttsRef.current = ttsModule.createElevenLabsTTS({ apiKey: effectiveElevenLabsKey });
             }
 
             // Initialize audio player
