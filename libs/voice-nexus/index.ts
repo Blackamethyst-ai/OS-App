@@ -79,6 +79,12 @@ export type {
     AudioConfig,
     FrequencyData,
 
+    // VAD (Voice Activity Detection)
+    VADState,
+    VADOptions,
+    VADEvents,
+    VADProvider,
+
     // Tools
     VoiceToolCall,
     VoiceToolResult,

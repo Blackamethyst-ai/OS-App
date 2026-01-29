@@ -65,6 +65,26 @@
       "import": "./dist/providers/stt/browser.mjs",
       "require": "./dist/providers/stt/browser.js",
       "types": "./dist/providers/stt/browser.d.ts"
+    },
+    "./providers/stt/deepgram": {
+      "import": "./dist/providers/stt/deepgram.mjs",
+      "require": "./dist/providers/stt/deepgram.js",
+      "types": "./dist/providers/stt/deepgram.d.ts"
+    },
+    "./providers/vad": {
+      "import": "./dist/providers/vad/index.mjs",
+      "require": "./dist/providers/vad/index.js",
+      "types": "./dist/providers/vad/index.d.ts"
+    },
+    "./providers/vad/silero": {
+      "import": "./dist/providers/vad/silero.mjs",
+      "require": "./dist/providers/vad/silero.js",
+      "types": "./dist/providers/vad/silero.d.ts"
+    },
+    "./audio": {
+      "import": "./dist/audio/index.mjs",
+      "require": "./dist/audio/index.js",
+      "types": "./dist/audio/index.d.ts"
     }
   },
   "files": [

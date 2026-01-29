@@ -19,7 +19,9 @@
   },
   "dependencies": {
     "@antigravity/agent-core-sdk": "file:./libs/agent-core-sdk",
+    "@deepgram/sdk": "^3.9.0",
     "@google/genai": "^1.31.0",
+    "@ricky0123/vad-web": "^0.0.22",
     "@metaventionsai/cpb-core": "file:./libs/cpb-core",
     "@metaventionsai/voice-nexus": "file:./libs/voice-nexus",
     "@react-three/fiber": "^9.0.0-rc.0",

@@ -246,6 +246,59 @@ export interface FrequencyData {
 }
 
 // =============================================================================
+// Voice Activity Detection (VAD)
+// =============================================================================
+
+export type VADState = 'idle' | 'loading' | 'listening' | 'speaking' | 'paused';
+
+export interface VADOptions {
+    /** Positive speech threshold (default: 0.5) */
+    positiveSpeechThreshold?: number;
+    /** Negative speech threshold (default: 0.35) */
+    negativeSpeechThreshold?: number;
+    /** Redemption frames - frames to wait before ending speech (default: 8) */
+    redemptionFrames?: number;
+    /** Minimum speech frames before triggering onSpeechStart (default: 3) */
+    minSpeechFrames?: number;
+}
+
+export interface VADEvents {
+    /** Called when speech starts */
+    onSpeechStart?: () => void;
+    /** Called when speech ends with the audio buffer */
+    onSpeechEnd?: (audio: Float32Array) => void;
+    /** Called when VAD detects speech but it's too short */
+    onVADMisfire?: () => void;
+    /** Called for each audio frame with speech probability */
+    onFrameProcessed?: (probs: { isSpeech: number; notSpeech: number }) => void;
+}
+
+export interface VADProvider {
+    readonly name: string;
+
+    /** Check if VAD is available in current environment */
+    isAvailable(): boolean;
+
+    /** Get current VAD state */
+    getState(): VADState;
+
+    /** Get current speech probability (0-1) */
+    getSpeechProbability(): number;
+
+    /** Start voice activity detection */
+    start(): Promise<void>;
+
+    /** Pause detection without releasing microphone */
+    pause(): void;
+
+    /** Resume detection after pause */
+    resume(): Promise<void>;
+
+    /** Stop detection and release resources */
+    stop(): void;
+}
+
+// =============================================================================
 // Tool Calling
 // =============================================================================
 
