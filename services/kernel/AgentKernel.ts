@@ -31,6 +31,11 @@ import { SemanticPager } from '../memory/SemanticPager';
 import { auiEngine, judgeAgent, semanticGaze, domRegenerator } from '../ui';
 import type { UILayoutSpec, AUIGenerationContext, UIEvaluation } from '../ui/types';
 
+// Organism Framework imports (US-015)
+import { organismRegistry, AbstractOrganismLayer } from '../organisms';
+import type { SubsystemType, OrganismTask, OrganismResult } from '../archon/types';
+import { isOrganismLayer } from '../archon/types';
+
 const KERNEL_VERSION = '1.0.0-agentic';
 
 class AgentKernelService {
@@ -69,6 +74,9 @@ class AgentKernelService {
   private regenerationCooldownMs: number = 2000;
   private isRegenerating: boolean = false;
 
+  // Organism Framework state (US-015)
+  private organismLayersInitialized: boolean = false;
+
   constructor() {
     this.scheduler = new KernelScheduler();
     this.intentResolver = new IntentResolver();
@@ -98,6 +106,9 @@ class AgentKernelService {
       await this.semanticPager.initialize();
       this.scheduler.start();
 
+      // Initialize Organism Framework layers (US-015)
+      await this.initializeOrganismLayers();
+
       // Start the main dispatch loop
       this.startDispatchLoop();
 
@@ -121,11 +132,195 @@ class AgentKernelService {
     // Complete pending tasks
     await this.scheduler.drain();
 
+    // Shutdown Organism Framework layers (US-015)
+    await this.shutdownOrganismLayers();
+
     // Flush semantic pages to storage
     await this.semanticPager.flush();
 
     this.state = 'BOOTING'; // Ready for reboot
     if (import.meta.env.DEV) console.log('⚡ KERNEL: Shutdown complete');
+  }
+
+  // ============================================================================
+  // ORGANISM FRAMEWORK INTEGRATION (US-015)
+  // ============================================================================
+
+  /**
+   * Initialize all registered organism layers.
+   */
+  private async initializeOrganismLayers(): Promise<void> {
+    if (this.organismLayersInitialized) {
+      return;
+    }
+
+    const layers = organismRegistry.getAll();
+    if (layers.length === 0) {
+      if (import.meta.env.DEV) console.log('⚡ KERNEL: No organism layers registered');
+      return;
+    }
+
+    if (import.meta.env.DEV) console.log(`⚡ KERNEL: Initializing ${layers.length} organism layers...`);
+
+    try {
+      await organismRegistry.initializeAll();
+      this.organismLayersInitialized = true;
+      if (import.meta.env.DEV) console.log('⚡ KERNEL: Organism layers initialized');
+    } catch (error) {
+      console.error('⚡ KERNEL: Failed to initialize organism layers', error);
+      // Non-fatal: kernel can operate without organism layers
+    }
+  }
+
+  /**
+   * Shutdown all organism layers gracefully.
+   */
+  private async shutdownOrganismLayers(): Promise<void> {
+    if (!this.organismLayersInitialized) {
+      return;
+    }
+
+    if (import.meta.env.DEV) console.log('⚡ KERNEL: Shutting down organism layers...');
+
+    try {
+      await organismRegistry.shutdownAll();
+      this.organismLayersInitialized = false;
+      if (import.meta.env.DEV) console.log('⚡ KERNEL: Organism layers shutdown complete');
+    } catch (error) {
+      console.error('⚡ KERNEL: Error during organism layer shutdown', error);
+    }
+  }
+
+  /**
+   * Determine if a task should be routed to an organism layer.
+   *
+   * Routing decision logic:
+   * - Is task about skill creation/transfer? → Route to GENOME
+   * - Does task require multi-agent coordination? → Route to SWARM
+   * - Is system in low-activity mode? → Trigger COGNITIVE consolidation
+   * - Otherwise → Return null (use existing subsystems)
+   */
+  async shouldRouteToOrganism(task: KernelTask): Promise<SubsystemType | null> {
+    if (!this.organismLayersInitialized) {
+      return null;
+    }
+
+    const intent = task.intent;
+    const rawInput = intent.rawInput.toLowerCase();
+    const entities = intent.entities;
+
+    // Check for skill-related keywords → GENOME layer
+    const skillKeywords = [
+      'skill', 'transfer', 'portable', 'mcp', 'tool', 'capability',
+      'weave', 'synthesize', 'compose', 'export', 'import'
+    ];
+    const isSkillRelated = skillKeywords.some(kw => rawInput.includes(kw));
+    const hasSkillEntity = entities.some(e =>
+      e.type === 'ACTION' && ['create', 'transfer', 'export', 'import'].includes(e.value.toLowerCase())
+    );
+
+    if (isSkillRelated || hasSkillEntity) {
+      const genomeLayer = organismRegistry.get('genome');
+      if (genomeLayer && genomeLayer.status !== 'disabled') {
+        if (import.meta.env.DEV) console.log('⚡ KERNEL: Routing to GENOME layer (skill-related task)');
+        return 'genome';
+      }
+    }
+
+    // Check for multi-agent coordination → SWARM layer
+    const swarmKeywords = [
+      'team', 'coordinate', 'collaborate', 'swarm', 'consensus',
+      'vote', 'orchestrate', 'parallel', 'multi-agent', 'ensemble'
+    ];
+    const isSwarmRelated = swarmKeywords.some(kw => rawInput.includes(kw));
+    const hasMultipleAgents = entities.filter(e => e.type === 'AGENT').length > 1;
+    const isOrchestrationIntent = intent.category === 'ORCHESTRATION';
+
+    if (isSwarmRelated || hasMultipleAgents || isOrchestrationIntent) {
+      const swarmLayer = organismRegistry.get('swarm');
+      if (swarmLayer && swarmLayer.status !== 'disabled') {
+        if (import.meta.env.DEV) console.log('⚡ KERNEL: Routing to SWARM layer (coordination task)');
+        return 'swarm';
+      }
+    }
+
+    // Check for low-activity consolidation opportunity → COGNITIVE layer
+    const isLowActivity = this.biometricContext &&
+      this.biometricContext.stressLevel.value < 30 &&
+      this.biometricContext.attentionScore < 50;
+    const isBackgroundPriority = task.priority === 'BACKGROUND' || task.priority === 'LOW';
+    const isAnalysisOrMemory = intent.category === 'ANALYSIS' ||
+      rawInput.includes('consolidate') ||
+      rawInput.includes('memory') ||
+      rawInput.includes('reflect');
+
+    if ((isLowActivity && isBackgroundPriority) || isAnalysisOrMemory) {
+      const cognitiveLayer = organismRegistry.get('cognitive');
+      if (cognitiveLayer && cognitiveLayer.status !== 'disabled') {
+        if (import.meta.env.DEV) console.log('⚡ KERNEL: Routing to COGNITIVE layer (consolidation opportunity)');
+        return 'cognitive';
+      }
+    }
+
+    // No organism routing - use existing subsystems
+    return null;
+  }
+
+  /**
+   * Execute a task via a specific organism layer.
+   */
+  async executeViaOrganism(task: KernelTask, layerId: SubsystemType): Promise<any> {
+    const layer = organismRegistry.get(layerId);
+    if (!layer) {
+      throw new Error(`Organism layer not found: ${layerId}`);
+    }
+
+    // Convert KernelTask to OrganismTask format
+    const organismTask: OrganismTask = {
+      id: task.id,
+      intent: task.intent.rawInput,
+      priority: this.mapTaskPriority(task.priority),
+      contextPages: task.contextPages,
+      biometricContext: this.biometricContext ? {
+        stressLevel: this.biometricContext.stressLevel.value / 100,
+        activityLevel: this.biometricContext.attentionScore / 100,
+        focusScore: (100 - this.biometricContext.cognitiveLoad) / 100,
+        gazeTarget: this.biometricContext.focusedElement,
+        timestamp: Date.now(),
+      } : undefined,
+      createdAt: task.createdAt,
+    };
+
+    // Dispatch to organism layer
+    const result: OrganismResult = await layer.dispatch(organismTask);
+
+    // Emit organism event
+    this.emit('TASK_COMPLETED', {
+      ...task,
+      result: result.output,
+      organismLayerId: layerId,
+      dqScore: result.dqScore,
+    });
+
+    if (!result.success && result.error) {
+      throw new Error(`Organism layer ${layerId} failed: ${result.error}`);
+    }
+
+    return result.output;
+  }
+
+  /**
+   * Map kernel TaskPriority to archon Priority.
+   */
+  private mapTaskPriority(priority: TaskPriority): 'critical' | 'high' | 'normal' | 'low' | 'background' {
+    const mapping: Record<TaskPriority, 'critical' | 'high' | 'normal' | 'low' | 'background'> = {
+      'CRITICAL': 'critical',
+      'HIGH': 'high',
+      'NORMAL': 'normal',
+      'LOW': 'low',
+      'BACKGROUND': 'background',
+    };
+    return mapping[priority] || 'normal';
   }
 
   // ============================================================================
@@ -199,7 +394,17 @@ class AgentKernelService {
     this.emit('TASK_STARTED', task);
 
     try {
-      // Route to appropriate handler based on intent category
+      // US-015: Check if task should route to an organism layer first
+      const organismLayerId = await this.shouldRouteToOrganism(task);
+      if (organismLayerId) {
+        const result = await this.executeViaOrganism(task, organismLayerId);
+        task.status = 'COMPLETED';
+        task.completedAt = Date.now();
+        task.result = result;
+        return result;
+      }
+
+      // Route to appropriate handler based on intent category (existing logic)
       let result: any;
 
       switch (task.intent.category) {

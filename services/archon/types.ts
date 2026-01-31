@@ -6,6 +6,12 @@
  * - arXiv:2601.09742 (Adaptive Orchestration)
  * - arXiv:2506.12508 (AgentOrchestra TEA Protocol)
  * - arXiv:2511.15755 (DQ Scoring)
+ *
+ * Extended with Agentic Organism Framework (2026-01):
+ * - arXiv:2504.07079 (SkillWeaver)
+ * - arXiv:2512.23880 (CASCADE)
+ * - arXiv:2506.15672 (SwarmAgentic)
+ * - arXiv:2601.02553 (SimpleMem)
  */
 
 // =============================================================================
@@ -65,7 +71,18 @@ export type SubsystemType =
   | 'evolution'     // Self-Evolution
   | 'kernel'        // Agent Kernel
   | 'voice'         // Voice Nexus
-  | 'cpb';          // Cognitive Precision Bridge
+  | 'cpb'           // Cognitive Precision Bridge
+  // Agentic Organism Framework layers
+  | 'genome'        // Agent Genome - portable skills via MCP
+  | 'swarm'         // Swarm Orchestration - self-organizing teams
+  | 'cognitive';    // Cognitive Cycles - wake/sleep consolidation
+
+/** Check if a subsystem is an organism layer */
+export const isOrganismLayer = (type: SubsystemType): boolean =>
+  type === 'genome' || type === 'swarm' || type === 'cognitive';
+
+/** Organism layer identifiers */
+export const ORGANISM_LAYERS: SubsystemType[] = ['genome', 'swarm', 'cognitive'];
 
 export interface Subsystem {
   id: SubsystemType;
@@ -86,6 +103,120 @@ export interface SubsystemMetrics {
   avgLatencyMs: number;
   tokenUsage: number;
 }
+
+// =============================================================================
+// ORGANISM LAYERS (Agentic Organism Framework)
+// =============================================================================
+
+/**
+ * OrganismLayer extends Subsystem with lifecycle and integration hooks.
+ *
+ * Three organism layers transform the kernel into a living digital organism:
+ * - genome: Portable skills via MCP protocol (DNA)
+ * - swarm: Self-organizing teams via stigmergy (Nervous System)
+ * - cognitive: Wake/sleep consolidation (Sleep Cycles)
+ */
+export interface OrganismLayer extends Subsystem {
+  /** Layer type identifier */
+  layerType: 'genome' | 'swarm' | 'cognitive';
+
+  // Lifecycle
+  initialize(): Promise<void>;
+  shutdown(): Promise<void>;
+
+  // Kernel dispatch integration
+  dispatch(task: OrganismTask): Promise<OrganismResult>;
+
+  // Biometric integration (stress-aware behavior)
+  onBiometricChange(context: BiometricContext): void;
+
+  // MCP context integration (ResearchGravity packs)
+  onMCPContext(packs: ContextPack[]): void;
+
+  // Quality scoring
+  computeDQScore(): DQScore;
+
+  // Layer-specific metrics
+  getLayerMetrics(): OrganismMetrics;
+}
+
+/** Task dispatched to an organism layer */
+export interface OrganismTask {
+  id: string;
+  intent: string;
+  priority: Priority;
+  contextPages: string[];
+  biometricContext?: BiometricContext;
+  mcpPacks?: ContextPack[];
+  createdAt: number;
+}
+
+/** Result from organism layer execution */
+export interface OrganismResult {
+  success: boolean;
+  output: unknown;
+  dqScore: DQScore;
+  metadata: {
+    layerId: SubsystemType;
+    latencyMs: number;
+    tokensUsed: number;
+    cacheHit?: boolean;
+  };
+  error?: string;
+}
+
+/** Metrics specific to organism layers */
+export interface OrganismMetrics extends SubsystemMetrics {
+  // Genome layer
+  skillsRegistered?: number;
+  skillTransfers?: number;
+  synthesisAttempts?: number;
+
+  // Swarm layer
+  teamsFormed?: number;
+  stigmergicSignals?: number;
+  convergenceRounds?: number;
+
+  // Cognitive layer
+  episodesStored?: number;
+  consolidationCycles?: number;
+  forgettingRate?: number;
+}
+
+/** Biometric context for stress-aware behavior */
+export interface BiometricContext {
+  stressLevel: number;       // 0-1
+  activityLevel: number;     // 0-1
+  focusScore: number;        // 0-1
+  gazeTarget?: string;       // Current UI element
+  timestamp: number;
+}
+
+/** MCP context pack from ResearchGravity */
+export interface ContextPack {
+  id: string;
+  name: string;
+  content: string;
+  relevanceScore: number;
+  tokenCount: number;
+  source: 'research' | 'session' | 'project';
+}
+
+/** Budget allocation for organism layers */
+export const ORGANISM_BUDGET_RATIOS: Record<SubsystemType, number> = {
+  // Existing subsystems (40% total)
+  ace: 0.08,
+  dq: 0.05,
+  dream: 0.05,
+  evolution: 0.07,
+  kernel: 0.10,
+  voice: 0.03,
+  cpb: 0.02,
+  // Organism layers (60% total)
+  genome: 0.15,      // 15% for skill operations
+  swarm: 0.25,       // 25% for team coordination
+  cognitive: 0.20,   // 20% for consolidation
+};
 
 // =============================================================================
 // DECISIONS

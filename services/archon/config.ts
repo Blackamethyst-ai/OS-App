@@ -20,13 +20,18 @@ export const DEFAULT_CONFIG: ArchonConfig = {
   // Resource settings
   totalTokenBudget: 1_000_000, // 1M tokens per session
   subsystemBudgetRatios: new Map<SubsystemType, number>([
-    ['ace', 0.30],         // ACE gets 30% - most expensive (consensus)
-    ['cpb', 0.25],         // CPB gets 25% - reasoning paths
-    ['evolution', 0.15],   // Evolution gets 15% - code generation
-    ['dream', 0.10],       // Dream gets 10% - background research
-    ['kernel', 0.10],      // Kernel gets 10% - coordination
-    ['voice', 0.05],       // Voice gets 5% - input processing
-    ['dq', 0.05],          // DQ gets 5% - scoring
+    // Core subsystems (40% total)
+    ['ace', 0.08],         // ACE - consensus (reduced for organisms)
+    ['cpb', 0.10],         // CPB - reasoning paths
+    ['evolution', 0.07],   // Evolution - code generation
+    ['dream', 0.05],       // Dream - background research
+    ['kernel', 0.05],      // Kernel - coordination
+    ['voice', 0.03],       // Voice - input processing
+    ['dq', 0.02],          // DQ - scoring
+    // Organism layers (60% total)
+    ['genome', 0.15],      // Genome - skill operations
+    ['swarm', 0.25],       // Swarm - team coordination (largest)
+    ['cognitive', 0.20],   // Cognitive - consolidation
   ]),
   defaultModel: 'flagship',  // Performance-first default
 
@@ -116,6 +121,28 @@ export const SUBSYSTEM_CAPABILITIES: Record<SubsystemType, string[]> = {
     'recursive-decomposition',
     'quality-verification',
     'hybrid-reasoning',
+  ],
+  // Agentic Organism Framework layers
+  genome: [
+    'skill-serialization',
+    'skill-synthesis',
+    'mcp-skill-exposure',
+    'portable-transfer',
+    'skill-composition',
+  ],
+  swarm: [
+    'expert-routing',
+    'stigmergic-coordination',
+    'team-formation',
+    'consensus-integration',
+    'adaptive-moe',
+  ],
+  cognitive: [
+    'memory-consolidation',
+    'wake-sleep-cycles',
+    'goldilocks-replay',
+    'forgetting-prevention',
+    'episode-management',
   ],
 };
 
