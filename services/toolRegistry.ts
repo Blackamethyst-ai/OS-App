@@ -6,15 +6,17 @@ import { generateStructuredWorkflow, searchGroundedIntel, convergeStrategicLatti
  * @deprecated SOVEREIGN TOOL REGISTRY - LEGACY
  *
  * This file is DEPRECATED. All tools have been migrated to:
+ *   - services/capabilities/ (Unified Capability Registry)
  *   - services/actions/handlers/sovereign.ts (UnifiedAction format)
- *   - services/unifiedActionRegistry.ts (Canonical registry)
  *
- * Use `executeAction(actionId, args)` from unifiedActionRegistry instead.
+ * Use the new capability registry instead:
+ *   import { executeCapability, getCapability } from './capabilities';
  *
  * This file is kept for backward compatibility with DynamicToolRegistry fallback.
  * It will be removed in a future version.
  *
  * Migration: 2026-01-26
+ * Updated: 2026-01-30 - Added reference to unified capability registry
  */
 export const OS_TOOLS = {
     // 1. ARCHITECTURAL PROTOCOLS (Enhanced with RAG-Anything Multi-modal Logic)

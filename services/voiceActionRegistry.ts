@@ -1,15 +1,17 @@
 /**
- * @deprecated This file is deprecated. Use services/actions/handlers instead.
+ * @deprecated This file is deprecated. Use services/capabilities instead.
  *
  * VOICE ACTION REGISTRY (DEPRECATED)
  *
- * All voice actions are now consolidated in services/actions/handlers/.
+ * All voice actions are now consolidated in services/capabilities/.
  * This file exists only for backward compatibility.
  *
  * Migration:
  *   Old: import { initializeVoiceActions, generateActionContext } from './voiceActionRegistry';
- *   New: import { initializeUnifiedRegistry, generateVoiceContext } from './unifiedActionRegistry';
- *        import { ALL_HANDLER_ACTIONS } from './actions/handlers';
+ *   New: import { initializeCapabilities, processVoiceCommand } from './capabilities';
+ *        import { getVoiceContextForSector, getVoiceSuggestions } from './capabilities';
+ *
+ * See services/capabilities/adapters/voice.ts for the new voice interface.
  */
 
 import { ALL_HANDLER_ACTIONS, getHandlerStats } from './actions/handlers';
