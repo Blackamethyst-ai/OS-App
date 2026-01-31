@@ -1,0 +1,8 @@
+#!/bin/sh
+# Pre-commit hook for secret detection
+
+# Run secret detection
+./scripts/detect-secrets.sh
+
+# Run lint on staged files (optional - comment out if slow)
+# npm run lint

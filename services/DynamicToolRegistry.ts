@@ -5,10 +5,22 @@ import { useAppStore } from '../store';
 import { validateAndSanitize } from '../utils/validateToolCode';
 import { getGeminiManifests, executeAction, getAction } from './unifiedActionRegistry';
 
+// New unified capability registry (preferred)
+import {
+    registerDynamicCapability,
+    executeCapability,
+    getCapability,
+    isInitialized as isCapabilityRegistryInitialized,
+} from './capabilities';
+
 /**
  * DynamicToolRegistry: Orchestrates evolutionary capability expansion.
  * Bridges static OS features with dynamic autonomic logic.
- * 
+ *
+ * NOTE: This registry now delegates to the unified CapabilityRegistry.
+ * Direct usage of DynamicToolRegistry is supported for backward compatibility,
+ * but prefer using services/capabilities for new code.
+ *
  * SECURITY: All tool code is validated before execution to prevent injection.
  */
 class DynamicToolRegistry {

@@ -1,15 +1,16 @@
 /**
- * @deprecated This file is deprecated. Use services/actions/handlers instead.
+ * @deprecated This file is deprecated. Use services/capabilities instead.
  *
  * COMPONENT ACTION REGISTRY (DEPRECATED)
  *
- * All component actions are now consolidated in services/actions/handlers/.
+ * All component actions are now consolidated in services/capabilities/.
  * This file exists only for backward compatibility.
  *
  * Migration:
  *   Old: import { initializeComponentActions } from './componentActionRegistry';
- *   New: import { initializeUnifiedRegistry } from './unifiedActionRegistry';
- *        import { ALL_HANDLER_ACTIONS } from './actions/handlers';
+ *   New: import { initializeCapabilities, getCapabilitiesForSector } from './capabilities';
+ *
+ * See services/capabilities/ for the unified registry.
  */
 
 import { ALL_HANDLER_ACTIONS, getHandlerStats } from './actions/handlers';
