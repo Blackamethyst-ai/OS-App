@@ -25,6 +25,9 @@ import type { VoiceNexusState, Transcript, VoiceNexusEvents } from './voiceNexus
 import type { HiveAgent, MentalState } from '../types/domain/agents';
 import { AppMode } from '../types';
 import { apiKeyService } from './apiKeyService';
+import { createLogger } from './logger';
+
+const log = createLogger('VoiceCore');
 
 // =============================================================================
 // Types
@@ -171,7 +174,7 @@ export class VoiceCore {
                 window.speechSynthesis.cancel();
             }
         } catch (e) {
-            console.warn('VoiceCore: Failed to prime audio', e);
+            log.warn('Failed to prime audio', e);
         }
     }
 
@@ -578,13 +581,13 @@ export class VoiceCore {
 
     private handleError(message: string, error: unknown): void {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`VoiceCore: ${message}:`, error);
+        log.error(message, error);
         this.updateState({ error: `${message}: ${errorMessage}` });
     }
 
     private log(...args: unknown[]): void {
         if (this.config.debugMode) {
-            console.log('[VoiceCore]', ...args);
+            log.debug(args.join(' '));
         }
     }
 }
