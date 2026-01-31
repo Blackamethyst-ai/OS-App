@@ -258,7 +258,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         updateProcessNode: (id, update) => set((state) => ({
             process: {
                 ...state.process,
-                nodes: state.process.nodes.map((n: any) => n.id === id ? { ...n, data: { ...n.data, ...update } } : n)
+                nodes: state.process.nodes.map((n) => n.id === id ? { ...n, data: { ...n.data, ...update } } : n)
             }
         })),
         setImageGenState: (update) => set((state) => ({
@@ -352,7 +352,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         setMetaventionsState: (update) => set((state) => ({
             metaventions: { ...state.metaventions, ...(typeof update === 'function' ? update(state.metaventions) : update) }
         })),
-        pushToInvestmentQueue: (metavention: any) => set((state) => ({
+        pushToInvestmentQueue: (metavention: { title: string; viability: number; riskVector: string; logic: string }) => set((state) => ({
             marketData: {
                 ...state.marketData,
                 opportunities: [{

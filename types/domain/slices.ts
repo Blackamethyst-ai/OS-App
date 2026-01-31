@@ -223,9 +223,32 @@ export interface DashboardState {
 // Process State
 // =============================================================================
 
+export interface ProcessNode {
+    id: string;
+    type?: string;
+    position: { x: number; y: number };
+    data: {
+        label: string;
+        subtext?: string;
+        status?: string;
+        color?: string;
+        iconName?: string;
+        [key: string]: unknown;
+    };
+}
+
+export interface ProcessEdge {
+    id: string;
+    source: string;
+    target: string;
+    type?: string;
+    label?: string;
+    animated?: boolean;
+}
+
 export interface ProcessState {
-    nodes: any[];
-    edges: any[];
+    nodes: ProcessNode[];
+    edges: ProcessEdge[];
     isLoading: boolean;
     error: string | null;
     diagramStatus: string;
