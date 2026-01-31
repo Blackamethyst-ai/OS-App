@@ -13,5 +13,6 @@ export {
 
 export {
     ModelOrchestrationPanel,
-    GoalCommandCenter
+    GoalCommandCenter,
+    OrganismLayersPanel
 } from './panels';

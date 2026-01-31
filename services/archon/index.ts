@@ -1204,9 +1204,34 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 export function useArchon() {
   // Subscribe to specific state slices for proper reactivity
   const phase = useArchonStore((state) => state.phase);
-  const activeGoalsMap = useArchonStore((state) => state.activeGoals);
   const telemetry = useArchonStore((state) => state.telemetry);
   const activeModelId = useArchonStore((state) => state.activeModelId);
+
+  // Get the raw Map and convert to array with proper memoization
+  const activeGoalsMap = useArchonStore((state) => state.activeGoals);
+
+  // Memoize the array conversion - only recompute when Map reference changes
+  const activeGoals = useMemo(() => {
+    const goals: Goal[] = [];
+    if (activeGoalsMap && activeGoalsMap instanceof Map) {
+      activeGoalsMap.forEach((goal) => {
+        if (goal.status === 'active' || goal.status === 'pending') {
+          goals.push(goal);
+        }
+      });
+    }
+    return goals;
+  }, [activeGoalsMap]);
+
+  // Get all goals (including completed/escalated) for display
+  const allGoals = useMemo(() => {
+    const goals: Goal[] = [];
+    if (activeGoalsMap && activeGoalsMap instanceof Map) {
+      activeGoalsMap.forEach((goal) => goals.push(goal));
+      return goals.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    }
+    return goals;
+  }, [activeGoalsMap]);
 
   const [archon, setArchon] = useState<Archon | null>(null);
 
@@ -1216,24 +1241,6 @@ export function useArchon() {
       setArchon(instance);
     });
   }, []);
-
-  // Convert Map to array reactively
-  const activeGoals = useMemo(() => {
-    const goals: Goal[] = [];
-    activeGoalsMap.forEach((goal) => {
-      if (goal.status === 'active' || goal.status === 'pending') {
-        goals.push(goal);
-      }
-    });
-    return goals;
-  }, [activeGoalsMap]);
-
-  // Get all goals (including completed/escalated) for display
-  const allGoals = useMemo(() => {
-    const goals: Goal[] = [];
-    activeGoalsMap.forEach((goal) => goals.push(goal));
-    return goals.sort((a, b) => b.createdAt - a.createdAt);
-  }, [activeGoalsMap]);
 
   // Get models reactively (updates when archon initializes)
   const models = useMemo(() => {

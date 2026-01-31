@@ -38,7 +38,7 @@ describe('SimpleMem', () => {
 
       const episode: RawEpisode = {
         id: 'test-raw-1',
-        type: 'task',
+        type: 'interaction',
         source: 'agent',
         content: 'Test content for compression',
         timestamp: Date.now(),
@@ -69,16 +69,16 @@ describe('SimpleMem', () => {
       // First add an episode
       await mem.compress({
         id: 'retrieval-test',
-        type: 'task',
+        type: 'interaction',
         source: 'agent',
         content: 'TypeScript implementation task',
         timestamp: Date.now(),
       });
 
-      // retrieve takes (query, intent)
+      // retrieve takes (query, intent) - use type assertion for test
       const results = mem.retrieve(
         { query: 'TypeScript', limit: 5 },
-        { type: 'semantic', confidence: 0.8 }
+        { type: 'semantic' } as any
       );
 
       expect(results).toBeDefined();

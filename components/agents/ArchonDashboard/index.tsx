@@ -17,7 +17,7 @@ import { useArchon, eventBus } from '@/services/archon';
 // Import extracted components
 import {
     NeuralBackground, HoloCard, PhaseOrb, EventStream, TelemetryRing,
-    ModelOrchestrationPanel, GoalCommandCenter,
+    ModelOrchestrationPanel, GoalCommandCenter, OrganismLayersPanel,
     type StreamEvent
 } from './parts';
 
@@ -39,6 +39,44 @@ const ArchonDashboard: React.FC = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [events, setEvents] = useState<StreamEvent[]>([]);
     const [isPaused, setIsPaused] = useState(false);
+
+    // Organism layers state - will be populated from actual organisms
+    const organismLayers = [
+        {
+            id: 'genome' as const,
+            name: 'Agent Genome',
+            status: 'idle' as const,
+            metrics: {
+                invocations: 0,
+                successRate: 0.95,
+                avgDqScore: 0.85,
+                avgLatencyMs: 120,
+            },
+        },
+        {
+            id: 'swarm' as const,
+            name: 'Swarm Orchestration',
+            status: 'idle' as const,
+            metrics: {
+                invocations: 0,
+                successRate: 0.92,
+                avgDqScore: 0.82,
+                avgLatencyMs: 250,
+            },
+        },
+        {
+            id: 'cognitive' as const,
+            name: 'Cognitive Cycles',
+            status: 'idle' as const,
+            phase: 'wake',
+            metrics: {
+                invocations: 0,
+                successRate: 0.88,
+                avgDqScore: 0.78,
+                avgLatencyMs: 180,
+            },
+        },
+    ];
 
     // Subscribe to events
     useEffect(() => {
@@ -273,9 +311,10 @@ const ArchonDashboard: React.FC = () => {
                         </HoloCard>
                     </div>
 
-                    {/* Right Panel - Models */}
-                    <div className="col-span-3">
-                        <HoloCard className="h-full p-4">
+                    {/* Right Panel - Models & Organisms */}
+                    <div className="col-span-3 flex flex-col gap-4">
+                        {/* Model Fleet */}
+                        <HoloCard className="flex-1 p-4">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-bold flex items-center gap-2">
                                     <Bot className="w-5 h-5 text-blue-400" />
@@ -302,6 +341,17 @@ const ArchonDashboard: React.FC = () => {
                             <div className="h-[calc(100%-3rem)] overflow-y-auto">
                                 <ModelOrchestrationPanel models={models} activeModelId={activeModelId} />
                             </div>
+                        </HoloCard>
+
+                        {/* Organism Layers */}
+                        <HoloCard className="p-4">
+                            <OrganismLayersPanel
+                                layers={organismLayers}
+                                onLayerClick={(layerId) => {
+                                    console.log('Layer clicked:', layerId);
+                                    // TODO: Open layer details modal
+                                }}
+                            />
                         </HoloCard>
                     </div>
                 </div>
