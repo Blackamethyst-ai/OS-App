@@ -401,36 +401,54 @@ export const useArchonStore = create<ArchonStore>()(
       // Custom serialization for Maps
       storage: {
         getItem: (name) => {
-          const str = localStorage.getItem(name);
-          if (!str) return null;
+          try {
+            const str = localStorage.getItem(name);
+            if (!str) return null;
 
-          const data = JSON.parse(str);
-          // Reconstruct Maps from arrays
-          if (data.state) {
-            if (data.state.activeGoals) {
-              data.state.activeGoals = new Map(data.state.activeGoals);
+            const data = JSON.parse(str);
+            // Reconstruct Maps from arrays with defensive handling
+            if (data.state) {
+              // Handle activeGoals - ensure it's a valid Map
+              if (data.state.activeGoals && Array.isArray(data.state.activeGoals)) {
+                data.state.activeGoals = new Map(data.state.activeGoals);
+              } else {
+                data.state.activeGoals = new Map();
+              }
+              // Handle subsystems
+              if (data.state.subsystems && Array.isArray(data.state.subsystems)) {
+                data.state.subsystems = new Map(data.state.subsystems);
+              } else {
+                data.state.subsystems = createInitialSubsystems();
+              }
+              // Handle subsystemAllocations
+              if (data.state.resources?.subsystemAllocations && Array.isArray(data.state.resources.subsystemAllocations)) {
+                data.state.resources.subsystemAllocations = new Map(data.state.resources.subsystemAllocations);
+              }
+              // Handle subsystemBudgetRatios
+              if (data.state.config?.subsystemBudgetRatios && Array.isArray(data.state.config.subsystemBudgetRatios)) {
+                data.state.config.subsystemBudgetRatios = new Map(data.state.config.subsystemBudgetRatios);
+              }
             }
-            if (data.state.subsystems) {
-              data.state.subsystems = new Map(data.state.subsystems);
-            }
-            if (data.state.resources?.subsystemAllocations) {
-              data.state.resources.subsystemAllocations = new Map(data.state.resources.subsystemAllocations);
-            }
-            if (data.state.config?.subsystemBudgetRatios) {
-              data.state.config.subsystemBudgetRatios = new Map(data.state.config.subsystemBudgetRatios);
-            }
+            return data;
+          } catch (e) {
+            console.error('[ARCHON] Failed to parse persisted state, resetting:', e);
+            localStorage.removeItem(name);
+            return null;
           }
-          return data;
         },
         setItem: (name, value) => {
-          // Serialize Maps to arrays
-          const serializable = JSON.parse(JSON.stringify(value, (key, val) => {
-            if (val instanceof Map) {
-              return Array.from(val.entries());
-            }
-            return val;
-          }));
-          localStorage.setItem(name, JSON.stringify(serializable));
+          try {
+            // Serialize Maps to arrays
+            const serializable = JSON.parse(JSON.stringify(value, (key, val) => {
+              if (val instanceof Map) {
+                return Array.from(val.entries());
+              }
+              return val;
+            }));
+            localStorage.setItem(name, JSON.stringify(serializable));
+          } catch (e) {
+            console.error('[ARCHON] Failed to persist state:', e);
+          }
         },
         removeItem: (name) => localStorage.removeItem(name),
       },

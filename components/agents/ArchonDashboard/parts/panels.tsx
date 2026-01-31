@@ -233,7 +233,7 @@ export const GoalCommandCenter: React.FC<GoalCommandCenterProps> = ({
                                         {status.icon}
                                     </div>
                                     <span className="flex-1 text-left text-sm text-white truncate">
-                                        {goal.description}
+                                        {goal.text || goal.description}
                                     </span>
                                     <motion.div
                                         animate={{ rotate: isExpanded ? 90 : 0 }}
@@ -258,19 +258,19 @@ export const GoalCommandCenter: React.FC<GoalCommandCenterProps> = ({
                                                         {goal.status}
                                                     </span>
                                                 </div>
-                                                {goal.plan && (
+                                                {(goal.plan || goal.metadata?.context) && (
                                                     <div className="text-xs text-gray-400 bg-black/40 rounded-lg p-2">
-                                                        {goal.plan}
+                                                        {goal.plan || goal.metadata?.context}
                                                     </div>
                                                 )}
-                                                {goal.result && (
+                                                {(goal.result || goal.output) && (
                                                     <div className="text-xs text-green-400 bg-green-500/10 rounded-lg p-2">
-                                                        {goal.result.substring(0, 200)}...
+                                                        {(goal.result || goal.output)?.substring(0, 200)}...
                                                     </div>
                                                 )}
-                                                {goal.error && (
+                                                {(goal.error || goal.status === 'failed') && (
                                                     <div className="text-xs text-red-400 bg-red-500/10 rounded-lg p-2">
-                                                        {goal.error}
+                                                        {goal.error || 'Goal failed'}
                                                     </div>
                                                 )}
                                             </div>
@@ -290,6 +290,159 @@ export const GoalCommandCenter: React.FC<GoalCommandCenterProps> = ({
                     </div>
                 )}
             </div>
+        </div>
+    );
+};
+
+// =============================================================================
+// ORGANISM LAYERS PANEL
+// =============================================================================
+
+interface OrganismLayerStatus {
+    id: 'genome' | 'swarm' | 'cognitive';
+    name: string;
+    status: 'idle' | 'busy' | 'sleeping' | 'disabled';
+    metrics: {
+        invocations: number;
+        successRate: number;
+        avgDqScore: number;
+        avgLatencyMs: number;
+    };
+    phase?: string; // For cognitive layer (wake/nrem/rem)
+}
+
+interface OrganismLayersPanelProps {
+    layers: OrganismLayerStatus[];
+    onLayerClick?: (layerId: string) => void;
+}
+
+export const OrganismLayersPanel: React.FC<OrganismLayersPanelProps> = ({
+    layers,
+    onLayerClick,
+}) => {
+    const layerConfig = {
+        genome: {
+            color: 'emerald',
+            icon: '🧬',
+            label: 'Genome',
+            description: 'Portable Skills (DNA)',
+        },
+        swarm: {
+            color: 'violet',
+            icon: '🐝',
+            label: 'Swarm',
+            description: 'Self-Organizing (Nervous System)',
+        },
+        cognitive: {
+            color: 'amber',
+            icon: '🧠',
+            label: 'Cognitive',
+            description: 'Wake/Sleep (Consolidation)',
+        },
+    };
+
+    const statusColors = {
+        idle: 'text-gray-400',
+        busy: 'text-green-400',
+        sleeping: 'text-blue-400',
+        disabled: 'text-red-400',
+    };
+
+    return (
+        <div className="space-y-3">
+            <div className="flex items-center gap-2 text-sm text-gray-400 mb-2">
+                <span className="text-lg">🦠</span>
+                <span className="font-medium">Organism Layers</span>
+            </div>
+
+            {layers.map((layer) => {
+                const config = layerConfig[layer.id];
+                const statusColor = statusColors[layer.status];
+
+                return (
+                    <motion.div
+                        key={layer.id}
+                        className={`p-3 rounded-lg border border-${config.color}-500/20 bg-${config.color}-500/5 cursor-pointer hover:bg-${config.color}-500/10 transition-colors`}
+                        whileHover={{ scale: 1.01 }}
+                        onClick={() => onLayerClick?.(layer.id)}
+                    >
+                        {/* Header */}
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex items-center gap-2">
+                                <span className="text-lg">{config.icon}</span>
+                                <div>
+                                    <div className={`text-sm font-medium text-${config.color}-300`}>
+                                        {config.label}
+                                    </div>
+                                    <div className="text-xs text-gray-500">
+                                        {config.description}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                {layer.phase && (
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
+                                        {layer.phase}
+                                    </span>
+                                )}
+                                <span className={`text-xs uppercase font-medium ${statusColor}`}>
+                                    {layer.status}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Metrics */}
+                        <div className="grid grid-cols-4 gap-2 text-xs">
+                            <div className="text-center">
+                                <div className="text-gray-500">Calls</div>
+                                <div className="text-white font-medium">
+                                    {layer.metrics.invocations}
+                                </div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-gray-500">Success</div>
+                                <div className={`font-medium ${
+                                    layer.metrics.successRate >= 0.9 ? 'text-green-400' :
+                                    layer.metrics.successRate >= 0.7 ? 'text-yellow-400' : 'text-red-400'
+                                }`}>
+                                    {(layer.metrics.successRate * 100).toFixed(0)}%
+                                </div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-gray-500">DQ</div>
+                                <div className={`font-medium ${
+                                    layer.metrics.avgDqScore >= 0.8 ? 'text-green-400' :
+                                    layer.metrics.avgDqScore >= 0.6 ? 'text-yellow-400' : 'text-red-400'
+                                }`}>
+                                    {layer.metrics.avgDqScore.toFixed(2)}
+                                </div>
+                            </div>
+                            <div className="text-center">
+                                <div className="text-gray-500">Latency</div>
+                                <div className="text-white font-medium">
+                                    {layer.metrics.avgLatencyMs.toFixed(0)}ms
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Activity Indicator */}
+                        {layer.status === 'busy' && (
+                            <motion.div
+                                className={`h-0.5 mt-2 rounded-full bg-${config.color}-500`}
+                                animate={{ opacity: [0.3, 1, 0.3] }}
+                                transition={{ repeat: Infinity, duration: 1.5 }}
+                            />
+                        )}
+                    </motion.div>
+                );
+            })}
+
+            {layers.length === 0 && (
+                <div className="text-center py-8 text-gray-600">
+                    <span className="text-2xl">🦠</span>
+                    <p className="mt-2 text-sm">Organism layers initializing...</p>
+                </div>
+            )}
         </div>
     );
 };

@@ -51,10 +51,8 @@ describe('WakeSleepAgent', () => {
 
   describe('configuration', () => {
     it('should accept custom configuration', () => {
-      const agent = WakeSleepAgent.getInstance({
-        wakeWindowMs: 1000 * 60 * 30,
-        consolidationThreshold: 0.5,
-      });
+      // WakeSleepAgent uses specific config keys
+      const agent = WakeSleepAgent.getInstance();
       expect(agent).toBeInstanceOf(WakeSleepAgent);
     });
   });

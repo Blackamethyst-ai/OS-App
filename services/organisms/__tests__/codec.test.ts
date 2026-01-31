@@ -15,11 +15,13 @@ import {
 import type { SkillGenome } from '../genome/types';
 
 describe('SkillGenomeCodec', () => {
-  const sampleSkill: SkillGenome = {
+  // Use type assertion for test data - tests validate core functionality
+  const sampleSkill = {
     id: 'test-skill-001',
     name: 'Test Skill',
     version: '1.0.0',
     description: 'A test skill for validation',
+    tags: ['test'],
     inputSchema: {
       type: 'object',
       properties: {
@@ -36,13 +38,24 @@ describe('SkillGenomeCodec', () => {
     handler: {
       body: 'return { result: input.query.toUpperCase() };',
       params: ['input'],
+      isAsync: false,
     },
     mcpResource: {
       uri: 'mcp://agent-genome/skills/test-skill-001',
-      name: 'Test Skill',
       mimeType: 'application/json',
+      toolSchema: {
+        name: 'test-skill',
+        description: 'Test skill',
+        inputSchema: { type: 'object' },
+      },
     },
-  };
+    dependencies: [],
+    runtime: 'javascript' as const,
+    timeoutMs: 30000,
+    retryPolicy: { maxRetries: 3, backoffMs: 1000 },
+    createdAt: Date.now(),
+    updatedAt: Date.now(),
+  } as unknown as SkillGenome;
 
   describe('serialize', () => {
     it('should serialize a skill to JSON string', () => {
@@ -111,6 +124,7 @@ describe('SkillGenomeCodec', () => {
         handler: {
           body: 'return { result: "different" };',
           params: ['input'],
+          isAsync: false,
         },
       };
       const checksum1 = skillGenomeCodec.computeChecksum(sampleSkill);

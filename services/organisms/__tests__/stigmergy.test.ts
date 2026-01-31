@@ -45,6 +45,7 @@ describe('StigmergicEnvironment', () => {
         confidence: 0.9,
         strength: 0.9,
         timestamp: Date.now(),
+        lastUpdated: Date.now(),
       };
 
       env.depositSignal(voteSignal);
@@ -72,7 +73,8 @@ describe('StigmergicEnvironment', () => {
         confidence: 0.8,
         strength: 0.8,
         timestamp: Date.now(),
-      });
+        lastUpdated: Date.now(),
+      } as VoteSignal);
 
       const votes = env.getTaskVotes('query-test');
       expect(votes.length).toBeGreaterThanOrEqual(1);

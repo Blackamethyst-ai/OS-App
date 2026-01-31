@@ -30,11 +30,13 @@ describe('Agentic Organism Framework Integration', () => {
   // ===========================================================================
 
   describe('Genome Layer - SkillGenome Codec', () => {
-    const testSkill: SkillGenome = {
+    // Use type assertion for test data
+    const testSkill = {
       id: 'skill-test-001',
       name: 'Test Skill',
       version: '1.0.0',
       description: 'A test skill for validation',
+      tags: ['test'],
       inputSchema: {
         type: 'object',
         properties: {
@@ -51,13 +53,24 @@ describe('Agentic Organism Framework Integration', () => {
       handler: {
         body: 'return { output: input.input };',
         params: ['input'],
+        isAsync: false,
       },
       mcpResource: {
         uri: 'mcp://agent-genome/skills/skill-test-001',
-        name: 'Test Skill',
         mimeType: 'application/json',
+        toolSchema: {
+          name: 'test-skill',
+          description: 'Test skill',
+          inputSchema: { type: 'object' },
+        },
       },
-    };
+      dependencies: [],
+      runtime: 'javascript' as const,
+      timeoutMs: 30000,
+      retryPolicy: { maxRetries: 3, backoffMs: 1000 },
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    } as unknown as SkillGenome;
 
     it('should serialize a skill genome to JSON', () => {
       const serialized = serializeSkill(testSkill);
