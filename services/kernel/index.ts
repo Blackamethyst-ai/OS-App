@@ -9,6 +9,24 @@ export { agentKernel, type DispatchOptions, type DispatchResult } from './AgentK
 export { KernelScheduler } from './KernelScheduler';
 export { IntentResolver } from './IntentResolver';
 
+// MCP Context Bridge (US-017)
+export {
+  MCPContextBridge,
+  mcpContextBridge,
+  initializeMCPBridge,
+  fetchContext,
+  injectLayerContext,
+  loadOrganismContext,
+} from './mcpContextBridge';
+
+export type {
+  MCPConfig,
+  ContextUpdateCallback,
+  InjectionPattern,
+  ContextSelectionResult,
+  ConnectionStatus,
+} from './mcpContextBridge';
+
 // Types
 export type {
   // Kernel core
