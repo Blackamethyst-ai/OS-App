@@ -8,7 +8,13 @@ import {
     runAgentReasoning
 } from '../../../services/geminiService';
 import { voiceNexus, analyzeComplexity, runPreflightCheck, formatPreflightResult } from '../../../services/voiceNexus';
-import { executeAction } from '../../../services/unifiedActionRegistry';
+// Capabilities Registry (replacing unifiedActionRegistry)
+import {
+    executeCapability,
+    getCapability,
+    getVoiceCapabilityList,
+    initializeCapabilities,
+} from '../../../services/capabilities';
 import { AppMode } from '../../../types';
 import { LiveServerMessage } from '@google/genai';
 import { audio } from '../../../services/audioService';
@@ -16,7 +22,8 @@ import { CODEBASE_KNOWLEDGE, buildCodebaseContext } from '../../../services/arch
 import { getFullSystemContext, getSectorContext } from '../../../services/voiceUIContext';
 import { universalVoice, fillInput, clickButton, selectOption, scanInteractiveElements } from '../../../services/universalVoiceHooks';
 import { navigateToTab, generateTabContext, parseTabNavigation, TAB_REGISTRY } from '../../../services/tabNavigationRegistry';
-import { initializeUnifiedRegistry, routeQuery, executeQuery, generateVoiceContext } from '../../../services/unifiedActionRegistry';
+// Keep CPB routing functions temporarily until full migration
+import { routeQuery, executeQuery } from '../../../services/unifiedActionRegistry';
 import type { CPBPath } from '../../../services/cognitivePrecisionBridge/types';
 import { SovereignMemory } from '../../../services/memory/MemoryStore';
 import { neuralVault } from '../../../services/persistenceService';
@@ -61,13 +68,8 @@ const VoiceManager: React.FC = () => {
     const lastContextDigestRef = useRef<string>('');  // Quick digest for staleness check
     const epochChangesPendingRef = useRef<EpochEvent[]>([]);  // Queued changes during session
 
-    // Initialize unified action registry on mount
-    // (consolidates all voice and component actions with CPB routing)
-    useEffect(() => {
-        initializeUnifiedRegistry().catch(err => {
-            console.error('[VoiceManager] Failed to initialize unified registry:', err);
-        });
-    }, []);
+    // Capabilities Registry initialization happens in index.tsx
+    // The unified registry initialization has been removed (US-002)
 
     // Subscribe to epoch changes for synchronized clock awareness
     useEffect(() => {
@@ -155,33 +157,28 @@ const VoiceManager: React.FC = () => {
                 const actionArgs = args.args || {};
                 addLog('SYSTEM', `VOICE_EXECUTIVE: Executing action [${actionId}]...`);
 
-                // Try unified registry first for CPB-routed execution
-                const { getAction, executeAction: executeUnifiedAction } = await import('../../../services/unifiedActionRegistry');
-                const unifiedAction = getAction(actionId);
+                // Try capabilities registry for CPB-routed execution
+                const capability = getCapability(actionId);
 
-                if (unifiedAction) {
-                    // Route through CPB if action has complex execution path
-                    if (unifiedAction.complexity !== 'simple' && unifiedAction.complexity !== 'navigation') {
-                        addLog('SYSTEM', `VOICE_EXECUTIVE: Routing [${actionId}] through CPB (complexity: ${unifiedAction.complexity}, path: ${unifiedAction.executionPath})`);
+                if (capability) {
+                    // Route through CPB if capability has complex execution path
+                    if (capability.complexity !== 'simple' && capability.complexity !== 'navigation') {
+                        addLog('SYSTEM', `VOICE_EXECUTIVE: Routing [${actionId}] through CPB (complexity: ${capability.complexity}, path: ${capability.executionPath})`);
 
-                        const cpbResult = await executeUnifiedAction(actionId, actionArgs, (status) => {
-                            if (status.message) {
-                                addLog('SYSTEM', `CPB [${status.phase}]: ${status.message}`);
-                            }
-                        });
+                        const cpbResult = await executeCapability(actionId, actionArgs as Record<string, unknown>);
 
                         if (cpbResult.success) {
-                            addLog('SUCCESS', `VOICE_EXECUTIVE: CPB execution complete (DQ: ${cpbResult.dqScore ? (cpbResult.dqScore * 100).toFixed(0) + '%' : 'N/A'})`);
+                            addLog('SUCCESS', `VOICE_EXECUTIVE: CPB execution complete (timing: ${cpbResult.timing?.toFixed(0)}ms)`);
                             audio.playSuccess();
                             return {
                                 status: "CPB_ACTION_EXECUTED",
                                 actionId,
-                                executionPath: cpbResult.executionPath,
-                                dqScore: cpbResult.dqScore,
-                                result: cpbResult.output
+                                executionPath: capability.executionPath,
+                                timing: cpbResult.timing,
+                                result: cpbResult.result
                             };
                         } else {
-                            const errorMsg = (cpbResult.output as any)?.error || 'Unknown error';
+                            const errorMsg = cpbResult.error || 'Unknown error';
                             addLog('ERROR', `VOICE_EXECUTIVE: CPB execution failed: ${errorMsg}`);
                             return { error: errorMsg, actionId };
                         }
@@ -4729,7 +4726,7 @@ ${Object.entries(CODEBASE_KNOWLEDGE.subsystems).map(([name, info]: [string, any]
 
 === AVAILABLE ACTIONS ===
 Use execute_component_action with these IDs for complex operations:
-${generateVoiceContext(currentMode)}
+${getVoiceCapabilityList(currentMode)}
 
 ${generateTabContext(currentMode)}
 
