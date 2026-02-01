@@ -38,9 +38,9 @@ export * from './graph';
 
 
 // Visualizations
-export { default as AgentGraveyard } from './Visualizations/AgentGraveyard';
+export { AgentGraveyard } from './Visualizations/AgentGraveyard';
 export { default as SuperLattice } from './Visualizations/SuperLattice';
-export { default as TugOfWarChart } from './Visualizations/TugOfWarChart';
+export { TugOfWarChart } from './Visualizations/TugOfWarChart';
 
 // Layout
 export { default as AppHeader } from './layout/AppHeader';

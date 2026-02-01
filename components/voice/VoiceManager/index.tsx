@@ -1196,8 +1196,8 @@ const VoiceManager: React.FC = () => {
                         } : null,
                         dqScore: result.dqScore ? {
                             score: result.dqScore.score,
-                            validity: result.dqScore.validity,
-                            specificity: result.dqScore.specificity
+                            validity: (result.dqScore as any).validity ?? (result.dqScore as any).components?.validity,
+                            specificity: (result.dqScore as any).specificity ?? (result.dqScore as any).components?.specificity
                         } : null,
                         complexity: result.complexity ? {
                             taskType: result.complexity.taskType,
@@ -2384,7 +2384,7 @@ Output the code with brief explanation.`,
             if (name === 'triage_priorities') {
                 const { items, criteria, limit } = args;
                 addLog('SYSTEM', `📊 TRIAGE: Prioritizing by ${criteria || 'balanced'}`);
-                const state = useStore.getState();
+                const state = useAppStore.getState();
                 const tasks = items || ((state as any).tasks || []).map((t: any) => t.title);
                 return {
                     status: "TRIAGE_COMPLETE",
@@ -2421,7 +2421,7 @@ Output the code with brief explanation.`,
             if (name === 'status_brief') {
                 const { scope, format, includeRecommendations } = args;
                 addLog('SYSTEM', `📋 BRIEF: ${scope || 'session'} status`);
-                const state = useStore.getState();
+                const state = useAppStore.getState();
                 return {
                     status: "BRIEF_GENERATED",
                     scope: scope || 'session',
@@ -2434,7 +2434,7 @@ Output the code with brief explanation.`,
 
             if (name === 'where_am_i') {
                 const { includeHistory, includeState } = args;
-                const state = useStore.getState();
+                const state = useAppStore.getState();
                 addLog('SYSTEM', `📍 CONTEXT: Current location`);
                 return {
                     status: "CONTEXT_RETRIEVED",
@@ -2552,7 +2552,7 @@ Output the code with brief explanation.`,
             if (name === 'what_next') {
                 const { context, mood, timeAvailable } = args;
                 addLog('SYSTEM', `💡 SUGGESTIONS: What next?`);
-                const state = useStore.getState();
+                const state = useAppStore.getState();
                 return {
                     status: "SUGGESTIONS_READY",
                     currentMode: state.mode,
@@ -3315,7 +3315,7 @@ Output the code with brief explanation.`,
 
             if (name === 'voice_bookmark') {
                 const { action: bmAction, name: bmName, description } = args;
-                const state = useStore.getState();
+                const state = useAppStore.getState();
 
                 try {
                     const bookmarks = await neuralVault.get('voice_bookmarks') || {};
@@ -3714,7 +3714,7 @@ Output the code with brief explanation.`,
 
             if (name === 'context_switch') {
                 const { to, saveCurrentAs, restore } = args;
-                const state = useStore.getState();
+                const state = useAppStore.getState();
 
                 try {
                     const contexts = await neuralVault.get('saved_contexts') || {};
@@ -4396,7 +4396,7 @@ Output the code with brief explanation.`,
             if (name === 'smart_context') {
                 const { depth, focus: ctxFocus } = args;
                 addLog('SYSTEM', `🧠 SMART CONTEXT: ${depth || 'surface'}`);
-                const state = useStore.getState();
+                const state = useAppStore.getState();
                 return {
                     status: "CONTEXT_ANALYZED",
                     depth: depth || 'surface',
@@ -4493,7 +4493,7 @@ Output the code with brief explanation.`,
             if (name === 'daily_brief') {
                 const { type: briefType, include } = args;
                 addLog('SYSTEM', `☀️ DAILY BRIEF: ${briefType || 'morning'}`);
-                const state = useStore.getState();
+                const state = useAppStore.getState();
 
                 try {
                     // Pull from real neuralVault data
