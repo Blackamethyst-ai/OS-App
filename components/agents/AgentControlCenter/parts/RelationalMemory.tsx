@@ -9,7 +9,7 @@ import { Bot, User, Dna } from 'lucide-react';
 import { cn } from '../../../../utils/cn';
 
 interface HistoryEntry {
-    role: 'USER' | 'AI';
+    role: 'USER' | 'AI' | 'SYSTEM';
     text: string;
     timestamp: number;
 }

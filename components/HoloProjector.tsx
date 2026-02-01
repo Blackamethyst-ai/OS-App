@@ -85,7 +85,7 @@ const HoloProjector: React.FC = () => {
 
             openHoloProjector({
                 ...holo.activeArtifact,
-                content: transformed
+                content: transformed as string
             });
 
         } catch (err: any) {
