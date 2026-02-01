@@ -1,3 +1,4 @@
+// @ts-nocheck - Deno runtime, not covered by main TS config
 /**
  * Deepgram Token Edge Function
  *
