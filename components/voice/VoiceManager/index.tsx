@@ -8,12 +8,16 @@ import {
     runAgentReasoning
 } from '../../../services/geminiService';
 import { voiceNexus, analyzeComplexity, runPreflightCheck, formatPreflightResult } from '../../../services/voiceNexus';
-// Capabilities Registry (replacing unifiedActionRegistry)
+// Capabilities Registry (consolidated source of truth)
 import {
     executeCapability,
     getCapability,
     getVoiceCapabilityList,
     initializeCapabilities,
+    // CPB routing functions (migrated from unifiedActionRegistry)
+    routeQueryToCPB,
+    executeQueryWithCPB,
+    type CPBStatus,
 } from '../../../services/capabilities';
 import { AppMode } from '../../../types';
 import { LiveServerMessage } from '@google/genai';
@@ -22,8 +26,6 @@ import { CODEBASE_KNOWLEDGE, buildCodebaseContext } from '../../../services/arch
 import { getFullSystemContext, getSectorContext } from '../../../services/voiceUIContext';
 import { universalVoice, fillInput, clickButton, selectOption, scanInteractiveElements } from '../../../services/universalVoiceHooks';
 import { navigateToTab, generateTabContext, parseTabNavigation, TAB_REGISTRY } from '../../../services/tabNavigationRegistry';
-// Keep CPB routing functions temporarily until full migration
-import { routeQuery, executeQuery } from '../../../services/unifiedActionRegistry';
 import type { CPBPath } from '../../../services/cognitivePrecisionBridge/types';
 import { SovereignMemory } from '../../../services/memory/MemoryStore';
 import { neuralVault } from '../../../services/persistenceService';
@@ -430,8 +432,8 @@ const VoiceManager: React.FC = () => {
 
                 addLog('SYSTEM', `THINK: Processing "${task.slice(0, 50)}${task.length > 50 ? '...' : ''}"`);
 
-                // Route through CPB
-                const routing = routeQuery(task, context);
+                // Route through CPB (using capabilities registry)
+                const routing = routeQueryToCPB(task, context);
                 addLog('SYSTEM', `THINK: Routed to ${routing.path} path (confidence: ${(routing.confidence * 100).toFixed(0)}%)`);
 
                 // Update CPB visual state - START
@@ -445,7 +447,7 @@ const VoiceManager: React.FC = () => {
                 });
 
                 try {
-                    const result = await executeQuery(task, context, (status) => {
+                    const result = await executeQueryWithCPB(task, context, (status: CPBStatus) => {
                         // Update visual state on each phase change
                         if (status.phase && status.phase !== 'idle') {
                             addLog('SYSTEM', `THINK [${status.phase}]: ${status.message || ''}`);

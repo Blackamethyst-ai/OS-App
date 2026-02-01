@@ -202,6 +202,40 @@ const cap = getCapability('my_action');
 await executeCapability('my_action', args);
 ```
 
+## CPB Routing
+
+The Capabilities Registry includes CPB (Cognitive Precision Bridge) routing for complex queries.
+
+```typescript
+import {
+  routeQueryToCPB,
+  executeQueryWithCPB,
+  executeCapabilityWithCPB,
+} from '@/services/capabilities';
+
+// Route a query to optimal CPB path
+const routing = routeQueryToCPB('analyze this architecture', context);
+console.log(`Path: ${routing.path}, Confidence: ${routing.confidence}`);
+
+// Execute with CPB routing and status callbacks
+const result = await executeQueryWithCPB(query, context, (status) => {
+  console.log(`Phase: ${status.phase}, Progress: ${status.progress}%`);
+});
+
+// Execute specific capability with CPB routing
+const result = await executeCapabilityWithCPB('analyze_code', { code }, onStatus);
+```
+
+### CPB Paths
+
+| Path | Use Case |
+|------|----------|
+| `direct` | Simple queries, navigation |
+| `rlm` | Long context requiring compression |
+| `ace` | Multi-agent consensus |
+| `hybrid` | RLM + ACE combined |
+| `cascade` | Full verification pipeline |
+
 ## Testing
 
 ```bash

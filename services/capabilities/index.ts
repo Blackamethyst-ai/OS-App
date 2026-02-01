@@ -176,6 +176,24 @@ export {
 } from './adapters/gemini';
 
 // ============================================================================
+// CPB Routing Exports
+// ============================================================================
+
+export {
+  // Query routing
+  routeQueryToCPB,
+  executeQueryWithCPB,
+  executeCapabilityWithCPB,
+
+  // Types
+  type CPBExecutionResult,
+  type QueryRouteResult,
+  type CPBPath as CPBRoutingPath,
+  type CPBResult,
+  type CPBStatus,
+} from './cpb';
+
+// ============================================================================
 // Initialization
 // ============================================================================
 
