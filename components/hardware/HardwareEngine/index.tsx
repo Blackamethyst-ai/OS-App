@@ -165,7 +165,7 @@ const HardwareEngine: React.FC = () => {
         addLog('SYSTEM', `MANIFEST_GEN: Creating deployment manifest for ${selectedGpu.model}...`);
         try {
             if (!apiKeyService.hasGeminiKey()) await promptSelectKey();
-            const manifest = await generateHardwareDeploymentManifest(selectedGpu.model, selectedGpu.specs);
+            const manifest = await (generateHardwareDeploymentManifest as any)(selectedGpu.model, selectedGpu.specs);
             setDeploymentManifest(manifest);
             addLog('SUCCESS', 'MANIFEST_GEN: Deployment manifest generated.');
             audio.playSuccess();
@@ -183,7 +183,7 @@ const HardwareEngine: React.FC = () => {
         addLog('SYSTEM', `IMPACT_ANALYSIS: Evaluating cross-sector implications for ${selectedGpu.model}...`);
         try {
             if (!apiKeyService.hasGeminiKey()) await promptSelectKey();
-            const impact = await analyzeCrossSectorImpact(selectedGpu.model, selectedGpu.tier);
+            const impact = await (analyzeCrossSectorImpact as any)(selectedGpu.model, selectedGpu.tier);
             setCrossSectorImpact(impact);
             addLog('SUCCESS', 'IMPACT_ANALYSIS: Cross-sector analysis complete.');
             audio.playSuccess();
@@ -298,7 +298,7 @@ const HardwareEngine: React.FC = () => {
                     generateXRayVariant(data), 
                     generateIsometricSchematic(data)
                 ]);
-                setHardwareState({ analysis: scan, xrayImage: xray, isLoading: false, bom: scan.components || [] });
+                setHardwareState({ analysis: scan as any, xrayImage: xray, isLoading: false, bom: (scan.components || []) as any });
                 setIsometricImage(iso);
                 addLog('SUCCESS', 'SCAN_COMPLETE: Infrastructure topology reconstructed.');
                 audio.playSuccess();
@@ -492,7 +492,7 @@ const HardwareEngine: React.FC = () => {
                                             <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 flex flex-col">
                                                 <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-3">Source Schematic</span>
                                                 <div className="flex-1 relative rounded-xl overflow-hidden">
-                                                    <img src={`data:${schematicImage.mimeType};base64,${schematicImage.data}`} className="w-full h-full object-contain" alt="Schematic" />
+                                                    <img src={`data:${schematicImage.inlineData.mimeType};base64,${schematicImage.inlineData.data}`} className="w-full h-full object-contain" alt="Schematic" />
                                                 </div>
                                             </div>
                                         )}
