@@ -39,9 +39,9 @@ const mockConvergeStrategicLattices = vi.fn(async () => ({
 }));
 
 vi.mock('../../geminiService', () => ({
-    generateStructuredWorkflow: (...args: any[]) => mockGenerateStructuredWorkflow(...args),
-    searchGroundedIntel: (...args: any[]) => mockSearchGroundedIntel(...args),
-    convergeStrategicLattices: (...args: any[]) => mockConvergeStrategicLattices(...args)
+    generateStructuredWorkflow: (...args: unknown[]) => (mockGenerateStructuredWorkflow as any)(...args),
+    searchGroundedIntel: (...args: unknown[]) => (mockSearchGroundedIntel as any)(...args),
+    convergeStrategicLattices: (...args: unknown[]) => (mockConvergeStrategicLattices as any)(...args)
 }));
 
 describe('Sovereign Actions', () => {

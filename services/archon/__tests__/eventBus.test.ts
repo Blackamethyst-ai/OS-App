@@ -353,7 +353,7 @@ describe('ArchonEventBus', () => {
             // Reset mock for other tests
             mockGetState.mockImplementation(() => ({
                 uplinkData: vi.fn(),
-            }));
+            } as any));
         });
     });
 
@@ -386,7 +386,7 @@ describe('ArchonEventBus', () => {
             const mockUplinkData = vi.fn();
             mockGetState.mockImplementation(() => ({
                 uplinkData: mockUplinkData,
-            }));
+            } as any));
 
             // decision:made is in EPOCH_TRIGGERING_EVENTS
             // payload has neither description nor goalId
@@ -399,14 +399,14 @@ describe('ArchonEventBus', () => {
 
             mockGetState.mockImplementation(() => ({
                 uplinkData: vi.fn(),
-            }));
+            } as any));
         });
 
         it('should use description when available', async () => {
             const mockUplinkData = vi.fn();
             mockGetState.mockImplementation(() => ({
                 uplinkData: mockUplinkData,
-            }));
+            } as any));
 
             await bus.emit('goal:received', { goalId: 'g1', goalText: 'test', description: 'Custom desc' });
 
@@ -416,14 +416,14 @@ describe('ArchonEventBus', () => {
 
             mockGetState.mockImplementation(() => ({
                 uplinkData: vi.fn(),
-            }));
+            } as any));
         });
 
         it('should stringify non-object payload', async () => {
             const mockUplinkData = vi.fn();
             mockGetState.mockImplementation(() => ({
                 uplinkData: mockUplinkData,
-            }));
+            } as any));
 
             // pattern:learned is in EPOCH_TRIGGERING_EVENTS
             await bus.emit('pattern:learned', 'string-payload' as any);
@@ -434,14 +434,14 @@ describe('ArchonEventBus', () => {
 
             mockGetState.mockImplementation(() => ({
                 uplinkData: vi.fn(),
-            }));
+            } as any));
         });
 
         it('should handle null payload', async () => {
             const mockUplinkData = vi.fn();
             mockGetState.mockImplementation(() => ({
                 uplinkData: mockUplinkData,
-            }));
+            } as any));
 
             await bus.emit('pattern:learned', null as any);
 
@@ -451,7 +451,7 @@ describe('ArchonEventBus', () => {
 
             mockGetState.mockImplementation(() => ({
                 uplinkData: vi.fn(),
-            }));
+            } as any));
         });
     });
 });

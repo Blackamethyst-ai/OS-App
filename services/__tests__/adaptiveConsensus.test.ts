@@ -669,7 +669,9 @@ describe('Adaptive Consensus Engine', () => {
             // Mock historical thresholds
             vi.mocked(convergenceMemory.getOptimalThresholds).mockResolvedValue({
                 gap: 4,
-                rounds: 12
+                rounds: 12,
+                confidence: 0.8,
+                sampleCount: 10
             });
 
             let callCount = 0;
@@ -779,17 +781,21 @@ describe('Adaptive Consensus Engine', () => {
             vi.mocked(performHopGrouping).mockReturnValue({
                 groups: [
                     {
-                        answers: ['Grouped Answer'],
+                        id: 'group-1',
+                        memberAnswers: ['Grouped Answer'],
                         representativeAnswer: 'Grouped Answer',
                         votingStrength: 5,
-                        agentContributors: ['agent-1', 'agent-2']
+                        agentContributors: ['agent-1', 'agent-2'],
+                        cohesion: 0.9
                     }
                 ],
                 winningGroup: {
-                    answers: ['Grouped Answer'],
+                    id: 'group-1',
+                    memberAnswers: ['Grouped Answer'],
                     representativeAnswer: 'Grouped Answer',
                     votingStrength: 5,
-                    agentContributors: ['agent-1', 'agent-2']
+                    agentContributors: ['agent-1', 'agent-2'],
+                    cohesion: 0.9
                 },
                 method: 'levenshtein',
                 groupingDuration: 15
