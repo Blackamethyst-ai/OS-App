@@ -21,12 +21,13 @@ The codebase suffers from **registry sprawl**. There are at least 6 different wa
 **Impact:** The system is "Split-Brained". If you add a tool to analyze stocks in the HUD, you cannot use it via Voice, and vice-versa.
 **Recommendation:** Refactor towards a single **Sovereign Capability Matrix**. All tools should be defined once and exposed via adapters to Voice, Chat, and Command Palette.
 
-## 3. UI "Mock" Disconnects
-The `SynapticContextHub` (Right-click menu) contains buttons that promise functionality but perform no action:
-- **Holo Project:** `onClick` closes menu (No implementation).
-- **Grounding Search:** `onClick` closes menu (No implementation).
-
-**Recommendation:** Wire these buttons to the `Action Layer` (once unified) or hide them until implemented.
+## 3. UI "Mock" Disconnects (FIXED)
+~~The `SynapticContextHub` (Right-click menu) contains buttons that promise functionality but perform no action.~~
+- **Holo Project:** ✅ Now opens HoloProjector with selected text
+- **Grounding Search:** ✅ Now opens Command Palette
+- **Buffer Copy:** ✅ Copies selected text to clipboard
+- **Terminal Clear:** ✅ Now clears terminal display (preserves history)
+- **Evolution Cycles Tab:** ✅ Now shows actual cycle history
 
 ## 4. State Management (Solid)
 The `store.ts` (Zustand) is well-structured using the Slice pattern.
@@ -39,4 +40,7 @@ The `store.ts` (Zustand) is well-structured using the Slice pattern.
 - **Consistency:** Good. Both point to SOTA fast models.
 
 ## Final Verdict
-The system is architecturally ambitious ("Sovereign OS") but currently operates as **independent silos**. The Voice Repair was a major step in connecting one silo (Voice) to the Core (Navigation/Keys). The next logical step is **Tool Unification**.
+The system is architecturally ambitious ("Sovereign OS") but currently operates as **independent silos**. The Voice Repair was a major step in connecting one silo (Voice) to the Core (Navigation/Keys). UI mock disconnects have been fixed. The next logical step is **Tool Unification**.
+
+---
+*Last updated: Feb 1, 2026*
