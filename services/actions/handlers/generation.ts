@@ -4,6 +4,7 @@
  */
 
 import { useAppStore } from '../../../store';
+import { AspectRatio, ImageSize } from '../../../types';
 import * as gemini from '../../geminiService';
 import { audio } from '../../audioService';
 import type { UnifiedAction } from '../types';
@@ -17,7 +18,7 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
     description: 'Generate a single image from prompt',
     handler: async (args) => {
       const store = useAppStore.getState();
-      const prompt = args.prompt || args.text || store.imageGen.prompt;
+      const prompt = (args.prompt || args.text || store.imageGen.prompt) as string;
 
       if (!prompt) {
         return { success: false, error: 'No prompt provided' };
@@ -26,8 +27,8 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
       try {
         const result = await gemini.generateArchitectureImage(
           prompt,
-          args.aspectRatio || store.imageGen.aspectRatio || '16:9',
-          args.quality || store.imageGen.quality || 'high',
+          (args.aspectRatio as string) || store.imageGen.aspectRatio || '16:9',
+          (args.quality as string) || store.imageGen.quality || 'high',
           null
         );
         audio.playSuccess();
@@ -48,7 +49,7 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
     id: 'imagegen_generate_video',
     description: 'Generate a video from prompt',
     handler: async (args) => {
-      const prompt = args.prompt || args.text;
+      const prompt = (args.prompt || args.text) as string;
       if (!prompt) return { success: false, error: 'No prompt provided' };
 
       try {
@@ -71,7 +72,7 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
     description: 'Set the image generation prompt',
     handler: async (args) => {
       const { setImageGenState } = useAppStore.getState().actions;
-      const prompt = args.prompt || args.text;
+      const prompt = (args.prompt || args.text) as string;
       setImageGenState({ prompt });
       return { success: true, prompt };
     },
@@ -86,9 +87,10 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
     description: 'Set image aspect ratio (1:1, 16:9, 9:16, 4:3, 3:4)',
     handler: async (args) => {
       const { setImageGenState } = useAppStore.getState().actions;
-      const ratio = args.ratio || args.aspectRatio || '16:9';
-      setImageGenState({ aspectRatio: ratio });
-      return { success: true, aspectRatio: ratio };
+      const ratioStr = (args.ratio || args.aspectRatio || '16:9') as string;
+      const aspectRatio = ratioStr as AspectRatio;
+      setImageGenState({ aspectRatio });
+      return { success: true, aspectRatio };
     },
     sectors: ['IMAGE_GEN'],
     priority: 65,
@@ -101,7 +103,8 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
     description: 'Set image quality (low, medium, high)',
     handler: async (args) => {
       const { setImageGenState } = useAppStore.getState().actions;
-      const quality = args.quality || 'high';
+      const qualityStr = (args.quality || 'high') as string;
+      const quality = qualityStr as ImageSize;
       setImageGenState({ quality });
       return { success: true, quality };
     },
@@ -109,22 +112,6 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
     priority: 65,
     executionPath: 'direct',
     complexity: 'simple',
-    source: 'component',
-  },
-  {
-    id: 'imagegen_switch_tab',
-    description: 'Switch ImageGen tab (SINGLE, STORYBOARD, VIDEO, TEASER)',
-    handler: async (args) => {
-      const { setImageGenState } = useAppStore.getState().actions;
-      const tab = (args.tab || 'SINGLE').toUpperCase();
-      setImageGenState({ activeTab: tab });
-      audio.playClick();
-      return { success: true, tab };
-    },
-    sectors: ['IMAGE_GEN'],
-    priority: 60,
-    executionPath: 'direct',
-    complexity: 'navigation',
     source: 'component',
   },
 
@@ -135,11 +122,11 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
     id: 'codestudio_generate',
     description: 'Generate code from a natural language prompt',
     handler: async (args) => {
-      const prompt = args.prompt || args.text || args.description;
+      const prompt = (args.prompt || args.text || args.description) as string;
       if (!prompt) return { success: false, error: 'No prompt provided' };
 
       try {
-        const result = await gemini.generateCode(prompt, args.language || 'typescript');
+        const result = await gemini.generateCode(prompt, (args.language as string) || 'typescript');
         audio.playSuccess();
         return { success: true, code: result };
       } catch (e: any) {
@@ -157,11 +144,12 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
     id: 'codestudio_explain',
     description: 'Explain what a piece of code does',
     handler: async (args) => {
-      const code = args.code || args.text;
+      const code = (args.code || args.text) as string;
       if (!code) return { success: false, error: 'No code provided' };
 
       try {
-        const explanation = await gemini.explainCode(code);
+        // Use generateContent with a code explanation prompt
+        const explanation = await gemini.generateContent(`Explain this code:\n\n${code}`);
         return { success: true, explanation };
       } catch (e: any) {
         return { success: false, error: e.message };
@@ -177,11 +165,13 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
     id: 'codestudio_refactor',
     description: 'Refactor code for better quality',
     handler: async (args) => {
-      const code = args.code || args.text;
+      const code = (args.code || args.text) as string;
       if (!code) return { success: false, error: 'No code provided' };
 
       try {
-        const result = await gemini.refactorCode(code, args.instructions);
+        // Use generateCode with refactoring instructions
+        const instructions = (args.instructions as string) || 'Refactor for better quality and readability';
+        const result = await gemini.generateCode(`${instructions}:\n\n${code}`, 'typescript');
         audio.playSuccess();
         return { success: true, refactoredCode: result };
       } catch (e: any) {
@@ -202,7 +192,7 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
     id: 'generate_text',
     description: 'Generate text content from a prompt',
     handler: async (args) => {
-      const prompt = args.prompt || args.text;
+      const prompt = (args.prompt || args.text) as string;
       if (!prompt) return { success: false, error: 'No prompt provided' };
 
       try {
