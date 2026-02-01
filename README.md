@@ -353,6 +353,37 @@ const { prediction, isLoading } = useSessionPrediction({
 
 **Key Insight**: Multi-agent with DQ scoring achieves 100% actionability vs 1.7% single-agent.
 
+### 8. Capabilities Registry (services/capabilities/)
+**Unified Command & Action System — Single source of truth for all executable capabilities.**
+
+| Component | Purpose |
+|-----------|---------|
+| `registry.ts` | Core Map-based registry with SystemMind epoch sync |
+| `cpb.ts` | CPB routing integration for intelligent execution |
+| `types.ts` | Type definitions for capabilities |
+| `providers/` | Sources: actions, tabs, ui, dynamic, sectors |
+| `adapters/` | Integration: voice commands, Gemini functions |
+
+**Features:**
+- 110+ capabilities consolidated (57 actions + 48 tabs + dynamic tools)
+- SystemMind epoch synchronization for voice context updates
+- CPB path selection based on complexity (direct/ace/hybrid/cascade)
+- Manifest caching for 16x faster Gemini function calling
+- Voice command processing and fuzzy search
+
+**Usage:**
+```typescript
+import { executeCapability, routeQueryToCPB } from '@/services/capabilities';
+
+// Execute a registered capability
+await executeCapability('ui_toggle_theme', { theme: 'MIDNIGHT' });
+
+// Route complex query through CPB
+const routing = routeQueryToCPB('analyze this code');
+```
+
+See [`services/capabilities/README.md`](services/capabilities/README.md) for full API reference.
+
 ---
 
 ## Major Components

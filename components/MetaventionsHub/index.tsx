@@ -81,23 +81,22 @@ const MetaventionsHub: React.FC = () => {
     const [isSyncing, setIsSyncing] = useState(false);
     const [showBlueprint, setShowBlueprint] = useState(false);
     const [isDraggingOver, setIsDraggingOver] = useState(false);
-    const [telemetry, setTelemetry] = useState({ cpu: 13.2, net: 0.8, trust: 99.4, entropy: kernel.entropy });
     const voiceCanvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    useEffect(() => {
-        // REAL TELEMETRY: Derived from active agent states
+    // REAL TELEMETRY: Memoized to reduce re-renders (derived from active agent states)
+    const telemetry = useMemo(() => {
         const thinkingCount = agents.activeAgents.filter(a => a.status === 'THINKING').length;
         const totalTasks = agents.activeAgents.reduce((acc, a) => acc + a.tasks.length, 0);
         const failedTasks = agents.activeAgents.reduce((acc, a) => acc + a.tasks.filter(t => t.status === 'FAILED').length, 0);
 
-        setTelemetry({
+        return {
             cpu: 5 + (thinkingCount * 12.5) + (Math.random() * 2), // Jitter for realism
             net: 0.8 + (thinkingCount * 0.4),
             trust: 100 - (failedTasks * 0.5),
             entropy: Math.max(1, totalTasks * 1.5)
-        });
-    }, [agents]);
+        };
+    }, [agents.activeAgents]);
 
     useEffect(() => {
         const canvas = voiceCanvasRef.current;

@@ -114,12 +114,56 @@ export const promptSelectKey = async (): Promise<boolean> => {
 
 // LiveSession class moved to ./liveSession.ts
 
+// --- RESPONSE CACHE ---
+// Simple in-memory cache with 1-hour TTL to reduce API calls for identical prompts
+interface CacheEntry {
+    response: string;
+    timestamp: number;
+}
+
+const responseCache = new Map<string, CacheEntry>();
+const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+const MAX_CACHE_SIZE = 100;
+
+function getCacheKey(prompt: string, model: string, systemInstruction?: string): string {
+    return `${model}:${systemInstruction?.slice(0, 50) || 'default'}:${prompt.slice(0, 200)}`;
+}
+
+function getFromCache(key: string): string | null {
+    const entry = responseCache.get(key);
+    if (!entry) return null;
+    if (Date.now() - entry.timestamp > CACHE_TTL_MS) {
+        responseCache.delete(key);
+        return null;
+    }
+    return entry.response;
+}
+
+function setCache(key: string, response: string): void {
+    // Evict oldest entries if cache is full
+    if (responseCache.size >= MAX_CACHE_SIZE) {
+        const oldest = Array.from(responseCache.entries())
+            .sort((a, b) => a[1].timestamp - b[1].timestamp)[0];
+        if (oldest) responseCache.delete(oldest[0]);
+    }
+    responseCache.set(key, { response, timestamp: Date.now() });
+}
+
 // --- CORE GENERATION FUNCTIONS ---
 
 /**
  * Generic text generation entry point for ModelRouter
+ * Includes response caching with 1-hour TTL for identical prompts
  */
 export async function generateText(prompt: string, model: string = 'gemini-2.0-flash', systemInstruction?: string): Promise<string> {
+    // Check cache first
+    const cacheKey = getCacheKey(prompt, model, systemInstruction);
+    const cached = getFromCache(cacheKey);
+    if (cached) {
+        log.debug("CACHE HIT: Returning cached response");
+        return cached;
+    }
+
     const ai = getAI();
     try {
         const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
@@ -130,7 +174,14 @@ export async function generateText(prompt: string, model: string = 'gemini-2.0-f
             }
         }), 3, 1000, model);
 
-        return response.text || "";
+        const text = response.text || "";
+
+        // Cache successful responses
+        if (text) {
+            setCache(cacheKey, text);
+        }
+
+        return text;
     } catch (e) {
         log.error("Gemini Generation Error", e);
         throw e;
