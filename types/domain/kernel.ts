@@ -41,6 +41,7 @@ export interface TechnicalManifest {
     taxonomy?: any;
     deploymentAura?: string;
     entropyRating?: number;
+    timestamp?: number;
 }
 
 export interface ProtocolStepResult {

@@ -66,6 +66,7 @@ export interface VoiceState {
     partialTranscript: { role: 'user' | 'model'; text: string } | null;
     mentalState: MentalStateMetrics;
     agentAvatars: Record<string, string>;
+    mode?: 'realtime' | 'turn-based' | 'hybrid';
 }
 
 export interface VoiceTranscript {
@@ -421,6 +422,7 @@ export interface ResearchTask {
     logs: string[];
     timestamp: number;
     findings?: string[];
+    title?: string;
 }
 
 export interface ResearchState {
