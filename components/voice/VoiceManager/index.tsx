@@ -597,7 +597,7 @@ const VoiceManager: React.FC = () => {
                         title: title as string,
                         description: (description as string) || '',
                         status: 'TODO' as any,
-                        priority: (priority as string) || 'MEDIUM',
+                        priority: ((priority as string) || 'MEDIUM') as any,
                         tags: (tags as string[]) || []
                     });
 
@@ -1114,7 +1114,7 @@ const VoiceManager: React.FC = () => {
                             title: task.description || task.instruction,
                             description: `Atomic task from goal: "${goal}"\n\nInstruction: ${task.instruction}\nInput: ${task.isolated_input}`,
                             status: 'TODO' as any,
-                            priority: task.weight > 0.7 ? 'HIGH' : 'MEDIUM',
+                            priority: (task.weight > 0.7 ? 'HIGH' : 'MEDIUM') as any,
                             tags: ['decomposed', 'voice-created']
                         });
                         createdTasks.push(task.description || task.instruction);
@@ -2680,7 +2680,7 @@ Output the code with brief explanation.`,
                             title: `🎯 GOAL: ${goalText}`,
                             description: `Voice-tracked goal created at ${new Date().toLocaleString()}`,
                             status: 'TODO' as any,
-                            priority: 'HIGH',
+                            priority: 'HIGH' as any,
                             tags: ['goal', 'voice-created']
                         });
 
@@ -3840,10 +3840,10 @@ Output the code with brief explanation.`,
 
                         if (searchResults.length > 0 || personData) {
                             // Parse semantic results
-                            const semanticInfo = searchResults.map(r => {
+                            const semanticInfo = searchResults.map((r: any) => {
                                 try {
-                                    const parsed = JSON.parse(r.value);
-                                    return { category: parsed.category, info: parsed.info, relevance: r.similarity };
+                                    const parsed = JSON.parse(r.value || r);
+                                    return { category: parsed.category, info: parsed.info, relevance: r.similarity || 1 };
                                 } catch { return null; }
                             }).filter(Boolean);
 
@@ -3931,11 +3931,11 @@ Output the code with brief explanation.`,
                         const topicData = topics[topicName] || [];
 
                         // Parse semantic results
-                        const semanticEntries = searchResults.map(r => {
+                        const semanticEntries = searchResults.map((r: any) => {
                             try {
-                                const parsed = JSON.parse(r.value);
+                                const parsed = JSON.parse(r.value || r);
                                 if (parsed.topic?.toLowerCase() === topicName.toLowerCase()) {
-                                    return { content: parsed.content, timestamp: parsed.timestamp, relevance: r.similarity };
+                                    return { content: parsed.content, timestamp: parsed.timestamp, relevance: r.similarity || 1 };
                                 }
                                 return null;
                             } catch { return null; }
