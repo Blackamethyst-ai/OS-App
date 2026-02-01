@@ -10,7 +10,7 @@
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { useBiometricSensor, BiometricPerformance } from '../hooks/useBiometricSensor';
+import { useBiometricSensor, BiometricPerformance } from '../../hooks/useBiometricSensor';
 
 interface ReticleState {
   x: number;
