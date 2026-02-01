@@ -144,7 +144,7 @@ export interface CPBResult {
 export interface VisualCortexState {
     isAnalyzing: boolean;
     isProbing: boolean;
-    lastResult: { summary: string; confidence: number; tags: string[] } | null;
+    lastResult: { summary: string; confidence?: number; tags?: string[]; classification?: string; extracted_data?: any; sentiment?: string; suggested_sector?: string; action_items?: string[] } | null;
     dropActive: boolean;
 }
 

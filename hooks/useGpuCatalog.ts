@@ -162,9 +162,9 @@ export function useGpuCatalog(options: UseGpuCatalogOptions = {}): UseGpuCatalog
             const prices = await fetchBatchPrices(
                 siliconGpus.map(g => ({ model: g.model, msrp: g.msrp }))
             );
-            setHardwareState(prev => ({
-                livePrices: { ...prev.livePrices, ...prices }
-            }));
+            setHardwareState({
+                livePrices: { ...prices } as any
+            });
             setCacheStats(getCacheStats());
         } catch (error) {
             console.error('Failed to batch fetch GPU prices:', error);

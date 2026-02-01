@@ -1187,7 +1187,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
             let basePrompt = await constructCinematicPrompt(
                 contextualPrompt || "A cinematic still shot on 35mm.",
-                imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY,
+                (imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY) as any,
                 imageGen.characterRefs.length > 0,
                 imageGen.worldRefs.length > 0,
                 imageGen.styleRefs.length > 0,
@@ -1249,7 +1249,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                             imageDimensions: {
                                 aspectRatio: imageGen.aspectRatio
                             }
-                        }
+                        } as any
                     }));
 
                     const imagePart = response.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
@@ -1375,7 +1375,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
 
             let finalPrompt = await constructCinematicPrompt(
                 `BIBLE: ${productionBible?.theme}. SCENE_${idx}: ${frame.scenePrompt} ${resonance}`,
-                imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY,
+                (imageGen.activeColorway || SOVEREIGN_DEFAULT_COLORWAY) as any,
                 imageGen.characterRefs.length > 0,
                 imageGen.worldRefs.length > 0,
                 imageGen.styleRefs.length > 0,
@@ -1434,7 +1434,7 @@ CRITICAL: Character appearance MUST match previous frames exactly.
                             imageDimensions: {
                                 aspectRatio: imageGen.aspectRatio
                             }
-                        }
+                        } as any
                     }));
 
                     const imagePart = response.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
