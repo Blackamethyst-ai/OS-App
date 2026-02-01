@@ -229,6 +229,7 @@ export interface ProcessNode {
     id: string;
     type?: string;
     position: { x: number; y: number };
+    selected?: boolean;
     data: {
         label: string;
         subtext?: string;
@@ -246,6 +247,7 @@ export interface ProcessEdge {
     type?: string;
     label?: string;
     animated?: boolean;
+    data?: Record<string, unknown>;
 }
 
 export interface ProcessState {
@@ -421,8 +423,13 @@ export interface ResearchTask {
     progress: number;
     logs: string[];
     timestamp: number;
-    findings?: string[];
+    findings?: string[] | { id: string; fact: string; confidence: number; source: string }[];
     title?: string;
+    subQueries?: string[];
+    hypotheses?: { id: string; statement: string; confidence: number; status: string }[];
+    facts?: { id: string; fact: string; confidence: number; source: string }[];
+    result?: string;
+    contextSnapshot?: string;
 }
 
 export interface ResearchState {

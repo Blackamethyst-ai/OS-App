@@ -2,14 +2,14 @@ import { AppMode } from './core';
 
 export interface StoredArtifact {
     id: string;
-    name: string;
+    name?: string;
     title?: string;
     type: string;
-    data: Blob;
+    data?: Blob;
     content?: string;
-    analysis: ArtifactAnalysis | null;
-    timestamp: number;
-    tags: string[];
+    analysis?: ArtifactAnalysis | null;
+    timestamp?: number;
+    tags?: string[];
     metadata?: Record<string, unknown>;
 }
 

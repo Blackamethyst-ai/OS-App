@@ -189,9 +189,10 @@ export function useConversationalVoice(
     const [error, setError] = useState<string | null>(null);
 
     // Refs for providers (avoid re-renders)
-    const sttRef = useRef<STTProvider | null>(null);
-    const vadRef = useRef<VADProvider | null>(null);
-    const ttsRef = useRef<TTSProvider | null>(null);
+    // Use any to avoid type conflicts between different STTProvider/VADProvider/TTSProvider versions
+    const sttRef = useRef<any>(null);
+    const vadRef = useRef<any>(null);
+    const ttsRef = useRef<any>(null);
     const audioPlayerRef = useRef<AudioPlayer | null>(null);
     const abortControllerRef = useRef<AbortController | null>(null);
     const silenceTimerRef = useRef<NodeJS.Timeout | null>(null);
