@@ -23,6 +23,7 @@ import type {
   CPBPath,
 } from './types';
 import { complexityToCPBPath } from './types';
+import { useSystemMind } from '../../stores/useSystemMind';
 
 // ============================================================================
 // Registry State
@@ -40,6 +41,9 @@ const state: RegistryState = {
 
 /**
  * Register a single capability
+ *
+ * Triggers SystemMind epoch update to notify voice components
+ * of capability changes (US-001)
  */
 export function registerCapability(capability: Capability): void {
   // Validate required fields
@@ -55,6 +59,15 @@ export function registerCapability(capability: Capability): void {
 
   state.capabilities.set(capability.id, capability);
   state.lastUpdate = Date.now();
+
+  // Trigger SystemMind epoch update for voice context synchronization
+  const systemMind = useSystemMind.getState();
+  systemMind.registerAction(
+    capability.id,
+    `[${capability.source.toUpperCase()}:${capability.complexity}] ${capability.description}`,
+    capability.handler as (args: unknown) => void | Promise<void>,
+    { sectors: capability.sectors, priority: capability.priority }
+  );
 }
 
 /**
@@ -68,11 +81,18 @@ export function registerCapabilities(capabilities: Capability[]): void {
 
 /**
  * Unregister a capability by ID
+ *
+ * Triggers SystemMind epoch update to notify voice components
+ * of capability removal (US-001)
  */
 export function unregisterCapability(id: string): boolean {
   const result = state.capabilities.delete(id);
   if (result) {
     state.lastUpdate = Date.now();
+
+    // Trigger SystemMind epoch update for voice context synchronization
+    const systemMind = useSystemMind.getState();
+    systemMind.unregisterAction(id);
   }
   return result;
 }
