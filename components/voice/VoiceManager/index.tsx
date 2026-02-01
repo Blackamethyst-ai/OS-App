@@ -116,6 +116,7 @@ const VoiceManager: React.FC = () => {
                     [AppMode.AGENT_CORE_TEST]: '/agent-core-test',
                     [AppMode.CPB_TEST]: '/cpb-test',
                     [AppMode.ARCHON]: '/archon',
+                    [AppMode.META_LEARNING]: '/meta-learning',
                 };
 
                 if (routeMap[target]) {

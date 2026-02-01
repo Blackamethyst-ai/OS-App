@@ -5,12 +5,13 @@
  * Makes store.ts cleaner and types reusable.
  */
 
-import type { SearchResultItem, FileData, ScienceHypothesis, AtomicTask, SwarmResult, SwarmStatus, SwarmProposal, PeerPresence, SwarmEvent } from './core';
-import type { StoredArtifact } from './memory';
+import type { SearchResultItem, FileData } from './core';
+import type { StoredArtifact, ScienceHypothesis } from './memory';
 import type { TechnicalManifest, ProtocolStepResult, KernelOperationalState } from './kernel';
 import type { CodebaseGraph } from './codebase';
 import type { ImageSize, AspectRatio, ProductionBible, Frame } from './visuals';
-import type { AutonomousAgent } from './agents';
+import type { AutonomousAgent, SwarmResult, SwarmStatus, PeerPresence, SwarmEvent, SwarmProposal } from './agents';
+import type { AtomicTask } from './tasks';
 
 // =============================================================================
 // Kernel State

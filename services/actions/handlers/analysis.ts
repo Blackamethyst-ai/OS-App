@@ -139,7 +139,7 @@ export const ANALYSIS_ACTIONS: UnifiedAction[] = [
       const agentSummary = store.agents.activeAgents.map(a => ({
         id: a.id,
         status: a.status,
-        task: a.currentTask,
+        tasks: a.tasks,
       }));
       return { success: true, agents: agentSummary };
     },
