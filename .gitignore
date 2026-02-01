@@ -33,3 +33,4 @@ CURRENT_TASK.md
 *.sln
 *.sw?
 coverage/
+supabase/.temp/
