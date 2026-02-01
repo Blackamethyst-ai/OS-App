@@ -25,13 +25,18 @@ describe('Archon Configuration', () => {
 
         it('should have all subsystem budget ratios', () => {
             const ratios = DEFAULT_CONFIG.subsystemBudgetRatios;
-            expect(ratios.get('ace')).toBe(0.30);
-            expect(ratios.get('cpb')).toBe(0.25);
-            expect(ratios.get('evolution')).toBe(0.15);
-            expect(ratios.get('dream')).toBe(0.10);
-            expect(ratios.get('kernel')).toBe(0.10);
-            expect(ratios.get('voice')).toBe(0.05);
-            expect(ratios.get('dq')).toBe(0.05);
+            // Core subsystems (40% total)
+            expect(ratios.get('ace')).toBe(0.08);
+            expect(ratios.get('cpb')).toBe(0.10);
+            expect(ratios.get('evolution')).toBe(0.07);
+            expect(ratios.get('dream')).toBe(0.05);
+            expect(ratios.get('kernel')).toBe(0.05);
+            expect(ratios.get('voice')).toBe(0.03);
+            expect(ratios.get('dq')).toBe(0.02);
+            // Organism layers (60% total)
+            expect(ratios.get('genome')).toBe(0.15);
+            expect(ratios.get('swarm')).toBe(0.25);
+            expect(ratios.get('cognitive')).toBe(0.20);
         });
 
         it('should have budget ratios that sum to 1', () => {

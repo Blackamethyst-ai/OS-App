@@ -4,6 +4,7 @@
  * These are the foundational capabilities of the Sovereign OS.
  */
 
+import { Type } from '@google/genai';
 import { useAppStore } from '../../../store';
 import { AppMode, TaskPriority, MentalState, SwarmProposal } from '../../../types';
 import { generateStructuredWorkflow, searchGroundedIntel, convergeStrategicLattices } from '../../geminiService';
@@ -52,9 +53,9 @@ export const SOVEREIGN_ACTIONS: UnifiedAction[] = [
         };
 
         setProcessState({
-          generatedWorkflow: workflow,
+          generatedWorkflow: workflow as any,
           activeTab: 'workflow',
-          workflowType: type,
+          workflowType: type as 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE' | 'AGENTIC_ORCHESTRATION' | 'CONVERGENT_SYNTHESIS',
           coherenceScore: workflow.coherenceScore || 85
         });
 
@@ -79,11 +80,11 @@ export const SOVEREIGN_ACTIONS: UnifiedAction[] = [
       'architect an agentic orchestration workflow'
     ],
     schema: {
-      type: 'object',
+      type: Type.OBJECT,
       properties: {
-        description: { type: 'string', description: 'Description of the process to generate' },
-        type: { type: 'string', enum: ['DRIVE_ORGANIZATION', 'SYSTEM_ARCHITECTURE', 'AGENTIC_ORCHESTRATION', 'CONVERGENT_SYNTHESIS'] },
-        custom_directive: { type: 'string', description: 'Optional custom directive' }
+        description: { type: Type.STRING, description: 'Description of the process to generate' },
+        type: { type: Type.STRING, enum: ['DRIVE_ORGANIZATION', 'SYSTEM_ARCHITECTURE', 'AGENTIC_ORCHESTRATION', 'CONVERGENT_SYNTHESIS'] },
+        custom_directive: { type: Type.STRING, description: 'Optional custom directive' }
       },
       required: ['description']
     }
@@ -129,18 +130,18 @@ export const SOVEREIGN_ACTIONS: UnifiedAction[] = [
       'recalibrate agent DNA'
     ],
     schema: {
-      type: 'object',
+      type: Type.OBJECT,
       properties: {
-        agentId: { type: 'string', description: 'Agent identifier' },
+        agentId: { type: Type.STRING, description: 'Agent identifier' },
         weights: {
-          type: 'object',
+          type: Type.OBJECT,
           properties: {
-            skepticism: { type: 'number', minimum: 0, maximum: 100 },
-            excitement: { type: 'number', minimum: 0, maximum: 100 },
-            alignment: { type: 'number', minimum: 0, maximum: 100 }
+            skepticism: { type: Type.NUMBER },
+            excitement: { type: Type.NUMBER },
+            alignment: { type: Type.NUMBER }
           }
         },
-        reasoning: { type: 'string', description: 'Reason for adjustment' }
+        reasoning: { type: Type.STRING, description: 'Reason for adjustment' }
       },
       required: ['weights']
     }
@@ -201,9 +202,9 @@ export const SOVEREIGN_ACTIONS: UnifiedAction[] = [
       'unify goals around customer acquisition'
     ],
     schema: {
-      type: 'object',
+      type: Type.OBJECT,
       properties: {
-        targetGoal: { type: 'string', description: 'The goal to converge toward' }
+        targetGoal: { type: Type.STRING, description: 'The goal to converge toward' }
       },
       required: ['targetGoal']
     }
@@ -242,9 +243,9 @@ export const SOVEREIGN_ACTIONS: UnifiedAction[] = [
       'select the main panel'
     ],
     schema: {
-      type: 'object',
+      type: Type.OBJECT,
       properties: {
-        selector: { type: 'string', description: 'CSS selector or element identifier' }
+        selector: { type: Type.STRING, description: 'CSS selector or element identifier' }
       },
       required: ['selector']
     }
@@ -286,10 +287,10 @@ export const SOVEREIGN_ACTIONS: UnifiedAction[] = [
       'lower priority of task'
     ],
     schema: {
-      type: 'object',
+      type: Type.OBJECT,
       properties: {
-        taskId: { type: 'string', description: 'Task identifier' },
-        priority: { type: 'string', enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] }
+        taskId: { type: Type.STRING, description: 'Task identifier' },
+        priority: { type: Type.STRING, enum: ['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'] }
       },
       required: ['taskId', 'priority']
     }
@@ -334,9 +335,9 @@ export const SOVEREIGN_ACTIONS: UnifiedAction[] = [
       'open the research sector'
     ],
     schema: {
-      type: 'object',
+      type: Type.OBJECT,
       properties: {
-        target: { type: 'string', description: 'Target sector name' }
+        target: { type: Type.STRING, description: 'Target sector name' }
       },
       required: ['target']
     }
@@ -380,9 +381,9 @@ export const SOVEREIGN_ACTIONS: UnifiedAction[] = [
       'research market trends'
     ],
     schema: {
-      type: 'object',
+      type: Type.OBJECT,
       properties: {
-        query: { type: 'string', description: 'Search query' }
+        query: { type: Type.STRING, description: 'Search query' }
       },
       required: ['query']
     }
@@ -441,15 +442,15 @@ export const SOVEREIGN_ACTIONS: UnifiedAction[] = [
       'create expansion proposal'
     ],
     schema: {
-      type: 'object',
+      type: Type.OBJECT,
       properties: {
-        agentId: { type: 'string' },
-        agentName: { type: 'string' },
-        type: { type: 'string', enum: ['OPTIMIZATION', 'EXPANSION', 'SECURITY'] },
-        title: { type: 'string', description: 'Proposal title' },
-        description: { type: 'string', description: 'Detailed description' },
-        impact: { type: 'string', description: 'Impact assessment' },
-        manifest_summary: { type: 'string', description: 'Technical summary' }
+        agentId: { type: Type.STRING },
+        agentName: { type: Type.STRING },
+        type: { type: Type.STRING, enum: ['OPTIMIZATION', 'EXPANSION', 'SECURITY'] },
+        title: { type: Type.STRING, description: 'Proposal title' },
+        description: { type: Type.STRING, description: 'Detailed description' },
+        impact: { type: Type.STRING, description: 'Impact assessment' },
+        manifest_summary: { type: Type.STRING, description: 'Technical summary' }
       },
       required: ['title', 'description']
     }
