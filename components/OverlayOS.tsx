@@ -11,6 +11,7 @@ const SystemTerminal: React.FC = () => {
     const { toggleTerminal, addLog } = actions;
     const bottomRef = useRef<HTMLDivElement>(null);
     const [cmd, setCmd] = useState('');
+    const [clearTimestamp, setClearTimestamp] = useState(0);
 
     // Material Sovereignty Physics
     const { ref: tiltRef, style: tiltStyle, onMouseMove, onMouseLeave } = usePerspectiveRefraction(1.2);
@@ -30,7 +31,8 @@ const SystemTerminal: React.FC = () => {
             setCmd('');
             
             if (trimmed === 'clear') {
-                // Not implemented in store for safety, but we could
+                setClearTimestamp(Date.now());
+                addLog('SYSTEM', '--- TERMINAL CLEARED ---');
             } else if (trimmed === 'help') {
                 addLog('INFO', 'Available: help, clear, status, reboot');
             } else if (trimmed === 'status') {
@@ -136,7 +138,7 @@ const SystemTerminal: React.FC = () => {
 
                     {/* Logs */}
                     <div className="flex-1 overflow-y-auto p-4 space-y-1 custom-scrollbar text-gray-300 font-mono text-[11px]">
-                        {system.logs.map((log: any) => (
+                        {system.logs.filter((log: any) => log.timestamp >= clearTimestamp).map((log: any) => (
                             <div key={log.id} className="flex gap-3 hover:bg-[#111] transition-colors px-1">
                                 <span className="text-gray-600 shrink-0">[{log.timestamp}]</span>
                                 <span className={`shrink-0 font-bold w-16 text-right ${
