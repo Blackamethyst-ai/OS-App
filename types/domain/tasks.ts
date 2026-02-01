@@ -38,7 +38,7 @@ export interface AtomicTask {
     isolated_input: string;
     instruction: string;
     weight: number;
-    status: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
+    status?: 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED';
     complexity?: 'LOW' | 'MED' | 'HIGH';
     logs?: { timestamp: number; message: string }[];
 }

@@ -87,6 +87,13 @@ export interface SearchResult {
   similarity: number;
   session_id?: string;
   tags: string[];
+  id?: string;
+  title?: string;
+  url?: string;
+  relevance?: number;
+  tier?: number;
+  finding?: string;
+  timestamp?: string;
 }
 
 // ============================================================
