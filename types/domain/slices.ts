@@ -265,11 +265,13 @@ export interface ProcessState {
     activeTab: string;
     workflowType: 'DRIVE_ORGANIZATION' | 'SYSTEM_ARCHITECTURE' | 'AGENTIC_ORCHESTRATION' | 'CONVERGENT_SYNTHESIS';
     livingMapContext: { sources: FileData[] };
-    pendingAIAddition: { id: string; type: string; label: string; data?: Record<string, unknown> } | null;
+    pendingAIAddition: { id: string; type: string; label: string; data?: Record<string, unknown>; position?: { x: number; y: number } } | null;
     pendingAction: string | null;
     governance: 'D-Ecosystem Protocol 2025.Q1';
     coherenceScore: number;
     codebaseGraph: CodebaseGraph | null;
+    audioUrl?: string;
+    audioTranscript?: string;
 }
 
 // =============================================================================
