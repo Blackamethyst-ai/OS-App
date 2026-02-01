@@ -123,21 +123,104 @@ export function unregisterCapability(id: string): boolean {
 // ============================================================================
 
 /**
- * Get a capability by ID
+ * Retrieves a single capability from the registry by its unique identifier.
+ *
+ * This function performs a direct lookup in the capability registry's internal Map,
+ * providing O(1) access time. Use this when you know the exact capability ID.
+ *
+ * @param id - The unique identifier of the capability to retrieve (e.g., 'navigate_sector', 'ui_toggle_theme')
+ * @returns The matching Capability object if found, or undefined if no capability exists with the given ID
+ *
+ * @example
+ * // Retrieve a specific capability
+ * const capability = getCapability('navigate_sector');
+ * if (capability) {
+ *   console.log(`Found: ${capability.description}`);
+ *   console.log(`Complexity: ${capability.complexity}`);
+ * }
+ *
+ * @example
+ * // Check if a capability exists before execution
+ * const cap = getCapability('ui_toggle_theme');
+ * if (cap) {
+ *   await cap.handler({ theme: 'MIDNIGHT' });
+ * }
  */
 export function getCapability(id: string): Capability | undefined {
   return state.capabilities.get(id);
 }
 
 /**
- * Get all capabilities
+ * Retrieves all capabilities currently registered in the registry.
+ *
+ * Returns a new array containing all capability objects, allowing safe iteration
+ * and manipulation without affecting the underlying registry state. This is useful
+ * for bulk operations, statistics gathering, or UI components that need to display
+ * all available capabilities.
+ *
+ * @returns An array of all registered Capability objects. Returns an empty array if no capabilities are registered.
+ *
+ * @example
+ * // Get all capabilities and log their IDs
+ * const allCaps = getAllCapabilities();
+ * console.log(`Total capabilities: ${allCaps.length}`);
+ * allCaps.forEach(cap => console.log(`- ${cap.id}: ${cap.description}`));
+ *
+ * @example
+ * // Filter capabilities by a custom criteria
+ * const highPriorityCaps = getAllCapabilities().filter(cap => cap.priority > 50);
+ *
+ * @example
+ * // Generate a capability summary for debugging
+ * const summary = getAllCapabilities().map(cap => ({
+ *   id: cap.id,
+ *   kind: cap.kind,
+ *   complexity: cap.complexity
+ * }));
  */
 export function getAllCapabilities(): Capability[] {
   return Array.from(state.capabilities.values());
 }
 
 /**
- * Get capabilities filtered by options
+ * Retrieves capabilities filtered by various criteria and sorted by priority.
+ *
+ * This function provides flexible filtering across multiple dimensions including
+ * kind, source, complexity, and sector. Results are always sorted by priority
+ * (highest first) to ensure the most relevant capabilities appear at the top.
+ *
+ * When filtering by sector, global capabilities (those with empty sectors array)
+ * are included by default unless `includeGlobal` is explicitly set to false.
+ *
+ * @param options - Optional search/filter criteria
+ * @param options.kind - Filter by capability kind ('action', 'navigation', 'tool', 'tab')
+ * @param options.source - Filter by capability source ('core', 'sovereign', 'dynamic', 'component', 'voice', 'tab')
+ * @param options.complexity - Filter by complexity level ('simple', 'navigation', 'analysis', 'architecture', 'critical')
+ * @param options.sector - Filter by app sector/mode; global capabilities included unless includeGlobal is false
+ * @param options.includeGlobal - Whether to include global capabilities when filtering by sector (default: true)
+ * @param options.limit - Maximum number of capabilities to return
+ *
+ * @returns An array of Capability objects matching the specified criteria, sorted by priority (descending)
+ *
+ * @example
+ * // Get all navigation capabilities
+ * const navCaps = getCapabilities({ kind: 'navigation' });
+ *
+ * @example
+ * // Get simple actions for a specific sector, limited to top 10
+ * const sectorCaps = getCapabilities({
+ *   kind: 'action',
+ *   complexity: 'simple',
+ *   sector: 'dashboard',
+ *   limit: 10
+ * });
+ *
+ * @example
+ * // Get only sector-specific capabilities (exclude globals)
+ * const specificCaps = getCapabilities({
+ *   sector: 'research',
+ *   includeGlobal: false
+ * });
  */
 export function getCapabilities(options: CapabilitySearchOptions = {}): Capability[] {
   let result = getAllCapabilities();
@@ -229,7 +312,53 @@ export function getCapabilitiesForSector(sector: AppMode): Capability[] {
 // ============================================================================
 
 /**
- * Fuzzy search capabilities by query
+ * Performs a fuzzy search across all capabilities using a text query.
+ *
+ * The search algorithm checks multiple fields in priority order:
+ * 1. Exact ID match (score: 100)
+ * 2. ID contains query (score: 80)
+ * 3. Alias match (score: 75)
+ * 4. Description contains query (score: 50)
+ * 5. Example contains query (score: 40)
+ *
+ * Scores are boosted by the capability's priority (priority / 10) to surface
+ * more important capabilities. Results are sorted by score in descending order.
+ *
+ * This function is ideal for implementing command palettes, voice command
+ * resolution, or any search interface where users may not know exact capability IDs.
+ *
+ * @param query - The search query string (case-insensitive, trimmed automatically)
+ * @param options - Optional filter criteria to narrow down the search scope
+ * @param options.kind - Filter by capability kind before searching
+ * @param options.source - Filter by capability source before searching
+ * @param options.complexity - Filter by complexity level before searching
+ * @param options.sector - Filter by app sector before searching
+ * @param options.limit - Maximum number of matches to return
+ *
+ * @returns An array of CapabilityMatch objects containing the matched capability,
+ *          its relevance score, and which field was matched on. Sorted by score (descending).
+ *
+ * @example
+ * // Search for capabilities related to "theme"
+ * const matches = searchCapabilities('theme');
+ * matches.forEach(m => {
+ *   console.log(`${m.capability.id} (score: ${m.score}, matched: ${m.matchedOn})`);
+ * });
+ *
+ * @example
+ * // Search within navigation capabilities only
+ * const navMatches = searchCapabilities('dashboard', { kind: 'navigation', limit: 5 });
+ *
+ * @example
+ * // Implement a command palette search
+ * const handleSearch = (userInput: string) => {
+ *   const results = searchCapabilities(userInput, { limit: 10 });
+ *   return results.map(r => ({
+ *     label: r.capability.description,
+ *     value: r.capability.id,
+ *     score: r.score
+ *   }));
+ * };
  */
 export function searchCapabilities(
   query: string,
@@ -288,7 +417,39 @@ export function searchCapabilities(
 }
 
 /**
- * Find best matching capability for a query
+ * Finds the single best matching capability for a given query.
+ *
+ * This is a convenience wrapper around `searchCapabilities` that returns only
+ * the top match. Useful when you need to resolve a user's intent to a specific
+ * capability, such as in voice command processing or single-action triggers.
+ *
+ * The matching algorithm prioritizes exact ID matches, then partial ID matches,
+ * aliases, description content, and finally examples. See `searchCapabilities`
+ * for the full scoring breakdown.
+ *
+ * @param query - The search query string (case-insensitive)
+ * @param options - Optional filter criteria to constrain the search
+ * @param options.kind - Filter by capability kind
+ * @param options.source - Filter by capability source
+ * @param options.complexity - Filter by complexity level
+ * @param options.sector - Filter by app sector
+ *
+ * @returns The best matching Capability object, or undefined if no matches found
+ *
+ * @example
+ * // Find the best match for a voice command
+ * const capability = findCapability('open settings');
+ * if (capability) {
+ *   await executeCapability(capability.id);
+ * }
+ *
+ * @example
+ * // Find within a specific sector context
+ * const cap = findCapability('analyze', { sector: 'research' });
+ *
+ * @example
+ * // Resolve user intent with fallback
+ * const resolved = findCapability(userInput) ?? getCapability('default_action');
  */
 export function findCapability(
   query: string,
@@ -303,7 +464,55 @@ export function findCapability(
 // ============================================================================
 
 /**
- * Execute a capability by ID
+ * Executes a registered capability by its ID with the provided arguments.
+ *
+ * This function handles the complete execution lifecycle including:
+ * - Capability lookup and validation
+ * - Argument passing to the capability handler
+ * - Error handling and wrapping
+ * - Performance timing measurement
+ *
+ * The function is async and will await the capability's handler, making it safe
+ * to use with both synchronous and asynchronous capability implementations.
+ *
+ * @param id - The unique identifier of the capability to execute
+ * @param args - Optional key-value arguments to pass to the capability handler (default: empty object)
+ *
+ * @returns A promise that resolves to an execution result object containing:
+ *   - `success` - Whether the execution completed without errors
+ *   - `result` - The return value from the capability handler (if successful)
+ *   - `error` - Error message string (if execution failed)
+ *   - `timing` - Execution duration in milliseconds
+ *
+ * @example
+ * // Execute a simple UI toggle
+ * const result = await executeCapability('ui_toggle_theme', { theme: 'MIDNIGHT' });
+ * if (result.success) {
+ *   console.log(`Theme changed in ${result.timing}ms`);
+ * } else {
+ *   console.error(`Failed: ${result.error}`);
+ * }
+ *
+ * @example
+ * // Execute with error handling
+ * try {
+ *   const { success, result, error, timing } = await executeCapability('analyze_data', {
+ *     dataset: 'metrics',
+ *     timeRange: '7d'
+ *   });
+ *   if (!success) {
+ *     showNotification(`Analysis failed: ${error}`);
+ *   }
+ * } catch (e) {
+ *   // Handle unexpected errors
+ * }
+ *
+ * @example
+ * // Check if capability exists before execution
+ * const capId = 'navigate_sector';
+ * if (getCapability(capId)) {
+ *   await executeCapability(capId, { sector: 'dashboard' });
+ * }
  */
 export async function executeCapability(
   id: string,

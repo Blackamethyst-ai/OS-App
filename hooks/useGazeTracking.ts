@@ -78,6 +78,7 @@ export const useGazeTracking = (): UseGazeTrackingReturn => {
   const fixationHistoryRef = useRef<GazeFixation[]>([]);
   const elementMapRef = useRef<Map<string, string[]>>(new Map()); // elementId -> contextKeys
   const elementBoundsRef = useRef<Map<string, DOMRect>>(new Map());
+  const MAX_TRACKED_ELEMENTS = 500; // Prevent memory creep
   const prefetchedRef = useRef<Set<string>>(new Set());
   const heatmapGridRef = useRef<Map<string, number>>(new Map()); // "x,y" -> intensity
 
@@ -115,6 +116,16 @@ export const useGazeTracking = (): UseGazeTrackingReturn => {
   // ============================================================================
 
   const registerElement = useCallback((elementId: string, contextKeys: string[]) => {
+    // Enforce size limit to prevent memory creep
+    if (elementMapRef.current.size >= MAX_TRACKED_ELEMENTS) {
+      // Remove oldest entry (first in Map)
+      const firstKey = elementMapRef.current.keys().next().value;
+      if (firstKey) {
+        elementMapRef.current.delete(firstKey);
+        elementBoundsRef.current.delete(firstKey);
+      }
+    }
+
     elementMapRef.current.set(elementId, contextKeys);
 
     // Cache element bounds
@@ -300,6 +311,15 @@ export const useGazeTracking = (): UseGazeTrackingReturn => {
     return () => {
       window.removeEventListener('scroll', updateBounds);
       window.removeEventListener('resize', updateBounds);
+    };
+  }, []);
+
+  // Cleanup on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      elementMapRef.current.clear();
+      elementBoundsRef.current.clear();
+      fixationHistoryRef.current = [];
     };
   }, []);
 
