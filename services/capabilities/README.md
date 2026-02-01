@@ -2,6 +2,8 @@
 
 The unified capability registry for OS-App, consolidating all voice-controllable actions, navigation, and dynamic tools into a single source of truth.
 
+> **See Also:** For complete architecture details, migration history, and PRD context, see [Capabilities Registry Consolidation](../../docs/CAPABILITIES_REGISTRY_CONSOLIDATION.md)
+
 ## Quick Start
 
 ```typescript

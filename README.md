@@ -530,6 +530,7 @@ You have built a **Sovereign, Voice-Native Operating System**:
 | [RLM Technical Overview](docs/RLM_TECHNICAL_OVERVIEW.md) | Recursive Language Model documentation |
 | [HRPO Implementation](docs/HRPO_IMPLEMENTATION.md) | Hierarchical response pattern optimization |
 | [System Mind](docs/SYSTEM_MIND.md) | Core architecture philosophy |
+| [Capabilities Registry Consolidation](docs/CAPABILITIES_REGISTRY_CONSOLIDATION.md) | Complete registry architecture & migration guide |
 
 ---
 
