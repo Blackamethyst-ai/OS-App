@@ -207,8 +207,10 @@ export interface RoutingDecision {
  * Multimodal content types
  */
 export interface ImageInput {
-    base64: string;
-    mediaType: 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp';
+    base64?: string;
+    url?: string;
+    mediaType?: 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp';
+    mimeType?: string;
     description?: string;
 }
 
