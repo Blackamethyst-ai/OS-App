@@ -13,17 +13,17 @@ export const EXECUTION_ACTIONS: UnifiedAction[] = [
   // ARCHON EXECUTION
   // ==========================================================================
   {
-    id: 'archon_set_goal',
-    description: 'Set Archon\'s autonomous goal',
+    id: 'archon_process_goal',
+    description: 'Process a goal through Archon orchestration',
     handler: async (args) => {
-      const goal = args.goal || args.text || args.objective;
+      const goal = (args.goal || args.text || args.objective) as string;
       if (!goal) return { success: false, error: 'No goal provided' };
 
       try {
         const archon = await getArchon();
-        await archon.setGoal(goal);
+        const result = await archon.processGoal(goal);
         audio.playSuccess();
-        return { success: true, goal };
+        return { success: true, goal: result };
       } catch (e: any) {
         return { success: false, error: e.message };
       }
@@ -33,81 +33,7 @@ export const EXECUTION_ACTIONS: UnifiedAction[] = [
     executionPath: 'cascade',
     complexity: 'critical',
     source: 'component',
-    examples: ['set goal to research quantum computing', 'objective: build a website'],
-  },
-  {
-    id: 'archon_start',
-    description: 'Start Archon autonomous execution',
-    handler: async () => {
-      try {
-        const archon = await getArchon();
-        await archon.start();
-        audio.playSuccess();
-        return { success: true, status: 'started' };
-      } catch (e: any) {
-        return { success: false, error: e.message };
-      }
-    },
-    sectors: ['ARCHON'],
-    priority: 85,
-    executionPath: 'direct',
-    complexity: 'simple',
-    source: 'component',
-  },
-  {
-    id: 'archon_pause',
-    description: 'Pause Archon execution',
-    handler: async () => {
-      try {
-        const archon = await getArchon();
-        archon.pause();
-        return { success: true, status: 'paused' };
-      } catch (e: any) {
-        return { success: false, error: e.message };
-      }
-    },
-    sectors: ['ARCHON'],
-    priority: 85,
-    executionPath: 'direct',
-    complexity: 'simple',
-    source: 'component',
-  },
-  {
-    id: 'archon_resume',
-    description: 'Resume Archon execution',
-    handler: async () => {
-      try {
-        const archon = await getArchon();
-        archon.resume();
-        audio.playSuccess();
-        return { success: true, status: 'resumed' };
-      } catch (e: any) {
-        return { success: false, error: e.message };
-      }
-    },
-    sectors: ['ARCHON'],
-    priority: 85,
-    executionPath: 'direct',
-    complexity: 'simple',
-    source: 'component',
-  },
-  {
-    id: 'archon_stop',
-    description: 'Stop Archon execution completely',
-    handler: async () => {
-      try {
-        const archon = await getArchon();
-        archon.stop();
-        return { success: true, status: 'stopped' };
-      } catch (e: any) {
-        return { success: false, error: e.message };
-      }
-    },
-    sectors: ['ARCHON'],
-    priority: 85,
-    executionPath: 'direct',
-    complexity: 'simple',
-    source: 'component',
+    examples: ['process goal: research quantum computing', 'objective: build a website'],
   },
 
   // ==========================================================================

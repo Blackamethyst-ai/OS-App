@@ -16,11 +16,11 @@ export const ANALYSIS_ACTIONS: UnifiedAction[] = [
     id: 'research_query',
     description: 'Research a topic using AI',
     handler: async (args) => {
-      const query = args.query || args.topic || args.text;
+      const query = (args.query || args.topic || args.text) as string;
       if (!query) return { success: false, error: 'No query provided' };
 
       try {
-        const result = await gemini.generateContent(
+        const result = await gemini.generateText(
           `Research and provide comprehensive information about: ${query}`
         );
         return { success: true, research: result };
@@ -55,11 +55,11 @@ export const ANALYSIS_ACTIONS: UnifiedAction[] = [
     id: 'research_summarize',
     description: 'Summarize a document or text',
     handler: async (args) => {
-      const text = args.text || args.content || args.document;
+      const text = (args.text || args.content || args.document) as string;
       if (!text) return { success: false, error: 'No text provided' };
 
       try {
-        const summary = await gemini.generateContent(`Summarize the following:\n\n${text}`);
+        const summary = await gemini.generateText(`Summarize the following:\n\n${text}`);
         return { success: true, summary };
       } catch (e: any) {
         return { success: false, error: e.message };
@@ -119,8 +119,8 @@ export const ANALYSIS_ACTIONS: UnifiedAction[] = [
     handler: async () => {
       const store = useAppStore.getState();
       const metrics = {
-        agents: store.agents.length,
-        memory: store.memoryEntries?.length || 0,
+        agents: store.agents.activeAgents.length,
+        swarmHealth: store.agents.swarmHealth,
         mode: store.mode,
       };
       return { success: true, metrics };
@@ -136,7 +136,7 @@ export const ANALYSIS_ACTIONS: UnifiedAction[] = [
     description: 'Analyze current agent status and activities',
     handler: async () => {
       const store = useAppStore.getState();
-      const agentSummary = store.agents.map(a => ({
+      const agentSummary = store.agents.activeAgents.map(a => ({
         id: a.id,
         status: a.status,
         task: a.currentTask,
