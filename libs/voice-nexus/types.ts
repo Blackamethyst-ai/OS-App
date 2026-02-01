@@ -70,6 +70,7 @@ export interface Transcript {
     provider?: string;
     knowledgeUsed?: boolean;
     latencyMs?: number;
+    model?: string;
 }
 
 export interface PartialTranscript {

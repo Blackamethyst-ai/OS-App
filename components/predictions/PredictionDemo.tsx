@@ -45,7 +45,7 @@ export const PredictionDemo: React.FC = () => {
     },
   ];
 
-  const exampleResearch = [
+  const exampleResearch: any[] = [
     {
       id: '1',
       title: 'Multi-Agent Consensus Mechanisms',

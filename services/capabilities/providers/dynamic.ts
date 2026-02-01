@@ -87,10 +87,10 @@ export function hasDynamicCapability(id: string): boolean {
 export async function syncFromDynamicToolRegistry(): Promise<void> {
   try {
     // Import dynamically to avoid circular dependencies
-    const { DynamicToolRegistry } = await import('../../DynamicToolRegistry');
+    const { dynamicRegistry } = await import('../../DynamicToolRegistry');
 
     // Get all dynamic tools from the registry
-    const manifests = DynamicToolRegistry.getCombinedManifests();
+    const manifests = dynamicRegistry.getCombinedManifests();
 
     // Register each as a capability
     for (const manifest of manifests) {
@@ -99,7 +99,7 @@ export async function syncFromDynamicToolRegistry(): Promise<void> {
           manifest.name,
           manifest.description || `Dynamic tool: ${manifest.name}`,
           async (args) => {
-            const result = await DynamicToolRegistry.execute(manifest.name, args);
+            const result = await dynamicRegistry.execute(manifest.name, args);
             return {
               success: result.success !== false,
               data: result,

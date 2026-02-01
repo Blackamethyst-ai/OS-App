@@ -107,6 +107,8 @@ export interface UnifiedAction extends BaseAction {
     requiresContext?: boolean;
     /** JSON Schema for Gemini Tool definition */
     schema?: Schema;
+    /** Category for organization */
+    category?: ActionCategory;
 }
 
 // =============================================================================

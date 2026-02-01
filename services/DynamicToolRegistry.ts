@@ -23,7 +23,7 @@ import {
  *
  * SECURITY: All tool code is validated before execution to prevent injection.
  */
-class DynamicToolRegistry {
+export class DynamicToolRegistry {
     private dynamicManifests: FunctionDeclaration[] = [];
     private dynamicLogic: Record<string, (...args: unknown[]) => unknown> = {};
 
