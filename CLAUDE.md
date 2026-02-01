@@ -101,6 +101,28 @@ ESLint is configured with relaxed rules for the existing codebase:
 - `@typescript-eslint/no-unused-vars`: off
 - `react-hooks/exhaustive-deps`: warn
 
+## Capabilities Registry
+
+Unified registry for voice commands, navigation, and UI actions.
+
+```typescript
+import { executeCapability, getCapability } from '@/services/capabilities';
+
+// Execute a capability
+await executeCapability('ui_toggle_theme', { theme: 'MIDNIGHT' });
+
+// Get capability info
+const cap = getCapability('navigate_sector');
+```
+
+**Key Files:**
+- `services/capabilities/` — Registry, types, providers
+- `services/capabilities/README.md` — Full documentation
+
+**Adding Capabilities:** See `services/capabilities/README.md`
+
+**Deprecated:** `unifiedActionRegistry.ts` → Use `capabilities` instead
+
 ## Session Context
 
 Check these files before starting work:
