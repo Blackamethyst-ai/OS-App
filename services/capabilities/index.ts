@@ -127,6 +127,11 @@ export {
   sectorSupportsCapability,
 } from './providers/sectors';
 
+export {
+  loadUICapabilities,
+  getUICapabilityCount,
+} from './providers/ui';
+
 // ============================================================================
 // Adapter Exports
 // ============================================================================
@@ -215,6 +220,14 @@ export async function initializeCapabilities(): Promise<void> {
       loadActionCapabilities();
     } catch (error) {
       console.warn('[CapabilityRegistry] Failed to load action capabilities:', error);
+    }
+
+    try {
+      // Load UI capabilities (theme, voice toggle, etc.)
+      const { loadUICapabilities } = await import('./providers/ui');
+      loadUICapabilities();
+    } catch (error) {
+      console.warn('[CapabilityRegistry] Failed to load UI capabilities:', error);
     }
 
     try {

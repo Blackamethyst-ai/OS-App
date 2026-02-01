@@ -3,13 +3,12 @@ import { OS_TOOLS } from './toolRegistry';
 import { neuralVault } from './persistenceService';
 import { useAppStore } from '../store';
 import { validateAndSanitize } from '../utils/validateToolCode';
-import { getGeminiManifests, executeAction, getAction } from './unifiedActionRegistry';
-
-// New unified capability registry (preferred)
+// Unified capability registry (replacing unifiedActionRegistry)
 import {
     registerDynamicCapability,
     executeCapability,
     getCapability,
+    getGeminiManifests,
     isInitialized as isCapabilityRegistryInitialized,
 } from './capabilities';
 
@@ -116,14 +115,14 @@ export class DynamicToolRegistry {
             return this.dynamicLogic[name](args);
         }
 
-        // 2. Check Unified Action Registry (The new Sovereign Standard)
-        const action = getAction(name);
-        if (action) {
-            const result = await executeAction(name, args);
+        // 2. Check Capabilities Registry (The new Sovereign Standard)
+        const capability = getCapability(name);
+        if (capability) {
+            const result = await executeCapability(name, args as Record<string, unknown>);
             return {
                 toolName: name,
                 status: result.success ? 'SUCCESS' : 'ERROR',
-                data: result.output,
+                data: result.result,
                 uiHint: 'MESSAGE'
             };
         }

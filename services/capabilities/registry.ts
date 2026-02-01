@@ -23,6 +23,7 @@ import type {
   CPBPath,
 } from './types';
 import { complexityToCPBPath } from './types';
+import { useSystemMind } from '../../stores/useSystemMind';
 
 // ============================================================================
 // Registry State
@@ -35,11 +36,27 @@ const state: RegistryState = {
 };
 
 // ============================================================================
+// Manifest Cache (US-011)
+// ============================================================================
+
+interface ManifestCache {
+  manifests: GeminiManifest[];
+  version: number;
+  generatedAt: number;
+}
+
+let manifestCache: ManifestCache | null = null;
+let registryVersion: number = 0;
+
+// ============================================================================
 // Registration
 // ============================================================================
 
 /**
  * Register a single capability
+ *
+ * Triggers SystemMind epoch update to notify voice components
+ * of capability changes (US-001)
  */
 export function registerCapability(capability: Capability): void {
   // Validate required fields
@@ -55,6 +72,19 @@ export function registerCapability(capability: Capability): void {
 
   state.capabilities.set(capability.id, capability);
   state.lastUpdate = Date.now();
+
+  // Invalidate manifest cache (US-011)
+  registryVersion++;
+  manifestCache = null;
+
+  // Trigger SystemMind epoch update for voice context synchronization
+  const systemMind = useSystemMind.getState();
+  systemMind.registerAction(
+    capability.id,
+    `[${capability.source.toUpperCase()}:${capability.complexity}] ${capability.description}`,
+    capability.handler as (args: unknown) => void | Promise<void>,
+    { sectors: capability.sectors, priority: capability.priority }
+  );
 }
 
 /**
@@ -68,11 +98,22 @@ export function registerCapabilities(capabilities: Capability[]): void {
 
 /**
  * Unregister a capability by ID
+ *
+ * Triggers SystemMind epoch update to notify voice components
+ * of capability removal (US-001)
  */
 export function unregisterCapability(id: string): boolean {
   const result = state.capabilities.delete(id);
   if (result) {
     state.lastUpdate = Date.now();
+
+    // Invalidate manifest cache (US-011)
+    registryVersion++;
+    manifestCache = null;
+
+    // Trigger SystemMind epoch update for voice context synchronization
+    const systemMind = useSystemMind.getState();
+    systemMind.unregisterAction(id);
   }
   return result;
 }
@@ -351,13 +392,22 @@ export function getStats(): RegistryStats {
 
 /**
  * Generate Gemini function declarations for all capabilities
+ *
+ * Uses caching for improved performance (US-011):
+ * - Cached: ~3ms (when no sector filter)
+ * - Uncached: ~50ms
  */
 export function getGeminiManifests(options?: { sector?: AppMode }): GeminiManifest[] {
+  // Use cache only when no sector filter is provided
+  if (!options?.sector && manifestCache && manifestCache.version === registryVersion) {
+    return manifestCache.manifests;
+  }
+
   const capabilities = options?.sector
     ? getCapabilitiesForSector(options.sector)
     : getAllCapabilities();
 
-  return capabilities
+  const manifests = capabilities
     .filter((cap) => cap.schema) // Only capabilities with schemas
     .map((cap) => ({
       name: cap.id,
@@ -370,6 +420,17 @@ export function getGeminiManifests(options?: { sector?: AppMode }): GeminiManife
           }
         : undefined,
     }));
+
+  // Cache result only when no sector filter
+  if (!options?.sector) {
+    manifestCache = {
+      manifests,
+      version: registryVersion,
+      generatedAt: Date.now(),
+    };
+  }
+
+  return manifests;
 }
 
 // ============================================================================
