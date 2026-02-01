@@ -379,6 +379,27 @@ export const UI_KNOWLEDGE_BASE: Record<AppMode, SectorKnowledge> = {
             'Monitor autonomous execution'
         ],
         voiceCommands: ['open archon', 'god mode', 'autonomous execute', 'set goal']
+    },
+
+    [AppMode.META_LEARNING]: {
+        id: AppMode.META_LEARNING,
+        name: 'Meta Learning',
+        shortName: 'Meta',
+        description: 'Autonomous self-improvement and learning system. The system that helps the OS learn from its own interactions and improve over time.',
+        features: [
+            'Self-improvement protocols',
+            'Learning pattern analysis',
+            'Performance optimization',
+            'Knowledge synthesis'
+        ],
+        keyComponents: ['MetaLearning', 'LearningEngine', 'PatternAnalyzer'],
+        useCases: [
+            'Monitor learning progress',
+            'Analyze performance patterns',
+            'Optimize system behaviors',
+            'Track knowledge growth'
+        ],
+        voiceCommands: ['open meta learning', 'meta', 'learning mode', 'self improve']
     }
 };
 

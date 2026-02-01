@@ -25,10 +25,12 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
       }
 
       try {
+        const aspectRatio = (args.aspectRatio as AspectRatio) || store.imageGen.aspectRatio || AspectRatio.RATIO_16_9;
+        const quality = (args.quality as ImageSize) || store.imageGen.quality || ImageSize.SIZE_2K;
         const result = await gemini.generateArchitectureImage(
           prompt,
-          (args.aspectRatio as string) || store.imageGen.aspectRatio || '16:9',
-          (args.quality as string) || store.imageGen.quality || 'high',
+          aspectRatio,
+          quality,
           null
         );
         audio.playSuccess();
@@ -149,7 +151,7 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
 
       try {
         // Use generateContent with a code explanation prompt
-        const explanation = await gemini.generateContent(`Explain this code:\n\n${code}`);
+        const explanation = await gemini.generateText(`Explain this code:\n\n${code}`);
         return { success: true, explanation };
       } catch (e: any) {
         return { success: false, error: e.message };
@@ -196,7 +198,7 @@ export const GENERATION_ACTIONS: UnifiedAction[] = [
       if (!prompt) return { success: false, error: 'No prompt provided' };
 
       try {
-        const result = await gemini.generateContent(prompt);
+        const result = await gemini.generateText(prompt);
         return { success: true, content: result };
       } catch (e: any) {
         return { success: false, error: e.message };

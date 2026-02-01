@@ -12,7 +12,7 @@ import type {
     CollaborationState, AgentsState, ResearchTask
 } from './slices';
 import type { StoredArtifact } from './memory';
-import type { SwarmEvent } from './core';
+import type { SwarmEvent } from './agents';
 import type { Task, SubTask } from './tasks';
 
 // =============================================================================

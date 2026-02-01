@@ -100,6 +100,7 @@ const VoiceCoreManager: React.FC<VoiceCoreManagerProps> = ({
             [AppMode.AGENT_CORE_TEST]: '/agent-core-test',
             [AppMode.CPB_TEST]: '/cpb-test',
             [AppMode.ARCHON]: '/archon',
+            [AppMode.META_LEARNING]: '/meta-learning',
         };
 
         const route = routeMap[mode];
