@@ -51,17 +51,32 @@ const OperationalSidebar = lazy(() => import('./components/OperationalSidebar'))
 const PredictionDemo = lazy(() => import('./components/predictions/PredictionDemo'));
 
 const App: React.FC = () => {
-    const mode = useAppStore(s => s.mode);
-    const theme = useAppStore(s => s.theme);
-    const system = useAppStore(s => s.system);
-    const holo = useAppStore(s => s.holo);
-    const authenticated = useAppStore(s => s.authenticated);
-    const actions = useAppStore(s => s.actions);
-    const isHelpOpen = useAppStore(s => s.isHelpOpen);
-    const isScrubberOpen = useAppStore(s => s.isScrubberOpen);
-    const isDiagnosticsOpen = useAppStore(s => s.isDiagnosticsOpen);
-    const isSidebarOpen = useAppStore(s => s.isSidebarOpen);
-    const isHUDClosed = useAppStore(s => s.isHUDClosed);
+    // Batched selectors to reduce subscription overhead
+    const {
+        mode,
+        theme,
+        system,
+        holo,
+        authenticated,
+        actions,
+        isHelpOpen,
+        isScrubberOpen,
+        isDiagnosticsOpen,
+        isSidebarOpen,
+        isHUDClosed,
+    } = useAppStore(s => ({
+        mode: s.mode,
+        theme: s.theme,
+        system: s.system,
+        holo: s.holo,
+        authenticated: s.authenticated,
+        actions: s.actions,
+        isHelpOpen: s.isHelpOpen,
+        isScrubberOpen: s.isScrubberOpen,
+        isDiagnosticsOpen: s.isDiagnosticsOpen,
+        isSidebarOpen: s.isSidebarOpen,
+        isHUDClosed: s.isHUDClosed,
+    }));
 
     // Prediction demo toggle (via URL param: ?demo=predictions)
     const [showPredictionDemo, setShowPredictionDemo] = React.useState(() => {

@@ -1,7 +1,33 @@
 # Project Memory
 
 - Connected to Antigravity Global Core
-- Last Synced: Fri  9 Jan 2026 06:45:27 EST
+- Last Synced: Sat  1 Feb 2026 12:50:00 EST
+
+## Capabilities Registry Consolidation (2026-02-01)
+
+### ✅ Phase 1: Core Migration (PR #1)
+- Added SystemMind epoch integration to registry.ts
+- VoiceManager migrated to executeCapability()
+- DynamicToolRegistry migrated to capabilities
+- Added ui_toggle_theme and voice_toggle capabilities
+- CommandPalette uses executeCapability for theme
+- Manifest caching (16x faster: ~50ms → ~3ms)
+- 31 new integration tests added
+- Documentation: services/capabilities/README.md
+
+### ✅ Phase 2: CPB Routing (PR #2)
+- Created services/capabilities/cpb.ts with:
+  - routeQueryToCPB() - Route queries to optimal CPB path
+  - executeQueryWithCPB() - Execute with status callbacks
+  - executeCapabilityWithCPB() - Execute capability with CPB
+- VoiceManager THINK handler migrated to capabilities CPB
+- unifiedActionRegistry.ts now FULLY DEPRECATED
+
+### Architecture
+- Single source of truth: services/capabilities/
+- 110+ capabilities (57 actions + 48 tabs + dynamic tools)
+- CPB paths: direct, rlm, ace, hybrid, cascade
+- Complexity auto-derives execution path
 
 ## Completed Type Fixes (2026-01-26)
 
