@@ -13,6 +13,7 @@ import {
     Activity, TrendingUp, GitBranch, Cpu, Eye, Play, RefreshCw
 } from 'lucide-react';
 import { selfEvolution, EvolutionHypothesis, FrictionSignal } from '../../services/selfEvolution';
+import { EvolutionCycle } from '../../types';
 import { cn } from '../../utils/cn';
 
 const FrictionCard: React.FC<{ signal: FrictionSignal }> = ({ signal }) => {
@@ -42,6 +43,69 @@ const FrictionCard: React.FC<{ signal: FrictionSignal }> = ({ signal }) => {
             </p>
             <div className="mt-2 text-[8px] font-mono opacity-50">
                 Mode: {signal.mode}
+            </div>
+        </div>
+    );
+};
+
+const CycleCard: React.FC<{ cycle: EvolutionCycle }> = ({ cycle }) => {
+    const duration = cycle.endTime
+        ? Math.round((cycle.endTime - cycle.startTime) / 1000)
+        : Math.round((Date.now() - cycle.startTime) / 1000);
+
+    const isActive = !cycle.endTime;
+
+    return (
+        <div className={cn(
+            "p-4 rounded-xl border transition-all",
+            isActive
+                ? "bg-[#9d4edd]/10 border-[#9d4edd]/30 animate-pulse"
+                : "bg-white/5 border-white/10"
+        )}>
+            <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                    <RefreshCw size={14} className={cn(
+                        isActive ? "text-[#9d4edd] animate-spin" : "text-gray-500"
+                    )} />
+                    <span className="text-[10px] font-black font-mono uppercase tracking-wider text-white">
+                        Cycle #{cycle.id.slice(-6)}
+                    </span>
+                </div>
+                <span className={cn(
+                    "text-[9px] font-mono px-2 py-0.5 rounded-full",
+                    isActive
+                        ? "bg-[#9d4edd]/20 text-[#9d4edd]"
+                        : "bg-white/5 text-gray-500"
+                )}>
+                    {isActive ? 'ACTIVE' : 'COMPLETE'}
+                </span>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3 mb-3">
+                <div className="text-center">
+                    <div className="text-[18px] font-black text-[#22d3ee]">{cycle.signalsAnalyzed}</div>
+                    <div className="text-[8px] font-mono text-gray-600 uppercase">Signals</div>
+                </div>
+                <div className="text-center">
+                    <div className="text-[18px] font-black text-[#9d4edd]">{cycle.hypothesesGenerated}</div>
+                    <div className="text-[8px] font-mono text-gray-600 uppercase">Hypotheses</div>
+                </div>
+                <div className="text-center">
+                    <div className="text-[18px] font-black text-[#10b981]">{cycle.evolutionsDeployed}</div>
+                    <div className="text-[8px] font-mono text-gray-600 uppercase">Deployed</div>
+                </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-white/5">
+                <span className="text-[9px] font-mono text-gray-500">
+                    Duration: {duration}s
+                </span>
+                <span className={cn(
+                    "text-[9px] font-mono",
+                    cycle.netImpact > 0 ? "text-[#10b981]" : cycle.netImpact < 0 ? "text-red-500" : "text-gray-500"
+                )}>
+                    Impact: {cycle.netImpact > 0 ? '+' : ''}{cycle.netImpact}%
+                </span>
             </div>
         </div>
     );
@@ -151,6 +215,7 @@ const EvolutionConsole: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
     const [stats, setStats] = useState(selfEvolution.getStats());
     const [frictions, setFrictions] = useState<FrictionSignal[]>([]);
     const [evolutions, setEvolutions] = useState<EvolutionHypothesis[]>([]);
+    const [cycles, setCycles] = useState<EvolutionCycle[]>([]);
     const [selectedCode, setSelectedCode] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<'friction' | 'evolutions' | 'cycles'>('evolutions');
 
@@ -159,6 +224,7 @@ const EvolutionConsole: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
             setStats(selfEvolution.getStats());
             setFrictions(selfEvolution.getFrictionMap());
             setEvolutions(selfEvolution.getAllEvolutions());
+            setCycles(selfEvolution.getCycles());
         }, 1000);
 
         return () => clearInterval(interval);
@@ -317,12 +383,23 @@ const EvolutionConsole: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
                             )}
 
                             {activeTab === 'cycles' && (
-                                <div className="text-center text-gray-600 py-16">
-                                    <RefreshCw size={48} className="mx-auto mb-4 opacity-20" />
-                                    <p className="text-[11px] font-mono uppercase tracking-widest">
-                                        Cycle history coming soon
-                                    </p>
-                                </div>
+                                cycles.length === 0 ? (
+                                    <div className="text-center text-gray-600 py-16">
+                                        <RefreshCw size={48} className="mx-auto mb-4 opacity-20" />
+                                        <p className="text-[11px] font-mono uppercase tracking-widest">
+                                            No evolution cycles yet
+                                        </p>
+                                        <p className="text-[9px] font-mono text-gray-700 mt-2">
+                                            Cycles start when friction signals accumulate
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {cycles.slice().reverse().map((cycle) => (
+                                            <CycleCard key={cycle.id} cycle={cycle} />
+                                        ))}
+                                    </div>
+                                )
                             )}
                         </div>
 
