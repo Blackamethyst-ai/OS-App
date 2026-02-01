@@ -17,22 +17,8 @@ import { AspectRatio, ImageSize, FileData, SOVEREIGN_DEFAULT_COLORWAY } from '..
 import { audio } from '../../../../services/audioService';
 import { MetadataTag, CrewSlot, ViewLayer, ProductionBible } from './types';
 
-interface ImageGenState {
-    prompt: string;
-    aspectRatio: AspectRatio;
-    quality: ImageSize;
-    isLoading: boolean;
-    error: string | null;
-    generatedImage: { url: string; prompt: string; aspectRatio: AspectRatio; size: ImageSize } | null;
-    characterRefs: FileData[];
-    worldRefs: FileData[];
-    styleRefs: FileData[];
-    activeColorway?: string;
-    activeStylePreset?: string;
-}
-
 interface SingleImageModeProps {
-    imageGen: ImageGenState;
+    imageGen: any;
     productionBible: ProductionBible | null;
     isSynthesizingBible: boolean;
     viewLayer: ViewLayer;
