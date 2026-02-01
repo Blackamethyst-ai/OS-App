@@ -152,10 +152,11 @@ const NexusAPIExplorer: React.FC = () => {
             };
             addAgent(newAgent);
 
-            setProcessState((prev: any) => ({
+            setProcessState({
                 pendingAIAddition: {
                     id: `nexus-${Date.now()}`,
                     type: 'holographic',
+                    label: selectedApi.title,
                     position: { x: 900, y: 400 },
                     data: {
                         label: selectedApi.title,
@@ -165,7 +166,7 @@ const NexusAPIExplorer: React.FC = () => {
                         status: 'ACTIVE'
                     }
                 }
-            }));
+            });
 
             addLog('SUCCESS', `NEXUS_COMMIT: [${selectedApi.title}] crystallized as Autonomous Agent [${newAgent.name}].`);
             audio.playSuccess();

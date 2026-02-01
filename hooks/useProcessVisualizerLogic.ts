@@ -71,7 +71,7 @@ export const useProcessVisualizerLogic = () => {
         const interval = setInterval(() => {
             if (activeTab !== 'living_map') return;
             setNodes(nds => nds.map(n => {
-                const currentDrift = n.data?.drift || 0;
+                const currentDrift = (n.data?.drift as number) || 0;
                 // Chance to increase drift for non-done nodes
                 const isResolved = n.data?.status === 'DONE' || n.data?.status === 'COMPLETED';
                 const delta = isResolved ? -1 : (Math.random() > 0.9 ? Math.floor(Math.random() * 5) : 0);
@@ -94,8 +94,8 @@ export const useProcessVisualizerLogic = () => {
 
     useEffect(() => {
         if (state.pendingAIAddition) {
-            const newNode = { ...state.pendingAIAddition, data: { ...state.pendingAIAddition.data, theme: visualTheme, drift: 0 } };
-            setNodes(nds => nds.concat(newNode));
+            const newNode = { ...state.pendingAIAddition, data: { ...state.pendingAIAddition.data, theme: visualTheme, drift: 0, label: state.pendingAIAddition.label || '' } };
+            setNodes(nds => nds.concat(newNode as any));
             setState({ pendingAIAddition: null });
             setEdges(eds => eds.concat({
                 id: `e-nexus-${Date.now()}`,
@@ -103,7 +103,7 @@ export const useProcessVisualizerLogic = () => {
                 target: newNode.id,
                 type: 'cinematic',
                 data: { color: '#9d4edd', variant: 'stream' }
-            }));
+            } as any));
             setTimeout(() => fitView({ duration: 800 }), 100);
         }
     }, [state.pendingAIAddition, visualTheme, setNodes, setEdges, setState, fitView]);
@@ -162,7 +162,7 @@ export const useProcessVisualizerLogic = () => {
 
     const addNodeAtPosition = useCallback((position: { x: number, y: number }, type: string, label: string, color: string) => {
         const newNode: Node = { id: `node_${Date.now()}`, type, position, data: { label, subtext: 'System Node', iconName: 'Box', color, status: 'DRAFT', theme: visualTheme, progress: 1, drift: 0 } };
-        setNodes((nds) => nds.concat(newNode));
+        setNodes((nds) => nds.concat(newNode as any));
     }, [visualTheme]);
 
     const updateNodeStatus = (id: string, status: string) => {
@@ -222,7 +222,7 @@ export const useProcessVisualizerLogic = () => {
             const nodeData = await generateSingleNode(description) as any;
             const centerPosition = screenToFlowPosition({ x: window.innerWidth / 2, y: window.innerHeight / 2 });
             const newNode: Node = { id: `node_${Date.now()}`, type: 'holographic', position: centerPosition, data: { ...nodeData, theme: visualTheme, status: 'INITIALIZED', progress: 1, drift: 0 } };
-            setNodes(nds => nds.concat(newNode));
+            setNodes(nds => nds.concat(newNode as any));
             addLog('SUCCESS', `AI_NODE: Crystallized "${nodeData.label}" at viewport center.`);
             setState({ isLoading: false });
         } catch (err: any) { handleApiError('AI Add Node', err); }
@@ -251,7 +251,7 @@ export const useProcessVisualizerLogic = () => {
         try {
             if (!(await checkApiKey())) return;
             const newPositions = await calculateOptimalLayout(nodes, edges) as any;
-            setNodes(nds => nds.map(node => ({ ...node, position: newPositions[node.id] || node.position, data: { ...node.data, drift: Math.max(0, (node.data?.drift || 0) - 20) } })));
+            setNodes(nds => nds.map(node => ({ ...node, position: newPositions[node.id] || node.position, data: { ...node.data, drift: Math.max(0, ((node.data?.drift as number) || 0) - 20) } })));
             addLog('SUCCESS', 'LATTICE_SYNC: Autopoietic organization complete.');
             setTimeout(() => fitView({ duration: 1000 }), 100);
         } catch (err: any) { handleApiError('Auto-Organize', err); } finally {
