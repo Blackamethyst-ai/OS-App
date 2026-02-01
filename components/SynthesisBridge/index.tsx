@@ -13,7 +13,6 @@ import {
     FolderTree, Cloud, Globe, Network, Shield, Aperture,
     ShieldCheck, Gauge, Loader2, DatabaseZap, BookOpen
 } from 'lucide-react';
-// @ts-expect-error - lucide-react doesn't have Github type in this version
 import { Github } from 'lucide-react';
 import { promptSelectKey, generateStructuredWorkflow } from '../../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../../data/knowledgeLayers';

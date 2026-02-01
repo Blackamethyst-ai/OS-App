@@ -69,8 +69,8 @@ export type TaskParams = Omit<Task, 'id' | 'timestamp' | 'subtasks'> & {
 /** Task update parameters */
 export type TaskUpdateParams = Partial<Omit<Task, 'id'>>;
 
-/** Research task parameters */
-export type ResearchTaskParams = Omit<ResearchTask, 'id' | 'timestamp'>;
+/** Research task parameters - allow full task including generated id/timestamp */
+export type ResearchTaskParams = ResearchTask;
 
 /** Research task update parameters */
 export type ResearchTaskUpdateParams = Partial<Omit<ResearchTask, 'id'>>;
@@ -93,6 +93,9 @@ export type SwarmEventParams = Omit<SwarmEvent, 'id' | 'timestamp'>;
 export interface DockItemParams {
     id: string;
     label: string;
-    icon: string;
-    action: () => void;
+    icon?: string;
+    action?: () => void;
+    type?: string;
+    content?: string;
+    timestamp?: number;
 }
