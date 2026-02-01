@@ -269,3 +269,102 @@ export {
   adjustSwarmBehavior,
   triggerConsolidation,
 } from './integration/biometricHooks';
+
+// =============================================================================
+// CONCRETE LAYER IMPLEMENTATIONS
+// =============================================================================
+
+// Import layer singletons for factory use
+import { GenomeLayer, genomeLayer } from './GenomeLayer';
+import { SwarmLayer, swarmLayer } from './SwarmLayer';
+import { CognitiveLayer, cognitiveLayer } from './CognitiveLayer';
+import { AbstractOrganismLayer } from './OrganismLayer';
+import type { OrganismMetrics } from '../archon/types';
+
+// Re-export layer classes and singletons
+export { GenomeLayer, genomeLayer };
+export { SwarmLayer, swarmLayer };
+export { CognitiveLayer, cognitiveLayer };
+
+// =============================================================================
+// LAYER FACTORY
+// =============================================================================
+
+/**
+ * LayerFactory - Creates and manages organism layer instances.
+ *
+ * Provides a unified interface for:
+ * - Initializing all layers
+ * - Routing tasks to appropriate layers
+ * - Collecting cross-layer metrics
+ */
+export interface LayerFactory {
+  /** All registered layers */
+  readonly layers: ReadonlyMap<string, AbstractOrganismLayer>;
+
+  /** Initialize all layers */
+  initialize(): Promise<void>;
+
+  /** Shutdown all layers */
+  shutdown(): Promise<void>;
+
+  /** Get layer by type */
+  getLayer(type: 'genome' | 'swarm' | 'cognitive'): AbstractOrganismLayer | undefined;
+
+  /** Get combined metrics from all layers */
+  getAggregateMetrics(): Record<string, OrganismMetrics>;
+}
+
+/**
+ * Creates and returns a fully-wired layer factory.
+ * All layers are registered with the organism registry on creation.
+ */
+export function createLayerFactory(): LayerFactory {
+  const layers = new Map<string, AbstractOrganismLayer>();
+
+  // Register singletons
+  layers.set('genome', genomeLayer);
+  layers.set('swarm', swarmLayer);
+  layers.set('cognitive', cognitiveLayer);
+
+  return {
+    get layers() {
+      return layers as ReadonlyMap<string, AbstractOrganismLayer>;
+    },
+
+    async initialize() {
+      const initPromises = Array.from(layers.values()).map(layer =>
+        layer.initialize().catch(err => {
+          console.error(`Failed to initialize ${layer.name}:`, err);
+        })
+      );
+      await Promise.all(initPromises);
+      console.log('All organism layers initialized');
+    },
+
+    async shutdown() {
+      const shutdownPromises = Array.from(layers.values()).map(layer =>
+        layer.shutdown().catch(err => {
+          console.error(`Failed to shutdown ${layer.name}:`, err);
+        })
+      );
+      await Promise.all(shutdownPromises);
+      console.log('All organism layers shutdown');
+    },
+
+    getLayer(type: 'genome' | 'swarm' | 'cognitive') {
+      return layers.get(type);
+    },
+
+    getAggregateMetrics() {
+      const metrics: Record<string, OrganismMetrics> = {};
+      for (const [type, layer] of layers) {
+        metrics[type] = layer.getLayerMetrics();
+      }
+      return metrics;
+    },
+  };
+}
+
+/** Default factory instance */
+export const layerFactory = createLayerFactory();
