@@ -337,13 +337,13 @@ export const useAppStore = create<AppState>((set, get) => ({
         setDiagnosticsOpen: (isDiagnosticsOpen) => set({ isDiagnosticsOpen }),
         setHUDClosed: (isHUDClosed) => set({ isHUDClosed }),
         setFocusedSelector: (focusedSelector) => set({ focusedSelector }),
-        addDockItem: (item) => set((state) => ({
+        addDockItem: (item) => set((state: any) => ({
             system: { ...state.system, dockItems: [...state.system.dockItems, item].slice(-10) }
         })),
-        removeDockItem: (id) => set((state) => ({
-            system: { ...state.system, dockItems: state.system.dockItems.filter(i => i.id !== id) }
+        removeDockItem: (id) => set((state: any) => ({
+            system: { ...state.system, dockItems: state.system.dockItems.filter((i: any) => i.id !== id) }
         })),
-        archiveIntervention: (protocol) => set((state) => ({
+        archiveIntervention: (protocol) => set((state: any) => ({
             metaventions: { ...state.metaventions, strategyLibrary: [protocol, ...state.metaventions.strategyLibrary] }
         })),
         removeStrategy: (id) => set((state) => ({
