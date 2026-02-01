@@ -1,6 +1,23 @@
 /**
  * UNIFIED ACTION REGISTRY
  *
+ * @deprecated This registry is being replaced by services/capabilities.
+ * Use the Capabilities Registry for new code:
+ *
+ * ```typescript
+ * import { executeCapability, getCapability } from './capabilities';
+ * ```
+ *
+ * MIGRATION STATUS:
+ * - ✅ VoiceManager: Migrated to capabilities (executeCapability, getCapability)
+ * - ✅ DynamicToolRegistry: Migrated to capabilities
+ * - ⚠️ routeQuery/executeQuery: Still used for CPB routing (temporary)
+ *
+ * This file will be fully deprecated after routeQuery/executeQuery are migrated.
+ * Target deprecation date: 2026-03-01
+ *
+ * ---
+ * Original description:
  * Single source of truth for ALL voice-controllable actions.
  * Merges: componentActionRegistry + voiceActionRegistry + universalVoiceHooks
  *
@@ -12,8 +29,6 @@
  *
  * SYNCHRONIZED CLOCK: All actions flow through SystemMind's epoch system.
  * CPB ROUTING: Actions are tagged with their optimal execution path.
- *
- * NOTE: Core types and utilities are now in services/actions/
  */
 
 import { useSystemMind } from '../stores/useSystemMind';
