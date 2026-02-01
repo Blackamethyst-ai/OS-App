@@ -47,8 +47,8 @@ export const OS_TOOLS = {
             
             const workflow = workflowResult as unknown as {title: string, internalPlanningMonologue: string, protocols: any[], coherenceScore: number, taxonomy?: any};
             
-            setProcessState({ 
-                generatedWorkflow: workflow, 
+            setProcessState({
+                generatedWorkflow: workflow as any,
                 activeTab: 'workflow',
                 workflowType: args.type,
                 coherenceScore: workflow.coherenceScore || 85

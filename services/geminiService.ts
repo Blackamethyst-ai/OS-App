@@ -296,7 +296,7 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
                 imageDimensions: {
                     aspectRatio: aspectRatio
                 }
-            }
+            } as any
         }));
 
         const imagePart = response.candidates?.[0]?.content?.parts?.find(
@@ -389,7 +389,7 @@ export async function classifyArtifact(data: FileData): Promise<Result<any>> {
             config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
         }));
         return { ok: true, value: safeParseJson(response.text) };
-    } catch (e: unknown) { return { ok: false, error: e }; }
+    } catch (e: unknown) { return { ok: false, error: e as Error }; }
 }
 
 export async function generateStructuredWorkflow(files: FileData[], governance: string, type: string, mapContext: Record<string, unknown>): Promise<TechnicalManifest> {
@@ -552,7 +552,7 @@ export async function evolveSystemArchitecture(code: string, lang: string, promp
             config: { responseMimeType: 'application/json' }
         }));
         return { ok: true, value: safeParseJson(response.text) };
-    } catch (e: unknown) { return { ok: false, error: e }; }
+    } catch (e: unknown) { return { ok: false, error: e as Error }; }
 }
 
 export async function generateSpeech(text: string, voice: string) {
@@ -667,7 +667,7 @@ export async function runAgentReasoning(
 
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: 'gemini-2.0-flash',
-        systemInstruction: systemContext,
+        config: { systemInstruction: systemContext } as any,
         contents: `You have been delegated a task. Analyze it using your unique perspective and expertise.
 
 TASK: ${task}

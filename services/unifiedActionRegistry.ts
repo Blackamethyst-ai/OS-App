@@ -222,10 +222,10 @@ export function routeQuery(query: string, context?: string): {
 
     // Otherwise, use CPB's path selection
     const signals = extractPathSignals({ query, context });
-    const decision = selectPath(signals);
+    const decision = selectPath(signals as any);
 
     return {
-        path: decision.path,
+        path: (decision as any).path || 'auto',
         reasoning: decision.reasoning,
         confidence: decision.confidence,
         matchedActions

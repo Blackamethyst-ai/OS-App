@@ -217,7 +217,7 @@ class FaceDetectionService {
   /**
    * Extract landmark points from face-api landmarks
    */
-  private extractLandmarks(landmarks: faceapi.FaceLandmarks68): FaceLandmarks {
+  private extractLandmarks(landmarks: any): FaceLandmarks {
     const positions = landmarks.positions;
 
     return {

@@ -462,7 +462,7 @@ Output ONLY the code, no markdown fences.`;
             pendingEvolutions: this.hypotheses.filter(h => h.status === 'PROPOSED').length,
             approvedEvolutions: this.hypotheses.filter(h => h.status === 'APPROVED').length,
             deployedEvolutions: this.hypotheses.filter(h => h.status === 'DEPLOYED').length,
-            pendingDeployments: this.getPendingDeployments().length,
+            pendingDeployments: this.getPendingDeploymentsSync().length,
             totalCycles: this.cycles.length,
             isEvolving: this.isEvolving
         };
