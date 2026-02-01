@@ -1,20 +1,26 @@
 /**
  * UNIFIED ACTION REGISTRY
  *
- * @deprecated This registry is being replaced by services/capabilities.
- * Use the Capabilities Registry for new code:
+ * @deprecated FULLY DEPRECATED - Use services/capabilities instead.
  *
  * ```typescript
- * import { executeCapability, getCapability } from './capabilities';
+ * import {
+ *   executeCapability,
+ *   getCapability,
+ *   routeQueryToCPB,
+ *   executeQueryWithCPB,
+ * } from './capabilities';
  * ```
  *
- * MIGRATION STATUS:
- * - ✅ VoiceManager: Migrated to capabilities (executeCapability, getCapability)
+ * MIGRATION STATUS (All Complete):
+ * - ✅ VoiceManager: Migrated to capabilities
  * - ✅ DynamicToolRegistry: Migrated to capabilities
- * - ⚠️ routeQuery/executeQuery: Still used for CPB routing (temporary)
+ * - ✅ routeQuery → routeQueryToCPB() from capabilities
+ * - ✅ executeQuery → executeQueryWithCPB() from capabilities
  *
- * This file will be fully deprecated after routeQuery/executeQuery are migrated.
- * Target deprecation date: 2026-03-01
+ * This file is kept for reference only and scheduled for removal.
+ * Deprecation date: 2026-02-01
+ * Removal date: 2026-03-01
  *
  * ---
  * Original description:
