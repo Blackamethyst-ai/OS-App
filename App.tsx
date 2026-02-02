@@ -1,6 +1,7 @@
 
 import React, { useEffect, Suspense, lazy } from 'react';
 import { useAppStore } from './store';
+import { useShallow } from 'zustand/react/shallow';
 import { useSystemMind } from './stores/useSystemMind';
 import { AppTheme } from './types';
 import Starfield from './components/Starfield';
@@ -64,7 +65,7 @@ const App: React.FC = () => {
         isDiagnosticsOpen,
         isSidebarOpen,
         isHUDClosed,
-    } = useAppStore(s => ({
+    } = useAppStore(useShallow(s => ({
         mode: s.mode,
         theme: s.theme,
         system: s.system,
@@ -76,7 +77,7 @@ const App: React.FC = () => {
         isDiagnosticsOpen: s.isDiagnosticsOpen,
         isSidebarOpen: s.isSidebarOpen,
         isHUDClosed: s.isHUDClosed,
-    }));
+    })));
 
     // Prediction demo toggle (via URL param: ?demo=predictions)
     const [showPredictionDemo, setShowPredictionDemo] = React.useState(() => {
