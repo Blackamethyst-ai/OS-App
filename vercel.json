@@ -1,4 +1,5 @@
 {
+  "ignoreCommand": "git diff --quiet HEAD^ HEAD -- . ':!*.md' ':!*.txt' ':!.github' ':!**/*.test.ts' ':!**/*.test.tsx' ':!**/*.spec.ts' ':!.env.example' ':!docs'",
   "rewrites": [
     {
       "source": "/((?!assets/).*)",
