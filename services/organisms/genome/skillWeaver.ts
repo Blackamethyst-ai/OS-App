@@ -43,6 +43,10 @@ export interface SkillRegistry {
   get(skillId: string): SkillGenome | undefined;
   getByName(name: string): SkillGenome | undefined;
   getAll(): SkillGenome[];
+  register(skill: SkillGenome): void;
+  unregister(skillId: string): boolean;
+  clear(): void;
+  size(): number;
 }
 
 /** Condition evaluator for conditional pattern */

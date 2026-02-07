@@ -24,7 +24,9 @@ import { AbstractOrganismLayer, organismRegistry } from './OrganismLayer';
 import { skillGenomeCodec } from './genome/codec';
 import { mcpSkillServer } from './genome/mcpServer';
 import { portableSkillTransfer } from './genome/portableTransfer';
-import { createSkillWeaver, InMemorySkillRegistry } from './genome/skillWeaver';
+import { createSkillWeaver } from './genome/skillWeaver';
+import { SupabaseSkillRegistry } from './genome/supabaseSkillRegistry';
+import { registerDynamicCapability } from '../capabilities/providers/dynamic';
 import type { SkillGenome, SynthesisRequest, SynthesizedSkill } from './genome/types';
 import type { SkillWeaver, SkillRegistry } from './genome/skillWeaver';
 
@@ -67,7 +69,7 @@ export class GenomeLayer extends AbstractOrganismLayer {
 
   constructor() {
     super();
-    this.skillRegistry = new InMemorySkillRegistry();
+    this.skillRegistry = new SupabaseSkillRegistry();
     this.skillWeaver = createSkillWeaver(this.skillRegistry);
   }
 
@@ -76,6 +78,23 @@ export class GenomeLayer extends AbstractOrganismLayer {
   // ---------------------------------------------------------------------------
 
   protected async onInitialize(): Promise<void> {
+    // Hydrate skills from Supabase
+    if (this.skillRegistry instanceof SupabaseSkillRegistry) {
+      const count = await this.skillRegistry.hydrate();
+      if (count > 0) {
+        console.log(`${this.name}: Hydrated ${count} skills from Supabase`);
+
+        // Re-register hydrated skills with MCP server
+        const skills = this.skillRegistry.getAll();
+        for (const skill of skills) {
+          this.mcpServer.registerSkillResource(skill);
+        }
+
+        // Bridge hydrated skills to capabilities registry
+        await this.bridgeSkillsToCapabilities();
+      }
+    }
+
     console.log(`${this.name}: Genome components initialized`);
   }
 
@@ -223,17 +242,29 @@ export class GenomeLayer extends AbstractOrganismLayer {
       return this.createErrorResult('No skill data provided for registration', task);
     }
 
-    // Register with MCP server for external exposure
-    this.mcpServer.registerSkillResource(skill);
+    try {
+      // Register with MCP server for external exposure
+      this.mcpServer.registerSkillResource(skill);
 
-    // Also add to local registry for synthesis
-    (this.skillRegistry as InMemorySkillRegistry).register(skill);
+      // Add to skill registry (persists to Supabase if configured)
+      this.skillRegistry.register(skill);
 
-    return this.createSuccessResult(
-      { registered: true, skillId: skill.id },
-      task,
-      { operation: 'register', skillId: skill.id }
-    );
+      // Bridge to capabilities registry (non-blocking, errors logged)
+      this.bridgeSkillToCapability(skill).catch((err) => {
+        console.error(`[GenomeLayer] Failed to bridge skill ${skill.id} to capabilities:`, err);
+      });
+
+      return this.createSuccessResult(
+        { registered: true, skillId: skill.id },
+        task,
+        { operation: 'register', skillId: skill.id }
+      );
+    } catch (error) {
+      return this.createErrorResult(
+        `Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        task
+      );
+    }
   }
 
   private async handleList(task: OrganismTask): Promise<OrganismResult> {
@@ -318,6 +349,68 @@ export class GenomeLayer extends AbstractOrganismLayer {
       },
       error,
     };
+  }
+
+  // ---------------------------------------------------------------------------
+  // Capabilities Bridge
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Bridge all skills in registry to capabilities
+   */
+  private async bridgeSkillsToCapabilities(): Promise<void> {
+    const skills = this.skillRegistry.getAll();
+    for (const skill of skills) {
+      await this.bridgeSkillToCapability(skill);
+    }
+    console.log(`${this.name}: Bridged ${skills.length} skills to capabilities registry`);
+  }
+
+  /**
+   * Bridge a single skill to the capabilities registry
+   */
+  private async bridgeSkillToCapability(skill: SkillGenome): Promise<void> {
+    const capabilityId = `genome_${skill.id}`;
+
+    // Create capability handler that dispatches skill execution
+    const handler = async (args: Record<string, unknown>) => {
+      try {
+        // TODO: Implement skill execution via dispatch
+        // For now, return success with skill metadata
+        return {
+          success: true,
+          data: {
+            skillId: skill.id,
+            skillName: skill.name,
+            args,
+            note: 'Skill execution via capabilities not yet implemented',
+          },
+          metadata: {
+            skillId: skill.id,
+            skillName: skill.name,
+            origin: skill.origin.type,
+          },
+        };
+      } catch (error) {
+        return {
+          success: false,
+          error: error instanceof Error ? error.message : 'Skill execution failed',
+          metadata: {
+            skillId: skill.id,
+            skillName: skill.name,
+          },
+        };
+      }
+    };
+
+    // Register with capabilities system
+    registerDynamicCapability(capabilityId, skill.description, handler, {
+      priority: Math.round(skill.dqScore * 100), // DQ score 0-1 -> priority 0-100
+      schema: {
+        input: skill.inputSchema,
+        output: skill.outputSchema,
+      },
+    });
   }
 }
 

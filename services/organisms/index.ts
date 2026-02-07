@@ -90,6 +90,8 @@ export {
   createSkillWeaver,
 } from './genome/skillWeaver';
 
+export { SupabaseSkillRegistry } from './genome/supabaseSkillRegistry';
+
 export type {
   SkillRegistry,
   ConditionEvaluator,
