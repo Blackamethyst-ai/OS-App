@@ -27,6 +27,7 @@ import { portableSkillTransfer } from './genome/portableTransfer';
 import { createSkillWeaver } from './genome/skillWeaver';
 import { SupabaseSkillRegistry } from './genome/supabaseSkillRegistry';
 import { registerDynamicCapability } from '../capabilities/providers/dynamic';
+import { registerSeedSkills } from './genome/seedSkills';
 import type { SkillGenome, SynthesisRequest, SynthesizedSkill } from './genome/types';
 import type { SkillWeaver, SkillRegistry } from './genome/skillWeaver';
 
@@ -95,6 +96,13 @@ export class GenomeLayer extends AbstractOrganismLayer {
       }
     }
 
+    // Register seed skills (skips if already present)
+    const seedResult = registerSeedSkills(this.skillRegistry, this.mcpServer);
+    if (seedResult.registered > 0) {
+      console.log(`${this.name}: Registered ${seedResult.registered} seed skills`);
+      await this.bridgeSkillsToCapabilities();
+    }
+
     console.log(`${this.name}: Genome components initialized`);
   }
 
@@ -127,6 +135,8 @@ export class GenomeLayer extends AbstractOrganismLayer {
           return this.handleRegister(task);
         case 'list':
           return this.handleList(task);
+        case 'execute':
+          return this.handleExecute(task);
         default:
           return this.createErrorResult(
             `Unknown genome operation: ${operation}`,
@@ -279,6 +289,40 @@ export class GenomeLayer extends AbstractOrganismLayer {
     });
   }
 
+  private async handleExecute(task: OrganismTask): Promise<OrganismResult> {
+    const skillId = task.contextPages[0];
+    const argsJson = task.contextPages[1] || '{}';
+
+    if (!skillId) {
+      return this.createErrorResult('No skill ID provided for execution', task);
+    }
+
+    // Find skill in registry
+    const skills = this.skillRegistry.getAll();
+    const skill = skills.find((s) => s.id === skillId || s.name === skillId);
+
+    if (!skill) {
+      return this.createErrorResult(`Skill not found: ${skillId}`, task);
+    }
+
+    const args = JSON.parse(argsJson);
+    const result = await this.executeSkill(skill, args);
+
+    if (result.success) {
+      return this.createSuccessResult(result.data, task, {
+        operation: 'execute',
+        skillId: skill.id,
+        skillName: skill.name,
+        latencyMs: result.latencyMs,
+      });
+    }
+
+    return this.createErrorResult(
+      `Execution failed: ${result.error}`,
+      task
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Metrics
   // ---------------------------------------------------------------------------
@@ -367,6 +411,54 @@ export class GenomeLayer extends AbstractOrganismLayer {
   }
 
   /**
+   * Execute a skill handler directly.
+   * Deserializes the function and runs it with timeout enforcement.
+   */
+  async executeSkill(
+    skill: SkillGenome,
+    args: Record<string, unknown>
+  ): Promise<{ success: boolean; data?: unknown; error?: string; latencyMs: number }> {
+    const startTime = Date.now();
+
+    try {
+      // Validate input against schema
+      const validation = this.codec.validateAgainstSchema(args, skill.inputSchema);
+      if (!validation.valid) {
+        return {
+          success: false,
+          error: `Input validation failed: ${validation.errors.join(', ')}`,
+          latencyMs: Date.now() - startTime,
+        };
+      }
+
+      // Deserialize the handler function
+      const handler = this.codec.deserializeFunction(skill.handler);
+
+      // Execute with timeout
+      const timeoutMs = skill.timeoutMs || 5000;
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`Skill ${skill.name} timed out after ${timeoutMs}ms`)), timeoutMs)
+      );
+
+      const result = skill.runtime === 'async'
+        ? await Promise.race([handler(args), timeoutPromise])
+        : handler(args);
+
+      return {
+        success: true,
+        data: result,
+        latencyMs: Date.now() - startTime,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : String(error),
+        latencyMs: Date.now() - startTime,
+      };
+    }
+  }
+
+  /**
    * Bridge a single skill to the capabilities registry
    */
   private async bridgeSkillToCapability(skill: SkillGenome): Promise<void> {
@@ -374,33 +466,19 @@ export class GenomeLayer extends AbstractOrganismLayer {
 
     // Create capability handler that dispatches skill execution
     const handler = async (args: Record<string, unknown>) => {
-      try {
-        // TODO: Implement skill execution via dispatch
-        // For now, return success with skill metadata
-        return {
-          success: true,
-          data: {
-            skillId: skill.id,
-            skillName: skill.name,
-            args,
-            note: 'Skill execution via capabilities not yet implemented',
-          },
-          metadata: {
-            skillId: skill.id,
-            skillName: skill.name,
-            origin: skill.origin.type,
-          },
-        };
-      } catch (error) {
-        return {
-          success: false,
-          error: error instanceof Error ? error.message : 'Skill execution failed',
-          metadata: {
-            skillId: skill.id,
-            skillName: skill.name,
-          },
-        };
-      }
+      const result = await this.executeSkill(skill, args);
+
+      return {
+        success: result.success,
+        data: result.data,
+        error: result.error,
+        metadata: {
+          skillId: skill.id,
+          skillName: skill.name,
+          origin: skill.origin.type,
+          latencyMs: result.latencyMs,
+        },
+      };
     };
 
     // Register with capabilities system
