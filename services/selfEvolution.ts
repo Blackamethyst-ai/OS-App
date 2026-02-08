@@ -54,6 +54,7 @@ class SelfEvolutionService {
     private cycles: EvolutionCycle[] = [];
     private lastEvolutionTime: number = 0;
     private isEvolving: boolean = false;
+    private lastProcessedLogCount: number = 0;
 
     constructor() {
         this.init();
@@ -62,11 +63,15 @@ class SelfEvolutionService {
     private init() {
         // Subscribe to store changes to detect friction
         if (typeof window !== 'undefined') {
-            // Monitor for repeated errors
+            // Monitor for repeated errors (only process new logs)
             useAppStore.subscribe((state, prevState) => {
-                const newLogs = state.system.logs.slice(-5);
-                const errors = newLogs.filter(l => l.level === 'ERROR');
+                const totalLogs = state.system.logs.length;
+                if (totalLogs <= this.lastProcessedLogCount) return;
 
+                const newLogs = state.system.logs.slice(this.lastProcessedLogCount);
+                this.lastProcessedLogCount = totalLogs;
+
+                const errors = newLogs.filter(l => l.level === 'ERROR');
                 errors.forEach(error => {
                     this.recordFriction('ERROR', error.message, state.mode);
                 });

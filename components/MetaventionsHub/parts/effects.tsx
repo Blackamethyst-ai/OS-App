@@ -62,14 +62,11 @@ export const DataStreamTether: React.FC = () => (
             animate={{ strokeDashoffset: [0, -100] }}
             transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
         />
-        <motion.circle
+        <circle
             r="3"
             fill="var(--cyan)"
             filter="url(#packetGlow)"
-            initial={{ offsetDistance: "0%" }}
-            animate={{ offsetDistance: "100%" }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            style={{ offsetPath: "path('M 50 850 Q 500 400 950 150')" }}
+            style={{ offsetPath: "path('M 50 850 Q 500 400 950 150')", animation: "packetFlow 3s linear infinite" }}
         />
     </svg>
 );

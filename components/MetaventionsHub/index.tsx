@@ -408,9 +408,9 @@ const MetaventionsHub: React.FC = () => {
                 )}
             </AnimatePresence>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-10 relative bg-transparent z-10">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar px-6 py-8 relative bg-transparent z-10">
                 {!dashboard.isOculusView && <VisionaryTicker />}
-                <div className="grid grid-cols-12 gap-8 min-h-0 items-start">
+                <div className="grid grid-cols-12 gap-6 min-h-0 items-start">
                     {/* Left Column: SOC + Metrics Belt stacked */}
                     <div className={cn(
                         "flex flex-col gap-6",

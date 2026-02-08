@@ -37,9 +37,11 @@ const AppHeader: React.FC = () => {
                 {/* SYNAPTIC COMMAND BAR: Fluid integration of Tabs and Search */}
                 <motion.div
                     layout
-                    className="flex-1 h-[48px] bg-black/20 border border-white/5 rounded-2xl flex items-center px-2 relative group/cmdbar focus-within:border-[#9d4edd]/30 focus-within:bg-black/40 transition-all duration-500 overflow-hidden"
+                    className="flex-1 h-[48px] bg-black/20 border border-white/5 rounded-2xl flex items-center px-2 relative group/cmdbar focus-within:border-[#9d4edd]/30 focus-within:bg-black/40 transition-all duration-500"
                 >
-                    <nav className="flex items-center h-full overflow-x-auto no-scrollbar flex-1 min-w-0">
+                    <nav className="flex items-center h-full overflow-x-auto no-scrollbar flex-1 min-w-0 scroll-smooth"
+                        style={{ maskImage: 'linear-gradient(to right, transparent 0px, black 24px, black calc(100% - 24px), transparent 100%)' }}
+                    >
                         {navItems.map((item, index) => (
                             <motion.button
                                 layout

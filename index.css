@@ -3,6 +3,21 @@
    ============================================ */
 @import './styles/adaptive-ui.css';
 
+/* Hide scrollbar but allow scroll */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Packet flow animation for SVG offset-distance */
+@keyframes packetFlow {
+  from { offset-distance: 0%; }
+  to { offset-distance: 100%; }
+}
+
 /* ============================================
    RESPONSIVE DESIGN SYSTEM
    Uses CSS clamp() for fluid sizing across all viewports

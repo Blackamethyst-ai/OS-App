@@ -344,7 +344,31 @@ const MemoryCore: React.FC = () => {
 
                 <div className="flex-1 overflow-hidden relative">
                     <AnimatePresence mode="wait">
-                        {viewMode === 'OCEANIC' ? (
+                        {isLoading ? (
+                            <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-col items-center justify-center gap-6">
+                                <Loader2 size={32} className="text-[#9d4edd] animate-spin" />
+                                <span className="text-[10px] font-black font-mono text-gray-500 uppercase tracking-[0.4em]">Synchronizing Neural Vault...</span>
+                            </motion.div>
+                        ) : filteredArtifacts.length === 0 ? (
+                            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-col items-center justify-center gap-8 text-center">
+                                <div className="relative">
+                                    <Database size={64} className="text-gray-800" />
+                                    <div className="absolute -inset-8 border border-dashed border-white/5 rounded-full" />
+                                </div>
+                                <div className="space-y-3">
+                                    <p className="text-[12px] font-black font-mono text-gray-500 uppercase tracking-[0.4em]">Vault Empty</p>
+                                    <p className="text-[10px] font-mono text-gray-700 max-w-xs leading-relaxed">
+                                        {semanticResults ? 'No artifacts match your semantic query.' : 'Upload files to populate the Neural Vault. Artifacts will be analyzed and indexed for semantic retrieval.'}
+                                    </p>
+                                </div>
+                                {!semanticResults && (
+                                    <label className="flex items-center gap-3 px-6 py-3 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#9d4edd] cursor-pointer hover:bg-[#9d4edd]/20 transition-all">
+                                        <Upload size={14} /> Ingest First Artifact
+                                        <input type="file" multiple className="hidden" onChange={handleFileUpload} />
+                                    </label>
+                                )}
+                            </motion.div>
+                        ) : viewMode === 'OCEANIC' ? (
                             <motion.div key="oceanic" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-12 h-full overflow-y-auto custom-scrollbar bg-black/5 relative">
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(24,230,255,0.03)_0%,transparent_70%)] pointer-events-none" />
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-12 pb-32">

@@ -10,6 +10,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useAppStore } from '../../../store';
 import { liveSession, promptSelectKey, HIVE_AGENTS, generateAvatar } from '../../../services/geminiService';
 import { voiceNexus, getVoiceCore } from '../../../services/voiceNexus';
+import { runPreflightCheck, type PreflightResult } from '../../../services/voiceNexus/preflightCheck';
 // ... (imports)
 
 // ...
@@ -19,7 +20,7 @@ import type { VoiceMode as VoiceModeType } from '../../../services/voiceNexus';
 import {
     Mic, Activity, Power, Settings, Sliders, X, RotateCcw, Loader2,
     Radio, Target, Bot, ShieldCheck, ChevronDown, ChevronUp, Gauge,
-    Terminal, AudioWaveform
+    Terminal, AudioWaveform, AlertTriangle, KeyRound
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { audio } from '../../../services/audioService';
@@ -37,7 +38,13 @@ const VoiceMode: React.FC = () => {
     const [userFreqs, setUserFreqs] = useState<Uint8Array | null>(null);
     const [agentFreqs, setAgentFreqs] = useState<Uint8Array | null>(null);
     const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
+    const [preflight, setPreflight] = useState<PreflightResult | null>(null);
     const scrollRef = useRef<HTMLDivElement>(null);
+
+    // Run preflight check on mount and when vault state changes
+    useEffect(() => {
+        setPreflight(runPreflightCheck());
+    }, []);
 
     const currentAgentMetadata = useMemo(() =>
         Object.values(HIVE_AGENTS).find((a: any) => a.name === voice.voiceName) || HIVE_AGENTS['dr_ira'] || Object.values(HIVE_AGENTS)[0],
@@ -113,6 +120,15 @@ const VoiceMode: React.FC = () => {
             addLog('SYSTEM', 'COMMS: Link severed.');
             audio.playError();
         } else {
+            // Re-check preflight before starting
+            const check = runPreflightCheck();
+            setPreflight(check);
+            if (!check.canProceed) {
+                addLog('ERROR', `VOICE_CORE: ${check.errors[0] || 'Voice system not ready'}`);
+                audio.playError();
+                return;
+            }
+
             // Prime audio on user click to unlock AudioContext/TTS
             try {
                 getVoiceCore().primeAudio();
@@ -272,21 +288,44 @@ const VoiceMode: React.FC = () => {
                                     "w-28 h-28 rounded-full flex items-center justify-center transition-all duration-700 relative z-10 border shadow-2xl active:scale-95 group/main",
                                     voice.isActive
                                         ? "bg-red-500/10 border-red-500 text-red-500 shadow-red-500/20"
-                                        : "bg-black border-white/10 text-white hover:border-[var(--agent-theme)] hover:shadow-[var(--agent-theme)]/20"
+                                        : preflight && !preflight.canProceed
+                                            ? "bg-black border-amber-500/30 text-amber-500/60 cursor-not-allowed"
+                                            : "bg-black border-white/10 text-white hover:border-[var(--agent-theme)] hover:shadow-[var(--agent-theme)]/20"
                                 )}
                                 style={{ boxShadow: voice.isActive ? '0 0 40px rgba(239, 68, 68, 0.2)' : '0 0 40px rgba(0,0,0,0.5)' }}
                             >
-                                {voice.isConnecting ? <Loader2 className="animate-spin" size={28} /> : voice.isActive ? <Power size={36} /> : <Mic size={36} className="group-hover/main:scale-110 transition-transform" />}
+                                {voice.isConnecting ? <Loader2 className="animate-spin" size={28} /> : voice.isActive ? <Power size={36} /> : preflight && !preflight.canProceed ? <KeyRound size={32} /> : <Mic size={36} className="group-hover/main:scale-110 transition-transform" />}
                             </button>
                         </div>
                         <div className="flex flex-col items-center gap-2">
                             <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.4em] drop-shadow-lg">
-                                {voice.isConnecting ? 'Syncing...' : voice.isActive ? 'Sever Link' : 'Initialize Hub'}
+                                {voice.isConnecting ? 'Syncing...' : voice.isActive ? 'Sever Link' : preflight && !preflight.canProceed ? 'Keys Required' : 'Initialize Hub'}
                             </span>
                             <div className="flex gap-1">
                                 {[1, 2, 3].map(i => <div key={i} className={cn("w-1 h-1 rounded-full", voice.isActive ? "bg-[var(--plasma-green)] animate-pulse" : "bg-gray-800")} style={{ animationDelay: `${i * 0.2}s` }} />)}
                             </div>
                         </div>
+
+                        {/* Preflight Warning */}
+                        {preflight && !preflight.canProceed && !voice.isActive && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="absolute -bottom-24 w-80 bg-black/80 backdrop-blur-xl border border-amber-500/20 rounded-2xl p-4 z-50"
+                            >
+                                <div className="flex items-start gap-3">
+                                    <AlertTriangle size={16} className="text-amber-500 shrink-0 mt-0.5" />
+                                    <div className="space-y-2">
+                                        {preflight.errors.map((err, i) => (
+                                            <p key={i} className="text-[10px] font-mono text-amber-400/90 leading-relaxed">{err}</p>
+                                        ))}
+                                        {preflight.recommendations.map((rec, i) => (
+                                            <p key={`r-${i}`} className="text-[9px] font-mono text-gray-500 leading-relaxed">{rec}</p>
+                                        ))}
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
                     </div>
 
                     <NodePersona

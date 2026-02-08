@@ -191,9 +191,9 @@ const GlobalStatusBar: React.FC = () => {
 
                 {/* TELEMETRY SECTION (Fixed Widths to prevent flicker jumps) */}
                 {/* TELEMETRY SECTION */}
-                <div className="flex items-center gap-10 shrink-0 relative z-10 flex-1 min-w-0">
-                    <div className="flex items-center gap-6">
-                        <div className="flex flex-col items-center gap-1 min-w-[80px]">
+                <div className="flex items-center gap-6 shrink-0 relative z-10">
+                    <div className="flex items-center gap-4">
+                        <div className="flex flex-col items-center gap-1 min-w-[85px]">
                             <div className="flex items-center gap-1.5 text-[6px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none">
                                 <Gauge size={8} className="text-[#18E6FF]" />
                                 <span>Neural_Load</span>
@@ -203,8 +203,8 @@ const GlobalStatusBar: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-0.5 min-w-[70px]">
-                            <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none">Integrity</span>
+                        <div className="flex flex-col gap-0.5 min-w-[90px]">
+                            <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Integrity</span>
                             <div className="flex items-center gap-2">
                                 <div className="w-10 h-1 bg-white/5 rounded-full overflow-hidden">
                                     <motion.div animate={{ width: `${driveHealth}%` }} className="h-full bg-[#10b981]" />
@@ -213,23 +213,23 @@ const GlobalStatusBar: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-5 border-r border-white/5 pr-6 h-8">
-                            <div className="flex flex-col gap-0.5 min-w-[35px]">
-                                <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none">Optical</span>
+                        <div className="flex items-center gap-4 border-r border-white/5 pr-4 h-8">
+                            <div className="flex flex-col gap-0.5 min-w-[50px]">
+                                <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Optical</span>
                                 <div className="flex items-center gap-1">
                                     <span className="text-[10px] font-black font-mono text-[#22d3ee]">{fps}</span>
                                     <span className="text-[5px] text-gray-700 font-black uppercase">FPS</span>
                                 </div>
                             </div>
-                            <div className="flex flex-col gap-0.5 min-w-[45px]">
-                                <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none">Lattice</span>
+                            <div className="flex flex-col gap-0.5 min-w-[55px]">
+                                <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Lattice</span>
                                 <div className="flex items-center gap-1">
                                     <span className="text-[10px] font-black font-mono text-[#f59e0b]">{memory?.used || 0}</span>
                                     <span className="text-[5px] text-gray-700 font-black uppercase">MB</span>
                                 </div>
                             </div>
-                            <div className="flex flex-col gap-0.5 min-w-[45px] pl-4 border-l border-white/5">
-                                <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none">Sys_Latency</span>
+                            <div className="flex flex-col gap-0.5 min-w-[70px] pl-4 border-l border-white/5">
+                                <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Sys_Latency</span>
                                 <div className="flex items-center gap-1">
                                     <Activity size={8} className="text-[#22d3ee]" />
                                     <span className="text-[10px] font-black font-mono text-[#22d3ee]">{latency}ms</span>
