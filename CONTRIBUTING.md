@@ -57,16 +57,51 @@ npm run build
 # Lint check
 npm run lint
 
+# Run tests
+npm run test:run
+
 # Test locally
 npm run dev
 ```
 
 ## Architecture Guidelines
 
+### Core Directories
+
 - **Services** (`/services`) — API integrations, business logic
-- **Components** — React components with clear responsibilities
+- **Components** (`/components`) — React components with clear responsibilities
 - **Hooks** (`/hooks`) — Reusable stateful logic
 - **Store** (`store.ts`) — Zustand global state
+
+### Organisms Framework (`/services/organisms`)
+
+The biologically-inspired agent system uses three coordinated layers:
+
+- **Genome** (`organisms/genome/`) — Agent skills as portable, composable `SkillGenome` objects. New skills should implement the `SkillGenome` interface from `genome/types.ts`.
+- **Swarm** (`organisms/swarm/`) — Team coordination via Adaptive MoE, stigmergic signals, and ACE consensus.
+- **Cognitive** (`organisms/cognitive/`) — Memory consolidation with wake/sleep cycles, SimpleMem pipeline, and Goldilocks replay.
+
+When adding new organism features:
+- All layers extend `AbstractOrganismLayer` from `OrganismLayer.ts`
+- Dispatch operations via the `dispatch(task)` pattern
+- Add corresponding tests in `organisms/__tests__/`
+
+### Capabilities Registry (`/services/capabilities`)
+
+All executable actions (voice commands, navigation, UI toggles) are registered through the unified capabilities system. See `services/capabilities/README.md`.
+
+### Security (`/services/security`)
+
+The prompt isolation layer protects against extraction attacks. Any LLM-facing inputs should be sanitized through `promptIsolation.ts`.
+
+### Testing
+
+Tests use Vitest with React Testing Library and happy-dom. The organisms layer alone has 149 tests across 12 files. Run the full suite with:
+
+```bash
+npm run test:run                      # All tests
+npx vitest run services/organisms/    # Organism tests only
+```
 
 ## Metaventions Quality Standards
 
