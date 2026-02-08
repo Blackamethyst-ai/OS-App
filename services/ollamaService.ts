@@ -19,8 +19,10 @@ class OllamaService {
 
     async isAvailable(): Promise<boolean> {
         try {
-            // Quick list check
-            const res = await fetch(`${this.baseUrl}/tags`, { method: 'GET' });
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 3000);
+            const res = await fetch(`${this.baseUrl}/tags`, { method: 'GET', signal: controller.signal });
+            clearTimeout(timeoutId);
             return res.ok;
         } catch (e) {
             return false;

@@ -330,7 +330,7 @@
       "label": "GlobalStatusBar.tsx",
       "type": "file",
       "parentId": "folder-components",
-      "radius": 3,
+      "radius": 3.2,
       "risk": "LOW",
       "tier": 2,
       "exports": [],
@@ -6726,33 +6726,6 @@
     },
     {
       "id": "file-352",
-      "path": "/Users/dicoangelo/OS-App/services/unifiedActionRegistry.ts",
-      "relPath": "services/unifiedActionRegistry.ts",
-      "label": "unifiedActionRegistry.ts",
-      "type": "file",
-      "parentId": "folder-services",
-      "radius": 5,
-      "risk": "MEDIUM",
-      "tier": 1,
-      "exports": [
-        "registerUnifiedAction",
-        "registerUnifiedActions",
-        "unregisterUnifiedAction",
-        "getActions",
-        "getAction",
-        "findActions",
-        "getGeminiManifests",
-        "routeQuery",
-        "generateVoiceContext"
-      ],
-      "imports": [],
-      "isComponent": false,
-      "isService": false,
-      "isHook": false,
-      "hasVoiceSupport": false
-    },
-    {
-      "id": "file-353",
       "path": "/Users/dicoangelo/OS-App/services/unitTestingService.ts",
       "relPath": "services/unitTestingService.ts",
       "label": "unitTestingService.ts",
@@ -6771,7 +6744,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-354",
+      "id": "file-353",
       "path": "/Users/dicoangelo/OS-App/services/universalVoiceHooks.ts",
       "relPath": "services/universalVoiceHooks.ts",
       "label": "universalVoiceHooks.ts",
@@ -6788,7 +6761,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-355",
+      "id": "file-354",
       "path": "/Users/dicoangelo/OS-App/services/vendorService.ts",
       "relPath": "services/vendorService.ts",
       "label": "vendorService.ts",
@@ -6815,7 +6788,7 @@
       "isArchitectural": false
     },
     {
-      "id": "file-357",
+      "id": "file-356",
       "path": "/Users/dicoangelo/OS-App/services/voice/actions.ts",
       "relPath": "services/voice/actions.ts",
       "label": "actions.ts",
@@ -6840,7 +6813,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-358",
+      "id": "file-357",
       "path": "/Users/dicoangelo/OS-App/services/voice/discovery.ts",
       "relPath": "services/voice/discovery.ts",
       "label": "discovery.ts",
@@ -6864,7 +6837,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-359",
+      "id": "file-358",
       "path": "/Users/dicoangelo/OS-App/services/voice/index.ts",
       "relPath": "services/voice/index.ts",
       "label": "index.ts",
@@ -6883,7 +6856,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-360",
+      "id": "file-359",
       "path": "/Users/dicoangelo/OS-App/services/voice/service.ts",
       "relPath": "services/voice/service.ts",
       "label": "service.ts",
@@ -6902,7 +6875,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-361",
+      "id": "file-360",
       "path": "/Users/dicoangelo/OS-App/services/voice/types.ts",
       "relPath": "services/voice/types.ts",
       "label": "types.ts",
@@ -6924,7 +6897,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-362",
+      "id": "file-361",
       "path": "/Users/dicoangelo/OS-App/services/voiceActionRegistry.ts",
       "relPath": "services/voiceActionRegistry.ts",
       "label": "voiceActionRegistry.ts",
@@ -6949,7 +6922,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-363",
+      "id": "file-362",
       "path": "/Users/dicoangelo/OS-App/services/voiceCoreIntegration.ts",
       "relPath": "services/voiceCoreIntegration.ts",
       "label": "voiceCoreIntegration.ts",
@@ -6983,7 +6956,7 @@
       "isArchitectural": false
     },
     {
-      "id": "file-365",
+      "id": "file-364",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/complexityRouter.ts",
       "relPath": "services/voiceNexus/complexityRouter.ts",
       "label": "complexityRouter.ts",
@@ -7015,7 +6988,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-366",
+      "id": "file-365",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/healthCheck.ts",
       "relPath": "services/voiceNexus/healthCheck.ts",
       "label": "healthCheck.ts",
@@ -7038,7 +7011,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-367",
+      "id": "file-366",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/index.ts",
       "relPath": "services/voiceNexus/index.ts",
       "label": "index.ts",
@@ -7055,7 +7028,7 @@
       "hasVoiceSupport": true
     },
     {
-      "id": "file-368",
+      "id": "file-367",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/knowledgeInjector.ts",
       "relPath": "services/voiceNexus/knowledgeInjector.ts",
       "label": "knowledgeInjector.ts",
@@ -7082,7 +7055,7 @@
       "isArchitectural": false
     },
     {
-      "id": "file-370",
+      "id": "file-369",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/modes/browserMode.ts",
       "relPath": "services/voiceNexus/modes/browserMode.ts",
       "label": "browserMode.ts",
@@ -7101,7 +7074,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-371",
+      "id": "file-370",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/modes/hybridMode.ts",
       "relPath": "services/voiceNexus/modes/hybridMode.ts",
       "label": "hybridMode.ts",
@@ -7120,7 +7093,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-372",
+      "id": "file-371",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/modes/index.ts",
       "relPath": "services/voiceNexus/modes/index.ts",
       "label": "index.ts",
@@ -7141,7 +7114,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-373",
+      "id": "file-372",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/modes/realtimeMode.ts",
       "relPath": "services/voiceNexus/modes/realtimeMode.ts",
       "label": "realtimeMode.ts",
@@ -7160,7 +7133,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-374",
+      "id": "file-373",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/modes/types.ts",
       "relPath": "services/voiceNexus/modes/types.ts",
       "label": "types.ts",
@@ -7181,7 +7154,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-375",
+      "id": "file-374",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/orchestrator.ts",
       "relPath": "services/voiceNexus/orchestrator.ts",
       "label": "orchestrator.ts",
@@ -7202,7 +7175,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-376",
+      "id": "file-375",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/preflightCheck.ts",
       "relPath": "services/voiceNexus/preflightCheck.ts",
       "label": "preflightCheck.ts",
@@ -7240,7 +7213,7 @@
       "isArchitectural": false
     },
     {
-      "id": "file-379",
+      "id": "file-378",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/providers/reasoning/claudeReasoning.ts",
       "relPath": "services/voiceNexus/providers/reasoning/claudeReasoning.ts",
       "label": "claudeReasoning.ts",
@@ -7259,7 +7232,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-380",
+      "id": "file-379",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/providers/reasoning/geminiReasoning.ts",
       "relPath": "services/voiceNexus/providers/reasoning/geminiReasoning.ts",
       "label": "geminiReasoning.ts",
@@ -7286,7 +7259,7 @@
       "isArchitectural": false
     },
     {
-      "id": "file-382",
+      "id": "file-381",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/providers/stt/browserSTT.ts",
       "relPath": "services/voiceNexus/providers/stt/browserSTT.ts",
       "label": "browserSTT.ts",
@@ -7305,7 +7278,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-383",
+      "id": "file-382",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/providers/stt/geminiLive.ts",
       "relPath": "services/voiceNexus/providers/stt/geminiLive.ts",
       "label": "geminiLive.ts",
@@ -7332,7 +7305,7 @@
       "isArchitectural": false
     },
     {
-      "id": "file-385",
+      "id": "file-384",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/providers/tts/browserTTS.ts",
       "relPath": "services/voiceNexus/providers/tts/browserTTS.ts",
       "label": "browserTTS.ts",
@@ -7351,7 +7324,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-386",
+      "id": "file-385",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/providers/tts/elevenLabsTTS.ts",
       "relPath": "services/voiceNexus/providers/tts/elevenLabsTTS.ts",
       "label": "elevenLabsTTS.ts",
@@ -7370,7 +7343,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-387",
+      "id": "file-386",
       "path": "/Users/dicoangelo/OS-App/services/voiceNexus/types.ts",
       "relPath": "services/voiceNexus/types.ts",
       "label": "types.ts",
@@ -7416,7 +7389,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-388",
+      "id": "file-387",
       "path": "/Users/dicoangelo/OS-App/services/voiceUIContext.ts",
       "relPath": "services/voiceUIContext.ts",
       "label": "voiceUIContext.ts",
@@ -7447,7 +7420,7 @@
       "isArchitectural": true
     },
     {
-      "id": "file-390",
+      "id": "file-389",
       "path": "/Users/dicoangelo/OS-App/hooks/useAdaptiveUI.ts",
       "relPath": "hooks/useAdaptiveUI.ts",
       "label": "useAdaptiveUI.ts",
@@ -7466,7 +7439,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-391",
+      "id": "file-390",
       "path": "/Users/dicoangelo/OS-App/hooks/useAgentRuntime.ts",
       "relPath": "hooks/useAgentRuntime.ts",
       "label": "useAgentRuntime.ts",
@@ -7485,7 +7458,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-392",
+      "id": "file-391",
       "path": "/Users/dicoangelo/OS-App/hooks/useApiKeyModal.ts",
       "relPath": "hooks/useApiKeyModal.ts",
       "label": "useApiKeyModal.ts",
@@ -7505,7 +7478,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-393",
+      "id": "file-392",
       "path": "/Users/dicoangelo/OS-App/hooks/useApiUsage.ts",
       "relPath": "hooks/useApiUsage.ts",
       "label": "useApiUsage.ts",
@@ -7524,7 +7497,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-394",
+      "id": "file-393",
       "path": "/Users/dicoangelo/OS-App/hooks/useAuthPersistence.ts",
       "relPath": "hooks/useAuthPersistence.ts",
       "label": "useAuthPersistence.ts",
@@ -7544,7 +7517,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-395",
+      "id": "file-394",
       "path": "/Users/dicoangelo/OS-App/hooks/useAutoSave.ts",
       "relPath": "hooks/useAutoSave.ts",
       "label": "useAutoSave.ts",
@@ -7563,7 +7536,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-396",
+      "id": "file-395",
       "path": "/Users/dicoangelo/OS-App/hooks/useBiometricSensor.ts",
       "relPath": "hooks/useBiometricSensor.ts",
       "label": "useBiometricSensor.ts",
@@ -7582,7 +7555,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-397",
+      "id": "file-396",
       "path": "/Users/dicoangelo/OS-App/hooks/useConversationalVoice.ts",
       "relPath": "hooks/useConversationalVoice.ts",
       "label": "useConversationalVoice.ts",
@@ -7605,7 +7578,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-398",
+      "id": "file-397",
       "path": "/Users/dicoangelo/OS-App/hooks/useDaemonSwarm.ts",
       "relPath": "hooks/useDaemonSwarm.ts",
       "label": "useDaemonSwarm.ts",
@@ -7624,7 +7597,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-399",
+      "id": "file-398",
       "path": "/Users/dicoangelo/OS-App/hooks/useFixationGlow.ts",
       "relPath": "hooks/useFixationGlow.ts",
       "label": "useFixationGlow.ts",
@@ -7643,7 +7616,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-400",
+      "id": "file-399",
       "path": "/Users/dicoangelo/OS-App/hooks/useFlywheel.ts",
       "relPath": "hooks/useFlywheel.ts",
       "label": "useFlywheel.ts",
@@ -7662,7 +7635,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-401",
+      "id": "file-400",
       "path": "/Users/dicoangelo/OS-App/hooks/useGazeTracking.ts",
       "relPath": "hooks/useGazeTracking.ts",
       "label": "useGazeTracking.ts",
@@ -7681,7 +7654,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-402",
+      "id": "file-401",
       "path": "/Users/dicoangelo/OS-App/hooks/useGpuCatalog.ts",
       "relPath": "hooks/useGpuCatalog.ts",
       "label": "useGpuCatalog.ts",
@@ -7700,7 +7673,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-403",
+      "id": "file-402",
       "path": "/Users/dicoangelo/OS-App/hooks/useKernelLifecycle.ts",
       "relPath": "hooks/useKernelLifecycle.ts",
       "label": "useKernelLifecycle.ts",
@@ -7719,7 +7692,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-404",
+      "id": "file-403",
       "path": "/Users/dicoangelo/OS-App/hooks/useKernelUptime.ts",
       "relPath": "hooks/useKernelUptime.ts",
       "label": "useKernelUptime.ts",
@@ -7738,7 +7711,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-405",
+      "id": "file-404",
       "path": "/Users/dicoangelo/OS-App/hooks/useNavigation.ts",
       "relPath": "hooks/useNavigation.ts",
       "label": "useNavigation.ts",
@@ -7757,7 +7730,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-406",
+      "id": "file-405",
       "path": "/Users/dicoangelo/OS-App/hooks/usePerformanceMonitor.ts",
       "relPath": "hooks/usePerformanceMonitor.ts",
       "label": "usePerformanceMonitor.ts",
@@ -7776,7 +7749,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-407",
+      "id": "file-406",
       "path": "/Users/dicoangelo/OS-App/hooks/usePerspectiveRefraction.ts",
       "relPath": "hooks/usePerspectiveRefraction.ts",
       "label": "usePerspectiveRefraction.ts",
@@ -7795,7 +7768,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-408",
+      "id": "file-407",
       "path": "/Users/dicoangelo/OS-App/hooks/useProcessVisualizerLogic.ts",
       "relPath": "hooks/useProcessVisualizerLogic.ts",
       "label": "useProcessVisualizerLogic.ts",
@@ -7816,7 +7789,7 @@
       "hasVoiceSupport": false
     },
     {
-      "id": "file-409",
+      "id": "file-408",
       "path": "/Users/dicoangelo/OS-App/hooks/useResearchAgent.ts",
       "relPath": "hooks/useResearchAgent.ts",
       "label": "useResearchAgent.ts",
@@ -7831,6 +7804,25 @@
       "imports": [],
       "isComponent": false,
       "isService": false,
+      "isHook": true,
+      "hasVoiceSupport": false
+    },
+    {
+      "id": "file-409",
+      "path": "/Users/dicoangelo/OS-App/hooks/useServiceHealth.ts",
+      "relPath": "hooks/useServiceHealth.ts",
+      "label": "useServiceHealth.ts",
+      "type": "file",
+      "parentId": "folder-hooks",
+      "radius": 0.2,
+      "risk": "LOW",
+      "tier": 3,
+      "exports": [
+        "useServiceHealth"
+      ],
+      "imports": [],
+      "isComponent": false,
+      "isService": true,
       "isHook": true,
       "hasVoiceSupport": false
     },
@@ -11550,8 +11542,8 @@
       "type": "contains"
     },
     {
-      "source": "folder-services",
-      "target": "file-355",
+      "source": "folder-services-voice",
+      "target": "file-356",
       "type": "contains"
     },
     {
@@ -11575,7 +11567,7 @@
       "type": "contains"
     },
     {
-      "source": "folder-services-voice",
+      "source": "folder-services",
       "target": "file-361",
       "type": "contains"
     },
@@ -11585,8 +11577,8 @@
       "type": "contains"
     },
     {
-      "source": "folder-services",
-      "target": "file-363",
+      "source": "folder-services-voiceNexus",
+      "target": "file-364",
       "type": "contains"
     },
     {
@@ -11605,8 +11597,8 @@
       "type": "contains"
     },
     {
-      "source": "folder-services-voiceNexus",
-      "target": "file-368",
+      "source": "folder-services-voiceNexus-modes",
+      "target": "file-369",
       "type": "contains"
     },
     {
@@ -11630,7 +11622,7 @@
       "type": "contains"
     },
     {
-      "source": "folder-services-voiceNexus-modes",
+      "source": "folder-services-voiceNexus",
       "target": "file-374",
       "type": "contains"
     },
@@ -11640,8 +11632,8 @@
       "type": "contains"
     },
     {
-      "source": "folder-services-voiceNexus",
-      "target": "file-376",
+      "source": "folder-services-voiceNexus-providers-reasoning",
+      "target": "file-378",
       "type": "contains"
     },
     {
@@ -11650,8 +11642,8 @@
       "type": "contains"
     },
     {
-      "source": "folder-services-voiceNexus-providers-reasoning",
-      "target": "file-380",
+      "source": "folder-services-voiceNexus-providers-stt",
+      "target": "file-381",
       "type": "contains"
     },
     {
@@ -11660,8 +11652,8 @@
       "type": "contains"
     },
     {
-      "source": "folder-services-voiceNexus-providers-stt",
-      "target": "file-383",
+      "source": "folder-services-voiceNexus-providers-tts",
+      "target": "file-384",
       "type": "contains"
     },
     {
@@ -11670,18 +11662,18 @@
       "type": "contains"
     },
     {
-      "source": "folder-services-voiceNexus-providers-tts",
+      "source": "folder-services-voiceNexus",
       "target": "file-386",
       "type": "contains"
     },
     {
-      "source": "folder-services-voiceNexus",
+      "source": "folder-services",
       "target": "file-387",
       "type": "contains"
     },
     {
-      "source": "folder-services",
-      "target": "file-388",
+      "source": "folder-hooks",
+      "target": "file-389",
       "type": "contains"
     },
     {
@@ -12236,7 +12228,7 @@
     },
     {
       "source": "file-4",
-      "target": "file-393",
+      "target": "file-392",
       "type": "imports"
     },
     {
@@ -12421,7 +12413,7 @@
     },
     {
       "source": "file-19",
-      "target": "file-391",
+      "target": "file-390",
       "type": "imports"
     },
     {
@@ -12431,7 +12423,12 @@
     },
     {
       "source": "file-19",
-      "target": "file-406",
+      "target": "file-405",
+      "type": "imports"
+    },
+    {
+      "source": "file-19",
+      "target": "file-409",
       "type": "imports"
     },
     {
@@ -12466,7 +12463,7 @@
     },
     {
       "source": "file-21",
-      "target": "file-407",
+      "target": "file-406",
       "type": "imports"
     },
     {
@@ -12576,7 +12573,7 @@
     },
     {
       "source": "file-26",
-      "target": "file-407",
+      "target": "file-406",
       "type": "imports"
     },
     {
@@ -12656,7 +12653,7 @@
     },
     {
       "source": "file-29",
-      "target": "file-390",
+      "target": "file-389",
       "type": "imports"
     },
     {
@@ -12806,7 +12803,7 @@
     },
     {
       "source": "file-42",
-      "target": "file-407",
+      "target": "file-406",
       "type": "imports"
     },
     {
@@ -13046,7 +13043,7 @@
     },
     {
       "source": "file-59",
-      "target": "file-354",
+      "target": "file-353",
       "type": "imports"
     },
     {
@@ -13186,7 +13183,7 @@
     },
     {
       "source": "file-75",
-      "target": "file-391",
+      "target": "file-390",
       "type": "imports"
     },
     {
@@ -13211,7 +13208,7 @@
     },
     {
       "source": "file-87",
-      "target": "file-396",
+      "target": "file-395",
       "type": "imports"
     },
     {
@@ -13236,7 +13233,7 @@
     },
     {
       "source": "file-88",
-      "target": "file-396",
+      "target": "file-395",
       "type": "imports"
     },
     {
@@ -13381,7 +13378,7 @@
     },
     {
       "source": "file-99",
-      "target": "file-400",
+      "target": "file-399",
       "type": "imports"
     },
     {
@@ -13391,12 +13388,12 @@
     },
     {
       "source": "file-99",
-      "target": "file-391",
+      "target": "file-390",
       "type": "imports"
     },
     {
       "source": "file-99",
-      "target": "file-407",
+      "target": "file-406",
       "type": "imports"
     },
     {
@@ -13596,7 +13593,7 @@
     },
     {
       "source": "file-115",
-      "target": "file-408",
+      "target": "file-407",
       "type": "imports"
     },
     {
@@ -13761,7 +13758,7 @@
     },
     {
       "source": "file-133",
-      "target": "file-355",
+      "target": "file-354",
       "type": "imports"
     },
     {
@@ -13786,7 +13783,7 @@
     },
     {
       "source": "file-137",
-      "target": "file-405",
+      "target": "file-404",
       "type": "imports"
     },
     {
@@ -13946,7 +13943,7 @@
     },
     {
       "source": "file-159",
-      "target": "file-390",
+      "target": "file-389",
       "type": "imports"
     },
     {
@@ -13961,7 +13958,7 @@
     },
     {
       "source": "file-163",
-      "target": "file-397",
+      "target": "file-396",
       "type": "imports"
     },
     {
@@ -13976,7 +13973,7 @@
     },
     {
       "source": "file-164",
-      "target": "file-363",
+      "target": "file-362",
       "type": "imports"
     },
     {
@@ -14046,12 +14043,12 @@
     },
     {
       "source": "file-167",
-      "target": "file-388",
+      "target": "file-387",
       "type": "imports"
     },
     {
       "source": "file-167",
-      "target": "file-354",
+      "target": "file-353",
       "type": "imports"
     },
     {
@@ -14117,6 +14114,11 @@
     {
       "source": "file-172",
       "target": "file-root-523",
+      "type": "imports"
+    },
+    {
+      "source": "file-172",
+      "target": "file-375",
       "type": "imports"
     },
     {
@@ -16121,197 +16123,162 @@
     },
     {
       "source": "file-352",
-      "target": "file-root-523",
-      "type": "imports"
-    },
-    {
-      "source": "file-352",
-      "target": "file-418",
-      "type": "imports"
-    },
-    {
-      "source": "file-352",
-      "target": "file-root-524",
-      "type": "imports"
-    },
-    {
-      "source": "file-352",
-      "target": "file-root-523",
-      "type": "imports"
-    },
-    {
-      "source": "file-352",
-      "target": "file-root-525",
-      "type": "imports"
-    },
-    {
-      "source": "file-352",
-      "target": "file-root-525",
-      "type": "imports"
-    },
-    {
-      "source": "file-352",
-      "target": "file-192",
-      "type": "imports"
-    },
-    {
-      "source": "file-352",
-      "target": "file-190",
-      "type": "imports"
-    },
-    {
-      "source": "file-353",
       "target": "file-423",
       "type": "imports"
     },
     {
-      "source": "file-355",
+      "source": "file-354",
       "target": "file-298",
       "type": "imports"
     },
     {
-      "source": "file-355",
+      "source": "file-354",
       "target": "file-334",
       "type": "imports"
     },
     {
-      "source": "file-355",
+      "source": "file-354",
       "target": "file-root-525",
+      "type": "imports"
+    },
+    {
+      "source": "file-356",
+      "target": "file-root-525",
+      "type": "imports"
+    },
+    {
+      "source": "file-356",
+      "target": "file-357",
       "type": "imports"
     },
     {
       "source": "file-357",
       "target": "file-root-525",
-      "type": "imports"
-    },
-    {
-      "source": "file-357",
-      "target": "file-358",
       "type": "imports"
     },
     {
       "source": "file-358",
-      "target": "file-root-525",
+      "target": "file-359",
       "type": "imports"
     },
     {
-      "source": "file-359",
-      "target": "file-360",
+      "source": "file-358",
+      "target": "file-357",
       "type": "imports"
     },
     {
-      "source": "file-359",
-      "target": "file-358",
-      "type": "imports"
-    },
-    {
-      "source": "file-359",
+      "source": "file-358",
       "target": "file-505",
       "type": "imports"
     },
     {
-      "source": "file-360",
+      "source": "file-359",
       "target": "file-418",
       "type": "imports"
     },
     {
-      "source": "file-360",
+      "source": "file-359",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-360",
-      "target": "file-358",
+      "source": "file-359",
+      "target": "file-357",
       "type": "imports"
     },
     {
-      "source": "file-360",
+      "source": "file-359",
       "target": "file-505",
       "type": "imports"
     },
     {
-      "source": "file-362",
+      "source": "file-361",
       "target": "file-root-523",
       "type": "imports"
     },
     {
-      "source": "file-362",
+      "source": "file-361",
       "target": "file-root-523",
       "type": "imports"
     },
     {
-      "source": "file-362",
+      "source": "file-361",
       "target": "file-root-523",
       "type": "imports"
     },
     {
-      "source": "file-362",
+      "source": "file-361",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-363",
+      "source": "file-362",
       "target": "file-479",
       "type": "imports"
     },
     {
-      "source": "file-363",
+      "source": "file-362",
       "target": "file-256",
       "type": "imports"
     },
     {
-      "source": "file-363",
-      "target": "file-382",
+      "source": "file-362",
+      "target": "file-381",
       "type": "imports"
     },
     {
-      "source": "file-363",
-      "target": "file-386",
-      "type": "imports"
-    },
-    {
-      "source": "file-363",
+      "source": "file-362",
       "target": "file-385",
       "type": "imports"
     },
     {
-      "source": "file-363",
+      "source": "file-362",
+      "target": "file-384",
+      "type": "imports"
+    },
+    {
+      "source": "file-362",
+      "target": "file-364",
+      "type": "imports"
+    },
+    {
+      "source": "file-362",
       "target": "file-365",
       "type": "imports"
     },
     {
-      "source": "file-363",
-      "target": "file-366",
+      "source": "file-362",
+      "target": "file-365",
       "type": "imports"
     },
     {
-      "source": "file-363",
-      "target": "file-366",
-      "type": "imports"
-    },
-    {
-      "source": "file-363",
+      "source": "file-362",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-363",
+      "source": "file-362",
       "target": "file-506",
       "type": "imports"
     },
     {
-      "source": "file-363",
+      "source": "file-362",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-363",
+      "source": "file-362",
       "target": "file-198",
       "type": "imports"
     },
     {
-      "source": "file-363",
+      "source": "file-362",
       "target": "file-287",
+      "type": "imports"
+    },
+    {
+      "source": "file-364",
+      "target": "file-root-525",
       "type": "imports"
     },
     {
@@ -16320,68 +16287,78 @@
       "type": "imports"
     },
     {
-      "source": "file-366",
-      "target": "file-root-525",
-      "type": "imports"
-    },
-    {
-      "source": "file-366",
-      "target": "file-383",
-      "type": "imports"
-    },
-    {
-      "source": "file-366",
+      "source": "file-365",
       "target": "file-382",
       "type": "imports"
     },
     {
-      "source": "file-366",
+      "source": "file-365",
+      "target": "file-381",
+      "type": "imports"
+    },
+    {
+      "source": "file-365",
+      "target": "file-378",
+      "type": "imports"
+    },
+    {
+      "source": "file-365",
       "target": "file-379",
       "type": "imports"
     },
     {
-      "source": "file-366",
-      "target": "file-380",
-      "type": "imports"
-    },
-    {
-      "source": "file-366",
-      "target": "file-386",
-      "type": "imports"
-    },
-    {
-      "source": "file-366",
+      "source": "file-365",
       "target": "file-385",
       "type": "imports"
     },
     {
-      "source": "file-366",
-      "target": "file-368",
+      "source": "file-365",
+      "target": "file-384",
       "type": "imports"
     },
     {
-      "source": "file-368",
+      "source": "file-365",
+      "target": "file-367",
+      "type": "imports"
+    },
+    {
+      "source": "file-367",
       "target": "file-506",
       "type": "imports"
     },
     {
-      "source": "file-368",
+      "source": "file-367",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-368",
+      "source": "file-367",
       "target": "file-429",
       "type": "imports"
     },
     {
-      "source": "file-368",
+      "source": "file-367",
       "target": "file-root-525",
+      "type": "imports"
+    },
+    {
+      "source": "file-369",
+      "target": "file-root-525",
+      "type": "imports"
+    },
+    {
+      "source": "file-369",
+      "target": "file-381",
       "type": "imports"
     },
     {
       "source": "file-370",
       "target": "file-root-525",
+      "type": "imports"
+    },
+    {
+      "source": "file-370",
+      "target": "file-286",
       "type": "imports"
     },
     {
@@ -16391,52 +16368,42 @@
     },
     {
       "source": "file-371",
-      "target": "file-root-525",
+      "target": "file-372",
       "type": "imports"
     },
     {
       "source": "file-371",
-      "target": "file-286",
-      "type": "imports"
-    },
-    {
-      "source": "file-371",
-      "target": "file-383",
-      "type": "imports"
-    },
-    {
-      "source": "file-372",
-      "target": "file-373",
-      "type": "imports"
-    },
-    {
-      "source": "file-372",
-      "target": "file-371",
-      "type": "imports"
-    },
-    {
-      "source": "file-372",
       "target": "file-370",
       "type": "imports"
     },
     {
+      "source": "file-371",
+      "target": "file-369",
+      "type": "imports"
+    },
+    {
+      "source": "file-371",
+      "target": "file-root-525",
+      "type": "imports"
+    },
+    {
       "source": "file-372",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-373",
-      "target": "file-root-525",
-      "type": "imports"
-    },
-    {
-      "source": "file-373",
+      "source": "file-372",
       "target": "file-286",
       "type": "imports"
     },
     {
+      "source": "file-372",
+      "target": "file-382",
+      "type": "imports"
+    },
+    {
       "source": "file-373",
-      "target": "file-383",
+      "target": "file-root-525",
       "type": "imports"
     },
     {
@@ -16445,143 +16412,143 @@
       "type": "imports"
     },
     {
-      "source": "file-375",
-      "target": "file-root-525",
-      "type": "imports"
-    },
-    {
-      "source": "file-375",
+      "source": "file-374",
       "target": "file-506",
       "type": "imports"
     },
     {
-      "source": "file-375",
-      "target": "file-383",
-      "type": "imports"
-    },
-    {
-      "source": "file-375",
+      "source": "file-374",
       "target": "file-382",
       "type": "imports"
     },
     {
-      "source": "file-375",
+      "source": "file-374",
+      "target": "file-381",
+      "type": "imports"
+    },
+    {
+      "source": "file-374",
+      "target": "file-378",
+      "type": "imports"
+    },
+    {
+      "source": "file-374",
       "target": "file-379",
       "type": "imports"
     },
     {
-      "source": "file-375",
-      "target": "file-380",
-      "type": "imports"
-    },
-    {
-      "source": "file-375",
-      "target": "file-386",
-      "type": "imports"
-    },
-    {
-      "source": "file-375",
+      "source": "file-374",
       "target": "file-385",
       "type": "imports"
     },
     {
-      "source": "file-375",
+      "source": "file-374",
+      "target": "file-384",
+      "type": "imports"
+    },
+    {
+      "source": "file-374",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-375",
+      "source": "file-374",
+      "target": "file-364",
+      "type": "imports"
+    },
+    {
+      "source": "file-374",
+      "target": "file-273",
+      "type": "imports"
+    },
+    {
+      "source": "file-374",
+      "target": "file-367",
+      "type": "imports"
+    },
+    {
+      "source": "file-374",
       "target": "file-365",
       "type": "imports"
     },
     {
-      "source": "file-375",
-      "target": "file-273",
+      "source": "file-374",
+      "target": "file-365",
       "type": "imports"
     },
     {
-      "source": "file-375",
-      "target": "file-368",
-      "type": "imports"
-    },
-    {
-      "source": "file-375",
-      "target": "file-366",
-      "type": "imports"
-    },
-    {
-      "source": "file-375",
-      "target": "file-366",
-      "type": "imports"
-    },
-    {
-      "source": "file-375",
+      "source": "file-374",
       "target": "file-286",
       "type": "imports"
     },
     {
-      "source": "file-375",
+      "source": "file-374",
       "target": "file-332",
       "type": "imports"
     },
     {
-      "source": "file-375",
+      "source": "file-374",
       "target": "file-293",
       "type": "imports"
     },
     {
-      "source": "file-375",
+      "source": "file-374",
       "target": "file-341",
       "type": "imports"
     },
     {
-      "source": "file-376",
+      "source": "file-375",
       "target": "file-198",
       "type": "imports"
     },
     {
-      "source": "file-376",
-      "target": "file-382",
+      "source": "file-375",
+      "target": "file-381",
       "type": "imports"
     },
     {
-      "source": "file-376",
-      "target": "file-385",
+      "source": "file-375",
+      "target": "file-384",
       "type": "imports"
     },
     {
-      "source": "file-379",
+      "source": "file-378",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-379",
+      "source": "file-378",
       "target": "file-255",
       "type": "imports"
     },
     {
-      "source": "file-379",
+      "source": "file-378",
       "target": "file-198",
       "type": "imports"
     },
     {
-      "source": "file-379",
+      "source": "file-378",
       "target": "file-273",
       "type": "imports"
     },
     {
-      "source": "file-380",
+      "source": "file-379",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-380",
+      "source": "file-379",
       "target": "file-273",
       "type": "imports"
     },
     {
-      "source": "file-380",
+      "source": "file-379",
       "target": "file-198",
+      "type": "imports"
+    },
+    {
+      "source": "file-381",
+      "target": "file-root-525",
       "type": "imports"
     },
     {
@@ -16590,18 +16557,18 @@
       "type": "imports"
     },
     {
-      "source": "file-383",
-      "target": "file-root-525",
-      "type": "imports"
-    },
-    {
-      "source": "file-383",
+      "source": "file-382",
       "target": "file-286",
       "type": "imports"
     },
     {
-      "source": "file-383",
+      "source": "file-382",
       "target": "file-198",
+      "type": "imports"
+    },
+    {
+      "source": "file-384",
+      "target": "file-root-525",
       "type": "imports"
     },
     {
@@ -16610,88 +16577,88 @@
       "type": "imports"
     },
     {
-      "source": "file-386",
-      "target": "file-root-525",
-      "type": "imports"
-    },
-    {
-      "source": "file-386",
+      "source": "file-385",
       "target": "file-271",
       "type": "imports"
     },
     {
-      "source": "file-386",
+      "source": "file-385",
       "target": "file-198",
       "type": "imports"
     },
     {
-      "source": "file-387",
+      "source": "file-386",
       "target": "file-506",
       "type": "imports"
     },
     {
+      "source": "file-386",
+      "target": "file-root-525",
+      "type": "imports"
+    },
+    {
       "source": "file-387",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-388",
-      "target": "file-root-525",
-      "type": "imports"
-    },
-    {
-      "source": "file-390",
+      "source": "file-389",
       "target": "file-root-524",
       "type": "imports"
     },
     {
-      "source": "file-390",
+      "source": "file-389",
+      "target": "file-root-523",
+      "type": "imports"
+    },
+    {
+      "source": "file-389",
       "target": "file-root-523",
       "type": "imports"
     },
     {
       "source": "file-390",
-      "target": "file-root-523",
-      "type": "imports"
-    },
-    {
-      "source": "file-391",
       "target": "file-179",
       "type": "imports"
     },
     {
-      "source": "file-391",
+      "source": "file-390",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-391",
+      "source": "file-390",
       "target": "file-root-524",
       "type": "imports"
     },
     {
-      "source": "file-391",
+      "source": "file-390",
       "target": "file-273",
       "type": "imports"
     },
     {
-      "source": "file-392",
+      "source": "file-391",
       "target": "file-root-524",
       "type": "imports"
     },
     {
-      "source": "file-392",
+      "source": "file-391",
       "target": "file-198",
       "type": "imports"
     },
     {
-      "source": "file-392",
+      "source": "file-391",
       "target": "file-262",
       "type": "imports"
     },
     {
-      "source": "file-393",
+      "source": "file-392",
       "target": "file-199",
+      "type": "imports"
+    },
+    {
+      "source": "file-393",
+      "target": "file-root-524",
       "type": "imports"
     },
     {
@@ -16700,76 +16667,91 @@
       "type": "imports"
     },
     {
-      "source": "file-395",
-      "target": "file-root-524",
-      "type": "imports"
-    },
-    {
-      "source": "file-395",
+      "source": "file-394",
       "target": "file-332",
       "type": "imports"
     },
     {
+      "source": "file-394",
+      "target": "file-root-525",
+      "type": "imports"
+    },
+    {
+      "source": "file-395",
+      "target": "file-root-524",
+      "type": "imports"
+    },
+    {
+      "source": "file-395",
+      "target": "file-279",
+      "type": "imports"
+    },
+    {
+      "source": "file-395",
+      "target": "file-272",
+      "type": "imports"
+    },
+    {
       "source": "file-395",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-396",
-      "target": "file-root-524",
-      "type": "imports"
-    },
-    {
-      "source": "file-396",
-      "target": "file-279",
-      "type": "imports"
-    },
-    {
-      "source": "file-396",
-      "target": "file-272",
-      "type": "imports"
-    },
-    {
-      "source": "file-396",
-      "target": "file-root-525",
-      "type": "imports"
-    },
-    {
-      "source": "file-396",
+      "source": "file-395",
       "target": "file-root-523",
       "type": "imports"
     },
     {
-      "source": "file-397",
+      "source": "file-396",
       "target": "file-198",
       "type": "imports"
     },
     {
-      "source": "file-398",
+      "source": "file-397",
       "target": "file-268",
       "type": "imports"
     },
     {
-      "source": "file-398",
+      "source": "file-397",
       "target": "file-234",
       "type": "imports"
     },
     {
-      "source": "file-398",
+      "source": "file-397",
       "target": "file-root-524",
       "type": "imports"
     },
     {
-      "source": "file-401",
+      "source": "file-400",
       "target": "file-root-524",
       "type": "imports"
     },
     {
-      "source": "file-401",
+      "source": "file-400",
       "target": "file-279",
       "type": "imports"
     },
     {
+      "source": "file-400",
+      "target": "file-root-525",
+      "type": "imports"
+    },
+    {
+      "source": "file-401",
+      "target": "file-root-524",
+      "type": "imports"
+    },
+    {
+      "source": "file-401",
+      "target": "file-274",
+      "type": "imports"
+    },
+    {
+      "source": "file-401",
+      "target": "file-422",
+      "type": "imports"
+    },
+    {
       "source": "file-401",
       "target": "file-root-525",
       "type": "imports"
@@ -16781,27 +16763,12 @@
     },
     {
       "source": "file-402",
-      "target": "file-274",
-      "type": "imports"
-    },
-    {
-      "source": "file-402",
-      "target": "file-422",
-      "type": "imports"
-    },
-    {
-      "source": "file-402",
-      "target": "file-root-525",
+      "target": "file-root-523",
       "type": "imports"
     },
     {
       "source": "file-403",
       "target": "file-root-524",
-      "type": "imports"
-    },
-    {
-      "source": "file-403",
-      "target": "file-root-523",
       "type": "imports"
     },
     {
@@ -16810,72 +16777,67 @@
       "type": "imports"
     },
     {
-      "source": "file-405",
-      "target": "file-root-524",
-      "type": "imports"
-    },
-    {
-      "source": "file-405",
+      "source": "file-404",
       "target": "file-186",
       "type": "imports"
     },
     {
-      "source": "file-408",
+      "source": "file-407",
       "target": "file-198",
       "type": "imports"
     },
     {
-      "source": "file-408",
+      "source": "file-407",
       "target": "file-root-524",
       "type": "imports"
     },
     {
-      "source": "file-408",
+      "source": "file-407",
       "target": "file-332",
       "type": "imports"
     },
     {
-      "source": "file-408",
+      "source": "file-407",
       "target": "file-273",
       "type": "imports"
     },
     {
-      "source": "file-408",
+      "source": "file-407",
       "target": "file-root-525",
       "type": "imports"
     },
     {
-      "source": "file-408",
+      "source": "file-407",
       "target": "file-233",
       "type": "imports"
     },
     {
-      "source": "file-409",
+      "source": "file-408",
       "target": "file-root-524",
       "type": "imports"
     },
     {
-      "source": "file-409",
+      "source": "file-408",
       "target": "file-273",
       "type": "imports"
     },
     {
-      "source": "file-409",
+      "source": "file-408",
       "target": "file-332",
       "type": "imports"
     },
     {
-      "source": "file-409",
+      "source": "file-408",
       "target": "file-235",
       "type": "imports"
     },
     {
-      "source": "file-409",
+      "source": "file-408",
       "target": "file-335",
       "type": "imports"
     },
     {
-      "source": "file-409",
+      "source": "file-408",
       "target": "file-root-525",
       "type": "imports"
     },
@@ -16936,7 +16898,7 @@
     },
     {
       "source": "file-413",
-      "target": "file-391",
+      "target": "file-390",
       "type": "imports"
     },
     {
@@ -17351,12 +17313,12 @@
     },
     {
       "source": "file-root-521",
-      "target": "file-395",
+      "target": "file-394",
       "type": "imports"
     },
     {
       "source": "file-root-521",
-      "target": "file-398",
+      "target": "file-397",
       "type": "imports"
     },
     {
@@ -17366,7 +17328,7 @@
     },
     {
       "source": "file-root-521",
-      "target": "file-409",
+      "target": "file-408",
       "type": "imports"
     },
     {
@@ -17376,7 +17338,7 @@
     },
     {
       "source": "file-root-521",
-      "target": "file-396",
+      "target": "file-395",
       "type": "imports"
     },
     {
@@ -17386,7 +17348,7 @@
     },
     {
       "source": "file-root-521",
-      "target": "file-399",
+      "target": "file-398",
       "type": "imports"
     },
     {
@@ -17396,12 +17358,7 @@
     },
     {
       "source": "file-root-521",
-      "target": "file-392",
-      "type": "imports"
-    },
-    {
-      "source": "file-root-521",
-      "target": "file-404",
+      "target": "file-391",
       "type": "imports"
     },
     {
@@ -17411,12 +17368,17 @@
     },
     {
       "source": "file-root-521",
+      "target": "file-402",
+      "type": "imports"
+    },
+    {
+      "source": "file-root-521",
       "target": "file-412",
       "type": "imports"
     },
     {
       "source": "file-root-521",
-      "target": "file-394",
+      "target": "file-393",
       "type": "imports"
     },
     {
@@ -17471,10 +17433,10 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-02-08T05:50:43.494Z",
+    "generatedAt": "2026-02-08T15:26:13.099Z",
     "rootDir": "/Users/dicoangelo/OS-App",
     "nodeCount": 528,
-    "edgeCount": 1481,
+    "edgeCount": 1475,
     "voiceEnabled": 10
   }
 }

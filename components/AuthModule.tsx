@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppStore } from '../store';
-import { Shield, Fingerprint, Key, ChevronRight, Loader2, Cpu, Globe, Lock } from 'lucide-react';
+import { Shield, Fingerprint, Key, ChevronRight, Loader2, Cpu, Globe, Lock, Eye } from 'lucide-react';
 
 const AuthModule: React.FC = () => {
     const { actions } = useAppStore();
@@ -11,9 +11,22 @@ const AuthModule: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [credentials, setCredentials] = useState({ username: '', password: '', role: 'OPERATOR' });
 
-    // SOVEREIGN GATE: Secret passphrase for access
-    // Can be overridden via env var VITE_ACCESS_PASSPHRASE
-    const VALID_PASSPHRASE = import.meta.env.VITE_ACCESS_PASSPHRASE || 'metaventions2026';
+    // SOVEREIGN GATE: Passphrase from env var only (no hardcoded fallback)
+    const VALID_PASSPHRASE = import.meta.env.VITE_ACCESS_PASSPHRASE;
+
+    // Auto-bypass: ?demo=true in URL skips auth
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('demo') === 'true') {
+            setUserProfile({ displayName: 'Demo Observer', role: 'ARCHITECT', clearanceLevel: 10, avatar: null });
+            setAuthenticated(true);
+        }
+    }, []);
+
+    const handleDemoAccess = () => {
+        setUserProfile({ displayName: 'Demo Observer', role: 'ARCHITECT', clearanceLevel: 10, avatar: null });
+        setAuthenticated(true);
+    };
 
     const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -24,7 +37,7 @@ const AuthModule: React.FC = () => {
         await new Promise(r => setTimeout(r, 1500));
 
         // VALIDATE PASSPHRASE
-        if (credentials.password !== VALID_PASSPHRASE) {
+        if (!VALID_PASSPHRASE || credentials.password !== VALID_PASSPHRASE) {
             setError('UPLINK REJECTED: Invalid Neural Key');
             setIsLoading(false);
             return;
@@ -34,7 +47,7 @@ const AuthModule: React.FC = () => {
             setUserProfile({
                 displayName: credentials.username,
                 role: credentials.role,
-                clearanceLevel: 1,
+                clearanceLevel: 10,
                 avatar: null
             });
         }
@@ -133,7 +146,17 @@ const AuthModule: React.FC = () => {
                     </div>
                 </form>
 
-                <div className="mt-8 flex justify-between items-center text-[10px] font-mono text-gray-600 uppercase border-t border-white/5 pt-6">
+                <div className="mt-6">
+                    <button
+                        onClick={handleDemoAccess}
+                        className="w-full py-3 bg-transparent border border-white/10 hover:border-white/20 text-gray-500 hover:text-gray-300 font-mono text-[10px] uppercase tracking-[0.2em] rounded-xl transition-all flex items-center justify-center gap-2"
+                    >
+                        <Eye size={14} />
+                        Enter as Observer
+                    </button>
+                </div>
+
+                <div className="mt-6 flex justify-between items-center text-[10px] font-mono text-gray-600 uppercase border-t border-white/5 pt-6">
                     <button onClick={() => setView(view === 'LOGIN' ? 'REGISTER' : 'LOGIN')} className="hover:text-white transition-colors">
                         {view === 'LOGIN' ? 'Forge New Identity' : 'Existing Uplink'}
                     </button>

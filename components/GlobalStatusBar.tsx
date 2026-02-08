@@ -10,6 +10,7 @@ import { dreamProtocol } from '../services/dreamProtocol';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { useVisualCortex } from '../hooks/useVisualCortex';
 import { usePerformanceMonitor } from '../hooks/usePerformanceMonitor';
+import { useServiceHealth } from '../hooks/useServiceHealth';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import ApiUsageIndicator from './ApiUsageIndicator';
@@ -86,6 +87,7 @@ const GlobalStatusBar: React.FC = () => {
     const { execute, state: agentState } = useAgentRuntime();
     const { probeScreen, isProbing } = useVisualCortex();
     const { fps, memory } = usePerformanceMonitor();
+    const serviceHealth = useServiceHealth();
 
     const [input, setInput] = useState('');
     const [dreamStatus, setDreamStatus] = useState(dreamProtocol.getStatus());
@@ -255,9 +257,15 @@ const GlobalStatusBar: React.FC = () => {
                             autoComplete="off"
                         />
                     </form>
-                    <div className="flex items-center gap-2 ml-4 shrink-0">
-                        <Radio size={10} className="text-[#10b981]/60" />
-                        <span className="text-[7px] font-mono text-[#10b981]/60 tracking-wider">Connected</span>
+                    <div className="flex items-center gap-3 ml-4 shrink-0">
+                        <div className="flex items-center gap-1.5" title={`Agent Core: ${serviceHealth.agentCore}`}>
+                            <div className={cn("w-1.5 h-1.5 rounded-full", serviceHealth.agentCore === 'online' ? 'bg-[#10b981]' : serviceHealth.agentCore === 'checking' ? 'bg-amber-500 animate-pulse' : 'bg-red-500/60')} />
+                            <span className="text-[7px] font-mono text-gray-600 tracking-wider">MCP</span>
+                        </div>
+                        <div className="flex items-center gap-1.5" title={`Ollama: ${serviceHealth.ollama}`}>
+                            <div className={cn("w-1.5 h-1.5 rounded-full", serviceHealth.ollama === 'online' ? 'bg-[#10b981]' : serviceHealth.ollama === 'checking' ? 'bg-amber-500 animate-pulse' : 'bg-red-500/60')} />
+                            <span className="text-[7px] font-mono text-gray-600 tracking-wider">LLM</span>
+                        </div>
                     </div>
                 </div>
 

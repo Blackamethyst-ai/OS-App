@@ -319,7 +319,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                         </div>
                     ) : (
                         <div className="relative w-full h-full flex items-center justify-center">
-                            <div className="w-64 h-64 rounded-full border border-[#333]/50 flex items-center justify-center relative bg-[#0a0a0a]/80 backdrop-blur z-0">
+                            <div className="w-64 h-64 rounded-full border border-[#333]/50 flex items-center justify-center relative bg-[#0a0a0a]/80 backdrop-blur z-0" style={{ minWidth: 256, minHeight: 256 }}>
                                 {personas.length > 0 && (
                                     <ResponsiveContainer width="100%" height="100%">
                                         <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>

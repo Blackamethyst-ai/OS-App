@@ -7,7 +7,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ExternalLink } from 'lucide-react';
-import { AreaChart, Area } from 'recharts';
+import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import type { GpuWithLiveData } from '../../../../types';
 
 interface GpuDetailPanelProps {
@@ -104,16 +104,18 @@ export const GpuDetailPanel: React.FC<GpuDetailPanelProps> = ({
                         Procure Unit
                     </button>
                 </div>
-                <div className="flex-1 bg-black rounded-2xl border border-white/5 p-4 relative overflow-hidden shadow-inner">
-                    <AreaChart data={priceHistoryData} width={350} height={100}>
-                        <Area
-                            type="monotone"
-                            dataKey="v"
-                            stroke="#10b981"
-                            fill="rgba(16,185,129,0.08)"
-                            strokeWidth={2}
-                        />
-                    </AreaChart>
+                <div className="flex-1 bg-black rounded-2xl border border-white/5 p-4 relative overflow-hidden shadow-inner" style={{ minHeight: 100 }}>
+                    <ResponsiveContainer width="100%" height={100}>
+                        <AreaChart data={priceHistoryData}>
+                            <Area
+                                type="monotone"
+                                dataKey="v"
+                                stroke="#10b981"
+                                fill="rgba(16,185,129,0.08)"
+                                strokeWidth={2}
+                            />
+                        </AreaChart>
+                    </ResponsiveContainer>
                 </div>
             </div>
         </motion.div>
