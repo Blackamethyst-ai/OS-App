@@ -8,6 +8,19 @@ export interface UseApiKeyModalResult {
     setIsOpen: (open: boolean) => void;
 }
 
+// Check if running in demo mode (URL param or session flag)
+const isDemoMode = (): boolean => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('demo') === 'true') return true;
+    if (sessionStorage.getItem('metaventions_demo_mode') === 'true') return true;
+    // Demo Observer user (set by AuthModule demo bypass)
+    try {
+        const user = localStorage.getItem('metaventions_user');
+        if (user && JSON.parse(user).displayName === 'Demo Observer') return true;
+    } catch { /* ignore */ }
+    return false;
+};
+
 export const useApiKeyModal = (): UseApiKeyModalResult => {
     const actions = useAppStore(s => s.actions);
     const [isOpen, setIsOpen] = useState(false);
@@ -20,9 +33,9 @@ export const useApiKeyModal = (): UseApiKeyModalResult => {
         const handleShowModal = () => setIsOpen(true);
         window.addEventListener('show-api-key-modal', handleShowModal);
 
-        // Auto-show modal if no key configured
+        // Auto-show modal if no key configured (skip in demo mode)
         let apiKeyTimer: ReturnType<typeof setTimeout> | null = null;
-        if (!apiKeyService.hasGeminiKey()) {
+        if (!apiKeyService.hasGeminiKey() && !isDemoMode()) {
             apiKeyTimer = setTimeout(() => setIsOpen(true), 1500);
         }
 

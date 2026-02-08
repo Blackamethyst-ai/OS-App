@@ -88,16 +88,20 @@ You're not merely an assistant—you're the sophisticated intelligence that make
 
 // --- CRITICAL FIX: STANDALONE API KEY SUPPORT ---
 // Uses apiKeyService for key management instead of window.aistudio
-export const getAI = () => {
+let _missingKeyWarned = false;
+
+export const getAI = (): GoogleGenAI => {
     const apiKey = apiKeyService.getGeminiKey();
 
     if (!apiKey) {
-        log.warn("AUTH: No Gemini API key configured. Use Settings to add one.");
-        // Return a placeholder that will fail gracefully
-        return new GoogleGenAI({ apiKey: "MISSING_KEY" });
+        if (!_missingKeyWarned) {
+            log.warn("AUTH: No Gemini API key configured. Use Settings to add one.");
+            _missingKeyWarned = true;
+        }
+        // Throw immediately instead of making a doomed network request with fake key
+        throw new Error('NO_API_KEY: Gemini API key not configured. Open Settings to add one.');
     }
 
-    log.debug("AUTH: Using Gemini API key from local storage");
     return new GoogleGenAI({ apiKey });
 };
 

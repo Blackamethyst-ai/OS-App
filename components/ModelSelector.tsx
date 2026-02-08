@@ -16,7 +16,7 @@ export const ModelSelector: React.FC = () => {
             label: 'Local',
             icon: Cpu,
             color: '#ec4899', // Pink
-            desc: 'Ollama on localhost:11434'
+            desc: 'Local Ollama inference'
         },
         {
             id: 'fast',

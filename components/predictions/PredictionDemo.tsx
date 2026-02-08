@@ -85,7 +85,7 @@ export const PredictionDemo: React.FC = () => {
             <span className="text-gray-500">API Ready</span>
           </div>
           <div className="text-gray-600">|</div>
-          <div className="text-gray-500">localhost:3847</div>
+          <div className="text-gray-500">Agent Core MCP</div>
         </div>
       </div>
 
@@ -273,15 +273,15 @@ export const PredictionDemo: React.FC = () => {
           Meta-Learning Engine • Phase 7 Complete • OS-App Integration Ready
         </p>
         <div className="flex items-center justify-center gap-4 text-xs text-gray-500 font-mono">
-          <a href="/Users/dicoangelo/researchgravity/META_LEARNING_QUICK_START.md" className="hover:text-[#f1c21b] transition-colors">
+          <a href="https://github.com/Dicoangelo/researchgravity" target="_blank" rel="noopener noreferrer" className="hover:text-[#f1c21b] transition-colors">
             📖 Documentation
           </a>
           <span>•</span>
-          <a href="/Users/dicoangelo/OS-App/components/predictions/QUICK_INTEGRATION.md" className="hover:text-[#f1c21b] transition-colors">
+          <a href="https://github.com/Dicoangelo/OS-App" target="_blank" rel="noopener noreferrer" className="hover:text-[#f1c21b] transition-colors">
             🚀 Integration Guide
           </a>
           <span>•</span>
-          <a href="http://localhost:3847/docs" target="_blank" rel="noopener noreferrer" className="hover:text-[#f1c21b] transition-colors">
+          <a href="https://github.com/Dicoangelo/researchgravity" target="_blank" rel="noopener noreferrer" className="hover:text-[#f1c21b] transition-colors">
             🔌 API Docs
           </a>
         </div>

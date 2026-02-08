@@ -53,7 +53,7 @@ export function AgentCoreTest() {
         {healthLoading ? (
           <span className="text-yellow-400">Checking...</span>
         ) : isHealthy ? (
-          <span className="text-green-400">✅ API Healthy (localhost:3847)</span>
+          <span className="text-green-400">✅ Agent Core API Healthy</span>
         ) : (
           <span className="text-red-400">❌ API Unavailable - Run: api-start</span>
         )}

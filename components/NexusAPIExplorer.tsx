@@ -13,7 +13,7 @@ import { GOOGLE_APIS, GoogleApiDefinition } from '../data/googleApis';
 import { useAppStore } from '../store';
 import { retryGeminiRequest, promptSelectKey, getAI } from '../services/geminiService';
 import { dynamicRegistry } from '../services/DynamicToolRegistry';
-import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
+import { GenerateContentResponse } from '@google/genai';
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import { OperationalContext } from '../types';
@@ -62,7 +62,7 @@ const NexusAPIExplorer: React.FC = () => {
 
         try {
             if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); setIsSearchingLive(false); return; }
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = getAI();
             const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
                 model: 'gemini-2.0-flash',
                 contents: `Deep technical API search: "${query}". Identify endpoints and capabilities. Output JSON array [{title, description, category}].`,

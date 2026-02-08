@@ -368,9 +368,10 @@ const Dashboard: React.FC = () => {
                                   </div>
                               </motion.div>
                           ) : (
-                              <div className="flex flex-col items-center gap-6 opacity-10 group-hover:opacity-25 transition-all text-center">
-                                  <UserCircle size={80} className="animate-pulse" />
-                                  <p className="text-xl font-mono uppercase tracking-[0.8em]">Awaiting Identity</p>
+                              <div className="flex flex-col items-center gap-4 opacity-30 group-hover:opacity-50 transition-all text-center px-6">
+                                  <UserCircle size={64} className="text-gray-500" />
+                                  <p className="text-sm font-mono uppercase tracking-[0.3em] text-gray-500">No Identity Synced</p>
+                                  <p className="text-[10px] font-mono text-gray-600">Click "Sync Identity" below to generate</p>
                               </div>
                           )}
                       </div>

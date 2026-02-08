@@ -246,7 +246,7 @@ const MetaLearningDashboard: React.FC = () => {
                         </div>
                         <div className="mt-4 pt-4 border-t border-white/10">
                             <div className="text-xs font-mono text-gray-500">
-                                Endpoint: <span className="text-purple-400">http://localhost:3847</span>
+                                Endpoint: <span className="text-purple-400">Agent Core MCP</span>
                             </div>
                             <div className="text-xs font-mono text-gray-500 mt-1">
                                 Model: <span className="text-purple-400">Cohere embed-english-v3.0 (1024d)</span>
