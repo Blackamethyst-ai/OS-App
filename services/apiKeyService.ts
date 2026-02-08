@@ -61,7 +61,7 @@ class ApiKeyService {
         if (sessionPassword) {
             const success = await this.unlockVault(sessionPassword);
             if (success) {
-                console.log('[ApiKeyService] Vault auto-unlocked from session');
+                // Vault auto-unlocked from session
                 return;
             }
         }

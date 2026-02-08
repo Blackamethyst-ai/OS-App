@@ -55,13 +55,10 @@ export const useApiKeyModal = (): UseApiKeyModalResult => {
             const hasVaultKey = apiKeyService.hasGeminiKey();
 
             if (!hasEnvKey && !hasVaultKey) {
-                console.log("🔐 AUTH EXTENSION: No key found. Triggering auto-prompt.");
                 // No key found anywhere. Prompt the user.
                 warningTimer = setTimeout(() => {
                     actions.addLog('WARN', 'SECURITY: Neural Uplink Credentials missing.');
                 }, 1000);
-            } else {
-                console.log("🔐 AUTH EXTENSION: Key detected.", { env: hasEnvKey, vault: hasVaultKey });
             }
         };
         checkKey();

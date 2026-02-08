@@ -115,9 +115,11 @@ const MetaLearningDashboard: React.FC = () => {
                                 showErrors={true}
                                 showTiming={true}
                                 showResearch={true}
-                                onStartTask={() => console.log('Task started:', intent)}
-                                onScheduleLater={() => console.log('Scheduled for later:', intent)}
-                                onSelectResearch={(research) => console.log('Selected research:', research)}
+                                onStartTask={() => {}}
+                                onScheduleLater={() => {}}
+                                onSelectResearch={(research) => {
+                                    if (research.url) window.open(research.url, '_blank', 'noopener');
+                                }}
                             />
                         </div>
                     )}

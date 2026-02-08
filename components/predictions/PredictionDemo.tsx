@@ -143,17 +143,10 @@ export const PredictionDemo: React.FC = () => {
                 showErrors={true}
                 showTiming={true}
                 showResearch={true}
-                onStartTask={() => {
-                  console.log('✅ Starting task:', intent);
-                  alert(`Starting task: ${intent}`);
-                }}
-                onScheduleLater={() => {
-                  console.log('⏰ Scheduling task:', intent);
-                  alert(`Scheduling task for later: ${intent}`);
-                }}
+                onStartTask={() => setIntent('')}
+                onScheduleLater={() => setIntent('')}
                 onSelectResearch={(result) => {
-                  console.log('📚 Selected research:', result);
-                  alert(`Opening research: ${result.title}`);
+                  if (result.url) window.open(result.url, '_blank', 'noopener');
                 }}
               />
             </div>
@@ -204,7 +197,7 @@ export const PredictionDemo: React.FC = () => {
             <ErrorWarningPanel
               errors={exampleErrors}
               maxDisplay={3}
-              onDismiss={(errorType) => console.log('Dismissed:', errorType)}
+              onDismiss={() => {}}
             />
           </div>
 
@@ -248,8 +241,7 @@ export const PredictionDemo: React.FC = () => {
               research={exampleResearch}
               maxDisplay={3}
               onSelect={(result) => {
-                console.log('Selected:', result);
-                alert(`Opening: ${result.title}`);
+                if (result.url) window.open(result.url, '_blank', 'noopener');
               }}
             />
           </div>
