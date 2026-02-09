@@ -15,6 +15,7 @@ import {
     DQScore,
     DEFAULT_ACE_CONFIG
 } from '../types/domain/convergence';
+import { logger } from './logger';
 
 // Re-export types for convenience
 export type { DQScore, DecisionQuality };
@@ -137,7 +138,7 @@ Return JSON with validity, specificity, correctness (all 0-1 floats).`,
 
         return createDQScore(components);
     } catch (error) {
-        console.error('[DQ] Scoring failed, using heuristic fallback:', error);
+        logger.error('Scoring failed, using heuristic fallback', error, 'DQScoring');
         return scoreDQHeuristic(output, task);
     }
 }

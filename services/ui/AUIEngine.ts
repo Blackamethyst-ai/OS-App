@@ -125,12 +125,12 @@ class AUIEngineService {
     // Cooldown check
     const now = Date.now();
     if (now - this.lastGenerationTime < this.generationCooldownMs) {
-      if (import.meta.env.DEV) console.log('AUI: Generation cooldown active, returning current layout');
+      logger.debug('Generation cooldown active, returning current layout', undefined, 'AUIEngine');
       return this.currentLayout || this.getDefaultLayout();
     }
 
     if (this.generationInProgress) {
-      if (import.meta.env.DEV) console.log('AUI: Generation already in progress');
+      logger.debug('Generation already in progress', undefined, 'AUIEngine');
       return this.currentLayout || this.getDefaultLayout();
     }
 
@@ -144,7 +144,7 @@ class AUIEngineService {
       const layout = await this.synthesizeLayout(context);
       const latency = performance.now() - startTime;
 
-      if (import.meta.env.DEV) console.log(`AUI: Layout generated in ${latency.toFixed(0)}ms`);
+      logger.debug(`Layout generated in ${latency.toFixed(0)}ms`, undefined, 'AUIEngine');
       this.currentLayout = layout;
       this.emit('REGENERATION_COMPLETE', { layout, latencyMs: latency });
 
@@ -183,7 +183,7 @@ class AUIEngineService {
             setTimeout(() => reject(new Error('Generation timeout')), GENERATION_TIMEOUT_MS)
           ),
         ]);
-        if (import.meta.env.DEV) console.log('AUI: Layout generated via Claude');
+        logger.debug('Layout generated via Claude', undefined, 'AUIEngine');
       } else if (provider === 'gemini') {
         // Use Gemini for layout generation
         const ai = getAI();
@@ -200,10 +200,10 @@ class AUIEngineService {
           ),
         ]);
         responseText = response.text || '';
-        if (import.meta.env.DEV) console.log('AUI: Layout generated via Gemini');
+        logger.debug('Layout generated via Gemini', undefined, 'AUIEngine');
       } else {
         // No LLM available, use rule-based
-        if (import.meta.env.DEV) console.log('AUI: No LLM available, using rule-based generation');
+        logger.debug('No LLM available, using rule-based generation', undefined, 'AUIEngine');
         return this.generateRuleBasedLayout(context);
       }
 

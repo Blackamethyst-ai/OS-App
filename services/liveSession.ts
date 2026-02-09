@@ -8,6 +8,7 @@
 import { Modality, LiveServerMessage, Blob as GenAIBlob } from "@google/genai";
 import { getAI, SOVEREIGN_SYSTEM_INSTRUCTION } from './geminiService';
 import { HIVE_AGENTS } from './agents';
+import { logger } from './logger';
 
 // --- Audio Utilities ---
 
@@ -136,14 +137,14 @@ class LiveSession {
 
         const voiceName = agent?.voice || 'Zephyr';
 
-        if (import.meta.env.DEV) console.log('[LiveSession] 🎤 Connecting with:', { agentName, voiceName, model: 'gemini-2.0-flash-exp' });
+        logger.debug('Connecting with', { agentName, voiceName, model: 'gemini-2.0-flash-exp' }, 'LiveSession');
 
         const sessionPromise = ai.live.connect({
             model: 'gemini-2.0-flash-exp',
             callbacks: {
                 onopen: async () => {
                     try {
-                        if (import.meta.env.DEV) console.log('[LiveSession] ✅ WebSocket OPENED, requesting microphone...');
+                        logger.debug('WebSocket OPENED, requesting microphone...', undefined, 'LiveSession');
                         // Enable echo cancellation to prevent AI from hearing itself
                         this.stream = await navigator.mediaDevices.getUserMedia({
                             audio: {
@@ -152,7 +153,7 @@ class LiveSession {
                                 autoGainControl: true
                             }
                         });
-                        if (import.meta.env.DEV) console.log('[LiveSession] ✅ Microphone access GRANTED, setting up audio pipeline...');
+                        logger.debug('Microphone access GRANTED, setting up audio pipeline...', undefined, 'LiveSession');
                         const source = this.audioContext!.createMediaStreamSource(this.stream);
                         const scriptProcessor = this.audioContext!.createScriptProcessor(4096, 1, 1);
                         scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
@@ -166,7 +167,7 @@ class LiveSession {
                         source.connect(this.inputAnalyser!);
                         source.connect(scriptProcessor);
                         scriptProcessor.connect(this.audioContext!.destination);
-                        if (import.meta.env.DEV) console.log('[LiveSession] ✅ Audio pipeline READY - voice session is ACTIVE');
+                        logger.info('Audio pipeline READY - voice session is ACTIVE', undefined, 'LiveSession');
                         if (config.callbacks?.onopen) config.callbacks.onopen();
                     } catch (e: any) {
                         // Provide specific error messages for common failures
@@ -178,17 +179,16 @@ class LiveSession {
                         } else if (e.name === 'NotReadableError') {
                             error = new Error('Microphone is in use by another application.');
                         }
-                        console.error('[LiveSession] Failed to setup audio:', error);
+                        logger.error('Failed to setup audio', error, 'LiveSession');
                         if (config.callbacks?.onerror) config.callbacks.onerror(error);
                     }
                 },
                 onmessage: async (message: LiveServerMessage) => {
-                    // Log all messages for debugging
-                    if (import.meta.env.DEV) console.log('[LiveSession] 📨 Message received:', {
+                    logger.debug('Message received', {
                         hasToolCall: !!message.toolCall,
                         hasAudio: !!message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data,
                         interrupted: !!message.serverContent?.interrupted,
-                    });
+                    }, 'LiveSession');
 
                     if (message.toolCall) {
                         for (const fc of message.toolCall.functionCalls) {

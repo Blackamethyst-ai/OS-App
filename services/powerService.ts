@@ -5,6 +5,8 @@
  * Enables/disables expensive AI features based on user preferences and budget.
  */
 
+import { logger } from './logger';
+
 export type PowerMode = 'ECO' | 'BALANCED' | 'OVERDRIVE' | 'CUSTOM';
 
 export interface FeatureToggles {
@@ -93,7 +95,7 @@ class PowerManagementService {
                 return { ...this.getDefaultConfig(), ...parsed };
             }
         } catch (e) {
-            console.warn('Failed to load power config:', e);
+            logger.warn('Failed to load power config', e, 'PowerService');
         }
         return this.getDefaultConfig();
     }
@@ -165,7 +167,7 @@ class PowerManagementService {
             this.config.features = { ...POWER_PRESETS[mode] };
         }
         this.save();
-        if (import.meta.env.DEV) console.log(`⚡ POWER: Mode set to ${mode}`);
+        logger.info(`Mode set to ${mode}`, undefined, 'PowerService');
     }
 
     /**
@@ -175,7 +177,7 @@ class PowerManagementService {
         this.config.features[feature] = enabled;
         this.config.mode = 'CUSTOM'; // Switch to custom when manually toggling
         this.save();
-        if (import.meta.env.DEV) console.log(`⚡ POWER: ${feature} ${enabled ? 'enabled' : 'disabled'}`);
+        logger.info(`${feature} ${enabled ? 'enabled' : 'disabled'}`, undefined, 'PowerService');
     }
 
     /**
@@ -219,7 +221,7 @@ class PowerManagementService {
 
         // Auto-throttle if budget exceeded
         if (this.isBudgetExceeded()) {
-            console.warn('⚡ POWER: Daily budget exceeded, switching to ECO mode');
+            logger.warn('Daily budget exceeded, switching to ECO mode', undefined, 'PowerService');
             this.setMode('ECO');
         }
     }

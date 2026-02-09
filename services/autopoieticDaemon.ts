@@ -2,6 +2,7 @@ import { apiKeyService } from './apiKeyService';
 import { useAppStore } from '../store';
 import { evolveSystemArchitecture } from './geminiService';
 import { AppMode } from '../types';
+import { logger } from './logger';
 
 let lastScannedCode = "";
 let lastScanTimestamp = 0;
@@ -66,7 +67,7 @@ export const autopoieticDaemon = async () => {
         }
 
     } catch (err: any) {
-        console.error("Autopoietic Scan Failed", err);
+        logger.error('Autopoietic scan failed', err, 'AutopoieticDaemon');
         setCodeStudioState({ isEvolving: false });
         addLog('ERROR', 'AUTOPOIETIC_SCAN: Evolution protocol interrupted.');
     }

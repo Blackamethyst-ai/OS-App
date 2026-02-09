@@ -13,6 +13,7 @@
  */
 
 import { AppMode } from '../types';
+import { logger } from './logger';
 
 // =============================================================================
 // Types
@@ -275,10 +276,10 @@ class CodebaseAwarenessService {
             const response = await fetch('/codebase_graph.json');
             if (response.ok) {
                 this.graph = await response.json();
-                if (import.meta.env.DEV) console.log('CodebaseAwareness: Loaded graph with', this.graph?.nodes.length, 'nodes');
+                logger.info(`Loaded graph with ${this.graph?.nodes.length} nodes`, undefined, 'CodebaseAwareness');
             }
         } catch (error) {
-            console.warn('CodebaseAwareness: Could not load codebase_graph.json:', error);
+            logger.warn('Could not load codebase_graph.json', error, 'CodebaseAwareness');
             // Service still works without graph - just uses component registry
         }
     }
@@ -552,5 +553,5 @@ export const codebaseAwareness = new CodebaseAwarenessService();
 
 // Initialize graph loading (non-blocking)
 if (typeof window !== 'undefined') {
-    codebaseAwareness.loadGraph().catch(console.error);
+    codebaseAwareness.loadGraph().catch(err => logger.error('Failed to load graph', err, 'CodebaseAwareness'));
 }

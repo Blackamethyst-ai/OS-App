@@ -9,6 +9,7 @@
  */
 
 import * as minerstatService from './minerstatService';
+import { logger } from './logger';
 import * as priceApiService from './priceApiService';
 import type { VendorQuote, StockStatus } from '../types';
 
@@ -197,7 +198,7 @@ export async function getVendorQuotes(
 
     // If no real quotes found, generate fallback from MSRP
     if (quotes.length === 0 && msrp > 0) {
-        console.log(`[VendorService] No real quotes found for ${gpuModel}, using MSRP fallback`);
+        logger.info(`No real quotes found for ${gpuModel}, using MSRP fallback`, undefined, 'VendorService');
         quotes.push({
             id: `quote-msrp-${Date.now()}`,
             vendor: 'Estimated Market Price',
@@ -225,7 +226,7 @@ export async function getVendorQuotes(
         return true;
     });
 
-    console.log(`[VendorService] Found ${uniqueQuotes.length} quotes for ${gpuModel}`);
+    logger.debug(`Found ${uniqueQuotes.length} quotes for ${gpuModel}`, undefined, 'VendorService');
     return uniqueQuotes;
 }
 

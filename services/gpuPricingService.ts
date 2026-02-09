@@ -109,7 +109,7 @@ function parseStockStatus(status: string): StockStatus {
  * Fetch price from Gemini (existing fallback method)
  */
 async function fetchGeminiPrice(gpuModel: string, msrp: number): Promise<LiveGpuPrice> {
-    if (import.meta.env.DEV) console.log(`[GPU Pricing] Using Gemini fallback for ${gpuModel}`);
+    logger.debug(`Using Gemini fallback for ${gpuModel}`, undefined, 'GPUPricing');
 
     try {
         const ai = getAI();
@@ -182,17 +182,17 @@ export async function fetchLivePrice(gpuModel: string, msrp: number): Promise<Li
     // 1. Check cache first
     const cached = getCachedPrice(gpuModel);
     if (cached) {
-        if (import.meta.env.DEV) console.log(`[GPU Pricing] Cache hit for ${gpuModel}`);
+        logger.debug(`Cache hit for ${gpuModel}`, undefined, 'GPUPricing');
         return cached;
     }
 
-    if (import.meta.env.DEV) console.log(`[GPU Pricing] Fetching live price for ${gpuModel}`);
+    logger.debug(`Fetching live price for ${gpuModel}`, undefined, 'GPUPricing');
 
     // 2. Try minerstat (free, no auth required)
     try {
         const minerstatPrice = await minerstatService.getLiveGpuPrice(gpuModel, msrp);
         if (minerstatPrice) {
-            if (import.meta.env.DEV) console.log(`[GPU Pricing] Got price from minerstat for ${gpuModel}: $${minerstatPrice.price}`);
+            logger.debug(`Got price from minerstat for ${gpuModel}: $${minerstatPrice.price}`, undefined, 'GPUPricing');
             setCachePrice(gpuModel, minerstatPrice);
             return minerstatPrice;
         }
@@ -205,7 +205,7 @@ export async function fetchLivePrice(gpuModel: string, msrp: number): Promise<Li
         try {
             const priceApiResult = await priceApiService.getGpuPrice(gpuModel, msrp);
             if (priceApiResult) {
-                if (import.meta.env.DEV) console.log(`[GPU Pricing] Got price from PriceAPI for ${gpuModel}: $${priceApiResult.price}`);
+                logger.debug(`Got price from PriceAPI for ${gpuModel}: $${priceApiResult.price}`, undefined, 'GPUPricing');
                 setCachePrice(gpuModel, priceApiResult);
                 return priceApiResult;
             }
@@ -266,7 +266,7 @@ export function clearPriceCache(): void {
     // Also clear service-level caches
     minerstatService.clearCache();
     priceApiService.clearCache();
-    if (import.meta.env.DEV) console.log('[GPU Pricing] All caches cleared');
+    logger.debug('All caches cleared', undefined, 'GPUPricing');
 }
 
 /**

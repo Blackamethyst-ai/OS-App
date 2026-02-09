@@ -1,4 +1,5 @@
 import { apiKeyService } from './apiKeyService';
+import { logger } from './logger';
 
 export const ELEVEN_LABS_VOICES = {
     // Male
@@ -114,7 +115,7 @@ class ElevenLabsService {
             });
             await this.playAudio(buffer);
         } catch (e) {
-            console.error('ElevenLabs Speech Failed:', e);
+            logger.error('Speech synthesis failed', e, 'ElevenLabs');
         }
     }
 }

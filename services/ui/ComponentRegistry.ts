@@ -10,6 +10,7 @@
  */
 
 import { domRegenerator } from './DOMRegenerator';
+import { logger } from '../logger';
 
 // ============================================================================
 // LAZY COMPONENT IMPORTS
@@ -20,7 +21,7 @@ import { domRegenerator } from './DOMRegenerator';
  * Initialize the component registry with all available components
  */
 export async function initializeComponentRegistry(): Promise<void> {
-  if (import.meta.env.DEV) console.log('COMPONENT_REGISTRY: Initializing...');
+  logger.debug('Initializing...', undefined, 'ComponentRegistry');
 
   const registrations: Array<{ name: string; loader: () => Promise<any> }> = [
     // Dashboard & Hub
@@ -178,7 +179,7 @@ export async function initializeComponentRegistry(): Promise<void> {
         return { name, success: false, reason: 'Component not found' };
       } catch (error: any) {
         // Component might not exist, which is fine
-        console.warn(`COMPONENT_REGISTRY: Failed to load '${name}': ${error.message}`);
+        logger.warn(`Failed to load '${name}': ${error.message}`, undefined, 'ComponentRegistry');
         return { name, success: false, reason: error.message };
       }
     })
@@ -187,7 +188,7 @@ export async function initializeComponentRegistry(): Promise<void> {
   const successful = results.filter(r => r.status === 'fulfilled' && r.value.success).length;
   const failed = results.length - successful;
 
-  if (import.meta.env.DEV) console.log(`COMPONENT_REGISTRY: Initialized ${successful} components (${failed} failed to load)`);
+  logger.info(`Initialized ${successful} components (${failed} failed to load)`, undefined, 'ComponentRegistry');
 }
 
 /**

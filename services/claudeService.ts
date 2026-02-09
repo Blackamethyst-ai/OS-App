@@ -4,6 +4,7 @@
  * Handles authentication via apiKeyService and request formatting.
  */
 import { apiKeyService } from './apiKeyService';
+import { logger } from './logger';
 
 export interface ClaudeTextContent {
     type: 'text';
@@ -89,7 +90,7 @@ class ClaudeService {
 
             return '';
         } catch (error) {
-            console.error('Claude API request failed:', error);
+            logger.error('API request failed', error, 'Claude');
             throw error;
         }
     }
@@ -157,7 +158,7 @@ class ClaudeService {
 
             return '';
         } catch (error) {
-            console.error('Claude Vision API request failed:', error);
+            logger.error('Vision API request failed', error, 'Claude');
             throw error;
         }
     }

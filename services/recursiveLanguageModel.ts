@@ -17,6 +17,7 @@
 
 import { Schema, Type, GenerateContentResponse } from "@google/genai";
 import { retryGeminiRequest, getAI } from './geminiService';
+import { logger } from './logger';
 import { scoreDQHeuristic, scoreDQWithLLM, DQScore } from './dqScoring';
 import { AtomicTask } from '../types';
 
@@ -452,7 +453,7 @@ class REPLEngine {
 
             return response.text || '';
         } catch (error) {
-            console.error('[RLM] Sub-query failed:', error);
+            logger.error('Sub-query failed', error, 'RLM');
             return `Error: ${error instanceof Error ? error.message : String(error)}`;
         }
     }
@@ -557,7 +558,7 @@ Now write Python code to continue working toward the answer. Use the REPL functi
             const code = result.code || '';
 
             if (!code.trim()) {
-                if (fullConfig.verbose) console.log(`[RLM] Iteration ${iteration}: Empty code block`);
+                if (fullConfig.verbose) logger.debug(`Iteration ${iteration}: Empty code block`, undefined, 'RLM');
                 continue;
             }
 
@@ -569,15 +570,15 @@ Now write Python code to continue working toward the answer. Use the REPL functi
             }
 
             if (fullConfig.verbose) {
-                if (import.meta.env.DEV) console.log(`[RLM] Iteration ${iteration}: Executing code`);
-                if (import.meta.env.DEV) console.log(cleanCode);
+                logger.debug(`Iteration ${iteration}: Executing code`, undefined, 'RLM');
+                logger.debug(cleanCode, undefined, 'RLM');
             }
 
             // Execute the code
             const { output, subCalls } = await repl.execute(cleanCode);
 
             if (fullConfig.verbose) {
-                if (import.meta.env.DEV) console.log(`[RLM] Output: ${output.slice(0, 200)}...`);
+                logger.debug(`Output: ${output.slice(0, 200)}...`, undefined, 'RLM');
             }
 
             // Record trajectory
@@ -643,7 +644,7 @@ Now write Python code to continue working toward the answer. Use the REPL functi
             }
 
         } catch (error) {
-            console.error(`[RLM] Iteration ${iteration} error:`, error);
+            logger.error(`Iteration ${iteration} error`, error, 'RLM');
             trajectory.push({
                 iteration,
                 code: 'ERROR',

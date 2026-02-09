@@ -8,6 +8,7 @@
  * path selection based on query complexity.
  */
 import * as geminiService from './geminiService';
+import { logger } from './logger';
 import { claudeService } from './claudeService';
 import { apiKeyService } from './apiKeyService';
 import { ollamaService } from './ollamaService';
@@ -51,7 +52,7 @@ class ModelRouter {
                 return this.callOllama(prompt, systemPrompt);
             }
             // Fallback if local requested but not available?
-            console.warn("ROUTER: Local AI requested but failed check. Falling back to Cloud.");
+            logger.warn('Local AI requested but failed check, falling back to cloud', undefined, 'ModelRouter');
         }
 
         // ELITE TIER: Opus-first routing for maximum quality
@@ -111,7 +112,7 @@ class ModelRouter {
             const result = await geminiService.generateText(prompt, modelId, systemPrompt);
             return result;
         } catch (e) {
-            console.error('Gemini Router Error:', e);
+            logger.error('Gemini router error', e, 'ModelRouter');
             throw e;
         }
     }

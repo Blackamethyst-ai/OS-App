@@ -1,4 +1,5 @@
 import { apiKeyService } from './apiKeyService';
+import { logger } from './logger';
 import { useAppStore } from '../store';
 import { executeNeuralPolicy, repairMermaidSyntax } from './geminiService';
 import { AppMode } from '../types';
@@ -19,7 +20,7 @@ export const neuralAutomata = async () => {
                 addLog('SUCCESS', 'AUTONOMIC_REFLEX: Diagram Topology Repaired.');
                 return;
             } catch (e) {
-                console.error("Auto-repair failed", e);
+                logger.error('Auto-repair failed', e, 'DaemonService');
             }
         }
 
@@ -70,6 +71,6 @@ export const neuralAutomata = async () => {
             }
         }
     } catch (err) {
-        console.warn("Daemon Automata Cycle Failed", err);
+        logger.warn('Daemon automata cycle failed', err, 'DaemonService');
     }
 };

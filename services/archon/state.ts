@@ -6,6 +6,7 @@
  */
 
 import { create } from 'zustand';
+import { logger } from '../logger';
 import { persist } from 'zustand/middleware';
 import {
   ArchonState,
@@ -431,7 +432,7 @@ export const useArchonStore = create<ArchonStore>()(
             }
             return data;
           } catch (e) {
-            console.error('[ARCHON] Failed to parse persisted state, resetting:', e);
+            logger.error('Failed to parse persisted state, resetting', e, 'ArchonState');
             localStorage.removeItem(name);
             return null;
           }
@@ -447,7 +448,7 @@ export const useArchonStore = create<ArchonStore>()(
             }));
             localStorage.setItem(name, JSON.stringify(serializable));
           } catch (e) {
-            console.error('[ARCHON] Failed to persist state:', e);
+            logger.error('Failed to persist state', e, 'ArchonState');
           }
         },
         removeItem: (name) => localStorage.removeItem(name),

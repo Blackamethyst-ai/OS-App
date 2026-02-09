@@ -1,3 +1,4 @@
+import { logger } from './logger';
 
 export interface OllamaMessage {
     role: 'system' | 'user' | 'assistant';
@@ -52,7 +53,7 @@ class OllamaService {
             const data: OllamaResponse = await response.json();
             return data.message.content;
         } catch (e) {
-            console.error('Ollama Generation Failed:', e);
+            logger.error('Ollama generation failed', e, 'OllamaService');
             throw e;
         }
     }

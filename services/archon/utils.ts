@@ -3,6 +3,7 @@
  *
  * Common utility functions for the meta-orchestrator.
  */
+import { logger } from '../logger';
 
 // =============================================================================
 // ID GENERATION
@@ -226,24 +227,14 @@ export function sleep(ms: number): Promise<void> {
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-const LOG_COLORS: Record<LogLevel, string> = {
-  debug: '\x1b[90m',  // Gray
-  info: '\x1b[36m',   // Cyan
-  warn: '\x1b[33m',   // Yellow
-  error: '\x1b[31m',  // Red
-};
-
-const RESET = '\x1b[0m';
-
 export function archonLog(level: LogLevel, message: string, data?: unknown): void {
-  const timestamp = new Date().toISOString();
-  const prefix = `${LOG_COLORS[level]}[ARCHON:${level.toUpperCase()}]${RESET}`;
-
-  if (import.meta.env.DEV) {
-    if (data) {
-      console.log(`${prefix} ${timestamp} - ${message}`, data);
-    } else {
-      console.log(`${prefix} ${timestamp} - ${message}`);
-    }
+  if (level === 'error') {
+    logger.error(message, data, 'ArchonUtils');
+  } else if (level === 'warn') {
+    logger.warn(message, data, 'ArchonUtils');
+  } else if (level === 'info') {
+    logger.info(message, data, 'ArchonUtils');
+  } else {
+    logger.debug(message, data, 'ArchonUtils');
   }
 }

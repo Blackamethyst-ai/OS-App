@@ -1,5 +1,6 @@
 import { useAppStore } from '../store';
 import { AppMode, PeerPresence, SwarmEvent } from '../types';
+import { logger } from './logger';
 
 const MOCK_PEER_NAMES = ['AlphaNode', 'BinaryArch', 'ZeroVector', 'NexusOne', 'VoidWalker', 'SyntaxError', 'KernelRoot'];
 const MOCK_ROLES = ['Architect', 'Sentinel', 'Netrunner', 'Operator'];
@@ -9,7 +10,7 @@ class CollaborationService {
     private interval: number | null = null;
 
     public init() {
-        if (import.meta.env.DEV) console.log('[CollabService] Synchronizing with Peer Mesh...');
+        logger.info('Synchronizing with Peer Mesh...', undefined, 'CollabService');
         
         // Initial set of peers
         this.syncPeers();

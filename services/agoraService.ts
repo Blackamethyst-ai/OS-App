@@ -1,4 +1,5 @@
 import { GoogleGenAI, Schema, Type, GenerateContentResponse } from "@google/genai";
+import { logger } from './logger';
 import { FileData, SyntheticPersona, DebateTurn, SimulationReport, MentalState } from '../types';
 import { HIVE_AGENTS, constructHiveContext, retryGeminiRequest, getAI } from './geminiService';
 
@@ -41,7 +42,7 @@ export async function generatePersonas(file: FileData, baselineMindset?: MentalS
             };
         });
     } catch (error: any) {
-        console.error("Agora Service GENESIS Error:", error);
+        logger.error('Genesis error', error, 'AgoraService');
         throw new Error(error.message || "Failed to generate personas.");
     }
 }
@@ -108,7 +109,7 @@ export async function runDebateTurn(
             newMindset: data.mindset_shift
         };
     } catch (error: any) {
-        console.error("Agora Service TURN Error:", error);
+        logger.error('Debate turn error', error, 'AgoraService');
         throw new Error("Debate turn failed.");
     }
 }

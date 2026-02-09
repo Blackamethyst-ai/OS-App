@@ -9,6 +9,7 @@
  */
 
 import { apiKeyService } from './apiKeyService';
+import { logger } from './logger';
 import type { LiveGpuPrice, StockStatus } from '../types';
 
 const PRICEAPI_BASE_URL = 'https://api.priceapi.com/v2';
@@ -122,7 +123,7 @@ async function createPriceJob(
     }
 
     const job: PriceApiJob = await response.json();
-    if (import.meta.env.DEV) console.log(`[PriceAPI] Created job ${job.job_id} for "${searchTerm}"`);
+    logger.debug(`Created job ${job.job_id} for "${searchTerm}"`, undefined, 'PriceAPI');
     return job;
 }
 
@@ -151,7 +152,7 @@ async function waitForJob(jobId: string): Promise<PriceApiResult> {
         const result: PriceApiResult = await response.json();
 
         if (result.status === 'finished') {
-            if (import.meta.env.DEV) console.log(`[PriceAPI] Job ${jobId} completed`);
+            logger.debug(`Job ${jobId} completed`, undefined, 'PriceAPI');
             return result;
         }
 
@@ -176,17 +177,17 @@ export async function searchPrices(
     const cacheKey = `${productName}-${country}`;
     const cached = jobResultCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        if (import.meta.env.DEV) console.log(`[PriceAPI] Cache hit for "${productName}"`);
+        logger.debug(`Cache hit for "${productName}"`, undefined, 'PriceAPI');
         return cached.data;
     }
 
     if (!hasApiKey()) {
-        if (import.meta.env.DEV) console.log('[PriceAPI] No API key configured');
+        logger.debug('No API key configured', undefined, 'PriceAPI');
         return null;
     }
 
     if (!hasCredits()) {
-        if (import.meta.env.DEV) console.log('[PriceAPI] No credits remaining');
+        logger.debug('No credits remaining', undefined, 'PriceAPI');
         return null;
     }
 
@@ -201,7 +202,7 @@ export async function searchPrices(
 
         return result;
     } catch (error) {
-        console.error(`[PriceAPI] Error searching for "${productName}":`, error);
+        logger.error(`Error searching for "${productName}"`, error, 'PriceAPI');
         return null;
     }
 }
@@ -296,7 +297,7 @@ export async function getOffers(modelName: string): Promise<Array<{
  */
 export function clearCache(): void {
     jobResultCache.clear();
-    if (import.meta.env.DEV) console.log('[PriceAPI] Cache cleared');
+    logger.debug('Cache cleared', undefined, 'PriceAPI');
 }
 
 /**
@@ -304,5 +305,5 @@ export function clearCache(): void {
  */
 export function resetCredits(): void {
     creditsUsed = 0;
-    if (import.meta.env.DEV) console.log('[PriceAPI] Credits reset');
+    logger.debug('Credits reset', undefined, 'PriceAPI');
 }

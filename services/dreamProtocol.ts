@@ -11,6 +11,7 @@
 
 import { useAppStore } from '../store';
 import { generateText, performGlobalSearch, generateEmbedding } from './geminiService';
+import { logger } from './logger';
 import { neuralVault } from './persistenceService';
 import { powerService } from './powerService';
 
@@ -85,7 +86,7 @@ class DreamProtocolService {
     queueQuery(query: string) {
         if (!this.pendingQueries.includes(query)) {
             this.pendingQueries.push(query);
-            if (import.meta.env.DEV) console.log(`🌙 Dream Protocol: Queued "${query}" for deep analysis`);
+            logger.debug(`Queued "${query}" for deep analysis`, undefined, 'DreamProtocol');
         }
     }
 
@@ -97,7 +98,7 @@ class DreamProtocolService {
 
         // Check if Dream Protocol is enabled in power settings
         if (!powerService.isEnabled('dreamProtocol')) {
-            if (import.meta.env.DEV) console.log('🌙 DREAM PROTOCOL: Disabled in power settings. Enable in Power Control Panel.');
+            logger.debug('Disabled in power settings. Enable in Power Control Panel.', undefined, 'DreamProtocol');
             return;
         }
 
@@ -114,7 +115,7 @@ class DreamProtocolService {
             status: 'DREAMING'
         };
 
-        if (import.meta.env.DEV) console.log('🌙✨ DREAM PROTOCOL ACTIVATED - Autonomous cognition beginning...');
+        logger.info('Autonomous cognition beginning...', undefined, 'DreamProtocol');
 
         useAppStore.getState().actions.addLog('SYSTEM', 'DREAM_PROTOCOL: Entering autonomous cognition mode...');
 
@@ -156,7 +157,7 @@ class DreamProtocolService {
             }
 
         } catch (error) {
-            console.error('Dream cycle error:', error);
+            logger.error('Dream cycle error', error, 'DreamProtocol');
         }
     }
 
@@ -185,10 +186,10 @@ class DreamProtocolService {
             };
 
             this.currentSession?.insights.push(insight);
-            if (import.meta.env.DEV) console.log(`🌙 Dream insight generated: ${insight.title}`);
+            logger.debug(`Dream insight generated: ${insight.title}`, undefined, 'DreamProtocol');
 
         } catch (error) {
-            if (import.meta.env.DEV) console.log('Query processing failed:', error);
+            logger.warn('Query processing failed', error, 'DreamProtocol');
         }
     }
 
@@ -278,7 +279,7 @@ Predict the user's likely next 3 actions and why. Format as brief bullet points.
     private wakeUp() {
         if (!this.isDreaming) return;
 
-        if (import.meta.env.DEV) console.log('🌅 DREAM PROTOCOL: User activity detected - waking up...');
+        logger.info('User activity detected - waking up...', undefined, 'DreamProtocol');
 
         if (this.dreamInterval) {
             clearInterval(this.dreamInterval);
@@ -358,7 +359,7 @@ Predict the user's likely next 3 actions and why. Format as brief bullet points.
             if (sessions.length > 10) sessions.shift();
             localStorage.setItem('dream_sessions', JSON.stringify(sessions));
         } catch (error) {
-            console.error('Failed to save dream session:', error);
+            logger.error('Failed to save dream session', error, 'DreamProtocol');
         }
     }
 

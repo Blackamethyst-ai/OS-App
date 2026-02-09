@@ -296,45 +296,52 @@ describe('Archon Utils', () => {
     });
 
     describe('archonLog', () => {
-        let consoleSpy: ReturnType<typeof vi.spyOn>;
+        let infoSpy: ReturnType<typeof vi.spyOn>;
+        let debugSpy: ReturnType<typeof vi.spyOn>;
+        let errorSpy: ReturnType<typeof vi.spyOn>;
+        let warnSpy: ReturnType<typeof vi.spyOn>;
 
         beforeEach(() => {
-            consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+            infoSpy = vi.spyOn(console, 'info').mockImplementation(() => {});
+            debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
+            errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
         });
 
         afterEach(() => {
-            consoleSpy.mockRestore();
+            infoSpy.mockRestore();
+            debugSpy.mockRestore();
+            errorSpy.mockRestore();
+            warnSpy.mockRestore();
         });
 
         it('should log with level prefix in DEV mode', () => {
             archonLog('info', 'Test message');
-            // The function concatenates prefix + timestamp + message into one string
-            expect(consoleSpy).toHaveBeenCalled();
-            const callArg = consoleSpy.mock.calls[0][0];
-            expect(callArg).toContain('[ARCHON:INFO]');
+            expect(infoSpy).toHaveBeenCalled();
+            const callArg = infoSpy.mock.calls[0][0];
             expect(callArg).toContain('Test message');
         });
 
         it('should log data when provided', () => {
             archonLog('debug', 'Test with data', { key: 'value' });
-            expect(consoleSpy).toHaveBeenCalled();
-            const callArgs = consoleSpy.mock.calls[0];
-            expect(callArgs[0]).toContain('[ARCHON:DEBUG]');
+            expect(debugSpy).toHaveBeenCalled();
+            const callArgs = debugSpy.mock.calls[0];
+            expect(callArgs[0]).toContain('Test with data');
             expect(callArgs[1]).toEqual({ key: 'value' });
         });
 
         it('should log error level', () => {
             archonLog('error', 'Error occurred');
-            expect(consoleSpy).toHaveBeenCalled();
-            const callArg = consoleSpy.mock.calls[0][0];
-            expect(callArg).toContain('[ARCHON:ERROR]');
+            expect(errorSpy).toHaveBeenCalled();
+            const callArg = errorSpy.mock.calls[0][0];
+            expect(callArg).toContain('Error occurred');
         });
 
         it('should log warn level', () => {
             archonLog('warn', 'Warning message');
-            expect(consoleSpy).toHaveBeenCalled();
-            const callArg = consoleSpy.mock.calls[0][0];
-            expect(callArg).toContain('[ARCHON:WARN]');
+            expect(warnSpy).toHaveBeenCalled();
+            const callArg = warnSpy.mock.calls[0][0];
+            expect(callArg).toContain('Warning message');
         });
     });
 });

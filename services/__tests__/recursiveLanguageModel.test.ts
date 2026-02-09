@@ -809,7 +809,7 @@ describe('Recursive Language Model Service', () => {
 
     describe('Verbose Logging', () => {
         it('should log when verbose is enabled', async () => {
-            const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+            const debugSpy = vi.spyOn(console, 'debug').mockImplementation(() => {});
 
             const response = {
                 text: JSON.stringify({
@@ -827,12 +827,12 @@ describe('Recursive Language Model Service', () => {
                 { enableDQScoring: false, verbose: true }
             );
 
-            // Check that verbose logging occurred
-            expect(consoleSpy).toHaveBeenCalled();
-            const calls = consoleSpy.mock.calls.flat();
-            expect(calls.some(c => String(c).includes('[RLM]'))).toBe(true);
+            // Check that verbose logging occurred via logger.debug -> console.debug
+            expect(debugSpy).toHaveBeenCalled();
+            const calls = debugSpy.mock.calls.flat();
+            expect(calls.some(c => String(c).includes('RLM'))).toBe(true);
 
-            consoleSpy.mockRestore();
+            debugSpy.mockRestore();
         });
     });
 

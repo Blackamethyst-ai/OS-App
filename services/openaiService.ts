@@ -4,6 +4,7 @@
  * Handles authentication via apiKeyService and request formatting.
  */
 import { apiKeyService } from './apiKeyService';
+import { logger } from './logger';
 
 export interface OpenAIMessage {
     role: 'system' | 'user' | 'assistant';
@@ -95,7 +96,7 @@ class OpenAIService {
 
             return '';
         } catch (error) {
-            console.error('OpenAI API request failed:', error);
+            logger.error('API request failed', error, 'OpenAI');
             throw error;
         }
     }
@@ -160,7 +161,7 @@ class OpenAIService {
 
             return '';
         } catch (error) {
-            console.error('OpenAI Vision API request failed:', error);
+            logger.error('Vision API request failed', error, 'OpenAI');
             throw error;
         }
     }

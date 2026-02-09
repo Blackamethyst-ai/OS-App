@@ -8,6 +8,7 @@
  * Rate Limit: ~12 req/min (public, no auth required)
  */
 
+import { logger } from './logger';
 import type { LiveGpuPrice, StockStatus } from '../types';
 
 const MINERSTAT_API_URL = 'https://api.minerstat.com/v2/hardware';
@@ -56,14 +57,14 @@ async function enforceRateLimit(): Promise<void> {
 export async function fetchAllGpuData(): Promise<MinerstatGpu[]> {
     // Return cache if valid
     if (gpuDataCache && Date.now() - cacheTimestamp < CACHE_TTL) {
-        if (import.meta.env.DEV) console.log('[Minerstat] Returning cached GPU data');
+        logger.debug('Returning cached GPU data', undefined, 'Minerstat');
         return gpuDataCache;
     }
 
     await enforceRateLimit();
 
     try {
-        if (import.meta.env.DEV) console.log('[Minerstat] Fetching GPU data from API');
+        logger.debug('Fetching GPU data from API', undefined, 'Minerstat');
         const response = await fetch(`${MINERSTAT_API_URL}?type=gpu`, {
             method: 'GET',
             headers: {
@@ -79,10 +80,10 @@ export async function fetchAllGpuData(): Promise<MinerstatGpu[]> {
         gpuDataCache = data;
         cacheTimestamp = Date.now();
 
-        if (import.meta.env.DEV) console.log(`[Minerstat] Fetched ${data.length} GPUs`);
+        logger.debug(`Fetched ${data.length} GPUs`, undefined, 'Minerstat');
         return data;
     } catch (error) {
-        console.error('[Minerstat] Failed to fetch GPU data:', error);
+        logger.error('Failed to fetch GPU data', error, 'Minerstat');
         throw error;
     }
 }
@@ -147,7 +148,7 @@ export async function getGpuPrice(modelName: string): Promise<{
         const gpu = findMatchingGpu(gpuList, modelName);
 
         if (!gpu || !gpu.price || gpu.price <= 0) {
-            if (import.meta.env.DEV) console.log(`[Minerstat] No price data for: ${modelName}`);
+            logger.debug(`No price data for: ${modelName}`, undefined, 'Minerstat');
             return null;
         }
 
@@ -157,7 +158,7 @@ export async function getGpuPrice(modelName: string): Promise<{
             brand: gpu.brand
         };
     } catch (error) {
-        console.error(`[Minerstat] Error getting price for ${modelName}:`, error);
+        logger.error(`Error getting price for ${modelName}`, error, 'Minerstat');
         return null;
     }
 }
@@ -173,7 +174,7 @@ export async function getGpuSpecs(modelName: string): Promise<MinerstatGpu | nul
         const gpuList = await fetchAllGpuData();
         return findMatchingGpu(gpuList, modelName);
     } catch (error) {
-        console.error(`[Minerstat] Error getting specs for ${modelName}:`, error);
+        logger.error(`Error getting specs for ${modelName}`, error, 'Minerstat');
         return null;
     }
 }
@@ -241,7 +242,7 @@ export async function getListings(modelName: string): Promise<Array<{
 export function clearCache(): void {
     gpuDataCache = null;
     cacheTimestamp = 0;
-    if (import.meta.env.DEV) console.log('[Minerstat] Cache cleared');
+    logger.debug('Cache cleared', undefined, 'Minerstat');
 }
 
 /**

@@ -9,6 +9,8 @@
  * - Gaze estimation from eye landmarks
  */
 
+import { logger } from './logger';
+
 // face-api.js is dynamically imported to reduce initial bundle size (~1.5MB)
 // It only loads when biometrics are actually initialized
 let faceapi: typeof import('face-api.js') | null = null;
@@ -98,13 +100,13 @@ class FaceDetectionService {
     if (this.isLoading) return false;
 
     this.isLoading = true;
-    if (import.meta.env.DEV) console.log('FACE_DETECTION: Loading face-api.js...');
+    logger.debug('Loading face-api.js...', undefined, 'FaceDetection');
 
     try {
       // Dynamic import - only loads when biometrics are used
       if (!faceapi) {
         faceapi = await import('face-api.js');
-        if (import.meta.env.DEV) console.log('FACE_DETECTION: face-api.js loaded');
+        logger.debug('face-api.js loaded', undefined, 'FaceDetection');
       }
 
       // Load models from public folder
@@ -119,10 +121,10 @@ class FaceDetectionService {
       ]);
 
       this.isInitialized = true;
-      if (import.meta.env.DEV) console.log('FACE_DETECTION: Models loaded successfully (SSD MobileNet + Tiny)');
+      logger.info('Models loaded successfully (SSD MobileNet + Tiny)', undefined, 'FaceDetection');
       return true;
     } catch (error) {
-      console.error('FACE_DETECTION: Failed to load models', error);
+      logger.error('Failed to load models', error, 'FaceDetection');
       this.isLoading = false;
       return false;
     } finally {
@@ -209,7 +211,7 @@ class FaceDetectionService {
       this.lastDetection = result;
       return result;
     } catch (error) {
-      console.error('FACE_DETECTION: Detection error', error);
+      logger.error('Detection error', error, 'FaceDetection');
       return { detected: false, confidence: 0 };
     }
   }

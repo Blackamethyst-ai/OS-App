@@ -1,4 +1,5 @@
 import { apiKeyService } from './apiKeyService';
+import { logger } from './logger';
 
 export interface GrokMessage {
     role: 'system' | 'user' | 'assistant';
@@ -51,7 +52,7 @@ class GrokService {
             return data.choices?.[0]?.message?.content || "";
 
         } catch (error) {
-            console.error('Grok API request failed:', error);
+            logger.error('Grok API request failed', error, 'GrokService');
             throw error;
         }
     }

@@ -106,7 +106,7 @@ class SelfEvolutionService {
             });
         }
 
-        if (import.meta.env.DEV) console.log(`🧬 Evolution: Friction recorded - ${type}: ${context.slice(0, 50)}...`);
+        logger.debug(`Friction recorded - ${type}: ${context.slice(0, 50)}...`, undefined, 'SelfEvolution');
     }
 
     /**
@@ -118,7 +118,7 @@ class SelfEvolutionService {
 
         // Check if Auto-Evolution is enabled in power settings
         if (!powerService.isEnabled('autoEvolution')) {
-            if (import.meta.env.DEV) console.log('🧬 SELF-EVOLUTION: Disabled in power settings. Enable in Power Control Panel.');
+            logger.debug('Disabled in power settings. Enable in Power Control Panel.', undefined, 'SelfEvolution');
             return;
         }
 
@@ -131,7 +131,7 @@ class SelfEvolutionService {
 
         // Take the highest-friction signal
         const target = criticalFriction[0];
-        if (import.meta.env.DEV) console.log(`🧬 Evolution: Critical friction detected - ${target.type} (${target.count}x)`);
+        logger.info(`Critical friction detected - ${target.type} (${target.count}x)`, undefined, 'SelfEvolution');
 
         await this.triggerEvolution(target);
     }
@@ -531,7 +531,7 @@ Output ONLY the code, no markdown fences.`;
                 }
             }
 
-            if (import.meta.env.DEV) console.log(`Risk Assessment for ${targetFile}: Radius=${radius}`);
+            logger.debug(`Risk Assessment for ${targetFile}: Radius=${radius}`, undefined, 'SelfEvolution');
 
             // 4. Determine Risk Rule
             if (radius < 5) return 'LOW';

@@ -1,4 +1,5 @@
 import { modelRouter } from './modelRouter';
+import { logger } from './logger';
 import { useAppStore } from '../store';
 import { InterventionProtocol } from '../types';
 
@@ -26,7 +27,7 @@ class MetaventionService {
             const clean = raw.replace(/```json|```/g, '').trim();
             return JSON.parse(clean);
         } catch (e) {
-            console.error("Metavention Analysis Failed:", e);
+            logger.error('Layer analysis failed', e, 'MetaventionService');
             return {
                 integrity: 85.0,
                 threats: ["Analysis link unstable", "Packet loss detected"],
@@ -56,7 +57,7 @@ class MetaventionService {
             const protocol = JSON.parse(clean);
             return { ...protocol, id: `proto-${Date.now()}` };
         } catch (e) {
-            console.error("Strategy Generation Failed:", e);
+            logger.error('Strategy generation failed', e, 'MetaventionService');
             throw new Error("Failed to synthesize protocol.");
         }
     }
