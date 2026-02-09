@@ -6,6 +6,7 @@
  */
 
 import { KernelTask, TaskPriority } from './types';
+import { logger } from '../logger';
 
 type TaskExecutor = (task: KernelTask) => Promise<any>;
 
@@ -39,7 +40,7 @@ export class KernelScheduler {
 
     this.isRunning = true;
     this.processInterval = setInterval(() => this.processQueue(), 50);
-    if (import.meta.env.DEV) console.log('⚙️ SCHEDULER: Started');
+    logger.debug('Started', undefined, 'SCHEDULER');
   }
 
   /**
@@ -51,7 +52,7 @@ export class KernelScheduler {
       clearInterval(this.processInterval);
       this.processInterval = null;
     }
-    if (import.meta.env.DEV) console.log('⚙️ SCHEDULER: Stopped');
+    logger.debug('Stopped', undefined, 'SCHEDULER');
   }
 
   /**

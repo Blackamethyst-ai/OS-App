@@ -97,7 +97,7 @@ class AgentKernelService {
       return;
     }
 
-    if (import.meta.env.DEV) console.log(`⚡ KERNEL: Booting v${KERNEL_VERSION}...`);
+    logger.debug(`Booting v${KERNEL_VERSION}...`, undefined, 'KERNEL');
     this.state = 'BOOTING';
     this.bootTime = Date.now();
 
@@ -115,7 +115,7 @@ class AgentKernelService {
 
       this.state = 'IDLE';
       this.emit('BOOT_COMPLETE', { version: KERNEL_VERSION, bootTime: this.bootTime });
-      if (import.meta.env.DEV) console.log('⚡ KERNEL: Boot complete');
+      logger.debug('Boot complete', undefined, 'KERNEL');
     } catch (error) {
       this.state = 'ERROR';
       logger.error('Boot failed', error, 'KERNEL');
@@ -127,7 +127,7 @@ class AgentKernelService {
    * Gracefully shutdown the kernel
    */
   async shutdown(): Promise<void> {
-    if (import.meta.env.DEV) console.log('⚡ KERNEL: Initiating shutdown...');
+    logger.debug('Initiating shutdown...', undefined, 'KERNEL');
     this.state = 'SUSPENDED';
 
     // Complete pending tasks
@@ -140,7 +140,7 @@ class AgentKernelService {
     await this.semanticPager.flush();
 
     this.state = 'BOOTING'; // Ready for reboot
-    if (import.meta.env.DEV) console.log('⚡ KERNEL: Shutdown complete');
+    logger.debug('Shutdown complete', undefined, 'KERNEL');
   }
 
   // ============================================================================
@@ -157,16 +157,16 @@ class AgentKernelService {
 
     const layers = organismRegistry.getAll();
     if (layers.length === 0) {
-      if (import.meta.env.DEV) console.log('⚡ KERNEL: No organism layers registered');
+      logger.debug('No organism layers registered', undefined, 'KERNEL');
       return;
     }
 
-    if (import.meta.env.DEV) console.log(`⚡ KERNEL: Initializing ${layers.length} organism layers...`);
+    logger.debug(`Initializing ${layers.length} organism layers...`, undefined, 'KERNEL');
 
     try {
       await organismRegistry.initializeAll();
       this.organismLayersInitialized = true;
-      if (import.meta.env.DEV) console.log('⚡ KERNEL: Organism layers initialized');
+      logger.debug('Organism layers initialized', undefined, 'KERNEL');
     } catch (error) {
       logger.error('Failed to initialize organism layers', error, 'KERNEL');
       // Non-fatal: kernel can operate without organism layers
@@ -181,12 +181,12 @@ class AgentKernelService {
       return;
     }
 
-    if (import.meta.env.DEV) console.log('⚡ KERNEL: Shutting down organism layers...');
+    logger.debug('Shutting down organism layers...', undefined, 'KERNEL');
 
     try {
       await organismRegistry.shutdownAll();
       this.organismLayersInitialized = false;
-      if (import.meta.env.DEV) console.log('⚡ KERNEL: Organism layers shutdown complete');
+      logger.debug('Organism layers shutdown complete', undefined, 'KERNEL');
     } catch (error) {
       logger.error('Error during organism layer shutdown', error, 'KERNEL');
     }
@@ -223,7 +223,7 @@ class AgentKernelService {
     if (isSkillRelated || hasSkillEntity) {
       const genomeLayer = organismRegistry.get('genome');
       if (genomeLayer && genomeLayer.status !== 'disabled') {
-        if (import.meta.env.DEV) console.log('⚡ KERNEL: Routing to GENOME layer (skill-related task)');
+        logger.debug('Routing to GENOME layer (skill-related task)', undefined, 'KERNEL');
         return 'genome';
       }
     }
@@ -240,7 +240,7 @@ class AgentKernelService {
     if (isSwarmRelated || hasMultipleAgents || isOrchestrationIntent) {
       const swarmLayer = organismRegistry.get('swarm');
       if (swarmLayer && swarmLayer.status !== 'disabled') {
-        if (import.meta.env.DEV) console.log('⚡ KERNEL: Routing to SWARM layer (coordination task)');
+        logger.debug('Routing to SWARM layer (coordination task)', undefined, 'KERNEL');
         return 'swarm';
       }
     }
@@ -258,7 +258,7 @@ class AgentKernelService {
     if ((isLowActivity && isBackgroundPriority) || isAnalysisOrMemory) {
       const cognitiveLayer = organismRegistry.get('cognitive');
       if (cognitiveLayer && cognitiveLayer.status !== 'disabled') {
-        if (import.meta.env.DEV) console.log('⚡ KERNEL: Routing to COGNITIVE layer (consolidation opportunity)');
+        logger.debug('Routing to COGNITIVE layer (consolidation opportunity)', undefined, 'KERNEL');
         return 'cognitive';
       }
     }
@@ -577,17 +577,14 @@ class AgentKernelService {
         });
 
         // Log reasoning
-        if (import.meta.env.DEV) {
-            console.log(`⚡ KERNEL: UI Evaluation [${iteration}] - Score: ${evaluation.score}, Verdict: ${evaluation.verdict}`);
-            console.log(`   Reasoning: ${evaluation.reasoning}`);
-        }
+        logger.debug(`UI Evaluation [${iteration}] - Score: ${evaluation.score}, Verdict: ${evaluation.verdict}`, { reasoning: evaluation.reasoning }, 'KERNEL');
 
         // Check if iteration needed
         if (judgeAgent.shouldIterate(evaluation)) {
           judgeAgent.incrementIteration();
           iteration++;
           this.emit('UI_ITERATION', { iteration, evaluation });
-          if (import.meta.env.DEV) console.log(`⚡ KERNEL: Iterating UI generation (${iteration}/3)...`);
+          logger.debug(`Iterating UI generation (${iteration}/3)...`, undefined, 'KERNEL');
         } else {
           break;
         }
@@ -678,7 +675,7 @@ class AgentKernelService {
     this.lastRegenerationTime = now;
     this.isRegenerating = true;
 
-    if (import.meta.env.DEV) console.log(`⚡ KERNEL: Triggering UI regeneration - ${reason}`);
+    logger.debug(`Triggering UI regeneration - ${reason}`, undefined, 'KERNEL');
 
     try {
       await this.dispatch(`regenerate ui: ${reason}`, { priority: 'HIGH' });
@@ -692,7 +689,7 @@ class AgentKernelService {
    */
   setAUIEnabled(enabled: boolean): void {
     this.auiEnabled = enabled;
-    if (import.meta.env.DEV) console.log(`⚡ KERNEL: AUI ${enabled ? 'enabled' : 'disabled'}`);
+    logger.debug(`AUI ${enabled ? 'enabled' : 'disabled'}`, undefined, 'KERNEL');
   }
 
   /**
@@ -773,7 +770,7 @@ class AgentKernelService {
    */
   setAdaptiveUIEnabled(enabled: boolean): void {
     this.adaptiveUIEnabled = enabled;
-    if (import.meta.env.DEV) console.log(`⚡ KERNEL: Adaptive UI ${enabled ? 'enabled' : 'disabled'}`);
+    logger.debug(`Adaptive UI ${enabled ? 'enabled' : 'disabled'}`, undefined, 'KERNEL');
   }
 
   // ============================================================================

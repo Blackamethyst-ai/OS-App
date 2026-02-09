@@ -1,6 +1,7 @@
 
 import { ExternalArtifactStore } from './interfaces';
 import { FileData } from '../../types';
+import { logger } from '../logger';
 
 /**
  * Unified store for external data:
@@ -57,7 +58,7 @@ export class UnifiedArtifactStore implements ExternalArtifactStore {
     async getSchema(name: string): Promise<object> {
         const schema = this.schemas.get(name);
         if (!schema) {
-            console.warn(`[ArtifactStore] Schema not found for: ${name}`);
+            logger.warn(`Schema not found for: ${name}`, undefined, 'ArtifactStore');
             // Return empty object rather than throwing to prevent pipeline crash
             return {}; 
         }

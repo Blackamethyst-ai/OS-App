@@ -21,6 +21,7 @@ import {
   PagingConfig,
   ResolvedIntent,
 } from '../kernel/types';
+import { logger } from '../logger';
 
 const DEFAULT_CONFIG: PagingConfig = {
   maxContextTokens: 128000, // Gemini 2.0 context window
@@ -47,7 +48,7 @@ export class SemanticPager {
   async initialize(): Promise<void> {
     // Load pinned pages from storage
     await this.loadPinnedPages();
-    if (import.meta.env.DEV) console.log('📄 SEMANTIC_PAGER: Initialized');
+    logger.debug('Initialized', undefined, 'SEMANTIC_PAGER');
   }
 
   /**
@@ -60,7 +61,7 @@ export class SemanticPager {
     );
 
     // Would persist to IndexedDB via neuralVault
-    if (import.meta.env.DEV) console.log(`📄 SEMANTIC_PAGER: Flushed ${toFlush.length} pages`);
+    logger.debug(`Flushed ${toFlush.length} pages`, undefined, 'SEMANTIC_PAGER');
   }
 
   // ============================================================================
@@ -230,7 +231,7 @@ export class SemanticPager {
       }
     }
 
-    if (import.meta.env.DEV) console.log(`📄 SEMANTIC_PAGER: Prefetched ${relatedPages.length} pages for element ${elementId}`);
+    logger.debug(`Prefetched ${relatedPages.length} pages for element ${elementId}`, undefined, 'SEMANTIC_PAGER');
   }
 
   /**
@@ -278,7 +279,7 @@ export class SemanticPager {
       freed += page.size;
     }
 
-    if (import.meta.env.DEV) console.log(`📄 SEMANTIC_PAGER: Evicted ${freed} tokens`);
+    logger.debug(`Evicted ${freed} tokens`, undefined, 'SEMANTIC_PAGER');
   }
 
   /**

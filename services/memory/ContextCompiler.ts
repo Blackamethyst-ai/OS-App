@@ -1,5 +1,6 @@
 import { ContextProcessor, SystemInstructionProcessor } from './Processor';
 import { Event, LongTermMemory, ExternalArtifactStore, WorkingContext, CurrentScope } from './interfaces';
+import { logger } from '../logger';
 
 export class ContextCompilerService {
   private pipeline: ContextProcessor[];
@@ -29,12 +30,12 @@ export class ContextCompilerService {
           continue;
       }
 
-      console.debug(`[ContextCompiler] Executing: ${processor.name}`);
+      logger.debug(`Executing: ${processor.name}`, undefined, 'ContextCompiler');
       try {
           const contextParts = await processor.process(session, memoryStore, artifactStore, scope);
           finalContext.push(...contextParts);
       } catch (e) {
-          console.error(`[ContextCompiler] Processor ${processor.name} failed:`, e);
+          logger.error(`Processor ${processor.name} failed`, e, 'ContextCompiler');
       }
     }
     

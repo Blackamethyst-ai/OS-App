@@ -12,6 +12,7 @@ import {
   BiometricContext,
 } from './types';
 import { AppMode } from '../../types';
+import { logger } from '../logger';
 
 interface ResolveOptions {
   biometricContext?: BiometricContext | null;
@@ -71,7 +72,7 @@ export class IntentResolver {
 
     // Future: Load fine-tuned intent classification model
     this.initialized = true;
-    if (import.meta.env.DEV) console.log('🧠 INTENT_RESOLVER: Initialized');
+    logger.debug('Initialized', undefined, 'INTENT_RESOLVER');
   }
 
   /**

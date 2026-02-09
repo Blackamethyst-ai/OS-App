@@ -20,6 +20,7 @@ import {
   ResolvedIntent,
   GazeFixation,
 } from '../kernel/types';
+import { logger } from '../logger';
 
 interface AFSConfig {
   maxSurfacedFiles: number;
@@ -57,7 +58,7 @@ export class AgenticFileSystem {
     if (this.config.autoSurfaceEnabled) {
       setInterval(() => this.updateIndex(), this.config.indexUpdateIntervalMs);
     }
-    if (import.meta.env.DEV) console.log('📁 AFS: Initialized');
+    logger.debug('Initialized', undefined, 'AFS');
   }
 
   // ============================================================================

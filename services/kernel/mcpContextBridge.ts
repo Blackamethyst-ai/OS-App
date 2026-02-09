@@ -165,7 +165,7 @@ export class MCPContextBridge {
     }
 
     this.status = 'connecting';
-    console.log('[MCPContextBridge] Initializing connection to', this.config.serverUrl);
+    logger.info('Initializing connection', { serverUrl: this.config.serverUrl }, 'MCPContextBridge');
 
     try {
       // Verify server is available
@@ -173,7 +173,7 @@ export class MCPContextBridge {
 
       if (healthResponse.ok) {
         this.status = 'connected';
-        console.log('[MCPContextBridge] Connected to ResearchGravity MCP server');
+        logger.info('Connected to ResearchGravity MCP server', undefined, 'MCPContextBridge');
       } else {
         throw new Error(`Server returned ${healthResponse.status}`);
       }
@@ -188,7 +188,7 @@ export class MCPContextBridge {
    * Shutdown the bridge and clean up resources.
    */
   async shutdown(): Promise<void> {
-    console.log('[MCPContextBridge] Shutting down');
+    logger.debug('Shutting down', undefined, 'MCPContextBridge');
 
     // Stop polling if active
     if (this.pollingInterval) {
@@ -203,7 +203,7 @@ export class MCPContextBridge {
     this.cache.clear();
 
     this.status = 'disconnected';
-    console.log('[MCPContextBridge] Shutdown complete');
+    logger.debug('Shutdown complete', undefined, 'MCPContextBridge');
   }
 
   // ---------------------------------------------------------------------------
@@ -225,7 +225,7 @@ export class MCPContextBridge {
     const cacheKey = `${query}:${budget}`;
     const cached = this.cache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < this.cacheMaxAgeMs) {
-      console.log('[MCPContextBridge] Returning cached context packs');
+      logger.debug('Returning cached context packs', undefined, 'MCPContextBridge');
       return cached.packs;
     }
 
@@ -261,9 +261,7 @@ export class MCPContextBridge {
       // Cache the result
       this.cache.set(cacheKey, { packs, timestamp: Date.now() });
 
-      console.log(
-        `[MCPContextBridge] Fetched ${packs.length} context packs in ${Date.now() - startTime}ms`
-      );
+      logger.debug(`Fetched ${packs.length} context packs in ${Date.now() - startTime}ms`, undefined, 'MCPContextBridge');
 
       // Notify subscribers
       this.notifySubscribers(packs);
@@ -274,7 +272,7 @@ export class MCPContextBridge {
 
       // Return cached data if available, even if stale
       if (cached) {
-        console.log('[MCPContextBridge] Returning stale cached data');
+        logger.debug('Returning stale cached data', undefined, 'MCPContextBridge');
         return cached.packs;
       }
 
@@ -375,9 +373,7 @@ export class MCPContextBridge {
     // Inject via organism layer's MCP context hook
     layer.onMCPContext(filteredPacks);
 
-    console.log(
-      `[MCPContextBridge] Injected ${filteredPacks.length} packs into ${layerId} layer`
-    );
+    logger.debug(`Injected ${filteredPacks.length} packs into ${layerId} layer`, undefined, 'MCPContextBridge');
   }
 
   /**
@@ -491,7 +487,7 @@ export class MCPContextBridge {
 
     // High stress: filter to highest relevance only
     if (stressLevel > 0.7) {
-      console.log('[MCPContextBridge] High stress detected, filtering to top packs');
+      logger.debug('High stress detected, filtering to top packs', undefined, 'MCPContextBridge');
       return packs
         .filter((p) => p.relevanceScore > 0.8)
         .slice(0, Math.min(3, packs.length));
@@ -499,7 +495,7 @@ export class MCPContextBridge {
 
     // Low focus: reduce volume
     if (focusScore < 0.3) {
-      console.log('[MCPContextBridge] Low focus detected, reducing pack volume');
+      logger.debug('Low focus detected, reducing pack volume', undefined, 'MCPContextBridge');
       return packs.slice(0, Math.min(5, packs.length));
     }
 
@@ -544,7 +540,7 @@ export class MCPContextBridge {
         // Exponential backoff
         if (attempt < this.config.retryAttempts - 1) {
           const delay = this.config.retryDelayMs * Math.pow(2, attempt);
-          console.log(`[MCPContextBridge] Retry ${attempt + 1} after ${delay}ms`);
+          logger.debug(`Retry ${attempt + 1} after ${delay}ms`, undefined, 'MCPContextBridge');
           await new Promise((resolve) => setTimeout(resolve, delay));
         }
       }

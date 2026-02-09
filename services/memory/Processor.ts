@@ -1,5 +1,6 @@
 import { Event, LongTermMemory, ExternalArtifactStore, WorkingContext, CurrentScope } from './interfaces';
 import { FactChunk } from '../../types';
+import { logger } from '../logger';
 
 /**
  * The formal contract for a Context Processor.
@@ -147,10 +148,10 @@ export class ToolSchemaProcessor implements ContextProcessor {
           content: `Available Tool Definition for ${toolName}:\n${schemaString}`
         });
 
-        if (import.meta.env.DEV) console.log(`[ToolSchemaProcessor] Injected schema for: ${toolName}`);
+        logger.debug(`Injected schema for: ${toolName}`, undefined, 'ToolSchemaProcessor');
 
       } catch (error) {
-        console.warn(`Could not inject schema for ${toolName}: ${error}`);
+        logger.warn(`Could not inject schema for ${toolName}`, error, 'ToolSchemaProcessor');
       }
     }
 
