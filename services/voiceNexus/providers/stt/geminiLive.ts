@@ -8,6 +8,7 @@
 import type { STTProvider } from '../../types';
 import { liveSession } from '../../../liveSession';
 import { apiKeyService } from '../../../apiKeyService';
+import { logger } from '../../../logger';
 
 /**
  * Gemini Live STT Provider
@@ -41,7 +42,7 @@ class GeminiLiveSTTProvider implements STTProvider {
         // For batch mode, we'd need to use a different Gemini API endpoint
         // The Live API is designed for real-time streaming
         // This is a placeholder - in practice, Gemini Live handles STT internally
-        console.warn('GeminiLiveSTT: Batch transcription not optimal. Use streaming mode.');
+        logger.warn('Batch transcription not optimal. Use streaming mode.', undefined, 'GeminiLive');
 
         return new Promise((resolve, reject) => {
             const reader = new FileReader();

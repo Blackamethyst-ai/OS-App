@@ -33,6 +33,7 @@ import { convergenceMemory } from '../convergenceMemory';
 import { retryGeminiRequest, getAI } from '../geminiService';
 import { claudeService } from '../claudeService';
 import type { AtomicTask } from '../../types';
+import { logger } from '../logger';
 
 // ============================================================================
 // MODEL ROUTING
@@ -130,10 +131,8 @@ class CognitivePrecisionBridgeOrchestrator {
             const routingDecision = selectPath(request, this.config);
             this.currentPath = routingDecision.selectedPath;
 
-            if (import.meta.env.DEV) {
-                console.log(`[CPB] Selected path: ${this.currentPath} (confidence: ${routingDecision.confidence.toFixed(2)})`);
-                console.log(`[CPB] Reasoning: ${routingDecision.reasoning}`);
-            }
+            logger.debug(`Selected path: ${this.currentPath} (confidence: ${routingDecision.confidence.toFixed(2)})`, undefined, 'CPBOrchestrator');
+            logger.debug(`Reasoning: ${routingDecision.reasoning}`, undefined, 'CPBOrchestrator');
 
             // ================================================================
             // PHASE 2-5: EXECUTE PATH
@@ -147,7 +146,7 @@ class CognitivePrecisionBridgeOrchestrator {
                 this.updateStatus('verifying', 'Verifying output quality...');
 
                 if (result.dqScore.score < this.config.dqThreshold && this.config.retryOnLowDQ && retryCount < 2) {
-                    if (import.meta.env.DEV) console.log(`[CPB] DQ score ${result.dqScore.score.toFixed(2)} below threshold ${this.config.dqThreshold}, retrying...`);
+                    logger.debug(`DQ score ${result.dqScore.score.toFixed(2)} below threshold ${this.config.dqThreshold}, retrying...`, undefined, 'CPBOrchestrator');
                     retryCount++;
 
                     // Escalate path for retry
@@ -166,7 +165,7 @@ class CognitivePrecisionBridgeOrchestrator {
                     await this.storePattern(request, result);
                     patternStored = true;
                 } catch (e) {
-                    console.warn('[CPB] Failed to store pattern:', e);
+                    logger.warn('Failed to store pattern', e, 'CPBOrchestrator');
                 }
             }
 
@@ -295,7 +294,7 @@ class CognitivePrecisionBridgeOrchestrator {
         const task = this.createTask(request);
         const dqScore = scoreDQHeuristic(output, task);
 
-        if (import.meta.env.DEV) console.log(`[CPB] Direct path complete: ${modelConfig.provider}/${modelConfig.model}`);
+        logger.debug(`Direct path complete: ${modelConfig.provider}/${modelConfig.model}`, undefined, 'CPBOrchestrator');
 
         return {
             output,

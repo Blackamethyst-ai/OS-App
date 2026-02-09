@@ -6,6 +6,7 @@
 
 import type { Capability, TabCapability, AppMode, SubtabDefinition } from '../types';
 import { registerCapabilities } from '../registry';
+import { logger } from '../../logger';
 
 // Import from existing tab registry
 import { TAB_REGISTRY, navigateToTab } from '../../tabNavigationRegistry';
@@ -120,7 +121,7 @@ export function loadTabCapabilities(): void {
   }
 
   registerCapabilities(capabilities);
-  console.log(`[CapabilityRegistry] Loaded ${capabilities.length} tab capabilities`);
+  logger.debug(`Loaded ${capabilities.length} tab capabilities`, undefined, 'TabsProvider');
 }
 
 /**

@@ -9,6 +9,7 @@ import type { ReasoningProvider, ReasoningConfig, ReasoningResult } from '../../
 import { claudeService } from '../../../claudeService';
 import { apiKeyService } from '../../../apiKeyService';
 import { SOVEREIGN_SYSTEM_INSTRUCTION } from '../../../geminiService';
+import { logger } from '../../../logger';
 
 // Model mappings for each tier
 const CLAUDE_MODELS = {
@@ -75,7 +76,7 @@ class ClaudeReasoningProvider implements ReasoningProvider {
                 // Would need to modify claudeService to return full response for this
             };
         } catch (error) {
-            console.error('Claude reasoning failed:', error);
+            logger.error('Reasoning failed', error, 'ClaudeReasoning');
             throw error;
         }
     }

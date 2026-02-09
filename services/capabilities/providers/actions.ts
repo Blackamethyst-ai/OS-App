@@ -6,6 +6,7 @@
 
 import type { Capability, AppMode, CapabilityComplexity, CapabilitySource, CPBPath } from '../types';
 import { registerCapabilities } from '../registry';
+import { logger } from '../../logger';
 
 // Import from existing action registry
 import { ALL_HANDLER_ACTIONS } from '../../actions/handlers';
@@ -116,7 +117,7 @@ function actionToCapability(action: UnifiedAction): Capability {
 export function loadActionCapabilities(): void {
   const capabilities = ALL_HANDLER_ACTIONS.map(actionToCapability);
   registerCapabilities(capabilities);
-  console.log(`[CapabilityRegistry] Loaded ${capabilities.length} action capabilities`);
+  logger.debug(`Loaded ${capabilities.length} action capabilities`, undefined, 'ActionsProvider');
 }
 
 /**

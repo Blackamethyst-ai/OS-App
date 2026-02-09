@@ -9,6 +9,7 @@ import type { ModeHandler, ModeContext } from './types';
 import type { LiveServerMessage } from '@google/genai';
 import { liveSession } from '../../liveSession';
 import { geminiLiveSTT } from '../providers/stt/geminiLive';
+import { logger } from '../../logger';
 
 class RealtimeModeHandler implements ModeHandler {
     readonly name = 'realtime';
@@ -35,9 +36,7 @@ class RealtimeModeHandler implements ModeHandler {
             tools: context.buildTools(),
             callbacks: {
                 onopen: () => {
-                    if (import.meta.env.DEV) {
-                        console.log('VoiceNexus [Realtime]: Session connected');
-                    }
+                    logger.info('Session connected', undefined, 'RealtimeMode');
                 },
                 onmessage: async (message: LiveServerMessage) => {
                     await this.handleMessage(message, context);
@@ -54,9 +53,7 @@ class RealtimeModeHandler implements ModeHandler {
 
         // Set up agent switch handler
         liveSession.onAgentSwitch = (agentName: string) => {
-            if (import.meta.env.DEV) {
-                console.log(`VoiceNexus [Realtime]: Switching to agent ${agentName}`);
-            }
+            logger.info(`Switching to agent ${agentName}`, undefined, 'RealtimeMode');
         };
     }
 

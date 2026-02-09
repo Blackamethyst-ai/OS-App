@@ -8,6 +8,7 @@
 import { apiKeyService } from '../apiKeyService';
 import { browserSTT } from './providers/stt/browserSTT';
 import { browserTTS } from './providers/tts/browserTTS';
+import { logger } from '../logger';
 
 export interface PreflightResult {
     canProceed: boolean;
@@ -92,7 +93,7 @@ export function runPreflightCheck(): PreflightResult {
         // Note: This is async and won't block, just a hint
         navigator.permissions.query({ name: 'microphone' as PermissionName }).then(result => {
             if (result.state === 'denied') {
-                console.warn('[VoicePreflight] Microphone permission denied');
+                logger.warn('Microphone permission denied', undefined, 'PreflightCheck');
             }
         }).catch(() => {
             // Permission query not supported
@@ -159,7 +160,7 @@ if (typeof window !== 'undefined') {
     (window as any).__voicePreflight = {
         check: () => {
             const result = runPreflightCheck();
-            console.log(formatPreflightResult(result));
+            logger.info(formatPreflightResult(result), undefined, 'PreflightCheck');
             return result;
         },
         canStart: canStartVoice,

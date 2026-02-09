@@ -15,6 +15,7 @@ import {
   getElementValue,
   submitForm,
 } from './actions';
+import { logger } from '../logger';
 
 export class UniversalVoiceService {
   private observer: MutationObserver | null = null;
@@ -50,7 +51,7 @@ export class UniversalVoiceService {
       attributeFilter: ['disabled', 'hidden', 'aria-hidden', 'style', 'class']
     });
 
-    if (import.meta.env.DEV) console.log('[UniversalVoice] Started monitoring DOM');
+    logger.debug('Started monitoring DOM', undefined, 'VoiceService');
   }
 
   /**
@@ -62,7 +63,7 @@ export class UniversalVoiceService {
       this.observer = null;
     }
     this.isRunning = false;
-    if (import.meta.env.DEV) console.log('[UniversalVoice] Stopped monitoring');
+    logger.debug('Stopped monitoring', undefined, 'VoiceService');
   }
 
   /**

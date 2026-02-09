@@ -249,7 +249,7 @@ For every batch:
 | 3 | Security, env vars, logger r1 | ~25 | ~60 | Done |
 | 4 | Dead code, logger r2 | 18 | ~30 | Done |
 | 5 | Kernel + Memory | 9 | ~42 | Done |
-| 6 | Organisms | 13 | ~56 | Pending |
+| 6 | Organisms | 13 | ~56 | Done |
 | 7 | VoiceNexus + Voice + CPB | 20 | ~68 | Pending |
 | 8 | Remaining services | 27 | ~79 | Pending |
 | 9 | Components | 23 | ~49 | Pending |

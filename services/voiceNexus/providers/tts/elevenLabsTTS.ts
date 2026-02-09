@@ -8,6 +8,7 @@
 import type { TTSProvider, VoiceConfig, TTSSettings } from '../../types';
 import { elevenLabs, ELEVEN_LABS_VOICES } from '../../../elevenLabsService';
 import { apiKeyService } from '../../../apiKeyService';
+import { logger } from '../../../logger';
 
 // Voice configurations with agent mappings
 const VOICE_CONFIGS: VoiceConfig[] = [
@@ -99,7 +100,7 @@ class ElevenLabsTTSProvider implements TTSProvider {
 
             return buffer;
         } catch (error) {
-            console.error('ElevenLabs synthesis failed:', error);
+            logger.error('Synthesis failed', error, 'ElevenLabsTTS');
             throw error;
         }
     }

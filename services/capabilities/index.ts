@@ -219,11 +219,11 @@ export async function initializeCapabilities(): Promise<void> {
     const { isInitialized, markInitialized } = await import('./registry');
 
     if (isInitialized()) {
-      console.log('[CapabilityRegistry] Already initialized');
+      logger.debug('Already initialized', undefined, 'CapabilityRegistry');
       return;
     }
 
-    console.log('[CapabilityRegistry] Initializing...');
+    logger.debug('Initializing...', undefined, 'CapabilityRegistry');
     const startTime = performance.now();
 
     try {
@@ -264,13 +264,12 @@ export async function initializeCapabilities(): Promise<void> {
     const stats = getStats();
     const elapsed = (performance.now() - startTime).toFixed(1);
 
-    console.log(
-      `[CapabilityRegistry] Initialized with ${stats.total} capabilities in ${elapsed}ms`
-    );
-    console.log(`  - Tabs: ${stats.bySource.tab || 0}`);
-    console.log(`  - Actions: ${stats.byKind.action || 0}`);
-    console.log(`  - Navigation: ${stats.byKind.navigation || 0}`);
-    console.log(`  - Tools: ${stats.byKind.tool || 0}`);
+    logger.info(`Initialized with ${stats.total} capabilities in ${elapsed}ms`, {
+      tabs: stats.bySource.tab || 0,
+      actions: stats.byKind.action || 0,
+      navigation: stats.byKind.navigation || 0,
+      tools: stats.byKind.tool || 0,
+    }, 'CapabilityRegistry');
   })();
 
   return initPromise;

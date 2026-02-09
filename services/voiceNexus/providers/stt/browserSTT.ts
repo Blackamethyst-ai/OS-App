@@ -225,7 +225,7 @@ class BrowserSTTProvider implements STTProvider {
 
         // Handle start
         this.recognition.onstart = () => {
-            if (import.meta.env.DEV) console.log('BrowserSTT: Recognition started');
+            logger.debug('Recognition started', undefined, 'BrowserSTT');
         };
 
         // Handle speech end (user stopped talking)

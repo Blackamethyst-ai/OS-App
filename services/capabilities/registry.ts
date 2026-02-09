@@ -24,6 +24,7 @@ import type {
 } from './types';
 import { complexityToCPBPath } from './types';
 import { useSystemMind } from '../../stores/useSystemMind';
+import { logger } from '../logger';
 
 // ============================================================================
 // Registry State
@@ -61,7 +62,7 @@ let registryVersion: number = 0;
 export function registerCapability(capability: Capability): void {
   // Validate required fields
   if (!capability.id || !capability.description || !capability.handler) {
-    console.warn(`[CapabilityRegistry] Invalid capability: missing required fields`, capability.id);
+    logger.warn('Invalid capability: missing required fields', capability.id, 'CapabilityRegistry');
     return;
   }
 

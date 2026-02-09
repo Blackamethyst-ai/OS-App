@@ -6,6 +6,7 @@
 
 import type { Capability, CapabilityHandler } from '../types';
 import { registerCapabilities } from '../registry';
+import { logger } from '../../logger';
 import { useAppStore } from '../../../store';
 import { AppTheme } from '../../../types';
 
@@ -122,7 +123,7 @@ const UI_CAPABILITIES: Capability[] = [
  */
 export function loadUICapabilities(): void {
   registerCapabilities(UI_CAPABILITIES);
-  console.log(`[CapabilityRegistry] Loaded ${UI_CAPABILITIES.length} UI capabilities`);
+  logger.debug(`Loaded ${UI_CAPABILITIES.length} UI capabilities`, undefined, 'UIProvider');
 }
 
 /**

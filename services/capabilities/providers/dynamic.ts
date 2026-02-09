@@ -6,6 +6,7 @@
 
 import type { Capability, CapabilityResult } from '../types';
 import { registerCapability, unregisterCapability, getCapability } from '../registry';
+import { logger } from '../../logger';
 
 // Track dynamic capabilities for cleanup
 const dynamicCapabilityIds = new Set<string>();
@@ -38,7 +39,7 @@ export function registerDynamicCapability(
 
   registerCapability(capability);
   dynamicCapabilityIds.add(capability.id);
-  console.log(`[CapabilityRegistry] Registered dynamic capability: ${capability.id}`);
+  logger.debug(`Registered dynamic capability: ${capability.id}`, undefined, 'DynamicProvider');
 }
 
 /**
@@ -49,7 +50,7 @@ export function unregisterDynamicCapability(id: string): boolean {
   const result = unregisterCapability(fullId);
   if (result) {
     dynamicCapabilityIds.delete(fullId);
-    console.log(`[CapabilityRegistry] Unregistered dynamic capability: ${fullId}`);
+    logger.debug(`Unregistered dynamic capability: ${fullId}`, undefined, 'DynamicProvider');
   }
   return result;
 }
@@ -69,7 +70,7 @@ export function clearDynamicCapabilities(): void {
     unregisterCapability(id);
   }
   dynamicCapabilityIds.clear();
-  console.log('[CapabilityRegistry] Cleared all dynamic capabilities');
+  logger.debug('Cleared all dynamic capabilities', undefined, 'DynamicProvider');
 }
 
 /**
@@ -112,8 +113,8 @@ export async function syncFromDynamicToolRegistry(): Promise<void> {
       }
     }
 
-    console.log(`[CapabilityRegistry] Synced ${manifests.length} tools from DynamicToolRegistry`);
+    logger.debug(`Synced ${manifests.length} tools from DynamicToolRegistry`, undefined, 'DynamicProvider');
   } catch (error) {
-    console.warn('[CapabilityRegistry] Failed to sync from DynamicToolRegistry:', error);
+    logger.warn('Failed to sync from DynamicToolRegistry', error, 'DynamicProvider');
   }
 }

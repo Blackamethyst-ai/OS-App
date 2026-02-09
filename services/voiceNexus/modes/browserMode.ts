@@ -9,6 +9,7 @@
 
 import type { ModeHandler, ModeContext } from './types';
 import { browserSTT } from '../providers/stt/browserSTT';
+import { logger } from '../../logger';
 
 class BrowserModeHandler implements ModeHandler {
     readonly name = 'browser';
@@ -31,9 +32,7 @@ class BrowserModeHandler implements ModeHandler {
             throw new Error('Browser STT (Web Speech API) is not available in this browser');
         }
 
-        if (import.meta.env.DEV) {
-            console.log('VoiceNexus [Browser]: Starting browser STT mode');
-        }
+        logger.info('Starting browser STT mode', undefined, 'BrowserMode');
 
         this.isRunning = true;
         this.lastProcessedTranscript = '';
@@ -58,7 +57,7 @@ class BrowserModeHandler implements ModeHandler {
         }
 
         if (browserSTT.isCurrentlyStreaming()) {
-            browserSTT.stopStreaming().catch(console.error);
+            browserSTT.stopStreaming().catch(err => logger.error('Failed to stop streaming', err, 'BrowserMode'));
         }
     }
 
@@ -95,7 +94,7 @@ class BrowserModeHandler implements ModeHandler {
                         await context.processText(newText);
                         this.lastProcessedTranscript = transcript;
                     } catch (error) {
-                        console.error('VoiceNexus [Browser]: Error processing transcript:', error);
+                        logger.error('Error processing transcript', error, 'BrowserMode');
                         context.events.onError?.(
                             error instanceof Error ? error : new Error(String(error))
                         );

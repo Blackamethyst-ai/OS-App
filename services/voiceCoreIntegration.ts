@@ -25,7 +25,7 @@ import type { VoiceNexusState, Transcript, VoiceNexusEvents } from './voiceNexus
 import type { HiveAgent, MentalState } from '../types/domain/agents';
 import { AppMode } from '../types';
 import { apiKeyService } from './apiKeyService';
-import { createLogger } from './logger';
+import { createLogger, logger } from './logger';
 
 const log = createLogger('VoiceCore');
 
@@ -483,7 +483,7 @@ export class VoiceCore {
      */
     async printDiagnostics(): Promise<void> {
         const health = await checkVoiceSystemHealth();
-        if (import.meta.env.DEV) console.log(formatHealthReport(health));
+        logger.debug(formatHealthReport(health), undefined, 'VoiceCoreIntegration');
     }
 
     /**
@@ -724,20 +724,20 @@ if (typeof window !== 'undefined') {
         diagnose: async () => {
             const core = globalVoiceCore || new VoiceCore();
             const health = await core.diagnose();
-            if (import.meta.env.DEV) console.log(formatHealthReport(health));
+            logger.debug(formatHealthReport(health), undefined, 'VoiceCoreIntegration');
             return health;
         },
         checkHealth: async () => {
             const health = await checkVoiceSystemHealth();
-            if (import.meta.env.DEV) console.log(formatHealthReport(health));
+            logger.debug(formatHealthReport(health), undefined, 'VoiceCoreIntegration');
             return health;
         },
         isViable: async () => {
             const result = await isVoiceSystemViable();
             if (result.viable) {
-                if (import.meta.env.DEV) console.log('✅ Voice system is viable');
+                logger.info('Voice system is viable', undefined, 'VoiceCoreIntegration');
             } else {
-                if (import.meta.env.DEV) console.log(`❌ Voice system NOT viable: ${result.reason}`);
+                logger.warn(`Voice system NOT viable: ${result.reason}`, undefined, 'VoiceCoreIntegration');
             }
             return result;
         }

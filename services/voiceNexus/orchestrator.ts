@@ -126,19 +126,19 @@ export class VoiceNexusOrchestrator {
     private selectSTTProvider(): STTProvider {
         // If browser is explicitly requested, use it
         if (this.config.sttProvider === 'browser') {
-            if (import.meta.env.DEV) console.log('VoiceNexus: Using browser STT (configured)');
+            logger.debug('Using browser STT (configured)', undefined, 'VoiceOrchestrator');
             return browserSTT;
         }
 
         // If Gemini is requested and available, use it
         if (this.config.sttProvider === 'gemini' && geminiLiveSTT.isAvailable()) {
-            if (import.meta.env.DEV) console.log('VoiceNexus: Using Gemini Live STT');
+            logger.debug('Using Gemini Live STT', undefined, 'VoiceOrchestrator');
             return geminiLiveSTT;
         }
 
         // Fallback to browser STT
         if (browserSTT.isAvailable()) {
-            if (import.meta.env.DEV) console.log('VoiceNexus: Falling back to browser STT');
+            logger.debug('Falling back to browser STT', undefined, 'VoiceOrchestrator');
             return browserSTT;
         }
 
@@ -237,7 +237,7 @@ export class VoiceNexusOrchestrator {
             const complexityResult = analyzeComplexity(text);
             this.state.lastComplexityScore = complexityResult.score;
 
-            if (import.meta.env.DEV) console.log(`VoiceNexus: ${formatComplexityResult(complexityResult)}`);
+            logger.debug(formatComplexityResult(complexityResult), undefined, 'VoiceOrchestrator');
 
             // 2. Check for explicit overrides
             const override = hasExplicitOverride(text);
@@ -354,7 +354,7 @@ export class VoiceNexusOrchestrator {
      */
     async logHealthReport(): Promise<void> {
         const health = await checkVoiceSystemHealth();
-        console.log(formatHealthReport(health));
+        logger.info(formatHealthReport(health), undefined, 'VoiceOrchestrator');
     }
 
     /**
@@ -379,7 +379,7 @@ export class VoiceNexusOrchestrator {
             tools: this.buildTools(),
             callbacks: {
                 onopen: () => {
-                    if (import.meta.env.DEV) console.log('VoiceNexus: Realtime session connected');
+                    logger.debug('Realtime session connected', undefined, 'VoiceOrchestrator');
                 },
                 onmessage: async (message: LiveServerMessage) => {
                     await this.handleRealtimeMessage(message);
@@ -396,7 +396,7 @@ export class VoiceNexusOrchestrator {
 
         // Set up agent switch handler
         liveSession.onAgentSwitch = (agentName: string) => {
-            if (import.meta.env.DEV) console.log(`VoiceNexus: Switching to agent ${agentName}`);
+            logger.debug(`Switching to agent ${agentName}`, undefined, 'VoiceOrchestrator');
             // Agent switch is handled by VoiceManager in the component layer
         };
     }
@@ -407,7 +407,7 @@ export class VoiceNexusOrchestrator {
     private async startHybridMode(): Promise<void> {
         // Check if we should use browser STT instead
         if (this.isUsingBrowserSTT()) {
-            if (import.meta.env.DEV) console.log('VoiceNexus: Using browser STT for hybrid mode');
+            logger.debug('Using browser STT for hybrid mode', undefined, 'VoiceOrchestrator');
             await this.startBrowserMode();
             return;
         }
@@ -423,7 +423,7 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
             tools: this.buildTools(),
             callbacks: {
                 onopen: () => {
-                    if (import.meta.env.DEV) console.log('VoiceNexus: Hybrid session connected');
+                    logger.debug('Hybrid session connected', undefined, 'VoiceOrchestrator');
                 },
                 onmessage: async (message: LiveServerMessage) => {
                     await this.handleHybridMessage(message);
@@ -448,7 +448,7 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
             throw new Error('Browser STT (Web Speech API) is not available in this browser');
         }
 
-        if (import.meta.env.DEV) console.log('VoiceNexus: Starting browser STT mode');
+        logger.debug('Starting browser STT mode', undefined, 'VoiceOrchestrator');
         this.state.currentProvider.stt = 'browser';
         this.events.onProviderSwitch?.({ stt: 'browser' });
 
@@ -608,7 +608,7 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
             const intent = await interpretIntent(text);
             if (!intent || !intent.action) return;
 
-            console.log('[VoiceNexus] Analyzed Intent:', intent);
+            logger.debug('Analyzed intent', intent, 'VoiceOrchestrator');
 
             if (intent.action === 'NAVIGATE' && intent.target) {
                 await this.toolHandler('navigate', { destination: intent.target });
@@ -895,7 +895,7 @@ ${agent.expertise?.length ? `## Expertise Areas\n${agent.expertise.join(', ')}` 
             if (lastTranscripts.length > 0) {
                 // Load last 10 transcripts as context
                 const recentContext = lastTranscripts.slice(-10);
-                console.log(`[VoiceNexus] Loaded ${recentContext.length} transcripts from previous session`);
+                logger.debug(`Loaded ${recentContext.length} transcripts from previous session`, undefined, 'VoiceOrchestrator');
                 // Store as context but don't add to current transcripts
                 this.state.knowledgeContext = {
                     previousSession: recentContext,

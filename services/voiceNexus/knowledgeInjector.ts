@@ -9,6 +9,7 @@ import type { HiveAgent } from '../../types/domain/agents';
 import type { KnowledgeContext, KnowledgeInjectorConfig } from './types';
 import { AgentCoreClient } from '../../libs/agent-core-sdk/src/client';
 import type { SearchResult, Finding } from '../../libs/agent-core-sdk/src/types';
+import { logger } from '../logger';
 
 // Default configuration
 const DEFAULT_CONFIG: KnowledgeInjectorConfig = {
@@ -79,12 +80,10 @@ class KnowledgeInjector {
             );
 
             // Debug logging for knowledge injection
-            if (import.meta.env.DEV) {
-                console.log('[KnowledgeInjector] Query:', query);
-                console.log('[KnowledgeInjector] Found:', searchResults.length, 'search results,', findings?.length || 0, 'findings');
-                if (searchResults.length > 0) {
-                    console.log('[KnowledgeInjector] Top result:', searchResults[0].content?.substring(0, 100) + '...');
-                }
+            logger.debug('Query: ' + query, undefined, 'KnowledgeInjector');
+            logger.debug(`Found ${searchResults.length} search results, ${findings?.length || 0} findings`, undefined, 'KnowledgeInjector');
+            if (searchResults.length > 0) {
+                logger.debug('Top result: ' + searchResults[0].content?.substring(0, 100) + '...', undefined, 'KnowledgeInjector');
             }
 
             return {
@@ -94,7 +93,7 @@ class KnowledgeInjector {
                 injectedPrompt,
             };
         } catch (error) {
-            console.warn('Knowledge injection failed, using minimal context:', error);
+            logger.warn('Knowledge injection failed, using minimal context', error, 'KnowledgeInjector');
             return {
                 searchResults: [],
                 injectedPrompt: this.buildMinimalPrompt(query, agent),
@@ -224,7 +223,7 @@ USER QUERY: ${query}
         try {
             await this.client.logInsight(content, type, ['voice-nexus', 'auto-captured']);
         } catch (error) {
-            console.warn('Failed to log insight:', error);
+            logger.warn('Failed to log insight', error, 'KnowledgeInjector');
         }
     }
 

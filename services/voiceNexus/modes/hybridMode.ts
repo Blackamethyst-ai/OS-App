@@ -11,6 +11,7 @@ import type { ModeHandler, ModeContext } from './types';
 import type { LiveServerMessage } from '@google/genai';
 import { liveSession } from '../../liveSession';
 import { geminiLiveSTT } from '../providers/stt/geminiLive';
+import { logger } from '../../logger';
 
 class HybridModeHandler implements ModeHandler {
     readonly name = 'hybrid';
@@ -41,9 +42,7 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
             tools: context.buildTools(),
             callbacks: {
                 onopen: () => {
-                    if (import.meta.env.DEV) {
-                        console.log('VoiceNexus [Hybrid]: Session connected');
-                    }
+                    logger.info('Session connected', undefined, 'HybridMode');
                 },
                 onmessage: async (message: LiveServerMessage) => {
                     await this.handleMessage(message, context);
@@ -84,7 +83,7 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
             try {
                 await context.processText(inputTranscript);
             } catch (error) {
-                console.error('VoiceNexus [Hybrid]: Error processing message:', error);
+                logger.error('Error processing message', error, 'HybridMode');
                 context.events.onError?.(
                     error instanceof Error ? error : new Error(String(error))
                 );
