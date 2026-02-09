@@ -17,6 +17,7 @@ import {
   AUIEvent,
   AUIEventType,
 } from './types';
+import { logger } from '../logger';
 
 // ============================================================================
 // CONFIGURATION
@@ -119,7 +120,7 @@ class DOMRegeneratorService {
 
       return { success: true, latencyMs: latency };
     } catch (error: any) {
-      console.error('DOM_REGEN: Morph failed', error);
+      logger.error('Morph failed', error, 'DOM_REGEN');
       return { success: false, reason: error.message };
     } finally {
       this.isTransitioning = false;
@@ -368,7 +369,7 @@ class DOMRegeneratorService {
     const Component = this.componentRegistry.get(spec.type);
 
     if (!Component) {
-      console.warn(`DOM_REGEN: Component '${spec.type}' not registered`);
+      logger.warn(`Component '${spec.type}' not registered`, undefined, 'DOM_REGEN');
       return null;
     }
 
@@ -533,7 +534,7 @@ class DOMRegeneratorService {
       try {
         handler(event);
       } catch (e) {
-        console.error('DOM_REGEN: Event handler error', e);
+        logger.error('Event handler error', e, 'DOM_REGEN');
       }
     });
   }

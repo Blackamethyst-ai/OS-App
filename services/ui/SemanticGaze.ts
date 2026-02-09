@@ -22,6 +22,7 @@ import {
   GazeSemanticContext,
   GazePattern,
 } from './types';
+import { logger } from '../logger';
 
 // ============================================================================
 // CONFIGURATION
@@ -93,7 +94,7 @@ class SemanticGazeAnalyzer {
       const dataUrl = canvas.toDataURL('image/jpeg', CONFIG.screenshotQuality);
       return dataUrl.split(',')[1]; // Remove data:image/jpeg;base64, prefix
     } catch (error) {
-      console.error('SEMANTIC_GAZE: Screenshot capture failed', error);
+      logger.error('Screenshot capture failed', error, 'SEMANTIC_GAZE');
       return null;
     }
   }
@@ -318,7 +319,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
       // If parsing failed, fall back to DOM
       return this.analyzeFromDOM(gazeX, gazeY);
     } catch (error) {
-      console.error('SEMANTIC_GAZE: VLM analysis failed', error);
+      logger.error('VLM analysis failed', error, 'SEMANTIC_GAZE');
       return this.analyzeFromDOM(gazeX, gazeY);
     }
   }
@@ -358,7 +359,7 @@ Respond ONLY with valid JSON (no markdown, no explanation):
         contextualImportance: Math.max(0, Math.min(100, parsed.contextualImportance || 50)),
       };
     } catch (error) {
-      console.error('SEMANTIC_GAZE: Failed to parse VLM response', error);
+      logger.error('Failed to parse VLM response', error, 'SEMANTIC_GAZE');
       return null;
     }
   }

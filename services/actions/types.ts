@@ -2,7 +2,7 @@
  * ACTION REGISTRY TYPES
  *
  * Unified type definitions for the action registry system.
- * Consolidates types from componentActionRegistry, voiceActionRegistry, and unifiedActionRegistry.
+ * Unified type definitions for the action registry system.
  */
 
 import { AppMode } from '../../types';

@@ -3,6 +3,7 @@ import { OS_TOOLS } from './toolRegistry';
 import { neuralVault } from './persistenceService';
 import { useAppStore } from '../store';
 import { validateAndSanitize } from '../utils/validateToolCode';
+import { logger } from './logger';
 // Unified capability registry (replacing unifiedActionRegistry)
 import {
     registerDynamicCapability,
@@ -41,7 +42,7 @@ export class DynamicToolRegistry {
                     // SECURITY: Validate code before execution
                     const validation = validateAndSanitize(tool.code);
                     if (!validation.valid) {
-                        console.error(`[DynamicToolRegistry] SECURITY_BLOCK: ${tool.id}`, validation.errors);
+                        logger.error(`SECURITY_BLOCK: ${tool.id}`, validation.errors, 'DynamicToolRegistry');
                         return {
                             toolName: tool.id,
                             status: 'ERROR',
@@ -79,7 +80,7 @@ export class DynamicToolRegistry {
                         uiHint: 'MESSAGE'
                     };
                 } catch (e: any) {
-                    console.error(`[DynamicToolRegistry] Fault in ${tool.id}:`, e);
+                    logger.error(`Fault in ${tool.id}`, e, 'DynamicToolRegistry');
                     return {
                         toolName: tool.id,
                         status: 'ERROR',
@@ -129,7 +130,7 @@ export class DynamicToolRegistry {
 
         // 3. Legacy Fallback (DEPRECATED - all tools should be in unified registry)
         if ((OS_TOOLS as any)[name]) {
-            console.warn(`[DynamicToolRegistry] DEPRECATED: Tool "${name}" using legacy OS_TOOLS fallback. Migrate to unified registry.`);
+            logger.warn(`DEPRECATED: Tool "${name}" using legacy OS_TOOLS fallback. Migrate to unified registry.`, undefined, 'DynamicToolRegistry');
             return (OS_TOOLS as any)[name](args);
         }
         throw new Error(`Protocol [${name}] unreachable.`);
@@ -143,7 +144,7 @@ export class DynamicToolRegistry {
         // SECURITY: Validate before saving
         const validation = validateAndSanitize(code);
         if (!validation.valid) {
-            console.error(`[DynamicToolRegistry] FORGE_BLOCKED: ${id}`, validation.errors);
+            logger.error(`FORGE_BLOCKED: ${id}`, validation.errors, 'DynamicToolRegistry');
             useAppStore.getState().actions.addLog('ERROR', `TOOL_FORGE_BLOCKED: [${id}] contains forbidden patterns.`);
             return { success: false, errors: validation.errors };
         }

@@ -8,6 +8,7 @@
 import type { ReasoningProvider, ReasoningConfig, ReasoningResult } from '../../types';
 import { getAI, SOVEREIGN_SYSTEM_INSTRUCTION } from '../../../geminiService';
 import { apiKeyService } from '../../../apiKeyService';
+import { logger } from '../../../logger';
 
 // Model mappings for each tier
 const GEMINI_MODELS = {
@@ -77,7 +78,7 @@ class GeminiReasoningProvider implements ReasoningProvider {
             try {
                 response = await retryGeminiRequest(() => executeRequest(modelName));
             } catch (primaryError) {
-                console.warn(`Gemini primary model (${modelName}) failed, trying Flash fallback...`, primaryError);
+                logger.warn(`Gemini primary model (${modelName}) failed, trying Flash fallback...`, primaryError, 'GeminiReasoning');
                 // Fallback to Flash for reliability
                 modelName = 'gemini-1.5-flash';
                 response = await retryGeminiRequest(() => executeRequest(modelName));
@@ -94,7 +95,7 @@ class GeminiReasoningProvider implements ReasoningProvider {
                 outputTokens: response.usageMetadata?.candidatesTokenCount,
             };
         } catch (error) {
-            console.error('Gemini reasoning failed:', error);
+            logger.error('Gemini reasoning failed', error, 'GeminiReasoning');
             throw error;
         }
     }
@@ -135,7 +136,7 @@ class GeminiReasoningProvider implements ReasoningProvider {
                 outputTokens: response.usageMetadata?.candidatesTokenCount,
             };
         } catch (error) {
-            console.error('Gemini grounded generation failed:', error);
+            logger.error('Gemini grounded generation failed', error, 'GeminiReasoning');
             throw error;
         }
     }

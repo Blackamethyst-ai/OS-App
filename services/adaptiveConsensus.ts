@@ -15,6 +15,7 @@
 
 import { Schema, Type, GenerateContentResponse } from "@google/genai";
 import { AtomicTask, SwarmResult, HiveAgent } from '../types';
+import { logger } from './logger';
 import {
     ACEConfig,
     ACEStatus,
@@ -286,7 +287,7 @@ export async function adaptiveConsensusEngine(
                         await convergenceMemory.storePattern(pattern);
                         patternStored = true;
                     } catch (e) {
-                        console.warn('[ACE] Failed to store convergence pattern:', e);
+                        logger.warn('Failed to store convergence pattern', e, 'ACE');
                     }
                 }
 
@@ -331,7 +332,7 @@ export async function adaptiveConsensusEngine(
             }
         } catch (e) {
             killedAgents++;
-            console.warn(`[ACE] Round ${rounds} failed for agent ${currentAgentId}:`, e);
+            logger.warn(`Round ${rounds} failed for agent ${currentAgentId}`, e, 'ACE');
         }
 
         await new Promise(r => setTimeout(r, 150)); // Slightly faster inter-round delay

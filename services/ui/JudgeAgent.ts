@@ -16,6 +16,7 @@ import {
   AUIEvent,
   AUIEventType,
 } from './types';
+import { logger } from '../logger';
 
 // ============================================================================
 // CONFIGURATION
@@ -70,7 +71,7 @@ class JudgeAgentService {
 
       return evaluation;
     } catch (error: any) {
-      console.error('JUDGE: Evaluation failed', error);
+      logger.error('Evaluation failed', error, 'JUDGE');
       return this.getFallbackEvaluation(layout);
     }
   }
@@ -103,7 +104,7 @@ class JudgeAgentService {
       const result = safeParseJson<Partial<UIEvaluation>>(response.text);
       return this.validateAndComplete(result, layout);
     } catch (error) {
-      console.warn('JUDGE: LLM evaluation failed, using rule-based', error);
+      logger.warn('LLM evaluation failed, using rule-based', error, 'JUDGE');
       return this.ruleBasedEvaluation(layout, context);
     }
   }
@@ -445,7 +446,7 @@ Always respond with valid JSON. Be specific with improvement suggestions.`;
       try {
         handler(event);
       } catch (e) {
-        console.error('JUDGE: Event handler error', e);
+        logger.error('Event handler error', e, 'JUDGE');
       }
     });
   }

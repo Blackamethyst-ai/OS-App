@@ -9,6 +9,7 @@
  */
 
 import { apiKeyService } from './apiKeyService';
+import { logger } from './logger';
 
 const INFRACOST_API_URL = 'https://pricing.api.infracost.io/graphql';
 
@@ -159,7 +160,7 @@ async function getAwsPricing(instanceTypes: string[], region: string = 'us-east-
                 });
             }
         } catch (error) {
-            console.warn(`[Infracost] Failed to get AWS pricing for ${instanceType}:`, error);
+            logger.warn(`Failed to get AWS pricing for ${instanceType}`, error, 'Infracost');
         }
     }
 
@@ -216,7 +217,7 @@ async function getGcpPricing(machineTypes: string[], region: string = 'us-centra
                 });
             }
         } catch (error) {
-            console.warn(`[Infracost] Failed to get GCP pricing for ${machineType}:`, error);
+            logger.warn(`Failed to get GCP pricing for ${machineType}`, error, 'Infracost');
         }
     }
 
@@ -328,7 +329,7 @@ export async function getCloudGpuPricing(
 
         return result;
     } catch (error) {
-        console.error('[Infracost] Error fetching cloud pricing:', error);
+        logger.error('Error fetching cloud pricing', error, 'Infracost');
         return getStaticPricing(gpuModel);
     }
 }

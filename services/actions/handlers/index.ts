@@ -22,7 +22,7 @@ export { SOVEREIGN_ACTIONS } from './sovereign';
 /**
  * All consolidated actions from handlers.
  * These are the core actions that were previously split across
- * componentActionRegistry and voiceActionRegistry.
+ * the legacy component and voice action registries.
  */
 export const ALL_HANDLER_ACTIONS: UnifiedAction[] = [
   ...NAVIGATION_ACTIONS,

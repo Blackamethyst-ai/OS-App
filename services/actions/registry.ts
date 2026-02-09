@@ -2,7 +2,7 @@
  * UNIFIED ACTION REGISTRY
  *
  * Single source of truth for ALL voice-controllable actions.
- * Consolidates: componentActionRegistry + voiceActionRegistry
+ * Consolidates all voice-controllable actions into a single registry.
  *
  * Architecture:
  * - Types: ./types.ts

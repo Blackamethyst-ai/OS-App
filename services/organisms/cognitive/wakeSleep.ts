@@ -21,6 +21,7 @@ import type {
   DQScore,
   SubsystemType,
 } from '../../archon/types';
+import { logger } from '../../logger';
 
 // =============================================================================
 // TYPES
@@ -421,7 +422,7 @@ export class WakeSleepAgent {
    */
   async processTask(task: OrganismTask): Promise<void> {
     if (this.currentPhase !== 'wake') {
-      console.warn('[WakeSleepAgent] Cannot process task during sleep phase');
+      logger.warn('Cannot process task during sleep phase', undefined, 'WakeSleepAgent');
       return;
     }
 
@@ -638,7 +639,7 @@ export class WakeSleepAgent {
    */
   async triggerSleep(reason: SleepTrigger): Promise<void> {
     if (this.currentPhase !== 'wake') {
-      console.warn('[WakeSleepAgent] Already in sleep phase');
+      logger.warn('Already in sleep phase', undefined, 'WakeSleepAgent');
       return;
     }
 
@@ -819,7 +820,7 @@ export class WakeSleepAgent {
 
       return true;
     } catch (error) {
-      console.error('[WakeSleepAgent] Consolidation error:', error);
+      logger.error('Consolidation error', error, 'WakeSleepAgent');
       return false;
     }
   }

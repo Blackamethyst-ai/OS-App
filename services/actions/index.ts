@@ -75,7 +75,7 @@ export {
     markInitialized,
 } from './registry';
 
-// Handler Actions (consolidated from componentActionRegistry + voiceActionRegistry)
+// Handler Actions (consolidated from legacy registries)
 export {
     ALL_HANDLER_ACTIONS,
     NAVIGATION_ACTIONS,

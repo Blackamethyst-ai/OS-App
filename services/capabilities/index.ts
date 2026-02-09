@@ -197,6 +197,8 @@ export {
 // Initialization
 // ============================================================================
 
+import { logger } from '../logger';
+
 let initPromise: Promise<void> | null = null;
 
 /**
@@ -229,7 +231,7 @@ export async function initializeCapabilities(): Promise<void> {
       const { loadTabCapabilities } = await import('./providers/tabs');
       loadTabCapabilities();
     } catch (error) {
-      console.warn('[CapabilityRegistry] Failed to load tab capabilities:', error);
+      logger.warn('Failed to load tab capabilities', error, 'CapabilityRegistry');
     }
 
     try {
@@ -237,7 +239,7 @@ export async function initializeCapabilities(): Promise<void> {
       const { loadActionCapabilities } = await import('./providers/actions');
       loadActionCapabilities();
     } catch (error) {
-      console.warn('[CapabilityRegistry] Failed to load action capabilities:', error);
+      logger.warn('Failed to load action capabilities', error, 'CapabilityRegistry');
     }
 
     try {
@@ -245,7 +247,7 @@ export async function initializeCapabilities(): Promise<void> {
       const { loadUICapabilities } = await import('./providers/ui');
       loadUICapabilities();
     } catch (error) {
-      console.warn('[CapabilityRegistry] Failed to load UI capabilities:', error);
+      logger.warn('Failed to load UI capabilities', error, 'CapabilityRegistry');
     }
 
     try {
@@ -253,7 +255,7 @@ export async function initializeCapabilities(): Promise<void> {
       const { syncFromDynamicToolRegistry } = await import('./providers/dynamic');
       await syncFromDynamicToolRegistry();
     } catch (error) {
-      console.warn('[CapabilityRegistry] Failed to sync dynamic tools:', error);
+      logger.warn('Failed to sync dynamic tools', error, 'CapabilityRegistry');
     }
 
     markInitialized();

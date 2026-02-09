@@ -5,6 +5,7 @@ import {
 } from '../adaptiveConsensus';
 import { AtomicTask } from '../../types';
 import { ACEStatus, ACEConfig, DEFAULT_ACE_CONFIG } from '../../types/domain/convergence';
+import { logger } from '../logger';
 
 // Mock all dependencies
 vi.mock('../geminiService', () => ({
@@ -544,7 +545,7 @@ describe('Adaptive Consensus Engine', () => {
     describe('Pattern Storage', () => {
         it('should handle pattern storage failure gracefully', async () => {
             const { convergenceMemory } = await import('../convergenceMemory');
-            const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+            const loggerSpy = vi.spyOn(logger, 'warn').mockImplementation(() => {});
 
             // Mock pattern storage to fail
             vi.mocked(convergenceMemory.storePattern).mockRejectedValue(
@@ -578,12 +579,13 @@ describe('Adaptive Consensus Engine', () => {
             // Should complete despite storage failure
             expect(result.output).toBe('Winner');
             expect(result.patternStored).toBe(false);
-            expect(consoleSpy).toHaveBeenCalledWith(
-                expect.stringContaining('[ACE] Failed to store convergence pattern:'),
-                expect.any(Error)
+            expect(loggerSpy).toHaveBeenCalledWith(
+                expect.stringContaining('Failed to store convergence pattern'),
+                expect.any(Error),
+                'ACE'
             );
 
-            consoleSpy.mockRestore();
+            loggerSpy.mockRestore();
         });
     });
 
