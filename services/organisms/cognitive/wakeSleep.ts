@@ -407,7 +407,7 @@ export class WakeSleepAgent {
     this.phaseStartTime = Date.now();
     this.metrics.currentPhase = 'wake';
 
-    console.log('[WakeSleepAgent] Wake phase started');
+    logger.info('Wake phase started', undefined, 'WakeSleep');
     this.onPhaseChange?.('wake');
 
     // Schedule automatic sleep if enabled
@@ -648,7 +648,7 @@ export class WakeSleepAgent {
     this.metrics.totalWakeTimeMs += wakeTime;
     this.metrics.lastSleepTrigger = reason;
 
-    console.log(`[WakeSleepAgent] Sleep triggered: ${reason}`);
+    logger.info(`Sleep triggered: ${reason}`, undefined, 'WakeSleep');
 
     // Clear scheduled sleep
     if (this.sleepTimer) {
@@ -685,7 +685,7 @@ export class WakeSleepAgent {
     this.phaseStartTime = startTime;
     this.metrics.currentPhase = 'nrem';
 
-    console.log('[WakeSleepAgent] NREM phase started (consolidation)');
+    logger.info('NREM phase started (consolidation)', undefined, 'WakeSleep');
     this.onPhaseChange?.('nrem');
 
     const result: ConsolidationResult = {
@@ -999,7 +999,7 @@ export class WakeSleepAgent {
     this.phaseStartTime = startTime;
     this.metrics.currentPhase = 'rem';
 
-    console.log('[WakeSleepAgent] REM phase started (dreaming)');
+    logger.info('REM phase started (dreaming)', undefined, 'WakeSleep');
     this.onPhaseChange?.('rem');
 
     const result: DreamResult = {

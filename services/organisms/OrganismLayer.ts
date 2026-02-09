@@ -21,6 +21,7 @@ import type {
   SubsystemStatus,
   DQScore,
 } from '../archon/types';
+import { logger } from '../logger';
 
 // =============================================================================
 // ABSTRACT BASE CLASS
@@ -62,15 +63,15 @@ export abstract class AbstractOrganismLayer implements OrganismLayer {
 
   async initialize(): Promise<void> {
     if (this.initialized) {
-      console.warn(`${this.name} already initialized`);
+      logger.warn(`${this.name} already initialized`, undefined, 'OrganismLayer');
       return;
     }
 
-    console.log(`Initializing ${this.name}...`);
+    logger.info(`Initializing ${this.name}`, undefined, 'OrganismLayer');
     await this.onInitialize();
     this.initialized = true;
     this.status = 'idle';
-    console.log(`${this.name} initialized`);
+    logger.info(`${this.name} initialized`, undefined, 'OrganismLayer');
   }
 
   async shutdown(): Promise<void> {
@@ -78,11 +79,11 @@ export abstract class AbstractOrganismLayer implements OrganismLayer {
       return;
     }
 
-    console.log(`Shutting down ${this.name}...`);
+    logger.info(`Shutting down ${this.name}`, undefined, 'OrganismLayer');
     await this.onShutdown();
     this.initialized = false;
     this.status = 'disabled';
-    console.log(`${this.name} shutdown complete`);
+    logger.info(`${this.name} shutdown complete`, undefined, 'OrganismLayer');
   }
 
   /**

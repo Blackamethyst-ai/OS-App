@@ -165,7 +165,7 @@ export class BiometricHooks {
       return;
     }
 
-    console.log('[BiometricHooks] Registering organism layers with biometric event bus');
+    logger.info('Registering organism layers with biometric event bus', undefined, 'BiometricHooks');
 
     // Create event handler for biometric-update events from BiometricProcessor
     this.biometricEventHandler = (event: Event) => {
@@ -187,7 +187,7 @@ export class BiometricHooks {
     this.eventListener = this.onBiometricUpdate.bind(this);
 
     this.state.registered = true;
-    console.log('[BiometricHooks] Registration complete');
+    logger.info('Registration complete', undefined, 'BiometricHooks');
   }
 
   /**
@@ -198,7 +198,7 @@ export class BiometricHooks {
       return;
     }
 
-    console.log('[BiometricHooks] Unregistering organism layers');
+    logger.info('Unregistering organism layers', undefined, 'BiometricHooks');
 
     // Remove window event listeners
     if (typeof window !== 'undefined' && this.biometricEventHandler) {
@@ -214,7 +214,7 @@ export class BiometricHooks {
     this.eventListener = undefined;
     this.biometricEventHandler = undefined;
     this.state.registered = false;
-    console.log('[BiometricHooks] Unregistration complete');
+    logger.info('Unregistration complete', undefined, 'BiometricHooks');
   }
 
   // ---------------------------------------------------------------------------
@@ -327,7 +327,7 @@ export class BiometricHooks {
     to: BiometricHooksState['mode'],
     context: BiometricContext
   ): void {
-    console.log(`[BiometricHooks] Mode transition: ${from} -> ${to}`);
+    logger.info(`Mode transition: ${from} -> ${to}`, undefined, 'BiometricHooks');
 
     // Exit previous mode
     switch (from) {
@@ -380,8 +380,10 @@ export class BiometricHooks {
       return;
     }
 
-    console.log(
-      `[BiometricHooks] Adjusting swarm behavior for stress: ${stressLevel.toFixed(2)}`
+    logger.info(
+      `Adjusting swarm behavior for stress: ${stressLevel.toFixed(2)}`,
+      undefined,
+      'BiometricHooks'
     );
 
     // Save original settings
@@ -415,8 +417,10 @@ export class BiometricHooks {
       loadBalanceWeight: newLoadBalanceWeight,
     });
 
-    console.log(
-      `[BiometricHooks] Swarm adjusted: temp=${newTemperature.toFixed(2)}, topK=${newTopK}, loadBalance=${newLoadBalanceWeight.toFixed(2)}`
+    logger.debug(
+      `Swarm adjusted: temp=${newTemperature.toFixed(2)}, topK=${newTopK}, loadBalance=${newLoadBalanceWeight.toFixed(2)}`,
+      undefined,
+      'BiometricHooks'
     );
 
     // Emit event for UI updates
@@ -439,7 +443,7 @@ export class BiometricHooks {
       return;
     }
 
-    console.log('[BiometricHooks] Restoring normal swarm behavior');
+    logger.info('Restoring normal swarm behavior', undefined, 'BiometricHooks');
 
     // Restore original settings if saved
     if (
@@ -470,7 +474,7 @@ export class BiometricHooks {
    */
   triggerConsolidation(activityLevel: number): void {
     if (!this.config.autoConsolidation) {
-      console.log('[BiometricHooks] Auto-consolidation disabled');
+      logger.debug('Auto-consolidation disabled', undefined, 'BiometricHooks');
       return;
     }
 
@@ -479,8 +483,10 @@ export class BiometricHooks {
     const timeSinceLastTrigger = now - this.state.lastConsolidationTrigger;
 
     if (timeSinceLastTrigger < this.config.consolidationCooldownMs) {
-      console.log(
-        `[BiometricHooks] Consolidation on cooldown (${Math.round((this.config.consolidationCooldownMs - timeSinceLastTrigger) / 1000)}s remaining)`
+      logger.debug(
+        `Consolidation on cooldown (${Math.round((this.config.consolidationCooldownMs - timeSinceLastTrigger) / 1000)}s remaining)`,
+        undefined,
+        'BiometricHooks'
       );
       return;
     }
@@ -488,21 +494,25 @@ export class BiometricHooks {
     // Check if wake/sleep agent is already in sleep phase
     const currentPhase = wakeSleepAgent.getCurrentPhase();
     if (currentPhase !== 'wake') {
-      console.log(`[BiometricHooks] Already in ${currentPhase} phase, skipping trigger`);
+      logger.debug(`Already in ${currentPhase} phase, skipping trigger`, undefined, 'BiometricHooks');
       return;
     }
 
     // Check if there are enough episodes to consolidate
     const metrics = wakeSleepAgent.getCycleMetrics();
     if (metrics.episodeBufferSize < 5) {
-      console.log(
-        `[BiometricHooks] Not enough episodes for consolidation (${metrics.episodeBufferSize}/5)`
+      logger.debug(
+        `Not enough episodes for consolidation (${metrics.episodeBufferSize}/5)`,
+        undefined,
+        'BiometricHooks'
       );
       return;
     }
 
-    console.log(
-      `[BiometricHooks] Triggering consolidation (activity=${activityLevel.toFixed(2)}, episodes=${metrics.episodeBufferSize})`
+    logger.info(
+      `Triggering consolidation (activity=${activityLevel.toFixed(2)}, episodes=${metrics.episodeBufferSize})`,
+      undefined,
+      'BiometricHooks'
     );
 
     // Update last trigger time

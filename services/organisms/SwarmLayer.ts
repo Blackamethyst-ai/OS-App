@@ -20,6 +20,7 @@ import type {
   DQScore,
 } from '../archon/types';
 
+import { logger } from '../logger';
 import { AbstractOrganismLayer, organismRegistry } from './OrganismLayer';
 import { adaptiveMoE, type ExpertSpec, type ExpertValidator } from './swarm/adaptiveMoE';
 import { stigmergicEnvironment } from './swarm/stigmergy';
@@ -70,11 +71,11 @@ export class SwarmLayer extends AbstractOrganismLayer {
   protected async onInitialize(): Promise<void> {
     // Connect ACE integration
     this.ace.connectToACE();
-    console.log(`${this.name}: Swarm components initialized`);
+    logger.info('Swarm components initialized', undefined, 'SwarmLayer');
   }
 
   protected async onShutdown(): Promise<void> {
-    console.log(`${this.name}: Swarm components shutdown`);
+    logger.info('Swarm components shutdown', undefined, 'SwarmLayer');
   }
 
   // ---------------------------------------------------------------------------

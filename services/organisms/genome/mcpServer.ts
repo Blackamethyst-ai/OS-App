@@ -28,6 +28,7 @@ import type {
   JSONSchema,
 } from './types';
 import { skillGenomeCodec } from './codec';
+import { logger } from '../../logger';
 
 // =============================================================================
 // MCP SERVER INTERFACES
@@ -200,9 +201,7 @@ export class MCPSkillServer {
     // Store in registry
     this.registry.set(skill.id, registration);
 
-    console.log(
-      `[MCPSkillServer] Registered skill: ${skill.name} (${skill.id})`
-    );
+    logger.info(`Registered skill: ${skill.name} (${skill.id})`, undefined, 'MCPServer');
 
     return mcpResource;
   }
@@ -218,7 +217,7 @@ export class MCPSkillServer {
     this.registry.delete(skillId);
 
     if (existed) {
-      console.log(`[MCPSkillServer] Unregistered skill: ${skillId}`);
+      logger.info(`Unregistered skill: ${skillId}`, undefined, 'MCPServer');
     }
 
     return existed;

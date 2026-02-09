@@ -20,6 +20,7 @@ import type {
   SubsystemType,
 } from '../archon/types';
 
+import { logger } from '../logger';
 import { AbstractOrganismLayer, organismRegistry } from './OrganismLayer';
 import { skillGenomeCodec } from './genome/codec';
 import { mcpSkillServer } from './genome/mcpServer';
@@ -83,7 +84,7 @@ export class GenomeLayer extends AbstractOrganismLayer {
     if (this.skillRegistry instanceof SupabaseSkillRegistry) {
       const count = await this.skillRegistry.hydrate();
       if (count > 0) {
-        console.log(`${this.name}: Hydrated ${count} skills from Supabase`);
+        logger.info(`Hydrated ${count} skills from Supabase`, undefined, 'GenomeLayer');
 
         // Re-register hydrated skills with MCP server
         const skills = this.skillRegistry.getAll();
@@ -99,15 +100,15 @@ export class GenomeLayer extends AbstractOrganismLayer {
     // Register seed skills (skips if already present)
     const seedResult = registerSeedSkills(this.skillRegistry, this.mcpServer);
     if (seedResult.registered > 0) {
-      console.log(`${this.name}: Registered ${seedResult.registered} seed skills`);
+      logger.info(`Registered ${seedResult.registered} seed skills`, undefined, 'GenomeLayer');
       await this.bridgeSkillsToCapabilities();
     }
 
-    console.log(`${this.name}: Genome components initialized`);
+    logger.info('Genome components initialized', undefined, 'GenomeLayer');
   }
 
   protected async onShutdown(): Promise<void> {
-    console.log(`${this.name}: Genome components shutdown`);
+    logger.info('Genome components shutdown', undefined, 'GenomeLayer');
   }
 
   // ---------------------------------------------------------------------------
@@ -261,7 +262,7 @@ export class GenomeLayer extends AbstractOrganismLayer {
 
       // Bridge to capabilities registry (non-blocking, errors logged)
       this.bridgeSkillToCapability(skill).catch((err) => {
-        console.error(`[GenomeLayer] Failed to bridge skill ${skill.id} to capabilities:`, err);
+        logger.error(`Failed to bridge skill ${skill.id} to capabilities`, err, 'GenomeLayer');
       });
 
       return this.createSuccessResult(
@@ -407,7 +408,7 @@ export class GenomeLayer extends AbstractOrganismLayer {
     for (const skill of skills) {
       await this.bridgeSkillToCapability(skill);
     }
-    console.log(`${this.name}: Bridged ${skills.length} skills to capabilities registry`);
+    logger.info(`Bridged ${skills.length} skills to capabilities registry`, undefined, 'GenomeLayer');
   }
 
   /**

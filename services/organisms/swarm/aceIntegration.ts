@@ -248,11 +248,11 @@ export class ACEIntegration {
     this.state.connected = true;
     this.state.lastConnected = Date.now();
 
-    console.log('[ACE-Integration] Connected to ACE', {
+    logger.info('Connected to ACE', {
       hiveAgents: Object.keys(this.hiveAgents).length,
       stigmergicConfig: this.stigmergy.getConfig(),
       moeConfig: this.moe.getConfig(),
-    });
+    }, 'ACEIntegration');
   }
 
   /**
@@ -659,12 +659,12 @@ export class ACEIntegration {
         this.state.recordingCount;
     }
 
-    console.log('[ACE-Integration] Recorded consensus', {
+    logger.debug('Recorded consensus', {
       taskId: result.taskId,
       confidence: result.confidence,
       dqScore: result.dqScore?.score,
       participants: consensusResult.participants.length,
-    });
+    }, 'ACEIntegration');
   }
 
   /**
@@ -895,7 +895,7 @@ export class ACEIntegration {
    */
   disconnect(): void {
     this.state.connected = false;
-    console.log('[ACE-Integration] Disconnected from ACE');
+    logger.info('Disconnected from ACE', undefined, 'ACEIntegration');
   }
 }
 

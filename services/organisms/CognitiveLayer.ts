@@ -19,6 +19,7 @@ import type {
   SubsystemType,
 } from '../archon/types';
 
+import { logger } from '../logger';
 import { AbstractOrganismLayer, organismRegistry } from './OrganismLayer';
 import { wakeSleepAgent, type Episode, type SleepPhase } from './cognitive/wakeSleep';
 import { simpleMem, type RawEpisode, type RetrievalQuery, type RetrievalIntent } from './cognitive/simpleMem';
@@ -71,7 +72,7 @@ export class CognitiveLayer extends AbstractOrganismLayer {
   protected async onInitialize(): Promise<void> {
     // Start in wake phase
     this.wakeSleep.startWakePhase();
-    console.log(`${this.name}: Cognitive components initialized`);
+    logger.info('Cognitive components initialized', undefined, 'CognitiveLayer');
   }
 
   protected async onShutdown(): Promise<void> {
@@ -79,7 +80,7 @@ export class CognitiveLayer extends AbstractOrganismLayer {
     if (this.wakeSleep.getCurrentPhase() === 'wake') {
       await this.wakeSleep.triggerSleep('manual');
     }
-    console.log(`${this.name}: Cognitive components shutdown`);
+    logger.info('Cognitive components shutdown', undefined, 'CognitiveLayer');
   }
 
   // ---------------------------------------------------------------------------

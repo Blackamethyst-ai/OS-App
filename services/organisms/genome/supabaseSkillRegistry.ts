@@ -116,7 +116,7 @@ export class SupabaseSkillRegistry implements SkillRegistry {
       }
 
       this.isHydrated = true;
-      console.log(`[SupabaseSkillRegistry] Hydrated ${this.skills.size} skills from Supabase`);
+      logger.info(`Hydrated ${this.skills.size} skills from Supabase`, undefined, 'SkillRegistry');
       return this.skills.size;
     } catch (err) {
       logger.error('Hydration exception', err, 'SupabaseSkillRegistry');

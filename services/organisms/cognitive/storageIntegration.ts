@@ -479,11 +479,11 @@ export class CognitiveStorageIntegration {
    */
   async initialize(): Promise<void> {
     if (this.initialized) {
-      console.log('[CognitiveStorage] Already initialized');
+      logger.debug('Already initialized', undefined, 'StorageIntegration');
       return;
     }
 
-    console.log('[CognitiveStorage] Initializing storage backends...');
+    logger.info('Initializing storage backends...', undefined, 'StorageIntegration');
 
     // Initialize API client
     this.apiClient = new AgentCoreClient({
@@ -495,7 +495,7 @@ export class CognitiveStorageIntegration {
     // Check API availability
     try {
       this.status.apiAvailable = await this.apiClient.isHealthy();
-      console.log(`[CognitiveStorage] API available: ${this.status.apiAvailable}`);
+      logger.debug(`API available: ${this.status.apiAvailable}`, undefined, 'StorageIntegration');
     } catch (error) {
       logger.warn('API not available', error, 'CognitiveStorage');
       this.status.apiAvailable = false;
@@ -509,7 +509,7 @@ export class CognitiveStorageIntegration {
     } else {
       // Fall back to memory storage in browser environment
       this.status.backend = 'memory';
-      console.log('[CognitiveStorage] Using in-memory storage (browser environment)');
+      logger.info('Using in-memory storage (browser environment)', undefined, 'StorageIntegration');
     }
 
     // Determine vector store
@@ -523,7 +523,7 @@ export class CognitiveStorageIntegration {
     this.initialized = true;
     this.status.initialized = true;
 
-    console.log(`[CognitiveStorage] Initialized with backend=${this.status.backend}, vectorStore=${this.status.vectorStore}`);
+    logger.info(`Initialized with backend=${this.status.backend}, vectorStore=${this.status.vectorStore}`, undefined, 'StorageIntegration');
   }
 
   /**
@@ -536,7 +536,7 @@ export class CognitiveStorageIntegration {
       // The API should handle table creation automatically
       // We just verify connectivity
       await this.apiClient.health();
-      console.log('[CognitiveStorage] API tables ready');
+      logger.debug('API tables ready', undefined, 'StorageIntegration');
     } catch (error) {
       logger.warn('Could not verify API tables', error, 'CognitiveStorage');
     }
@@ -572,7 +572,7 @@ export class CognitiveStorageIntegration {
       }
     }
 
-    console.log(`[CognitiveStorage] Stored episode: ${episode.id}`);
+    logger.debug(`Stored episode: ${episode.id}`, undefined, 'StorageIntegration');
     return episode.id;
   }
 
@@ -717,7 +717,7 @@ export class CognitiveStorageIntegration {
       episode.exposure_count++;
     }
 
-    console.log(`[CognitiveStorage] Stored consolidation log: ${id} for episode ${log.episodeId}`);
+    logger.debug(`Stored consolidation log: ${id} for episode ${log.episodeId}`, undefined, 'StorageIntegration');
   }
 
   // ---------------------------------------------------------------------------
@@ -769,7 +769,7 @@ export class CognitiveStorageIntegration {
     this.memorySleepMetrics.set(id, record);
     this.status.sleepMetricsCount = this.memorySleepMetrics.size;
 
-    console.log(`[CognitiveStorage] Stored sleep metrics: ${id} for cycle ${metrics.cycleId}`);
+    logger.debug(`Stored sleep metrics: ${id} for cycle ${metrics.cycleId}`, undefined, 'StorageIntegration');
   }
 
   // ---------------------------------------------------------------------------
@@ -1257,7 +1257,7 @@ export class CognitiveStorageIntegration {
     this.status.consolidationCount = this.memoryConsolidationLogs.size;
     this.status.sleepMetricsCount = this.memorySleepMetrics.size;
 
-    console.log(`[CognitiveStorage] Imported ${data.episodes?.length || 0} episodes, ${data.consolidationLogs?.length || 0} logs, ${data.sleepMetrics?.length || 0} metrics`);
+    logger.info(`Imported ${data.episodes?.length || 0} episodes, ${data.consolidationLogs?.length || 0} logs, ${data.sleepMetrics?.length || 0} metrics`, undefined, 'StorageIntegration');
   }
 
   /**
@@ -1268,7 +1268,7 @@ export class CognitiveStorageIntegration {
     this.status.episodeCount = 0;
     this.status.consolidationCount = 0;
     this.status.sleepMetricsCount = 0;
-    console.log('[CognitiveStorage] All data cleared');
+    logger.info('All data cleared', undefined, 'StorageIntegration');
   }
 }
 

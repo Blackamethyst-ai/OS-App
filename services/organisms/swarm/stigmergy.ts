@@ -27,6 +27,8 @@ import type {
   SubsystemType,
 } from '../../archon/types';
 
+import { logger } from '../../logger';
+
 // =============================================================================
 // TYPES
 // =============================================================================
@@ -441,7 +443,7 @@ export class StigmergicEnvironment {
         this.depositPatternSignal(enrichedSignal as PatternSignal);
         break;
       default:
-        console.warn(`Unknown signal type: ${(signal as StigmergicSignal).type}`);
+        logger.warn(`Unknown signal type: ${(signal as StigmergicSignal).type}`, undefined, 'Stigmergy');
         return;
     }
 

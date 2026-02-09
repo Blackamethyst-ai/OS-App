@@ -277,6 +277,7 @@ export {
 // =============================================================================
 
 // Import layer singletons for factory use
+import { logger } from '../logger';
 import { GenomeLayer, genomeLayer } from './GenomeLayer';
 import { SwarmLayer, swarmLayer } from './SwarmLayer';
 import { CognitiveLayer, cognitiveLayer } from './CognitiveLayer';
@@ -337,21 +338,21 @@ export function createLayerFactory(): LayerFactory {
     async initialize() {
       const initPromises = Array.from(layers.values()).map(layer =>
         layer.initialize().catch(err => {
-          console.error(`Failed to initialize ${layer.name}:`, err);
+          logger.error(`Failed to initialize ${layer.name}`, err, 'OrganismRegistry');
         })
       );
       await Promise.all(initPromises);
-      console.log('All organism layers initialized');
+      logger.info('All organism layers initialized', undefined, 'OrganismRegistry');
     },
 
     async shutdown() {
       const shutdownPromises = Array.from(layers.values()).map(layer =>
         layer.shutdown().catch(err => {
-          console.error(`Failed to shutdown ${layer.name}:`, err);
+          logger.error(`Failed to shutdown ${layer.name}`, err, 'OrganismRegistry');
         })
       );
       await Promise.all(shutdownPromises);
-      console.log('All organism layers shutdown');
+      logger.info('All organism layers shutdown', undefined, 'OrganismRegistry');
     },
 
     getLayer(type: 'genome' | 'swarm' | 'cognitive') {

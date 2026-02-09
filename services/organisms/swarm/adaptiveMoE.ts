@@ -24,6 +24,8 @@ import type {
   OrganismResult,
 } from '../../archon/types';
 
+import { logger } from '../../logger';
+
 // =============================================================================
 // TYPES
 // =============================================================================
@@ -220,7 +222,7 @@ export class AdaptiveExpertMixture {
     executor?: (task: OrganismTask) => Promise<OrganismResult>
   ): void {
     if (this.experts.has(id)) {
-      console.warn(`Expert ${id} already registered, updating...`);
+      logger.warn(`Expert ${id} already registered, updating...`, undefined, 'AdaptiveMoE');
     }
 
     // Initialize metrics if not provided
@@ -247,7 +249,7 @@ export class AdaptiveExpertMixture {
       this.routingMetrics.expertDistribution.set(id, 0);
     }
 
-    console.log(`Expert registered: ${id} with specializations: ${spec.specialization.join(', ')}`);
+    logger.debug(`Expert registered: ${id}`, { specializations: spec.specialization }, 'AdaptiveMoE');
   }
 
   /**
