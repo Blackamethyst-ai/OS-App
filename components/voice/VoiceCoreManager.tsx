@@ -192,7 +192,7 @@ const VoiceCoreManager: React.FC<VoiceCoreManagerProps> = ({
                 partialTranscript: null
             }));
         });
-    }, [setOnNavigate, setOnAction, setOnTranscript, setOnResponse, setVoiceState, showDebug]);
+    }, [setOnNavigate, setOnAction, setOnTranscript, setOnResponse, setVoiceState, showDebug, handleAction, handleNavigation]);
 
     // ==========================================================================
     // Sync Voice State

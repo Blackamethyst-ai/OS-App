@@ -142,13 +142,14 @@ export interface OrganismLayer extends Subsystem {
 
 /** Task dispatched to an organism layer */
 export interface OrganismTask {
-  id: string;
+  id?: string;
   intent: string;
-  priority: Priority;
+  priority?: Priority;
   contextPages: string[];
   biometricContext?: BiometricContext;
   mcpPacks?: ContextPack[];
-  createdAt: number;
+  createdAt?: number;
+  metadata?: Record<string, unknown>;
 }
 
 /** Result from organism layer execution */

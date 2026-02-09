@@ -178,16 +178,17 @@ const IntelRibbon = () => {
   );
 };
 
+const MONOLOGUES = [
+  { agent: "PUCK", text: "Dreaming new architectural symmetries..." },
+  { agent: "CHARON", text: "Auditing PARA integrity... 0.04ms" },
+  { agent: "FENRIR", text: "Optimizing code execution latency." },
+  { agent: "PUCK", text: "Synthesizing visual logic buffers." },
+  { agent: "CHARON", text: "Security attestation level 0 confirmed." },
+  { agent: "FENRIR", text: "Compiling strategic implementation deck." }
+];
+
 const AgentMonologues = () => {
   const [activeMonologue, setActiveMonologue] = useState<{ agent: string, text: string } | null>(null);
-  const MONOLOGUES = [
-    { agent: "PUCK", text: "Dreaming new architectural symmetries..." },
-    { agent: "CHARON", text: "Auditing PARA integrity... 0.04ms" },
-    { agent: "FENRIR", text: "Optimizing code execution latency." },
-    { agent: "PUCK", text: "Synthesizing visual logic buffers." },
-    { agent: "CHARON", text: "Security attestation level 0 confirmed." },
-    { agent: "FENRIR", text: "Compiling strategic implementation deck." }
-  ];
 
   useEffect(() => {
     const interval = setInterval(() => {

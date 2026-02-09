@@ -5,6 +5,7 @@
  */
 
 import { encrypt, decrypt, hashPassword, verifyPassword } from '../utils/cryptoService';
+import { logger } from './logger';
 
 export interface ApiKeyConfig {
     gemini?: string;
@@ -91,7 +92,7 @@ class ApiKeyService {
             this.notifyListeners();
             return true;
         } catch (e) {
-            console.error('[ApiKeyService] Failed to create vault:', e);
+            logger.error('Failed to create vault', e, 'ApiKeyService');
             return false;
         }
     }
@@ -117,7 +118,7 @@ class ApiKeyService {
             this.notifyListeners();
             return true;
         } catch (e) {
-            console.error('[ApiKeyService] Failed to unlock vault:', e);
+            logger.error('Failed to unlock vault', e, 'ApiKeyService');
             return false;
         }
     }
@@ -145,7 +146,7 @@ class ApiKeyService {
                 this.keys = JSON.parse(decrypted);
             }
         } catch (e) {
-            console.error('[ApiKeyService] Failed to load/decrypt keys:', e);
+            logger.error('Failed to load/decrypt keys', e, 'ApiKeyService');
             this.keys = {};
         }
     }
@@ -160,7 +161,7 @@ class ApiKeyService {
             const encrypted = await encrypt(JSON.stringify(this.keys), this.masterPassword);
             localStorage.setItem(STORAGE_KEY, encrypted);
         } catch (e) {
-            console.error('[ApiKeyService] Failed to encrypt/save keys:', e);
+            logger.error('Failed to encrypt/save keys', e, 'ApiKeyService');
         }
     }
 
@@ -312,7 +313,7 @@ class ApiKeyService {
 
             return true;
         } catch (e) {
-            console.error('[ApiKeyService] Failed to change password:', e);
+            logger.error('Failed to change password', e, 'ApiKeyService');
             return false;
         }
     }

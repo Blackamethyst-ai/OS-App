@@ -13,7 +13,7 @@
  */
 
 import { cpbExecutePath, extractPathSignals, selectPath } from '../cognitivePrecisionBridge';
-import type { CPBPath, CPBResult, CPBStatus, PathSignals } from '../cognitivePrecisionBridge/types';
+import type { CPBPath, CPBRequest, CPBResult, CPBStatus, PathSignals } from '../cognitivePrecisionBridge/types';
 import type { Capability, CapabilityComplexity } from './types';
 import { searchCapabilities, getCapability, executeCapability } from './registry';
 
@@ -96,7 +96,7 @@ export function routeQueryToCPB(query: string, context?: string): QueryRouteResu
 
   // Fall back to CPB's path selection
   const signals = extractPathSignals({ query, context });
-  const decision = selectPath(signals as PathSignals);
+  const decision = selectPath(signals as unknown as CPBRequest);
 
   return {
     path: (decision as { path?: CPBPath }).path || 'direct',

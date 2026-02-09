@@ -23,6 +23,7 @@ import type {
 } from '../../archon/types';
 import type { Episode, ImportanceSignals, EpisodeMetadata, SleepPhase } from './wakeSleep';
 import { AgentCoreClient } from '../../../libs/agent-core-sdk/src/client';
+import { logger } from '../../logger';
 
 // =============================================================================
 // TYPES
@@ -313,7 +314,7 @@ export interface StorageStatus {
 
 const DEFAULT_CONFIG: StorageConfig = {
   sqlitePath: '~/.agent-core/storage/antigravity.db',
-  apiUrl: 'http://localhost:3847',
+  apiUrl: import.meta.env.VITE_AGENT_CORE_URL || 'http://localhost:3847',
   apiTimeout: 5000,
   preferredBackend: 'http-api',
   preferredVectorStore: 'sqlite-vec',
@@ -496,7 +497,7 @@ export class CognitiveStorageIntegration {
       this.status.apiAvailable = await this.apiClient.isHealthy();
       console.log(`[CognitiveStorage] API available: ${this.status.apiAvailable}`);
     } catch (error) {
-      console.warn('[CognitiveStorage] API not available:', error);
+      logger.warn('API not available', error, 'CognitiveStorage');
       this.status.apiAvailable = false;
     }
 
@@ -537,7 +538,7 @@ export class CognitiveStorageIntegration {
       await this.apiClient.health();
       console.log('[CognitiveStorage] API tables ready');
     } catch (error) {
-      console.warn('[CognitiveStorage] Could not verify API tables:', error);
+      logger.warn('Could not verify API tables', error, 'CognitiveStorage');
     }
   }
 
@@ -567,7 +568,7 @@ export class CognitiveStorageIntegration {
       try {
         await this.syncEpisodeToApi(record);
       } catch (error) {
-        console.warn('[CognitiveStorage] Failed to sync episode to API:', error);
+        logger.warn('Failed to sync episode to API', error, 'CognitiveStorage');
       }
     }
 
@@ -664,7 +665,7 @@ export class CognitiveStorageIntegration {
 
       this.status.lastSync = Date.now();
     } catch (error) {
-      console.warn('[CognitiveStorage] API sync failed:', error);
+      logger.warn('API sync failed', error, 'CognitiveStorage');
     }
   }
 
@@ -910,7 +911,7 @@ export class CognitiveStorageIntegration {
           return matchedEpisodes;
         }
       } catch (error) {
-        console.warn('[CognitiveStorage] API semantic search failed:', error);
+        logger.warn('API semantic search failed', error, 'CognitiveStorage');
       }
     }
 
@@ -1002,7 +1003,7 @@ export class CognitiveStorageIntegration {
         this.memoryEmbeddings.set(cacheKey, embedding);
         return embedding;
       } catch (error) {
-        console.warn('[CognitiveStorage] Cohere embedding failed:', error);
+        logger.warn('Cohere embedding failed', error, 'CognitiveStorage');
       }
     }
 

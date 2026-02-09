@@ -1,5 +1,5 @@
 
-import React, { useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { faceDetectionService } from '../services/faceDetectionService';
 import { agentKernel } from '../services/kernel';
@@ -32,6 +32,16 @@ const MasterStabilizationProtocol: React.FC = () => {
     const lastStabilizationRef = useRef<number>(0);
     const [isStabilizing, setIsStabilizing] = React.useState(false);
 
+    const triggerStabilizationVisual = useCallback(() => {
+        // Prevent spamming
+        if (Date.now() - lastStabilizationRef.current > 5000) {
+            lastStabilizationRef.current = Date.now();
+            setIsStabilizing(true);
+            setTimeout(() => setIsStabilizing(false), 2000);
+            actions.addLog('SYSTEM', 'PROTOCOL: Stabilization intervention applied.');
+        }
+    }, [actions]);
+
     // 1. MONITOR TRANSITION DEADLOCKS
     useEffect(() => {
         if (isTransitioning) {
@@ -50,7 +60,7 @@ const MasterStabilizationProtocol: React.FC = () => {
         } else {
             transitionStartRef.current = null;
         }
-    }, [isTransitioning]);
+    }, [isTransitioning, triggerStabilizationVisual]);
 
     // 2. MONITOR BIOMETRIC CONFIDENCE
     useEffect(() => {
@@ -83,7 +93,7 @@ const MasterStabilizationProtocol: React.FC = () => {
         }, 200);
 
         return () => clearInterval(interval);
-    }, [biometric.isActive, actions]);
+    }, [biometric.isActive, actions, triggerStabilizationVisual]);
 
     // 3. KERNEL INTEGRITY WATCHDOG
     useEffect(() => {
@@ -98,7 +108,7 @@ const MasterStabilizationProtocol: React.FC = () => {
             }, 1000);
             triggerStabilizationVisual();
         }
-    }, [kernel.operationalState, actions]);
+    }, [kernel.operationalState, actions, triggerStabilizationVisual]);
 
     // 4. RESET STUCK LOADING STATES
     useEffect(() => {
@@ -113,7 +123,7 @@ const MasterStabilizationProtocol: React.FC = () => {
             }, 15000);
             return () => clearTimeout(timer);
         }
-    }, [dashboard.isGenerating, actions]);
+    }, [dashboard.isGenerating, actions, triggerStabilizationVisual]);
 
     useEffect(() => {
         if (process.isLoading) {
@@ -126,18 +136,7 @@ const MasterStabilizationProtocol: React.FC = () => {
             }, 10000);
             return () => clearTimeout(timer);
         }
-    }, [process.isLoading, actions]);
-
-
-    const triggerStabilizationVisual = () => {
-        // Prevent spamming
-        if (Date.now() - lastStabilizationRef.current > 5000) {
-            lastStabilizationRef.current = Date.now();
-            setIsStabilizing(true);
-            setTimeout(() => setIsStabilizing(false), 2000);
-            actions.addLog('SYSTEM', 'PROTOCOL: Stabilization intervention applied.');
-        }
-    };
+    }, [process.isLoading, actions, triggerStabilizationVisual]);
 
     return (
         <AnimatePresence>

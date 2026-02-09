@@ -56,14 +56,14 @@ async function enforceRateLimit(): Promise<void> {
 export async function fetchAllGpuData(): Promise<MinerstatGpu[]> {
     // Return cache if valid
     if (gpuDataCache && Date.now() - cacheTimestamp < CACHE_TTL) {
-        console.log('[Minerstat] Returning cached GPU data');
+        if (import.meta.env.DEV) console.log('[Minerstat] Returning cached GPU data');
         return gpuDataCache;
     }
 
     await enforceRateLimit();
 
     try {
-        console.log('[Minerstat] Fetching GPU data from API');
+        if (import.meta.env.DEV) console.log('[Minerstat] Fetching GPU data from API');
         const response = await fetch(`${MINERSTAT_API_URL}?type=gpu`, {
             method: 'GET',
             headers: {
@@ -79,7 +79,7 @@ export async function fetchAllGpuData(): Promise<MinerstatGpu[]> {
         gpuDataCache = data;
         cacheTimestamp = Date.now();
 
-        console.log(`[Minerstat] Fetched ${data.length} GPUs`);
+        if (import.meta.env.DEV) console.log(`[Minerstat] Fetched ${data.length} GPUs`);
         return data;
     } catch (error) {
         console.error('[Minerstat] Failed to fetch GPU data:', error);
@@ -147,7 +147,7 @@ export async function getGpuPrice(modelName: string): Promise<{
         const gpu = findMatchingGpu(gpuList, modelName);
 
         if (!gpu || !gpu.price || gpu.price <= 0) {
-            console.log(`[Minerstat] No price data for: ${modelName}`);
+            if (import.meta.env.DEV) console.log(`[Minerstat] No price data for: ${modelName}`);
             return null;
         }
 
@@ -241,7 +241,7 @@ export async function getListings(modelName: string): Promise<Array<{
 export function clearCache(): void {
     gpuDataCache = null;
     cacheTimestamp = 0;
-    console.log('[Minerstat] Cache cleared');
+    if (import.meta.env.DEV) console.log('[Minerstat] Cache cleared');
 }
 
 /**

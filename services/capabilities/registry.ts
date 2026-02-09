@@ -82,7 +82,7 @@ export function registerCapability(capability: Capability): void {
   systemMind.registerAction(
     capability.id,
     `[${capability.source.toUpperCase()}:${capability.complexity}] ${capability.description}`,
-    capability.handler as (args: unknown) => void | Promise<void>,
+    capability.handler as unknown as (args: unknown) => void | Promise<void>,
     { sectors: capability.sectors, priority: capability.priority }
   );
 }

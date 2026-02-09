@@ -66,6 +66,7 @@ export function ExperimentLogger({
 }: ExperimentLoggerProps) {
     const [trials, setTrials] = useState<TrialData[]>([]);
     const [showStats, setShowStats] = useState(false);
+    const [confirmClear, setConfirmClear] = useState(false);
 
     // Load trials from localStorage
     useEffect(() => {
@@ -289,14 +290,13 @@ export function ExperimentLogger({
                         </button>
                         <button
                             onClick={() => {
-                                if (confirm('Clear all trial data?')) {
-                                    saveTrials([]);
-                                }
+                                if (!confirmClear) { setConfirmClear(true); setTimeout(() => setConfirmClear(false), 3000); return; }
+                                saveTrials([]); setConfirmClear(false);
                             }}
                             disabled={trials.length === 0}
-                            className="px-3 py-2 bg-red-500/20 hover:bg-red-500/30 disabled:opacity-50 text-red-400 text-xs font-bold uppercase tracking-wider rounded-lg transition-colors"
+                            className={`px-3 py-2 disabled:opacity-50 text-xs font-bold uppercase tracking-wider rounded-lg transition-colors ${confirmClear ? 'bg-red-500/30 text-red-300' : 'bg-red-500/20 hover:bg-red-500/30 text-red-400'}`}
                         >
-                            Clear
+                            {confirmClear ? 'Confirm?' : 'Clear'}
                         </button>
                     </div>
 

@@ -140,6 +140,7 @@ export const useStressDetector = (): UseStressDetectorReturn => {
   const stressHistoryRef = useRef<number[]>([]);
   const lastAdaptationRef = useRef<number>(0);
   const previousThemeRef = useRef<string | null>(null);
+  const adaptationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // ============================================================================
   // STRESS MONITORING
@@ -164,6 +165,12 @@ export const useStressDetector = (): UseStressDetectorReturn => {
       clearInterval(interval);
     };
   }, [config.enabled]);
+
+  useEffect(() => {
+    return () => {
+      if (adaptationTimeoutRef.current) clearTimeout(adaptationTimeoutRef.current);
+    };
+  }, []);
 
   const handleStressEvent = useCallback((payload: { level: number; trend: string }) => {
     updateStressLevel(payload.level);
@@ -247,7 +254,8 @@ export const useStressDetector = (): UseStressDetectorReturn => {
       previousThemeRef.current = null;
     }
 
-    setTimeout(() => {
+    if (adaptationTimeoutRef.current) clearTimeout(adaptationTimeoutRef.current);
+    adaptationTimeoutRef.current = setTimeout(() => {
       setIsAdapting(false);
     }, config.transitionDurationMs);
   }, [addLog, theme, config.transitionDurationMs]);

@@ -189,7 +189,7 @@ const AgentControlCenter: React.FC = () => {
         }, 5000); // Check every 5s
 
         return () => clearInterval(interval);
-    }, [preferences.autonomyEnabled, agents.activeAgents]);
+    }, [preferences.autonomyEnabled, agents.activeAgents, addLog, updateAgent]);
 
     // Fetch convergence stats when CONVERGENCE view is active
     useEffect(() => {

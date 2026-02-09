@@ -49,6 +49,7 @@ import type { LiveServerMessage } from '@google/genai';
 import { neuralVault } from '../persistenceService';
 import { SovereignMemory } from '../memory/MemoryStore';
 import { voiceStorage } from '../supabaseService';
+import { logger } from '../logger';
 
 // Singleton for voice transcript memory
 const sovereignMemory = new SovereignMemory();
@@ -142,7 +143,7 @@ export class VoiceNexusOrchestrator {
         }
 
         // Last resort: return Gemini even if not available (will error on use)
-        console.warn('VoiceNexus: No STT provider available');
+        logger.warn('No STT provider available', undefined, 'VoiceNexus');
         return geminiLiveSTT;
     }
 
@@ -169,7 +170,7 @@ export class VoiceNexusOrchestrator {
      */
     async start(): Promise<void> {
         if (this.state.isActive) {
-            console.warn('VoiceNexus: Session already active');
+            logger.warn('Session already active', undefined, 'VoiceNexus');
             return;
         }
 
@@ -187,7 +188,7 @@ export class VoiceNexusOrchestrator {
                     sttProvider: this.config.sttProvider,
                     ttsProvider: this.config.ttsProvider
                 }
-            }).catch(err => console.warn('[VoiceNexus] Supabase session create failed:', err));
+            }).catch(err => logger.warn('Supabase session create failed', err, 'VoiceNexus'));
 
             // Determine which mode to use
             if (this.config.mode === 'realtime' && !this.isUsingBrowserSTT()) {
@@ -214,7 +215,7 @@ export class VoiceNexusOrchestrator {
     stop(): void {
         // Stop browser STT if active
         if (this.isUsingBrowserSTT() && browserSTT.isCurrentlyStreaming()) {
-            browserSTT.stopStreaming().catch(console.error);
+            browserSTT.stopStreaming().catch(err => logger.error('Failed to stop streaming', err, 'VoiceNexus'));
         }
 
         // Stop Gemini Live session
@@ -255,7 +256,7 @@ export class VoiceNexusOrchestrator {
             }
 
             // 4.5. Detect and execute intents (Parallel Action Layer)
-            this.detectAndExecuteIntents(text).catch(err => console.warn('Intent detection warning:', err));
+            this.detectAndExecuteIntents(text).catch(err => logger.warn('Intent detection warning', err, 'VoiceNexus'));
 
             // 5. Generate response
             const response = await this.generateResponse(enrichedPrompt, providers, tier);
@@ -479,7 +480,7 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
                             await this.processText(newText);
                             lastProcessedTranscript = transcript;
                         } catch (error) {
-                            console.error('VoiceNexus: Error processing browser transcript:', error);
+                            logger.error('Error processing browser transcript', error, 'VoiceNexus');
                         }
                     }
                 }
@@ -538,7 +539,7 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
             try {
                 await this.processText(inputTranscript);
             } catch (error) {
-                console.error('VoiceNexus: Error processing hybrid message:', error);
+                logger.error('Error processing hybrid message', error, 'VoiceNexus');
             }
         }
     }
@@ -642,7 +643,7 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
                 });
                 return result.text;
             } catch (error) {
-                console.warn('VoiceNexus: Claude reasoning failed, falling back to Gemini:', error);
+                logger.warn('Claude reasoning failed, falling back to Gemini', error, 'VoiceNexus');
                 // Fallback to Gemini
                 this.state.currentProvider.reasoning = 'gemini-fallback';
                 this.events.onProviderSwitch?.({ reasoning: 'gemini-fallback' });
@@ -657,7 +658,7 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
             });
             return result.text;
         } catch (error: any) {
-            console.error('VoiceNexus: All reasoning providers failed:', error);
+            logger.error('All reasoning providers failed', error, 'VoiceNexus');
             const msg = error.message || String(error);
 
             if (msg.includes('429') || msg.includes('Quota')) {
@@ -686,7 +687,7 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
             }
             // For 'gemini' TTS, it's handled by the Gemini Live stream
         } catch (error) {
-            console.error('TTS synthesis failed, falling back to browser:', error);
+            logger.error('TTS synthesis failed, falling back to browser', error, 'VoiceNexus');
             await browserTTS.speak(text, voiceName);
         }
     }
@@ -837,9 +838,9 @@ ${agent.expertise?.length ? `## Expertise Areas\n${agent.expertise.join(', ')}` 
                 complexity_score: this.state.lastComplexityScore,
                 complexity_tier: tier,
                 provider: this.state.currentProvider?.reasoning
-            }).catch(err => console.warn('[VoiceNexus] Supabase persist failed:', err));
+            }).catch(err => logger.warn('Supabase persist failed', err, 'VoiceNexus'));
         } catch (error) {
-            console.warn('[VoiceNexus] Failed to persist transcript:', error);
+            logger.warn('Failed to persist transcript', error, 'VoiceNexus');
         }
     }
 
@@ -902,7 +903,7 @@ ${agent.expertise?.length ? `## Expertise Areas\n${agent.expertise.join(', ')}` 
                 } as any;
             }
         } catch (error) {
-            console.warn('[VoiceNexus] Failed to load recent context:', error);
+            logger.warn('Failed to load recent context', error, 'VoiceNexus');
         }
     }
 
@@ -920,7 +921,7 @@ ${agent.expertise?.length ? `## Expertise Areas\n${agent.expertise.join(', ')}` 
 
         // End cloud session (fire and forget)
         voiceStorage.endSession(this.sessionId, this.transcripts.length)
-            .catch(err => console.warn('[VoiceNexus] Supabase session end failed:', err));
+            .catch(err => logger.warn('Supabase session end failed', err, 'VoiceNexus'));
 
         // Start a new session ID for next time
         this.sessionId = `voice_session_${Date.now()}`;
@@ -972,7 +973,7 @@ ${agent.expertise?.length ? `## Expertise Areas\n${agent.expertise.join(', ')}` 
                 })
                 .filter(Boolean) as Transcript[];
         } catch (error) {
-            console.warn('[VoiceNexus] Failed to search transcripts:', error);
+            logger.warn('Failed to search transcripts', error, 'VoiceNexus');
             return [];
         }
     }

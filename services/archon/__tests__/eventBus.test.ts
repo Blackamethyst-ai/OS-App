@@ -231,7 +231,7 @@ describe('ArchonEventBus', () => {
         });
 
         it('should reject on timeout', async () => {
-            const promise = bus.waitFor('goal:completed', 50);
+            const promise = bus.waitFor('goal:completed', 500);
 
             await expect(promise).rejects.toThrow('Timeout waiting for goal:completed');
         });

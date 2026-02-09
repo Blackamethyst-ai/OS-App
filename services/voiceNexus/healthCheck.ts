@@ -260,7 +260,7 @@ export async function checkKnowledgeHealth(): Promise<ProviderHealth> {
             latencyMs: Date.now() - startTime,
             lastChecked: Date.now(),
             details: {
-                endpoint: 'http://localhost:3847',
+                endpoint: import.meta.env.VITE_AGENT_CORE_URL || 'http://localhost:3847',
             },
             error: available ? undefined : 'Agent Core API not reachable (knowledge injection disabled)',
         };

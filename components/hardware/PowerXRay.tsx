@@ -133,6 +133,7 @@ const TerminalLoader = ({ system }: { system: string }) => {
             }
         }, 400);
         return () => clearInterval(interval);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     return (

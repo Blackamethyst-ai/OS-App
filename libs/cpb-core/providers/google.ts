@@ -47,8 +47,8 @@ export const GEMINI_MODELS = {
  */
 export function createGeminiProvider(options?: GeminiProviderOptions): CPBProvider {
     const apiKey = options?.apiKey ||
-        process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
-        process.env.GEMINI_API_KEY;
+        import.meta.env.VITE_GOOGLE_GENERATIVE_AI_API_KEY ||
+        import.meta.env.VITE_GEMINI_API_KEY;
     const defaultModel = options?.defaultModel || GEMINI_MODELS.fast;
 
     return {
@@ -144,8 +144,8 @@ export function createGeminiProvider(options?: GeminiProviderOptions): CPBProvid
 export function createGroundedGeminiProvider(options?: GeminiProviderOptions): CPBProvider {
     const baseProvider = createGeminiProvider(options);
     const apiKey = options?.apiKey ||
-        process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
-        process.env.GEMINI_API_KEY;
+        import.meta.env.VITE_GOOGLE_GENERATIVE_AI_API_KEY ||
+        import.meta.env.VITE_GEMINI_API_KEY;
 
     return {
         ...baseProvider,

@@ -81,7 +81,7 @@ const API_BASE_URL = 'https://api.elevenlabs.io/v1';
  * No additional dependencies required - uses native fetch API.
  */
 export function createElevenLabsTTS(options?: ElevenLabsOptions): TTSProvider {
-    const apiKey = options?.apiKey || process.env.ELEVENLABS_API_KEY;
+    const apiKey = options?.apiKey || import.meta.env.VITE_ELEVENLABS_API_KEY;
     const modelId = options?.modelId || 'eleven_turbo_v2_5';
     const voices = options?.voices || DEFAULT_VOICES;
     const agentVoiceMap = {

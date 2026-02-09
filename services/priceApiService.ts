@@ -122,7 +122,7 @@ async function createPriceJob(
     }
 
     const job: PriceApiJob = await response.json();
-    console.log(`[PriceAPI] Created job ${job.job_id} for "${searchTerm}"`);
+    if (import.meta.env.DEV) console.log(`[PriceAPI] Created job ${job.job_id} for "${searchTerm}"`);
     return job;
 }
 
@@ -151,7 +151,7 @@ async function waitForJob(jobId: string): Promise<PriceApiResult> {
         const result: PriceApiResult = await response.json();
 
         if (result.status === 'finished') {
-            console.log(`[PriceAPI] Job ${jobId} completed`);
+            if (import.meta.env.DEV) console.log(`[PriceAPI] Job ${jobId} completed`);
             return result;
         }
 
@@ -176,17 +176,17 @@ export async function searchPrices(
     const cacheKey = `${productName}-${country}`;
     const cached = jobResultCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        console.log(`[PriceAPI] Cache hit for "${productName}"`);
+        if (import.meta.env.DEV) console.log(`[PriceAPI] Cache hit for "${productName}"`);
         return cached.data;
     }
 
     if (!hasApiKey()) {
-        console.log('[PriceAPI] No API key configured');
+        if (import.meta.env.DEV) console.log('[PriceAPI] No API key configured');
         return null;
     }
 
     if (!hasCredits()) {
-        console.log('[PriceAPI] No credits remaining');
+        if (import.meta.env.DEV) console.log('[PriceAPI] No credits remaining');
         return null;
     }
 
@@ -296,7 +296,7 @@ export async function getOffers(modelName: string): Promise<Array<{
  */
 export function clearCache(): void {
     jobResultCache.clear();
-    console.log('[PriceAPI] Cache cleared');
+    if (import.meta.env.DEV) console.log('[PriceAPI] Cache cleared');
 }
 
 /**
@@ -304,5 +304,5 @@ export function clearCache(): void {
  */
 export function resetCredits(): void {
     creditsUsed = 0;
-    console.log('[PriceAPI] Credits reset');
+    if (import.meta.env.DEV) console.log('[PriceAPI] Credits reset');
 }

@@ -52,8 +52,9 @@ const ThemeSwitcher: React.FC = () => {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 text-gray-500 hover:text-white transition-all border border-transparent hover:border-[#333] rounded-lg bg-transparent hover:bg-white/5 flex items-center justify-center"
+                className="p-2 text-gray-500 hover:text-white transition-all border border-transparent hover:border-[#333] rounded-lg bg-transparent hover:bg-white/5 flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d4edd] focus-visible:outline-offset-2"
                 title="Change Interface Theme"
+                aria-label="Change interface theme"
             >
                 <currentTheme.icon size={18} style={{ color: isOpen ? currentTheme.color : undefined }} className="transition-transform group-hover:scale-110" />
             </button>

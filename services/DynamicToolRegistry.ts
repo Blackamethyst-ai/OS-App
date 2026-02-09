@@ -103,7 +103,7 @@ export class DynamicToolRegistry {
         const unifiedManifests = getGeminiManifests();
 
         // Merge with dynamic/evolved tools
-        return [...unifiedManifests, ...this.dynamicManifests];
+        return [...unifiedManifests, ...this.dynamicManifests] as FunctionDeclaration[];
     }
 
     /**

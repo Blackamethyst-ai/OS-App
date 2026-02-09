@@ -483,7 +483,7 @@ export class VoiceCore {
      */
     async printDiagnostics(): Promise<void> {
         const health = await checkVoiceSystemHealth();
-        console.log(formatHealthReport(health));
+        if (import.meta.env.DEV) console.log(formatHealthReport(health));
     }
 
     /**
@@ -724,20 +724,20 @@ if (typeof window !== 'undefined') {
         diagnose: async () => {
             const core = globalVoiceCore || new VoiceCore();
             const health = await core.diagnose();
-            console.log(formatHealthReport(health));
+            if (import.meta.env.DEV) console.log(formatHealthReport(health));
             return health;
         },
         checkHealth: async () => {
             const health = await checkVoiceSystemHealth();
-            console.log(formatHealthReport(health));
+            if (import.meta.env.DEV) console.log(formatHealthReport(health));
             return health;
         },
         isViable: async () => {
             const result = await isVoiceSystemViable();
             if (result.viable) {
-                console.log('✅ Voice system is viable');
+                if (import.meta.env.DEV) console.log('✅ Voice system is viable');
             } else {
-                console.log(`❌ Voice system NOT viable: ${result.reason}`);
+                if (import.meta.env.DEV) console.log(`❌ Voice system NOT viable: ${result.reason}`);
             }
             return result;
         }

@@ -18,6 +18,7 @@
  */
 
 import { useAppStore } from '../store';
+import { logger } from './logger';
 import { generateText } from './geminiService';
 import { powerService } from './powerService';
 import { neuralVault } from './persistenceService';
@@ -197,7 +198,7 @@ class SelfEvolutionService {
             this.cycles.push(cycle);
 
         } catch (error) {
-            console.error('Evolution cycle failed:', error);
+            logger.error('Evolution cycle failed', error, 'SelfEvolution');
             useAppStore.getState().actions.addLog('ERROR', `🧬 SELF-EVOLUTION: Cycle failed - ${error}`);
         }
 
@@ -505,7 +506,7 @@ Output ONLY the code, no markdown fences.`;
             const targetPath = Object.keys(graphData.meta.pathToId).find(p => p.endsWith(targetFile));
 
             if (!targetPath) {
-                console.warn(`Risk Assessment: Could not find file ${targetFile}`);
+                logger.warn(`Risk Assessment: Could not find file ${targetFile}`, undefined, 'SelfEvolution');
                 return 'HIGH'; // Use high caution if file unknown
             }
 
@@ -538,7 +539,7 @@ Output ONLY the code, no markdown fences.`;
             return 'HIGH';
 
         } catch (error) {
-            console.error('Risk Assessment Failed:', error);
+            logger.error('Risk Assessment Failed', error, 'SelfEvolution');
             return 'HIGH'; // Fail safe
         }
     }
@@ -618,7 +619,7 @@ Output ONLY the code, no markdown fences.`;
             return plan;
 
         } catch (error) {
-            console.error('Migration Proposal Failed:', error);
+            logger.error('Migration Proposal Failed', error, 'SelfEvolution');
             return {
                 id: `error-${Date.now()}`,
                 targetFile: targetFile,

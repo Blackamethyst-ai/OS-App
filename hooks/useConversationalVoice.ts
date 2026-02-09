@@ -309,7 +309,7 @@ export function useConversationalVoice(
     const handleBargeIn = useCallback(async () => {
         if (state !== 'SPEAKING' || !enableBargeIn) return;
 
-        console.log('[ConversationalVoice] Barge-in detected');
+        if (import.meta.env.DEV) console.log('[ConversationalVoice] Barge-in detected');
         onBargeIn?.();
 
         // Abort current response
@@ -417,7 +417,7 @@ export function useConversationalVoice(
                     // Playback complete
                 },
                 onInterrupt: () => {
-                    console.log('[ConversationalVoice] Audio interrupted');
+                    if (import.meta.env.DEV) console.log('[ConversationalVoice] Audio interrupted');
                 },
             });
 

@@ -6,13 +6,14 @@
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { logger } from './logger';
 
 // Initialize Supabase client
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseKey) {
-    console.warn('[Supabase] Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY');
+    logger.warn('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY', undefined, 'Supabase');
 }
 
 export const supabase: SupabaseClient = createClient(
@@ -74,7 +75,7 @@ export const voiceStorage = {
             .single();
 
         if (error) {
-            console.error('[Supabase] Failed to create session:', error);
+            logger.error('Failed to create session', error, 'Supabase');
             return null;
         }
 
@@ -96,7 +97,7 @@ export const voiceStorage = {
             .eq('id', sessionId);
 
         if (error) {
-            console.error('[Supabase] Failed to end session:', error);
+            logger.error('Failed to end session', error, 'Supabase');
         }
     },
 
@@ -113,7 +114,7 @@ export const voiceStorage = {
             .single();
 
         if (error) {
-            console.error('[Supabase] Failed to save transcript:', error);
+            logger.error('Failed to save transcript', error, 'Supabase');
             return null;
         }
 
@@ -136,7 +137,7 @@ export const voiceStorage = {
             .limit(limit);
 
         if (error) {
-            console.error('[Supabase] Failed to get sessions:', error);
+            logger.error('Failed to get sessions', error, 'Supabase');
             return [];
         }
 
@@ -156,7 +157,7 @@ export const voiceStorage = {
             .order('timestamp', { ascending: true });
 
         if (error) {
-            console.error('[Supabase] Failed to get transcripts:', error);
+            logger.error('Failed to get transcripts', error, 'Supabase');
             return [];
         }
 
@@ -178,7 +179,7 @@ export const voiceStorage = {
             .limit(limit);
 
         if (error) {
-            console.error('[Supabase] Failed to search transcripts:', error);
+            logger.error('Failed to search transcripts', error, 'Supabase');
             return [];
         }
 

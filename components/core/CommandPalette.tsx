@@ -216,7 +216,7 @@ const CommandPalette: React.FC = () => {
             };
             fetchSuggestions();
         }
-    }, [isCommandPaletteOpen, mode, system.logs]);
+    }, [isCommandPaletteOpen, mode, system.logs, addLog]);
 
     const executeCommand = async () => {
         if (!input.trim()) return;

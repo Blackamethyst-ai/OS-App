@@ -53,6 +53,7 @@ import {
 
 import { performHopGrouping, type HopGroupingOptions } from '../../hopGrouping';
 import { HIVE_AGENTS } from '../../agents';
+import { logger } from '../../logger';
 
 // =============================================================================
 // TYPES
@@ -234,7 +235,7 @@ export class ACEIntegration {
    */
   connectToACE(): void {
     if (this.state.connected) {
-      console.warn('[ACE-Integration] Already connected to ACE');
+      logger.warn('Already connected to ACE', undefined, 'ACE-Integration');
       return;
     }
 
@@ -391,7 +392,7 @@ export class ACEIntegration {
     auctionConfig: Partial<ACEConfig>
   ): EnrichedAuctionConfig {
     if (!this.state.connected) {
-      console.warn('[ACE-Integration] Not connected to ACE, connecting now...');
+      logger.warn('Not connected to ACE, connecting now...', undefined, 'ACE-Integration');
       this.connectToACE();
     }
 
@@ -605,7 +606,7 @@ export class ACEIntegration {
    */
   recordACEConsensus(result: ACEResult): void {
     if (!this.state.connected) {
-      console.warn('[ACE-Integration] Not connected to ACE');
+      logger.warn('Not connected to ACE', undefined, 'ACE-Integration');
       return;
     }
 
@@ -759,7 +760,7 @@ export class ACEIntegration {
    */
   getSwarmPriors(task: OrganismTask): StigmergicPrior[] {
     if (!this.state.connected) {
-      console.warn('[ACE-Integration] Not connected to ACE, connecting now...');
+      logger.warn('Not connected to ACE, connecting now...', undefined, 'ACE-Integration');
       this.connectToACE();
     }
 

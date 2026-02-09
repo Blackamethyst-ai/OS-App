@@ -47,7 +47,7 @@ export const CLAUDE_MODELS = {
  * ```
  */
 export function createClaudeProvider(options?: ClaudeProviderOptions): CPBProvider {
-    const apiKey = options?.apiKey || process.env.ANTHROPIC_API_KEY;
+    const apiKey = options?.apiKey || import.meta.env.VITE_ANTHROPIC_API_KEY;
     const defaultModel = options?.defaultModel || CLAUDE_MODELS.balanced;
     const baseURL = options?.baseURL;
 

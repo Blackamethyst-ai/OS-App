@@ -53,7 +53,7 @@ describe('Semantic Layer Extractor', () => {
     const result = handler({
       content: 'We need to build a novel architecture that synthesizes multiple AI systems because they complement each other. https://arxiv.org/paper',
       source: 'claude',
-    });
+    }) as any;
 
     // Data layer
     expect(result.data).toBeDefined();
@@ -74,7 +74,7 @@ describe('Semantic Layer Extractor', () => {
 
   it('should handle empty content', () => {
     const handler = skillGenomeCodec.deserializeFunction(skill.handler);
-    const result = handler({ content: '' });
+    const result = handler({ content: '' }) as any;
     expect(result.data.wordCount).toBe(0);
     expect(result.light.complexity).toBe(0);
   });
@@ -90,7 +90,7 @@ describe('Cognitive Asset Scorer', () => {
       hasProvenance: true,
       hasCitations: true,
       isComposable: true,
-    });
+    }) as any;
 
     expect(result.score).toBeGreaterThan(0.5);
     expect(result.isWorthCapturing).toBe(true);
@@ -104,7 +104,7 @@ describe('Cognitive Asset Scorer', () => {
       content: 'hi',
       hasProvenance: false,
       hasCitations: false,
-    });
+    }) as any;
 
     expect(result.score).toBeLessThan(0.5);
     expect(result.tier).not.toBe('deep_work');
@@ -114,7 +114,7 @@ describe('Cognitive Asset Scorer', () => {
     const handler = skillGenomeCodec.deserializeFunction(skill.handler);
     const result = handler({
       content: 'A brief note about an interesting approach to problem solving that could work for our use case.',
-    });
+    }) as any;
 
     expect(typeof result.isWorthCapturing).toBe('boolean');
   });
@@ -130,7 +130,7 @@ describe('Cognitive Mode Classifier', () => {
       messageCount: 50,
       durationMinutes: 45,
       toolUsageCount: 30,
-    });
+    }) as any;
 
     expect(result.mode).toBe('deep_work');
     expect(result.score).toBeGreaterThanOrEqual(0.75);
@@ -144,7 +144,7 @@ describe('Cognitive Mode Classifier', () => {
       messageCount: 2,
       durationMinutes: 1,
       toolUsageCount: 0,
-    });
+    }) as any;
 
     expect(['casual', 'garbage']).toContain(result.mode);
     expect(result.score).toBeLessThan(0.5);
@@ -161,7 +161,7 @@ describe('Coherence Detector', () => {
       contentB: 'The cognitive wallet system uses semantic embeddings to detect coherence patterns across distributed AI platforms and captures sovereign data.',
       sourceA: 'claude',
       sourceB: 'chatgpt',
-    });
+    }) as any;
 
     expect(result.coherenceScore).toBeGreaterThan(0.1);
     expect(result.isCoherent).toBe(true);
@@ -175,7 +175,7 @@ describe('Coherence Detector', () => {
     const result = handler({
       contentA: 'The weather today is sunny with clear blue skies and warm temperatures.',
       contentB: 'Quantum computing uses qubits for parallel computation in cryptographic systems.',
-    });
+    }) as any;
 
     expect(result.coherenceScore).toBeLessThan(0.15);
     expect(result.sharedConcepts.length).toBeLessThan(3);
@@ -193,7 +193,7 @@ describe('Portfolio Valuator', () => {
         { score: 0.6, tier: 'exploration', ageInDays: 10, compositionCount: 1 },
         { score: 0.35, tier: 'casual', ageInDays: 2, compositionCount: 0 },
       ],
-    });
+    }) as any;
 
     expect(result.totalValue).toBeGreaterThan(0);
     expect(result.assetCount).toBe(3);
@@ -205,7 +205,7 @@ describe('Portfolio Valuator', () => {
 
   it('should handle empty portfolio', () => {
     const handler = skillGenomeCodec.deserializeFunction(skill.handler);
-    const result = handler({ assets: [] });
+    const result = handler({ assets: [] }) as any;
 
     expect(result.totalValue).toBe(0);
     expect(result.assetCount).toBe(0);
@@ -216,11 +216,11 @@ describe('Portfolio Valuator', () => {
 
     const simple = handler({
       assets: [{ score: 0.8, tier: 'deep_work', ageInDays: 0, compositionCount: 0 }],
-    });
+    }) as any;
 
     const composed = handler({
       assets: [{ score: 0.8, tier: 'deep_work', ageInDays: 0, compositionCount: 5 }],
-    });
+    }) as any;
 
     expect(composed.totalValue).toBeGreaterThan(simple.totalValue);
   });
@@ -238,7 +238,7 @@ describe('Quality Threshold Filter', () => {
         { id: '3', score: 0.5, content: 'medium quality' },
         { id: '4', score: 0.1, content: 'garbage' },
       ],
-    });
+    }) as any;
 
     expect(result.passed).toHaveLength(2);
     expect(result.filtered).toHaveLength(2);
@@ -255,7 +255,7 @@ describe('Quality Threshold Filter', () => {
         { id: '3', score: 0.4 },
       ],
       threshold: 0.7,
-    });
+    }) as any;
 
     expect(result.passed).toHaveLength(1);
     expect(result.filtered).toHaveLength(2);

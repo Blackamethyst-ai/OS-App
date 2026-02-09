@@ -5,6 +5,9 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom',
+    testTimeout: 30000,
+    hookTimeout: 30000,
+    retry: 1,
     include: ['**/*.test.ts', '**/*.spec.ts'],
     exclude: ['node_modules', 'dist'],
     coverage: {

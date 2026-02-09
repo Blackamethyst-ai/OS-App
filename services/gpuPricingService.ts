@@ -10,6 +10,7 @@
  */
 
 import { getAI, retryGeminiRequest, safeParseJson } from './geminiService';
+import { logger } from './logger';
 import * as minerstatService from './minerstatService';
 import * as priceApiService from './priceApiService';
 import type { GenerateContentResponse } from '@google/genai';
@@ -44,7 +45,7 @@ function initCache(): PriceCache {
             return valid;
         }
     } catch (e) {
-        console.warn('[GPU Pricing] Failed to load cache from localStorage:', e);
+        logger.warn('Failed to load cache from localStorage', e, 'GPU Pricing');
     }
     return {};
 }
@@ -56,7 +57,7 @@ function persistCache(cache: PriceCache): void {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
     } catch (e) {
-        console.warn('[GPU Pricing] Failed to persist cache:', e);
+        logger.warn('Failed to persist cache', e, 'GPU Pricing');
     }
 }
 
@@ -108,7 +109,7 @@ function parseStockStatus(status: string): StockStatus {
  * Fetch price from Gemini (existing fallback method)
  */
 async function fetchGeminiPrice(gpuModel: string, msrp: number): Promise<LiveGpuPrice> {
-    console.log(`[GPU Pricing] Using Gemini fallback for ${gpuModel}`);
+    if (import.meta.env.DEV) console.log(`[GPU Pricing] Using Gemini fallback for ${gpuModel}`);
 
     try {
         const ai = getAI();
@@ -151,7 +152,7 @@ Output ONLY valid JSON in this exact format:
             lastUpdated: Date.now()
         };
     } catch (error) {
-        console.error(`[GPU Pricing] Gemini fallback failed for ${gpuModel}:`, error);
+        logger.error(`Gemini fallback failed for ${gpuModel}`, error, 'GPU Pricing');
 
         // Return MSRP fallback
         return {
@@ -181,22 +182,22 @@ export async function fetchLivePrice(gpuModel: string, msrp: number): Promise<Li
     // 1. Check cache first
     const cached = getCachedPrice(gpuModel);
     if (cached) {
-        console.log(`[GPU Pricing] Cache hit for ${gpuModel}`);
+        if (import.meta.env.DEV) console.log(`[GPU Pricing] Cache hit for ${gpuModel}`);
         return cached;
     }
 
-    console.log(`[GPU Pricing] Fetching live price for ${gpuModel}`);
+    if (import.meta.env.DEV) console.log(`[GPU Pricing] Fetching live price for ${gpuModel}`);
 
     // 2. Try minerstat (free, no auth required)
     try {
         const minerstatPrice = await minerstatService.getLiveGpuPrice(gpuModel, msrp);
         if (minerstatPrice) {
-            console.log(`[GPU Pricing] Got price from minerstat for ${gpuModel}: $${minerstatPrice.price}`);
+            if (import.meta.env.DEV) console.log(`[GPU Pricing] Got price from minerstat for ${gpuModel}: $${minerstatPrice.price}`);
             setCachePrice(gpuModel, minerstatPrice);
             return minerstatPrice;
         }
     } catch (e) {
-        console.warn(`[GPU Pricing] minerstat failed for ${gpuModel}:`, e);
+        logger.warn(`minerstat failed for ${gpuModel}`, e, 'GPU Pricing');
     }
 
     // 3. Try PriceAPI (if API key configured and credits available)
@@ -204,12 +205,12 @@ export async function fetchLivePrice(gpuModel: string, msrp: number): Promise<Li
         try {
             const priceApiResult = await priceApiService.getGpuPrice(gpuModel, msrp);
             if (priceApiResult) {
-                console.log(`[GPU Pricing] Got price from PriceAPI for ${gpuModel}: $${priceApiResult.price}`);
+                if (import.meta.env.DEV) console.log(`[GPU Pricing] Got price from PriceAPI for ${gpuModel}: $${priceApiResult.price}`);
                 setCachePrice(gpuModel, priceApiResult);
                 return priceApiResult;
             }
         } catch (e) {
-            console.warn(`[GPU Pricing] PriceAPI failed for ${gpuModel}:`, e);
+            logger.warn(`PriceAPI failed for ${gpuModel}`, e, 'GPU Pricing');
         }
     }
 
@@ -265,7 +266,7 @@ export function clearPriceCache(): void {
     // Also clear service-level caches
     minerstatService.clearCache();
     priceApiService.clearCache();
-    console.log('[GPU Pricing] All caches cleared');
+    if (import.meta.env.DEV) console.log('[GPU Pricing] All caches cleared');
 }
 
 /**

@@ -21,7 +21,7 @@ const AuthModule: React.FC = () => {
             setUserProfile({ displayName: 'Demo Observer', role: 'ARCHITECT', clearanceLevel: 10, avatar: null });
             setAuthenticated(true);
         }
-    }, []);
+    }, [setAuthenticated, setUserProfile]);
 
     const handleDemoAccess = () => {
         setUserProfile({ displayName: 'Demo Observer', role: 'ARCHITECT', clearanceLevel: 10, avatar: null });

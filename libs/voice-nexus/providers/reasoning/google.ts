@@ -54,8 +54,8 @@ Avoid bullet points and formatting - speak naturally as responses will be conver
  */
 export function createGeminiReasoning(options?: GeminiReasoningOptions): ReasoningProvider {
     const apiKey = options?.apiKey ||
-        process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
-        process.env.GEMINI_API_KEY;
+        import.meta.env.VITE_GOOGLE_GENERATIVE_AI_API_KEY ||
+        import.meta.env.VITE_GEMINI_API_KEY;
     const models = {
         ...GEMINI_REASONING_MODELS,
         ...options?.models,

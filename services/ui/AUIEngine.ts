@@ -14,6 +14,7 @@
  */
 
 import { getAI, safeParseJson } from '../geminiService';
+import { logger } from '../logger';
 import { claudeService } from '../claudeService';
 import { apiKeyService } from '../apiKeyService';
 import {
@@ -149,7 +150,7 @@ class AUIEngineService {
 
       return layout;
     } catch (error) {
-      console.error('AUI: Layout generation failed', error);
+      logger.error('Layout generation failed', error, 'AUI');
       return this.currentLayout || this.getDefaultLayout();
     } finally {
       this.generationInProgress = false;
@@ -209,7 +210,7 @@ class AUIEngineService {
       const layoutSpec = this.parseLayoutResponse(responseText);
       return this.validateAndComplete(layoutSpec, context);
     } catch (error: any) {
-      console.error('AUI: LLM generation failed', error.message);
+      logger.error('LLM generation failed', error.message, 'AUI');
       // Fallback to rule-based generation
       return this.generateRuleBasedLayout(context);
     }
@@ -234,7 +235,7 @@ class AUIEngineService {
 
       return JSON.parse(jsonStr.trim());
     } catch (error) {
-      console.error('AUI: Failed to parse layout response', error);
+      logger.error('Failed to parse layout response', error, 'AUI');
       return {};
     }
   }
@@ -614,7 +615,7 @@ OUTPUT: Always respond with valid JSON for a UILayoutSpec. No markdown, no expla
       try {
         handler(event);
       } catch (e) {
-        console.error('AUI: Event handler error', e);
+        logger.error('Event handler error', e, 'AUI');
       }
     });
   }

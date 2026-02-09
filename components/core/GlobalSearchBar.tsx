@@ -223,7 +223,8 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
                     {search.query && (
                         <button
                             onClick={() => setSearchState({ query: '' })}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-600 hover:text-white"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                            aria-label="Clear search"
                         >
                             <X size={12} />
                         </button>
@@ -274,19 +275,19 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
 
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between mb-1">
-                                                    <span className="text-[11px] font-black text-gray-200 truncate uppercase tracking-tight group-hover/res:text-white">{item.title}</span>
+                                                    <span className="text-[11px] font-black text-gray-200 truncate uppercase tracking-tight group-hover/res:text-white" title={item.title}>{item.title}</span>
                                                     <div className="flex items-center gap-2">
                                                         {item.meta?.similarity && (
                                                             <span className="text-[7px] font-mono text-[var(--plasma-green)] font-bold uppercase px-1.5 py-0.5 rounded-sm bg-[var(--plasma-green)]/10">
                                                                 {item.meta.similarity} match
                                                             </span>
                                                         )}
-                                                        <span className="text-[7px] font-mono text-gray-600 font-bold uppercase border border-white/5 px-1.5 py-0.5 rounded-sm">
+                                                        <span className="text-[7px] font-mono text-gray-500 font-bold uppercase border border-white/5 px-1.5 py-0.5 rounded-sm">
                                                             {item.category}
                                                         </span>
                                                     </div>
                                                 </div>
-                                                <p className="text-[9px] text-gray-500 font-mono line-clamp-1 leading-relaxed">{item.description}</p>
+                                                <p className="text-[9px] text-gray-400 font-mono line-clamp-1 leading-relaxed" title={item.description}>{item.description}</p>
                                             </div>
                                             <ArrowRight className={cn("w-4 h-4 mt-1 transition-all", selectedIndex === i ? "text-[#f1c21b] translate-x-0" : "text-gray-800 -translate-x-2")} />
                                         </button>

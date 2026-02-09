@@ -9,6 +9,7 @@
 
 import type { HiveAgent } from '../../types';
 import { HIVE_AGENTS } from '../agents';
+import { securityAudit } from './auditLog';
 
 // =============================================================================
 // TYPES
@@ -126,10 +127,7 @@ export function getSystemPrompt(agentId: string, caller: 'system' | 'admin'): st
  * Log prompt access for security audit
  */
 function logPromptAccess(agentId: string, caller: string): void {
-  const timestamp = new Date().toISOString();
-  console.log(`[PROMPT_ACCESS] Agent: ${agentId}, Caller: ${caller}, Time: ${timestamp}`);
-
-  // TODO: Write to security audit log database
+  securityAudit.log('prompt_access', { agentId, caller });
 }
 
 // =============================================================================

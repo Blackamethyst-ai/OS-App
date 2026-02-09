@@ -48,7 +48,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                         <HelpCircle className="w-5 h-5 text-[#9d4edd]" />
                         <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-white">V9.5 - THE D-Ecosystem Guide</h2>
                     </div>
-                    <button onClick={onClose} className="p-2 text-gray-500 hover:text-white transition-colors">
+                    <button onClick={onClose} className="p-2 text-gray-500 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d4edd]" aria-label="Close help center">
                         <X className="w-6 h-6" />
                     </button>
                 </div>

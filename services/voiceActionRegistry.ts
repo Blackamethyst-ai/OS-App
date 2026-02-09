@@ -16,6 +16,7 @@
 
 import { ALL_HANDLER_ACTIONS, getHandlerStats } from './actions/handlers';
 import type { UnifiedAction } from './actions/types';
+import { logger } from './logger';
 
 // Re-export types for backward compatibility
 export type VoiceAction = UnifiedAction;
@@ -24,9 +25,11 @@ export type VoiceAction = UnifiedAction;
  * @deprecated Use initializeUnifiedRegistry() instead.
  */
 export function initializeVoiceActions(): void {
-    console.warn(
-        '[voiceActionRegistry] DEPRECATED: Use initializeUnifiedRegistry() instead. ' +
-        'Actions are now consolidated in services/actions/handlers/'
+    logger.warn(
+        'DEPRECATED: Use initializeUnifiedRegistry() instead. ' +
+        'Actions are now consolidated in services/actions/handlers/',
+        undefined,
+        'voiceActionRegistry'
     );
 }
 
@@ -34,8 +37,10 @@ export function initializeVoiceActions(): void {
  * @deprecated Use ALL_HANDLER_ACTIONS from services/actions/handlers instead.
  */
 export function getVoiceActions(): UnifiedAction[] {
-    console.warn(
-        '[voiceActionRegistry] DEPRECATED: Use ALL_HANDLER_ACTIONS from services/actions/handlers instead.'
+    logger.warn(
+        'DEPRECATED: Use ALL_HANDLER_ACTIONS from services/actions/handlers instead.',
+        undefined,
+        'voiceActionRegistry'
     );
     return ALL_HANDLER_ACTIONS.filter(a => a.source === 'voice');
 }
@@ -44,8 +49,10 @@ export function getVoiceActions(): UnifiedAction[] {
  * @deprecated Use getActionsForSector() from services/actions/registry instead.
  */
 export function getActionsByCategory(category: string): UnifiedAction[] {
-    console.warn(
-        '[voiceActionRegistry] DEPRECATED: Use getActionsByCategory() from services/actions/registry instead.'
+    logger.warn(
+        'DEPRECATED: Use getActionsByCategory() from services/actions/registry instead.',
+        undefined,
+        'voiceActionRegistry'
     );
     return ALL_HANDLER_ACTIONS.filter(a => a.complexity === category);
 }
@@ -54,8 +61,10 @@ export function getActionsByCategory(category: string): UnifiedAction[] {
  * @deprecated Use getActionsForSector() from services/actions/registry instead.
  */
 export function getActionsBySector(sector: string): UnifiedAction[] {
-    console.warn(
-        '[voiceActionRegistry] DEPRECATED: Use getActionsForSector() from services/actions/registry instead.'
+    logger.warn(
+        'DEPRECATED: Use getActionsForSector() from services/actions/registry instead.',
+        undefined,
+        'voiceActionRegistry'
     );
     return ALL_HANDLER_ACTIONS.filter(a =>
         a.sectors.length === 0 || a.sectors.some(s => s === sector)
@@ -66,8 +75,10 @@ export function getActionsBySector(sector: string): UnifiedAction[] {
  * @deprecated Use searchActions() from services/actions/registry instead.
  */
 export function findMatchingAction(query: string): UnifiedAction | null {
-    console.warn(
-        '[voiceActionRegistry] DEPRECATED: Use searchActions() from services/actions/registry instead.'
+    logger.warn(
+        'DEPRECATED: Use searchActions() from services/actions/registry instead.',
+        undefined,
+        'voiceActionRegistry'
     );
     const q = query.toLowerCase();
     return ALL_HANDLER_ACTIONS.find(action =>
@@ -81,8 +92,10 @@ export function findMatchingAction(query: string): UnifiedAction | null {
  * @deprecated Use generateVoiceContext() from unifiedActionRegistry instead.
  */
 export function generateActionContext(): string {
-    console.warn(
-        '[voiceActionRegistry] DEPRECATED: Use generateVoiceContext() from unifiedActionRegistry instead.'
+    logger.warn(
+        'DEPRECATED: Use generateVoiceContext() from unifiedActionRegistry instead.',
+        undefined,
+        'voiceActionRegistry'
     );
     const stats = getHandlerStats();
     let context = '=== VOICE ACTIONS (DEPRECATED) ===\n';

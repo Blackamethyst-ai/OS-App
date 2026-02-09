@@ -29,6 +29,8 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
     const [lastIntervention, setLastIntervention] = useState<{target: string, msg: string} | null>(null);
     
     const pendingWhispers = useRef<Record<string, string>>({});
+    const [whisperTarget, setWhisperTarget] = useState<string | null>(null);
+    const [whisperInput, setWhisperInput] = useState('');
     const audioCtxRef = useRef<AudioContext | null>(null);
 
     useEffect(() => {
@@ -172,8 +174,16 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
     const handleWhisper = (personaId: string, e: React.MouseEvent) => {
         e.preventDefault();
         if (status !== 'DEBATING') return;
-        const instruction = prompt("GOD MODE // WHISPER PROTOCOL:\nInject a secret override directive for this agent:");
-        if (instruction) pendingWhispers.current[personaId] = instruction;
+        setWhisperTarget(personaId);
+        setWhisperInput('');
+    };
+
+    const submitWhisper = () => {
+        if (whisperTarget && whisperInput.trim()) {
+            pendingWhispers.current[whisperTarget] = whisperInput.trim();
+        }
+        setWhisperTarget(null);
+        setWhisperInput('');
     };
 
     const toggleVoice = async () => {
@@ -272,6 +282,27 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
     return (
         <div className="flex h-full bg-[#050505] relative overflow-hidden">
             <AnimatePresence>
+                {whisperTarget && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center" onClick={() => setWhisperTarget(null)}>
+                        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-[#111] border border-[#9d4edd]/30 rounded-2xl p-6 w-96 shadow-[0_0_40px_rgba(157,78,221,0.2)]" onClick={e => e.stopPropagation()}>
+                            <p className="text-xs font-bold uppercase tracking-widest text-[#9d4edd] mb-3">Whisper Protocol</p>
+                            <p className="text-[10px] text-gray-500 mb-4">Inject a directive for this agent</p>
+                            <input
+                                autoFocus
+                                value={whisperInput}
+                                onChange={e => setWhisperInput(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && submitWhisper()}
+                                placeholder="Enter directive..."
+                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-[#9d4edd]/50 mb-4"
+                                aria-label="Whisper directive input"
+                            />
+                            <div className="flex gap-2 justify-end">
+                                <button onClick={() => setWhisperTarget(null)} className="px-4 py-2 text-xs text-gray-500 hover:text-white transition-colors">Cancel</button>
+                                <button onClick={submitWhisper} disabled={!whisperInput.trim()} className="px-4 py-2 bg-[#9d4edd]/20 border border-[#9d4edd]/30 rounded-lg text-xs font-bold text-[#9d4edd] hover:bg-[#9d4edd]/30 disabled:opacity-30 transition-all">Inject</button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
                 {lastIntervention && (
                     <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute top-20 left-1/2 -translate-x-1/2 z-50 bg-[#9d4edd]/90 backdrop-blur text-black px-6 py-2 rounded-full font-bold font-mono text-xs shadow-[0_0_20px_rgba(157,78,221,0.5)] flex items-center gap-3 pointer-events-none">
                         <Zap className="w-4 h-4 fill-current" />

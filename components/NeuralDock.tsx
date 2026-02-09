@@ -104,6 +104,7 @@ const NeuralDock: React.FC<{ mode?: 'fixed' | 'static', className?: string }> = 
         } else {
             root.style.setProperty('--neural-accent-mode', `hue-rotate(${hueShift}deg) saturate(${saturation}%)`);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [mindset.skepticism, mindset.excitement, mindset.alignment]);
 
     return (

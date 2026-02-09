@@ -6,6 +6,8 @@
  * Security: Implements detection for "Just Ask" attacks (arXiv:2601.21233)
  */
 
+import { securityAudit } from './auditLog';
+
 // =============================================================================
 // TYPES
 // =============================================================================
@@ -163,17 +165,7 @@ export function logExtractionAttempt(attempt: ExtractionAttempt): SecurityAlert 
     action: severity === 'critical' ? 'blocked' : 'logged',
   };
 
-  console.warn(`[SECURITY] Prompt extraction detected:`, {
-    severity,
-    agentId: attempt.agentId,
-    confidence: attempt.confidence,
-    patterns: attempt.matchedPatterns,
-    query: attempt.query.substring(0, 50),
-    timestamp: new Date(attempt.timestamp).toISOString(),
-  });
-
-  // TODO: Write to security audit database
-  // TODO: Trigger real-time alerting for critical attempts
+  securityAudit.log('extraction_attempt', { severity, attempt });
 
   return alert;
 }
@@ -202,15 +194,7 @@ export function logPromptLeakage(
     action: 'sanitized',
   };
 
-  console.error(`[SECURITY] Prompt leakage detected in response:`, {
-    agentId,
-    query: query.substring(0, 50),
-    responseLength: response.length,
-    timestamp: new Date(attempt.timestamp).toISOString(),
-  });
-
-  // TODO: Write to security audit database
-  // TODO: Trigger immediate alert
+  securityAudit.log('prompt_leakage', { agentId, query: query.substring(0, 50), responseLength: response.length });
 
   return alert;
 }
@@ -238,12 +222,16 @@ export function getExtractionStats(): {
   bySeverity: Record<string, number>;
   byAgent: Record<string, number>;
 } {
-  // TODO: Query from audit database
-  return {
-    totalAttempts: 0,
-    bySeverity: {},
-    byAgent: {},
-  };
+  const allEntries = securityAudit.getEntries().filter(e => e.type === 'extraction_attempt');
+  const bySeverity: Record<string, number> = {};
+  const byAgent: Record<string, number> = {};
+  for (const entry of allEntries) {
+    const sev = entry.data.severity as string;
+    const attempt = entry.data.attempt as ExtractionAttempt;
+    bySeverity[sev] = (bySeverity[sev] || 0) + 1;
+    byAgent[attempt.agentId] = (byAgent[attempt.agentId] || 0) + 1;
+  }
+  return { totalAttempts: allEntries.length, bySeverity, byAgent };
 }
 
 // =============================================================================

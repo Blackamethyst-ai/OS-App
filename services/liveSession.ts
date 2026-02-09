@@ -136,14 +136,14 @@ class LiveSession {
 
         const voiceName = agent?.voice || 'Zephyr';
 
-        console.log('[LiveSession] 🎤 Connecting with:', { agentName, voiceName, model: 'gemini-2.0-flash-exp' });
+        if (import.meta.env.DEV) console.log('[LiveSession] 🎤 Connecting with:', { agentName, voiceName, model: 'gemini-2.0-flash-exp' });
 
         const sessionPromise = ai.live.connect({
             model: 'gemini-2.0-flash-exp',
             callbacks: {
                 onopen: async () => {
                     try {
-                        console.log('[LiveSession] ✅ WebSocket OPENED, requesting microphone...');
+                        if (import.meta.env.DEV) console.log('[LiveSession] ✅ WebSocket OPENED, requesting microphone...');
                         // Enable echo cancellation to prevent AI from hearing itself
                         this.stream = await navigator.mediaDevices.getUserMedia({
                             audio: {
@@ -152,7 +152,7 @@ class LiveSession {
                                 autoGainControl: true
                             }
                         });
-                        console.log('[LiveSession] ✅ Microphone access GRANTED, setting up audio pipeline...');
+                        if (import.meta.env.DEV) console.log('[LiveSession] ✅ Microphone access GRANTED, setting up audio pipeline...');
                         const source = this.audioContext!.createMediaStreamSource(this.stream);
                         const scriptProcessor = this.audioContext!.createScriptProcessor(4096, 1, 1);
                         scriptProcessor.onaudioprocess = (audioProcessingEvent) => {
@@ -166,7 +166,7 @@ class LiveSession {
                         source.connect(this.inputAnalyser!);
                         source.connect(scriptProcessor);
                         scriptProcessor.connect(this.audioContext!.destination);
-                        console.log('[LiveSession] ✅ Audio pipeline READY - voice session is ACTIVE');
+                        if (import.meta.env.DEV) console.log('[LiveSession] ✅ Audio pipeline READY - voice session is ACTIVE');
                         if (config.callbacks?.onopen) config.callbacks.onopen();
                     } catch (e: any) {
                         // Provide specific error messages for common failures
@@ -184,7 +184,7 @@ class LiveSession {
                 },
                 onmessage: async (message: LiveServerMessage) => {
                     // Log all messages for debugging
-                    console.log('[LiveSession] 📨 Message received:', {
+                    if (import.meta.env.DEV) console.log('[LiveSession] 📨 Message received:', {
                         hasToolCall: !!message.toolCall,
                         hasAudio: !!message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data,
                         interrupted: !!message.serverContent?.interrupted,

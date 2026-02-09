@@ -30,6 +30,7 @@ import { IntentResolver } from './IntentResolver';
 import { SemanticPager } from '../memory/SemanticPager';
 import { auiEngine, judgeAgent, semanticGaze, domRegenerator } from '../ui';
 import type { UILayoutSpec, AUIGenerationContext, UIEvaluation } from '../ui/types';
+import { logger } from '../logger';
 
 // Organism Framework imports (US-015)
 import { organismRegistry, AbstractOrganismLayer } from '../organisms';
@@ -92,7 +93,7 @@ class AgentKernelService {
    */
   async boot(): Promise<void> {
     if (this.state !== 'BOOTING' && this.state !== 'ERROR') {
-      console.warn('KERNEL: Already booted');
+      logger.warn('Already booted', undefined, 'KERNEL');
       return;
     }
 
@@ -117,7 +118,7 @@ class AgentKernelService {
       if (import.meta.env.DEV) console.log('⚡ KERNEL: Boot complete');
     } catch (error) {
       this.state = 'ERROR';
-      console.error('⚡ KERNEL: Boot failed', error);
+      logger.error('Boot failed', error, 'KERNEL');
       throw error;
     }
   }
@@ -167,7 +168,7 @@ class AgentKernelService {
       this.organismLayersInitialized = true;
       if (import.meta.env.DEV) console.log('⚡ KERNEL: Organism layers initialized');
     } catch (error) {
-      console.error('⚡ KERNEL: Failed to initialize organism layers', error);
+      logger.error('Failed to initialize organism layers', error, 'KERNEL');
       // Non-fatal: kernel can operate without organism layers
     }
   }
@@ -187,7 +188,7 @@ class AgentKernelService {
       this.organismLayersInitialized = false;
       if (import.meta.env.DEV) console.log('⚡ KERNEL: Organism layers shutdown complete');
     } catch (error) {
-      console.error('⚡ KERNEL: Error during organism layer shutdown', error);
+      logger.error('Error during organism layer shutdown', error, 'KERNEL');
     }
   }
 
@@ -616,7 +617,7 @@ class AgentKernelService {
         latencyMs: latency,
       };
     } catch (error: any) {
-      console.error('⚡ KERNEL: UI regeneration failed', error);
+      logger.error('UI regeneration failed', error, 'KERNEL');
       return {
         action: 'UI_REGENERATION_FAILED',
         error: error.message,
@@ -815,7 +816,7 @@ class AgentKernelService {
       try {
         handler(event);
       } catch (e) {
-        console.error('KERNEL: Event handler error', e);
+        logger.error('Event handler error', e, 'KERNEL');
       }
     });
 
@@ -824,7 +825,7 @@ class AgentKernelService {
       try {
         handler(event);
       } catch (e) {
-        console.error('KERNEL: Global handler error', e);
+        logger.error('Global handler error', e, 'KERNEL');
       }
     });
   }

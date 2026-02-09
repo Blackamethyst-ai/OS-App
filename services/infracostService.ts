@@ -295,7 +295,7 @@ export async function getCloudGpuPricing(
 
     const mapping = GPU_INSTANCE_MAPPING[gpuModel.toUpperCase()];
     if (!mapping) {
-        console.log(`[Infracost] No instance mapping for GPU model: ${gpuModel}`);
+        if (import.meta.env.DEV) console.log(`[Infracost] No instance mapping for GPU model: ${gpuModel}`);
         return { aws: [], gcp: [], azure: [] };
     }
 
@@ -306,7 +306,7 @@ export async function getCloudGpuPricing(
     };
 
     if (!hasApiKey()) {
-        console.log('[Infracost] API key not configured, returning static pricing');
+        if (import.meta.env.DEV) console.log('[Infracost] API key not configured, returning static pricing');
         return getStaticPricing(gpuModel);
     }
 
@@ -537,5 +537,5 @@ export function calculateBreakeven(
  */
 export function clearCache(): void {
     pricingCache.clear();
-    console.log('[Infracost] Cache cleared');
+    if (import.meta.env.DEV) console.log('[Infracost] Cache cleared');
 }

@@ -4572,6 +4572,7 @@ Output the code with brief explanation.`,
 
             setVoiceState({ voiceName: targetName, isActive: true });
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally omitting reactive store selectors to prevent infinite re-renders
     }, [addLog, setMode, setVoiceState]);
 
     useEffect(() => {
@@ -4728,7 +4729,7 @@ ${Object.entries(CODEBASE_KNOWLEDGE.subsystems).map(([name, info]: [string, any]
 
 === AVAILABLE ACTIONS ===
 Use execute_component_action with these IDs for complex operations:
-${getVoiceCapabilityList(currentMode)}
+${getVoiceCapabilityList(currentMode as any)}
 
 ${generateTabContext(currentMode)}
 
@@ -4839,6 +4840,7 @@ ${generateTabContext(currentMode)}
 
         syncSession();
         return () => { mounted = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally omitting reactive store selectors to prevent infinite re-renders
     }, [voice.isActive, voice.voiceName, setVoiceState, addLog, currentLocation, operationalContext, voice.mentalState]);
 
     return null;

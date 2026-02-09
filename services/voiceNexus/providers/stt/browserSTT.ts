@@ -12,6 +12,7 @@
  */
 
 import type { STTProvider } from '../../types';
+import { logger } from '../../../logger';
 
 // Type declarations for Web Speech API
 interface SpeechRecognitionEvent {
@@ -110,7 +111,7 @@ class BrowserSTTProvider implements STTProvider {
      * For batch transcription, use Whisper or another provider.
      */
     async transcribe(audio: Blob): Promise<string> {
-        console.warn('BrowserSTT: Batch transcription not supported. Use streaming mode.');
+        logger.warn('Batch transcription not supported. Use streaming mode.', undefined, 'BrowserSTT');
         return '[Browser STT does not support batch transcription - use streaming mode]';
     }
 
@@ -126,7 +127,7 @@ class BrowserSTTProvider implements STTProvider {
         }
 
         if (this.isStreaming) {
-            console.warn('BrowserSTT: Already streaming');
+            logger.warn('Already streaming', undefined, 'BrowserSTT');
             return;
         }
 
@@ -184,7 +185,7 @@ class BrowserSTTProvider implements STTProvider {
                 try {
                     this.recognition?.start();
                 } catch (e) {
-                    console.warn('BrowserSTT: Failed to restart after end:', e);
+                    logger.warn('Failed to restart after end', e, 'BrowserSTT');
                     this.cleanup();
                 }
             } else {
@@ -199,7 +200,7 @@ class BrowserSTTProvider implements STTProvider {
 
         // Handle errors
         this.recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-            console.error('BrowserSTT: Error:', event.error, event.message);
+            logger.error(`Error: ${event.error}`, event.message, 'BrowserSTT');
 
             // Handle recoverable errors
             if (event.error === 'no-speech' || event.error === 'aborted') {
@@ -209,13 +210,13 @@ class BrowserSTTProvider implements STTProvider {
 
             // Network errors might be recoverable
             if (event.error === 'network') {
-                console.warn('BrowserSTT: Network error, will retry on next start');
+                logger.warn('Network error, will retry on next start', undefined, 'BrowserSTT');
                 return;
             }
 
             // Non-recoverable errors
             if (event.error === 'not-allowed') {
-                console.error('BrowserSTT: Microphone permission denied');
+                logger.error('Microphone permission denied', undefined, 'BrowserSTT');
             }
 
             this.restartOnEnd = false;
@@ -258,7 +259,7 @@ class BrowserSTTProvider implements STTProvider {
             try {
                 this.recognition.stop();
             } catch (e) {
-                console.warn('BrowserSTT: Error stopping recognition:', e);
+                logger.warn('Error stopping recognition', e, 'BrowserSTT');
                 resolve(this.finalTranscript);
                 this.cleanup();
             }

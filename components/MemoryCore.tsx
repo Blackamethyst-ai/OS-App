@@ -90,6 +90,7 @@ const MemoryCore: React.FC = () => {
     const [selectedArtifact, setSelectedArtifact] = useState<StoredArtifact | null>(null);
     const [isIndexing, setIsIndexing] = useState(false);
     const [isReconstructing, setIsReconstructing] = useState(false);
+    const [confirmPurge, setConfirmPurge] = useState(false);
 
     useEffect(() => { loadArtifacts(); }, []);
 
@@ -472,8 +473,15 @@ const MemoryCore: React.FC = () => {
                                 <button onClick={() => openHoloProjector({ id: selectedArtifact.id, title: selectedArtifact.name, type: selectedArtifact.type === 'TOOL_MANIFEST' ? 'CODE' : 'TEXT', content: selectedArtifact.analysis?.summary || selectedArtifact.name })} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all flex items-center justify-center gap-3">
                                     <Maximize size={16} /> Holo View
                                 </button>
-                                <button onClick={async () => { if (confirm('Irreversible purge?')) { await neuralVault.deleteArtifact(selectedArtifact.id); setSelectedArtifact(null); loadArtifacts(); audio.playError(); } }} className="px-6 py-4 bg-transparent border border-red-500/10 rounded-2xl text-red-500/60 hover:text-red-500 hover:bg-red-500/10 transition-all flex items-center justify-center">
+                                <button
+                                    onClick={async () => {
+                                        if (!confirmPurge) { setConfirmPurge(true); setTimeout(() => setConfirmPurge(false), 3000); return; }
+                                        await neuralVault.deleteArtifact(selectedArtifact.id); setSelectedArtifact(null); setConfirmPurge(false); loadArtifacts(); audio.playError();
+                                    }}
+                                    className={`px-6 py-4 border rounded-2xl transition-all flex items-center justify-center gap-2 ${confirmPurge ? 'bg-red-500/20 border-red-500/40 text-red-400' : 'bg-transparent border-red-500/10 text-red-500/60 hover:text-red-500 hover:bg-red-500/10'}`}
+                                >
                                     <Trash2 size={18} />
+                                    {confirmPurge && <span className="text-[9px] font-bold uppercase">Confirm</span>}
                                 </button>
                             </div>
                         </div>

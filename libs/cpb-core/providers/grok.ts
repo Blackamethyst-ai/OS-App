@@ -49,7 +49,7 @@ const DEFAULT_BASE_URL = 'https://api.x.ai/v1';
  * ```
  */
 export function createGrokProvider(options?: GrokProviderOptions): CPBProvider {
-    const apiKey = options?.apiKey || process.env.XAI_API_KEY;
+    const apiKey = options?.apiKey || import.meta.env.VITE_XAI_API_KEY;
     const defaultModel = options?.defaultModel || GROK_MODELS.balanced;
     const baseURL = options?.baseURL || DEFAULT_BASE_URL;
 

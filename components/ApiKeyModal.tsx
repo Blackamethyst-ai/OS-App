@@ -18,8 +18,8 @@ type ModalView = 'create-vault' | 'unlock-vault' | 'manage-keys';
 const PROVIDERS = [
     { id: 'gemini' as const, name: 'Gemini', color: '#4285F4', description: 'Google AI - Required for core features' },
     { id: 'claude' as const, name: 'Claude', color: '#cc785c', description: 'Anthropic - Advanced reasoning' },
-    { id: 'openai' as const, name: 'OpenAI', color: '#10a37f', description: 'GPT models - Coming soon' },
-    { id: 'grok' as const, name: 'Grok', color: '#1DA1F2', description: 'xAI - Coming soon' },
+    { id: 'openai' as const, name: 'OpenAI', color: '#10a37f', description: 'GPT models' },
+    { id: 'grok' as const, name: 'Grok', color: '#1DA1F2', description: 'xAI reasoning models' },
     { id: 'eleven_labs' as const, name: 'ElevenLabs', color: '#1f2937', description: 'Neural Voice Synthesis (Creator)' },
     { id: 'deepgram' as const, name: 'Deepgram', color: '#13EF93', description: 'Streaming STT (Nova-3)' },
 ];
@@ -38,6 +38,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
     const [isValidating, setIsValidating] = useState(false);
     const [validationResult, setValidationResult] = useState<{ valid: boolean; error?: string } | null>(null);
     const [keyStatus, setKeyStatus] = useState(apiKeyService.getKeyStatus());
+    const [confirmReset, setConfirmReset] = useState(false);
 
     // Determine initial view based on vault status
     useEffect(() => {
@@ -173,13 +174,13 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
     };
 
     const handleResetVault = () => {
-        if (confirm('⚠️ This will permanently delete all stored API keys. Are you sure?')) {
-            apiKeyService.resetVault();
-            setView('create-vault');
-            setMasterPassword('');
-            setConfirmPassword('');
-            audio.playClick();
-        }
+        if (!confirmReset) { setConfirmReset(true); setTimeout(() => setConfirmReset(false), 5000); return; }
+        apiKeyService.resetVault();
+        setView('create-vault');
+        setMasterPassword('');
+        setConfirmPassword('');
+        setConfirmReset(false);
+        audio.playClick();
     };
 
     const activeProviderInfo = keyStatus.find(k => k.provider === activeProvider);
@@ -332,9 +333,9 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
             <div className="text-center pt-2">
                 <button
                     onClick={handleResetVault}
-                    className="text-[9px] text-red-400/60 hover:text-red-400 transition-colors"
+                    className={`text-[9px] transition-colors ${confirmReset ? 'text-red-400 font-bold' : 'text-red-400/60 hover:text-red-400'}`}
                 >
-                    Forgot password? Reset vault
+                    {confirmReset ? 'Click again to confirm reset' : 'Forgot password? Reset vault'}
                 </button>
             </div>
         </div>

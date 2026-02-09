@@ -35,13 +35,13 @@ const NotificationCard: React.FC<{
 
     return (
         <motion.div layout initial={{ opacity: 0, x: 100, scale: 0.9 }} animate={{ opacity: 1, x: 0, scale: 1 }} exit={{ opacity: 0, x: 100, scale: 0.9, transition: { duration: 0.2 } }} className={cn("w-80 md:w-96 rounded-r-none rounded-l-lg backdrop-blur-xl border-l-4 border-y border-r-0 border-white/10 p-0 pointer-events-auto relative overflow-hidden group mb-3 z-[9999]", s.bg, s.border, s.glow)}>
-            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.05)_50%,transparent_75%,transparent)] bg-[size:10px_10px] pointer-events-none opacity-20"></div>
+            <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(255,255,255,0.05)_50%,transparent_75%,transparent)] bg-[size:10px_10px] pointer-events-none opacity-20" aria-hidden="true"></div>
             <div className="flex p-4 gap-3 relative z-10">
                 <div className={`mt-1 ${s.text} animate-pulse`}>{s.icon}</div>
                 <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-start">
                         <h4 className={`text-xs font-bold font-mono uppercase tracking-wider ${s.text}`}>{title}</h4>
-                        <button onClick={() => onDismiss(id)} className="text-gray-500 hover:text-white transition-colors"><X className="w-3 h-3" /></button>
+                        <button onClick={() => onDismiss(id)} className="text-gray-500 hover:text-white transition-colors" aria-label="Dismiss notification"><X className="w-3 h-3" /></button>
                     </div>
                     <p className="text-[10px] text-gray-300 font-mono mt-1 leading-relaxed break-words">{message}</p>
                     <div className="mt-2 text-[8px] font-mono text-gray-600 flex justify-between items-center">
@@ -74,8 +74,8 @@ const LogRow: React.FC<{ log: any }> = ({ log }) => {
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-3 mb-1.5">
                     <span className={`font-black tracking-widest uppercase text-[9px] ${getColor(log.level || log.type)}`}>{log.level || log.type}</span>
-                    <span className="text-gray-700">|</span>
-                    <span className="text-[8px] text-gray-500 font-bold">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                    <span className="text-gray-500">|</span>
+                    <span className="text-[8px] text-gray-400 font-bold">{new Date(log.timestamp).toLocaleTimeString()}</span>
                 </div>
                 <div className="text-gray-400 leading-relaxed font-medium uppercase tracking-tight">{log.message}</div>
             </div>

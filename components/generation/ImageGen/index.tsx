@@ -1581,7 +1581,7 @@ ${videoPrompt}
             // PHASE 2: Extract Character Anchor for First Frame
             // ============================================================
             const characterRef = imageGen.characterRefs[0];
-            let characterImageForVeo = characterRef;
+            const characterImageForVeo = characterRef;
 
             // If we have character anchors but no direct ref, try to use the thumbnail
             if (!characterRef && productionBible?.characterAnchors?.[0]?.referenceThumb) {

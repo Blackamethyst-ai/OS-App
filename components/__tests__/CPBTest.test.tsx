@@ -20,10 +20,10 @@ import {
     CheckCircle2,
     AlertCircle
 } from 'lucide-react';
-import { cpbExecute, cpbExecutePath } from '../services/cognitivePrecisionBridge';
-import type { CPBPath, CPBStatus, CPBResult } from '../services/cognitivePrecisionBridge/types';
-import { CPBMonitorPanel, CPBStatusBadge } from './CPBMonitor';
-import { useAppStore } from '../store';
+import { cpbExecute, cpbExecutePath } from '../../services/cognitivePrecisionBridge';
+import type { CPBPath, CPBStatus, CPBResult } from '../../services/cognitivePrecisionBridge/types';
+import { CPBMonitorPanel, CPBStatusBadge } from '../CPBMonitor';
+import { useAppStore } from '../../store';
 
 const PATH_OPTIONS: { value: CPBPath; label: string; icon: React.ReactNode; description: string }[] = [
     { value: 'direct', label: 'Direct', icon: <Zap size={14} />, description: 'Fast single-pass' },

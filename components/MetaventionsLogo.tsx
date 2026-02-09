@@ -25,6 +25,7 @@ const MetaventionsLogo: React.FC<LogoProps> = ({ size = 32, showText = false, cl
             }}
             transition={{ duration: 35, repeat: Infinity, ease: "easeInOut" }}
             className="absolute inset-[-140%] pointer-events-none blur-[80px] z-0 rounded-full group-hover/logo-svg:opacity-60 transition-opacity"
+            aria-hidden="true"
         />
 
         <svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full relative z-10 filter drop-shadow-[0_0_15px_rgba(24,230,255,0.6)]">

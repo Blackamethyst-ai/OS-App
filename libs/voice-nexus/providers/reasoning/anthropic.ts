@@ -58,7 +58,7 @@ Acknowledge when you're using injected knowledge to answer questions.`;
  * ```
  */
 export function createClaudeReasoning(options?: ClaudeReasoningOptions): ReasoningProvider {
-    const apiKey = options?.apiKey || process.env.ANTHROPIC_API_KEY;
+    const apiKey = options?.apiKey || import.meta.env.VITE_ANTHROPIC_API_KEY;
     const models = {
         ...CLAUDE_REASONING_MODELS,
         ...options?.models,

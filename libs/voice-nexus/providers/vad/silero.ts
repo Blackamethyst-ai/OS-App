@@ -79,7 +79,6 @@ async function loadVADModule(): Promise<VADModule> {
 
     try {
         // Dynamic import - only loads in browser
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         vadModule = await import('@ricky0123/vad-web' as any);
         return vadModule;
     } catch (error) {

@@ -25,6 +25,7 @@ import type {
   BiometricContext,
 } from '../archon/types';
 import { organismRegistry } from '../organisms';
+import { logger } from '../logger';
 
 // =============================================================================
 // TYPES
@@ -82,7 +83,7 @@ export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'er
 // =============================================================================
 
 const DEFAULT_CONFIG: MCPConfig = {
-  serverUrl: 'http://localhost:3847',
+  serverUrl: import.meta.env.VITE_AGENT_CORE_URL || 'http://localhost:3847',
   defaultBudget: 50000,
   useV2: true,
   timeout: 30000,
@@ -159,7 +160,7 @@ export class MCPContextBridge {
    */
   async initialize(): Promise<void> {
     if (this.status === 'connected') {
-      console.warn('[MCPContextBridge] Already initialized');
+      logger.warn('Already initialized', undefined, 'MCPContextBridge');
       return;
     }
 
@@ -178,7 +179,7 @@ export class MCPContextBridge {
       }
     } catch (error) {
       this.status = 'error';
-      console.error('[MCPContextBridge] Failed to connect:', error);
+      logger.error('Failed to connect', error, 'MCPContextBridge');
       // Don't throw - allow offline operation with cached/empty context
     }
   }
@@ -229,7 +230,7 @@ export class MCPContextBridge {
     }
 
     if (this.status !== 'connected') {
-      console.warn('[MCPContextBridge] Not connected, returning empty packs');
+      logger.warn('Not connected, returning empty packs', undefined, 'MCPContextBridge');
       return [];
     }
 
@@ -269,7 +270,7 @@ export class MCPContextBridge {
 
       return packs;
     } catch (error) {
-      console.error('[MCPContextBridge] Failed to fetch context packs:', error);
+      logger.error('Failed to fetch context packs', error, 'MCPContextBridge');
 
       // Return cached data if available, even if stale
       if (cached) {
@@ -294,7 +295,7 @@ export class MCPContextBridge {
   ): Promise<ContextPack[]> {
     const pattern = this.injectionPatterns.find((p) => p.layer === layerId);
     if (!pattern) {
-      console.warn(`[MCPContextBridge] No injection pattern for layer: ${layerId}`);
+      logger.warn(`No injection pattern for layer: ${layerId}`, undefined, 'MCPContextBridge');
       return [];
     }
 
@@ -364,7 +365,7 @@ export class MCPContextBridge {
     const layer = organismRegistry.get(layerId);
 
     if (!layer) {
-      console.warn(`[MCPContextBridge] Layer not found in registry: ${layerId}`);
+      logger.warn(`Layer not found in registry: ${layerId}`, undefined, 'MCPContextBridge');
       return;
     }
 
@@ -446,7 +447,7 @@ export class MCPContextBridge {
           }
         }
       } catch (error) {
-        console.warn('[MCPContextBridge] Polling error:', error);
+        logger.warn('Polling error', error, 'MCPContextBridge');
       }
     }, 30000);
   }
@@ -459,7 +460,7 @@ export class MCPContextBridge {
       try {
         callback(packs);
       } catch (error) {
-        console.error('[MCPContextBridge] Subscriber callback error:', error);
+        logger.error('Subscriber callback error', error, 'MCPContextBridge');
       }
     });
   }
@@ -575,7 +576,7 @@ export class MCPContextBridge {
       }
     }
 
-    console.warn('[MCPContextBridge] Unexpected API response format');
+    logger.warn('Unexpected API response format', undefined, 'MCPContextBridge');
     return [];
   }
 

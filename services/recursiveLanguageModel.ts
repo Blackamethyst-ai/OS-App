@@ -569,15 +569,15 @@ Now write Python code to continue working toward the answer. Use the REPL functi
             }
 
             if (fullConfig.verbose) {
-                console.log(`[RLM] Iteration ${iteration}: Executing code`);
-                console.log(cleanCode);
+                if (import.meta.env.DEV) console.log(`[RLM] Iteration ${iteration}: Executing code`);
+                if (import.meta.env.DEV) console.log(cleanCode);
             }
 
             // Execute the code
             const { output, subCalls } = await repl.execute(cleanCode);
 
             if (fullConfig.verbose) {
-                console.log(`[RLM] Output: ${output.slice(0, 200)}...`);
+                if (import.meta.env.DEV) console.log(`[RLM] Output: ${output.slice(0, 200)}...`);
             }
 
             // Record trajectory

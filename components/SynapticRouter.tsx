@@ -24,8 +24,8 @@ const CodeStudio = lazy(() => import('./generation/CodeStudio'));
 const AgentControlCenter = lazy(() => import('./agents/AgentControlCenter'));
 const AutonomousFinance = lazy(() => import('./finance/AutonomousFinance'));
 const NexusAPIExplorer = lazy(() => import('./NexusAPIExplorer'));
-const AgentCoreTest = lazy(() => import('./AgentCoreTest'));
-const CPBTest = lazy(() => import('./CPBTest'));
+const AgentCoreTest = lazy(() => import('./__tests__/AgentCoreTest.test'));
+const CPBTest = lazy(() => import('./__tests__/CPBTest.test'));
 const ArchonDashboard = lazy(() => import('./agents/ArchonDashboard'));
 const MetaLearningDashboard = lazy(() => import('./predictions/MetaLearningDashboard'));
 

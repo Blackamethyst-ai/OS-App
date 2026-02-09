@@ -18,6 +18,7 @@ import { organismRegistry } from '../OrganismLayer';
 import { wakeSleepAgent } from '../cognitive/wakeSleep';
 import { adaptiveMoE } from '../swarm/adaptiveMoE';
 import type { BiometricContext } from '../../archon/types';
+import { logger } from '../../logger';
 
 // =============================================================================
 // TYPES
@@ -160,7 +161,7 @@ export class BiometricHooks {
    */
   registerOrganismLayers(): void {
     if (this.state.registered) {
-      console.warn('[BiometricHooks] Layers already registered');
+      logger.warn('Layers already registered', undefined, 'BiometricHooks');
       return;
     }
 
@@ -230,7 +231,7 @@ export class BiometricHooks {
    */
   onBiometricUpdate(context: BiometricContext): void {
     if (!this.state.registered) {
-      console.warn('[BiometricHooks] Received update but layers not registered');
+      logger.warn('Received update but layers not registered', undefined, 'BiometricHooks');
       return;
     }
 
@@ -287,9 +288,10 @@ export class BiometricHooks {
       try {
         layer.onBiometricChange(context);
       } catch (error) {
-        console.error(
-          `[BiometricHooks] Error dispatching to layer ${layer.id}:`,
-          error
+        logger.error(
+          `Error dispatching to layer ${layer.id}`,
+          error,
+          'BiometricHooks'
         );
       }
     }
@@ -298,7 +300,7 @@ export class BiometricHooks {
     try {
       wakeSleepAgent.onBiometricChange(context);
     } catch (error) {
-      console.error('[BiometricHooks] Error dispatching to wakeSleepAgent:', error);
+      logger.error('Error dispatching to wakeSleepAgent', error, 'BiometricHooks');
     }
   }
 
@@ -508,7 +510,7 @@ export class BiometricHooks {
 
     // Trigger sleep cycle via biometric trigger
     wakeSleepAgent.triggerSleep('biometric-based').catch((error) => {
-      console.error('[BiometricHooks] Consolidation trigger failed:', error);
+      logger.error('Consolidation trigger failed', error, 'BiometricHooks');
     });
 
     // Emit event for UI updates

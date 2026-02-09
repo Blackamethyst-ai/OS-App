@@ -29,9 +29,11 @@ export function useServiceHealth(): ServiceStatus {
         let mounted = true;
 
         const check = async () => {
+            const agentCoreUrl = import.meta.env.VITE_AGENT_CORE_URL || 'http://localhost:3847';
+            const ollamaUrl = import.meta.env.VITE_OLLAMA_URL || 'http://localhost:11434';
             const [agentCoreOk, ollamaOk] = await Promise.all([
-                checkService('http://localhost:3847/health'),
-                checkService('http://localhost:11434/api/tags'),
+                checkService(`${agentCoreUrl}/health`),
+                checkService(`${ollamaUrl}/api/tags`),
             ]);
             if (mounted) {
                 setStatus({

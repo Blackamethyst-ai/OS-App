@@ -61,10 +61,28 @@ export const useProcessVisualizerLogic = () => {
 
     const { fitView, screenToFlowPosition, getViewport, zoomTo } = useReactFlow();
 
+    const pendingTimeoutsRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
+
+    const safeSetTimeout = useCallback((fn: () => void, delay: number) => {
+      const id = setTimeout(() => {
+        pendingTimeoutsRef.current.delete(id);
+        fn();
+      }, delay);
+      pendingTimeoutsRef.current.add(id);
+      return id;
+    }, []);
+
     const [nodes, setNodes, onNodesChange] = useNodesState(state.nodes || []);
     const [edges, setEdges, onEdgesChange] = useEdgesState(state.edges || []);
 
     const selectedNode = useMemo(() => nodes.find(n => n.selected), [nodes]);
+
+    useEffect(() => {
+      return () => {
+        pendingTimeoutsRef.current.forEach(clearTimeout);
+        pendingTimeoutsRef.current.clear();
+      };
+    }, []);
 
     // UI Innovation: Procedural Node Drift (Entropy Simulation)
     useEffect(() => {
@@ -104,7 +122,7 @@ export const useProcessVisualizerLogic = () => {
                 type: 'cinematic',
                 data: { color: '#9d4edd', variant: 'stream' }
             } as any));
-            setTimeout(() => fitView({ duration: 800 }), 100);
+            safeSetTimeout(() => fitView({ duration: 800 }), 100);
         }
     }, [state.pendingAIAddition, visualTheme, setNodes, setEdges, setState, fitView]);
 
@@ -253,7 +271,7 @@ export const useProcessVisualizerLogic = () => {
             const newPositions = await calculateOptimalLayout(nodes, edges) as any;
             setNodes(nds => nds.map(node => ({ ...node, position: newPositions[node.id] || node.position, data: { ...node.data, drift: Math.max(0, ((node.data?.drift as number) || 0) - 20) } })));
             addLog('SUCCESS', 'LATTICE_SYNC: Autopoietic organization complete.');
-            setTimeout(() => fitView({ duration: 1000 }), 100);
+            safeSetTimeout(() => fitView({ duration: 1000 }), 100);
         } catch (err: any) { handleApiError('Auto-Organize', err); } finally {
             setIsOrganizing(false);
             setState({ isLoading: false });
@@ -295,7 +313,7 @@ export const useProcessVisualizerLogic = () => {
             setNodes(newNodes);
             setEdges(newEdges);
             addLog('SUCCESS', `VAULT_SYNTHESIS: Lattice crystallized for "${result.title}".`);
-            setTimeout(() => fitView({ duration: 1000 }), 100);
+            safeSetTimeout(() => fitView({ duration: 1000 }), 100);
 
         } catch (err: any) {
             handleApiError('Vault Synthesis', err);
@@ -330,7 +348,7 @@ export const useProcessVisualizerLogic = () => {
 
             setSequenceStatus('COMPLETE');
             setState({ activeTab: state.workflowType === 'DRIVE_ORGANIZATION' ? 'vault' : 'workflow', isLoading: false });
-            setTimeout(() => setSequenceStatus('IDLE'), 3000);
+            safeSetTimeout(() => setSequenceStatus('IDLE'), 3000);
         } catch (err: any) { handleApiError('Global Sequence', err); }
     };
 
@@ -389,7 +407,7 @@ export const useProcessVisualizerLogic = () => {
                 }
                 const newNodes = result.nodes.map((n: any, i: number) => ({ id: n.id, type: state.workflowType === 'AGENTIC_ORCHESTRATION' ? 'agentic' : 'holographic', position: { x: 600 + Math.cos(i) * 300, y: 400 + Math.sin(i) * 300 }, data: { ...n, theme: visualTheme, progress: 2, drift: 0 } }));
                 const newEdges = result.edges.map((e: any) => ({ id: e.id, source: e.source, target: e.target, type: 'cinematic', data: { color: e.color || '#9d4edd', variant: e.variant || 'stream', handoffCondition: e.handoffCondition } }));
-                setNodes(newNodes); setEdges(newEdges); setTimeout(() => fitView({ duration: 1000 }), 100);
+                setNodes(newNodes); setEdges(newEdges); safeSetTimeout(() => fitView({ duration: 1000 }), 100);
             } catch (err: any) { handleApiError('Blueprint', err); } finally { setIsGeneratingGraph(false); }
         },
         handleDecomposeNode: async () => {
@@ -521,7 +539,7 @@ export const useProcessVisualizerLogic = () => {
                 setState({ codebaseGraph: data, isLoading: false });
                 addLog('SUCCESS', `LATTICE_RECONSTRUCTION: View stabilized and centered.`);
 
-                setTimeout(() => {
+                safeSetTimeout(() => {
                     fitView({ duration: 1200, padding: 0.15 });
                 }, 400);
             } catch (err: any) {

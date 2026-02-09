@@ -15,7 +15,7 @@ export interface OllamaResponse {
 }
 
 class OllamaService {
-    private baseUrl = 'http://localhost:11434/api';
+    private baseUrl = import.meta.env.VITE_OLLAMA_URL ? `${import.meta.env.VITE_OLLAMA_URL}/api` : 'http://localhost:11434/api';
 
     async isAvailable(): Promise<boolean> {
         try {

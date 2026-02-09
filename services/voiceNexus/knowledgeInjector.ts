@@ -26,7 +26,7 @@ class KnowledgeInjector {
     constructor(config: Partial<KnowledgeInjectorConfig> = {}) {
         this.config = { ...DEFAULT_CONFIG, ...config };
         this.client = new AgentCoreClient({
-            baseUrl: 'http://localhost:3847',
+            baseUrl: import.meta.env.VITE_AGENT_CORE_URL || 'http://localhost:3847',
             project: 'os-app',
             timeout: 5000, // Short timeout for voice responsiveness
         });

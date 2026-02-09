@@ -13,6 +13,7 @@
 import type { SkillGenome } from './types';
 import type { SkillRegistry } from './skillWeaver';
 import { supabase } from '../../supabaseService';
+import { logger } from '../../logger';
 
 // =============================================================================
 // TYPES
@@ -57,8 +58,10 @@ export class SupabaseSkillRegistry implements SkillRegistry {
   constructor() {
     this.supabaseConfigured = this.checkSupabaseConfigured();
     if (!this.supabaseConfigured) {
-      console.warn(
-        '[SupabaseSkillRegistry] Supabase not configured - falling back to in-memory only'
+      logger.warn(
+        'Supabase not configured - falling back to in-memory only',
+        undefined,
+        'SupabaseSkillRegistry'
       );
     }
   }
@@ -99,7 +102,7 @@ export class SupabaseSkillRegistry implements SkillRegistry {
         .order('created_at', { ascending: true });
 
       if (error) {
-        console.error('[SupabaseSkillRegistry] Hydration failed:', error);
+        logger.error('Hydration failed', error, 'SupabaseSkillRegistry');
         this.isHydrated = true;
         return 0;
       }
@@ -116,7 +119,7 @@ export class SupabaseSkillRegistry implements SkillRegistry {
       console.log(`[SupabaseSkillRegistry] Hydrated ${this.skills.size} skills from Supabase`);
       return this.skills.size;
     } catch (err) {
-      console.error('[SupabaseSkillRegistry] Hydration exception:', err);
+      logger.error('Hydration exception', err, 'SupabaseSkillRegistry');
       this.isHydrated = true;
       return 0;
     }
@@ -134,7 +137,7 @@ export class SupabaseSkillRegistry implements SkillRegistry {
     // Fire-and-forget Supabase write
     if (this.supabaseConfigured) {
       this.writeToSupabase(skill).catch((err) => {
-        console.error('[SupabaseSkillRegistry] Failed to persist skill:', skill.id, err);
+        logger.error(`Failed to persist skill: ${skill.id}`, err, 'SupabaseSkillRegistry');
       });
     }
   }
@@ -152,7 +155,7 @@ export class SupabaseSkillRegistry implements SkillRegistry {
     // Fire-and-forget Supabase delete
     if (this.supabaseConfigured) {
       this.deleteFromSupabase(skillId).catch((err) => {
-        console.error('[SupabaseSkillRegistry] Failed to delete skill:', skillId, err);
+        logger.error(`Failed to delete skill: ${skillId}`, err, 'SupabaseSkillRegistry');
       });
     }
 
@@ -179,7 +182,7 @@ export class SupabaseSkillRegistry implements SkillRegistry {
     // Fire-and-forget clear all skills from Supabase
     if (this.supabaseConfigured) {
       this.clearSupabase().catch((err) => {
-        console.error('[SupabaseSkillRegistry] Failed to clear Supabase skills:', err);
+        logger.error('Failed to clear Supabase skills', err, 'SupabaseSkillRegistry');
       });
     }
   }
