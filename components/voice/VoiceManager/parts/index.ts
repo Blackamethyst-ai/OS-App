@@ -19,3 +19,12 @@ export {
     thinkTool,
     VOICE_TOOLS
 } from './tools';
+
+export {
+    handleExecuteComponentAction,
+    handleNavigateToTab,
+    handleInputText,
+    handleClickElement,
+    handleSelectOption,
+    handleScanUI,
+} from './executionHandlers';

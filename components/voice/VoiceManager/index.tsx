@@ -11,6 +11,7 @@ import { voiceNexus, analyzeComplexity, runPreflightCheck, formatPreflightResult
 // Capabilities Registry (consolidated source of truth)
 import {
     executeCapability,
+    findCapability,
     getCapability,
     getVoiceCapabilityList,
     initializeCapabilities,
@@ -24,20 +25,29 @@ import { LiveServerMessage } from '@google/genai';
 import { audio } from '../../../services/audioService';
 import { CODEBASE_KNOWLEDGE, buildCodebaseContext } from '../../../services/archon';
 import { getFullSystemContext, getSectorContext } from '../../../services/voiceUIContext';
-import { universalVoice, fillInput, clickButton, selectOption, scanInteractiveElements } from '../../../services/universalVoiceHooks';
-import { navigateToTab, generateTabContext, parseTabNavigation, TAB_REGISTRY } from '../../../services/tabNavigationRegistry';
+import { fillInput, clickButton, selectOption, scanInteractiveElements } from '../../../services/universalVoiceHooks';
+import { navigateToTab, generateTabContext } from '../../../services/tabNavigationRegistry';
 import type { CPBPath } from '../../../services/cognitivePrecisionBridge/types';
 import { SovereignMemory } from '../../../services/memory/MemoryStore';
 import { neuralVault } from '../../../services/persistenceService';
 import { faceDetectionService } from '../../../services/faceDetectionService';
 import { dreamProtocol, DreamInsight } from '../../../services/dreamProtocol';
 import { adaptiveConsensusEngine, quickConsensus, ACEStatus, ACEResult, generateDecompositionMap } from '../../../services/bicameralService';
+import { logger } from '../../../services/logger';
 
 // Initialize memory service singleton
 const sovereignMemory = new SovereignMemory();
 
 // Import extracted tool declarations
 import { VOICE_TOOLS } from './parts/tools';
+import {
+    handleClickElement,
+    handleExecuteComponentAction,
+    handleInputText,
+    handleNavigateToTab,
+    handleScanUI,
+    handleSelectOption,
+} from './parts/executionHandlers';
 
 const VoiceManager: React.FC = () => {
     const {
@@ -82,10 +92,10 @@ const VoiceManager: React.FC = () => {
 
                 // Log significant changes
                 if (event.reason === 'sector_changed') {
-                    if (import.meta.env.DEV) console.log(`[VoiceManager] Sector changed during session: ${event.details}`);
+                    logger.debug(`Sector changed during session: ${event.details}`, undefined, 'VoiceManager');
                     addLog('SYSTEM', `VOICE_SYNC: Context drift detected - sector changed to ${event.details}`);
                 } else if (event.reason === 'bulk_update') {
-                    if (import.meta.env.DEV) console.log(`[VoiceManager] Actions updated during session: ${event.details}`);
+                    logger.debug(`Actions updated during session: ${event.details}`, undefined, 'VoiceManager');
                 }
             }
         });
@@ -94,14 +104,18 @@ const VoiceManager: React.FC = () => {
     }, [voice.isActive, addLog, subscribeToEpoch]);
 
     useEffect(() => {
-        liveSession.onToolCall = async (name, args) => {
-            // Debug logging for tool calls
-            if (import.meta.env.DEV) {
-                console.log('[VoiceManager] Tool Invoked:', { name, args });
-            }
+        liveSession.onToolCall = async (name, rawArgs) => {
+            const args = rawArgs && typeof rawArgs === 'object'
+                ? rawArgs as Record<string, unknown>
+                : {};
+            logger.debug('Tool Invoked', { name, args }, 'VoiceManager');
 
             if (name === 'navigate_to_sector') {
-                const target = (args.target_sector as string || '').toUpperCase() as AppMode;
+                const targetSector = typeof args.target_sector === 'string' ? args.target_sector.trim() : '';
+                if (!targetSector) {
+                    return { error: "Missing required target_sector", hint: "Provide a valid sector to navigate_to_sector" };
+                }
+                const target = targetSector.toUpperCase() as AppMode;
 
                 const routeMap: Record<AppMode, string> = {
                     [AppMode.DASHBOARD]: '/dashboard',
@@ -155,98 +169,16 @@ const VoiceManager: React.FC = () => {
             }
 
             if (name === 'execute_component_action') {
-                let actionId = args.action_id as string;
-                const actionArgs = args.args || {};
-                addLog('SYSTEM', `VOICE_EXECUTIVE: Executing action [${actionId}]...`);
-
-                // Try capabilities registry for CPB-routed execution
-                const capability = getCapability(actionId);
-
-                if (capability) {
-                    // Route through CPB if capability has complex execution path
-                    if (capability.complexity !== 'simple' && capability.complexity !== 'navigation') {
-                        addLog('SYSTEM', `VOICE_EXECUTIVE: Routing [${actionId}] through CPB (complexity: ${capability.complexity}, path: ${capability.executionPath})`);
-
-                        const cpbResult = await executeCapability(actionId, actionArgs as Record<string, unknown>);
-
-                        if (cpbResult.success) {
-                            addLog('SUCCESS', `VOICE_EXECUTIVE: CPB execution complete (timing: ${cpbResult.timing?.toFixed(0)}ms)`);
-                            audio.playSuccess();
-                            return {
-                                status: "CPB_ACTION_EXECUTED",
-                                actionId,
-                                executionPath: capability.executionPath,
-                                timing: cpbResult.timing,
-                                result: cpbResult.result
-                            };
-                        } else {
-                            const errorMsg = cpbResult.error || 'Unknown error';
-                            addLog('ERROR', `VOICE_EXECUTIVE: CPB execution failed: ${errorMsg}`);
-                            return { error: errorMsg, actionId };
-                        }
-                    }
-                }
-
-                // Fallback to SystemMind registry for simple actions
-                const actionExists = !!actionRegistry[actionId];
-
-                // If not found, try fuzzy matching
-                if (!actionExists) {
-                    const normalized = actionId.toLowerCase().replace(/[-_\s]/g, '');
-                    const allActionIds = Object.keys(actionRegistry);
-
-                    // Try exact normalized match first
-                    let matchedId = allActionIds.find(key => {
-                        const keyNorm = key.toLowerCase().replace(/[-_\s]/g, '');
-                        return keyNorm === normalized;
-                    });
-
-                    // Try partial match if no exact match
-                    if (!matchedId) {
-                        matchedId = allActionIds.find(key => {
-                            const keyNorm = key.toLowerCase().replace(/[-_\s]/g, '');
-                            return keyNorm.includes(normalized) || normalized.includes(keyNorm);
-                        });
-                    }
-
-                    // Try matching individual words
-                    if (!matchedId) {
-                        const words = actionId.toLowerCase().split(/[-_\s]+/).filter(w => w.length > 2);
-                        matchedId = allActionIds.find(key => {
-                            const keyLower = key.toLowerCase();
-                            return words.every(word => keyLower.includes(word));
-                        });
-                    }
-
-                    if (matchedId) {
-                        addLog('SYSTEM', `VOICE_EXECUTIVE: Fuzzy matched [${actionId}] → [${matchedId}]`);
-                        actionId = matchedId;
-                    } else {
-                        // Suggest similar actions
-                        const suggestions = allActionIds
-                            .filter(k => {
-                                const kLower = k.toLowerCase();
-                                return normalized.split('').some(char => kLower.includes(char));
-                            })
-                            .slice(0, 5);
-                        addLog('WARN', `VOICE_EXECUTIVE: Action [${args.action_id}] not found. Suggestions: ${suggestions.join(', ')}`);
-                        return {
-                            error: `Action "${args.action_id}" not found`,
-                            suggestions,
-                            hint: "Call get_available_actions to see all available actions"
-                        };
-                    }
-                }
-
-                try {
-                    const result = await executeAction(actionId, actionArgs);
-                    addLog('SUCCESS', `VOICE_EXECUTIVE: Action [${actionId}] completed.`);
-                    audio.playSuccess();
-                    return { status: "ACTION_EXECUTED", actionId, result };
-                } catch (e: any) {
-                    addLog('ERROR', `VOICE_EXECUTIVE: Action [${actionId}] failed: ${e.message}`);
-                    return { error: e.message, actionId };
-                }
+                return handleExecuteComponentAction(args as Record<string, unknown>, {
+                    addLog,
+                    logger,
+                    audio,
+                    getCapability,
+                    findCapability,
+                    executeCapability,
+                    executeAction,
+                    actionRegistry: actionRegistry as Record<string, unknown>,
+                });
             }
 
             if (name === 'get_available_actions') {
@@ -261,99 +193,47 @@ const VoiceManager: React.FC = () => {
             }
 
             if (name === 'input_text') {
-                const fieldId = args.field_id as string;
-                const text = args.text as string;
-                addLog('SYSTEM', `VOICE_EXECUTIVE: Inputting text to [${fieldId}]...`);
-
-                // Use universal voice service for robust input handling
-                const result = fillInput(fieldId, text);
-
-                if (result.success) {
-                    addLog('SUCCESS', `VOICE_EXECUTIVE: Text input to [${result.element}] complete.`);
-                    audio.playClick();
-                    return { status: "TEXT_INPUT_COMPLETE", element: result.element, textLength: text.length };
-                } else {
-                    // Fallback: Check if there's an action registered for this input
-                    const inputAction = Object.keys(actionRegistry).find(k =>
-                        k.includes(fieldId) || k.includes('input') || k.includes('set')
-                    );
-                    if (inputAction) {
-                        await executeAction(inputAction, { text, value: text });
-                        return { status: "TEXT_INPUT_VIA_ACTION", actionUsed: inputAction };
-                    }
-                    addLog('WARN', `VOICE_EXECUTIVE: ${result.error}`);
-                    return { error: result.error, suggestion: "Try get_ui_context to see available inputs" };
-                }
+                return handleInputText(args as Record<string, unknown>, {
+                    addLog,
+                    audio,
+                    executeAction,
+                    actionRegistry: actionRegistry as Record<string, unknown>,
+                    fillInput,
+                });
             }
 
             if (name === 'click_element') {
-                const target = args.target as string || args.button as string || args.element as string;
-                addLog('SYSTEM', `VOICE_EXECUTIVE: Clicking [${target}]...`);
-
-                const result = clickButton(target);
-                if (result.success) {
-                    addLog('SUCCESS', `VOICE_EXECUTIVE: Clicked [${result.element}].`);
-                    audio.playClick();
-                    return { status: "CLICK_COMPLETE", element: result.element };
-                } else {
-                    addLog('WARN', `VOICE_EXECUTIVE: ${result.error}`);
-                    return { error: result.error };
-                }
+                return handleClickElement(args as Record<string, unknown>, {
+                    addLog,
+                    audio,
+                    clickButton,
+                });
             }
 
             if (name === 'select_option') {
-                const dropdown = args.dropdown as string;
-                const option = args.option as string;
-                addLog('SYSTEM', `VOICE_EXECUTIVE: Selecting [${option}] from [${dropdown}]...`);
-
-                const result = selectOption(dropdown, option);
-                if (result.success) {
-                    addLog('SUCCESS', `VOICE_EXECUTIVE: Selected [${result.element}].`);
-                    audio.playClick();
-                    return { status: "SELECT_COMPLETE", element: result.element };
-                } else {
-                    addLog('WARN', `VOICE_EXECUTIVE: ${result.error}`);
-                    return { error: result.error };
-                }
+                return handleSelectOption(args as Record<string, unknown>, {
+                    addLog,
+                    audio,
+                    selectOption,
+                });
             }
 
             if (name === 'scan_ui') {
-                const uiSnapshot = scanInteractiveElements();
-                addLog('SYSTEM', `VOICE_EXECUTIVE: ${uiSnapshot.summary}`);
-                return {
-                    status: "OK",
-                    ...uiSnapshot,
-                    allElements: uiSnapshot.allElements.map(e => ({ id: e.id, type: e.type, label: e.label }))
-                };
+                return handleScanUI({
+                    addLog,
+                    scanInteractiveElements,
+                });
             }
 
             if (name === 'navigate_to_tab') {
-                const query = args.query as string;
-                addLog('SYSTEM', `VOICE_EXECUTIVE: Parsing tab navigation for "${query}"...`);
-
-                const result = navigateToTab(query);
-
-                if (result.success) {
-                    addLog('SUCCESS', `VOICE_EXECUTIVE: Navigated to ${result.sectorLabel} > ${result.tabLabel}${result.subtabLabel ? ` > ${result.subtabLabel}` : ''}`);
-                    audio.playTransition();
-                    return {
-                        status: "TAB_NAVIGATION_COMPLETE",
-                        sector: result.sector,
-                        sectorLabel: result.sectorLabel,
-                        tab: result.tab,
-                        tabLabel: result.tabLabel,
-                        subtab: result.subtab,
-                        subtabLabel: result.subtabLabel,
-                        route: result.route
-                    };
-                } else {
-                    addLog('WARN', `VOICE_EXECUTIVE: ${result.error}`);
-                    return {
-                        error: result.error,
-                        suggestions: result.suggestions,
-                        hint: "Available tabs: Nexus, Discovery, DNA, Agora, Bicameral, IDE, Actions, Cascade, ACE, RLM, and more. Say 'go to [tab name]' or '[sector] [tab]'."
-                    };
-                }
+                return handleNavigateToTab(args as Record<string, unknown>, {
+                    addLog,
+                    logger,
+                    audio,
+                    findCapability,
+                    executeCapability,
+                    navigateToTab,
+                });
             }
 
             if (name === 'get_ui_context') {
@@ -427,8 +307,17 @@ const VoiceManager: React.FC = () => {
             // THINK HANDLER - Routes complex reasoning through CPB
             // =================================================================
             if (name === 'think') {
-                const task = args.task as string;
-                const context = args.context as string | undefined;
+                const task = typeof args.task === 'string' ? args.task.trim() : '';
+                const context = typeof args.context === 'string' ? args.context : undefined;
+
+                if (!task) {
+                    addLog('WARN', 'THINK: Missing required task in tool call.');
+                    return {
+                        status: "THOUGHT_ERROR",
+                        error: "Missing required task",
+                        instruction: "Provide a concrete task string before invoking think."
+                    };
+                }
 
                 addLog('SYSTEM', `THINK: Processing "${task.slice(0, 50)}${task.length > 50 ? '...' : ''}"`);
 
@@ -507,14 +396,19 @@ const VoiceManager: React.FC = () => {
                         });
                         setTimeout(() => setCPBState({ phase: 'idle' }), 3000);
 
+                        const partialResponse = typeof result.output === 'string'
+                            ? result.output
+                            : (result.output as any)?.error || "Could not fully process the request";
+
                         return {
                             status: "THOUGHT_PARTIAL",
-                            response: (result.output as any)?.error || "Could not fully process the request",
+                            response: partialResponse,
                             instruction: "The reasoning had issues. Answer based on your knowledge, acknowledging uncertainty."
                         };
                     }
-                } catch (error: any) {
-                    addLog('ERROR', `THINK: Error - ${error.message}`);
+                } catch (error: unknown) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    addLog('ERROR', `THINK: Error - ${errorMessage}`);
 
                     // Update CPB visual state - ERROR
                     setCPBState({
@@ -522,13 +416,13 @@ const VoiceManager: React.FC = () => {
                         phase: 'error',
                         progress: 0,
                         message: 'Processing failed',
-                        error: error.message
+                        error: errorMessage
                     });
                     setTimeout(() => setCPBState({ phase: 'idle', error: null }), 5000);
 
                     return {
                         status: "THOUGHT_ERROR",
-                        error: error.message,
+                        error: errorMessage,
                         instruction: "Reasoning failed. Answer based on your knowledge and apologize for limited processing."
                     };
                 }
@@ -538,7 +432,13 @@ const VoiceManager: React.FC = () => {
             // SEARCH INTELLIGENCE - Grounded search
             // =================================================================
             if (name === 'search_intel') {
-                const query = args.query as string;
+                const query = typeof args.query === 'string' ? args.query.trim() : '';
+                if (!query) {
+                    return {
+                        error: "Missing required query",
+                        hint: "Provide a search query string before invoking search_intel"
+                    };
+                }
                 addLog('SYSTEM', `INTEL: Searching for "${query}"...`);
 
                 try {
@@ -552,8 +452,9 @@ const VoiceManager: React.FC = () => {
                         };
                     }
                     return { error: (result.output as any)?.error || 'Search failed' };
-                } catch (e: any) {
-                    return { error: e.message };
+                } catch (e: unknown) {
+                    const message = e instanceof Error ? e.message : String(e);
+                    return { error: message };
                 }
             }
 
@@ -561,7 +462,13 @@ const VoiceManager: React.FC = () => {
             // CONVERGE LATTICES - Strategic synthesis
             // =================================================================
             if (name === 'converge_lattices') {
-                const targetGoal = args.targetGoal as string;
+                const targetGoal = typeof args.targetGoal === 'string' ? args.targetGoal.trim() : '';
+                if (!targetGoal) {
+                    return {
+                        error: "Missing required targetGoal",
+                        hint: "Provide a target goal before invoking converge_lattices"
+                    };
+                }
                 addLog('SYSTEM', `CONVERGENCE: Synthesizing lattices toward "${targetGoal}"...`);
 
                 try {
@@ -577,8 +484,9 @@ const VoiceManager: React.FC = () => {
                         };
                     }
                     return { error: (result.output as any)?.error || 'Convergence failed' };
-                } catch (e: any) {
-                    return { error: e.message };
+                } catch (e: unknown) {
+                    const message = e instanceof Error ? e.message : String(e);
+                    return { error: message };
                 }
             }
 
@@ -587,17 +495,25 @@ const VoiceManager: React.FC = () => {
             // =================================================================
 
             if (name === 'create_task') {
-                const { title, description, priority, tags } = args;
+                const title = typeof args.title === 'string' ? args.title.trim() : '';
+                const description = typeof args.description === 'string' ? args.description : '';
+                const priority = typeof args.priority === 'string' ? args.priority : 'MEDIUM';
+                const tags = Array.isArray(args.tags)
+                    ? args.tags.filter((tag): tag is string => typeof tag === 'string' && tag.trim().length > 0)
+                    : [];
+                if (!title) {
+                    return { error: "Missing required title", hint: "Provide a task title before create_task" };
+                }
                 addLog('SYSTEM', `📋 CREATING TASK: "${title}"`);
 
                 try {
                     const { addTask } = useAppStore.getState().actions;
                     addTask({
-                        title: title as string,
-                        description: (description as string) || '',
+                        title,
+                        description,
                         status: 'TODO' as any,
-                        priority: ((priority as string) || 'MEDIUM') as any,
-                        tags: (tags as string[]) || []
+                        priority: priority as any,
+                        tags
                     });
 
                     audio.playClick();
@@ -605,8 +521,8 @@ const VoiceManager: React.FC = () => {
                     return {
                         status: "TASK_CREATED",
                         title,
-                        priority: priority || 'MEDIUM',
-                        message: `Task created, Sir: "${title}". Priority: ${priority || 'MEDIUM'}.`
+                        priority,
+                        message: `Task created, Sir: "${title}". Priority: ${priority}.`
                     };
                 } catch (e: any) {
                     addLog('ERROR', `Task creation failed: ${e.message}`);
@@ -615,32 +531,40 @@ const VoiceManager: React.FC = () => {
             }
 
             if (name === 'update_task_priority') {
-                const { taskId, priority } = args;
-                addLog('SYSTEM', `📋 UPDATING PRIORITY: ${taskId} → ${priority}`);
+                const rawTaskId = typeof args.taskId === 'string' ? args.taskId.trim() : '';
+                const priorityValue = typeof args.priority === 'string' ? args.priority.trim() : '';
+                if (!rawTaskId) {
+                    return { error: "Missing required taskId", hint: "Provide the task ID or title fragment to update" };
+                }
+                if (!priorityValue) {
+                    return { error: "Missing required priority", hint: "Provide a priority value (LOW, MEDIUM, HIGH, or CRITICAL)" };
+                }
+                addLog('SYSTEM', `📋 UPDATING PRIORITY: ${rawTaskId} → ${priorityValue}`);
 
                 try {
                     const state = useAppStore.getState();
                     const { updateTask } = state.actions;
+                    const taskIdNeedle = rawTaskId.toLowerCase();
 
                     // Find task by ID or partial match
                     const task = state.tasks.find(t =>
-                        t.id === taskId ||
-                        t.title.toLowerCase().includes((taskId as string).toLowerCase())
+                        t.id === rawTaskId ||
+                        t.title.toLowerCase().includes(taskIdNeedle)
                     );
 
                     if (!task) {
-                        return { error: `Task not found: ${taskId}`, availableTasks: state.tasks.map(t => t.title) };
+                        return { error: `Task not found: ${rawTaskId}`, availableTasks: state.tasks.map(t => t.title) };
                     }
 
-                    updateTask(task.id, { priority: priority as any });
+                    updateTask(task.id, { priority: priorityValue as any });
                     audio.playClick();
-                    addLog('SUCCESS', `✅ PRIORITY UPDATED: "${task.title}" → ${priority}`);
+                    addLog('SUCCESS', `✅ PRIORITY UPDATED: "${task.title}" → ${priorityValue}`);
                     return {
                         status: "PRIORITY_UPDATED",
                         taskId: task.id,
                         title: task.title,
-                        priority,
-                        message: `Priority updated to ${priority}, Sir.`
+                        priority: priorityValue,
+                        message: `Priority updated to ${priorityValue}, Sir.`
                     };
                 } catch (e: any) {
                     return { error: e.message };
@@ -648,7 +572,8 @@ const VoiceManager: React.FC = () => {
             }
 
             if (name === 'complete_task') {
-                const { taskId, taskTitle } = args;
+                const taskId = typeof args.taskId === 'string' ? args.taskId.trim() : '';
+                const taskTitle = typeof args.taskTitle === 'string' ? args.taskTitle.trim() : '';
                 addLog('SYSTEM', `✅ COMPLETING TASK...`);
 
                 try {
@@ -662,8 +587,9 @@ const VoiceManager: React.FC = () => {
                             .filter(t => t.status !== 'DONE' && t.status !== 'COMPLETED')
                             .sort((a, b) => b.timestamp - a.timestamp)[0];
                     } else if (taskTitle) {
+                        const taskTitleNeedle = taskTitle.toLowerCase();
                         task = state.tasks.find(t =>
-                            t.title.toLowerCase().includes((taskTitle as string).toLowerCase())
+                            t.title.toLowerCase().includes(taskTitleNeedle)
                         );
                     } else {
                         task = state.tasks.find(t => t.id === taskId);
@@ -919,7 +845,18 @@ const VoiceManager: React.FC = () => {
             // SET REMINDER - Timer/reminder
             // =================================================================
             if (name === 'set_reminder') {
-                const { message, delayMinutes } = args;
+                const message = typeof args.message === 'string' ? args.message.trim() : '';
+                const delayMinutes = typeof args.delayMinutes === 'number'
+                    ? args.delayMinutes
+                    : Number(args.delayMinutes);
+
+                if (!message) {
+                    return { error: "Missing required message", hint: "Provide reminder text" };
+                }
+                if (!Number.isFinite(delayMinutes) || delayMinutes <= 0) {
+                    return { error: "Invalid delayMinutes", hint: "Provide a positive delay in minutes" };
+                }
+
                 addLog('SYSTEM', `REMINDER: Setting for ${delayMinutes} minutes: "${message}"`);
 
                 // Set the reminder
@@ -927,7 +864,7 @@ const VoiceManager: React.FC = () => {
                     addLog('WARN', `⏰ REMINDER: ${message}`);
                     audio.playSuccess();
                     // Could also trigger a notification here
-                }, (delayMinutes as number) * 60 * 1000);
+                }, delayMinutes * 60 * 1000);
 
                 return {
                     status: "REMINDER_SET",
@@ -940,7 +877,7 @@ const VoiceManager: React.FC = () => {
             // DREAM PROTOCOL - Autonomous background intelligence
             // =================================================================
             if (name === 'start_dreaming') {
-                const { topic } = args;
+                const topic = typeof args.topic === 'string' ? args.topic.trim() : '';
                 addLog('SYSTEM', `DREAM: Initiating autonomous dream mode...`);
 
                 // Get current dream status
@@ -949,7 +886,7 @@ const VoiceManager: React.FC = () => {
                 if (dreamStatus.isDreaming) {
                     // Already dreaming - queue the topic if provided
                     if (topic) {
-                        dreamProtocol.queueQuery(topic as string);
+                        dreamProtocol.queueQuery(topic);
                         return {
                             status: "TOPIC_QUEUED",
                             currentSession: dreamStatus.currentSession,
@@ -966,7 +903,7 @@ const VoiceManager: React.FC = () => {
 
                 // Queue topic if provided, then trigger dream
                 if (topic) {
-                    dreamProtocol.queueQuery(topic as string);
+                    dreamProtocol.queueQuery(topic);
                 }
                 dreamProtocol.triggerDream();
 
@@ -1089,7 +1026,10 @@ const VoiceManager: React.FC = () => {
             // MULTI-AGENT REASONING - Swarm intelligence
             // =================================================================
             if (name === 'decompose_task') {
-                const goal = args.goal as string;
+                const goal = typeof args.goal === 'string' ? args.goal.trim() : '';
+                if (!goal) {
+                    return { error: "Missing required goal", hint: "Provide a goal for decompose_task" };
+                }
                 addLog('SYSTEM', `DECOMPOSE: Breaking down "${goal}" via Gemini...`);
 
                 try {
@@ -1135,20 +1075,24 @@ const VoiceManager: React.FC = () => {
                         message: `Decomposed into ${atomicTasks.length} atomic tasks, Sir. ${createdTasks.length} have been added to your task list.`,
                         instruction: "Summarize the decomposed tasks conversationally, highlighting the most important ones."
                     };
-                } catch (e: any) {
-                    addLog('ERROR', `DECOMPOSE: Failed - ${e.message}`);
+                } catch (e: unknown) {
+                    const errorMessage = e instanceof Error ? e.message : String(e);
+                    addLog('ERROR', `DECOMPOSE: Failed - ${errorMessage}`);
                     // Fallback to routed instruction
                     return {
                         status: "DECOMPOSITION_ROUTED",
                         goal,
-                        error: e.message,
+                        error: errorMessage,
                         instruction: `Decomposition engine failed. Break down this goal manually into 5-7 atomic, executable sub-tasks: "${goal}". List each task with a clear description and dependencies.`
                     };
                 }
             }
 
             if (name === 'run_consensus') {
-                const question = args.question as string;
+                const question = typeof args.question === 'string' ? args.question.trim() : '';
+                if (!question) {
+                    return { error: "Missing required question", hint: "Provide a question for run_consensus" };
+                }
                 addLog('SYSTEM', `CONSENSUS: Running ACE swarm analysis on "${question}"...`);
 
                 // Create atomic task for ACE
@@ -1168,9 +1112,7 @@ const VoiceManager: React.FC = () => {
                         task,
                         (status: ACEStatus) => {
                             lastStatus = status;
-                            if (import.meta.env.DEV) {
-                                console.log(`[ACE] Phase: ${status.phase}, Gap: ${status.currentGap}/${status.targetGap}`);
-                            }
+                            logger.debug(`Phase: ${status.phase}, Gap: ${status.currentGap}/${status.targetGap}`, undefined, 'ACE');
                         },
                         {
                             adaptiveThresholds: true,
@@ -1204,19 +1146,23 @@ const VoiceManager: React.FC = () => {
                         } : null,
                         instruction: "Present the consensus answer conversationally, mentioning confidence level and that multiple agents voted."
                     };
-                } catch (error: any) {
-                    addLog('ERROR', `CONSENSUS: Failed - ${error.message}`);
+                } catch (error: unknown) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    addLog('ERROR', `CONSENSUS: Failed - ${errorMessage}`);
                     return {
                         status: "CONSENSUS_FAILED",
-                        error: error.message,
+                        error: errorMessage,
                         lastPhase: lastStatus?.phase || 'unknown',
-                        instruction: `Consensus engine failed: ${error.message}. Offer to try again or analyze the question yourself.`
+                        instruction: `Consensus engine failed: ${errorMessage}. Offer to try again or analyze the question yourself.`
                     };
                 }
             }
 
             if (name === 'bicameral_dialogue') {
-                const topic = args.topic as string;
+                const topic = typeof args.topic === 'string' ? args.topic.trim() : '';
+                if (!topic) {
+                    return { error: "Missing required topic", hint: "Provide a topic for bicameral analysis" };
+                }
                 addLog('SYSTEM', `BICAMERAL: Starting skeptic vs optimist dialogue on "${topic}"...`);
 
                 // Create task specifically for bicameral analysis
@@ -1231,9 +1177,7 @@ const VoiceManager: React.FC = () => {
                 try {
                     // Run quick consensus with minimal agents for faster bicameral
                     const result: ACEResult = await quickConsensus(task, (status: ACEStatus) => {
-                        if (import.meta.env.DEV) {
-                            console.log(`[BICAMERAL] Phase: ${status.phase}, DNA: ${status.activeDNA || 'swarm'}`);
-                        }
+                        logger.debug(`Phase: ${status.phase}, DNA: ${status.activeDNA || 'swarm'}`, undefined, 'BICAMERAL');
                     });
 
                     // Generate the bicameral synthesis
@@ -1300,8 +1244,14 @@ const VoiceManager: React.FC = () => {
             }
 
             if (name === 'recall_memory') {
-                const query = args.query as string;
-                const limit = (args.limit as number) || 5;
+                const query = typeof args.query === 'string' ? args.query.trim() : '';
+                const parsedLimit = typeof args.limit === 'number' ? args.limit : Number(args.limit);
+                const limit = Number.isFinite(parsedLimit) && parsedLimit > 0
+                    ? Math.min(Math.floor(parsedLimit), 20)
+                    : 5;
+                if (!query) {
+                    return { error: "Missing required query", hint: "Provide a semantic memory query string" };
+                }
                 addLog('SYSTEM', `🧠 MEMORY: Semantic search for "${query}"...`);
 
                 try {
@@ -1504,7 +1454,10 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'save_snapshot') {
-                const label = args.label as string;
+                const label = typeof args.label === 'string' ? args.label.trim() : '';
+                if (!label) {
+                    return { error: "Missing required label", hint: "Provide a label for save_snapshot" };
+                }
                 addLog('SYSTEM', `SNAPSHOT: Saving "${label}"...`);
                 const state = useAppStore.getState();
                 localStorage.setItem(`snapshot_${label}`, JSON.stringify({
@@ -1517,7 +1470,10 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'load_snapshot') {
-                const label = args.label as string;
+                const label = typeof args.label === 'string' ? args.label.trim() : '';
+                if (!label) {
+                    return { error: "Missing required label", hint: "Provide a label for load_snapshot" };
+                }
                 addLog('SYSTEM', `SNAPSHOT: Loading "${label}"...`);
                 return { status: "SNAPSHOT_LOADED", label, message: `Restored to "${label}", Sir.` };
             }
@@ -1580,7 +1536,10 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'toggle_biometrics') {
-                const enabled = args.enabled as boolean;
+                const enabled = typeof args.enabled === 'boolean' ? args.enabled : undefined;
+                if (enabled === undefined) {
+                    return { error: "Missing required enabled", hint: "Provide enabled as true or false for toggle_biometrics" };
+                }
                 addLog('SYSTEM', `BIOMETRICS: ${enabled ? 'Enabling' : 'Disabling'} face detection...`);
                 const { setBiometricState } = useAppStore.getState().actions as any;
                 if (setBiometricState) {
@@ -1623,9 +1582,11 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'quick_capture') {
-                const thought = args.thought as string;
-                const category = (args.category as string) || 'thought';
-                const action = args.action as string;
+                const thought = typeof args.thought === 'string' ? args.thought.trim() : '';
+                const category = typeof args.category === 'string' && args.category.trim().length > 0
+                    ? args.category.trim()
+                    : 'thought';
+                const action = typeof args.action === 'string' ? args.action.trim() : '';
 
                 try {
                     if (action === 'list') {
@@ -1641,6 +1602,10 @@ Output the code with brief explanation.`,
                     if (action === 'clear') {
                         await neuralVault.set('quick_captures', []);
                         return { status: "CAPTURES_CLEARED", message: "All captures cleared, Sir." };
+                    }
+
+                    if (!thought) {
+                        return { error: "Missing thought", hint: "Provide a thought to capture or use action=list|clear" };
                     }
 
                     // Default: capture thought
@@ -1684,7 +1649,10 @@ Output the code with brief explanation.`,
             // CLIPBOARD & QUICK ACTIONS
             // =================================================================
             if (name === 'copy_to_clipboard') {
-                const content = args.content as string;
+                const content = typeof args.content === 'string' ? args.content : '';
+                if (content.length === 0) {
+                    return { error: "Missing required content", hint: "Provide text content for copy_to_clipboard" };
+                }
                 addLog('SYSTEM', `CLIPBOARD: Copying...`);
                 try {
                     await navigator.clipboard.writeText(content);
@@ -1732,8 +1700,14 @@ Output the code with brief explanation.`,
             // =================================================================
 
             if (name === 'execute_sequence') {
-                const { steps, parallel } = args;
-                addLog('SYSTEM', `SEQUENCE: Executing ${(steps as string[]).length} steps ${parallel ? 'in parallel' : 'sequentially'}...`);
+                const steps = Array.isArray(args.steps)
+                    ? args.steps.filter((step): step is string => typeof step === 'string' && step.trim().length > 0)
+                    : [];
+                const parallel = !!args.parallel;
+                if (steps.length === 0) {
+                    return { error: "Missing steps", hint: "Provide a non-empty steps array for execute_sequence" };
+                }
+                addLog('SYSTEM', `SEQUENCE: Executing ${steps.length} steps ${parallel ? 'in parallel' : 'sequentially'}...`);
                 // Store sequence for execution tracking
                 const sequenceId = `seq-${Date.now()}`;
                 return {
@@ -1741,17 +1715,27 @@ Output the code with brief explanation.`,
                     sequenceId,
                     steps,
                     parallel,
-                    instruction: `Execute these steps ${parallel ? 'simultaneously' : 'one by one'}: ${(steps as string[]).join(', ')}. Report progress on each.`
+                    instruction: `Execute these steps ${parallel ? 'simultaneously' : 'one by one'}: ${steps.join(', ')}. Report progress on each.`
                 };
             }
 
             if (name === 'create_macro') {
-                const { trigger, actions, description } = args;
+                const trigger = typeof args.trigger === 'string' ? args.trigger.trim() : '';
+                const actions = Array.isArray(args.actions)
+                    ? args.actions.filter((action): action is string => typeof action === 'string' && action.trim().length > 0)
+                    : [];
+                const description = typeof args.description === 'string' ? args.description : undefined;
+                if (!trigger) {
+                    return { error: "Missing required trigger", hint: "Provide a trigger phrase for create_macro" };
+                }
+                if (actions.length === 0) {
+                    return { error: "Missing actions", hint: "Provide a non-empty actions array for create_macro" };
+                }
                 addLog('SYSTEM', `MACRO: Creating "${trigger}"...`);
 
                 try {
                     const macros = await neuralVault.get('voice_macros') || {};
-                    macros[trigger as string] = {
+                    macros[trigger] = {
                         actions,
                         description,
                         created: Date.now(),
@@ -1768,7 +1752,7 @@ Output the code with brief explanation.`,
                 } catch (e: any) {
                     addLog('WARN', `CREATE_MACRO: Fallback to localStorage - ${e.message}`);
                     const macros = JSON.parse(localStorage.getItem('voice_macros') || '{}');
-                    macros[trigger as string] = { actions, description, created: Date.now() };
+                    macros[trigger] = { actions, description, created: Date.now() };
                     localStorage.setItem('voice_macros', JSON.stringify(macros));
                     addLog('SUCCESS', `MACRO: Created.`);
                     return { status: "MACRO_CREATED", trigger, message: `Macro "${trigger}" created, Sir. Say "${trigger}" to execute.` };
@@ -1776,7 +1760,11 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'manage_macros') {
-                const { action, macroName } = args;
+                const action = typeof args.action === 'string' ? args.action.trim() : '';
+                const macroName = typeof args.macroName === 'string' ? args.macroName.trim() : '';
+                if (!action) {
+                    return { error: "Missing required action", hint: "Provide action for manage_macros (list, execute, delete)" };
+                }
 
                 try {
                     const macros = await neuralVault.get('voice_macros') || {};
@@ -1793,21 +1781,27 @@ Output the code with brief explanation.`,
                             message: `You have ${macroList.length} macro${macroList.length !== 1 ? 's' : ''}, Sir.`
                         };
                     } else if (action === 'delete' && macroName) {
-                        delete macros[macroName as string];
+                        delete macros[macroName];
                         await neuralVault.set('voice_macros', macros);
                         return { status: "MACRO_DELETED", macroName, message: `Macro "${macroName}" deleted, Sir.` };
                     } else if (action === 'execute' && macroName) {
-                        const macro = macros[macroName as string];
+                        const macro = macros[macroName];
                         if (macro) {
                             // Track usage
                             macro.useCount = (macro.useCount || 0) + 1;
                             macro.lastUsed = Date.now();
                             await neuralVault.set('voice_macros', macros);
+                            const macroActions = Array.isArray(macro.actions)
+                                ? macro.actions.filter((item: unknown): item is string => typeof item === 'string' && item.trim().length > 0)
+                                : [];
+                            if (macroActions.length === 0) {
+                                return { status: "MACRO_INVALID", macroName, error: "Macro has no executable actions" };
+                            }
                             return {
                                 status: "MACRO_EXECUTING",
                                 macroName,
-                                actions: macro.actions,
-                                instruction: `Execute these actions in sequence: ${macro.actions.join(', ')}`
+                                actions: macroActions,
+                                instruction: `Execute these actions in sequence: ${macroActions.join(', ')}`
                             };
                         }
                         return { status: "MACRO_NOT_FOUND", macroName };
@@ -1820,7 +1814,7 @@ Output the code with brief explanation.`,
                         const macroList = Object.entries(macros).map(([k, v]: [string, any]) => ({ trigger: k, ...v }));
                         return { status: "MACROS_LISTED", macros: macroList, count: macroList.length };
                     } else if (action === 'delete' && macroName) {
-                        delete macros[macroName as string];
+                        delete macros[macroName];
                         localStorage.setItem('voice_macros', JSON.stringify(macros));
                         return { status: "MACRO_DELETED", macroName };
                     }
@@ -1829,9 +1823,15 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'schedule_action') {
-                const { action, when, recurring } = args;
-                const scheduleAction = args.scheduleAction as string;
+                const action = typeof args.action === 'string' ? args.action.trim() : '';
+                const when = typeof args.when === 'string' ? args.when.trim() : '';
+                const recurring = typeof args.recurring === 'string' ? args.recurring.trim() : undefined;
+                const scheduleAction = typeof args.scheduleAction === 'string' ? args.scheduleAction.trim() : '';
                 addLog('SYSTEM', `SCHEDULE: "${action}" for ${when} (${recurring || 'once'})...`);
+                const isScheduleAdminAction = scheduleAction === 'list' || scheduleAction === 'clear';
+                if (!isScheduleAdminAction && (!action || !when)) {
+                    return { error: "Missing required action or when", hint: "Provide action and when for schedule_action" };
+                }
 
                 try {
                     if (scheduleAction === 'list') {
@@ -1893,7 +1893,8 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'undo_actions') {
-                const count = (args.count as number) || 1;
+                const parsedCount = typeof args.count === 'number' ? args.count : Number(args.count);
+                const count = Number.isFinite(parsedCount) && parsedCount > 0 ? Math.floor(parsedCount) : 1;
                 addLog('SYSTEM', `UNDO: Reverting ${count} action(s)...`);
                 return {
                     status: "UNDO_NOTED",
@@ -1903,7 +1904,8 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'get_history') {
-                const limit = (args.limit as number) || 10;
+                const parsedLimit = typeof args.limit === 'number' ? args.limit : Number(args.limit);
+                const limit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.floor(parsedLimit) : 10;
                 const history = voice.transcripts.slice(-limit * 2);
                 return { status: "HISTORY_RETRIEVED", history, count: history.length };
             }
@@ -1935,11 +1937,16 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'learn_preference') {
-                const { category, preference, value } = args;
+                const category = typeof args.category === 'string' ? args.category.trim() : '';
+                const preference = typeof args.preference === 'string' ? args.preference.trim() : '';
+                const value = args.value;
+                if (!category || !preference) {
+                    return { error: "Missing required category or preference", hint: "Provide category and preference for learn_preference" };
+                }
                 addLog('SYSTEM', `PREFERENCE: Learning "${preference}" = "${value}"...`);
                 const prefs = JSON.parse(localStorage.getItem('voice_preferences') || '{}');
-                if (!prefs[category as string]) prefs[category as string] = {};
-                prefs[category as string][preference as string] = { value, learned: Date.now() };
+                if (!prefs[category]) prefs[category] = {};
+                prefs[category][preference] = { value, learned: Date.now() };
                 localStorage.setItem('voice_preferences', JSON.stringify(prefs));
                 return { status: "PREFERENCE_LEARNED", message: `I'll remember that, Sir. ${preference}: ${value}` };
             }
@@ -2021,21 +2028,32 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'timer_control') {
-                const { action, duration, label } = args;
+                const action = typeof args.action === 'string' ? args.action.trim().toLowerCase() : '';
+                const duration = typeof args.duration === 'number' ? args.duration : Number(args.duration);
+                const label = typeof args.label === 'string' ? args.label : undefined;
+                if (!action) {
+                    return { error: "Missing required action", hint: "Provide action for timer_control (start, stop, pause, resume)" };
+                }
                 addLog('SYSTEM', `TIMER: ${action}${duration ? ` (${duration}m)` : ''}...`);
 
-                if (action === 'start' && duration) {
+                if (action === 'start') {
+                    if (!Number.isFinite(duration) || duration <= 0) {
+                        return { error: "Invalid duration", hint: "Provide a positive duration for timer start" };
+                    }
                     setTimeout(() => {
                         addLog('WARN', `⏰ TIMER: ${label || 'Timer'} complete!`);
                         audio.playSuccess();
-                    }, (duration as number) * 60 * 1000);
+                    }, duration * 60 * 1000);
                     return { status: "TIMER_STARTED", duration, label, message: `Timer set for ${duration} minutes, Sir.` };
                 }
-                return { status: `TIMER_${(action as string).toUpperCase()}`, action };
+                return { status: `TIMER_${action.toUpperCase()}`, action };
             }
 
             if (name === 'calculate') {
-                const expression = args.expression as string;
+                const expression = typeof args.expression === 'string' ? args.expression.trim() : '';
+                if (!expression) {
+                    return { error: "Missing required expression", hint: "Provide a math expression for calculate" };
+                }
                 addLog('SYSTEM', `CALC: ${expression}...`);
                 try {
                     // Safe eval for math only
@@ -2060,18 +2078,26 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'media_control') {
-                const { action, query } = args;
+                const action = typeof args.action === 'string' ? args.action.trim() : '';
+                const query = typeof args.query === 'string' ? args.query : undefined;
+                if (!action) {
+                    return { error: "Missing required action", hint: "Provide a media action such as play, pause, stop, or next" };
+                }
                 addLog('SYSTEM', `MEDIA: ${action}${query ? ` "${query}"` : ''}...`);
-                return { status: `MEDIA_${(action as string).toUpperCase()}`, action, query };
+                return { status: `MEDIA_${action.toUpperCase()}`, action, query };
             }
 
             if (name === 'open_external') {
-                const { target, newWindow } = args;
+                const target = typeof args.target === 'string' ? args.target.trim() : '';
+                const newWindow = !!args.newWindow;
+                if (!target) {
+                    return { error: "Missing required target", hint: "Provide a URL or destination target to open" };
+                }
                 addLog('SYSTEM', `OPEN: ${target}...`);
 
                 // Check if it's a URL
-                if ((target as string).startsWith('http')) {
-                    window.open(target as string, newWindow ? '_blank' : '_self');
+                if (target.startsWith('http')) {
+                    window.open(target, newWindow ? '_blank' : '_self');
                     return { status: "URL_OPENED", target };
                 }
                 return { status: "OPEN_REQUESTED", target, message: `Opening ${target}, Sir.` };
@@ -2330,7 +2356,14 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'predict_outcome') {
-                const { scenario, timeframe, factors } = args;
+                const scenario = typeof args.scenario === 'string' ? args.scenario.trim() : '';
+                const timeframe = typeof args.timeframe === 'string' ? args.timeframe : undefined;
+                const factors = Array.isArray(args.factors)
+                    ? args.factors.filter((f): f is string => typeof f === 'string' && f.trim().length > 0)
+                    : [];
+                if (!scenario) {
+                    return { error: "Missing required scenario", hint: "Provide a scenario string for predict_outcome" };
+                }
                 addLog('SYSTEM', `🔮 PREDICTING: ${scenario}`);
                 return {
                     status: "PREDICTION_GENERATED",
@@ -2338,13 +2371,18 @@ Output the code with brief explanation.`,
                     timeframe: timeframe || 'short-term',
                     confidence: 0.75,
                     prediction: `Based on current trajectories, ${scenario} has a high probability of success.`,
-                    factors: factors || [],
-                    instruction: `Analyze: "${scenario}" over ${timeframe || 'short-term'} timeframe. Consider: ${(factors || ['current trends']).join(', ')}`
+                    factors,
+                    instruction: `Analyze: "${scenario}" over ${timeframe || 'short-term'} timeframe. Consider: ${(factors.length > 0 ? factors : ['current trends']).join(', ')}`
                 };
             }
 
             if (name === 'background_operation') {
-                const { operation, notifyOn, priority } = args;
+                const operation = typeof args.operation === 'string' ? args.operation.trim() : '';
+                const notifyOn = typeof args.notifyOn === 'string' ? args.notifyOn : undefined;
+                const priority = typeof args.priority === 'string' ? args.priority : undefined;
+                if (!operation) {
+                    return { error: "Missing required operation", hint: "Provide a background operation description" };
+                }
 
                 try {
                     const bgOps = await neuralVault.get('background_operations') || [];
@@ -2360,8 +2398,8 @@ Output the code with brief explanation.`,
                     await neuralVault.set('background_operations', bgOps);
 
                     // Queue for dream protocol if complex
-                    if ((operation as string).length > 50) {
-                        dreamProtocol.queueQuery(operation as string);
+                    if (operation.length > 50) {
+                        dreamProtocol.queueQuery(operation);
                     }
 
                     addLog('SYSTEM', `⚙️ BACKGROUND: ${operation} (persisted to Neural Vault)`);
@@ -2381,39 +2419,61 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'triage_priorities') {
-                const { items, criteria, limit } = args;
+                const criteria = typeof args.criteria === 'string' ? args.criteria : undefined;
+                const limit = typeof args.limit === 'number' ? args.limit : Number(args.limit);
+                const inputItems = Array.isArray(args.items)
+                    ? args.items.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+                    : null;
                 addLog('SYSTEM', `📊 TRIAGE: Prioritizing by ${criteria || 'balanced'}`);
                 const state = useAppStore.getState();
-                const tasks = items || ((state as any).tasks || []).map((t: any) => t.title);
+                const tasks = inputItems && inputItems.length > 0
+                    ? inputItems
+                    : ((state as any).tasks || []).map((t: any) => t.title);
                 return {
                     status: "TRIAGE_COMPLETE",
                     criteria: criteria || 'balanced',
-                    prioritized: tasks.slice(0, limit || 5),
+                    prioritized: tasks.slice(0, Number.isFinite(limit) && limit > 0 ? Math.floor(limit) : 5),
                     instruction: `Analyze and prioritize these items by ${criteria || 'balanced impact/effort'}: ${tasks.join(', ')}`
                 };
             }
 
             if (name === 'compare_analyze') {
-                const { items, dimensions, format } = args;
-                addLog('SYSTEM', `⚖️ COMPARING: ${(items as string[]).length} items`);
+                const items = Array.isArray(args.items)
+                    ? args.items.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+                    : [];
+                const dimensions = Array.isArray(args.dimensions)
+                    ? args.dimensions.filter((dim): dim is string => typeof dim === 'string' && dim.trim().length > 0)
+                    : [];
+                const format = typeof args.format === 'string' ? args.format : undefined;
+                if (items.length === 0) {
+                    return { error: "Missing items", hint: "Provide a non-empty items array for compare_analyze" };
+                }
+                addLog('SYSTEM', `⚖️ COMPARING: ${items.length} items`);
                 return {
                     status: "COMPARISON_READY",
                     items,
-                    dimensions: dimensions || ['pros', 'cons', 'fit'],
+                    dimensions: dimensions.length > 0 ? dimensions : ['pros', 'cons', 'fit'],
                     format: format || 'recommendation',
-                    instruction: `Compare these items: ${(items as string[]).join(' vs ')}. Analyze across: ${(dimensions || ['pros', 'cons', 'fit']).join(', ')}. Output as ${format || 'recommendation'}.`
+                    instruction: `Compare these items: ${items.join(' vs ')}. Analyze across: ${(dimensions.length > 0 ? dimensions : ['pros', 'cons', 'fit']).join(', ')}. Output as ${format || 'recommendation'}.`
                 };
             }
 
             if (name === 'research_topic') {
-                const { topic, depth, sources } = args;
+                const topic = typeof args.topic === 'string' ? args.topic.trim() : '';
+                const depth = typeof args.depth === 'string' ? args.depth : undefined;
+                const sources = Array.isArray(args.sources)
+                    ? args.sources.filter((src): src is string => typeof src === 'string' && src.trim().length > 0)
+                    : [];
+                if (!topic) {
+                    return { error: "Missing required topic", hint: "Provide a research topic string" };
+                }
                 addLog('SYSTEM', `🔬 RESEARCHING: ${topic}`);
                 return {
                     status: "RESEARCH_INITIATED",
                     topic,
                     depth: depth || 'standard',
-                    sources: sources || ['memory', 'knowledge'],
-                    instruction: `Conduct ${depth || 'standard'} research on: "${topic}". Draw from: ${(sources || ['available knowledge']).join(', ')}.`
+                    sources: sources.length > 0 ? sources : ['memory', 'knowledge'],
+                    instruction: `Conduct ${depth || 'standard'} research on: "${topic}". Draw from: ${(sources.length > 0 ? sources : ['available knowledge']).join(', ')}.`
                 };
             }
 
@@ -2445,26 +2505,41 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'cross_reference') {
-                const { item, searchScope, maxDepth } = args;
+                const item = typeof args.item === 'string' ? args.item.trim() : '';
+                const searchScope = Array.isArray(args.searchScope)
+                    ? args.searchScope.filter((scope): scope is string => typeof scope === 'string' && scope.trim().length > 0)
+                    : [];
+                const maxDepth = typeof args.maxDepth === 'number' ? args.maxDepth : Number(args.maxDepth);
+                if (!item) {
+                    return { error: "Missing required item", hint: "Provide an item to cross-reference" };
+                }
                 addLog('SYSTEM', `🔗 CROSS-REF: Finding connections for "${item}"`);
                 return {
                     status: "CROSS_REFERENCE_INITIATED",
                     item,
-                    searchScope: searchScope || ['all'],
-                    maxDepth: maxDepth || 2,
-                    instruction: `Find all connections and references to "${item}" across: ${(searchScope || ['memory', 'tasks', 'agents']).join(', ')}. Depth: ${maxDepth || 2} levels.`
+                    searchScope: searchScope.length > 0 ? searchScope : ['all'],
+                    maxDepth: Number.isFinite(maxDepth) && maxDepth > 0 ? Math.floor(maxDepth) : 2,
+                    instruction: `Find all connections and references to "${item}" across: ${(searchScope.length > 0 ? searchScope : ['memory', 'tasks', 'agents']).join(', ')}. Depth: ${Number.isFinite(maxDepth) && maxDepth > 0 ? Math.floor(maxDepth) : 2} levels.`
                 };
             }
 
             if (name === 'workspace') {
-                const { action, name: wsName, includeState } = args;
+                const action = typeof args.action === 'string' ? args.action.trim() : '';
+                const wsName = typeof args.name === 'string' ? args.name.trim() : '';
+                const includeState = !!args.includeState;
+                if (!action) {
+                    return { error: "Missing required action", hint: "Provide action for workspace (save, load, list, delete)" };
+                }
+                if ((action === 'save' || action === 'load' || action === 'delete') && !wsName) {
+                    return { error: "Missing required name", hint: `Provide workspace name for workspace ${action}` };
+                }
                 const state = useAppStore.getState();
 
                 try {
                     const workspaces = await neuralVault.get('workspaces') || {};
 
                     if (action === 'save') {
-                        workspaces[wsName as string] = {
+                        workspaces[wsName] = {
                             mode: state.mode,
                             saved: Date.now(),
                             voiceMode: state.voice.mode,
@@ -2484,8 +2559,8 @@ Output the code with brief explanation.`,
                         };
                     }
 
-                    if (action === 'load' && wsName && workspaces[wsName as string]) {
-                        const ws = workspaces[wsName as string];
+                    if (action === 'load' && wsName && workspaces[wsName]) {
+                        const ws = workspaces[wsName];
                         setMode(ws.mode);
                         addLog('SYSTEM', `📂 WORKSPACE LOADED: ${wsName}`);
                         return {
@@ -2511,8 +2586,8 @@ Output the code with brief explanation.`,
                         };
                     }
 
-                    if (action === 'delete' && wsName && workspaces[wsName as string]) {
-                        delete workspaces[wsName as string];
+                    if (action === 'delete' && wsName && workspaces[wsName]) {
+                        delete workspaces[wsName];
                         await neuralVault.set('workspaces', workspaces);
                         return { status: "WORKSPACE_DELETED", name: wsName, message: `Workspace "${wsName}" deleted, Sir.` };
                     }
@@ -2522,12 +2597,12 @@ Output the code with brief explanation.`,
                     // Fallback to localStorage
                     const workspaces = JSON.parse(localStorage.getItem('workspaces') || '{}');
                     if (action === 'save') {
-                        workspaces[wsName as string] = { mode: state.mode, saved: Date.now() };
+                        workspaces[wsName] = { mode: state.mode, saved: Date.now() };
                         localStorage.setItem('workspaces', JSON.stringify(workspaces));
                         return { status: "WORKSPACE_SAVED", name: wsName, message: `Workspace "${wsName}" saved, Sir.` };
                     }
-                    if (action === 'load' && wsName && workspaces[wsName as string]) {
-                        setMode(workspaces[wsName as string].mode);
+                    if (action === 'load' && wsName && workspaces[wsName]) {
+                        setMode(workspaces[wsName].mode);
                         return { status: "WORKSPACE_LOADED", name: wsName, message: `Workspace "${wsName}" restored, Sir.` };
                     }
                     if (action === 'list') {
@@ -2562,7 +2637,13 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'system_mode') {
-                const { mode: sysMode, duration } = args;
+                const sysMode = typeof args.mode === 'string' ? args.mode.trim() : '';
+                const duration = typeof args.duration === 'string' || typeof args.duration === 'number'
+                    ? args.duration
+                    : undefined;
+                if (!sysMode) {
+                    return { error: "Missing required mode", hint: "Provide a mode value for system_mode" };
+                }
                 localStorage.setItem('system_mode', JSON.stringify({ mode: sysMode, activated: Date.now(), duration }));
                 addLog('SYSTEM', `🎛️ MODE: ${sysMode} activated`);
                 audio.playClick();
@@ -2587,10 +2668,14 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'learn_pattern') {
-                const { pattern, trigger, category } = args;
-                const patternText = pattern as string;
-                const triggerText = trigger as string;
-                const cat = (category as string) || 'behavior';
+                const patternText = typeof args.pattern === 'string' ? args.pattern.trim() : '';
+                const triggerText = typeof args.trigger === 'string' ? args.trigger.trim() : '';
+                const cat = typeof args.category === 'string' && args.category.trim().length > 0
+                    ? args.category.trim()
+                    : 'behavior';
+                if (!patternText) {
+                    return { error: "Missing required pattern", hint: "Provide a pattern string for learn_pattern" };
+                }
 
                 try {
                     // Store in SovereignMemory for semantic retrieval
@@ -2654,8 +2739,24 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'track_goal') {
-                const { action: goalAction, goal, progress, notes } = args;
-                const goalText = goal as string;
+                const goalAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const goalText = typeof args.goal === 'string' ? args.goal.trim() : '';
+                const parsedProgress = typeof args.progress === 'number' ? args.progress : Number(args.progress);
+                const notesText = typeof args.notes === 'string' ? args.notes : undefined;
+                if (!goalAction) {
+                    return { error: "Missing required action", hint: "Provide action for track_goal (create, update, list, check)" };
+                }
+                if (goalAction === 'create' && !goalText) {
+                    return { error: "Missing required goal", hint: "Provide goal text for track_goal create" };
+                }
+                if (goalAction === 'update') {
+                    if (!goalText) {
+                        return { error: "Missing required goal", hint: "Provide goal text or id for track_goal update" };
+                    }
+                    if (!Number.isFinite(parsedProgress) || parsedProgress < 0) {
+                        return { error: "Invalid progress", hint: "Provide a numeric progress value for track_goal update" };
+                    }
+                }
 
                 try {
                     if (goalAction === 'create') {
@@ -2700,24 +2801,24 @@ Output the code with brief explanation.`,
                         };
                     }
 
-                    if (goalAction === 'update' && goalText && progress !== undefined) {
+                    if (goalAction === 'update' && goalText && Number.isFinite(parsedProgress)) {
                         const goals = await neuralVault.get('tracked_goals') || [];
                         const goalIndex = goals.findIndex((g: any) =>
                             g.goal.toLowerCase().includes(goalText.toLowerCase()) ||
                             g.id === goalText
                         );
                         if (goalIndex >= 0) {
-                            goals[goalIndex].progress = progress as number;
+                            goals[goalIndex].progress = parsedProgress;
                             goals[goalIndex].lastUpdated = Date.now();
-                            if (notes) goals[goalIndex].notes.push({ note: notes, added: Date.now() });
-                            if ((progress as number) >= 100) goals[goalIndex].status = 'completed';
+                            if (notesText) goals[goalIndex].notes.push({ note: notesText, added: Date.now() });
+                            if (parsedProgress >= 100) goals[goalIndex].status = 'completed';
                             await neuralVault.set('tracked_goals', goals);
-                            addLog('SYSTEM', `🎯 GOAL UPDATED: ${goals[goalIndex].goal} - ${progress}%`);
+                            addLog('SYSTEM', `🎯 GOAL UPDATED: ${goals[goalIndex].goal} - ${parsedProgress}%`);
                             return {
                                 status: "GOAL_UPDATED",
                                 goal: goals[goalIndex].goal,
-                                progress,
-                                message: `Goal progress updated to ${progress}%, Sir.`
+                                progress: parsedProgress,
+                                message: `Goal progress updated to ${parsedProgress}%, Sir.`
                             };
                         }
                         return { status: "GOAL_NOT_FOUND", goal: goalText, message: `Couldn't find that goal, Sir.` };
@@ -2827,7 +2928,10 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'situational_awareness') {
-                const { detail, focus } = args;
+                const detail = typeof args.detail === 'string' ? args.detail : undefined;
+                const focus = Array.isArray(args.focus)
+                    ? args.focus.filter((f): f is string => typeof f === 'string' && f.trim().length > 0)
+                    : [];
                 addLog('SYSTEM', `🎯 SITREP: ${detail || 'operational'} level`);
                 const state = useAppStore.getState();
 
@@ -2851,7 +2955,7 @@ Output the code with brief explanation.`,
                 return {
                     status: "SITREP_READY",
                     detailLevel: detail || 'operational',
-                    focus,
+                    focus: focus.length > 0 ? focus : undefined,
                     snapshot: {
                         currentSector: state.mode,
                         voiceActive: state.voice.isActive,
@@ -2863,19 +2967,26 @@ Output the code with brief explanation.`,
                         biometrics: biometricReady ? { ready: true, stressLevel } : { ready: false },
                         systemMode: (state as any).systemMode || 'normal'
                     },
-                    instruction: `Provide ${detail || 'operational'} situational awareness. ${focus ? `Focus on: ${(focus as string[]).join(', ')}.` : ''}`
+                    instruction: `Provide ${detail || 'operational'} situational awareness. ${focus.length > 0 ? `Focus on: ${focus.join(', ')}.` : ''}`
                 };
             }
 
             if (name === 'debug_assist') {
-                const { problem, context: debugContext, triedSolutions } = args;
+                const problem = typeof args.problem === 'string' ? args.problem.trim() : '';
+                const debugContext = typeof args.context === 'string' ? args.context : undefined;
+                const triedSolutions = Array.isArray(args.triedSolutions)
+                    ? args.triedSolutions.filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
+                    : [];
+                if (!problem) {
+                    return { error: "Missing required problem", hint: "Provide a problem statement for debug_assist" };
+                }
                 addLog('SYSTEM', `🐛 DEBUG ASSIST: ${problem}`);
                 return {
                     status: "DEBUG_MODE_ACTIVE",
                     problem,
                     context: debugContext,
-                    triedSolutions: triedSolutions || [],
-                    instruction: `Debug assistance requested. Problem: "${problem}". ${debugContext ? `Context: ${debugContext}.` : ''} ${triedSolutions && (triedSolutions as string[]).length > 0 ? `Already tried: ${(triedSolutions as string[]).join(', ')}.` : ''} Analyze and provide debugging guidance.`
+                    triedSolutions,
+                    instruction: `Debug assistance requested. Problem: "${problem}". ${debugContext ? `Context: ${debugContext}.` : ''} ${triedSolutions.length > 0 ? `Already tried: ${triedSolutions.join(', ')}.` : ''} Analyze and provide debugging guidance.`
                 };
             }
 
@@ -2900,7 +3011,13 @@ Output the code with brief explanation.`,
             // ================================================================
 
             if (name === 'delegate_to_agent') {
-                const { agent, task, priority, waitForResponse } = args;
+                const agent = typeof args.agent === 'string' ? args.agent.trim() : '';
+                const task = typeof args.task === 'string' ? args.task.trim() : '';
+                const priority = typeof args.priority === 'string' ? args.priority : undefined;
+                const waitForResponse = args.waitForResponse;
+                if (!agent || !task) {
+                    return { error: "Missing required agent or task", hint: "Provide both agent and task for delegate_to_agent" };
+                }
                 addLog('SYSTEM', `🤝 DELEGATING TO ${agent}: "${task}"`);
                 audio.playClick();
 
@@ -2908,8 +3025,8 @@ Output the code with brief explanation.`,
                     // Actually run agent reasoning
                     addLog('SYSTEM', `🧠 ${agent} is analyzing...`);
                     const result = await runAgentReasoning(
-                        agent as string,
-                        task as string,
+                        agent,
+                        task,
                         `Priority: ${priority || 'normal'}. Current sector: ${useAppStore.getState().mode}`
                     );
 
@@ -2969,9 +3086,15 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'voice_journal') {
-                const { entry, category, mood, private: isPrivate } = args;
+                const entry = typeof args.entry === 'string' ? args.entry.trim() : '';
+                const category = typeof args.category === 'string' ? args.category.trim() : '';
+                const mood = typeof args.mood === 'string' ? args.mood.trim() : undefined;
+                const isPrivate = !!args.private;
+                if (!entry) {
+                    return { error: "Missing required entry", hint: "Provide an entry string for voice_journal" };
+                }
                 const entryId = `journal_${Date.now()}`;
-                const cat = (category as string) || 'thought';
+                const cat = category || 'thought';
 
                 // Store in SovereignMemory with semantic indexing
                 try {
@@ -3023,7 +3146,12 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'smart_query') {
-                const { query, timeframe, format } = args;
+                const query = typeof args.query === 'string' ? args.query.trim() : '';
+                const timeframe = typeof args.timeframe === 'string' ? args.timeframe : undefined;
+                const format = typeof args.format === 'string' ? args.format : undefined;
+                if (!query) {
+                    return { error: "Missing required query", hint: "Provide a query for smart_query" };
+                }
                 addLog('SYSTEM', `📊 QUERY: ${query}`);
                 return {
                     status: "QUERY_PROCESSING",
@@ -3035,7 +3163,14 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'set_scene') {
-                const { scene, duration, music } = args;
+                const scene = typeof args.scene === 'string' ? args.scene.trim() : '';
+                const duration = typeof args.duration === 'string' || typeof args.duration === 'number'
+                    ? args.duration
+                    : undefined;
+                const music = args.music;
+                if (!scene) {
+                    return { error: "Missing required scene", hint: "Provide a scene name for set_scene" };
+                }
                 localStorage.setItem('current_scene', JSON.stringify({ scene, activated: Date.now(), duration }));
                 addLog('SYSTEM', `🎬 SCENE: ${scene}`);
                 audio.playClick();
@@ -3060,7 +3195,10 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'quick_command') {
-                const { command } = args;
+                const command = typeof args.command === 'string' ? args.command.trim() : '';
+                if (!command) {
+                    return { error: "Missing required command", hint: "Provide a command for quick_command" };
+                }
                 addLog('SYSTEM', `⚡ QUICK: ${command}`);
                 const quickResponses: Record<string, any> = {
                     status: { action: 'get_status', message: 'Checking status, Sir.' },
@@ -3086,14 +3224,20 @@ Output the code with brief explanation.`,
                 };
                 return {
                     status: "QUICK_COMMAND",
-                    ...(quickResponses[command as string] || { action: command, message: `${command} executed.` })
+                    ...(quickResponses[command] || { action: command, message: `${command} executed.` })
                 };
             }
 
             if (name === 'annotate_item') {
-                const { target, annotation, type, action: annAction } = args;
-                const annotationType = (type as string) || 'note';
-                const targetItem = (target as string) || 'current';
+                const target = typeof args.target === 'string' ? args.target.trim() : '';
+                const annotation = typeof args.annotation === 'string' ? args.annotation : '';
+                const type = typeof args.type === 'string' ? args.type.trim() : '';
+                const annAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const annotationType = type || 'note';
+                const targetItem = target || 'current';
+                if (annAction !== 'list' && annAction !== 'clear' && annotation.trim().length === 0) {
+                    return { error: "Missing annotation", hint: "Provide annotation text for annotate_item" };
+                }
 
                 try {
                     if (annAction === 'list') {
@@ -3175,7 +3319,10 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'mood_check') {
-                const { action: moodAction, mood, energy } = args;
+                const moodAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const mood = typeof args.mood === 'string' ? args.mood.trim() : '';
+                const parsedEnergy = typeof args.energy === 'number' ? args.energy : Number(args.energy);
+                const energy = Number.isFinite(parsedEnergy) ? parsedEnergy : undefined;
 
                 // Get biometric data if available to enrich mood logging
                 const biometricData = faceDetectionService.isReady() ? {
@@ -3216,7 +3363,7 @@ Output the code with brief explanation.`,
 
                         // Generate contextual message
                         let message = `Mood logged, Sir.`;
-                        if (energy && (energy as number) < 4) message += ' Perhaps a short break would help?';
+                        if (typeof energy === 'number' && energy < 4) message += ' Perhaps a short break would help?';
                         if (biometricData?.stressLevel > 50) message += ' I notice elevated stress indicators - consider a brief respite.';
                         if (biometricData?.detectedMood && mood && biometricData.detectedMood !== mood) {
                             message += ` (Interesting: biometrics suggest ${biometricData.detectedMood}.)`;
@@ -3290,13 +3437,19 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'chain_commands') {
-                const { commands, waitBetween } = args;
-                addLog('SYSTEM', `⛓️ CHAIN: ${(commands as string[]).length} commands`);
+                const commands = Array.isArray(args.commands)
+                    ? args.commands.filter((cmd): cmd is string => typeof cmd === 'string' && cmd.trim().length > 0)
+                    : [];
+                if (commands.length === 0) {
+                    return { error: "Missing commands", hint: "Provide a non-empty commands array for chain_commands" };
+                }
+                const waitBetween = !!args.waitBetween;
+                addLog('SYSTEM', `⛓️ CHAIN: ${commands.length} commands`);
                 return {
                     status: "CHAIN_INITIATED",
                     commands,
-                    waitBetween: waitBetween || false,
-                    instruction: `Execute these commands in sequence${waitBetween ? ' (waiting for confirmation between each)' : ''}: ${(commands as string[]).join(' → ')}`
+                    waitBetween,
+                    instruction: `Execute these commands in sequence${waitBetween ? ' (waiting for confirmation between each)' : ''}: ${commands.join(' → ')}`
                 };
             }
 
@@ -3313,14 +3466,22 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'voice_bookmark') {
-                const { action: bmAction, name: bmName, description } = args;
+                const bmAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const bmName = typeof args.name === 'string' ? args.name.trim() : '';
+                const description = typeof args.description === 'string' ? args.description : undefined;
+                if (!bmAction) {
+                    return { error: "Missing required action", hint: "Provide action for voice_bookmark (create, list, go, delete)" };
+                }
+                if ((bmAction === 'go' || bmAction === 'delete') && !bmName) {
+                    return { error: "Missing required name", hint: `Provide bookmark name for voice_bookmark ${bmAction}` };
+                }
                 const state = useAppStore.getState();
 
                 try {
                     const bookmarks = await neuralVault.get('voice_bookmarks') || {};
 
                     if (bmAction === 'create') {
-                        const bookmarkName = (bmName as string) || `bookmark_${Object.keys(bookmarks).length + 1}`;
+                        const bookmarkName = bmName || `bookmark_${Object.keys(bookmarks).length + 1}`;
                         bookmarks[bookmarkName] = {
                             mode: state.mode,
                             description,
@@ -3352,8 +3513,8 @@ Output the code with brief explanation.`,
                         };
                     }
 
-                    if (bmAction === 'go' && bmName && bookmarks[bmName as string]) {
-                        const bm = bookmarks[bmName as string];
+                    if (bmAction === 'go' && bmName && bookmarks[bmName]) {
+                        const bm = bookmarks[bmName];
                         bm.useCount = (bm.useCount || 0) + 1;
                         bm.lastUsed = Date.now();
                         await neuralVault.set('voice_bookmarks', bookmarks);
@@ -3367,8 +3528,8 @@ Output the code with brief explanation.`,
                         };
                     }
 
-                    if (bmAction === 'delete' && bmName && bookmarks[bmName as string]) {
-                        delete bookmarks[bmName as string];
+                    if (bmAction === 'delete' && bmName && bookmarks[bmName]) {
+                        delete bookmarks[bmName];
                         await neuralVault.set('voice_bookmarks', bookmarks);
                         return { status: "BOOKMARK_DELETED", name: bmName, message: `Bookmark "${bmName}" deleted, Sir.` };
                     }
@@ -3378,19 +3539,20 @@ Output the code with brief explanation.`,
                     addLog('WARN', `VOICE_BOOKMARK: Fallback to localStorage - ${e.message}`);
                     const bookmarks = JSON.parse(localStorage.getItem('voice_bookmarks') || '{}');
                     if (bmAction === 'create') {
-                        bookmarks[bmName as string || `bookmark_${Object.keys(bookmarks).length + 1}`] = {
+                        const bookmarkName = bmName || `bookmark_${Object.keys(bookmarks).length + 1}`;
+                        bookmarks[bookmarkName] = {
                             mode: state.mode,
                             description,
                             created: Date.now()
                         };
                         localStorage.setItem('voice_bookmarks', JSON.stringify(bookmarks));
-                        return { status: "BOOKMARK_CREATED", name: bmName, message: `Bookmark saved, Sir.` };
+                        return { status: "BOOKMARK_CREATED", name: bookmarkName, message: `Bookmark saved, Sir.` };
                     }
                     if (bmAction === 'list') {
                         return { status: "BOOKMARKS_LISTED", bookmarks: Object.keys(bookmarks), count: Object.keys(bookmarks).length };
                     }
-                    if (bmAction === 'go' && bmName && bookmarks[bmName as string]) {
-                        setMode(bookmarks[bmName as string].mode);
+                    if (bmAction === 'go' && bmName && bookmarks[bmName]) {
+                        setMode(bookmarks[bmName].mode);
                         return { status: "BOOKMARK_NAVIGATED", name: bmName, message: `Returning to ${bmName}, Sir.` };
                     }
                     return { status: "BOOKMARK_ACTION", action: bmAction };
@@ -3398,7 +3560,12 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'smart_notify') {
-                const { mode: notifyMode, filter, duration: notifyDuration } = args;
+                const notifyMode = typeof args.mode === 'string' ? args.mode.trim() : '';
+                const filter = args.filter;
+                const notifyDuration = args.duration;
+                if (!notifyMode) {
+                    return { error: "Missing required mode", hint: "Provide mode for smart_notify (all, priority, urgent, none, custom)" };
+                }
                 localStorage.setItem('notification_settings', JSON.stringify({ mode: notifyMode, filter, until: notifyDuration }));
                 addLog('SYSTEM', `🔔 NOTIFY: ${notifyMode}`);
                 const modeMessages: Record<string, string> = {
@@ -3411,12 +3578,16 @@ Output the code with brief explanation.`,
                 return {
                     status: "NOTIFICATIONS_SET",
                     mode: notifyMode,
-                    message: modeMessages[notifyMode as string] || "Notification settings updated."
+                    message: modeMessages[notifyMode] || "Notification settings updated."
                 };
             }
 
             if (name === 'conversation_mode') {
-                const { style, verbosity } = args;
+                const style = typeof args.style === 'string' ? args.style.trim() : '';
+                const verbosity = typeof args.verbosity === 'string' ? args.verbosity : undefined;
+                if (!style) {
+                    return { error: "Missing required style", hint: "Provide style for conversation_mode" };
+                }
                 localStorage.setItem('conversation_prefs', JSON.stringify({ style, verbosity }));
                 addLog('SYSTEM', `💬 CONVERSATION: ${style}`);
                 return {
@@ -3429,7 +3600,10 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'quick_answer') {
-                const { question } = args;
+                const question = typeof args.question === 'string' ? args.question.trim() : '';
+                if (!question) {
+                    return { error: "Missing required question", hint: "Provide a question for quick_answer" };
+                }
                 addLog('SYSTEM', `❓ QUICK ANSWER: ${question}`);
                 // Handle some quick answers directly
                 if (question.toLowerCase().includes('time')) {
@@ -3478,14 +3652,20 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'voice_search') {
-                const { query: searchQuery, scope, limit: searchLimit } = args;
+                const searchQuery = typeof args.query === 'string' ? args.query.trim() : '';
+                const scope = typeof args.scope === 'string' ? args.scope : undefined;
+                const parsedSearchLimit = typeof args.limit === 'number' ? args.limit : Number(args.limit);
+                const searchLimit = Number.isFinite(parsedSearchLimit) && parsedSearchLimit > 0 ? Math.floor(parsedSearchLimit) : 10;
+                if (!searchQuery) {
+                    return { error: "Missing required query", hint: "Provide a search query for voice_search" };
+                }
                 addLog('SYSTEM', `🔍 SEARCH: ${searchQuery}`);
                 return {
                     status: "SEARCH_INITIATED",
                     query: searchQuery,
                     scope: scope || 'all',
-                    limit: searchLimit || 10,
-                    instruction: `Search for "${searchQuery}" across ${scope || 'all'} sources. Return top ${searchLimit || 10} results.`
+                    limit: searchLimit,
+                    instruction: `Search for "${searchQuery}" across ${scope || 'all'} sources. Return top ${searchLimit} results.`
                 };
             }
 
@@ -3502,7 +3682,11 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'pause_resume') {
-                const { action: prAction, target: prTarget } = args;
+                const prAction = typeof args.action === 'string' ? args.action.trim().toLowerCase() : '';
+                const prTarget = typeof args.target === 'string' ? args.target : undefined;
+                if (!prAction) {
+                    return { error: "Missing required action", hint: "Provide action for pause_resume (pause, resume, toggle)" };
+                }
                 addLog('SYSTEM', `⏸️ ${prAction.toUpperCase()}: ${prTarget || 'operations'}`);
                 return {
                     status: prAction === 'pause' ? 'PAUSED' : prAction === 'resume' ? 'RESUMED' : 'TOGGLED',
@@ -3534,8 +3718,12 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'teach_command') {
-                const { trigger, action: cmdAction, context } = args;
-                const cmdTrigger = trigger as string;
+                const cmdTrigger = typeof args.trigger === 'string' ? args.trigger.trim() : '';
+                const cmdAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const context = typeof args.context === 'string' ? args.context : undefined;
+                if (!cmdTrigger || !cmdAction) {
+                    return { error: "Missing required trigger or action", hint: "Provide trigger and action for teach_command" };
+                }
 
                 try {
                     const commands = await neuralVault.get('custom_commands') || {};
@@ -3636,13 +3824,23 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'voice_templates') {
-                const { action: tplAction, name: tplName, steps } = args;
+                const tplAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const tplName = typeof args.name === 'string' ? args.name.trim() : '';
+                const steps = Array.isArray(args.steps)
+                    ? args.steps.filter((step): step is string => typeof step === 'string' && step.trim().length > 0)
+                    : [];
 
                 try {
                     const templates = await neuralVault.get('voice_templates') || {};
 
-                    if (tplAction === 'save' && tplName && steps) {
-                        templates[tplName as string] = {
+                    if (tplAction === 'save') {
+                        if (!tplName) {
+                            return { error: "Missing required name", hint: "Provide a template name for voice_templates save" };
+                        }
+                        if (steps.length === 0) {
+                            return { error: "Missing steps", hint: "Provide a non-empty steps array for voice_templates save" };
+                        }
+                        templates[tplName] = {
                             steps,
                             created: Date.now(),
                             useCount: 0
@@ -3652,9 +3850,9 @@ Output the code with brief explanation.`,
                         return {
                             status: "TEMPLATE_SAVED",
                             name: tplName,
-                            stepCount: (steps as string[]).length,
+                            stepCount: steps.length,
                             persistedTo: 'neuralVault',
-                            message: `Template "${tplName}" saved with ${(steps as string[]).length} steps, Sir.`
+                            message: `Template "${tplName}" saved with ${steps.length} steps, Sir.`
                         };
                     }
 
@@ -3672,8 +3870,8 @@ Output the code with brief explanation.`,
                         };
                     }
 
-                    if (tplAction === 'run' && tplName && templates[tplName as string]) {
-                        const tpl = templates[tplName as string];
+                    if (tplAction === 'run' && tplName && templates[tplName]) {
+                        const tpl = templates[tplName];
                         tpl.useCount = (tpl.useCount || 0) + 1;
                         tpl.lastUsed = Date.now();
                         await neuralVault.set('voice_templates', templates);
@@ -3686,8 +3884,8 @@ Output the code with brief explanation.`,
                         };
                     }
 
-                    if (tplAction === 'delete' && tplName && templates[tplName as string]) {
-                        delete templates[tplName as string];
+                    if (tplAction === 'delete' && tplName && templates[tplName]) {
+                        delete templates[tplName];
                         await neuralVault.set('voice_templates', templates);
                         return { status: "TEMPLATE_DELETED", name: tplName, message: `Template "${tplName}" deleted, Sir.` };
                     }
@@ -3696,16 +3894,16 @@ Output the code with brief explanation.`,
                 } catch (e: any) {
                     addLog('WARN', `VOICE_TEMPLATES: Fallback to localStorage - ${e.message}`);
                     const templates = JSON.parse(localStorage.getItem('voice_templates') || '{}');
-                    if (tplAction === 'save' && tplName && steps) {
-                        templates[tplName as string] = { steps, created: Date.now() };
+                    if (tplAction === 'save' && tplName && steps.length > 0) {
+                        templates[tplName] = { steps, created: Date.now() };
                         localStorage.setItem('voice_templates', JSON.stringify(templates));
                         return { status: "TEMPLATE_SAVED", name: tplName, message: `Template "${tplName}" saved.` };
                     }
                     if (tplAction === 'list') {
                         return { status: "TEMPLATES_LISTED", templates: Object.keys(templates), count: Object.keys(templates).length };
                     }
-                    if (tplAction === 'run' && tplName && templates[tplName as string]) {
-                        return { status: "TEMPLATE_RUNNING", name: tplName, steps: templates[tplName as string].steps };
+                    if (tplAction === 'run' && tplName && templates[tplName]) {
+                        return { status: "TEMPLATE_RUNNING", name: tplName, steps: templates[tplName].steps };
                     }
                     return { status: "TEMPLATE_ACTION", action: tplAction };
                 }
@@ -3798,9 +3996,15 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'remember_person') {
-                const { action: personAction, person, info, category } = args;
-                const personName = person as string;
-                const cat = (category as string) || 'note';
+                const personAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const personName = typeof args.person === 'string' ? args.person.trim() : '';
+                const info = args.info;
+                const cat = typeof args.category === 'string' && args.category.trim().length > 0
+                    ? args.category.trim()
+                    : 'note';
+                if ((personAction === 'remember' || personAction === 'recall') && !personName) {
+                    return { error: "Missing required person", hint: "Provide person name for remember_person" };
+                }
 
                 try {
                     if (personAction === 'remember') {
@@ -3893,8 +4097,12 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'topic_memory') {
-                const { action: topicAction, topic, content } = args;
-                const topicName = topic as string;
+                const topicAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const topicName = typeof args.topic === 'string' ? args.topic.trim() : '';
+                const content = args.content;
+                if ((topicAction === 'add' || topicAction === 'recall') && !topicName) {
+                    return { error: "Missing required topic", hint: "Provide topic for topic_memory" };
+                }
 
                 try {
                     if (topicAction === 'add') {
@@ -4006,19 +4214,32 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'ambient_listen') {
-                const { mode: ambMode, triggers, action: ambAction } = args;
+                const ambMode = typeof args.mode === 'string' ? args.mode.trim() : '';
+                const triggers = Array.isArray(args.triggers)
+                    ? args.triggers.filter((trigger): trigger is string => typeof trigger === 'string' && trigger.trim().length > 0)
+                    : [];
+                const ambAction = typeof args.action === 'string' ? args.action : undefined;
+                if (!ambMode) {
+                    return { error: "Missing required mode", hint: "Provide mode for ambient_listen (on/off)" };
+                }
                 localStorage.setItem('ambient_listen', JSON.stringify({ mode: ambMode, triggers, action: ambAction }));
                 addLog('SYSTEM', `👂 AMBIENT: ${ambMode}`);
                 return {
                     status: "AMBIENT_CONFIGURED",
                     mode: ambMode,
-                    triggers: triggers || [],
-                    message: ambMode === 'on' ? `Ambient listening enabled, Sir. ${triggers ? `Listening for: ${(triggers as string[]).join(', ')}` : ''}` : `Ambient listening disabled.`
+                    triggers,
+                    message: ambMode === 'on' ? `Ambient listening enabled, Sir. ${triggers.length > 0 ? `Listening for: ${triggers.join(', ')}` : ''}` : `Ambient listening disabled.`
                 };
             }
 
             if (name === 'proactive_suggest') {
-                const { level, areas } = args;
+                const level = typeof args.level === 'string' ? args.level.trim() : '';
+                const areas = Array.isArray(args.areas)
+                    ? args.areas.filter((area): area is string => typeof area === 'string' && area.trim().length > 0)
+                    : [];
+                if (!level) {
+                    return { error: "Missing required level", hint: "Provide level for proactive_suggest (off, minimal, moderate, active)" };
+                }
                 localStorage.setItem('proactive_settings', JSON.stringify({ level, areas }));
                 addLog('SYSTEM', `💡 PROACTIVE: ${level}`);
                 const messages: Record<string, string> = {
@@ -4030,8 +4251,8 @@ Output the code with brief explanation.`,
                 return {
                     status: "PROACTIVE_SET",
                     level,
-                    areas: areas || [],
-                    message: messages[level as string] || "Proactivity adjusted."
+                    areas,
+                    message: messages[level] || "Proactivity adjusted."
                 };
             }
 
@@ -4049,7 +4270,11 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'personality_mode') {
-                const { personality, intensity } = args;
+                const personality = typeof args.personality === 'string' ? args.personality.trim() : '';
+                const intensity = typeof args.intensity === 'string' ? args.intensity : undefined;
+                if (!personality) {
+                    return { error: "Missing required personality", hint: "Provide personality for personality_mode" };
+                }
                 localStorage.setItem('personality_mode', JSON.stringify({ personality, intensity: intensity || 'moderate' }));
                 addLog('SYSTEM', `🎭 PERSONALITY: ${personality}`);
                 const intros: Record<string, string> = {
@@ -4065,7 +4290,7 @@ Output the code with brief explanation.`,
                     status: "PERSONALITY_SET",
                     personality,
                     intensity: intensity || 'moderate',
-                    message: intros[personality as string] || `${personality} mode activated.`
+                    message: intros[personality] || `${personality} mode activated.`
                 };
             }
 
@@ -4087,7 +4312,16 @@ Output the code with brief explanation.`,
             // ================================================================
 
             if (name === 'document_ops') {
-                const { action: docAction, type: docType, name: docName, content: docContent } = args;
+                const docAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const docType = typeof args.type === 'string' ? args.type : undefined;
+                const docName = typeof args.name === 'string' ? args.name : undefined;
+                const docContent = typeof args.content === 'string' ? args.content : undefined;
+                if (!docAction) {
+                    return { error: "Missing required action", hint: "Provide action for document_ops" };
+                }
+                if (docAction === 'create' && !docName) {
+                    return { error: "Missing required name", hint: "Provide document name for document_ops create" };
+                }
                 addLog('SYSTEM', `📄 DOCUMENT: ${docAction} ${docType || 'document'}`);
                 if (docAction === 'create') {
                     const docs = JSON.parse(localStorage.getItem('voice_documents') || '[]');
@@ -4099,7 +4333,15 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'meeting_mode') {
-                const { action: mtgAction, meetingName, content: mtgContent } = args;
+                const mtgAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const meetingName = typeof args.meetingName === 'string' ? args.meetingName : undefined;
+                const mtgContent = typeof args.content === 'string' ? args.content : undefined;
+                if (!mtgAction) {
+                    return { error: "Missing required action", hint: "Provide action for meeting_mode (start, note, action_item, end)" };
+                }
+                if ((mtgAction === 'note' || mtgAction === 'action_item') && !mtgContent) {
+                    return { error: "Missing required content", hint: `Provide content for meeting_mode ${mtgAction}` };
+                }
                 const meetings = JSON.parse(localStorage.getItem('meeting_state') || '{}');
 
                 if (mtgAction === 'start') {
@@ -4135,7 +4377,17 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'presentation_mode') {
-                const { action: presAction, slideNumber, notes: presNotes } = args;
+                const presAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const parsedSlideNumber = typeof args.slideNumber === 'number' ? args.slideNumber : Number(args.slideNumber);
+                const slideNumber = Number.isFinite(parsedSlideNumber) && parsedSlideNumber > 0
+                    ? Math.floor(parsedSlideNumber)
+                    : undefined;
+                if (!presAction) {
+                    return { error: "Missing required action", hint: "Provide action for presentation_mode" };
+                }
+                if (presAction === 'goto' && !slideNumber) {
+                    return { error: "Invalid slideNumber", hint: "Provide a positive slideNumber for presentation_mode goto" };
+                }
                 const presState = JSON.parse(localStorage.getItem('presentation_state') || '{}');
                 addLog('SYSTEM', `📊 PRESENTATION: ${presAction}`);
 
@@ -4175,7 +4427,15 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'quick_note') {
-                const { action: noteAction, content: noteContent, tag } = args;
+                const noteAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const noteContent = typeof args.content === 'string' ? args.content : '';
+                const tag = typeof args.tag === 'string' ? args.tag : undefined;
+                if (!noteAction) {
+                    return { error: "Missing required action", hint: "Provide action for quick_note (add, list, search, clear)" };
+                }
+                if ((noteAction === 'add' || noteAction === 'search') && noteContent.trim().length === 0) {
+                    return { error: "Missing required content", hint: `Provide content for quick_note ${noteAction}` };
+                }
 
                 try {
                     const quickNotes = await neuralVault.get('quick_notes') || [];
@@ -4220,7 +4480,7 @@ Output the code with brief explanation.`,
 
                     if (noteAction === 'search' && noteContent) {
                         // Semantic search for notes
-                        const searchResults = await sovereignMemory.search(noteContent as string, 5);
+                        const searchResults = await sovereignMemory.search(noteContent, 5);
                         const noteMatches = searchResults
                             .filter((r: any) => r.type === 'quick_note' || r.content?.includes('quick_note'))
                             .slice(0, 5);
@@ -4259,7 +4519,11 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'transcribe') {
-                const { action: transAction, format: transFormat } = args;
+                const transAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const transFormat = typeof args.format === 'string' ? args.format : undefined;
+                if (!transAction) {
+                    return { error: "Missing required action", hint: "Provide action for transcribe (start, stop)" };
+                }
                 addLog('SYSTEM', `📜 TRANSCRIBE: ${transAction}`);
                 if (transAction === 'start') {
                     localStorage.setItem('transcription_active', 'true');
@@ -4273,7 +4537,12 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'dictate_to_doc') {
-                const { action: dictAction, target: dictTarget, formatting } = args;
+                const dictAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const dictTarget = typeof args.target === 'string' ? args.target : undefined;
+                const formatting = typeof args.formatting === 'string' ? args.formatting : undefined;
+                if (!dictAction) {
+                    return { error: "Missing required action", hint: "Provide action for dictate_to_doc (start, stop)" };
+                }
                 addLog('SYSTEM', `🎤 DICTATE: ${dictAction}`);
                 if (dictAction === 'start') {
                     localStorage.setItem('dictation_state', JSON.stringify({ active: true, target: dictTarget, formatting }));
@@ -4287,7 +4556,11 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'screen_layout') {
-                const { layout, target: layoutTarget } = args;
+                const layout = typeof args.layout === 'string' ? args.layout.trim() : '';
+                const layoutTarget = typeof args.target === 'string' ? args.target : undefined;
+                if (!layout) {
+                    return { error: "Missing required layout", hint: "Provide layout for screen_layout" };
+                }
                 addLog('SYSTEM', `🖥️ LAYOUT: ${layout}`);
                 localStorage.setItem('screen_layout', JSON.stringify({ layout, target: layoutTarget }));
                 const messages: Record<string, string> = {
@@ -4299,18 +4572,24 @@ Output the code with brief explanation.`,
                     sidebar: "Sidebar layout.",
                     compact: "Compact view."
                 };
-                return { status: "LAYOUT_SET", layout, message: messages[layout as string] || `Layout set to ${layout}.` };
+                return { status: "LAYOUT_SET", layout, message: messages[layout] || `Layout set to ${layout}.` };
             }
 
             if (name === 'parallel_ops') {
-                const { operations, reportProgress } = args;
-                addLog('SYSTEM', `⚡ PARALLEL: ${(operations as string[]).length} operations`);
+                const operations = Array.isArray(args.operations)
+                    ? args.operations.filter((op): op is string => typeof op === 'string' && op.trim().length > 0)
+                    : [];
+                if (operations.length === 0) {
+                    return { error: "Missing operations", hint: "Provide a non-empty operations array for parallel_ops" };
+                }
+                const reportProgress = !!args.reportProgress;
+                addLog('SYSTEM', `⚡ PARALLEL: ${operations.length} operations`);
                 return {
                     status: "PARALLEL_INITIATED",
                     operations,
-                    reportProgress: reportProgress || false,
-                    message: `Executing ${(operations as string[]).length} operations in parallel, Sir.`,
-                    instruction: `Execute these operations simultaneously: ${(operations as string[]).join(' AND ')}`
+                    reportProgress,
+                    message: `Executing ${operations.length} operations in parallel, Sir.`,
+                    instruction: `Execute these operations simultaneously: ${operations.join(' AND ')}`
                 };
             }
 
@@ -4335,7 +4614,12 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'dev_commands') {
-                const { command: devCmd, args: devArgs, watch } = args;
+                const devCmd = typeof args.command === 'string' ? args.command.trim() : '';
+                const devArgs = args.args;
+                const watch = !!args.watch;
+                if (!devCmd) {
+                    return { error: "Missing required command", hint: "Provide command for dev_commands" };
+                }
                 addLog('SYSTEM', `💻 DEV: ${devCmd}`);
                 const cmdDescriptions: Record<string, string> = {
                     test: "Running tests",
@@ -4351,13 +4635,18 @@ Output the code with brief explanation.`,
                     status: "DEV_COMMAND_INITIATED",
                     command: devCmd,
                     args: devArgs,
-                    watch: watch || false,
-                    message: `${cmdDescriptions[devCmd as string] || devCmd}, Sir.${watch ? ' Watch mode enabled.' : ''}`
+                    watch,
+                    message: `${cmdDescriptions[devCmd] || devCmd}, Sir.${watch ? ' Watch mode enabled.' : ''}`
                 };
             }
 
             if (name === 'git_voice') {
-                const { command: gitCmd, message: gitMsg, branch } = args;
+                const gitCmd = typeof args.command === 'string' ? args.command.trim() : '';
+                const gitMsg = typeof args.message === 'string' ? args.message : undefined;
+                const branch = typeof args.branch === 'string' ? args.branch : undefined;
+                if (!gitCmd) {
+                    return { error: "Missing required command", hint: "Provide command for git_voice" };
+                }
                 addLog('SYSTEM', `🔀 GIT: ${gitCmd}`);
                 const gitResponses: Record<string, string> = {
                     status: "Checking git status.",
@@ -4373,12 +4662,16 @@ Output the code with brief explanation.`,
                 return {
                     status: "GIT_COMMAND_INITIATED",
                     command: gitCmd,
-                    message: gitResponses[gitCmd as string] || `Git ${gitCmd}.`
+                    message: gitResponses[gitCmd] || `Git ${gitCmd}.`
                 };
             }
 
             if (name === 'build_run') {
-                const { action: buildAction, environment } = args;
+                const buildAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const environment = typeof args.environment === 'string' ? args.environment : undefined;
+                if (!buildAction) {
+                    return { error: "Missing required action", hint: "Provide action for build_run" };
+                }
                 addLog('SYSTEM', `🔨 BUILD: ${buildAction} (${environment || 'development'})`);
                 return {
                     status: "BUILD_ACTION_INITIATED",
@@ -4393,7 +4686,8 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'smart_context') {
-                const { depth, focus: ctxFocus } = args;
+                const depth = typeof args.depth === 'string' ? args.depth : undefined;
+                const ctxFocus = typeof args.focus === 'string' ? args.focus : undefined;
                 addLog('SYSTEM', `🧠 SMART CONTEXT: ${depth || 'surface'}`);
                 const state = useAppStore.getState();
                 return {
@@ -4409,7 +4703,15 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'pinned_items') {
-                const { action: pinAction, item, category: pinCategory } = args;
+                const pinAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const item = typeof args.item === 'string' ? args.item.trim() : '';
+                const pinCategory = typeof args.category === 'string' ? args.category : undefined;
+                if (!pinAction) {
+                    return { error: "Missing required action", hint: "Provide action for pinned_items (pin, unpin, list, clear)" };
+                }
+                if ((pinAction === 'pin' || pinAction === 'unpin') && !item) {
+                    return { error: "Missing required item", hint: `Provide item for pinned_items ${pinAction}` };
+                }
 
                 try {
                     const pinned = await neuralVault.get('pinned_items') || [];
@@ -4490,7 +4792,10 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'daily_brief') {
-                const { type: briefType, include } = args;
+                const briefType = typeof args.type === 'string' ? args.type : undefined;
+                const include = Array.isArray(args.include)
+                    ? args.include.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+                    : [];
                 addLog('SYSTEM', `☀️ DAILY BRIEF: ${briefType || 'morning'}`);
                 const state = useAppStore.getState();
 
@@ -4520,7 +4825,7 @@ Output the code with brief explanation.`,
                     return {
                         status: "BRIEF_READY",
                         type: briefType || 'morning',
-                        include: include || ['tasks', 'goals', 'calendar'],
+                        include: include.length > 0 ? include : ['tasks', 'goals', 'calendar'],
                         data: {
                             currentMode: state.mode,
                             activeGoals: activeGoals.length,
@@ -4532,7 +4837,7 @@ Output the code with brief explanation.`,
                             dreamInsights: recentSessions.reduce((acc: number, s: any) => acc + (s.insights?.length || 0), 0),
                             timestamp: new Date().toLocaleString()
                         },
-                        instruction: `Generate a ${briefType || 'morning'} brief. Include: ${(include || ['tasks', 'goals', 'reminders']).join(', ')}. Be concise but comprehensive. Use the data provided for accurate status.`
+                        instruction: `Generate a ${briefType || 'morning'} brief. Include: ${(include.length > 0 ? include : ['tasks', 'goals', 'reminders']).join(', ')}. Be concise but comprehensive. Use the data provided for accurate status.`
                     };
                 } catch (e: any) {
                     addLog('WARN', `DAILY_BRIEF: Fallback to localStorage - ${e.message}`);
@@ -4541,7 +4846,7 @@ Output the code with brief explanation.`,
                     return {
                         status: "BRIEF_READY",
                         type: briefType || 'morning',
-                        include: include || ['tasks', 'goals', 'calendar'],
+                        include: include.length > 0 ? include : ['tasks', 'goals', 'calendar'],
                         data: {
                             currentMode: state.mode,
                             activeGoals: goals.filter((g: any) => g.progress < 100).length,
@@ -4557,7 +4862,8 @@ Output the code with brief explanation.`,
         };
 
         liveSession.onAgentSwitch = (name) => {
-            addLog('SYSTEM', `HANDOVER_REQ: Switching link to [${name}]...`);
+            const requestedName = typeof name === 'string' && name.trim().length > 0 ? name.trim() : 'Puck';
+            addLog('SYSTEM', `HANDOVER_REQ: Switching link to [${requestedName}]...`);
             audio.playClick();
 
             // Rapid toggle to force reconnection loop
@@ -4565,10 +4871,10 @@ Output the code with brief explanation.`,
 
             // Resolve standard name from generic input
             const agent = Object.values(HIVE_AGENTS).find((a: any) =>
-                a.name.toLowerCase() === name.toLowerCase() ||
-                a.id === name.toLowerCase()
+                a.name.toLowerCase() === requestedName.toLowerCase() ||
+                a.id === requestedName.toLowerCase()
             );
-            const targetName = agent ? agent.name : name;
+            const targetName = agent ? agent.name : requestedName;
 
             setVoiceState({ voiceName: targetName, isActive: true });
         };
@@ -4610,7 +4916,7 @@ Output the code with brief explanation.`,
 
                 // Optimization: Store lastConnectedName in a ref.
                 if (lastConnectedNameRef.current !== voice.voiceName) {
-                    if (import.meta.env.DEV) console.log('[VoiceManager] Hot-Swapping Agent due to name change...');
+                    logger.debug('Hot-Swapping Agent due to name change...', undefined, 'VoiceManager');
                     liveSession.disconnect();
                     connectionAttemptRef.current = true; // Stay 'true' so we block duplicates
                     lastConnectedNameRef.current = null; // Clear old name
@@ -4633,16 +4939,13 @@ Output the code with brief explanation.`,
                 if (!preflight.canProceed) {
                     const errorMsg = preflight.errors[0] || 'Voice system requirements not met';
                     addLog('ERROR', `VOICE_PREFLIGHT: ${errorMsg}`);
-                    if (import.meta.env.DEV) {
-                        console.error('[VoiceManager] Preflight failed:');
-                        console.log(formatPreflightResult(preflight));
-                    }
+                    logger.error('Preflight failed', formatPreflightResult(preflight), 'VoiceManager');
                     connectionAttemptRef.current = false;
                     setVoiceState({ isActive: false, isConnecting: false });
                     return;
                 }
-                if (preflight.warnings.length > 0 && import.meta.env.DEV) {
-                    console.warn('[VoiceManager] Preflight warnings:', preflight.warnings);
+                if (preflight.warnings.length > 0) {
+                    logger.warn('Preflight warnings', preflight.warnings, 'VoiceManager');
                 }
                 addLog('SYSTEM', `VOICE_PREFLIGHT: Ready in ${preflight.mode} mode`);
             }
@@ -4746,30 +5049,28 @@ ${generateTabContext(currentMode)}
                     callbacks: {
                         onmessage: async (message: LiveServerMessage) => {
                             // Debug logging for transcript analysis
-                            if (import.meta.env.DEV) {
-                                console.log('[VoiceManager] Message:', {
-                                    hasToolCall: !!message.toolCall,
-                                    hasOutputTranscript: !!message.serverContent?.outputTranscription,
-                                    hasInputTranscript: !!message.serverContent?.inputTranscription,
-                                    turnComplete: !!message.serverContent?.turnComplete
-                                });
-                                if (message.toolCall) {
-                                    console.log('[VoiceManager] Tool Call:', message.toolCall.functionCalls?.map(fc => ({ name: fc.name, args: fc.args })));
-                                }
+                            logger.debug('Message', {
+                                hasToolCall: !!message.toolCall,
+                                hasOutputTranscript: !!message.serverContent?.outputTranscription,
+                                hasInputTranscript: !!message.serverContent?.inputTranscription,
+                                turnComplete: !!message.serverContent?.turnComplete
+                            }, 'VoiceManager');
+                            if (message.toolCall) {
+                                logger.debug(
+                                    'Tool Call',
+                                    message.toolCall.functionCalls?.map(fc => ({ name: fc.name, args: fc.args })),
+                                    'VoiceManager'
+                                );
                             }
 
                             if (message.serverContent?.outputTranscription) {
                                 partialTranscriptRef.current += message.serverContent.outputTranscription.text;
                                 setVoiceState({ partialTranscript: { role: 'model', text: partialTranscriptRef.current } });
-                                if (import.meta.env.DEV) {
-                                    console.log('[VoiceManager] Model:', message.serverContent.outputTranscription.text);
-                                }
+                                logger.debug('Model', message.serverContent.outputTranscription.text, 'VoiceManager');
                             } else if (message.serverContent?.inputTranscription) {
                                 partialTranscriptRef.current += message.serverContent.inputTranscription.text;
                                 setVoiceState({ partialTranscript: { role: 'user', text: partialTranscriptRef.current } });
-                                if (import.meta.env.DEV) {
-                                    console.log('[VoiceManager] User:', message.serverContent.inputTranscription.text);
-                                }
+                                logger.debug('User', message.serverContent.inputTranscription.text, 'VoiceManager');
 
                                 // Analyze complexity for hybrid mode routing display
                                 const complexity = analyzeComplexity(partialTranscriptRef.current);
@@ -4785,9 +5086,7 @@ ${generateTabContext(currentMode)}
                             if (message.serverContent?.turnComplete) {
                                 const finalText = partialTranscriptRef.current;
                                 if (finalText) {
-                                    if (import.meta.env.DEV) {
-                                        console.log('[VoiceManager] Turn Complete:', { role: voice.partialTranscript?.role, text: finalText });
-                                    }
+                                    logger.debug('Turn Complete', { role: voice.partialTranscript?.role, text: finalText }, 'VoiceManager');
                                     setVoiceState(prev => ({
                                         transcripts: [...prev.transcripts, { role: prev.partialTranscript?.role || 'user', text: finalText, timestamp: Date.now() }],
                                         partialTranscript: null
@@ -4811,7 +5110,7 @@ ${generateTabContext(currentMode)}
                             lastConnectedNameRef.current = null;
                             // Actually log the error so we know what went wrong
                             const errorMsg = err?.message || err?.error || String(err);
-                            console.error('[VoiceManager] Connection error:', err);
+                            logger.error('Connection error', err, 'VoiceManager');
                             addLog('ERROR', `VOICE_CORE: ${errorMsg}`);
                         },
                         onclose: () => {
@@ -4825,7 +5124,7 @@ ${generateTabContext(currentMode)}
                 });
             } catch (e: any) {
                 const errorMsg = e?.message || String(e);
-                console.error('[VoiceManager] Connection exception:', e);
+                logger.error('Connection exception', e, 'VoiceManager');
 
                 if (retryCount < 3) {
                     addLog('WARN', `VOICE_CORE: ${errorMsg}. Retrying in 2s... (${retryCount + 1}/3)`);
