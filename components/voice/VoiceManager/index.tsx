@@ -1335,11 +1335,15 @@ const VoiceManager: React.FC = () => {
             // CODE & DEVELOPMENT - Engineering tools
             // =================================================================
             if (name === 'analyze_code') {
-                const { target, analysisType } = args;
+                const target = typeof args.target === 'string' ? args.target.trim() : '';
+                const analysisType = typeof args.analysisType === 'string' ? args.analysisType : undefined;
+                if (!target) {
+                    return { error: "Missing required target", hint: "Provide analysis target for analyze_code" };
+                }
                 addLog('SYSTEM', `CODE: Analyzing ${target} (${analysisType || 'general'}) with Archon...`);
 
                 // Build relevant codebase context for the analysis target
-                const codebaseContext = buildCodebaseContext(target as string);
+                const codebaseContext = buildCodebaseContext(target);
 
                 // Also get general codebase structure info
                 const structureInfo = Object.entries(CODEBASE_KNOWLEDGE.structure)
@@ -1392,13 +1396,18 @@ Provide: 1) Overview, 2) Key findings, 3) Potential issues, 4) Recommendations`,
             }
 
             if (name === 'generate_code') {
-                const { description, language, style } = args;
-                const lang = (language as string) || 'TypeScript';
-                const codeStyle = (style as string) || 'production';
+                const description = typeof args.description === 'string' ? args.description.trim() : '';
+                const language = typeof args.language === 'string' ? args.language : undefined;
+                const style = typeof args.style === 'string' ? args.style : undefined;
+                if (!description) {
+                    return { error: "Missing required description", hint: "Provide description for generate_code" };
+                }
+                const lang = language || 'TypeScript';
+                const codeStyle = style || 'production';
                 addLog('SYSTEM', `CODE: Generating ${lang} code with Mike...`);
 
                 // Get relevant codebase context
-                const codebaseContext = buildCodebaseContext(description as string);
+                const codebaseContext = buildCodebaseContext(description);
 
                 try {
                     // Run through Mike (The Builder) for code generation
@@ -1565,14 +1574,21 @@ Output the code with brief explanation.`,
             // FOCUS & PRODUCTIVITY - Work management
             // =================================================================
             if (name === 'focus_mode') {
-                const { enabled, duration } = args;
+                const enabled = typeof args.enabled === 'boolean' ? args.enabled : undefined;
+                const parsedFocusDuration = typeof args.duration === 'number' ? args.duration : Number(args.duration);
+                const duration = Number.isFinite(parsedFocusDuration) && parsedFocusDuration > 0
+                    ? parsedFocusDuration
+                    : undefined;
+                if (enabled === undefined) {
+                    return { error: "Missing required enabled", hint: "Provide enabled as true or false for focus_mode" };
+                }
                 addLog('SYSTEM', `FOCUS: ${enabled ? 'Entering' : 'Exiting'} focus mode...`);
                 // Could trigger UI changes here
                 if (duration) {
                     setTimeout(() => {
                         addLog('SYSTEM', `FOCUS: Focus session complete.`);
                         audio.playSuccess();
-                    }, (duration as number) * 60 * 1000);
+                    }, duration * 60 * 1000);
                 }
                 return {
                     status: enabled ? "FOCUS_MODE_ACTIVE" : "FOCUS_MODE_DISABLED",
@@ -1676,14 +1692,21 @@ Output the code with brief explanation.`,
             // VOICE CONTROL
             // =================================================================
             if (name === 'voice_settings') {
-                const { speed, volume, mode } = args;
+                const speed = typeof args.speed === 'number' ? args.speed : Number(args.speed);
+                const volume = typeof args.volume === 'number' ? args.volume : Number(args.volume);
+                const mode = typeof args.mode === 'string' ? args.mode.trim() : '';
                 addLog('SYSTEM', `VOICE: Adjusting settings...`);
                 if (mode) {
                     const { voiceNexus } = await import('../../../services/voiceNexus');
                     voiceNexus.setMode(mode);
                     setVoiceNexusState({ mode });
                 }
-                return { status: "SETTINGS_ADJUSTED", speed, volume, mode };
+                return {
+                    status: "SETTINGS_ADJUSTED",
+                    speed: Number.isFinite(speed) ? speed : undefined,
+                    volume: Number.isFinite(volume) ? volume : undefined,
+                    mode: mode || undefined
+                };
             }
 
             if (name === 'repeat_response') {
@@ -1953,13 +1976,18 @@ Output the code with brief explanation.`,
 
             if (name === 'get_preferences') {
                 const prefs = JSON.parse(localStorage.getItem('voice_preferences') || '{}');
-                const category = args.category as string;
+                const category = typeof args.category === 'string' ? args.category.trim() : '';
                 const result = category ? prefs[category] || {} : prefs;
                 return { status: "PREFERENCES_RETRIEVED", preferences: result };
             }
 
             if (name === 'trigger_webhook') {
-                const { target, payload, webhookUrl } = args;
+                const target = typeof args.target === 'string' ? args.target.trim() : '';
+                const payload = args.payload;
+                const webhookUrl = typeof args.webhookUrl === 'string' ? args.webhookUrl : undefined;
+                if (!target) {
+                    return { error: "Missing required target", hint: "Provide target for trigger_webhook" };
+                }
                 addLog('SYSTEM', `WEBHOOK: Triggering ${target}...`);
                 // Webhooks would need actual implementation with stored URLs
                 return {
@@ -1970,7 +1998,12 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'ambient_mode') {
-                const { enabled, wakeWord, sensitivity } = args;
+                const enabled = typeof args.enabled === 'boolean' ? args.enabled : undefined;
+                const wakeWord = typeof args.wakeWord === 'string' ? args.wakeWord : undefined;
+                const sensitivity = typeof args.sensitivity === 'string' ? args.sensitivity : undefined;
+                if (enabled === undefined) {
+                    return { error: "Missing required enabled", hint: "Provide enabled as true or false for ambient_mode" };
+                }
                 addLog('SYSTEM', `AMBIENT: ${enabled ? 'Enabling' : 'Disabling'} ambient mode...`);
                 return {
                     status: enabled ? "AMBIENT_ENABLED" : "AMBIENT_DISABLED",
@@ -1981,7 +2014,11 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'dictation_mode') {
-                const { enabled, destination } = args;
+                const enabled = typeof args.enabled === 'boolean' ? args.enabled : undefined;
+                const destination = typeof args.destination === 'string' ? args.destination : undefined;
+                if (enabled === undefined) {
+                    return { error: "Missing required enabled", hint: "Provide enabled as true or false for dictation_mode" };
+                }
                 addLog('SYSTEM', `DICTATION: ${enabled ? 'Enabling' : 'Disabling'}...`);
                 return {
                     status: enabled ? "DICTATION_ENABLED" : "DICTATION_DISABLED",
@@ -1991,7 +2028,9 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'summarize_session') {
-                const scope = (args.scope as string) || 'conversation';
+                const scope = typeof args.scope === 'string' && args.scope.trim().length > 0
+                    ? args.scope.trim()
+                    : 'conversation';
                 addLog('SYSTEM', `SUMMARY: Generating ${scope} summary...`);
                 const transcripts = voice.transcripts;
                 return {
@@ -2003,7 +2042,11 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'set_context') {
-                const { project, task, goals } = args;
+                const project = typeof args.project === 'string' ? args.project : undefined;
+                const task = typeof args.task === 'string' ? args.task : undefined;
+                const goals = Array.isArray(args.goals)
+                    ? args.goals.filter((goal): goal is string => typeof goal === 'string' && goal.trim().length > 0)
+                    : args.goals;
                 addLog('SYSTEM', `CONTEXT: Setting work context...`);
                 localStorage.setItem('voice_context', JSON.stringify({ project, task, goals, set: Date.now() }));
                 return {
@@ -3620,7 +3663,8 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'interpret_intent') {
-                const { utterance, context: intentContext } = args;
+                const utterance = typeof args.utterance === 'string' ? args.utterance : undefined;
+                const intentContext = typeof args.context === 'string' ? args.context : undefined;
                 addLog('SYSTEM', `🎯 INTENT: Interpreting...`);
                 return {
                     status: "INTENT_ANALYSIS",
@@ -3631,7 +3675,7 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'confirm_understanding') {
-                const { about } = args;
+                const about = typeof args.about === 'string' ? args.about : undefined;
                 addLog('SYSTEM', `✅ CONFIRM: Understanding check`);
                 return {
                     status: "UNDERSTANDING_CONFIRMED",
@@ -3641,7 +3685,8 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'suggest_completion') {
-                const { partial, category } = args;
+                const partial = typeof args.partial === 'string' ? args.partial : undefined;
+                const category = typeof args.category === 'string' ? args.category : undefined;
                 addLog('SYSTEM', `💡 SUGGEST: Command completion`);
                 return {
                     status: "SUGGESTIONS_READY",
@@ -3670,7 +3715,11 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'narrate_actions') {
-                const { enabled, detail } = args;
+                const enabled = typeof args.enabled === 'boolean' ? args.enabled : undefined;
+                const detail = typeof args.detail === 'string' ? args.detail : undefined;
+                if (enabled === undefined) {
+                    return { error: "Missing required enabled", hint: "Provide enabled as true or false for narrate_actions" };
+                }
                 localStorage.setItem('narration_enabled', JSON.stringify({ enabled, detail: detail || 'normal' }));
                 addLog('SYSTEM', `🎙️ NARRATION: ${enabled ? 'ON' : 'OFF'}`);
                 return {
@@ -3701,7 +3750,8 @@ Output the code with brief explanation.`,
             // ================================================================
 
             if (name === 'voice_capabilities') {
-                const { category, detail } = args;
+                const category = typeof args.category === 'string' ? args.category : undefined;
+                const detail = typeof args.detail === 'string' ? args.detail : undefined;
                 addLog('SYSTEM', `📚 CAPABILITIES: ${category || 'all'}`);
                 const categories = [
                     'navigation', 'ui_interaction', 'agents', 'memory', 'automation',
@@ -3767,7 +3817,12 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'rate_feedback') {
-                const { rating, feedback, about } = args;
+                const rating = typeof args.rating === 'string' ? args.rating.trim() : '';
+                const feedback = typeof args.feedback === 'string' ? args.feedback : undefined;
+                const about = typeof args.about === 'string' ? args.about : undefined;
+                if (!rating) {
+                    return { error: "Missing required rating", hint: "Provide rating for rate_feedback" };
+                }
 
                 try {
                     const feedbackLog = await neuralVault.get('feedback_log') || [];
@@ -3801,7 +3856,7 @@ Output the code with brief explanation.`,
                         status: "FEEDBACK_RECORDED",
                         rating,
                         persistedTo: 'neuralVault + SovereignMemory',
-                        message: responses[rating as string] || "Feedback noted."
+                        message: responses[rating] || "Feedback noted."
                     };
                 } catch (e: any) {
                     addLog('WARN', `RATE_FEEDBACK: Fallback to localStorage - ${e.message}`);
@@ -3818,7 +3873,7 @@ Output the code with brief explanation.`,
                     return {
                         status: "FEEDBACK_RECORDED",
                         rating,
-                        message: responses[rating as string] || "Feedback noted."
+                        message: responses[rating] || "Feedback noted."
                     };
                 }
             }
@@ -3910,14 +3965,16 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'context_switch') {
-                const { to, saveCurrentAs, restore } = args;
+                const to = typeof args.to === 'string' ? args.to.trim() : '';
+                const saveCurrentAs = typeof args.saveCurrentAs === 'string' ? args.saveCurrentAs.trim() : '';
+                const restore = !!args.restore;
                 const state = useAppStore.getState();
 
                 try {
                     const contexts = await neuralVault.get('saved_contexts') || {};
 
                     if (saveCurrentAs) {
-                        contexts[saveCurrentAs as string] = {
+                        contexts[saveCurrentAs] = {
                             mode: state.mode,
                             saved: Date.now()
                         };
@@ -3951,7 +4008,7 @@ Output the code with brief explanation.`,
                     addLog('WARN', `CONTEXT_SWITCH: Fallback to localStorage - ${e.message}`);
                     const contexts = JSON.parse(localStorage.getItem('saved_contexts') || '{}');
                     if (saveCurrentAs) {
-                        contexts[saveCurrentAs as string] = { mode: state.mode, saved: Date.now() };
+                        contexts[saveCurrentAs] = { mode: state.mode, saved: Date.now() };
                         localStorage.setItem('saved_contexts', JSON.stringify(contexts));
                     }
                     if (to) {
@@ -3969,7 +4026,11 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'focus_entity') {
-                const { entity, entityType } = args;
+                const entity = typeof args.entity === 'string' ? args.entity.trim() : '';
+                const entityType = typeof args.entityType === 'string' ? args.entityType : undefined;
+                if (!entity) {
+                    return { error: "Missing required entity", hint: "Provide entity for focus_entity" };
+                }
                 localStorage.setItem('focused_entity', JSON.stringify({ entity, type: entityType, since: Date.now() }));
                 addLog('SYSTEM', `🎯 FOCUS: ${entity} (${entityType || 'entity'})`);
                 return {
@@ -3981,7 +4042,8 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'time_aware') {
-                const { query: timeQuery, action: timeAction } = args;
+                const timeQuery = typeof args.query === 'string' ? args.query : undefined;
+                const timeAction = typeof args.action === 'string' ? args.action : undefined;
                 const now = new Date();
                 addLog('SYSTEM', `⏰ TIME-AWARE: ${timeAction || 'query'}`);
                 return {
@@ -4196,11 +4258,19 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'voice_shortcut') {
-                const { action: scAction, phrase, expansion } = args;
+                const scAction = typeof args.action === 'string' ? args.action.trim() : '';
+                const phrase = typeof args.phrase === 'string' ? args.phrase.trim() : '';
+                const expansion = typeof args.expansion === 'string' ? args.expansion.trim() : '';
+                if (!scAction) {
+                    return { error: "Missing required action", hint: "Provide action for voice_shortcut (create, list)" };
+                }
+                if (scAction === 'create' && (!phrase || !expansion)) {
+                    return { error: "Missing required phrase or expansion", hint: "Provide phrase and expansion for voice_shortcut create" };
+                }
                 const shortcuts = JSON.parse(localStorage.getItem('voice_shortcuts') || '{}');
 
                 if (scAction === 'create' && phrase && expansion) {
-                    shortcuts[phrase as string] = { expansion, created: Date.now() };
+                    shortcuts[phrase] = { expansion, created: Date.now() };
                     localStorage.setItem('voice_shortcuts', JSON.stringify(shortcuts));
                     addLog('SYSTEM', `⚡ SHORTCUT: "${phrase}"`);
                     return { status: "SHORTCUT_CREATED", phrase, message: `Shortcut created. Say "${phrase}" and I'll ${expansion}, Sir.` };
@@ -4257,7 +4327,9 @@ Output the code with brief explanation.`,
             }
 
             if (name === 'voice_history') {
-                const { range, search: historySearch, action: histAction } = args;
+                const range = typeof args.range === 'string' ? args.range : undefined;
+                const historySearch = typeof args.search === 'string' ? args.search : undefined;
+                const histAction = typeof args.action === 'string' ? args.action : undefined;
                 addLog('SYSTEM', `📜 HISTORY: ${histAction || 'list'}`);
                 // History would come from session logs
                 return {

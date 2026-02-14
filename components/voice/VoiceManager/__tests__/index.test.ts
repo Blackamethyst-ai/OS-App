@@ -997,4 +997,81 @@ describe('VoiceManager tool-call routing', () => {
 
     expect(result.error).toBe('Missing required item');
   });
+
+  it('returns validation error for analyze_code without target', async () => {
+    const onToolCall = await mountAndGetToolCallHandler();
+    const result = await onToolCall('analyze_code', {});
+
+    expect(result.error).toBe('Missing required target');
+  });
+
+  it('returns validation error for generate_code without description', async () => {
+    const onToolCall = await mountAndGetToolCallHandler();
+    const result = await onToolCall('generate_code', {});
+
+    expect(result.error).toBe('Missing required description');
+  });
+
+  it('returns validation error for focus_mode without enabled', async () => {
+    const onToolCall = await mountAndGetToolCallHandler();
+    const result = await onToolCall('focus_mode', {});
+
+    expect(result.error).toBe('Missing required enabled');
+  });
+
+  it('returns validation error for trigger_webhook without target', async () => {
+    const onToolCall = await mountAndGetToolCallHandler();
+    const result = await onToolCall('trigger_webhook', {});
+
+    expect(result.error).toBe('Missing required target');
+  });
+
+  it('returns validation error for ambient_mode without enabled', async () => {
+    const onToolCall = await mountAndGetToolCallHandler();
+    const result = await onToolCall('ambient_mode', {});
+
+    expect(result.error).toBe('Missing required enabled');
+  });
+
+  it('returns validation error for dictation_mode without enabled', async () => {
+    const onToolCall = await mountAndGetToolCallHandler();
+    const result = await onToolCall('dictation_mode', {});
+
+    expect(result.error).toBe('Missing required enabled');
+  });
+
+  it('returns validation error for narrate_actions without enabled', async () => {
+    const onToolCall = await mountAndGetToolCallHandler();
+    const result = await onToolCall('narrate_actions', {});
+
+    expect(result.error).toBe('Missing required enabled');
+  });
+
+  it('returns validation error for rate_feedback without rating', async () => {
+    const onToolCall = await mountAndGetToolCallHandler();
+    const result = await onToolCall('rate_feedback', {});
+
+    expect(result.error).toBe('Missing required rating');
+  });
+
+  it('returns validation error for focus_entity without entity', async () => {
+    const onToolCall = await mountAndGetToolCallHandler();
+    const result = await onToolCall('focus_entity', {});
+
+    expect(result.error).toBe('Missing required entity');
+  });
+
+  it('returns validation error for voice_shortcut without action', async () => {
+    const onToolCall = await mountAndGetToolCallHandler();
+    const result = await onToolCall('voice_shortcut', {});
+
+    expect(result.error).toBe('Missing required action');
+  });
+
+  it('returns validation error for voice_shortcut create without phrase/expansion', async () => {
+    const onToolCall = await mountAndGetToolCallHandler();
+    const result = await onToolCall('voice_shortcut', { action: 'create', phrase: 'launch' });
+
+    expect(result.error).toBe('Missing required phrase or expansion');
+  });
 });
