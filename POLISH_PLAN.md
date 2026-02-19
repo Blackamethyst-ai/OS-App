@@ -251,7 +251,7 @@ For every batch:
 | 5 | Kernel + Memory | 9 | ~42 | Done |
 | 6 | Organisms | 13 | ~56 | Done |
 | 7 | VoiceNexus + Voice + CPB | 20 | ~68 | Done |
-| 8 | Remaining services | 27 | ~79 | Pending |
+| 8 | Remaining services | 27 | ~79 | Done |
 | 9 | Components | 23 | ~49 | Pending |
 | 10 | Hooks + libs + stores + misc | 20 | ~55 | Pending |
 | **Total** | | **~200** | **~509** | **4/10 done** |

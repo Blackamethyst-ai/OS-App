@@ -101,6 +101,7 @@ const VoiceCoreManager: React.FC<VoiceCoreManagerProps> = ({
             [AppMode.CPB_TEST]: '/cpb-test',
             [AppMode.ARCHON]: '/archon',
             [AppMode.META_LEARNING]: '/meta-learning',
+            [AppMode.SOVEREIGN_GALLERY]: '/vault',
         };
 
         const route = routeMap[mode];

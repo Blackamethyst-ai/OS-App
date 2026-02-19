@@ -400,6 +400,29 @@ export const UI_KNOWLEDGE_BASE: Record<AppMode, SectorKnowledge> = {
             'Track knowledge growth'
         ],
         voiceCommands: ['open meta learning', 'meta', 'learning mode', 'self improve']
+    },
+
+    [AppMode.SOVEREIGN_GALLERY]: {
+        id: AppMode.SOVEREIGN_GALLERY,
+        name: 'Sovereign Vault',
+        shortName: 'Vault',
+        description: 'Cinematic image gallery and asset vault for storing sovereign visual assets, brand renders, and AI-generated imagery with drag-and-drop upload.',
+        features: [
+            'Masonry and grid layout views',
+            'Drag-and-drop image upload',
+            'Cinematic lightbox viewer with keyboard navigation',
+            'IndexedDB-backed persistent storage',
+            'Collection-based organization',
+            'Download and delete management'
+        ],
+        keyComponents: ['SovereignGallery', 'MasonryGrid', 'Lightbox', 'ImageCard'],
+        useCases: [
+            'Store brand and promotional images',
+            'Browse sovereign asset collection',
+            'Organize images into collections',
+            'Full-screen cinematic image viewing'
+        ],
+        voiceCommands: ['open vault', 'gallery', 'sovereign vault', 'show images', 'asset vault']
     }
 };
 

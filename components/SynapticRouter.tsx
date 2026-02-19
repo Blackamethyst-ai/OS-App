@@ -28,6 +28,7 @@ const AgentCoreTest = lazy(() => import('./__tests__/AgentCoreTest.test'));
 const CPBTest = lazy(() => import('./__tests__/CPBTest.test'));
 const ArchonDashboard = lazy(() => import('./agents/ArchonDashboard'));
 const MetaLearningDashboard = lazy(() => import('./predictions/MetaLearningDashboard'));
+const SovereignGallery = lazy(() => import('./SovereignGallery'));
 
 // --- CYCLE 1: SPATIAL COORDINATE MAP ---
 const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> = {
@@ -47,7 +48,8 @@ const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> =
     [AppMode.AGENT_CORE_TEST]: { x: -0.5, y: -0.5, z: 0.5 },
     [AppMode.CPB_TEST]: { x: 0.5, y: -0.5, z: 0.5 },
     [AppMode.ARCHON]: { x: 0, y: 0, z: 2 },
-    [AppMode.META_LEARNING]: { x: -1, y: 1, z: 1 }
+    [AppMode.META_LEARNING]: { x: -1, y: 1, z: 1 },
+    [AppMode.SOVEREIGN_GALLERY]: { x: 0.5, y: -0.5, z: -0.5 }
 };
 
 const SynapticRouter: React.FC = () => {
@@ -94,7 +96,8 @@ const SynapticRouter: React.FC = () => {
                 'sdk-test': AppMode.AGENT_CORE_TEST,
                 'cpb-test': AppMode.CPB_TEST,
                 'archon': AppMode.ARCHON,
-                'predictions': AppMode.META_LEARNING
+                'predictions': AppMode.META_LEARNING,
+                'vault': AppMode.SOVEREIGN_GALLERY
             };
 
             const targetMode = routeMap[mainPath];
@@ -113,7 +116,7 @@ const SynapticRouter: React.FC = () => {
     }, [actions, mode]);
 
     const isFixedLayout = useMemo(() => 
-        mode === AppMode.METAVENTIONS_HUB || mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.AUTONOMOUS_FINANCE || (mode as any) === 'NEXUS'
+        mode === AppMode.METAVENTIONS_HUB || mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.AUTONOMOUS_FINANCE || mode === AppMode.SOVEREIGN_GALLERY || (mode as any) === 'NEXUS'
     , [mode]);
 
     return (
@@ -176,6 +179,7 @@ const SynapticRouter: React.FC = () => {
                         {mode === AppMode.CPB_TEST && <CPBTest />}
                         {mode === AppMode.ARCHON && <ArchonDashboard />}
                         {mode === AppMode.META_LEARNING && <MetaLearningDashboard />}
+                        {mode === AppMode.SOVEREIGN_GALLERY && <SovereignGallery />}
                     </motion.main>
                 </AnimatePresence>
             </Suspense>

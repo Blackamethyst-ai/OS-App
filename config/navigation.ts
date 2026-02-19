@@ -21,6 +21,7 @@ export const DEFAULT_NAV_CONFIG: NavItem[] = [
     { id: AppMode.AGENT_CONTROL, label: 'SWARM', path: '/agents', fixedLayout: true, requiredClearance: 5 },
     { id: AppMode.MEMORY_CORE, label: 'MEMORY', path: '/memory' },
     { id: AppMode.IMAGE_GEN, label: 'CINEMA', path: '/assets', fixedLayout: true },
+    { id: AppMode.SOVEREIGN_GALLERY, label: 'VAULT', path: '/vault', fixedLayout: true },
     { id: AppMode.HARDWARE_ENGINEER, label: 'HARDWARE', path: '/hardware', fixedLayout: true, requiredClearance: 6 },
     { id: AppMode.VOICE_MODE, label: 'VOICE CORE', path: '/voice', fixedLayout: true },
     { id: AppMode.SYNTHESIS_BRIDGE, label: 'SYNTHESIS', path: '/bridge', fixedLayout: true, requiredClearance: 4 },

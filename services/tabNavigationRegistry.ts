@@ -535,6 +535,7 @@ const SECTOR_ROUTES: Record<AppMode | 'NEXUS', string> = {
     [AppMode.CPB_TEST]: '/cpb-test',
     [AppMode.ARCHON]: '/archon',
     [AppMode.META_LEARNING]: '/meta-learning',
+    [AppMode.SOVEREIGN_GALLERY]: '/vault',
     'NEXUS': '/nexus'
 };
 
