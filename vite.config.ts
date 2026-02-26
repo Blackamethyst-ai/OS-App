@@ -31,47 +31,50 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       chunkSizeWarningLimit: 2000,
-      rolldownOptions: {
+      // Strip console.log and debugger in production
+      minify: 'esbuild',
+      ...(mode === 'production' && {
+        esbuild: {
+          drop: ['console', 'debugger'],
+        },
+      }),
+      rollupOptions: {
         external: ['mermaid'],
         output: {
           globals: {
             mermaid: 'mermaid'
           },
-          // Strip console.log and debugger in production
-          ...(mode === 'production' && {
-            minify: {
-              compress: {
-                drop_console: true,
-                drop_debugger: true,
-              }
-            }
-          }),
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              if (id.includes('three')) {
-                return 'vendor-three';
-              }
-              if (id.includes('face-api')) {
-                return 'vendor-faceapi';
-              }
-              if (id.includes('recharts')) {
-                return 'vendor-recharts';
-              }
-              if (id.includes('motion')) {
-                return 'vendor-motion';
-              }
-              if (id.includes('lucide-react')) {
-                return 'vendor-lucide';
-              }
-              if (id.includes('@xyflow')) {
-                return 'vendor-xyflow';
-              }
-              if (id.includes('@google/genai')) {
-                return 'vendor-genai';
-              }
-              if (id.includes('@tensorflow')) {
-                return 'vendor-tensorflow';
-              }
+              // Heavy ML/3D libs — lazy-loaded, separate chunks
+              if (id.includes('three')) return 'vendor-three';
+              if (id.includes('face-api')) return 'vendor-faceapi';
+              if (id.includes('@tensorflow')) return 'vendor-tensorflow';
+              if (id.includes('onnxruntime')) return 'vendor-onnx';
+
+              // Chart/visualization libs
+              if (id.includes('recharts')) return 'vendor-recharts';
+              if (id.includes('cytoscape')) return 'vendor-cytoscape';
+              if (id.includes('d3')) return 'vendor-d3';
+              if (id.includes('@xyflow')) return 'vendor-xyflow';
+              if (id.includes('katex')) return 'vendor-katex';
+
+              // Animation/UI libs
+              if (id.includes('motion')) return 'vendor-motion';
+              if (id.includes('lucide-react')) return 'vendor-lucide';
+
+              // AI/API libs
+              if (id.includes('@google/genai')) return 'vendor-genai';
+              if (id.includes('@supabase')) return 'vendor-supabase';
+
+              // Redux (recharts internal dep)
+              if (id.includes('@reduxjs') || id.includes('redux')) return 'vendor-redux';
+
+              // Core React — small, cached forever
+              if (id.includes('react')) return 'vendor-react';
+              if (id.includes('zustand')) return 'vendor-react';
+
+              // Everything else
               return 'vendor';
             }
           },
