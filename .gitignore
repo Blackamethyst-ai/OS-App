@@ -34,3 +34,5 @@ CURRENT_TASK.md
 *.sw?
 coverage/
 supabase/.temp/
+.vercel
+.env*.local
