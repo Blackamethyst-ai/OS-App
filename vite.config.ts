@@ -31,20 +31,23 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       chunkSizeWarningLimit: 2000,
-      // Strip console.log and debugger in production
-      minify: 'esbuild',
-      esbuild: {
-        drop: mode === 'production' ? ['console', 'debugger'] : [],
-      },
-      rollupOptions: {
+      rolldownOptions: {
         external: ['mermaid'],
         output: {
           globals: {
             mermaid: 'mermaid'
           },
+          // Strip console.log and debugger in production
+          ...(mode === 'production' && {
+            minify: {
+              compress: {
+                drop_console: true,
+                drop_debugger: true,
+              }
+            }
+          }),
           manualChunks(id) {
             if (id.includes('node_modules')) {
-              // Heavy libs - lazy loaded, separate chunks
               if (id.includes('three')) {
                 return 'vendor-three';
               }
