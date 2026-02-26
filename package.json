@@ -37,7 +37,7 @@
     "motion": "^12.34.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "recharts": "^2.15.0",
+    "recharts": "^3.7.0",
     "serve": "^14.2.3",
     "tailwind-merge": "^2.5.2",
     "three": "^0.183.1",
