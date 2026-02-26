@@ -26,8 +26,9 @@ export function runPreflightCheck(): PreflightResult {
     const warnings: string[] = [];
     const recommendations: string[] = [];
 
-    // Check vault status first
-    if (!apiKeyService.isVaultUnlocked()) {
+    // Check vault status first (skip if env var provides Gemini key)
+    const hasEnvKey = !!(import.meta.env.VITE_GEMINI_API_KEY);
+    if (!apiKeyService.isVaultUnlocked() && !hasEnvKey) {
         if (apiKeyService.hasVault()) {
             errors.push('API key vault is locked. Please unlock it in Settings.');
             recommendations.push('Go to Settings > API Keys and enter your master password');

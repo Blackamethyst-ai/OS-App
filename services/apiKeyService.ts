@@ -169,16 +169,18 @@ class ApiKeyService {
      * Get API key for a provider (only works when unlocked)
      */
     getKey(provider: 'gemini' | 'claude' | 'grok' | 'openai' | 'eleven_labs' | 'deepgram' | 'priceapi' | 'infracost'): string | undefined {
-        if (!this.isUnlocked) return undefined;
-        return this.keys[provider];
+        if (this.isUnlocked && this.keys[provider]) return this.keys[provider];
+        // Fallback to env vars for Gemini
+        if (provider === 'gemini') return import.meta.env.VITE_GEMINI_API_KEY || undefined;
+        return undefined;
     }
 
     /**
-     * Get Gemini key (most common usage)
+     * Get Gemini key (vault first, then env var fallback)
      */
     getGeminiKey(): string | undefined {
-        if (!this.isUnlocked) return undefined;
-        return this.keys.gemini;
+        if (this.isUnlocked && this.keys.gemini) return this.keys.gemini;
+        return import.meta.env.VITE_GEMINI_API_KEY || undefined;
     }
 
     /**
@@ -212,11 +214,11 @@ class ApiKeyService {
     }
 
     /**
-     * Check if Gemini key is configured
+     * Check if Gemini key is configured (vault or env var)
      */
     hasGeminiKey(): boolean {
-        if (!this.isUnlocked) return false;
-        return !!this.keys.gemini;
+        if (this.isUnlocked && this.keys.gemini) return true;
+        return !!(import.meta.env.VITE_GEMINI_API_KEY);
     }
 
     /**
