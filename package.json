@@ -32,7 +32,7 @@
     "face-api.js": "^0.20.0",
     "idb": "^8.0.0",
     "jszip": "^3.10.1",
-    "lucide-react": "^0.475.0",
+    "lucide-react": "^0.575.0",
     "mermaid": "^10.9.5",
     "motion": "^12.34.3",
     "react": "^19.0.0",
