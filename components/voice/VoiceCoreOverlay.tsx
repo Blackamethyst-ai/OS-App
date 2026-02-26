@@ -5,7 +5,7 @@ import {
     GripHorizontal, Maximize2, Minimize2, Zap, Radio, Mic,
     MessageSquare, Waves, X
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { audio } from '../../services/audioService';
 
 const MiniWaveform = ({ isActive }: { isActive: boolean }) => (

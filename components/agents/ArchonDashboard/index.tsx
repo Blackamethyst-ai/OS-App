@@ -11,7 +11,7 @@ import {
     Brain, Target, Activity, AlertTriangle, Clock, RefreshCw, Sparkles,
     Bot, Network, Terminal, Shield, GitBranch, Waves, Play, Pause, Command, Cpu
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useArchon, eventBus } from '@/services/archon';
 
 // Import extracted components

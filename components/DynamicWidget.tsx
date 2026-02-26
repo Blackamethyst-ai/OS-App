@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { ToolResult } from '../types';
 import { X, Database, Zap, Activity, Shield, ArrowUpRight, Cpu } from 'lucide-react';
 

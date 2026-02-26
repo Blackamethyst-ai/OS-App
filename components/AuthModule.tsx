@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../store';
 import { Shield, Fingerprint, Key, ChevronRight, Loader2, Cpu, Globe, Lock, Eye } from 'lucide-react';
 

@@ -6,7 +6,7 @@ import {
 import {
     FlaskConical, ArrowRight, Loader2, Users, Split, Dna, Sliders, Target
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { KnowledgeNode } from '../../types';
 import AgoraPanel from '../AgoraPanel';
 import BicameralEngine from '../BicameralEngine';

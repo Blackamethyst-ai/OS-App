@@ -34,7 +34,7 @@ import { useTimeTravel } from './hooks/useTimeTravel';
 import { useAuthPersistence } from './hooks/useAuthPersistence';
 import { hasFixedLayout } from './config/navigation';
 import { audio } from './services/audioService';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'motion/react';
 import { cn } from './utils/cn';
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import MasterStabilizationProtocol from './components/MasterStabilizationProtocol';

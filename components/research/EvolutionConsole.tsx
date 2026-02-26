@@ -7,7 +7,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     Dna, Zap, AlertTriangle, Code, Check, X, ChevronDown, ChevronUp,
     Activity, TrendingUp, GitBranch, Cpu, Eye, Play, RefreshCw

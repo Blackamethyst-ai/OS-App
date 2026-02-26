@@ -2,7 +2,7 @@
 import React, { useRef, useMemo, useState, useEffect } from 'react';
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { ShieldCheck, Target, Activity, Loader2, Cpu, Globe, Lock, GitBranch, Zap, Radio, Sparkles } from 'lucide-react';
 import { useAppStore } from '../store';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";

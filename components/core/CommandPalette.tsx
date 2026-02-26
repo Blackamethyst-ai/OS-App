@@ -6,7 +6,7 @@ import { interpretIntent, predictNextActions, promptSelectKey } from '../../serv
 import { executeCapability } from '../../services/capabilities';
 import { AppMode, SuggestedAction, AppTheme } from '../../types';
 import { Command, Loader2, X, Sparkles, ChevronRight, Code, Cpu, Mic, Zap, Image, BookOpen, Layers, Terminal, Activity, Search, Shield, BrainCircuit, Split, Palette, History, User, HardDrive, Settings, FlaskConical, Target, Database } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useSemanticSearch } from '@antigravity/agent-core-sdk';
 
 const MotionDiv = motion.div as any;

@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     Bot, User, Loader2, Fingerprint, BrainCircuit, Gauge, Zap as ZapIcon
 } from 'lucide-react';

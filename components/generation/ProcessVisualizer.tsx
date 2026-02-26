@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     ReactFlow, Background, Controls, MiniMap,
     NodeProps, EdgeProps, BackgroundVariant, ReactFlowProvider,

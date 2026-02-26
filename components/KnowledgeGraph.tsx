@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { KnowledgeNode } from '../types';
 import { BrainCircuit, X, Search, GitBranch, Sparkles, Target, Zap, Activity, Info, ChevronRight } from 'lucide-react';
 import { useAppStore } from '../store';

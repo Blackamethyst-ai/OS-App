@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     Loader2, RefreshCw, Download, Plus, Wand2, Zap, Maximize2,
     Binary, Award, FileJson, Focus, UserCircle, Map as MapIcon, Palette,

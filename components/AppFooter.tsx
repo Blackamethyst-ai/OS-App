@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { ShieldCheck, Save, Loader2, Sparkles, Activity, Radio } from 'lucide-react';
 import { useAppStore } from '../store';
 import { neuralVault } from '../services/persistenceService';

@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     Monitor, Target, FastForward, Play, Pause, Speaker,
     Volume2, FileArchive, Loader2

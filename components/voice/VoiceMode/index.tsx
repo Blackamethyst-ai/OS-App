@@ -22,7 +22,7 @@ import {
     Radio, Target, Bot, ShieldCheck, ChevronDown, ChevronUp, Gauge,
     Terminal, AudioWaveform, AlertTriangle, KeyRound
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { audio } from '../../../services/audioService';
 import { cn } from '../../../utils/cn';
 import CPBStatusOverlay from '../../CPBStatusOverlay';

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Brain, TrendingUp, Clock, AlertTriangle, Sparkles, Database, Activity } from 'lucide-react';
 import { PredictionPanel } from './PredictionPanel';
 import { usePredictionWithContext } from '../../libs/agent-core-sdk/src/hooks';

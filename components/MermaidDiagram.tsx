@@ -2,7 +2,7 @@ import { apiKeyService } from '../services/apiKeyService';
 import React, { useEffect, useRef, useState } from 'react';
 import { RefreshCw, Image as ImageIcon, FileCode, Maximize, ZoomIn, ZoomOut, Move, Download, AlertCircle, Target, Sparkles, Loader2 } from 'lucide-react';
 import mermaid from 'mermaid';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { repairMermaidSyntax, promptSelectKey } from '../services/geminiService';
 import { useAppStore } from '../store';
 

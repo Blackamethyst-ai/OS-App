@@ -3,7 +3,7 @@
  * Handles timeline planning and frame rendering for storyboard sequences.
  */
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, Clapperboard, Play, CheckCircle2, Camera, Sun } from 'lucide-react';
 import { FileData, SOVEREIGN_DEFAULT_COLORWAY } from '../../../../types';
 import {

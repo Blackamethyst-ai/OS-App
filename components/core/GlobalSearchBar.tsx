@@ -10,7 +10,7 @@ import {
     Zap, Terminal, Sparkles, Filter, Trash2, Clock,
     Layers, Scan
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { audio } from '../../services/audioService';
 import { cn } from '../../utils/cn';
 

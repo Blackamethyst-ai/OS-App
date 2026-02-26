@@ -4,7 +4,7 @@ import { useAppStore } from '../store';
 import { faceDetectionService } from '../services/faceDetectionService';
 import { agentKernel } from '../services/kernel';
 import { ShieldCheck, Zap } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 /**
  * MASTER STABILIZATION PROTOCOL

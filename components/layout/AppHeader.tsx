@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppStore } from '../../store';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { User, ShieldCheck, Terminal } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { audio } from '../../services/audioService';

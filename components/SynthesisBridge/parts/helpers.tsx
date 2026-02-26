@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../../../store';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import {
     Terminal, FolderTree, FolderOpen, FileText, BrainCircuit, Bot, X,
     Component, ShieldCheck, Save, ListChecks, Clock, Shield, Compass,

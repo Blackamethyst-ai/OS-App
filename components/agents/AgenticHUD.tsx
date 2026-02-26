@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { useAgentRuntime } from '../../hooks/useAgentRuntime';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Terminal, Cpu, X, Activity } from 'lucide-react';
 import { useAppStore } from '../../store';
 import DynamicWidget from '../DynamicWidget';

@@ -9,7 +9,7 @@ import {
     Activity, Zap, Sparkles, Database, Layers, GitBranch,
     ChevronRight, ArrowRight, Minimize2, Trash2, CheckCircle2, Filter, Target, X, Unlock, Lock, FileUp, Upload, ShieldCheck
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import SuperLattice from '../Visualizations/SuperLattice';
 
 const DiscoveryLab: React.FC = () => {

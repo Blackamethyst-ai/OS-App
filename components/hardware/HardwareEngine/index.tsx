@@ -23,7 +23,7 @@ import {
     GitBranch, GitCommit, Filter
 } from 'lucide-react';
 import { TemporalEra, FileData, AppMode, ImageSize, AspectRatio, StoredArtifact, GpuSpec, GpuTier, LiveGpuPrice, GpuWithLiveData } from '../../../types';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useVoiceExpose } from '../../../hooks/useVoiceExpose';
 import { audio } from '../../../services/audioService';
 import { AreaChart, Area, ResponsiveContainer, XAxis, YAxis, Tooltip, CartesianGrid } from 'recharts';

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { History, Play, RotateCcw, Save, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { neuralVault } from '../services/persistenceService';
 import { AppMode } from '../types';

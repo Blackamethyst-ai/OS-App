@@ -13,7 +13,7 @@ import {
     Waves, RefreshCw, Cpu, GitBranch, Maximize, Anchor,
     Scan, Compass
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { StoredArtifact } from '../types';
 import KnowledgeGraph from './KnowledgeGraph';
 import PowerXRay from './hardware/PowerXRay';

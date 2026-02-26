@@ -6,7 +6,7 @@
  */
 
 import React, { useEffect, useState, useMemo } from 'react';
-import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
+import { motion, AnimatePresence, LayoutGroup } from 'motion/react';
 import { useAdaptiveUI } from '../../hooks/useAdaptiveUI';
 import { UILayoutSpec, UIComponentSpec } from '../../services/ui/types';
 import { cn } from '../../utils/cn';

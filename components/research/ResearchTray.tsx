@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../../store';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { BrainCircuit, ChevronUp, ChevronDown, ChevronRight, CheckCircle2, Loader2, GitBranch, Square, Sparkles, Target, Zap, Activity, Split } from 'lucide-react';
 import { audio } from '../../services/audioService';
 

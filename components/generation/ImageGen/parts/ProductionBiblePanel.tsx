@@ -3,7 +3,7 @@
  * Synthesizes and displays cinematic production guidelines from reference images.
  */
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Loader2, Sparkles, Eye, Camera, Sun, Focus } from 'lucide-react';
 import { FileData } from '../../../../types';
 import { retryGeminiRequest, getAI, promptSelectKey } from '../../../../services/geminiService';

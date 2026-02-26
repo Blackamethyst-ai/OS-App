@@ -3,7 +3,7 @@
  * Handles slideshow playback with audio narration for storyboard frames.
  */
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Play, Pause, ChevronRight, Volume2, VolumeX, Loader2, FileArchive } from 'lucide-react';
 import JSZip from 'jszip';
 import { generateSpeech, generateAudioOverview } from '../../../../services/geminiService';

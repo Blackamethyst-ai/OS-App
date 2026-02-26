@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useSemanticSearch, useSessions } from '@antigravity/agent-core-sdk';
 import { elevenLabs, ELEVEN_LABS_VOICES } from '../../../services/elevenLabsService';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { AutonomousAgent, OperationalContext, MentalState, TaskStatus, AtomicTask } from '../../../types';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { promptSelectKey, SOVEREIGN_SYSTEM_INSTRUCTION, retryGeminiRequest, getAI } from '../../../services/geminiService';

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppStore } from '../store';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Terminal, Image as ImageIcon, Code, FileText, X, Maximize2, Trash2, Cpu, Activity, Download, Copy, ExternalLink, Zap, BrainCircuit, Radio, Loader2, GitBranch, Scan } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { usePerspectiveRefraction } from '../hooks/usePerspectiveRefraction';

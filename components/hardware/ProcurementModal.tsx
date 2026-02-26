@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     X, ShoppingCart, Package, Truck, CheckCircle2, AlertTriangle,
     Loader2, ChevronRight, Star, Clock, Shield, Building2,

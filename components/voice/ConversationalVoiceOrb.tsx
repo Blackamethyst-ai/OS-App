@@ -13,7 +13,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Mic, MicOff, Radio, Waves, Loader2, Volume2, AlertCircle } from 'lucide-react';
 import { useConversationalVoice, type ConversationalVoiceState } from '../../hooks/useConversationalVoice';
 

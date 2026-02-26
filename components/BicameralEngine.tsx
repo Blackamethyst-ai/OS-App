@@ -5,7 +5,7 @@ import { generateDecompositionMap, adaptiveConsensusEngine, ACEStatus, ACEResult
 import { promptSelectKey, AGENT_DNA_BUILDER } from '../services/geminiService';
 import { neuralVault } from '../services/persistenceService';
 import { BrainCircuit, Zap, Layers, Cpu, ArrowRight, CheckCircle2, Loader2, GitBranch, GitCommit, AlertOctagon, Save, ExternalLink, Dna, Info, Settings2, Sliders, X, MessageSquareCode, ShieldCheck, Activity, Target, Gauge, Users, TrendingUp } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { TugOfWarChart } from './Visualizations/TugOfWarChart';
 import { AgentGraveyard } from './Visualizations/AgentGraveyard';
 import { SwarmStatus, AgentDNA } from '../types';

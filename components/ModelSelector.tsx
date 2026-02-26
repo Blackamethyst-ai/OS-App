@@ -4,7 +4,7 @@ import { useAppStore } from '../store';
 import { ModelTier } from '../types';
 import { cn } from '../utils/cn';
 import { audio } from '../services/audioService';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 export const ModelSelector: React.FC = () => {
     const { preferences, actions } = useAppStore();

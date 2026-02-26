@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppStore } from '../store';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { X, ListTodo, Zap, Activity } from 'lucide-react';
 import ResearchTray from './research/ResearchTray';
 

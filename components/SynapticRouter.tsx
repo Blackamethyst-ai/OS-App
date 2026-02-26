@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, Suspense, lazy, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { 
     Copy, Eye, Wand2, Terminal, Code, X, Search, Activity, 
     Layers, ArrowUpRight, Hash, Database, GitBranch, Loader2, Scan 

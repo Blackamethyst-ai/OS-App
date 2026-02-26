@@ -3,7 +3,7 @@
  * UI for managing API keys with encryption vault and master password.
  */
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { X, Key, Check, Loader2, AlertTriangle, Eye, EyeOff, Lock, Shield, Unlock } from 'lucide-react';
 import { apiKeyService } from '../services/apiKeyService';
 import { audio } from '../services/audioService';

@@ -18,7 +18,7 @@ import {
     Database, LineChart as ChartIcon, Scan, Hexagon, Crown, Lock, ShieldCheck, Download, Bot
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar } from 'recharts';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { audio } from '../../services/audioService';
 import { cn } from '../../utils/cn';
 import DEcosystem from '../DEcosystem';

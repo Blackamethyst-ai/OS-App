@@ -9,7 +9,7 @@ import {
     constructCinematicPrompt, retryGeminiRequest,
     generateAudioOverview, getAI
 } from '../../../services/geminiService';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'motion/react';
 import { audio } from '../../../services/audioService';
 
 // Import types and extracted components

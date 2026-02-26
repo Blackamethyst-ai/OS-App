@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { TrendingUp, TrendingDown, DollarSign, Bot, Hexagon } from 'lucide-react';
 import { useAppStore } from '../../../store';
 import { cn } from '../../../utils/cn';

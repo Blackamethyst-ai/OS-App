@@ -1,6 +1,6 @@
 import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { SyntheticPersona, DebateTurn, SimulationReport, FileData, AppMode, MentalState } from '../types';
 import { generatePersonas, runDebateTurn, synthesizeReport } from '../services/agoraService';
 import { liveSession, promptSelectKey, generateSpeech } from '../services/geminiService';

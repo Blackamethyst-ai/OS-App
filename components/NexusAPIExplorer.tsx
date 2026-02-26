@@ -1,6 +1,6 @@
 import { apiKeyService } from '../services/apiKeyService';
 import React, { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     Search, Globe, Loader2, Sparkles, Code, GitBranch,
     ChevronRight, Zap, ExternalLink, Box, Database,

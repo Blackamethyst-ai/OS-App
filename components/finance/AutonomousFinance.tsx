@@ -1,6 +1,6 @@
 import { apiKeyService } from '../../services/apiKeyService';
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     DollarSign, TrendingUp, Zap, Activity, Globe, Loader2,
     RefreshCw, ShieldCheck, Target, GitMerge, BarChart3,

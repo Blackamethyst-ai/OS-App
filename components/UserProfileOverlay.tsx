@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
 import { neuralVault } from '../services/persistenceService';
 import { generateAvatar, promptSelectKey } from '../services/geminiService';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { User, X, Camera, Save, ShieldCheck, Loader2, Fingerprint, ScanFace, Sparkles, ChevronDown, Upload, Sun, Moon, Contrast, Activity, Key } from 'lucide-react';
 import { audio } from '../services/audioService';
 import { AppTheme } from '../types';

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { openDB, IDBPDatabase, DBSchema } from 'idb';
 import {
     Upload, X, Trash2, Maximize2, Grid, Columns,

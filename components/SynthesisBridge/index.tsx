@@ -7,7 +7,7 @@
 
 import React, { useState } from 'react';
 import { useAppStore } from '../../store';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     GitMerge, Target, RefreshCw, HardDrive,
     FolderTree, Cloud, Globe, Network, Shield, Aperture,

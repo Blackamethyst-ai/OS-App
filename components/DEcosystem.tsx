@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Activity, ShieldCheck, Globe, Target, Cpu, Database, Binary } from 'lucide-react';
 
 // --- Configuration & High-Fidelity Metadata ---

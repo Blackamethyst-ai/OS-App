@@ -9,7 +9,7 @@ import {
     BarChart3, Hash, Clock, Sparkles, Loader2, SignalHigh, SignalMedium, SignalLow,
     Circle
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { decomposeTaskToSubtasks, promptSelectKey } from '../services/geminiService';
 import { audio } from '../services/audioService';
 

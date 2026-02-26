@@ -4,7 +4,7 @@
  */
 
 import React, { useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { FolderTree, FileText, ChevronRight } from 'lucide-react';
 
 /**

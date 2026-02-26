@@ -20,7 +20,7 @@ import {
     X, Eye, EyeOff, Gauge,
     UserCircle, Anchor, Bot, Maximize2
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer } from 'recharts';
 import { audio } from '../../services/audioService';
 import { cn } from '../../utils/cn';

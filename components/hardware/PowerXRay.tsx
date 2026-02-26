@@ -1,6 +1,6 @@
 import { apiKeyService } from '../../services/apiKeyService';
 import React, { useState, useEffect, useRef, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from 'motion/react';
 import { Search, Zap, Skull, Crown, Activity, Radar, Crosshair, Terminal, AlertTriangle, ShieldCheck, Waves, TrendingUp, BarChart3, Radio, Loader2, GitCommit, ExternalLink, Globe, Check, Layers } from "lucide-react";
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import { analyzePowerDynamics, promptSelectKey } from "../../services/geminiService";

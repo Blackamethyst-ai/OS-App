@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppStore } from '../store';
 import { Moon, Sun, Contrast, Terminal, Book, Box, Zap, Palette, ShieldAlert, LayoutGrid } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { audio } from '../services/audioService';
 import { AppTheme } from '../types';
 

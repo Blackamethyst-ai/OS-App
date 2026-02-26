@@ -57,8 +57,8 @@ export default defineConfig(({ mode }) => {
               if (id.includes('recharts')) {
                 return 'vendor-recharts';
               }
-              if (id.includes('framer-motion')) {
-                return 'vendor-framer';
+              if (id.includes('motion')) {
+                return 'vendor-motion';
               }
               if (id.includes('lucide-react')) {
                 return 'vendor-lucide';

@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../store';
 import {
     Brain, Zap, Layers, Users, Shield, CheckCircle,

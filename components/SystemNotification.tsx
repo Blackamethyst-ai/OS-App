@@ -3,7 +3,7 @@ import { useAppStore } from '../store';
 import { useFlywheelStore } from '../store/flywheelStore';
 import { useSystemMind } from '../stores/useSystemMind';
 import { X, Terminal, ShieldAlert, CheckCircle2, Info, AlertTriangle, Activity, Trash2, AlertOctagon, Bell, Cpu, Scan, Globe, ShieldCheck, Zap, Shield, TrendingUp, Radio } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 import { cn } from '../utils/cn';
 import { audio } from '../services/audioService';
 

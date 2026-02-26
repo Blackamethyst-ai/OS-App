@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Scan, ShieldCheck, Crosshair } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { audio } from '../services/audioService';

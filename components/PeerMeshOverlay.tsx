@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppStore } from '../store';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Users, X, Globe, Activity, Terminal, Shield, Zap, Target } from 'lucide-react';
 import { AppMode } from '../types';
 

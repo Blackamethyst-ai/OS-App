@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     Zap, Battery, BatteryLow, BatteryFull, BatteryCharging,
     Moon, Brain, Users, Database, GitBranch, Activity, Lightbulb,

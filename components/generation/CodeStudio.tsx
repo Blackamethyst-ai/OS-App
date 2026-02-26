@@ -10,7 +10,7 @@ import {
     BrainCircuit, Search, ListTodo, RefreshCw, TrendingUp, GitBranch,
     Play, Settings, Save, Layout, Zap, CheckCircle2, Waves, ShieldCheck
 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import TaskBoard from '../TaskBoard';
 import { useAgentRuntime } from '../../hooks/useAgentRuntime';
 import { usePerspectiveRefraction } from '../../hooks/usePerspectiveRefraction';

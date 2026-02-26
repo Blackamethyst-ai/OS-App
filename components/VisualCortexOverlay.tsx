@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../store';
 import { Eye, Loader2, Zap, Scan, ShieldCheck, Activity, Target, Monitor } from 'lucide-react';
 

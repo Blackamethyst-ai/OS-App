@@ -6,7 +6,7 @@
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import {
     Loader2, RefreshCw, Play, Sparkles, CheckCircle, Film, Maximize,
     Activity, CheckCircle2, Speaker, Clapperboard, Wand2

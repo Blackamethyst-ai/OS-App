@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
     Video, Loader2, Compass, Waves, ShieldCheck, Cpu, MoveUpRight, Monitor
 } from 'lucide-react';

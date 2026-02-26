@@ -3,7 +3,7 @@
  * Displays real-time API usage statistics with rate limit warnings.
  */
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Activity, AlertTriangle, Zap } from 'lucide-react';
 import { useApiUsage } from '../hooks/useApiUsage';
 
