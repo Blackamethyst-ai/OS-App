@@ -40,6 +40,8 @@ export default [
       'no-unused-vars': 'off',
       'no-empty': 'off',
       'no-constant-condition': 'off',
+      'no-useless-assignment': 'off',
+      'preserve-caught-error': 'off',
     },
   },
   // TypeScript-specific overrides
