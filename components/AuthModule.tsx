@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAppStore } from '../store';
+import { AppMode } from '../types/domain/core';
 import { Shield, Fingerprint, Key, ChevronRight, Loader2, Cpu, Globe, Lock, Eye } from 'lucide-react';
 
 const AuthModule: React.FC = () => {
     const { actions } = useAppStore();
-    const { setAuthenticated, setUserProfile } = actions;
+    const { setAuthenticated, setUserProfile, setMode } = actions;
     const [view, setView] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -19,12 +20,16 @@ const AuthModule: React.FC = () => {
         const params = new URLSearchParams(window.location.search);
         if (params.get('demo') === 'true') {
             setUserProfile({ displayName: 'Demo Observer', role: 'ARCHITECT', clearanceLevel: 10, avatar: null });
+            setMode(AppMode.ARCHON);
+            window.location.hash = '#/archon';
             setAuthenticated(true);
         }
-    }, [setAuthenticated, setUserProfile]);
+    }, [setAuthenticated, setUserProfile, setMode]);
 
     const handleDemoAccess = () => {
         setUserProfile({ displayName: 'Demo Observer', role: 'ARCHITECT', clearanceLevel: 10, avatar: null });
+        setMode(AppMode.ARCHON);
+        window.location.hash = '#/archon';
         setAuthenticated(true);
     };
 

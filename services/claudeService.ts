@@ -50,7 +50,7 @@ class ClaudeService {
     async generateContent(
         messages: ClaudeMessage[],
         systemPrompt?: string,
-        model: string = 'claude-3-5-sonnet-20240620'
+        model: string = 'claude-sonnet-4-6'
     ): Promise<string> {
         const apiKey = apiKeyService.getKey('claude');
 

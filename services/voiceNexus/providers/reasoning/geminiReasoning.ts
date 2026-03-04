@@ -80,7 +80,7 @@ class GeminiReasoningProvider implements ReasoningProvider {
             } catch (primaryError) {
                 logger.warn(`Gemini primary model (${modelName}) failed, trying Flash fallback...`, primaryError, 'GeminiReasoning');
                 // Fallback to Flash for reliability
-                modelName = 'gemini-1.5-flash';
+                modelName = 'gemini-2.0-flash';
                 response = await retryGeminiRequest(() => executeRequest(modelName));
             }
 

@@ -65,39 +65,39 @@ class ModelRouter {
 
         // 2. POWERFUL tier - ELITE: Use Opus for maximum reasoning
         if (config.tier === 'powerful') {
-            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-opus-4-20250514');
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-opus-4-6');
             if (hasGrok) return this.callGrok(prompt, systemPrompt);
-            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-1.5-pro');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
         }
 
         // 3. CREATIVE tier - ELITE: Use Opus for creative depth
         if (config.tier === 'creative') {
-            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-opus-4-20250514');
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-opus-4-6');
             if (hasGrok) return this.callGrok(prompt, systemPrompt);
-            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-1.5-pro');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
         }
 
         // 4. BALANCED tier - ELITE: Default to Sonnet
         if (config.tier === 'balanced') {
             if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-sonnet-4-6');
-            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-1.5-pro');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
         }
 
         // 5. FALLBACK CASCADE & PREFERENCES
         // ELITE: Preferred provider with Opus/Sonnet defaults
         if (config.preferredProvider === 'claude' && hasClaude) {
-            return this.callClaude(prompt, systemPrompt, 'claude-opus-4-20250514');
+            return this.callClaude(prompt, systemPrompt, 'claude-opus-4-6');
         }
         if (config.preferredProvider === 'grok' && hasGrok) return this.callGrok(prompt, systemPrompt);
         if (config.preferredProvider === 'gemini' && hasGemini) {
-            return this.callGemini(prompt, systemPrompt, 'gemini-1.5-pro');
+            return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
         }
 
         // ELITE: Ultimate Catch-all - Opus first, then Pro
-        if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-opus-4-20250514');
+        if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-opus-4-6');
         if (hasGrok) return this.callGrok(prompt, systemPrompt);
         if (hasGemini) {
-            return this.callGemini(prompt, systemPrompt, 'gemini-1.5-pro');
+            return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
         }
 
         throw new Error('No capable AI models configured. Please add an API Key in settings.');

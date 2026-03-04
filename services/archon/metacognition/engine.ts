@@ -67,7 +67,7 @@ const DEFAULT_CONFIG: MetaCognitionConfig = {
     'gemini-2.0-flash-thinking',  // Deep reasoning, massive context
     'o1',                         // OpenAI reasoning model
     'gpt-4o',                     // Strong all-around
-    'gemini-1.5-pro',             // 2M context fallback
+    'gemini-2.0-flash',             // 2M context fallback
     'claude-sonnet-4',            // Cost-effective quality
   ],
   taskRoutes: {
@@ -75,14 +75,14 @@ const DEFAULT_CONFIG: MetaCognitionConfig = {
     'code-generation': 'claude-opus-4',          // Best coding
     'code-review': 'claude-opus-4',              // Deep analysis
     'architecture': 'claude-opus-4',             // Complex reasoning
-    'research': 'gemini-1.5-pro',                // 2M context for deep research
+    'research': 'gemini-2.0-flash',                // 2M context for deep research
     'current-events': 'grok-3',                  // Real-time knowledge
     'image-analysis': 'gpt-4o',                  // Strong vision
     'math': 'gemini-2.0-flash-thinking',         // Math reasoning
     'creative': 'claude-opus-4',                 // Creative excellence
     'reasoning': 'o1',                           // Deep reasoning chains
     'analysis': 'claude-opus-4',                 // Analytical tasks
-    'long-context': 'gemini-1.5-pro',            // 2M context window
+    'long-context': 'gemini-2.0-flash',            // 2M context window
     'fast-validation': 'claude-sonnet-4',        // Quick quality checks
   },
   trackPerformance: true,

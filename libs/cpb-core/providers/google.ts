@@ -33,8 +33,8 @@ export interface GeminiProviderOptions {
 /** Model mappings for each tier */
 export const GEMINI_MODELS = {
     fast: 'gemini-2.5-flash-preview-05-20',
-    balanced: 'gemini-1.5-pro',
-    deep: 'gemini-1.5-pro',
+    balanced: 'gemini-2.0-flash',
+    deep: 'gemini-2.0-flash',
 } as const;
 
 /**

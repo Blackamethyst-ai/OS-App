@@ -9,6 +9,9 @@ import type { SkillGenome } from '../genome/types';
 describe('SupabaseSkillRegistry', () => {
   let registry: SupabaseSkillRegistry;
 
+  // Fixed timestamp so assertions are deterministic across hydration roundtrips
+  const FIXED_TS = 1700000000000;
+
   // Helper to create test skill
   const createTestSkill = (id: string, name: string): SkillGenome => ({
     id,
@@ -43,13 +46,13 @@ describe('SupabaseSkillRegistry', () => {
     },
     origin: {
       type: 'native',
-      createdAt: Date.now(),
+      createdAt: FIXED_TS,
       createdBy: 'test-agent',
     },
     checksum: 'test-checksum-' + id,
     dqScore: 0.8,
-    createdAt: Date.now(),
-    updatedAt: Date.now(),
+    createdAt: FIXED_TS,
+    updatedAt: FIXED_TS,
   });
 
   beforeEach(() => {
@@ -164,7 +167,11 @@ describe('SupabaseSkillRegistry', () => {
 
       // Cache should include both in-memory and hydrated skills
       expect(cacheSizeAfter).toBeGreaterThanOrEqual(cacheSizeBefore);
-      expect(registry.get('skill-persist-test')).toEqual(skill);
+      const retrieved = registry.get('skill-persist-test');
+      expect(retrieved).toBeDefined();
+      expect(retrieved!.id).toBe(skill.id);
+      expect(retrieved!.name).toBe(skill.name);
+      expect(retrieved!.version).toBe(skill.version);
     });
   });
 

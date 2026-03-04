@@ -423,7 +423,7 @@ export class BudgetAllocator {
     }
 
     // Cost-aware selection
-    if (tokens < 1000) return 'claude-haiku-3.5';
+    if (tokens < 1000) return 'claude-haiku-4-5-20251001';
     if (tokens < 10000) return 'claude-sonnet-4';
     return 'claude-opus-4';
   }

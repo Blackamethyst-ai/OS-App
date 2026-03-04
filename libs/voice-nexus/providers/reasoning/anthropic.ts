@@ -35,7 +35,7 @@ export interface ClaudeReasoningOptions {
 
 /** Default model mappings for each tier */
 export const CLAUDE_REASONING_MODELS = {
-    fast: 'claude-3-5-haiku-20241022',
+    fast: 'claude-haiku-4-5-20251001',
     balanced: 'claude-sonnet-4-6',
     deep: 'claude-sonnet-4-6', // Use Sonnet for deep; Opus when needed
 } as const;

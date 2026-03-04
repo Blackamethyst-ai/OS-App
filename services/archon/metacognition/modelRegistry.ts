@@ -67,9 +67,9 @@ export const BUILT_IN_MODELS: ModelInfo[] = [
     available: true,
   },
   {
-    id: 'claude-haiku-3.5',
+    id: 'claude-haiku-4-5-20251001',
     provider: 'anthropic',
-    name: 'Claude Haiku 3.5',
+    name: 'Claude Haiku 4.5',
     tier: 'fast',
     capabilities: ['coding', 'analysis', 'tool-use', 'structured-output', 'fast-response'],
     contextWindow: 200000,
@@ -119,7 +119,7 @@ export const BUILT_IN_MODELS: ModelInfo[] = [
     available: true,
   },
   {
-    id: 'gemini-1.5-pro',
+    id: 'gemini-2.0-flash',
     provider: 'google',
     name: 'Gemini 1.5 Pro',
     tier: 'flagship',
@@ -307,7 +307,7 @@ export class ModelRegistry {
       defaultModels: config?.defaultModels ?? {
         flagship: 'claude-opus-4',
         standard: 'claude-sonnet-4',
-        fast: 'claude-haiku-3.5',
+        fast: 'claude-haiku-4-5-20251001',
         local: 'llama-3.3-70b',
       },
       maxCostPerTask: config?.maxCostPerTask ?? 1.0,

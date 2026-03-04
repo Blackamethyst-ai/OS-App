@@ -62,10 +62,10 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
     // Reasoning → OpenAI o-series and Claude
     'reasoning': ['o1', 'claude-opus-4', 'gemini-2.0-flash-thinking'],
     'math': ['gemini-2.0-flash-thinking', 'o1', 'o3-mini'],
-    'analysis': ['claude-opus-4', 'gemini-1.5-pro', 'gpt-4o'],
+    'analysis': ['claude-opus-4', 'gemini-2.0-flash', 'gpt-4o'],
 
     // Research → Long context models
-    'research': ['gemini-1.5-pro', 'claude-opus-4', 'claude-sonnet-4'],
+    'research': ['gemini-2.0-flash', 'claude-opus-4', 'claude-sonnet-4'],
     'summarization': ['gemini-2.0-flash', 'claude-sonnet-4'],
 
     // Real-time → Grok
@@ -73,7 +73,7 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
     'real-time': ['grok-3', 'gpt-4o'],
 
     // Vision → Best vision models
-    'image-analysis': ['gpt-4o', 'claude-opus-4', 'gemini-1.5-pro'],
+    'image-analysis': ['gpt-4o', 'claude-opus-4', 'gemini-2.0-flash'],
     'vision': ['gpt-4o', 'grok-3-vision', 'claude-opus-4'],
 
     // Creative → Claude
@@ -81,9 +81,9 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
     'writing': ['claude-opus-4', 'claude-sonnet-4'],
 
     // Quick tasks → Fast models
-    'classification': ['claude-haiku-3.5', 'gpt-4o-mini', 'gemini-2.0-flash'],
-    'extraction': ['claude-haiku-3.5', 'gemini-2.0-flash'],
-    'validation': ['claude-sonnet-4', 'claude-haiku-3.5'],
+    'classification': ['claude-haiku-4-5-20251001', 'gpt-4o-mini', 'gemini-2.0-flash'],
+    'extraction': ['claude-haiku-4-5-20251001', 'gemini-2.0-flash'],
+    'validation': ['claude-sonnet-4', 'claude-haiku-4-5-20251001'],
   },
 
   fallbackChain: [
@@ -91,7 +91,7 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
     'claude-sonnet-4',
     'gpt-4o',
     'gemini-2.0-flash',
-    'claude-haiku-3.5',
+    'claude-haiku-4-5-20251001',
   ],
 };
 

@@ -13,9 +13,9 @@ import { logger } from '../../../logger';
 
 // Model mappings for each tier
 const CLAUDE_MODELS = {
-    fast: 'claude-3-5-haiku-20241022',
-    balanced: 'claude-3-5-sonnet-20241022', // The New SOTA 3.5 Sonnet
-    deep: 'claude-opus-4-6',      // Legacy SOTA Opus (good for creative writing)
+    fast: 'claude-haiku-4-5-20251001',
+    balanced: 'claude-sonnet-4-6',
+    deep: 'claude-opus-4-6',
 } as const;
 
 // System prompt for voice interactions
