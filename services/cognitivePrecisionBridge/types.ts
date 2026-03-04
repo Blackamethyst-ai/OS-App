@@ -228,7 +228,7 @@ export interface MultimodalContent {
  */
 export type ReasoningModel =
     | 'gemini-flash'      // Fast, good for simple tasks
-    | 'gemini-pro'        // Balanced Gemini
+    | 'gemini-2.0-flash'        // Balanced Gemini
     | 'claude-haiku'      // Fast Claude
     | 'claude-sonnet'     // Balanced Claude (default for balanced path)
     | 'claude-opus'       // Deep reasoning

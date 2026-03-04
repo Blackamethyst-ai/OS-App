@@ -36,8 +36,8 @@ export interface ClaudeReasoningOptions {
 /** Default model mappings for each tier */
 export const CLAUDE_REASONING_MODELS = {
     fast: 'claude-3-5-haiku-20241022',
-    balanced: 'claude-sonnet-4-20250514',
-    deep: 'claude-sonnet-4-20250514', // Use Sonnet for deep; Opus when needed
+    balanced: 'claude-sonnet-4-6',
+    deep: 'claude-sonnet-4-6', // Use Sonnet for deep; Opus when needed
 } as const;
 
 /** Voice-optimized system prompt */

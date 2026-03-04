@@ -137,10 +137,10 @@ class LiveSession {
 
         const voiceName = agent?.voice || 'Zephyr';
 
-        logger.debug('Connecting with', { agentName, voiceName, model: 'gemini-2.0-flash-exp' }, 'LiveSession');
+        logger.debug('Connecting with', { agentName, voiceName, model: 'gemini-live-2.5-flash-preview' }, 'LiveSession');
 
         const sessionPromise = ai.live.connect({
-            model: 'gemini-2.0-flash-exp',
+            model: 'gemini-live-2.5-flash-preview',
             callbacks: {
                 onopen: async () => {
                     try {
@@ -254,7 +254,11 @@ class LiveSession {
                 ]
             }
         });
-        this.session = await sessionPromise;
+        // Timeout: reject if WebSocket + mic setup doesn't complete in 15s
+        const timeout = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Voice connection timed out after 15 seconds. Check your API key and network.')), 15000)
+        );
+        this.session = await Promise.race([sessionPromise, timeout]);
     }
 
     disconnect(): void {

@@ -76,7 +76,7 @@ const DEFAULT_CONFIG: MetaCognitionConfig = {
     'code-review': 'claude-opus-4',              // Deep analysis
     'architecture': 'claude-opus-4',             // Complex reasoning
     'research': 'gemini-1.5-pro',                // 2M context for deep research
-    'current-events': 'grok-2',                  // Real-time knowledge
+    'current-events': 'grok-3',                  // Real-time knowledge
     'image-analysis': 'gpt-4o',                  // Strong vision
     'math': 'gemini-2.0-flash-thinking',         // Math reasoning
     'creative': 'claude-opus-4',                 // Creative excellence

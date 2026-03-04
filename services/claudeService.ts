@@ -102,7 +102,7 @@ class ClaudeService {
         prompt: string,
         imageBase64: string,
         mediaType: 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp' = 'image/png',
-        model: string = 'claude-sonnet-4-20250514'
+        model: string = 'claude-sonnet-4-6'
     ): Promise<string> {
         const apiKey = apiKeyService.getKey('claude');
 

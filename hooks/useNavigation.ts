@@ -13,20 +13,24 @@ interface UseNavigationResult {
 
 export const useNavigation = (): UseNavigationResult => {
     const clearanceLevel = useAppStore(s => s.user.clearanceLevel);
+    const displayName = useAppStore(s => s.user.displayName);
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
-    // Get filtered and ordered nav items based on clearance
+    // Demo mode: "Enter as Observer" or ?demo=true
+    const isDemoMode = displayName === 'Demo Observer';
+
+    // Get filtered and ordered nav items based on clearance and demo mode
     const baseNavItems = useMemo(() =>
-        getNavConfig(clearanceLevel),
-        [clearanceLevel]
+        getNavConfig(clearanceLevel, isDemoMode),
+        [clearanceLevel, isDemoMode]
     );
 
     const [navItems, setNavItems] = useState<NavItem[]>(baseNavItems);
 
-    // Update when clearance changes
+    // Update when clearance or demo mode changes
     useEffect(() => {
-        setNavItems(getNavConfig(clearanceLevel));
-    }, [clearanceLevel]);
+        setNavItems(getNavConfig(clearanceLevel, isDemoMode));
+    }, [clearanceLevel, isDemoMode]);
 
     const onDragStart = useCallback((e: React.DragEvent, index: number) => {
         setDraggedIndex(index);

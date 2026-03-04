@@ -47,12 +47,12 @@ function getModelForPath(path: CPBPath, forceModel?: ReasoningModel): { provider
         switch (forceModel) {
             case 'gemini-flash':
                 return { provider: 'gemini', model: 'gemini-2.0-flash' };
-            case 'gemini-pro':
+            case 'gemini-2.0-flash':
                 return { provider: 'gemini', model: 'gemini-1.5-pro' };
             case 'claude-haiku':
-                return { provider: 'claude', model: 'claude-3-haiku-20240307' };
+                return { provider: 'claude', model: 'claude-haiku-4-5-20251001' };
             case 'claude-sonnet':
-                return { provider: 'claude', model: 'claude-sonnet-4-20250514' };
+                return { provider: 'claude', model: 'claude-sonnet-4-6' };
             case 'claude-opus':
                 return { provider: 'claude', model: 'claude-opus-4-20250514' };
         }
@@ -63,12 +63,12 @@ function getModelForPath(path: CPBPath, forceModel?: ReasoningModel): { provider
         case 'direct':
             // ELITE: Even direct uses Sonnet for quality
             return claudeService.isConfigured()
-                ? { provider: 'claude', model: 'claude-sonnet-4-20250514' }
+                ? { provider: 'claude', model: 'claude-sonnet-4-6' }
                 : { provider: 'gemini', model: 'gemini-2.0-flash' };
         case 'rlm':
             // ELITE: RLM uses Sonnet for better compression quality
             return claudeService.isConfigured()
-                ? { provider: 'claude', model: 'claude-sonnet-4-20250514' }
+                ? { provider: 'claude', model: 'claude-sonnet-4-6' }
                 : { provider: 'gemini', model: 'gemini-2.0-flash' };
         case 'ace':
             // ELITE: ACE uses Opus for maximum reasoning depth
@@ -87,7 +87,7 @@ function getModelForPath(path: CPBPath, forceModel?: ReasoningModel): { provider
                 : { provider: 'gemini', model: 'gemini-1.5-pro' };
         default:
             return claudeService.isConfigured()
-                ? { provider: 'claude', model: 'claude-sonnet-4-20250514' }
+                ? { provider: 'claude', model: 'claude-sonnet-4-6' }
                 : { provider: 'gemini', model: 'gemini-2.0-flash' };
     }
 }

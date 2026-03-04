@@ -207,7 +207,7 @@ export const BUILT_IN_MODELS: ModelInfo[] = [
   // XAI (Grok)
   // ==========================================================================
   {
-    id: 'grok-2',
+    id: 'grok-3',
     provider: 'xai',
     name: 'Grok 2',
     tier: 'flagship',
@@ -223,7 +223,7 @@ export const BUILT_IN_MODELS: ModelInfo[] = [
     available: true,
   },
   {
-    id: 'grok-2-vision',
+    id: 'grok-3-vision',
     provider: 'xai',
     name: 'Grok 2 Vision',
     tier: 'flagship',

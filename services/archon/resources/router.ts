@@ -69,12 +69,12 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
     'summarization': ['gemini-2.0-flash', 'claude-sonnet-4'],
 
     // Real-time → Grok
-    'current-events': ['grok-2'],
-    'real-time': ['grok-2', 'gpt-4o'],
+    'current-events': ['grok-3'],
+    'real-time': ['grok-3', 'gpt-4o'],
 
     // Vision → Best vision models
     'image-analysis': ['gpt-4o', 'claude-opus-4', 'gemini-1.5-pro'],
-    'vision': ['gpt-4o', 'grok-2-vision', 'claude-opus-4'],
+    'vision': ['gpt-4o', 'grok-3-vision', 'claude-opus-4'],
 
     // Creative → Claude
     'creative': ['claude-opus-4', 'gpt-4o'],

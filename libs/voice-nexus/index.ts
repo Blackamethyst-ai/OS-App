@@ -11,7 +11,7 @@
  * // Define your reasoning provider
  * const myReasoning: ReasoningProvider = {
  *     name: 'openai',
- *     models: { fast: 'gpt-3.5-turbo', balanced: 'gpt-4', deep: 'gpt-4-turbo' },
+ *     models: { fast: 'gpt-4o-mini', balanced: 'gpt-4', deep: 'gpt-4o' },
  *     isAvailable: () => true,
  *     generate: async (prompt, config) => {
  *         // Your LLM call here

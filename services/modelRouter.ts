@@ -59,7 +59,7 @@ class ModelRouter {
 
         // 1. FAST tier - ELITE: Use Sonnet instead of Flash
         if (config.tier === 'fast') {
-            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-sonnet-4-20250514');
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-sonnet-4-6');
             if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
         }
 
@@ -79,7 +79,7 @@ class ModelRouter {
 
         // 4. BALANCED tier - ELITE: Default to Sonnet
         if (config.tier === 'balanced') {
-            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-sonnet-4-20250514');
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-sonnet-4-6');
             if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-1.5-pro');
         }
 

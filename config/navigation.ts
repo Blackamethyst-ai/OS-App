@@ -6,25 +6,27 @@ export interface NavItem {
     path: string;
     fixedLayout?: boolean;
     requiredClearance?: number; // Minimum clearance level to see this tab (1-10)
+    demoVisible?: boolean; // Show in demo/observer mode (curated showcase tabs only)
 }
 
 // Default navigation configuration
 // requiredClearance: tabs with higher clearance require elevated user access (1-10 scale)
 export const DEFAULT_NAV_CONFIG: NavItem[] = [
     { id: AppMode.METAVENTIONS_HUB, label: 'ECOSYSTEM', path: '/metaventions-hub', fixedLayout: true },
-    { id: AppMode.ARCHON, label: 'ARCHON', path: '/archon', requiredClearance: 7 },
-    { id: AppMode.BIBLIOMORPHIC, label: 'RESEARCH', path: '/bibliomorphic' },
-    { id: AppMode.META_LEARNING, label: 'PREDICTIONS', path: '/predictions', fixedLayout: true },
-    { id: AppMode.PROCESS_MAP, label: 'TOPOLOGY', path: '/process', fixedLayout: true },
+    { id: AppMode.ARCHON, label: 'ARCHON', path: '/archon', requiredClearance: 7, demoVisible: true },
+    { id: AppMode.BIBLIOMORPHIC, label: 'RESEARCH', path: '/bibliomorphic', demoVisible: true },
+    { id: AppMode.META_LEARNING, label: 'PREDICTIONS', path: '/predictions', fixedLayout: true, demoVisible: true },
+    { id: AppMode.PROCESS_MAP, label: 'TOPOLOGY', path: '/process', fixedLayout: true, demoVisible: true },
     { id: AppMode.AUTONOMOUS_FINANCE, label: 'TREASURY', path: '/finance', fixedLayout: true, requiredClearance: 3 },
     { id: AppMode.CODE_STUDIO, label: 'LOGIC', path: '/code', fixedLayout: true },
-    { id: AppMode.AGENT_CONTROL, label: 'SWARM', path: '/agents', fixedLayout: true, requiredClearance: 5 },
+    { id: AppMode.AGENT_CONTROL, label: 'SWARM', path: '/agents', fixedLayout: true, requiredClearance: 5, demoVisible: true },
     { id: AppMode.MEMORY_CORE, label: 'MEMORY', path: '/memory' },
-    { id: AppMode.IMAGE_GEN, label: 'CINEMA', path: '/assets', fixedLayout: true },
+    { id: AppMode.IMAGE_GEN, label: 'CINEMA', path: '/assets', fixedLayout: true, demoVisible: true },
     { id: AppMode.SOVEREIGN_GALLERY, label: 'VAULT', path: '/vault', fixedLayout: true },
     { id: AppMode.HARDWARE_ENGINEER, label: 'HARDWARE', path: '/hardware', fixedLayout: true, requiredClearance: 6 },
-    { id: AppMode.VOICE_MODE, label: 'VOICE CORE', path: '/voice', fixedLayout: true },
-    { id: AppMode.SYNTHESIS_BRIDGE, label: 'SYNTHESIS', path: '/bridge', fixedLayout: true, requiredClearance: 4 },
+    { id: AppMode.VOICE_MODE, label: 'VOICE CORE', path: '/voice', fixedLayout: true, demoVisible: true },
+    { id: AppMode.SYNTHESIS_BRIDGE, label: 'SYNTHESIS', path: '/bridge', fixedLayout: true, requiredClearance: 4, demoVisible: true },
+    { id: AppMode.CPB_TEST, label: 'CPB', path: '/cpb-test', fixedLayout: true, demoVisible: true },
     { id: 'NEXUS', label: 'NEXUS', path: '/nexus', requiredClearance: 8 },
 ];
 
@@ -56,13 +58,14 @@ export const resetNavOrder = (): void => {
 };
 
 // Get navigation config filtered by clearance and ordered by user preference
-export const getNavConfig = (clearanceLevel: number = 10): NavItem[] => {
+export const getNavConfig = (clearanceLevel: number = 10, demoMode: boolean = false): NavItem[] => {
     const customOrder = getPersistedNavOrder();
 
-    // Filter by clearance level
-    const filtered = DEFAULT_NAV_CONFIG.filter(item =>
-        !item.requiredClearance || item.requiredClearance <= clearanceLevel
-    );
+    // Filter by clearance level, and by demoVisible in demo mode
+    const filtered = DEFAULT_NAV_CONFIG.filter(item => {
+        if (demoMode && !item.demoVisible) return false;
+        return !item.requiredClearance || item.requiredClearance <= clearanceLevel;
+    });
 
     // Apply custom ordering if exists
     if (customOrder) {

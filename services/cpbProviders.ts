@@ -65,7 +65,7 @@ export const claudeProvider: CPBProvider = {
     },
 
     async generate(prompt: string, options?: GenerateOptions): Promise<string> {
-        const model = options?.model || 'claude-sonnet-4-20250514';
+        const model = options?.model || 'claude-sonnet-4-6';
 
         return claudeService.generateContent(
             [{ role: 'user', content: prompt }],
@@ -79,7 +79,7 @@ export const claudeProvider: CPBProvider = {
         images: ImageInput[],
         options?: GenerateOptions
     ): Promise<string> {
-        const model = options?.model || 'claude-sonnet-4-20250514';
+        const model = options?.model || 'claude-sonnet-4-6';
 
         // Build content array with images
         const content: ClaudeContentBlock[] = [];

@@ -32,7 +32,7 @@ type VLMProvider = 'claude' | 'gemini' | 'auto';
 
 const CONFIG = {
   provider: 'auto' as VLMProvider, // 'claude', 'gemini', or 'auto'
-  claudeModel: 'claude-sonnet-4-20250514',
+  claudeModel: 'claude-sonnet-4-6',
   geminiModel: 'gemini-2.0-flash',
   analysisCooldownMs: 500, // Don't analyze more than 2x per second
   maxCacheSize: 50,

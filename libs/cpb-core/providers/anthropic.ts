@@ -34,8 +34,8 @@ export interface ClaudeProviderOptions {
 /** Model mappings for each tier */
 export const CLAUDE_MODELS = {
     fast: 'claude-3-5-haiku-20241022',
-    balanced: 'claude-sonnet-4-20250514',
-    deep: 'claude-sonnet-4-20250514', // Sonnet for deep; use opus for most complex
+    balanced: 'claude-sonnet-4-6',
+    deep: 'claude-sonnet-4-6', // Sonnet for deep; use opus for most complex
 } as const;
 
 /**

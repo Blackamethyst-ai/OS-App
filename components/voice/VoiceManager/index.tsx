@@ -73,6 +73,14 @@ const VoiceManager: React.FC = () => {
     const partialTranscriptRef = useRef<string>("");
     const sessionVersionRef = useRef(0); // Guards against stale callbacks
 
+    // Refs for values used inside syncSession that should NOT trigger re-runs
+    const currentLocationRef = useRef(currentLocation);
+    const operationalContextRef = useRef(operationalContext);
+    const mentalStateRef = useRef(voice.mentalState);
+    currentLocationRef.current = currentLocation;
+    operationalContextRef.current = operationalContext;
+    mentalStateRef.current = voice.mentalState;
+
     // ==========================================================================
     // SYNCHRONIZED CLOCK - Track context freshness
     // ==========================================================================
@@ -5048,7 +5056,7 @@ Output the code with brief explanation.`,
             const sharedContext = `
 === EXECUTIVE VOICE PROTOCOL ===
 
-CURRENT_SECTOR: ${currentLocation || currentMode || 'HUB'}
+CURRENT_SECTOR: ${currentLocationRef.current || currentMode || 'HUB'}
 SYNC_EPOCH: ${startingEpoch}
 
 VOICE PERSONA:
@@ -5084,7 +5092,7 @@ TAB SHORTCUTS:
 "nexus" → Nexus Matrix | "cascade" → CPB Cascade | "discovery" → Discovery Lab
 "DNA builder" → DNA Builder | "bicameral" → Bicameral Swarm | "yield ops" → Treasury
 
-COGNITIVE_STATE: Skepticism ${voice.mentalState.skepticism}% | Excitement ${voice.mentalState.excitement}% | Alignment ${voice.mentalState.alignment}%
+COGNITIVE_STATE: Skepticism ${mentalStateRef.current.skepticism}% | Excitement ${mentalStateRef.current.excitement}% | Alignment ${mentalStateRef.current.alignment}%
 
 === CURRENT SECTOR ===
 ${sectorContext}
@@ -5112,10 +5120,23 @@ ${generateTabContext(currentMode)}
 === END CONTEXT ===
             `;
 
+            // Connection timeout: wraps the entire connect + onopen callback chain.
+            // Checks store directly (not closure) so it works even if effect re-ran.
+            let connectionResolved = false;
+            const connectionTimeout = setTimeout(() => {
+                if (!connectionResolved && useAppStore.getState().voice.isConnecting) {
+                    logger.error('Connection timed out after 15s — onopen never fired', undefined, 'VoiceManager');
+                    liveSession.disconnect();
+                    connectionAttemptRef.current = false;
+                    setVoiceState({ isActive: false, isConnecting: false });
+                    addLog('ERROR', 'VOICE_CORE: Connection timed out. Check your Gemini API key.');
+                }
+            }, 15000);
+
             try {
                 await liveSession.primeAudio();
                 await liveSession.connect(agentName, {
-                    systemInstruction: constructHiveContext(agentId, sharedContext, voice.mentalState),
+                    systemInstruction: constructHiveContext(agentId, sharedContext, mentalStateRef.current),
                     tools: [{ functionDeclarations: VOICE_TOOLS }],
                     outputAudioTranscription: {},
                     inputAudioTranscription: {},
@@ -5169,6 +5190,8 @@ ${generateTabContext(currentMode)}
                             }
                         },
                         onopen: () => {
+                            connectionResolved = true;
+                            clearTimeout(connectionTimeout);
                             // Ignore stale callbacks from old sessions
                             if (!mounted || sessionVersionRef.current !== thisSessionVersion) return;
                             setVoiceState({ isConnecting: false });
@@ -5176,6 +5199,8 @@ ${generateTabContext(currentMode)}
                             lastConnectedNameRef.current = name;
                         },
                         onerror: (err: any) => {
+                            connectionResolved = true;
+                            clearTimeout(connectionTimeout);
                             // Ignore stale callbacks from old sessions
                             if (sessionVersionRef.current !== thisSessionVersion) return;
                             connectionAttemptRef.current = false;
@@ -5187,6 +5212,8 @@ ${generateTabContext(currentMode)}
                             addLog('ERROR', `VOICE_CORE: ${errorMsg}`);
                         },
                         onclose: () => {
+                            connectionResolved = true;
+                            clearTimeout(connectionTimeout);
                             // Ignore stale callbacks from old sessions
                             if (!mounted || sessionVersionRef.current !== thisSessionVersion) return;
                             connectionAttemptRef.current = false;
@@ -5196,24 +5223,44 @@ ${generateTabContext(currentMode)}
                     }
                 });
             } catch (e: any) {
+                connectionResolved = true;
+                clearTimeout(connectionTimeout);
                 const errorMsg = e?.message || String(e);
                 logger.error('Connection exception', e, 'VoiceManager');
 
-                if (retryCount < 3) {
-                    addLog('WARN', `VOICE_CORE: ${errorMsg}. Retrying in 2s... (${retryCount + 1}/3)`);
-                    setTimeout(() => initiateConnection(name, retryCount + 1), 2000);
+                if (retryCount < 2 && mounted && useAppStore.getState().voice.isActive) {
+                    addLog('WARN', `VOICE_CORE: ${errorMsg}. Retrying in 2s... (${retryCount + 1}/2)`);
+                    setTimeout(() => {
+                        if (mounted && useAppStore.getState().voice.isActive) {
+                            initiateConnection(name, retryCount + 1);
+                        }
+                    }, 2000);
                 } else {
                     connectionAttemptRef.current = false;
                     setVoiceState({ isActive: false, isConnecting: false });
-                    addLog('ERROR', `VOICE_CORE: ${errorMsg} (failed after 3 attempts)`);
+                    addLog('ERROR', `VOICE_CORE: ${errorMsg} (failed after ${retryCount + 1} attempts)`);
                 }
             }
         };
 
         syncSession();
-        return () => { mounted = false; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Intentionally omitting reactive store selectors to prevent infinite re-renders
-    }, [voice.isActive, voice.voiceName, setVoiceState, addLog, currentLocation, operationalContext, voice.mentalState]);
+
+        // P0 FAILSAFE: If still connecting after 20s, force-reset state
+        const failsafeTimer = setTimeout(() => {
+            if (mounted && useAppStore.getState().voice.isConnecting) {
+                logger.error('Connection failsafe triggered — stuck in SYNCING for 20s', undefined, 'VoiceManager');
+                connectionAttemptRef.current = false;
+                setVoiceState({ isActive: false, isConnecting: false });
+                addLog('ERROR', 'VOICE_CORE: Connection timed out. Please try again.');
+            }
+        }, 20000);
+
+        return () => {
+            mounted = false;
+            clearTimeout(failsafeTimer);
+        };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Only re-run on active/name changes. Location/context/mentalState accessed via refs.
+    }, [voice.isActive, voice.voiceName, setVoiceState, addLog]);
 
     return null;
 };
