@@ -15,7 +15,22 @@ export default defineConfig(({ mode }) => {
       // SPA Fallback for local development
       historyApiFallback: true,
     },
-    plugins: [react()],
+    plugins: [
+      react(),
+      {
+        name: 'strip-importmap',
+        transformIndexHtml(html, ctx) {
+          if (ctx.bundle) {
+            // Production: keep only mermaid (externalized via rollupOptions)
+            return html.replace(
+              /<script type="importmap">[\s\S]*?<\/script>/,
+              `<script type="importmap">\n{"imports":{"mermaid":"https://esm.sh/mermaid@^11.12.2"}}\n</script>`
+            );
+          }
+          return html;
+        }
+      },
+    ],
     // Enable SPA support for deployments like Vercel
     appType: 'spa',
     define: {
@@ -70,12 +85,12 @@ export default defineConfig(({ mode }) => {
               // Redux (recharts internal dep)
               if (id.includes('@reduxjs') || id.includes('redux')) return 'vendor-redux';
 
-              // Core React — small, cached forever
-              if (id.includes('react')) return 'vendor-react';
-              if (id.includes('zustand')) return 'vendor-react';
+              // Core React + ecosystem — keep together to avoid circular deps
+              // (scheduler, react-dom internals, zustand all depend on react)
+              if (id.includes('react') || id.includes('zustand') || id.includes('scheduler') || id.includes('use-sync-external-store')) return 'vendor-react';
 
-              // Everything else
-              return 'vendor';
+              // Let Vite handle remaining vendor splitting automatically
+              // (removing catch-all 'vendor' prevents circular chunk deps)
             }
           },
         },

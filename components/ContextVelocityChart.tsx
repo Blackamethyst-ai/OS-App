@@ -89,7 +89,7 @@ const ContextVelocityChart: React.FC<ContextVelocityChartProps> = ({ onDrillDown
       </div>
 
       <div className="flex-1 min-h-[120px] w-full opacity-60 group-hover:opacity-100 transition-opacity relative z-10">
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <ComposedChart data={data} margin={{ top: 5, right: 0, bottom: 0, left: -25 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" vertical={false} />
             <XAxis dataKey="time" hide />

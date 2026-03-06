@@ -22,7 +22,7 @@ const VitalityPulse = ({ value }: { value: number }) => {
     return (
         <div className="relative w-full h-[320px] flex flex-col items-center justify-center p-4">
             <div className="absolute inset-0 z-0 opacity-20 pointer-events-none">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <AreaChart data={historyData}>
                         <defs>
                             <linearGradient id="vitalityGradient" x1="0" y1="0" x2="0" y2="1">
@@ -422,7 +422,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                                  {data.scores && <VitalityPulse value={data.scores.vitality || 0} />}
 
                                  <div className="w-full h-72 -mt-4">
-                                    <ResponsiveContainer width="100%" height="100%">
+                                    <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                         <RadarChart cx="50%" cy="50%" outerRadius="75%" data={chartData}>
                                             <PolarGrid stroke="#222" />
                                             <PolarAngleAxis dataKey="subject" tick={{ fill: '#555', fontSize: 9, fontFamily: 'Fira Code', fontWeight: 'bold' }} />

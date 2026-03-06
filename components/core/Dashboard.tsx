@@ -227,7 +227,7 @@ const MetricCard = ({ title, value, detail, icon: Icon, color, data, trend }: an
         <div className="flex items-end justify-between relative z-10">
             <div className="text-xl font-black font-mono text-white tracking-tighter leading-none">{value}</div>
             <div className="h-8 w-20 opacity-20 group-hover:opacity-60 transition-opacity">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <AreaChart data={data}>
                         <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill={color} fillOpacity={0.1} isAnimationActive={false} />
                     </AreaChart>
@@ -320,7 +320,7 @@ const Dashboard: React.FC = () => {
                         <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
                       </div>
                       <div className="flex-1 h-36 relative z-10">
-                         <ResponsiveContainer width="100%" height="100%">
+                         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                             <RadarChart data={dashboard.topologyData}>
                                 <PolarGrid stroke="#333" />
                                 <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />

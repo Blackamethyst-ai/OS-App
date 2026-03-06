@@ -289,7 +289,7 @@ const AutonomousFinance: React.FC = () => {
                                                 <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Asset Allocation</span>
                                             </div>
                                             <div className="w-full h-full">
-                                                <ResponsiveContainer width="100%" height="100%">
+                                                <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                                     <RePieChart>
                                                         <Pie data={pieData} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
                                                             {pieData.map((entry, index) => <Cell key={`cell-${index}`} fill={entry.color} />)}

@@ -711,7 +711,7 @@ const MetaventionsHub: React.FC = () => {
                                         <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
                                     </div>
                                     <div className="flex-1 min-h-[180px] relative z-10">
-                                        <ResponsiveContainer width="100%" height="100%">
+                                        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                                             <RadarChart data={dashboard.topologyData}>
                                                 <PolarGrid stroke="#333" />
                                                 <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />

@@ -105,7 +105,7 @@ export const GpuDetailPanel: React.FC<GpuDetailPanelProps> = ({
                     </button>
                 </div>
                 <div className="flex-1 bg-black rounded-2xl border border-white/5 p-4 relative overflow-hidden shadow-inner" style={{ minHeight: 100 }}>
-                    <ResponsiveContainer width="100%" height={100}>
+                    <ResponsiveContainer width="100%" height={100} minWidth={1}>
                         <AreaChart data={priceHistoryData}>
                             <Area
                                 type="monotone"
