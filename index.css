@@ -252,3 +252,55 @@ body {
 .fluid-modal-lg {
   width: var(--modal-lg);
 }
+
+/* ============================================
+   BRAND UTILITY CLASSES
+   ============================================ */
+
+/* Subtle inner glow for brand panels */
+.brand-inner-glow {
+  box-shadow:
+    inset 0 1px 0 rgba(123, 44, 255, 0.08),
+    inset 0 -1px 0 rgba(24, 230, 255, 0.04);
+}
+
+/* Glass action button base */
+.glass-action {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glass-action:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Shimmer edge effect for premium buttons */
+.shimmer-edge {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-edge::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.06) 45%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0.06) 55%,
+    transparent 60%
+  );
+  background-size: 250% 100%;
+  animation: shimmer-edge-sweep 6s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes shimmer-edge-sweep {
+  0% { background-position: -250% 0; }
+  100% { background-position: 250% 0; }
+}

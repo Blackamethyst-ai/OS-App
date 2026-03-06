@@ -46,7 +46,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                 <div className="h-16 border-b border-[#1f1f1f] bg-[#111] flex items-center justify-between px-8 relative z-10 shrink-0">
                     <div className="flex items-center gap-3">
                         <HelpCircle className="w-5 h-5 text-[var(--amethyst-soft)]" />
-                        <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-white">V9.5 - THE D-Ecosystem Guide</h2>
+                        <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-white">V1.0 - THE D-Ecosystem Guide</h2>
                     </div>
                     <button onClick={onClose} className="p-2 text-gray-500 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--amethyst-soft)]" aria-label="Close help center">
                         <X className="w-6 h-6" />
@@ -156,7 +156,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
 
                 <div className="h-14 bg-[#050505] border-t border-[#1f1f1f] px-8 flex items-center justify-between text-[10px] font-mono text-gray-600 shrink-0">
                     <div className="flex items-center gap-4">
-                        <span className="uppercase tracking-[0.3em] uppercase">V9.5 - THE D-Ecosystem // Proprietary Interface</span>
+                        <span className="uppercase tracking-[0.3em] uppercase">V1.0 - THE D-Ecosystem // Proprietary Interface</span>
                     </div>
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>

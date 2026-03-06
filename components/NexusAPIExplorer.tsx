@@ -194,7 +194,7 @@ const NexusAPIExplorer: React.FC = () => {
                             </div>
                             <div>
                                 <h2 className="text-sm font-black text-white uppercase tracking-[0.4em]">Nexus Matrix</h2>
-                                <p className="text-[8px] text-gray-500 font-mono uppercase tracking-widest mt-1">Registry Protocol v9.5</p>
+                                <p className="text-[8px] text-gray-500 font-mono uppercase tracking-widest mt-1">Registry Protocol v1.0</p>
                             </div>
                         </div>
                         <button

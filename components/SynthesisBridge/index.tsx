@@ -94,7 +94,7 @@ const SynthesisBridge: React.FC = () => {
                     </div>
                     <div>
                         <h1 className="text-xl font-black text-white uppercase tracking-[0.4em] leading-none">Synthesis Bridge</h1>
-                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-[0.3em] mt-2 block opacity-60">Tactical Process Command Deck // v9.5-Zenith</p>
+                        <p className="text-[9px] text-gray-500 font-mono uppercase tracking-[0.3em] mt-2 block opacity-60">Tactical Process Command Deck // v1.0-Zenith</p>
                     </div>
                 </div>
             </div>
@@ -147,7 +147,7 @@ const SynthesisBridge: React.FC = () => {
                             <BookOpen size={18} className="text-gray-500" />
                             <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.5em]">Imperial Rituals</span>
                         </div>
-                        <span className="text-[7px] font-mono text-gray-700 uppercase tracking-widest">v9.5_Manifest</span>
+                        <span className="text-[7px] font-mono text-gray-700 uppercase tracking-widest">v1.0_Manifest</span>
                     </div>
                     <div className="space-y-3 relative z-10 overflow-y-auto max-h-[320px] custom-scrollbar pr-1">
                         {PRESETS.map(preset => (
@@ -239,7 +239,7 @@ const SynthesisBridge: React.FC = () => {
                 <div className="h-6 w-px bg-white/10" />
                 <span className="tracking-[0.8em] opacity-40 leading-none uppercase">Strategic Command Deck</span>
                 <div className="h-6 w-px bg-white/10" />
-                <span className="text-gray-500 tracking-[0.4em] leading-none uppercase">ZENITH_OS_V9.5</span>
+                <span className="text-gray-500 tracking-[0.4em] leading-none uppercase">ZENITH_OS_V1.0</span>
             </div>
         </div>
     </div>

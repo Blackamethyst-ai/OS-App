@@ -4,13 +4,13 @@ import { Activity, ShieldCheck, Globe, Target, Cpu, Database, Binary } from 'luc
 
 // --- Configuration & High-Fidelity Metadata ---
 const SECTORS = [
-  { id: 'vision', label: 'VISION', load: 8.2, color: 'var(--amber)', angle: -160, detail: 'Semantic_Mapping' },
-  { id: 'process', label: 'PROCESS', load: 12.8, color: 'var(--amethyst-soft)', angle: -135, detail: 'Lattice_Synthesis' },
-  { id: 'treasury', label: 'TREASURY', load: 5.1, color: 'var(--executive-gold)', angle: -110, detail: 'Liquid_Capital' },
-  { id: 'vault', label: 'VAULT', load: 4.5, color: 'var(--cyan)', angle: -85, detail: 'Vector_Memory' },
-  { id: 'studio', label: 'STUDIO', load: 3.9, color: 'var(--plasma-green)', angle: -60, detail: 'Cinematic_Forge' },
+  { id: 'vision', label: 'VISION', load: 8.2, color: '#f59e0b', angle: -160, detail: 'Semantic_Mapping' },
+  { id: 'process', label: 'PROCESS', load: 12.8, color: '#9d4edd', angle: -135, detail: 'Lattice_Synthesis' },
+  { id: 'treasury', label: 'TREASURY', load: 5.1, color: '#f1c21b', angle: -110, detail: 'Liquid_Capital' },
+  { id: 'vault', label: 'VAULT', load: 4.5, color: '#18E6FF', angle: -85, detail: 'Vector_Memory' },
+  { id: 'studio', label: 'STUDIO', load: 3.9, color: '#10b981', angle: -60, detail: 'Cinematic_Forge' },
   { id: 'hardware', label: 'HARDWARE', load: 2.7, color: '#ec4899', angle: -35, detail: 'Infra_L0' },
-  { id: 'voice', label: 'VOICE', load: 2.1, color: 'var(--azure-blue)', angle: -10, detail: 'Neural_Uplink' },
+  { id: 'voice', label: 'VOICE', load: 2.1, color: '#3b82f6', angle: -10, detail: 'Neural_Uplink' },
   { id: 'bridge', label: 'BRIDGE', load: 1.8, color: '#94a3b8', angle: 15, detail: 'Cross_Lattice' },
   { id: 'swarm', label: 'SWARM', load: 1.4, color: '#a855f7', angle: 40, detail: 'Consensus_Engine' },
   { id: 'code', label: 'CODE', load: 22.1, color: '#00f2ff', angle: 110, detail: 'Logic_Recursion' },

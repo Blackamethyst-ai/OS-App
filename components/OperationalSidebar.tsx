@@ -52,7 +52,7 @@ const OperationalSidebar: React.FC = () => {
                     <span className="text-[var(--plasma-green)]">Auth_Gate: PASS</span>
                     <span>L0_Link: Stable</span>
                 </div>
-                <span>Zenith_OS_v9.5</span>
+                <span>Zenith_OS_v1.0</span>
             </div>
         </motion.aside>
     );

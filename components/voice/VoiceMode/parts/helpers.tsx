@@ -61,7 +61,7 @@ export const FrequencyRing: React.FC<FrequencyRingProps> = ({ freqs, color, size
         let resolvedColor = color;
         if (color.startsWith('var(')) {
             const varName = color.slice(4, -1);
-            resolvedColor = getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || 'var(--cyan)';
+            resolvedColor = getComputedStyle(document.documentElement).getPropertyValue(varName).trim() || '#18E6FF';
         }
 
         let frameId: number;

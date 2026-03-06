@@ -218,7 +218,7 @@ const ProcessVisualizerContent = () => {
                         </div>
                         <div>
                             <h1 className="text-[13px] font-black font-mono uppercase tracking-[0.3em] text-white leading-none">Process Mapper</h1>
-                            <span className="text-[8px] text-gray-500 font-mono uppercase tracking-widest mt-1 block uppercase">V9.5 - THE D-Ecosystem</span>
+                            <span className="text-[8px] text-gray-500 font-mono uppercase tracking-widest mt-1 block uppercase">V1.0 - THE D-Ecosystem</span>
                         </div>
                     </div>
 
@@ -510,11 +510,11 @@ const ProcessVisualizerContent = () => {
                         <Activity size={14} className="text-[var(--cyan)]/60" /> Operational
                     </span>
                     <span className="flex items-center gap-3 font-black tracking-widest uppercase">
-                        <Binary size={14} className="text-[var(--amethyst)]" /> V9.5 - THE D-Ecosystem
+                        <Binary size={14} className="text-[var(--amethyst)]" /> V1.0 - THE D-Ecosystem
                     </span>
                 </div>
                 <div className="flex items-center gap-8 shrink-0">
-                    <span className="opacity-40 font-black tracking-widest uppercase">V9.5 - THE D-Ecosystem</span>
+                    <span className="opacity-40 font-black tracking-widest uppercase">V1.0 - THE D-Ecosystem</span>
                     <div className="h-4 w-px bg-white/10" />
                     <span className="text-[var(--text-muted)]">THE D-ECOSYSTEM PRODUCTION CORE</span>
                 </div>

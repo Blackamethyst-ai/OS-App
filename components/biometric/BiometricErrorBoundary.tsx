@@ -56,13 +56,13 @@ export class BiometricErrorBoundary extends Component<Props, State> {
       }
     }));
 
-    // Increment error count
-    this.setState(prev => ({ errorCount: prev.errorCount + 1 }));
+    // Track error count without triggering re-render (use class field)
+    const newCount = this.state.errorCount + 1;
 
     // Auto-recover after 5 seconds (if less than 3 errors)
-    if (this.state.errorCount < 3) {
+    if (newCount < 3) {
       this.resetTimeoutId = setTimeout(() => {
-        this.setState({ hasError: false, error: null });
+        this.setState(prev => ({ hasError: false, error: null, errorCount: prev.errorCount + 1 }));
       }, 5000);
     }
   }
@@ -111,10 +111,7 @@ export class BiometricErrorBoundary extends Component<Props, State> {
               </p>
             )}
           </div>
-          {/* Render children in "safe mode" without adaptive features */}
-          <div className="opacity-80">
-            {this.props.children}
-          </div>
+          {/* Do NOT re-render children here — they threw the error */}
         </div>
       );
     }

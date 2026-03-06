@@ -82,9 +82,9 @@
       "label": "AuthModule.tsx",
       "type": "file",
       "parentId": "folder-components",
-      "radius": 2,
+      "radius": 3,
       "risk": "LOW",
-      "tier": 3,
+      "tier": 2,
       "exports": [],
       "imports": [],
       "isComponent": true,
@@ -12228,6 +12228,11 @@
       "type": "imports"
     },
     {
+      "source": "file-5",
+      "target": "file-33",
+      "type": "imports"
+    },
+    {
       "source": "file-6",
       "target": "file-198",
       "type": "imports"
@@ -17779,10 +17784,10 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-03-06T10:50:06.230Z",
+    "generatedAt": "2026-03-06T12:42:22.207Z",
     "rootDir": "/Users/dicoangelo/projects/apps/OS-App",
     "nodeCount": 527,
-    "edgeCount": 1551,
+    "edgeCount": 1552,
     "voiceEnabled": 10
   }
 }

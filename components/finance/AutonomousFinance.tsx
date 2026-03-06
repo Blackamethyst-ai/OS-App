@@ -201,7 +201,7 @@ const AutonomousFinance: React.FC = () => {
                             <h1 className="text-xl font-black font-mono text-[var(--text-primary)] uppercase tracking-[0.5em] leading-none">Financial Core</h1>
                             <span className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-3 block flex items-center gap-2">
                                 <Activity size={12} className="text-[var(--plasma-green)]" /> 
-                                Sovereign Finance Module // V9.5
+                                Sovereign Finance Module // V1.0
                             </span>
                         </div>
                     </div>

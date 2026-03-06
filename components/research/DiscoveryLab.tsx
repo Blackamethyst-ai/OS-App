@@ -127,7 +127,7 @@ const DiscoveryLab: React.FC = () => {
                         <FlaskConical className="w-4 h-4 text-[var(--cyan)]" />
                     </div>
                     <div>
-                        <h1 className="text-sm font-bold font-mono uppercase tracking-widest text-white uppercase">V9.5 - THE D-Ecosystem</h1>
+                        <h1 className="text-sm font-bold font-mono uppercase tracking-widest text-white uppercase">V1.0 - THE D-Ecosystem</h1>
                         <p className="text-[9px] text-gray-500 font-mono">Autonomous Science Protocol</p>
                     </div>
                 </div>

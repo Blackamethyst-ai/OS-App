@@ -280,7 +280,7 @@ const AgentControlCenter: React.FC = () => {
                         </div>
                         <div>
                             <h1 className="text-sm font-black text-white uppercase tracking-[0.5em] leading-none">Swarm Hub</h1>
-                            <p className="text-[8px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-1.5">Autonomous Node Orchestration // v9.5</p>
+                            <p className="text-[8px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-1.5">Autonomous Node Orchestration // v1.0</p>
                         </div>
                     </div>
 
@@ -574,7 +574,7 @@ const AgentControlCenter: React.FC = () => {
                     </div>
                 </div>
                 <div className="flex items-center gap-12">
-                    <span>LATTICE_CORE_V9.5.4</span>
+                    <span>LATTICE_CORE_V1.0.4</span>
                     <div className="h-5 w-px bg-white/10" />
                     <span className="text-gray-500">THE D-ECOSYSTEM ZENITH_OS</span>
                 </div>

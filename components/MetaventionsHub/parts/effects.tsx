@@ -105,7 +105,7 @@ export const NeuralFileStream: React.FC<NeuralFileStreamProps> = ({ active, isDr
             size: Math.random() * 2 + 1,
             color: isDraggingOver
                 ? '#ffffff'
-                : ['var(--amethyst-soft)', 'var(--cyan)', 'var(--executive-gold)', 'var(--plasma-green)'][Math.floor(Math.random() * 4)]
+                : ['#9d4edd', '#18E6FF', '#f1c21b', '#10b981'][Math.floor(Math.random() * 4)]
         }));
 
         let frameId: number;

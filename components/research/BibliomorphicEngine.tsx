@@ -148,7 +148,7 @@ const BibliomorphicEngine: React.FC = () => {
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                         <div className="text-[11px] font-black font-mono text-[var(--text-muted)] uppercase tracking-widest px-1">Synthesis Readout</div>
                         <div className="bg-[var(--bg-card-bottom)] p-5 rounded-[1.5rem] border border-[var(--border-main)] shadow-inner">
-                            <span className="text-[9px] font-mono text-[var(--text-muted)] uppercase">V9.5 - THE D-Ecosystem</span>
+                            <span className="text-[9px] font-mono text-[var(--text-muted)] uppercase">V1.0 - THE D-Ecosystem</span>
                             <p className="text-[10px] text-gray-500 mt-2 font-mono leading-relaxed uppercase">Establishing cognitive research bridges for the D-Ecosystem.</p>
                         </div>
                       </motion.div>

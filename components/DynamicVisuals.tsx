@@ -330,7 +330,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                         <span className="flex items-center gap-2"><CheckCircle2 size={10} className="text-[var(--plasma-green)]" /> Handshake Verified</span>
                         <span className="flex items-center gap-2"><Globe size={10} className="text-[var(--cyan)]" /> Grid_Active</span>
                     </div>
-                    <span>Zenith_Vis_v9.5</span>
+                    <span>Zenith_Vis_v1.0</span>
                 </div>
             </div>
         </div>

@@ -212,9 +212,11 @@ const AgentHive = () => {
 
 const MetricCard = ({ title, value, detail, icon: Icon, color, data, trend }: any) => (
     <div className="crystalline rounded-2xl p-4 h-24 flex flex-col justify-between transition-all hover:border-white/20 group relative overflow-hidden">
+        {/* Colored glow on hover */}
+        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" style={{ background: `radial-gradient(circle at 20% 50%, ${color}10 0%, transparent 70%)` }} />
         <div className="flex justify-between items-start relative z-10">
             <div className="flex items-center gap-3">
-                <div className="p-1.5 rounded-lg glass-action text-gray-500 group-hover:text-white transition-all border-white/10">
+                <div className="p-1.5 rounded-lg glass-action text-gray-500 group-hover:text-white transition-all border-white/10" style={{ boxShadow: `0 0 0px ${color}` }}>
                     <Icon size={12} style={{ color }} />
                 </div>
                 <span className="text-[9px] font-black font-mono text-gray-500 uppercase tracking-widest group-hover:text-white transition-colors">{title}</span>
@@ -226,10 +228,10 @@ const MetricCard = ({ title, value, detail, icon: Icon, color, data, trend }: an
         </div>
         <div className="flex items-end justify-between relative z-10">
             <div className="text-xl font-black font-mono text-white tracking-tighter leading-none">{value}</div>
-            <div className="h-8 w-20 opacity-20 group-hover:opacity-60 transition-opacity">
+            <div className="h-8 w-20 opacity-30 group-hover:opacity-70 transition-opacity">
                 <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
                     <AreaChart data={data}>
-                        <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill={color} fillOpacity={0.1} isAnimationActive={false} />
+                        <Area type="monotone" dataKey="value" stroke={color} strokeWidth={2} fill={color} fillOpacity={0.15} isAnimationActive={false} />
                     </AreaChart>
                 </ResponsiveContainer>
             </div>
