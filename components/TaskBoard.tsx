@@ -14,8 +14,8 @@ import { decomposeTaskToSubtasks, promptSelectKey } from '../services/geminiServ
 import { audio } from '../services/audioService';
 
 const PRIORITY_COLORS: Record<TaskPriority, string> = {
-    [TaskPriority.LOW]: '#10b981',
-    [TaskPriority.MEDIUM]: '#f59e0b',
+    [TaskPriority.LOW]: 'var(--plasma-green)',
+    [TaskPriority.MEDIUM]: 'var(--amber)',
     [TaskPriority.HIGH]: '#ef4444',
     [TaskPriority.CRITICAL]: '#ef4444'
 };

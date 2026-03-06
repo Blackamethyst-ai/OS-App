@@ -6,15 +6,15 @@ import { audio } from '../services/audioService';
 import { AppTheme } from '../types';
 
 const UI_PREVIEW_MAP: Record<AppTheme, { bg: string; accent: string; text: string }> = {
-    [AppTheme.DARK]: { bg: '#030303', accent: '#9d4edd', text: '#e5e5e5' },
+    [AppTheme.DARK]: { bg: '#030303', accent: 'var(--amethyst-soft)', text: '#e5e5e5' },
     [AppTheme.LIGHT]: { bg: '#F5F7FA', accent: '#0B1020', text: '#0B1020' },
     [AppTheme.CONTRAST]: { bg: '#000000', accent: '#ffffff', text: '#ffffff' },
     [AppTheme.HIGH_CONTRAST]: { bg: '#000000', accent: '#00ff00', text: '#00ff00' },
-    [AppTheme.AMBER]: { bg: '#0a0a0a', accent: '#f59e0b', text: '#f59e0b' },
+    [AppTheme.AMBER]: { bg: '#0a0a0a', accent: 'var(--amber)', text: 'var(--amber)' },
     [AppTheme.SOLARIZED]: { bg: '#fdf6e3', accent: '#2aa198', text: '#657b83' },
-    [AppTheme.MIDNIGHT]: { bg: '#020617', accent: '#3b82f6', text: '#e2e8f0' },
-    [AppTheme.NEON_CYBER]: { bg: '#000000', accent: '#d946ef', text: '#22d3ee' },
-    [AppTheme.CUSTOM]: { bg: '#030303', accent: '#9d4edd', text: '#e5e5e5' }
+    [AppTheme.MIDNIGHT]: { bg: '#020617', accent: 'var(--azure-blue)', text: '#e2e8f0' },
+    [AppTheme.NEON_CYBER]: { bg: '#000000', accent: '#d946ef', text: 'var(--cyan)' },
+    [AppTheme.CUSTOM]: { bg: '#030303', accent: 'var(--amethyst-soft)', text: '#e5e5e5' }
 };
 
 const ThemeSwitcher: React.FC = () => {
@@ -26,14 +26,14 @@ const ThemeSwitcher: React.FC = () => {
     const [hoveredTheme, setHoveredTheme] = useState<AppTheme | null>(null);
 
     const themes = [
-        { id: AppTheme.DARK, icon: Moon, label: 'Void Core', color: '#9d4edd', desc: 'Obsidian logic interface' },
+        { id: AppTheme.DARK, icon: Moon, label: 'Void Core', color: 'var(--amethyst-soft)', desc: 'Obsidian logic interface' },
         { id: AppTheme.LIGHT, icon: Sun, label: 'High Light', color: '#0B1020', desc: 'Clarity focus palette' },
-        { id: AppTheme.MIDNIGHT, icon: Box, label: 'Midnight', color: '#3b82f6', desc: 'Deep blue oceanic focus' },
-        { id: AppTheme.AMBER, icon: Terminal, label: 'Amber Protocol', color: '#f59e0b', desc: 'Retro-industrial terminal' },
+        { id: AppTheme.MIDNIGHT, icon: Box, label: 'Midnight', color: 'var(--azure-blue)', desc: 'Deep blue oceanic focus' },
+        { id: AppTheme.AMBER, icon: Terminal, label: 'Amber Protocol', color: 'var(--amber)', desc: 'Retro-industrial terminal' },
         { id: AppTheme.SOLARIZED, icon: Book, label: 'Solarized', color: '#2aa198', desc: 'Optimized reading mode' },
         { id: AppTheme.NEON_CYBER, icon: Zap, label: 'Neon Cyber', color: '#d946ef', desc: 'High-entropy visual skin' },
         { id: AppTheme.CONTRAST, icon: Contrast, label: 'High Contrast', color: '#ffffff', desc: 'Pure black/white access' },
-        { id: AppTheme.CUSTOM, icon: Palette, label: 'Custom Skin', color: '#9d4edd', desc: 'User-defined visual parameters' }
+        { id: AppTheme.CUSTOM, icon: Palette, label: 'Custom Skin', color: 'var(--amethyst-soft)', desc: 'User-defined visual parameters' }
     ];
 
     const currentTheme = themes.find(t => t.id === theme) || themes[0];
@@ -52,7 +52,7 @@ const ThemeSwitcher: React.FC = () => {
         <div className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="p-2 text-gray-500 hover:text-white transition-all border border-transparent hover:border-[#333] rounded-lg bg-transparent hover:bg-white/5 flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d4edd] focus-visible:outline-offset-2"
+                className="p-2 text-gray-500 hover:text-white transition-all border border-transparent hover:border-[#333] rounded-lg bg-transparent hover:bg-white/5 flex items-center justify-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--amethyst-soft)] focus-visible:outline-offset-2"
                 title="Change Interface Theme"
                 aria-label="Change interface theme"
             >

@@ -11,7 +11,7 @@ const NeuralHeader: React.FC = () => {
         <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="relative cursor-pointer group flex items-center justify-center bg-black/40 rounded-xl border border-white/5 hover:border-[var(--amethyst-soft)]/50 transition-all shadow-inner px-3 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d4edd] focus-visible:outline-offset-2"
+            className="relative cursor-pointer group flex items-center justify-center bg-black/40 rounded-xl border border-white/5 hover:border-[var(--amethyst-soft)]/50 transition-all shadow-inner px-3 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--amethyst-soft)] focus-visible:outline-offset-2"
             role="button"
             tabIndex={0}
             aria-label="Toggle terminal"

@@ -274,7 +274,7 @@ const ArchonDashboard: React.FC = () => {
                                     value={100 - (telemetry?.escalations || 0) * 10}
                                     max={100}
                                     label="Autonomy"
-                                    color="#3b82f6"
+                                    color="var(--azure-blue)"
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-3 mt-4">

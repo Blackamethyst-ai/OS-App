@@ -409,7 +409,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                                     </div>
                                     <div className="h-12 w-full">
                                         <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
-                                            <LineChart data={conflictHealth}><Line type="monotone" dataKey="tension" stroke="#9d4edd" strokeWidth={2} dot={false} isAnimationActive={false} /><YAxis domain={[0, 100]} hide /></LineChart>
+                                            <LineChart data={conflictHealth}><Line type="monotone" dataKey="tension" stroke="var(--amethyst-soft)" strokeWidth={2} dot={false} isAnimationActive={false} /><YAxis domain={[0, 100]} hide /></LineChart>
                                         </ResponsiveContainer>
                                     </div>
                                 </div>

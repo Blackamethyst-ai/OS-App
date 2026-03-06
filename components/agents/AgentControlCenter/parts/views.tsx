@@ -463,7 +463,7 @@ export const CommandStrip: React.FC<CommandStripProps> = ({
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: '100%' }}
                                 exit={{ opacity: 0, height: 0 }}
-                                className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-transparent via-[#22d3ee] to-transparent z-20"
+                                className="absolute inset-x-0 top-0 h-1.5 bg-gradient-to-r from-transparent via-[var(--cyan)] to-transparent z-20"
                             />
                         )}
                     </AnimatePresence>
@@ -555,12 +555,12 @@ export const NodeSelector: React.FC<NodeSelectorProps> = ({ agents, selectedId, 
                         </div>
                         <div className={cn(
                             "w-2 h-2 rounded-full",
-                            agent.status === 'ACTIVE' ? "bg-[var(--plasma-green)] animate-pulse shadow-[0_0_10px_#10b981]" : "bg-gray-800"
+                            agent.status === 'ACTIVE' ? "bg-[var(--plasma-green)] animate-pulse shadow-[0_0_10px_var(--plasma-green)]" : "bg-gray-800"
                         )} />
                     </div>
                     <div className="space-y-2.5">
                         <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                            <motion.div initial={{ width: 0 }} animate={{ width: `${agent.energyLevel}%` }} className="h-full bg-gradient-to-r from-[var(--amethyst-soft)] to-[#22d3ee]" />
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${agent.energyLevel}%` }} className="h-full bg-gradient-to-r from-[var(--amethyst-soft)] to-[var(--cyan)]" />
                         </div>
                         <div className="flex justify-between text-[7px] font-mono text-gray-600 uppercase tracking-widest">
                             <span>Skills: {agent.capabilities.length}</span>

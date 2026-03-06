@@ -132,7 +132,7 @@ const MetaventionsHub: React.FC = () => {
                     ctx.beginPath();
                     ctx.moveTo(cx + Math.cos(angle) * r1, cy + Math.sin(angle) * r1);
                     ctx.lineTo(cx + Math.cos(angle) * r2, cy + Math.sin(angle) * r2);
-                    ctx.strokeStyle = i % 2 === 0 ? '#9d4edd' : '#22d3ee';
+                    ctx.strokeStyle = i % 2 === 0 ? '#9d4edd' : '#18E6FF';
                     ctx.lineWidth = 1.5;
                     ctx.stroke();
                 }
@@ -378,7 +378,7 @@ const MetaventionsHub: React.FC = () => {
                                 </div>
                                 <h1 className="text-2xl font-black text-white uppercase font-mono tracking-tighter leading-none mt-1.5 flex items-center gap-3">
                                     The D-Ecosystem
-                                    <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 2, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full bg-[var(--amethyst-soft)] shadow-[0_0_12px_#9d4edd]" />
+                                    <motion.div animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 2, repeat: Infinity }} className="w-1.5 h-1.5 rounded-full bg-[var(--amethyst-soft)] shadow-[0_0_12px_var(--amethyst-soft)]" />
                                 </h1>
                             </div>
                         </div>
@@ -388,7 +388,7 @@ const MetaventionsHub: React.FC = () => {
                                     <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-1 group-hover:text-white transition-colors">Global Lattice</span>
                                     <div className="flex items-center gap-4 mt-0.5">
                                         <span className="text-2xl font-black font-mono text-white tracking-tighter">99.99%</span>
-                                        <div className="w-2.5 h-2.5 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_15px_#10b981]" />
+                                        <div className="w-2.5 h-2.5 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_15px_var(--plasma-green)]" />
                                     </div>
                                 </div>
                                 <div className="h-10 w-px bg-white/5" />
@@ -398,7 +398,7 @@ const MetaventionsHub: React.FC = () => {
                                         <span className="text-2xl font-black font-mono text-white tracking-tighter">{telemetry.entropy.toFixed(1)}</span>
                                         <div className={cn(
                                             "w-2.5 h-2.5 rounded-full animate-pulse transition-all duration-700",
-                                            telemetry.entropy > 12 ? 'bg-[#ef4444] shadow-[0_0_15px_#ef4444]' : 'bg-[var(--amethyst-soft)] shadow-[0_0_15px_#9d4edd]'
+                                            telemetry.entropy > 12 ? 'bg-[#ef4444] shadow-[0_0_15px_#ef4444]' : 'bg-[var(--amethyst-soft)] shadow-[0_0_15px_var(--amethyst-soft)]'
                                         )} />
                                     </div>
                                 </div>
@@ -435,7 +435,7 @@ const MetaventionsHub: React.FC = () => {
                                     >
                                         {['INITIALIZING_PARA_DRIVE_V8', 'CLOUD_NODES_STABILIZED', 'DEPIN_EQUITY_LOCKED', 'RECURSIVE_ZETTELKASTEN_SYNC', 'IA_ORCHESTRATION_L0_OK'].map((msg, i) => (
                                             <div key={i} className="flex items-center gap-3">
-                                                <div className="w-1 h-1 rounded-full bg-[var(--amethyst-soft)] shadow-[0_0_8px_#9d4edd]" />
+                                                <div className="w-1 h-1 rounded-full bg-[var(--amethyst-soft)] shadow-[0_0_8px_var(--amethyst-soft)]" />
                                                 <span className="text-[8px] font-black font-mono text-white/40 uppercase tracking-[0.5em]">{msg}</span>
                                             </div>
                                         ))}
@@ -446,7 +446,7 @@ const MetaventionsHub: React.FC = () => {
                             <motion.div
                                 animate={{ top: ['0%', '100%', '0%'] }}
                                 transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                                className="absolute left-0 right-0 h-[2px] bg-[var(--cyan)] shadow-[0_0_20px_#18E6FF] z-40 pointer-events-none opacity-30"
+                                className="absolute left-0 right-0 h-[2px] bg-[var(--cyan)] shadow-[0_0_20px_var(--cyan)] z-40 pointer-events-none opacity-30"
                             />
                             <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-black/20 shrink-0 z-20 relative">
                                 <div className="flex items-center gap-4">
@@ -481,7 +481,7 @@ const MetaventionsHub: React.FC = () => {
                                             onClick={() => setShowBlueprint(!showBlueprint)}
                                             className={cn(
                                                 "flex items-center gap-2 px-4 py-1 rounded-full border transition-all",
-                                                showBlueprint ? "bg-[var(--cyan)] border-[var(--cyan)] text-black shadow-[0_0_15px_#22d3ee]" : "bg-black/40 border-white/10 text-[var(--cyan)] hover:bg-[var(--cyan)]/10"
+                                                showBlueprint ? "bg-[var(--cyan)] border-[var(--cyan)] text-black shadow-[0_0_15px_var(--cyan)]" : "bg-black/40 border-white/10 text-[var(--cyan)] hover:bg-[var(--cyan)]/10"
                                             )}
                                         >
                                             <Workflow size={12} />
@@ -620,7 +620,7 @@ const MetaventionsHub: React.FC = () => {
                                                     <span className="text-[12px] font-black font-mono text-[var(--cyan)]">{dashboard.deploymentProgress}%</span>
                                                 </div>
                                                 <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                                                    <motion.div className="h-full bg-gradient-to-r from-[#22d3ee] to-[var(--cyan)] shadow-[0_0_20px_#22d3ee]" animate={{ width: `${dashboard.deploymentProgress}%` }} />
+                                                    <motion.div className="h-full bg-gradient-to-r from-[var(--cyan)] to-[var(--cyan)] shadow-[0_0_20px_var(--cyan)]" animate={{ width: `${dashboard.deploymentProgress}%` }} />
                                                 </div>
                                                 <div className="space-y-2">
                                                     <div className="text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest">Active Process Sequence:</div>
@@ -716,7 +716,7 @@ const MetaventionsHub: React.FC = () => {
                                                 <PolarGrid stroke="#333" />
                                                 <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
                                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                                <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
+                                                <RechartRadar dataKey="A" stroke="var(--executive-gold)" fill="var(--executive-gold)" fillOpacity={0.2} isAnimationActive={false} />
                                             </RadarChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -740,8 +740,8 @@ const MetaventionsHub: React.FC = () => {
                                     <div className="grid grid-cols-2 gap-4 relative z-10">
                                         <CompactMetric title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="var(--cyan)" trend="up" />
                                         <CompactMetric title="BANDWIDTH" value={`${telemetry.net}GB/s`} detail="PEAK" icon={Radio} color="var(--amethyst)" trend="up" />
-                                        <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" trend="up" />
-                                        <CompactMetric title="LATENCY" value="2.4ms" detail="OPTIMAL" icon={Zap} color="#f59e0b" trend="up" />
+                                        <CompactMetric title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="var(--plasma-green)" trend="up" />
+                                        <CompactMetric title="LATENCY" value="2.4ms" detail="OPTIMAL" icon={Zap} color="var(--amber)" trend="up" />
                                     </div>
                                 </div>
                             </div>
@@ -771,7 +771,7 @@ const MetaventionsHub: React.FC = () => {
                                     </div>
                                     <motion.div onClick={() => fileInputRef.current?.click()} whileHover="scanning" className="h-48 bg-black/60 rounded-xl border border-white/10 flex items-center justify-center overflow-hidden relative group/v-anchor shadow-inner z-10 cursor-pointer flex-1">
                                         <input type="file" ref={fileInputRef} className="hidden" onChange={handleAnchorSwap} accept="image/*" />
-                                        <motion.div variants={{ scanning: { top: ['0%', '100%', '0%'], opacity: 1 } }} animate={isSyncing ? "scanning" : { opacity: 0 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute left-0 right-0 h-[2px] bg-[var(--cyan)] shadow-[0_0_20px_#18E6FF] z-30 pointer-events-none" />
+                                        <motion.div variants={{ scanning: { top: ['0%', '100%', '0%'], opacity: 1 } }} animate={isSyncing ? "scanning" : { opacity: 0 }} transition={{ duration: 2, repeat: Infinity, ease: "linear" }} className="absolute left-0 right-0 h-[2px] bg-[var(--cyan)] shadow-[0_0_20px_var(--cyan)] z-30 pointer-events-none" />
                                         {dashboard.referenceImage ? (
                                             <>
                                                 <img src={`data:${dashboard.referenceImage.inlineData.mimeType};base64,${dashboard.referenceImage.inlineData.data}`} className="w-full h-full object-cover grayscale opacity-40 transition-all duration-1000 group-hover/v-anchor:opacity-90 group-hover/v-anchor:grayscale-0" alt="Anchor" />
@@ -789,7 +789,7 @@ const MetaventionsHub: React.FC = () => {
                                             </>
                                         ) : (
                                             <div className="flex flex-col items-center gap-4 opacity-20 group-hover/anchor:opacity-40 transition-opacity">
-                                                <motion.div variants={{ scanning: { color: "#18E6FF", scale: 1.1 } }} className="w-14 h-14 rounded-full border border-dashed border-white/30 flex items-center justify-center">
+                                                <motion.div variants={{ scanning: { color: "var(--cyan)", scale: 1.1 } }} className="w-14 h-14 rounded-full border border-dashed border-white/30 flex items-center justify-center">
                                                     <Fingerprint size={24} />
                                                 </motion.div>
                                                 <span className="text-[9px] font-black uppercase tracking-[0.5em] font-mono">Load Identity Key</span>
@@ -816,7 +816,7 @@ const MetaventionsHub: React.FC = () => {
                                 <h2 className="text-white text-3xl font-black font-mono uppercase tracking-[0.3em] drop-shadow-[0_0_20px_rgba(0,0,0,1)]">The D-Ecosystem</h2>
                                 <div className="space-y-2">
                                     <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-6 py-2.5 rounded-full border border-white/10 shadow-2xl w-fit">
-                                        <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_8px_#10b981]" />
+                                        <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_8px_var(--plasma-green)]" />
                                         <span className="text-[9px] font-black font-mono text-white uppercase tracking-[0.3em]">Autonomous_Swarm_Lattice // Active</span>
                                     </div>
                                     <div className="flex items-center gap-2 pl-6">

@@ -247,7 +247,7 @@ const MemoryCore: React.FC = () => {
             type: 'CONCEPT' as const,
             strength: a.analysis?.ambiguityScore ? 100 - a.analysis.ambiguityScore : 70,
             connections: Array.isArray(a.tags) ? a.tags.map(t => String(t)) : [],
-            color: '#9d4edd',
+            color: 'var(--amethyst-soft)',
             data: a.analysis
         }));
     }, [filteredArtifacts]);
@@ -454,7 +454,7 @@ const MemoryCore: React.FC = () => {
                                 <div className="flex items-center gap-4 text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] px-2">
                                     <Sparkles size={16} className="text-[var(--amethyst-soft)]" /> Technical Summary
                                 </div>
-                                <div className="p-10 bg-black/60 border border-white/5 rounded-[3.5rem] text-[15px] font-mono text-gray-300 leading-relaxed italic border-l-[6px] border-l-[#9d4edd] shadow-inner">
+                                <div className="p-10 bg-black/60 border border-white/5 rounded-[3.5rem] text-[15px] font-mono text-gray-300 leading-relaxed italic border-l-[6px] border-l-[var(--amethyst-soft)] shadow-inner">
                                     "{renderSafe(selectedArtifact.analysis?.summary) || 'Integrity check in progress.'}"
                                 </div>
                             </div>

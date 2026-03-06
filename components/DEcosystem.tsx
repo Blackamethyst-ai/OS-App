@@ -4,13 +4,13 @@ import { Activity, ShieldCheck, Globe, Target, Cpu, Database, Binary } from 'luc
 
 // --- Configuration & High-Fidelity Metadata ---
 const SECTORS = [
-  { id: 'vision', label: 'VISION', load: 8.2, color: '#f59e0b', angle: -160, detail: 'Semantic_Mapping' },
-  { id: 'process', label: 'PROCESS', load: 12.8, color: '#9d4edd', angle: -135, detail: 'Lattice_Synthesis' },
-  { id: 'treasury', label: 'TREASURY', load: 5.1, color: '#f1c21b', angle: -110, detail: 'Liquid_Capital' },
-  { id: 'vault', label: 'VAULT', load: 4.5, color: '#22d3ee', angle: -85, detail: 'Vector_Memory' },
-  { id: 'studio', label: 'STUDIO', load: 3.9, color: '#10b981', angle: -60, detail: 'Cinematic_Forge' },
+  { id: 'vision', label: 'VISION', load: 8.2, color: 'var(--amber)', angle: -160, detail: 'Semantic_Mapping' },
+  { id: 'process', label: 'PROCESS', load: 12.8, color: 'var(--amethyst-soft)', angle: -135, detail: 'Lattice_Synthesis' },
+  { id: 'treasury', label: 'TREASURY', load: 5.1, color: 'var(--executive-gold)', angle: -110, detail: 'Liquid_Capital' },
+  { id: 'vault', label: 'VAULT', load: 4.5, color: 'var(--cyan)', angle: -85, detail: 'Vector_Memory' },
+  { id: 'studio', label: 'STUDIO', load: 3.9, color: 'var(--plasma-green)', angle: -60, detail: 'Cinematic_Forge' },
   { id: 'hardware', label: 'HARDWARE', load: 2.7, color: '#ec4899', angle: -35, detail: 'Infra_L0' },
-  { id: 'voice', label: 'VOICE', load: 2.1, color: '#3b82f6', angle: -10, detail: 'Neural_Uplink' },
+  { id: 'voice', label: 'VOICE', load: 2.1, color: 'var(--azure-blue)', angle: -10, detail: 'Neural_Uplink' },
   { id: 'bridge', label: 'BRIDGE', load: 1.8, color: '#94a3b8', angle: 15, detail: 'Cross_Lattice' },
   { id: 'swarm', label: 'SWARM', load: 1.4, color: '#a855f7', angle: 40, detail: 'Consensus_Engine' },
   { id: 'code', label: 'CODE', load: 22.1, color: '#00f2ff', angle: 110, detail: 'Logic_Recursion' },
@@ -326,7 +326,7 @@ const DEcosystem: React.FC<DEcosystemProps> = ({ sectorOverrides = {} }) => {
         <motion.div
           animate={{ scale: [1, 1.015, 1], y: [0, -5, 0] }}
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          className="w-96 h-96 rounded-full bg-[#050508]/80 backdrop-blur-[80px] border border-[#7B2CFF]/30 flex flex-col items-center justify-center shadow-[0_0_200px_rgba(123,44,255,0.25)] relative"
+          className="w-96 h-96 rounded-full bg-[#050508]/80 backdrop-blur-[80px] border border-[var(--amethyst)]/30 flex flex-col items-center justify-center shadow-[0_0_200px_rgba(123,44,255,0.25)] relative"
         >
           <div className="absolute inset-[-60px] rounded-full border border-purple-500/5 animate-[ping_10s_linear_infinite]" />
           <div className="absolute inset-[-120px] rounded-full border border-cyan-500/5 animate-[pulse_15s_ease-in-out_infinite]" />
@@ -348,7 +348,7 @@ const DEcosystem: React.FC<DEcosystemProps> = ({ sectorOverrides = {} }) => {
                   key={i}
                   animate={{ height: [12, 56, 12] }}
                   transition={{ duration: 0.3 + i * 0.06, repeat: Infinity, ease: "easeInOut" }}
-                  className="w-2.5 bg-gradient-to-t from-transparent via-[#22d3ee] to-white rounded-full shadow-[0_0_20px_rgba(34,211,238,0.5)]"
+                  className="w-2.5 bg-gradient-to-t from-transparent via-[var(--cyan)] to-white rounded-full shadow-[0_0_20px_rgba(34,211,238,0.5)]"
                 />
               ))}
             </div>

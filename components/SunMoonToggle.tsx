@@ -36,7 +36,7 @@ const SunMoonToggle: React.FC = () => {
                         exit={{ y: -20, opacity: 0, rotate: 45 }}
                         transition={{ duration: 0.2, ease: "circOut" }}
                     >
-                        <Moon size={18} className="text-[var(--amethyst-soft)] group-hover:drop-shadow-[0_0_8px_#9d4edd]" />
+                        <Moon size={18} className="text-[var(--amethyst-soft)] group-hover:drop-shadow-[0_0_8px_var(--amethyst-soft)]" />
                     </motion.div>
                 ) : (
                     <motion.div
@@ -46,7 +46,7 @@ const SunMoonToggle: React.FC = () => {
                         exit={{ y: -20, opacity: 0, rotate: 45 }}
                         transition={{ duration: 0.2, ease: "circOut" }}
                     >
-                        <Sun size={18} className="text-[var(--executive-gold)] group-hover:drop-shadow-[0_0_8px_#f1c21b]" />
+                        <Sun size={18} className="text-[var(--executive-gold)] group-hover:drop-shadow-[0_0_8px_var(--executive-gold)]" />
                     </motion.div>
                 )}
             </AnimatePresence>

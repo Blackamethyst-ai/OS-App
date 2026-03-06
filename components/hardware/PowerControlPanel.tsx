@@ -78,10 +78,10 @@ const PowerControlPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
 
     const getModeColor = (mode: PowerMode) => {
         switch (mode) {
-            case 'ECO': return '#10b981';
-            case 'BALANCED': return '#f59e0b';
+            case 'ECO': return 'var(--plasma-green)';
+            case 'BALANCED': return 'var(--amber)';
             case 'OVERDRIVE': return '#ef4444';
-            default: return '#9d4edd';
+            default: return 'var(--amethyst-soft)';
         }
     };
 

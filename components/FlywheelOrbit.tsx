@@ -6,8 +6,8 @@ const FlywheelOrbit: React.FC = () => {
   const { velocity, confidenceScore } = useFlywheelStore();
 
   const getTheme = (score: number) => {
-    if (score > 0.8) return { color: '#22d3ee', glow: 'shadow-[0_0_15px_rgba(34,211,238,0.4)]' };
-    if (score > 0.5) return { color: '#9d4edd', glow: 'shadow-[0_0_10px_rgba(157,78,221,0.3)]' };
+    if (score > 0.8) return { color: 'var(--cyan)', glow: 'shadow-[0_0_15px_rgba(34,211,238,0.4)]' };
+    if (score > 0.5) return { color: 'var(--amethyst-soft)', glow: 'shadow-[0_0_10px_rgba(157,78,221,0.3)]' };
     return { color: '#ef4444', glow: 'shadow-[0_0_10px_rgba(239,68,68,0.2)]' };
   };
 

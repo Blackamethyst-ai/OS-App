@@ -77,7 +77,7 @@ const SystemTerminal: React.FC = () => {
                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                                 className="absolute inset-0 flex items-center justify-center pointer-events-none"
                             >
-                                <div className="flex items-center gap-3 px-4 py-0.5 bg-[var(--cyan)] text-black rounded-full shadow-[0_0_15px_#22d3ee]">
+                                <div className="flex items-center gap-3 px-4 py-0.5 bg-[var(--cyan)] text-black rounded-full shadow-[0_0_15px_var(--cyan)]">
                                     <Scan size={10} className="animate-pulse" />
                                     <span className="text-[8px] font-black uppercase tracking-[0.3em]">ROOT_DIAGNOSTIC_ACTIVE</span>
                                 </div>

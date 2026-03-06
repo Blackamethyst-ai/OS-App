@@ -171,7 +171,7 @@ ${result.output}
                             >
                                 <FlaskConical size={18} />
                             </button>
-                            <button onClick={() => setShowControls(!showControls)} className={`p-2 rounded-lg transition-all ${showControls ? 'bg-[var(--amethyst-soft)] text-black shadow-lg shadow-[#9d4edd]/20' : 'hover:bg-white/5 text-gray-600'}`}>
+                            <button onClick={() => setShowControls(!showControls)} className={`p-2 rounded-lg transition-all ${showControls ? 'bg-[var(--amethyst-soft)] text-black shadow-lg shadow-[var(--amethyst-soft)]/20' : 'hover:bg-white/5 text-gray-600'}`}>
                                 <Settings2 size={18} />
                             </button>
                         </div>
@@ -198,7 +198,7 @@ ${result.output}
                                         </div>
                                         <span className="text-xs font-black font-mono text-[var(--amber)]">{agentWeights.excitement}%</span>
                                     </div>
-                                    <input type="range" className="w-full h-1 bg-[#1a1a1a] rounded-full appearance-none accent-[#f59e0b]" value={agentWeights.excitement} onChange={e => setAgentWeights({...agentWeights, excitement: parseInt(e.target.value, 10)})} />
+                                    <input type="range" className="w-full h-1 bg-[#1a1a1a] rounded-full appearance-none accent-[var(--amber)]" value={agentWeights.excitement} onChange={e => setAgentWeights({...agentWeights, excitement: parseInt(e.target.value, 10)})} />
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase tracking-widest px-1"><span>Active Directive Overlay</span> <Target size={10} className="text-[var(--amethyst-soft)]" /></div>
@@ -283,7 +283,7 @@ ${result.output}
                         </div>
                         {isSwarming && (
                              <div className="flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_10px_#10b981]" />
+                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_10px_var(--plasma-green)]" />
                                 <span className="text-[8px] font-mono text-[var(--plasma-green)] font-black uppercase">Simulating</span>
                             </div>
                         )}
@@ -336,7 +336,7 @@ ${result.output}
                             <div className="space-y-4">
                                 <div className="w-full bg-white/5 h-2 rounded-full overflow-hidden border border-white/5 max-w-md mx-auto p-0.5 shadow-inner">
                                     <motion.div 
-                                        className="h-full bg-gradient-to-r from-[var(--amethyst-soft)] via-[#22d3ee] to-[var(--plasma-green)] shadow-[0_0_20px_#9d4edd]"
+                                        className="h-full bg-gradient-to-r from-[var(--amethyst-soft)] via-[var(--cyan)] to-[var(--plasma-green)] shadow-[0_0_20px_var(--amethyst-soft)]"
                                         initial={{ width: 0 }}
                                         animate={{ width: `${swarmStatus.consensusProgress || 0}%` }}
                                         transition={{ duration: 0.8 }}

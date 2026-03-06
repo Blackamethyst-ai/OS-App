@@ -35,7 +35,7 @@ const PATH_CONFIG: Record<string, { label: string; color: string; icon: React.Re
     },
     hybrid: {
         label: 'HYBRID',
-        color: '#f59e0b',
+        color: 'var(--amber)',
         icon: <Brain size={14} />,
         description: 'RLM + ACE'
     },

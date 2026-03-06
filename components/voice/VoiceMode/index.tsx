@@ -65,7 +65,7 @@ const VoiceMode: React.FC = () => {
             'Puck': 'var(--amethyst)',
             'Charon': 'var(--plasma-green)',
             'Fenrir': 'var(--cyan)',
-            'Zephyr': '#3b82f6'
+            'Zephyr': 'var(--azure-blue)'
         };
         return colors[voice.voiceName] || colors[currentAgentMetadata?.name] || 'var(--amethyst)';
     }, [voice.voiceName, currentAgentMetadata]);

@@ -153,8 +153,8 @@ const EmotionalResonanceGraph: React.FC = () => {
                     <line x1={padding} y1={padding} x2={width - padding} y2={padding} stroke="#333" strokeWidth="1" strokeDasharray="4 4" />
                     <line x1={padding} y1={height/2} x2={width - padding} y2={height/2} stroke="#222" strokeWidth="1" />
                     
-                    <path d={getPath('tension')} fill="none" stroke="#9d4edd" strokeWidth="2" className="drop-shadow-[0_0_5px_rgba(157,78,221,0.5)]" />
-                    <path d={getPath('dynamics')} fill="none" stroke="#22d3ee" strokeWidth="2" className="drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]" />
+                    <path d={getPath('tension')} fill="none" stroke="var(--amethyst-soft)" strokeWidth="2" className="drop-shadow-[0_0_5px_rgba(157,78,221,0.5)]" />
+                    <path d={getPath('dynamics')} fill="none" stroke="var(--cyan)" strokeWidth="2" className="drop-shadow-[0_0_5px_rgba(34,211,238,0.5)]" />
 
                     {resonanceCurve.map((p, i) => {
                         const x = padding + i * xStep;
@@ -165,14 +165,14 @@ const EmotionalResonanceGraph: React.FC = () => {
                             <g key={i}>
                                 <circle 
                                     cx={x} cy={yTension} r={6} 
-                                    fill="#050505" stroke="#9d4edd" strokeWidth={2}
-                                    className="cursor-ns-resize hover:fill-[#9d4edd] transition-colors"
+                                    fill="#050505" stroke="var(--amethyst-soft)" strokeWidth={2}
+                                    className="cursor-ns-resize hover:fill-[var(--amethyst-soft)] transition-colors"
                                     onMouseDown={() => handleMouseDown(i, 'tension')}
                                 />
                                 <circle 
                                     cx={x} cy={yDynamics} r={4} 
-                                    fill="#050505" stroke="#22d3ee" strokeWidth={2}
-                                    className="cursor-ns-resize hover:fill-[#22d3ee] transition-colors"
+                                    fill="#050505" stroke="var(--cyan)" strokeWidth={2}
+                                    className="cursor-ns-resize hover:fill-[var(--cyan)] transition-colors"
                                     onMouseDown={() => handleMouseDown(i, 'dynamics')}
                                 />
                                 <line x1={x} y1={height - padding} x2={x} y2={height - padding + 5} stroke="#333" strokeWidth="1" />

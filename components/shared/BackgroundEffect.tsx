@@ -62,7 +62,7 @@ const BackgroundEffect: React.FC<BackgroundEffectProps> = ({
         <>
           <div 
             ref={glowRef1}
-            className={`absolute top-[-20%] left-[-10%] w-[80%] h-[80%] blur-[120px] rounded-full animate-pulse transition-colors duration-700 will-change-transform ${isDarkMode ? 'bg-[#7B2CFF]/10' : 'bg-[#7B2CFF]/5'}`} 
+            className={`absolute top-[-20%] left-[-10%] w-[80%] h-[80%] blur-[120px] rounded-full animate-pulse transition-colors duration-700 will-change-transform ${isDarkMode ? 'bg-[var(--amethyst)]/10' : 'bg-[var(--amethyst)]/5'}`} 
             style={{ animationDuration: '8s' }}
           ></div>
           <div 

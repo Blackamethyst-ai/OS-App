@@ -302,7 +302,7 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                                             </div>
                                                             <div className="flex items-center gap-3 mt-1">
                                                                 <div className="flex items-center gap-1">
-                                                                    <Star size={10} className="text-[var(--executive-gold)] fill-[#f1c21b]" />
+                                                                    <Star size={10} className="text-[var(--executive-gold)] fill-[var(--executive-gold)]" />
                                                                     <span className="text-[9px] text-gray-500 font-mono">{quote.rating}</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-1">

@@ -46,7 +46,7 @@ export const RelationalMemory: React.FC<RelationalMemoryProps> = ({ history }) =
                 >
                     <div
                         className="absolute top-0 left-0 w-1.5 h-full bg-current opacity-20"
-                        style={{ color: entry.role === 'AI' ? '#9d4edd' : '#666' }}
+                        style={{ color: entry.role === 'AI' ? 'var(--amethyst-soft)' : '#666' }}
                     />
                     <div className="flex justify-between items-center mb-3">
                         <div className="flex items-center gap-4">

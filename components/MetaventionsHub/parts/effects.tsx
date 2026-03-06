@@ -105,7 +105,7 @@ export const NeuralFileStream: React.FC<NeuralFileStreamProps> = ({ active, isDr
             size: Math.random() * 2 + 1,
             color: isDraggingOver
                 ? '#ffffff'
-                : ['#9d4edd', '#22d3ee', '#f1c21b', '#10b981'][Math.floor(Math.random() * 4)]
+                : ['var(--amethyst-soft)', 'var(--cyan)', 'var(--executive-gold)', 'var(--plasma-green)'][Math.floor(Math.random() * 4)]
         }));
 
         let frameId: number;
@@ -244,7 +244,7 @@ export const SwarmLattice: React.FC = () => (
         <motion.path
             d="M 50,50 L 150,50 L 100,150 Z"
             fill="none"
-            stroke="#9d4edd"
+            stroke="var(--amethyst-soft)"
             strokeWidth="1"
             strokeDasharray="4 4"
             animate={{ strokeDashoffset: [0, 20] }}
@@ -253,7 +253,7 @@ export const SwarmLattice: React.FC = () => (
         <motion.circle
             cx="100" cy="80" r="40"
             fill="none"
-            stroke="#18E6FF"
+            stroke="var(--cyan)"
             strokeWidth="0.5"
             animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.4, 0.1] }}
             transition={{ duration: 4, repeat: Infinity }}

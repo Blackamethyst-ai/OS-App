@@ -38,7 +38,7 @@ const PATH_CONFIGS: Record<CPBPath, PathConfig> = {
     direct: {
         label: 'Direct',
         icon: <Zap size={14} />,
-        color: '#10b981',
+        color: 'var(--plasma-green)',
         description: 'Fast single-pass execution'
     },
     rlm: {
@@ -50,13 +50,13 @@ const PATH_CONFIGS: Record<CPBPath, PathConfig> = {
     ace: {
         label: 'ACE',
         icon: <Users size={14} />,
-        color: '#3b82f6',
+        color: 'var(--azure-blue)',
         description: 'Multi-agent consensus engine'
     },
     hybrid: {
         label: 'Hybrid',
         icon: <GitMerge size={14} />,
-        color: '#f59e0b',
+        color: 'var(--amber)',
         description: 'RLM compression + ACE consensus'
     },
     cascade: {
@@ -70,12 +70,12 @@ const PATH_CONFIGS: Record<CPBPath, PathConfig> = {
 const PHASE_CONFIGS: Record<CPBPhase, { label: string; color: string }> = {
     idle: { label: 'Idle', color: '#6b7280' },
     analyzing: { label: 'Analyzing', color: '#8b5cf6' },
-    compressing: { label: 'Compressing', color: '#3b82f6' },
-    exploring: { label: 'Exploring', color: '#10b981' },
-    converging: { label: 'Converging', color: '#f59e0b' },
+    compressing: { label: 'Compressing', color: 'var(--azure-blue)' },
+    exploring: { label: 'Exploring', color: 'var(--plasma-green)' },
+    converging: { label: 'Converging', color: 'var(--amber)' },
     verifying: { label: 'Verifying', color: '#06b6d4' },
     reconstructing: { label: 'Reconstructing', color: '#ec4899' },
-    complete: { label: 'Complete', color: '#10b981' },
+    complete: { label: 'Complete', color: 'var(--plasma-green)' },
     error: { label: 'Error', color: '#ef4444' }
 };
 
@@ -107,7 +107,7 @@ export const CPBStatusBadge: React.FC<CPBStatusBadgeProps> = ({ status, onClick 
             {isActive ? (
                 <Loader2 size={12} className="animate-spin" style={{ color: pathConfig.color }} />
             ) : status.phase === 'complete' ? (
-                <CheckCircle2 size={12} style={{ color: '#10b981' }} />
+                <CheckCircle2 size={12} style={{ color: 'var(--plasma-green)' }} />
             ) : (
                 <AlertCircle size={12} style={{ color: '#ef4444' }} />
             )}
@@ -253,9 +253,9 @@ export const CPBMonitorPanel: React.FC<CPBMonitorPanelProps> = ({ status, lastRe
                                             className="text-lg font-bold"
                                             style={{
                                                 color: lastResult.dqScore.score > 0.7
-                                                    ? '#10b981'
+                                                    ? 'var(--plasma-green)'
                                                     : lastResult.dqScore.score > 0.5
-                                                    ? '#f59e0b'
+                                                    ? 'var(--amber)'
                                                     : '#ef4444'
                                             }}
                                         >

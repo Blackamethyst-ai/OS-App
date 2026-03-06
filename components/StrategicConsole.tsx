@@ -11,9 +11,9 @@ import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 
 const LAYERS = [
-    { id: 'LAYER_DEPIN', label: 'Physical Infra', icon: Globe, color: '#f59e0b' },
-    { id: 'LAYER_AI', label: 'Swarm Intel', icon: Cpu, color: '#9d4edd' },
-    { id: 'LAYER_FINANCE', label: 'Capital Flow', icon: Activity, color: '#10b981' }
+    { id: 'LAYER_DEPIN', label: 'Physical Infra', icon: Globe, color: 'var(--amber)' },
+    { id: 'LAYER_AI', label: 'Swarm Intel', icon: Cpu, color: 'var(--amethyst-soft)' },
+    { id: 'LAYER_FINANCE', label: 'Capital Flow', icon: Activity, color: 'var(--plasma-green)' }
 ];
 
 export const StrategicConsole: React.FC = () => {

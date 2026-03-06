@@ -169,7 +169,7 @@ const IntelRibbon = () => {
       >
         {intel.map((item, i) => (
           <div key={i} className="flex items-center gap-3">
-            <div className="w-1 h-1 rounded-full bg-[var(--amethyst-soft)] shadow-[0_0_8px_#9d4edd]" />
+            <div className="w-1 h-1 rounded-full bg-[var(--amethyst-soft)] shadow-[0_0_8px_var(--amethyst-soft)]" />
             <span className="text-[9px] font-black font-mono text-white/40 uppercase tracking-[0.4em] group-hover/ribbon:text-white/80 transition-colors">{item}</span>
           </div>
         ))}
@@ -245,7 +245,7 @@ const TacticalOverlay = () => (
         </motion.div>
 
         <div className="flex flex-col gap-4 pl-2 relative">
-          <div className="absolute left-[-24px] top-0 bottom-0 w-[1.5px] bg-gradient-to-b from-[var(--amethyst-soft)] via-[#18E6FF] to-transparent opacity-40" />
+          <div className="absolute left-[-24px] top-0 bottom-0 w-[1.5px] bg-gradient-to-b from-[var(--amethyst-soft)] via-[var(--cyan)] to-transparent opacity-40" />
 
           <motion.h2
             initial={{ opacity: 0, filter: 'blur(10px)' }}
@@ -323,7 +323,7 @@ const TacticalOverlay = () => (
               <Lock size={12} className="text-[var(--plasma-green)]" />
             </div>
           </div>
-          <div className="w-4 h-4 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_20px_#10b981]" />
+          <div className="w-4 h-4 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_20px_var(--plasma-green)]" />
         </div>
       </div>
     </div>

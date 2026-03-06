@@ -105,19 +105,19 @@ const HolographicCommandDeck: React.FC = () => {
                     <CommandIcon 
                         icon={Terminal} 
                         label="[ROOT_SHELL]" 
-                        color="#7B2CFF" 
+                        color="var(--amethyst)" 
                         onClick={() => toggleTerminal()} 
                     />
                     <CommandIcon 
                         icon={Scan} 
                         label="[DEEP_PROBE]" 
-                        color="#18E6FF" 
+                        color="var(--cyan)" 
                         onClick={() => addLog('SYSTEM', 'COMMAND_DECK: Dispatching multi-vector scan...')} 
                     />
                     <CommandIcon 
                         icon={Bot} 
                         label="[SPAWN_NODE]" 
-                        color="#10b981" 
+                        color="var(--plasma-green)" 
                         onClick={() => addLog('INFO', 'COMMAND_DECK: Initializing autonomic node spawning...')} 
                     />
                     
@@ -126,7 +126,7 @@ const HolographicCommandDeck: React.FC = () => {
                     <CommandIcon 
                         icon={RefreshCw} 
                         label="[LATTICE_SYNC]" 
-                        color="#f1c21b" 
+                        color="var(--executive-gold)" 
                         onClick={() => addLog('SYSTEM', 'COMMAND_DECK: Calibrating global coherence...')} 
                     />
                     <CommandIcon 

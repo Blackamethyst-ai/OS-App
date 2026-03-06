@@ -278,7 +278,7 @@ const SovereignGallery: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--amethyst)]/30 to-[var(--cyan)]/30 border border-[#7B2CFF]/40 flex items-center justify-center">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--amethyst)]/30 to-[var(--cyan)]/30 border border-[var(--amethyst)]/40 flex items-center justify-center">
                         <ImageIcon className="w-4 h-4 text-[var(--cyan)]" />
                     </div>
                     <div>
@@ -295,7 +295,7 @@ const SovereignGallery: React.FC = () => {
                     {/* Layout toggle */}
                     <button
                         onClick={() => { setLayout(layout === 'grid' ? 'masonry' : 'grid'); audio.playClick(); }}
-                        className="p-1.5 rounded-md border border-white/10 hover:border-[#7B2CFF]/40 hover:bg-[#7B2CFF]/10 transition-all"
+                        className="p-1.5 rounded-md border border-white/10 hover:border-[var(--amethyst)]/40 hover:bg-[var(--amethyst)]/10 transition-all"
                         title={layout === 'grid' ? 'Masonry layout' : 'Grid layout'}
                     >
                         {layout === 'grid' ? <Columns className="w-3.5 h-3.5 text-white/50" /> : <Grid className="w-3.5 h-3.5 text-white/50" />}
@@ -304,7 +304,7 @@ const SovereignGallery: React.FC = () => {
                     {/* Upload button */}
                     <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#7B2CFF]/20 border border-[#7B2CFF]/40 hover:bg-[#7B2CFF]/30 transition-all text-xs font-mono text-[var(--cyan)] tracking-wide"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[var(--amethyst)]/20 border border-[var(--amethyst)]/40 hover:bg-[var(--amethyst)]/30 transition-all text-xs font-mono text-[var(--cyan)] tracking-wide"
                     >
                         <Plus className="w-3.5 h-3.5" />
                         ADD ASSETS
@@ -330,7 +330,7 @@ const SovereignGallery: React.FC = () => {
                             className={cn(
                                 'px-2.5 py-1 rounded-full text-[10px] font-mono tracking-wider border transition-all whitespace-nowrap',
                                 activeCollection === col
-                                    ? 'bg-[#7B2CFF]/30 border-[#7B2CFF]/60 text-[var(--cyan)]'
+                                    ? 'bg-[var(--amethyst)]/30 border-[var(--amethyst)]/60 text-[var(--cyan)]'
                                     : 'bg-white/5 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
                             )}
                         >
@@ -374,7 +374,7 @@ const SovereignGallery: React.FC = () => {
                         className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
                     >
                         <div className="flex items-center gap-3">
-                            <div className="w-5 h-5 border-2 border-[#7B2CFF] border-t-transparent rounded-full animate-spin" />
+                            <div className="w-5 h-5 border-2 border-[var(--amethyst)] border-t-transparent rounded-full animate-spin" />
                             <span className="text-sm font-mono text-[var(--cyan)] tracking-wider">
                                 SECURING ASSETS...
                             </span>
@@ -391,7 +391,7 @@ const SovereignGallery: React.FC = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         className="flex flex-col items-center gap-4 p-8"
                     >
-                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--amethyst)]/10 to-[var(--cyan)]/10 border border-[#7B2CFF]/20 flex items-center justify-center">
+                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--amethyst)]/10 to-[var(--cyan)]/10 border border-[var(--amethyst)]/20 flex items-center justify-center">
                             <FolderOpen className="w-8 h-8 text-white/20" />
                         </div>
                         <div className="text-center">
@@ -404,7 +404,7 @@ const SovereignGallery: React.FC = () => {
                         </div>
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="mt-2 flex items-center gap-2 px-4 py-2 rounded-lg bg-[#7B2CFF]/20 border border-[#7B2CFF]/40 hover:bg-[#7B2CFF]/30 transition-all text-xs font-mono text-[var(--cyan)] tracking-wider"
+                            className="mt-2 flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--amethyst)]/20 border border-[var(--amethyst)]/40 hover:bg-[var(--amethyst)]/30 transition-all text-xs font-mono text-[var(--cyan)] tracking-wider"
                         >
                             <Upload className="w-4 h-4" />
                             UPLOAD FIRST ASSET
@@ -491,7 +491,7 @@ const ImageCard: React.FC<{
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
             onClick={() => { onSelect(image); audio.playClick(); }}
-            className="group relative cursor-pointer rounded-lg overflow-hidden bg-white/5 border border-white/5 hover:border-[#7B2CFF]/40 transition-all duration-300"
+            className="group relative cursor-pointer rounded-lg overflow-hidden bg-white/5 border border-white/5 hover:border-[var(--amethyst)]/40 transition-all duration-300"
         >
             {/* Image */}
             <img
@@ -536,7 +536,7 @@ const ImageCard: React.FC<{
             </div>
 
             {/* Glow border on hover */}
-            <div className="absolute inset-0 rounded-lg border border-[#7B2CFF]/0 group-hover:border-[#7B2CFF]/30 group-hover:shadow-[0_0_15px_rgba(123,44,255,0.15)] transition-all duration-300 pointer-events-none" />
+            <div className="absolute inset-0 rounded-lg border border-[var(--amethyst)]/0 group-hover:border-[var(--amethyst)]/30 group-hover:shadow-[0_0_15px_rgba(123,44,255,0.15)] transition-all duration-300 pointer-events-none" />
         </motion.div>
     );
 };
@@ -611,13 +611,13 @@ const Lightbox: React.FC<{
                 <>
                     <button
                         onClick={(e) => { e.stopPropagation(); onPrev(); }}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#7B2CFF]/40 transition-all"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[var(--amethyst)]/40 transition-all"
                     >
                         <ChevronLeft className="w-5 h-5 text-white/60" />
                     </button>
                     <button
                         onClick={(e) => { e.stopPropagation(); onNext(); }}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[#7B2CFF]/40 transition-all"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 z-10 p-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 hover:border-[var(--amethyst)]/40 transition-all"
                     >
                         <ChevronRight className="w-5 h-5 text-white/60" />
                     </button>
@@ -638,8 +638,8 @@ const Lightbox: React.FC<{
             />
 
             {/* Corner frame accents */}
-            <div className="absolute top-14 left-4 w-8 h-8 border-t-2 border-l-2 border-[#7B2CFF]/30 pointer-events-none" />
-            <div className="absolute top-14 right-4 w-8 h-8 border-t-2 border-r-2 border-[#7B2CFF]/30 pointer-events-none" />
+            <div className="absolute top-14 left-4 w-8 h-8 border-t-2 border-l-2 border-[var(--amethyst)]/30 pointer-events-none" />
+            <div className="absolute top-14 right-4 w-8 h-8 border-t-2 border-r-2 border-[var(--amethyst)]/30 pointer-events-none" />
             <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[var(--cyan)]/30 pointer-events-none" />
             <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-[var(--cyan)]/30 pointer-events-none" />
 

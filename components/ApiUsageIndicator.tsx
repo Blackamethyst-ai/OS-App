@@ -13,7 +13,7 @@ const ApiUsageIndicator: React.FC = () => {
     // Determine status color based on calls per minute
     const getStatusColor = () => {
         if (stats.callsThisMinute >= 12) return '#ef4444'; // Red - near limit
-        if (stats.callsThisMinute >= 8) return '#f59e0b';  // Amber - moderate
+        if (stats.callsThisMinute >= 8) return 'var(--amber)';  // Amber - moderate
         return 'var(--plasma-green)';                       // Green - normal
     };
 

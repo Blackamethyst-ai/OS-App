@@ -46,7 +46,7 @@ const SuperLattice: React.FC<SuperLatticeProps> = ({ nodes, mode, onNodeSelect, 
                 baseX: Math.cos(theta) * radius, 
                 baseY: y, 
                 baseZ: Math.sin(theta) * radius,
-                color: n.type === 'HYPOTHESIS' ? '#f59e0b' : n.type === 'CONCEPT' ? '#9d4edd' : n.type === 'BRIDGE' ? '#ffffff' : '#22d3ee'
+                color: n.type === 'HYPOTHESIS' ? 'var(--amber)' : n.type === 'CONCEPT' ? 'var(--amethyst-soft)' : n.type === 'BRIDGE' ? '#ffffff' : 'var(--cyan)'
             };
         });
 

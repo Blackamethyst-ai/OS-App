@@ -30,7 +30,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
       securityLevel: 'strict',
       fontFamily: 'Fira Code',
       flowchart: { htmlLabels: false },
-      themeVariables: { primaryColor: '#000', primaryTextColor: '#fff', primaryBorderColor: '#9d4edd', lineColor: '#555' }
+      themeVariables: { primaryColor: '#000', primaryTextColor: '#fff', primaryBorderColor: 'var(--amethyst-soft)', lineColor: '#555' }
     });
   }, []);
 

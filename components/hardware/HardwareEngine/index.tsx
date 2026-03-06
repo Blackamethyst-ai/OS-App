@@ -326,7 +326,7 @@ const HardwareEngine: React.FC = () => {
     return (
         <div className="h-full w-full bg-[#020202] text-white flex flex-col relative border border-[#1f1f1f] rounded-2xl overflow-hidden shadow-2xl font-sans group/hw">
             <div className="h-14 border-b border-white/5 bg-[#0a0a0a]/95 backdrop-blur-3xl flex items-center justify-between px-6 z-50 shrink-0 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#22d3ee]/40 to-transparent" />
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--cyan)]/40 to-transparent" />
                 <div className="flex items-center gap-6">
                     <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg border transition-all" style={{ backgroundColor: `${eraColor}15`, borderColor: `${eraColor}40`, color: eraColor }}>
@@ -573,7 +573,7 @@ const HardwareEngine: React.FC = () => {
                                             <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Power Draw</span>
                                             <div className="mt-3 text-3xl font-black font-mono text-[var(--cyan)]">{powerDraw}W</div>
                                             <div className="mt-2 h-2 bg-white/5 rounded-full overflow-hidden">
-                                                <div className="h-full bg-gradient-to-r from-[#22d3ee] to-[var(--amethyst-soft)] rounded-full transition-all" style={{ width: `${Math.min(100, (parseFloat(powerDraw) / 500) * 100)}%` }} />
+                                                <div className="h-full bg-gradient-to-r from-[var(--cyan)] to-[var(--amethyst-soft)] rounded-full transition-all" style={{ width: `${Math.min(100, (parseFloat(powerDraw) / 500) * 100)}%` }} />
                                             </div>
                                         </div>
                                         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5">
@@ -695,7 +695,7 @@ const HardwareEngine: React.FC = () => {
                         <div className="space-y-2">
                             <PerformanceMixer label="CPU FREQUENCY" value={clockSpeed} unit="GHz" min={1.2} max={6.4} color={eraColor} onValueChange={setClockSpeed} />
                             <PerformanceMixer label="POWER VOLTAGE" value={voltage} unit="v" min={0.7} max={1.65} color="#ef4444" onValueChange={setVoltage} />
-                            <PerformanceMixer label="COOLING ARRAY" value={fanSpeed} unit=" RPM" min={0} max={6000} color="#9d4edd" onValueChange={(val: number) => setFanSpeed(val)} />
+                            <PerformanceMixer label="COOLING ARRAY" value={fanSpeed} unit=" RPM" min={0} max={6000} color="var(--amethyst-soft)" onValueChange={(val: number) => setFanSpeed(val)} />
                         </div>
                     </div>
 

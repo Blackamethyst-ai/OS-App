@@ -21,7 +21,7 @@ const PeerMeshOverlay: React.FC = () => {
                 className="w-full max-w-4xl h-[70vh] bg-[#0a0a0a] border border-[#333] rounded-3xl overflow-hidden shadow-2xl flex flex-col relative"
             >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.05)_0%,transparent_70%)] pointer-events-none"></div>
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--amethyst-soft)] via-[#22d3ee] to-[var(--plasma-green)] opacity-50"></div>
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--amethyst-soft)] via-[var(--cyan)] to-[var(--plasma-green)] opacity-50"></div>
 
                 {/* Header */}
                 <div className="h-16 border-b border-[#1f1f1f] bg-white/[0.02] flex items-center justify-between px-8 shrink-0">
@@ -92,7 +92,7 @@ const PeerMeshOverlay: React.FC = () => {
                                         className="flex gap-4 items-start border-l border-white/5 pl-4 py-1"
                                     >
                                         <div className="mt-1 shrink-0">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--amethyst-soft)] shadow-[0_0_8px_#9d4edd]"></div>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--amethyst-soft)] shadow-[0_0_8px_var(--amethyst-soft)]"></div>
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-center mb-1">

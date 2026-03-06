@@ -211,7 +211,7 @@ const SynthesisBridge: React.FC = () => {
                         >
                             <div className="relative">
                                 <Aperture size={180} className="text-white animate-[spin_20s_linear_infinite]" />
-                                <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.5, 0.1] }} transition={{ duration: 8, repeat: Infinity }} className="absolute inset-0 bg-[#7B2CFF]/20 blur-[150px] rounded-full" />
+                                <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.5, 0.1] }} transition={{ duration: 8, repeat: Infinity }} className="absolute inset-0 bg-[var(--amethyst)]/20 blur-[150px] rounded-full" />
                             </div>
                             <div className="space-y-6">
                                 <h3 className="text-4xl font-black font-mono text-white uppercase tracking-[1em] leading-none">Bridge Standby</h3>

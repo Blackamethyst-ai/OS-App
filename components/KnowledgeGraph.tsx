@@ -117,19 +117,19 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
                 // Glow
                 if (isSelected || isMatch) {
                     ctx.shadowBlur = 25;
-                    ctx.shadowColor = isMatch ? '#22d3ee' : (n.color || '#9d4edd');
+                    ctx.shadowColor = isMatch ? '#18E6FF' : (n.color || '#9d4edd');
                 }
 
                 ctx.beginPath();
                 ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
-                ctx.fillStyle = isSelected ? '#ffffff' : (isMatch ? '#22d3ee' : (n.color || '#333'));
+                ctx.fillStyle = isSelected ? '#ffffff' : (isMatch ? '#18E6FF' : (n.color || '#333'));
                 ctx.fill();
                 
                 ctx.shadowBlur = 0;
                 
                 if (isSelected || isHovered || isMatch) {
                     ctx.font = `black ${isSelected ? '12px' : '10px'} Fira Code`;
-                    ctx.fillStyle = isMatch ? '#22d3ee' : '#fff';
+                    ctx.fillStyle = isMatch ? '#18E6FF' : '#fff';
                     ctx.textAlign = 'center';
                     const text = (n.label || '').toUpperCase();
                     ctx.fillText(text.substring(0, 20), n.x, n.y - (radius + 12));

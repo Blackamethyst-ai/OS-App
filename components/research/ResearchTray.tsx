@@ -71,7 +71,7 @@ const ResearchTray: React.FC = () => {
                                             <button onClick={() => { cancelResearchTask(task.id); audio.playError(); }} className="p-1.5 text-gray-700 hover:text-red-500 transition-colors bg-white/5 rounded-lg" aria-label="Cancel research task"><Square size={12} fill="currentColor" /></button>
                                         </div>
                                         <div className="w-full bg-[#111] h-1 rounded-full overflow-hidden mb-3 shadow-inner">
-                                            <motion.div initial={{ width: 0 }} animate={{ width: `${task.progress}%` }} className="h-full bg-gradient-to-r from-[var(--amethyst-soft)] to-[#22d3ee] shadow-[0_0_10px_#9d4edd]" />
+                                            <motion.div initial={{ width: 0 }} animate={{ width: `${task.progress}%` }} className="h-full bg-gradient-to-r from-[var(--amethyst-soft)] to-[var(--cyan)] shadow-[0_0_10px_var(--amethyst-soft)]" />
                                         </div>
                                         <div className="flex items-center gap-2 relative z-10">
                                             <Activity size={10} className="text-gray-700" />

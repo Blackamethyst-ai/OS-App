@@ -102,16 +102,16 @@ const TeleologicalEnginePanel = () => {
                 <div className="relative w-24 h-24 flex items-center justify-center shrink-0">
                     <svg className="w-full h-full transform -rotate-90 overflow-visible">
                         <circle cx="48" cy="48" r="44" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="8" />
-                        <motion.circle cx="48" cy="48" r="44" fill="none" stroke="#9d4edd" strokeWidth="8" strokeDasharray="276" initial={{ strokeDashoffset: 276 }} animate={{ strokeDashoffset: 276 * (1 - (confidenceScore || 0.6)) }} transition={{ duration: 1.5, ease: "circOut" }} strokeLinecap="round" className="drop-shadow-[0_0_8px_#9d4edd]" />
+                        <motion.circle cx="48" cy="48" r="44" fill="none" stroke="var(--amethyst-soft)" strokeWidth="8" strokeDasharray="276" initial={{ strokeDashoffset: 276 }} animate={{ strokeDashoffset: 276 * (1 - (confidenceScore || 0.6)) }} transition={{ duration: 1.5, ease: "circOut" }} strokeLinecap="round" className="drop-shadow-[0_0_8px_var(--amethyst-soft)]" />
                     </svg>
                     <div className="absolute flex flex-col items-center justify-center"><span className="text-2xl font-black font-mono text-white leading-none">{Math.round((confidenceScore || 0.6) * 100)}%</span></div>
                 </div>
                 <div className="flex-1 space-y-6">
                     <div className="space-y-2">
                         <div className="flex justify-between items-center text-[10px] font-black font-mono uppercase tracking-widest"><span className="text-gray-500">Velocity</span><span className="text-white">{Math.round(velocity || 15)} m/s</span></div>
-                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner"><motion.div animate={{ width: `${Math.min(100, velocity || 15)}%` }} className="h-full bg-gradient-to-r from-[var(--amethyst-soft)] to-[#22d3ee] shadow-[0_0_15px_rgba(157,78,221,0.4)]" /></div>
+                        <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner"><motion.div animate={{ width: `${Math.min(100, velocity || 15)}%` }} className="h-full bg-gradient-to-r from-[var(--amethyst-soft)] to-[var(--cyan)] shadow-[0_0_15px_rgba(157,78,221,0.4)]" /></div>
                     </div>
-                    <div className="bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 flex items-center justify-between group-hover:border-[var(--amethyst-soft)]/30 transition-all"><span className="text-[9px] font-black font-mono text-gray-500 uppercase tracking-[0.2em]">Alignment State</span><div className="flex items-center gap-2.5"><div className="w-1.5 h-1.5 rounded-full bg-[var(--amethyst-soft)] animate-pulse shadow-[0_0_10px_#9d4edd]" /><span className="text-[11px] font-black font-mono text-[var(--amethyst-soft)] uppercase tracking-tighter">Stable</span></div></div>
+                    <div className="bg-black/40 border border-white/5 rounded-xl px-4 py-2.5 flex items-center justify-between group-hover:border-[var(--amethyst-soft)]/30 transition-all"><span className="text-[9px] font-black font-mono text-gray-500 uppercase tracking-[0.2em]">Alignment State</span><div className="flex items-center gap-2.5"><div className="w-1.5 h-1.5 rounded-full bg-[var(--amethyst-soft)] animate-pulse shadow-[0_0_10px_var(--amethyst-soft)]" /><span className="text-[11px] font-black font-mono text-[var(--amethyst-soft)] uppercase tracking-tighter">Stable</span></div></div>
                 </div>
             </div>
         </div>
@@ -165,13 +165,13 @@ const GlobalAlertMesh: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ i
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="fixed inset-0 bg-black/50 backdrop-blur-[2px] z-[9998]" />
                         <motion.div initial={{ x: '100%', opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '100%', opacity: 0 }} transition={{ type: 'spring', damping: 25, stiffness: 180 }} className="fixed bottom-[88px] right-6 top-20 w-[480px] bg-[#0a0a0c]/98 backdrop-blur-5xl border border-white/10 z-[9999] shadow-[0_50px_150px_rgba(0,0,0,1)] flex flex-col rounded-[2.5rem] overflow-hidden">
                             <div className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-white/[0.01] shrink-0 relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#22d3ee]/40 to-transparent" />
+                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--cyan)]/40 to-transparent" />
                                 <div className="flex items-center gap-3.5 text-[var(--cyan)]"><Activity size={18} className="animate-pulse" /><span className="text-[12px] font-black font-mono uppercase tracking-[0.3em]">Neural Diagnostics</span></div>
                                 <button onClick={onClose} className="text-gray-600 hover:text-white transition-colors p-2 hover:bg-white/5 rounded-xl border border-transparent hover:border-white/10"><X size={20} /></button>
                             </div>
                             <TeleologicalEnginePanel />
                             <div className="p-5 border-b border-white/5 flex gap-2.5 bg-black/40 shrink-0 overflow-x-auto no-scrollbar">
-                                {[{ id: 'ALL', color: '#22d3ee' }, { id: 'ERROR', color: '#ef4444' }, { id: 'WARNING', color: '#f59e0b' }, { id: 'SYSTEM', color: '#9d4edd' }].map(f => (
+                                {[{ id: 'ALL', color: 'var(--cyan)' }, { id: 'ERROR', color: '#ef4444' }, { id: 'WARNING', color: 'var(--amber)' }, { id: 'SYSTEM', color: 'var(--amethyst-soft)' }].map(f => (
                                     <button key={f.id} onClick={() => { audio.playClick(); setFilter(f.id as any); }} className={cn("px-5 py-2 rounded-full text-[10px] font-black font-mono uppercase tracking-widest border transition-all duration-500", filter === f.id ? "bg-[var(--cyan)] text-black border-[var(--cyan)] shadow-[0_0_15px_rgba(34,211,238,0.3)] scale-105" : "bg-[#111] text-gray-500 border-[#222] hover:border-gray-500")}>{f.id}</button>
                                 ))}
                             </div>
@@ -180,10 +180,10 @@ const GlobalAlertMesh: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ i
                                 {filteredLogs.length === 0 ? (<div className="h-full flex flex-col items-center justify-center text-gray-800 opacity-20 py-32 grayscale"><ShieldCheck size={64} className="mb-6" /><p className="text-[12px] font-mono uppercase tracking-[0.5em] font-black">Lattice Synchronized</p></div>) : (<div className="flex flex-col relative z-10">{filteredLogs.slice().reverse().map((n, i) => <LogRow key={n.id || i} log={n} />)}</div>)}
                             </div>
                             <div className="p-6 border-t border-white/5 bg-[#0a0a0c] flex justify-between items-center shrink-0 relative overflow-hidden">
-                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#22d3ee]/5 to-transparent translate-x-[-150%] animate-[shimmer_5s_infinite_linear] balance-flicker" />
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[var(--cyan)]/5 to-transparent translate-x-[-150%] animate-[shimmer_5s_infinite_linear] balance-flicker" />
                                 <div className="flex items-center gap-5 relative z-10">
                                     <div className="flex items-center gap-2">
-                                        <div className={cn("w-2 h-2 rounded-full", errorCount > 0 ? "bg-[#ef4444] animate-pulse shadow-[0_0_10px_#ef4444]" : "bg-[var(--plasma-green)] shadow-[0_0_10px_#10b981]")} />
+                                        <div className={cn("w-2 h-2 rounded-full", errorCount > 0 ? "bg-[#ef4444] animate-pulse shadow-[0_0_10px_#ef4444]" : "bg-[var(--plasma-green)] shadow-[0_0_10px_var(--plasma-green)]")} />
                                         <span className="text-[9px] font-black font-mono text-gray-500 uppercase tracking-widest">{errorCount} Active Faults</span>
                                     </div>
                                 </div>

@@ -69,7 +69,7 @@ const ExecutiveBanner = () => {
                     ctx.beginPath();
                     ctx.moveTo(cx + Math.cos(angle) * r1, cy + Math.sin(angle) * r1);
                     ctx.lineTo(cx + Math.cos(angle) * r2, cy + Math.sin(angle) * r2);
-                    ctx.strokeStyle = i % 2 === 0 ? '#f1c21b' : '#7b2cbf';
+                    ctx.strokeStyle = i % 2 === 0 ? '#f1c21b' : '#7B2CFF';
                     ctx.lineWidth = 1;
                     ctx.stroke();
                 }
@@ -310,9 +310,9 @@ const Dashboard: React.FC = () => {
               {/* Left Column: Metrics and Topology */}
               <div className="col-span-3 space-y-4">
                   <div className="grid grid-cols-1 gap-4">
-                      <MetricCard title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="#f1c21b" data={cpuHist} trend="up" />
-                      <MetricCard title="BANDWIDTH" value={`${telemetry.net.toFixed(1)}GB/s`} detail="PEAK" icon={Radio} color="#22d3ee" data={netHist} trend="up" />
-                      <MetricCard title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="#10b981" data={[{value:98},{value:99},{value:98}]} trend="up" />
+                      <MetricCard title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="var(--executive-gold)" data={cpuHist} trend="up" />
+                      <MetricCard title="BANDWIDTH" value={`${telemetry.net.toFixed(1)}GB/s`} detail="PEAK" icon={Radio} color="var(--cyan)" data={netHist} trend="up" />
+                      <MetricCard title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="var(--plasma-green)" data={[{value:98},{value:99},{value:98}]} trend="up" />
                   </div>
                   <div className="crystalline rounded-3xl p-6 h-56 relative overflow-hidden shadow-xl">
                       <div className="flex items-center gap-3 mb-6 relative z-10">
@@ -325,7 +325,7 @@ const Dashboard: React.FC = () => {
                                 <PolarGrid stroke="#333" />
                                 <PolarAngleAxis dataKey="s" tick={{ fill: '#666', fontSize: 8, fontWeight: 'bold' }} />
                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                                <RechartRadar dataKey="A" stroke="#f1c21b" fill="#f1c21b" fillOpacity={0.2} isAnimationActive={false} />
+                                <RechartRadar dataKey="A" stroke="var(--executive-gold)" fill="var(--executive-gold)" fillOpacity={0.2} isAnimationActive={false} />
                             </RadarChart>
                          </ResponsiveContainer>
                       </div>
@@ -429,9 +429,9 @@ const Dashboard: React.FC = () => {
                       </div>
                       <div className="space-y-5 flex-1 flex flex-col justify-center relative z-10">
                           {[
-                              { label: 'Compute Units', val: 92, color: '#f1c21b' },
-                              { label: 'Treasury Flow', val: 78, color: '#22d3ee' },
-                              { label: 'System Reach', val: 84, color: '#10b981' }
+                              { label: 'Compute Units', val: 92, color: 'var(--executive-gold)' },
+                              { label: 'Treasury Flow', val: 78, color: 'var(--cyan)' },
+                              { label: 'System Reach', val: 84, color: 'var(--plasma-green)' }
                           ].map((cat) => (
                               <div key={cat.label} className="space-y-2">
                                   <div className="flex justify-between items-center text-[8px] font-mono text-gray-500 uppercase tracking-widest">

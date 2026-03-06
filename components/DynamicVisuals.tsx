@@ -57,7 +57,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
             id: hubArtifact.id,
             label: hubArtifact.name,
             type: 'HUB',
-            color: '#18E6FF',
+            color: 'var(--cyan)',
             data: hubArtifact
         });
 
@@ -68,7 +68,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                 id: art.id,
                 label: art.name,
                 type: 'SUBTOPIC',
-                color: '#9d4edd',
+                color: 'var(--amethyst-soft)',
                 data: art
             });
 
@@ -297,7 +297,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                                     <div className="grid grid-cols-2 gap-3">
                                         {activeArtifact.analysis && Array.isArray(activeArtifact.analysis.entities) && activeArtifact.analysis.entities.map((ent, i) => (
                                             <div key={i} className="px-5 py-3 bg-white/[0.02] border border-white/5 rounded-2xl text-[9px] font-mono text-gray-400 flex items-center gap-3 hover:border-white/20 transition-all cursor-default group/ent">
-                                                <div className="w-1 h-1 rounded-full bg-[var(--cyan)] shadow-[0_0_8px_#18E6FF] group-hover/ent:scale-150 transition-transform" />
+                                                <div className="w-1 h-1 rounded-full bg-[var(--cyan)] shadow-[0_0_8px_var(--cyan)] group-hover/ent:scale-150 transition-transform" />
                                                 {renderSafe(ent)}
                                             </div>
                                         ))}

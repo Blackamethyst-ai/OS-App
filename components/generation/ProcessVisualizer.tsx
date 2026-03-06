@@ -26,7 +26,7 @@ import { cn } from '../../utils/cn';
 const ExecutiveNode = ({ id, data: nodeData, selected, dragging }: NodeProps) => {
     const data = nodeData as any;
     const Icon = (Icons as any)[data.iconName as string] || Icons.Box;
-    const accentColor = data.color || '#9d4edd';
+    const accentColor = data.color || 'var(--amethyst-soft)';
     const isDone = data.status === 'DONE' || data.status === 'COMPLETED';
     const drift = data.drift || 0;
 
@@ -133,7 +133,7 @@ const CinematicEdge = ({ id, sourceX, sourceY, targetX, targetY, markerEnd, data
 
 
 const FolderNode = ({ data, selected }: NodeProps) => {
-    const accentColor = (data as any).color || '#9d4edd';
+    const accentColor = (data as any).color || 'var(--amethyst-soft)';
     return (
         <motion.div
             initial={{ opacity: 0 }}
@@ -260,7 +260,7 @@ const ProcessVisualizerContent = () => {
                             <ReactFlow nodes={nodes} edges={edges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} nodeTypes={nodeTypes} edgeTypes={edgeTypes} fitView>
                                 <Background color="rgba(24, 230, 255, 0.04)" gap={40} size={1} variant={BackgroundVariant.Lines} />
                                 <Controls className="bg-[var(--bg-panel)] border border-[var(--border-main)] !rounded-lg overflow-hidden shadow-2xl" />
-                                <MiniMap nodeColor={n => (n.data as any).color || '#9d4edd'} className="bg-[var(--bg-panel)] border border-[var(--border-main)] !rounded-xl" maskColor="rgba(0,0,0,0.5)" />
+                                <MiniMap nodeColor={n => (n.data as any).color || 'var(--amethyst-soft)'} className="bg-[var(--bg-panel)] border border-[var(--border-main)] !rounded-xl" maskColor="rgba(0,0,0,0.5)" />
                             </ReactFlow>
                         </motion.div>
                     )}

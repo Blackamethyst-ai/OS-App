@@ -414,7 +414,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                                         opacity: [0.3, 0.6, 0.3]
                                     }}
                                     transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-                                    className="absolute inset-0 bg-[radial-gradient(circle_at_center,#9d4edd_0%,transparent_70%)]"
+                                    className="absolute inset-0 bg-[radial-gradient(circle_at_center,var(--amethyst-soft)_0%,transparent_70%)]"
                                 />
                              </div>
 
@@ -430,9 +430,9 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                                             <RechartRadar
                                                 name="Signature"
                                                 dataKey="A"
-                                                stroke="#9d4edd"
+                                                stroke="var(--amethyst-soft)"
                                                 strokeWidth={2}
-                                                fill="#9d4edd"
+                                                fill="var(--amethyst-soft)"
                                                 fillOpacity={0.25}
                                                 animationDuration={1500}
                                                 isAnimationActive={false}

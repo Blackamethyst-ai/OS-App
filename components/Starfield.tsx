@@ -46,7 +46,7 @@ const Starfield: React.FC<StarfieldProps> = ({ mode }) => {
       canvas.height = h;
 
       stars.length = 0;
-      const colors = ['#ffffff', '#9d4edd', '#22d3ee', '#f59e0b'];
+      const colors = ['#ffffff', '#9d4edd', '#18E6FF', '#f59e0b'];
 
       for (let i = 0; i < starCount; i++) {
         stars.push({

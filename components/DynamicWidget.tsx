@@ -35,7 +35,7 @@ const DynamicWidget: React.FC<DynamicWidgetProps> = ({ result, onClose }) => {
                         initial={{ width: 0 }} 
                         animate={{ width: '100%' }} 
                         transition={{ duration: 0.8 }}
-                        className="h-full bg-gradient-to-r from-[var(--amethyst-soft)] via-[#22d3ee] to-[var(--plasma-green)]" 
+                        className="h-full bg-gradient-to-r from-[var(--amethyst-soft)] via-[var(--cyan)] to-[var(--plasma-green)]" 
                     />
                 </div>
 
@@ -105,7 +105,7 @@ const DynamicWidget: React.FC<DynamicWidgetProps> = ({ result, onClose }) => {
                     )}
 
                     {result.uiHint === 'MESSAGE' && (
-                        <div className="p-8 bg-[var(--cyan)]/5 border border-[var(--cyan)]/30 rounded-3xl text-cyan-50 text-xs font-mono leading-relaxed italic border-l-[6px] border-l-[#22d3ee] shadow-[0_0_30px_rgba(34,211,238,0.05)]">
+                        <div className="p-8 bg-[var(--cyan)]/5 border border-[var(--cyan)]/30 rounded-3xl text-cyan-50 text-xs font-mono leading-relaxed italic border-l-[6px] border-l-[var(--cyan)] shadow-[0_0_30px_rgba(34,211,238,0.05)]">
                             {result.data.message}
                         </div>
                     )}

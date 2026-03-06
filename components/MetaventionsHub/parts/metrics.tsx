@@ -74,9 +74,9 @@ export const CapitalVelocity: React.FC<CapitalVelocityProps> = ({ telemetry }) =
     ];
 
     const getBarColor = (val: number): string => {
-        if (val >= 90) return '#10b981';
-        if (val >= 70) return '#22d3ee';
-        if (val >= 50) return '#f1c21b';
+        if (val >= 90) return 'var(--plasma-green)';
+        if (val >= 70) return 'var(--cyan)';
+        if (val >= 50) return 'var(--executive-gold)';
         if (val >= 30) return '#f97316';
         return '#ef4444';
     };
@@ -136,7 +136,7 @@ export const SwarmBox: React.FC = () => {
                     </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-1 h-1 rounded-full bg-[var(--plasma-green)] shadow-[0_0_8px_#10b981]" />
+                    <div className="w-1 h-1 rounded-full bg-[var(--plasma-green)] shadow-[0_0_8px_var(--plasma-green)]" />
                     <span className="text-[6px] font-mono text-gray-600 uppercase tracking-widest">
                         Active
                     </span>
@@ -208,7 +208,7 @@ export const SystemPulse: React.FC<SystemPulseProps> = ({ active }) => (
             {active && (
                 <>
                     <div className="absolute inset-0 rounded-full bg-[var(--plasma-green)] animate-ping opacity-75" />
-                    <div className="absolute inset-0 rounded-full bg-[var(--plasma-green)] shadow-[0_0_10px_#10b981]" />
+                    <div className="absolute inset-0 rounded-full bg-[var(--plasma-green)] shadow-[0_0_10px_var(--plasma-green)]" />
                 </>
             )}
         </div>

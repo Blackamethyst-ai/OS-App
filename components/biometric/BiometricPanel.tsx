@@ -88,8 +88,8 @@ export const BiometricPanel = memo(({
   }, [isActive, stressLevel, attentionScore, cognitiveLoad, uiComplexity, setBiometricState]);
 
   const getStressColor = (level: number): string => {
-    if (level < 30) return '#10b981'; // Green
-    if (level < 60) return '#f59e0b'; // Yellow
+    if (level < 30) return 'var(--plasma-green)'; // Green
+    if (level < 60) return 'var(--amber)'; // Yellow
     if (level < 80) return '#f97316'; // Orange
     return '#ef4444'; // Red
   };
@@ -125,8 +125,8 @@ export const BiometricPanel = memo(({
   };
 
   const getConfidenceColor = (confidence: number) => {
-    if (confidence >= 70) return '#10b981';
-    if (confidence >= 40) return '#f59e0b';
+    if (confidence >= 70) return 'var(--plasma-green)';
+    if (confidence >= 40) return 'var(--amber)';
     return '#ef4444';
   };
 

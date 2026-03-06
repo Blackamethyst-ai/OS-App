@@ -43,7 +43,7 @@ export const TugOfWarChart: React.FC<TugOfWarProps> = ({ votes, confidenceGap })
         
         {/* Leader Bar (Pushing Right) */}
         <motion.div 
-          className={`absolute left-1/2 h-full rounded-r-full ${currentGap >= confidenceGap ? 'bg-[#42be65]' : 'bg-[#3b82f6]'}`}
+          className={`absolute left-1/2 h-full rounded-r-full ${currentGap >= confidenceGap ? 'bg-[#42be65]' : 'bg-[var(--azure-blue)]'}`}
           initial={{ width: 0 }}
           animate={{ width: `${(leaderVotes / (confidenceGap * 2)) * 100}%` }}
           transition={{ type: 'spring', stiffness: 120 }}
@@ -62,7 +62,7 @@ export const TugOfWarChart: React.FC<TugOfWarProps> = ({ votes, confidenceGap })
            Runner Up ({runnerUpVotes})
            <div className="truncate max-w-[100px] opacity-50">{runnerUp ? runnerUp[0].slice(0, 8) : '...'}</div>
         </div>
-        <div className="text-right text-[#3b82f6]">
+        <div className="text-right text-[var(--azure-blue)]">
            Leader ({leaderVotes})
            <div className="truncate max-w-[100px] text-white">{leader ? leader[0].slice(0, 8) : '...'}</div>
         </div>

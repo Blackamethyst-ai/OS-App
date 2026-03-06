@@ -88,10 +88,10 @@ const EconomicLatticeVisualizer = () => {
 
 const FinanceMetric = ({ label, value, trend, icon: Icon, color }: any) => (
     <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-2xl p-5 group hover:border-[var(--plasma-green)]/30 transition-all shadow-xl flex flex-col gap-3 relative overflow-hidden crystalline">
-        <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-[#10b981]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-[var(--plasma-green)]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         <div className="flex justify-between items-start">
             <div className="p-2.5 rounded-xl bg-black/10 text-gray-400 group-hover:text-[var(--text-primary)] transition-all">
-                <Icon size={18} style={{ color: trend > 0 ? '#10b981' : color }} />
+                <Icon size={18} style={{ color: trend > 0 ? 'var(--plasma-green)' : color }} />
             </div>
             <div className={`flex items-center gap-1 text-[10px] font-black font-mono ${trend > 0 ? 'text-[var(--plasma-green)]' : 'text-[#ef4444]'}`}>
                 {trend > 0 ? <ArrowUp size={10} /> : <ArrowDownRight size={10} />}
@@ -117,10 +117,10 @@ const AutonomousFinance: React.FC = () => {
     const [confirmingOp, setConfirmingOp] = useState<any | null>(null);
 
     const pieData = useMemo(() => [
-        { name: 'Stablepools', value: 400, color: '#10b981' },
-        { name: 'Node Rewards', value: 300, color: '#9d4edd' },
-        { name: 'Arbitrage', value: 300, color: '#22d3ee' },
-        { name: 'Delta Neutral', value: 200, color: '#f59e0b' },
+        { name: 'Stablepools', value: 400, color: 'var(--plasma-green)' },
+        { name: 'Node Rewards', value: 300, color: 'var(--amethyst-soft)' },
+        { name: 'Arbitrage', value: 300, color: 'var(--cyan)' },
+        { name: 'Delta Neutral', value: 200, color: 'var(--amber)' },
     ], []);
 
     const fetchLiveOpportunities = async () => {
@@ -171,7 +171,7 @@ const AutonomousFinance: React.FC = () => {
                 {confirmingOp && (
                     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/70 backdrop-blur-2xl">
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-[#0a0a0a] border border-[var(--plasma-green)]/30 rounded-[3rem] w-full max-w-xl p-10 shadow-2xl relative overflow-hidden crystalline">
-                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#10b981] to-transparent" />
+                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--plasma-green)] to-transparent" />
                              <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-widest flex items-center gap-4">
                                 <Bot className="text-[var(--amethyst-soft)]" />
                                 Propose to Swarm
@@ -191,7 +191,7 @@ const AutonomousFinance: React.FC = () => {
             </AnimatePresence>
 
             <div className="h-24 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl z-20 flex items-center justify-between px-12 shrink-0 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#10b981]/40 to-transparent" />
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--plasma-green)]/40 to-transparent" />
                 <div className="flex items-center gap-16">
                     <div className="flex items-center gap-5">
                         <div className="p-3.5 bg-[var(--plasma-green)]/10 border border-[var(--plasma-green)]/40 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.15)]">
@@ -241,10 +241,10 @@ const AutonomousFinance: React.FC = () => {
                         {activeSector === 'OVERVIEW' && (
                             <motion.div key="overview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-12">
                                 <div className="grid grid-cols-4 gap-8">
-                                    <FinanceMetric label="Yield Velocity" value="+$420.80/h" trend={12.4} icon={Zap} color="#10b981" />
-                                    <FinanceMetric label="Protocol Alpha" value="1.24x" trend={8.1} icon={Scale} color="#22d3ee" />
-                                    <FinanceMetric label="Market Efficiency" value="98.4%" trend={-1.2} icon={Activity} color="#f59e0b" />
-                                    <FinanceMetric label="Network Health" value="NOMINAL" trend={0.05} icon={ShieldCheck} color="#10b981" />
+                                    <FinanceMetric label="Yield Velocity" value="+$420.80/h" trend={12.4} icon={Zap} color="var(--plasma-green)" />
+                                    <FinanceMetric label="Protocol Alpha" value="1.24x" trend={8.1} icon={Scale} color="var(--cyan)" />
+                                    <FinanceMetric label="Market Efficiency" value="98.4%" trend={-1.2} icon={Activity} color="var(--amber)" />
+                                    <FinanceMetric label="Network Health" value="NOMINAL" trend={0.05} icon={ShieldCheck} color="var(--plasma-green)" />
                                 </div>
 
                                 <div className="grid grid-cols-12 gap-10">

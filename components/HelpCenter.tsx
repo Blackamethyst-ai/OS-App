@@ -48,7 +48,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                         <HelpCircle className="w-5 h-5 text-[var(--amethyst-soft)]" />
                         <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-white">V9.5 - THE D-Ecosystem Guide</h2>
                     </div>
-                    <button onClick={onClose} className="p-2 text-gray-500 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d4edd]" aria-label="Close help center">
+                    <button onClick={onClose} className="p-2 text-gray-500 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--amethyst-soft)]" aria-label="Close help center">
                         <X className="w-6 h-6" />
                     </button>
                 </div>
@@ -60,13 +60,13 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                             <h2 className="text-lg font-black font-mono text-white uppercase tracking-[0.2em]">Core Operational Modules</h2>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <FeatureItem icon={Activity} color="#9d4edd" title="Strategy Bridge" description="The Metaventions Stack. Orchestrate DePIN, physical AI, and autonomous finance layers through recursive feedback loops." />
-                            <FeatureItem icon={FlaskConical} color="#22d3ee" title="Discovery Lab" description="Scientific synthesis. Transform research facts into hypotheses and unified theories with interactive 3D lattices." />
-                            <FeatureItem icon={Cpu} color="#10b981" title="Hardware Core" description="Evolutionary infrastructure. Thermal simulations, supply chain components, and schematic analysis." />
+                            <FeatureItem icon={Activity} color="var(--amethyst-soft)" title="Strategy Bridge" description="The Metaventions Stack. Orchestrate DePIN, physical AI, and autonomous finance layers through recursive feedback loops." />
+                            <FeatureItem icon={FlaskConical} color="var(--cyan)" title="Discovery Lab" description="Scientific synthesis. Transform research facts into hypotheses and unified theories with interactive 3D lattices." />
+                            <FeatureItem icon={Cpu} color="var(--plasma-green)" title="Hardware Core" description="Evolutionary infrastructure. Thermal simulations, supply chain components, and schematic analysis." />
                             <FeatureItem icon={ImageIcon} color="#d946ef" title="Asset Studio" description="Cinematic fabrication. Sequential storyboard generation and photorealistic renders with complex metadata." />
-                            <FeatureItem icon={Code} color="#f1c21b" title="Code Studio" description="Autonomous logic. Draft, validate, and auto-heal code using neural feedback loops and persistent sessions." />
-                            <FeatureItem icon={Mic} color="#3b82f6" title="Voice Mode" description="Neural uplink. Low-latency conversation with specialized hive agents and real-time screen awareness." />
-                            <FeatureItem icon={Workflow} color="#f59e0b" title="Process Logic" description="Visual reasoning. Map distributed systems and generate autopoietic workflow protocols from ingested data." />
+                            <FeatureItem icon={Code} color="var(--executive-gold)" title="Code Studio" description="Autonomous logic. Draft, validate, and auto-heal code using neural feedback loops and persistent sessions." />
+                            <FeatureItem icon={Mic} color="var(--azure-blue)" title="Voice Mode" description="Neural uplink. Low-latency conversation with specialized hive agents and real-time screen awareness." />
+                            <FeatureItem icon={Workflow} color="var(--amber)" title="Process Logic" description="Visual reasoning. Map distributed systems and generate autopoietic workflow protocols from ingested data." />
                             <FeatureItem icon={HardDrive} color="#6366f1" title="Memory Core" description="Neural Vault. Persistent storage for artifacts with automatic AI indexing and taxonomy generation." />
                             <FeatureItem icon={GitBranch} color="#ec4899" title="Bicameral Swarm" description="Consensus engine. High-velocity verification of complex goals through specialized agent voting cycles." />
                         </div>

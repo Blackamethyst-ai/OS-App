@@ -196,7 +196,7 @@ const HoloProjector: React.FC = () => {
                                         </span>
                                         <button onClick={() => setHoloAnalysis(null)} className="text-gray-500 hover:text-white transition-colors"><X size={3} className="w-3 h-3" /></button>
                                     </div>
-                                    <div className="flex-1 p-6 overflow-y-auto custom-scrollbar text-[11px] font-mono text-gray-400 leading-relaxed whitespace-pre-wrap border-l-4 border-l-[#9d4edd]/20">
+                                    <div className="flex-1 p-6 overflow-y-auto custom-scrollbar text-[11px] font-mono text-gray-400 leading-relaxed whitespace-pre-wrap border-l-4 border-l-[var(--amethyst-soft)]/20">
                                         {holo.analysisResult}
                                     </div>
                                 </motion.div>

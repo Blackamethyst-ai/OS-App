@@ -48,7 +48,7 @@ export const NeuralDebuggerPanel: React.FC<NeuralDebuggerPanelProps> = ({
                                 type="range" min="0" max="100"
                                 value={state.skepticism}
                                 onChange={(e) => onChange('skepticism', parseInt(e.target.value, 10))}
-                                className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#7B2CFF] hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
+                                className="w-full h-1 bg-white/10 rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[var(--amethyst)] hover:[&::-webkit-slider-thumb]:scale-125 transition-all"
                             />
                         </div>
 

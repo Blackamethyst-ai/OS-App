@@ -137,19 +137,19 @@ const TacticalScanner: React.FC = () => {
                     {/* Reticle Brackets - Ultra-precise architectural profile */}
                     <div className={cn(
                         "absolute top-0 left-0 w-16 h-16 border-t border-l transition-all duration-1000",
-                        isVerified ? "border-[var(--plasma-green)] shadow-[0_0_60px_#10b981]" : "border-white/5"
+                        isVerified ? "border-[var(--plasma-green)] shadow-[0_0_60px_var(--plasma-green)]" : "border-white/5"
                     )} />
                     <div className={cn(
                         "absolute top-0 right-0 w-16 h-16 border-t border-r transition-all duration-1000",
-                        isVerified ? "border-[var(--plasma-green)] shadow-[0_0_60px_#10b981]" : "border-white/5"
+                        isVerified ? "border-[var(--plasma-green)] shadow-[0_0_60px_var(--plasma-green)]" : "border-white/5"
                     )} />
                     <div className={cn(
                         "absolute bottom-0 left-0 w-16 h-16 border-b border-l transition-all duration-1000",
-                        isVerified ? "border-[var(--plasma-green)] shadow-[0_0_60px_#10b981]" : "border-white/5"
+                        isVerified ? "border-[var(--plasma-green)] shadow-[0_0_60px_var(--plasma-green)]" : "border-white/5"
                     )} />
                     <div className={cn(
                         "absolute bottom-0 right-0 w-16 h-16 border-b border-r transition-all duration-1000",
-                        isVerified ? "border-[var(--plasma-green)] shadow-[0_0_60px_#10b981]" : "border-white/5"
+                        isVerified ? "border-[var(--plasma-green)] shadow-[0_0_60px_var(--plasma-green)]" : "border-white/5"
                     )} />
 
                     {/* Scanning Axis Rails - Minimalist refraction */}

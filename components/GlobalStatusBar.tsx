@@ -196,7 +196,7 @@ const GlobalStatusBar: React.FC = () => {
                 <div className="flex items-center gap-6 shrink-0 relative z-10">
                     <div className="flex items-center gap-4">
                         <div className="flex flex-col items-center gap-1 min-w-[85px]">
-                            <div className="flex items-center gap-1.5 text-[6px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none">
+                            <div className="flex items-center gap-1.5 text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none">
                                 <Gauge size={8} className="text-[var(--cyan)]" />
                                 <span>Neural_Load</span>
                             </div>
@@ -206,7 +206,7 @@ const GlobalStatusBar: React.FC = () => {
                         </div>
 
                         <div className="flex flex-col gap-0.5 min-w-[90px]">
-                            <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Integrity</span>
+                            <span className="text-[8px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Integrity</span>
                             <div className="flex items-center gap-2">
                                 <div className="w-10 h-1 bg-white/5 rounded-full overflow-hidden">
                                     <motion.div animate={{ width: `${driveHealth}%` }} className="h-full bg-[var(--plasma-green)]" />
@@ -217,21 +217,21 @@ const GlobalStatusBar: React.FC = () => {
 
                         <div className="flex items-center gap-4 border-r border-white/5 pr-4 h-8">
                             <div className="flex flex-col gap-0.5 min-w-[50px]">
-                                <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Optical</span>
+                                <span className="text-[8px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Optical</span>
                                 <div className="flex items-center gap-1">
                                     <span className="text-[10px] font-black font-mono text-[var(--cyan)]">{fps}</span>
-                                    <span className="text-[5px] text-gray-700 font-black uppercase">FPS</span>
+                                    <span className="text-[8px] text-gray-700 font-black uppercase">FPS</span>
                                 </div>
                             </div>
                             <div className="flex flex-col gap-0.5 min-w-[55px]">
-                                <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Lattice</span>
+                                <span className="text-[8px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Lattice</span>
                                 <div className="flex items-center gap-1">
                                     <span className="text-[10px] font-black font-mono text-[var(--amber)]">{memory?.used || 0}</span>
-                                    <span className="text-[5px] text-gray-700 font-black uppercase">MB</span>
+                                    <span className="text-[8px] text-gray-700 font-black uppercase">MB</span>
                                 </div>
                             </div>
                             <div className="flex flex-col gap-0.5 min-w-[70px] pl-4 border-l border-white/5">
-                                <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Sys_Latency</span>
+                                <span className="text-[8px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Sys_Latency</span>
                                 <div className="flex items-center gap-1">
                                     <Activity size={8} className="text-[var(--cyan)]" />
                                     <span className="text-[10px] font-black font-mono text-[var(--cyan)]">{latency}ms</span>
@@ -260,11 +260,11 @@ const GlobalStatusBar: React.FC = () => {
                     <div className="flex items-center gap-3 ml-4 shrink-0">
                         <div className="flex items-center gap-1.5" title={`Agent Core: ${serviceHealth.agentCore}`}>
                             <div className={cn("w-1.5 h-1.5 rounded-full", serviceHealth.agentCore === 'online' ? 'bg-[var(--plasma-green)]' : serviceHealth.agentCore === 'checking' ? 'bg-amber-500 animate-pulse' : 'bg-red-500/60')} />
-                            <span className="text-[7px] font-mono text-gray-600 tracking-wider">MCP</span>
+                            <span className="text-[8px] font-mono text-gray-600 tracking-wider">MCP</span>
                         </div>
                         <div className="flex items-center gap-1.5" title={`Ollama: ${serviceHealth.ollama}`}>
                             <div className={cn("w-1.5 h-1.5 rounded-full", serviceHealth.ollama === 'online' ? 'bg-[var(--plasma-green)]' : serviceHealth.ollama === 'checking' ? 'bg-amber-500 animate-pulse' : 'bg-red-500/60')} />
-                            <span className="text-[7px] font-mono text-gray-600 tracking-wider">LLM</span>
+                            <span className="text-[8px] font-mono text-gray-600 tracking-wider">LLM</span>
                         </div>
                     </div>
                 </div>
@@ -351,7 +351,7 @@ const GlobalStatusBar: React.FC = () => {
                             )}>
                                 {dreamStatus.isDreaming ? 'DREAMING' : 'AWAKE'}
                             </span>
-                            <span className="text-[6px] font-mono text-gray-600 leading-none mt-0.5">
+                            <span className="text-[8px] font-mono text-gray-600 leading-none mt-0.5">
                                 {dreamStatus.isDreaming
                                     ? `${dreamStatus.currentSession?.insights.length || 0} insights`
                                     : `Idle: ${Math.floor(dreamStatus.idleTime / 60000)}m ${Math.floor((dreamStatus.idleTime % 60000) / 1000)}s`
@@ -382,7 +382,7 @@ const GlobalStatusBar: React.FC = () => {
                 {/* IDENTITY & AUDIT (Far Right) */}
                 <div className="flex items-center gap-6 pl-6 shrink-0 relative z-10">
                     <div className="flex flex-col items-center gap-0.5 border-r border-white/5 pr-6 min-w-[80px]">
-                        <div className="flex items-center gap-1.5 text-[6px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none mb-1">
+                        <div className="flex items-center gap-1.5 text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none mb-1">
                             <Fingerprint size={10} className="text-[var(--amethyst)]" />
                             <span>Auth_Token</span>
                         </div>
@@ -418,7 +418,7 @@ const GlobalStatusBar: React.FC = () => {
                     </div>
 
                     <div className="text-right pl-4 min-w-[80px]">
-                        <div className="text-[6px] text-gray-600 font-mono uppercase tracking-[0.2em] font-black mb-1">Runtime</div>
+                        <div className="text-[8px] text-gray-600 font-mono uppercase tracking-[0.2em] font-black mb-1">Runtime</div>
                         <div className="text-[10px] font-mono font-black text-white tracking-tighter leading-none">{formatUptime(kernel.uptime)}</div>
                     </div>
                 </div>

@@ -178,7 +178,7 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
                                                 <div 
                                                     className={`w-3.5 h-3.5 rounded-full border-2 transition-all duration-500 relative
                                                         ${isActive 
-                                                            ? 'bg-[var(--amethyst-soft)] border-[var(--amethyst-soft)] shadow-[0_0_15px_#9d4edd] scale-125' 
+                                                            ? 'bg-[var(--amethyst-soft)] border-[var(--amethyst-soft)] shadow-[0_0_15px_var(--amethyst-soft)] scale-125' 
                                                             : isLast && activeIndex === null 
                                                                 ? 'bg-[#42be65] border-[#42be65] animate-pulse' 
                                                                 : 'bg-[#111] border-gray-700 hover:border-white'

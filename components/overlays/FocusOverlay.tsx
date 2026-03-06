@@ -35,9 +35,9 @@ const FocusOverlay: React.FC = () => {
                 clipPath: `polygon(0% 0%, 0% 100%, ${bounds.left}px 100%, ${bounds.left}px ${bounds.top}px, ${bounds.right}px ${bounds.top}px, ${bounds.right}px ${bounds.bottom}px, ${bounds.left}px ${bounds.bottom}px, ${bounds.left}px 100%, 100% 100%, 100% 0%)`
             }}></div>
             <motion.div
-                animate={{ boxShadow: ['0 0 20px #7B2CFF', '0 0 40px #18E6FF', '0 0 20px #7B2CFF'] }}
+                animate={{ boxShadow: ['0 0 20px var(--amethyst)', '0 0 40px var(--cyan)', '0 0 20px var(--amethyst)'] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                className="absolute border-2 border-[#7B2CFF] rounded-lg"
+                className="absolute border-2 border-[var(--amethyst)] rounded-lg"
                 style={{ left: bounds.left - 4, top: bounds.top - 4, width: bounds.width + 8, height: bounds.height + 8 }}
             >
                 <div className="absolute -top-8 left-0 bg-gradient-to-r from-[var(--amethyst)] to-[var(--cyan)] text-black text-[10px] font-black font-mono px-3 py-1 rounded flex items-center gap-2 pointer-events-auto cursor-pointer" onClick={() => actions.setFocusedSelector(null)}>

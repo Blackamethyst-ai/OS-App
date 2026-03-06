@@ -122,7 +122,7 @@ const NeuralDock: React.FC<{ mode?: 'fixed' | 'static', className?: string }> = 
                 {/* 1. Terminal */}
                 <DockIcon
                     icon={Terminal}
-                    color="#9d4edd"
+                    color="var(--amethyst-soft)"
                     onClick={() => toggleTerminal()}
                     isActive={system.isTerminalOpen}
                     label="Terminal"
@@ -133,7 +133,7 @@ const NeuralDock: React.FC<{ mode?: 'fixed' | 'static', className?: string }> = 
                 {/* 2. Visual Cortex */}
                 <DockIcon
                     icon={Scan}
-                    color="#18E6FF"
+                    color="var(--cyan)"
                     onClick={probeScreen}
                     isActive={isProbing}
                     label="Visual Cortex"
@@ -142,7 +142,7 @@ const NeuralDock: React.FC<{ mode?: 'fixed' | 'static', className?: string }> = 
                 {/* 3. Swarm Sync */}
                 <DockIcon
                     icon={Bot}
-                    color="#10b981"
+                    color="var(--plasma-green)"
                     onClick={() => {
                         hydrateAgents();
                         addLog('SYSTEM', 'SWARM: Synchronizing active node presence.');
@@ -153,7 +153,7 @@ const NeuralDock: React.FC<{ mode?: 'fixed' | 'static', className?: string }> = 
                 {/* 4. Sync Hub */}
                 <DockIcon
                     icon={RefreshCw}
-                    color="#f1c21b"
+                    color="var(--executive-gold)"
                     onClick={() => addLog('SYSTEM', 'LATTICE: Global recalibration sequence active.')}
                     label="Sync Hub"
                 />
@@ -181,7 +181,7 @@ const NeuralDock: React.FC<{ mode?: 'fixed' | 'static', className?: string }> = 
                 {/* 7. Neural Debugger */}
                 <DockIcon
                     icon={Activity}
-                    color="#3b82f6"
+                    color="var(--azure-blue)"
                     onClick={() => setIsNeuralDebugOpen(!isNeuralDebugOpen)}
                     isActive={isNeuralDebugOpen}
                     label="Neural Debugger"
@@ -192,7 +192,7 @@ const NeuralDock: React.FC<{ mode?: 'fixed' | 'static', className?: string }> = 
                 {/* 8. Power */}
                 <DockIcon
                     icon={Battery}
-                    color={powerConfig.mode === 'OVERDRIVE' ? '#ef4444' : powerConfig.mode === 'ECO' ? '#10b981' : '#f59e0b'}
+                    color={powerConfig.mode === 'OVERDRIVE' ? '#ef4444' : powerConfig.mode === 'ECO' ? 'var(--plasma-green)' : 'var(--amber)'}
                     onClick={() => setIsPowerOpen(true)}
                     isActive={isPowerOpen}
                     label="Power"
@@ -201,7 +201,7 @@ const NeuralDock: React.FC<{ mode?: 'fixed' | 'static', className?: string }> = 
                 {/* 9. Sidebar Controls (Main Toggle) */}
                 <DockIcon
                     icon={PanelRight}
-                    color="#8b5cf6"
+                    color="var(--amethyst-soft)"
                     onClick={() => setSidebarOpen(!isSidebarOpen)}
                     isActive={isSidebarOpen}
                     label="Operations"

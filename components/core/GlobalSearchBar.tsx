@@ -262,7 +262,7 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
                                                 selectedIndex === i ? "bg-white/[0.05]" : "hover:bg-white/[0.02]"
                                             )}
                                         >
-                                            {selectedIndex === i && <motion.div layoutId="search-active" className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--executive-gold)] shadow-[0_0_15px_#f1c21b]" />}
+                                            {selectedIndex === i && <motion.div layoutId="search-active" className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--executive-gold)] shadow-[0_0_15px_var(--executive-gold)]" />}
 
                                             <div className={cn(
                                                 "w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 transition-all",

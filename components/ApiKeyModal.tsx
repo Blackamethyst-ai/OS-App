@@ -358,7 +358,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                         >
                             <div
                                 className="w-2 h-2 rounded-full"
-                                style={{ backgroundColor: status?.configured ? '#10b981' : '#6b7280' }}
+                                style={{ backgroundColor: status?.configured ? 'var(--plasma-green)' : '#6b7280' }}
                             />
                             {provider.name}
                         </button>

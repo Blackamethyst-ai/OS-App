@@ -18,7 +18,7 @@ interface ComputeFluxOverlayProps {
 export const ComputeFluxOverlay: React.FC<ComputeFluxOverlayProps> = ({
     active,
     speed,
-    color = '#22d3ee'
+    color = 'var(--cyan)'
 }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -51,7 +51,7 @@ export const ComputeFluxOverlay: React.FC<ComputeFluxOverlayProps> = ({
                     vx: (Math.random() - 0.5) * speed * 1.5,
                     vy: (Math.random() - 0.5) * speed * 1.5,
                     life: 1.0,
-                    pColor: Math.random() > 0.5 ? color : '#f59e0b'
+                    pColor: Math.random() > 0.5 ? color : 'var(--amber)'
                 });
             }
 

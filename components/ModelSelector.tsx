@@ -22,14 +22,14 @@ export const ModelSelector: React.FC = () => {
             id: 'fast',
             label: 'Speed',
             icon: Zap,
-            color: '#10b981', // Emerald
+            color: 'var(--plasma-green)', // Emerald
             desc: 'Gemini 1.5 Flash (Economy)'
         },
         {
             id: 'balanced',
             label: 'Balanced',
             icon: Gauge,
-            color: '#3b82f6', // Blue
+            color: 'var(--azure-blue)', // Blue
             desc: 'Optimal Performance/Cost'
         },
         {
@@ -43,7 +43,7 @@ export const ModelSelector: React.FC = () => {
             id: 'creative',
             label: 'Creative',
             icon: Sparkles,
-            color: '#f59e0b', // Amber
+            color: 'var(--amber)', // Amber
             desc: 'Grok 2 / Gemini Pro / Opus'
         }
     ];

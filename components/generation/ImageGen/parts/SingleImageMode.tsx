@@ -328,7 +328,7 @@ export const SingleImageMode: React.FC<SingleImageModeProps> = ({
                     <div className="space-y-3">
                         <CrewSlot role="Director" status="Narrative Mapping" icon={DirectorIcon} color="var(--amethyst)" />
                         <CrewSlot role="DP / Optics" status="Anamorphic Tuning" icon={Aperture} color="var(--cyan)" />
-                        <CrewSlot role="Lighting Head" status="Ray-Tracing L0" icon={Sun} color="#f59e0b" />
+                        <CrewSlot role="Lighting Head" status="Ray-Tracing L0" icon={Sun} color="var(--amber)" />
                         <CrewSlot role="Editor" status="Continuity Lock" icon={Scissors} color="var(--plasma-green)" />
                     </div>
                     <div className="pt-4 border-t border-white/5 mt-2 flex flex-col gap-4 px-1">

@@ -18,8 +18,8 @@ import { usePerspectiveRefraction } from '../../hooks/usePerspectiveRefraction';
 const highlightCode = (code: string, lang: string) => {
     const escaped = code.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     return escaped
-        .replace(/\b(const|let|var|function|class|import|from|return|if|else|for|while|async|await|export|default|interface|type|public|private|protected|new|try|catch|finally|switch|case|break|throw)\b/g, '<span style="color: #f1c21b">$1</span>')
-        .replace(/\b(string|number|boolean|any|Promise|Array|Object|null|undefined|true|false)\b/g, '<span style="color: #22d3ee">$1</span>')
+        .replace(/\b(const|let|var|function|class|import|from|return|if|else|for|while|async|await|export|default|interface|type|public|private|protected|new|try|catch|finally|switch|case|break|throw)\b/g, '<span style="color: var(--executive-gold)">$1</span>')
+        .replace(/\b(string|number|boolean|any|Promise|Array|Object|null|undefined|true|false)\b/g, '<span style="color: var(--cyan)">$1</span>')
         .replace(/(\/\/.*$|\/\*[\s\S]*?\*\/)/gm, '<span style="color: #6b7280; font-style: italic">$1</span>')
         .replace(/(".*?"|'.*?'|`[\s\S]*?`)/g, '<span style="color: #42be65">$1</span>');
 };
@@ -292,7 +292,7 @@ const CodeStudio: React.FC = () => {
       <div className="h-10 bg-[#0a0a0a] border-t border-[#1f1f1f] px-10 flex items-center justify-between text-[9px] font-mono text-gray-700 shrink-0 relative z-20 uppercase font-black tracking-[0.4em]">
           <div className="flex gap-12 items-center">
               <div className="flex items-center gap-3 text-[var(--plasma-green)]">
-                <CheckCircle2 size={14} className="shadow-[0_0_10px_#10b981]" /> Sync_Stable
+                <CheckCircle2 size={14} className="shadow-[0_0_10px_var(--plasma-green)]" /> Sync_Stable
               </div>
               <div className="flex items-center gap-3">
                 <GitBranch size={14} className="text-[var(--amethyst-soft)]" /> Lattice_Active

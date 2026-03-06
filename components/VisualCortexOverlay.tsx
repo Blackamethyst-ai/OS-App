@@ -22,7 +22,7 @@ const VisualCortexOverlay: React.FC = () => {
                     <motion.div 
                         animate={{ top: ['0%', '100%', '0%'] }}
                         transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                        className="absolute left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--amethyst-soft)] to-transparent shadow-[0_0_15px_#9d4edd] z-10"
+                        className="absolute left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-[var(--amethyst-soft)] to-transparent shadow-[0_0_15px_var(--amethyst-soft)] z-10"
                     />
 
                     <div className="flex flex-col items-center gap-10">

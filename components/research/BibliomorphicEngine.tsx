@@ -56,8 +56,8 @@ const DNABuilder = () => {
                 <div className="space-y-10 relative z-10 px-4">
                     {[
                         { id: 'skepticism', label: 'Logical Skepticism', color: '#ef4444', desc: 'Systemic doubt and error-filtering priority.' },
-                        { id: 'excitement', label: 'Neural Excitement', color: '#f59e0b', desc: 'Explorative reach and novel pattern bias.' },
-                        { id: 'alignment', label: 'Directive Alignment', color: '#22d3ee', desc: 'Stability and core objective synchronization.' }
+                        { id: 'excitement', label: 'Neural Excitement', color: 'var(--amber)', desc: 'Explorative reach and novel pattern bias.' },
+                        { id: 'alignment', label: 'Directive Alignment', color: 'var(--cyan)', desc: 'Stability and core objective synchronization.' }
                     ].map(param => (
                         <div key={param.id} className="space-y-4">
                             <div className="flex justify-between items-end">
@@ -125,7 +125,7 @@ const BibliomorphicEngine: React.FC = () => {
       <div className="w-[320px] flex flex-col border-r border-[var(--border-main)] bg-[var(--bg-side)] relative z-20 min-w-[320px]">
           <div className="h-16 flex items-center px-6 border-b border-[var(--border-main)] bg-black/5">
               <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 bg-[var(--amethyst-soft)] rounded-full shadow-[0_0_10px_#9d4edd] animate-pulse"></div>
+                  <div className="w-2.5 h-2.5 bg-[var(--amethyst-soft)] rounded-full shadow-[0_0_10px_var(--amethyst-soft)] animate-pulse"></div>
                   <span className="font-mono font-black text-[var(--text-main)] tracking-[0.2em] text-xs uppercase">Vision Sector</span>
               </div>
           </div>

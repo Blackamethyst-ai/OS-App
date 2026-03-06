@@ -110,7 +110,7 @@ export const GpuDetailPanel: React.FC<GpuDetailPanelProps> = ({
                             <Area
                                 type="monotone"
                                 dataKey="v"
-                                stroke="#10b981"
+                                stroke="var(--plasma-green)"
                                 fill="rgba(16,185,129,0.08)"
                                 strokeWidth={2}
                             />

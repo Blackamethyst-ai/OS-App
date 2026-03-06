@@ -298,7 +298,7 @@ const AgentControlCenter: React.FC = () => {
                                 onClick={() => { setViewMode(tab.id as any); audio.playClick(); }}
                                 className={cn(
                                     "px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all",
-                                    viewMode === tab.id ? "bg-[var(--amethyst-soft)] text-black shadow-lg shadow-[#9d4edd]/30" : "text-gray-600 hover:text-gray-300"
+                                    viewMode === tab.id ? "bg-[var(--amethyst-soft)] text-black shadow-lg shadow-[var(--amethyst-soft)]/30" : "text-gray-600 hover:text-gray-300"
                                 )}
                             >
                                 <tab.icon size={12} className={viewMode === tab.id ? 'fill-current' : ''} /> {tab.label}
@@ -373,7 +373,7 @@ const AgentControlCenter: React.FC = () => {
                         <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest block mb-1">Swarm_Sync_Status</span>
                         <div className="flex items-center gap-4">
                             <span className="text-xl font-black font-mono text-white tracking-tighter">98.4%</span>
-                            <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_12px_#10b981]" />
+                            <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_12px_var(--plasma-green)]" />
                         </div>
                     </div>
                 </div>
@@ -414,7 +414,7 @@ const AgentControlCenter: React.FC = () => {
                                                 transition={{ duration: 2, repeat: Infinity }}
                                                 className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-[#0a0a0a] border border-white/10 rounded-full flex items-center justify-center shadow-2xl"
                                             >
-                                                <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] shadow-[0_0_12px_#10b981]" />
+                                                <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] shadow-[0_0_12px_var(--plasma-green)]" />
                                             </motion.div>
                                         </div>
                                         <div className="space-y-1">
@@ -482,7 +482,7 @@ const AgentControlCenter: React.FC = () => {
                                     {viewMode === 'SKILLS' && (
                                         <div className="h-full flex flex-col items-center justify-center gap-12 py-4">
                                             <div className="scale-90 origin-center h-48 flex items-center justify-center">
-                                                <SkillConstellation capabilities={activeAgent.capabilities} color="#9d4edd" isActive={true} />
+                                                <SkillConstellation capabilities={activeAgent.capabilities} color="var(--amethyst-soft)" isActive={true} />
                                             </div>
 
                                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 w-full max-w-6xl px-4 pb-8">
@@ -497,7 +497,7 @@ const AgentControlCenter: React.FC = () => {
                                                             <div className="p-3 rounded-2xl bg-black/40 text-[var(--amethyst-soft)] border border-[var(--amethyst-soft)]/30 shadow-lg">
                                                                 <Zap size={16} className="group-hover:scale-110 transition-transform" />
                                                             </div>
-                                                            <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] shadow-[0_0_10px_#10b981]" />
+                                                            <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] shadow-[0_0_10px_var(--plasma-green)]" />
                                                         </div>
                                                         <div className="text-[12px] font-black text-white uppercase font-mono tracking-widest leading-tight relative z-10">{cap.split('_').join(' ')}</div>
                                                         <div className="text-[8px] text-gray-600 font-mono uppercase tracking-[0.2em] relative z-10">Protocol: Integrated</div>

@@ -72,7 +72,7 @@ export const TelemetrySidebar: React.FC<TelemetrySidebarProps> = ({
             <div className="space-y-2">
                 <PerformanceMixer label="CPU FREQUENCY" value={clockSpeed} unit="GHz" min={1.2} max={6.4} color={eraColor} onValueChange={onClockSpeedChange} />
                 <PerformanceMixer label="POWER VOLTAGE" value={voltage} unit="v" min={0.7} max={1.65} color="#ef4444" onValueChange={onVoltageChange} />
-                <PerformanceMixer label="COOLING ARRAY" value={fanSpeed} unit=" RPM" min={0} max={6000} color="#9d4edd" onValueChange={onFanSpeedChange} />
+                <PerformanceMixer label="COOLING ARRAY" value={fanSpeed} unit=" RPM" min={0} max={6000} color="var(--amethyst-soft)" onValueChange={onFanSpeedChange} />
             </div>
         </div>
 

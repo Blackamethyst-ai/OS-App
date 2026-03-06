@@ -344,18 +344,18 @@ export const ImplementationDeck: React.FC<ImplementationDeckProps> = ({ data, on
                 </div>
 
                 <div className="grid grid-cols-4 gap-4 relative z-10 mb-8">
-                    <BlueprintStat label="Coherence Q" value={`${data.viability || 98}`} detail="%" color="#7B2CFF" />
+                    <BlueprintStat label="Coherence Q" value={`${data.viability || 98}`} detail="%" color="var(--amethyst)" />
                     <BlueprintStat label="Node Count" value={`L${data.depth || 8}`} color="#f97316" />
-                    <BlueprintStat label="Complexity" value={data.complexity || 'IMPERIAL'} color="#f1c21b" />
-                    <BlueprintStat label="Structure" value={data.type} color="#18E6FF" />
+                    <BlueprintStat label="Complexity" value={data.complexity || 'IMPERIAL'} color="var(--executive-gold)" />
+                    <BlueprintStat label="Structure" value={data.type} color="var(--cyan)" />
                 </div>
 
                 <div className="p-6 bg-black/60 border border-white/5 rounded-[2.5rem] shadow-inner group/logic relative overflow-hidden mb-6">
                     <div className="flex items-center gap-2 mb-4">
-                        <Terminal size={14} className="text-[#7B2CFF]" />
+                        <Terminal size={14} className="text-[var(--amethyst)]" />
                         <span className="text-[9px] font-black text-gray-500 uppercase tracking-0.4em">Directive</span>
                     </div>
-                    <p className="text-xl text-gray-300 font-mono leading-tight italic border-l-2 border-[#7B2CFF] pl-6 group-hover:text-white transition-colors duration-1000">
+                    <p className="text-xl text-gray-300 font-mono leading-tight italic border-l-2 border-[var(--amethyst)] pl-6 group-hover:text-white transition-colors duration-1000">
                         "{renderSafe(data.logic || data.internalPlanningMonologue)}"
                     </p>
                 </div>
@@ -417,7 +417,7 @@ export const ImplementationDeck: React.FC<ImplementationDeckProps> = ({ data, on
                         <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(123,44,255,0.02)_0%,transparent_70%)] pointer-events-none" />
 
                         <div className="flex items-center gap-4 relative z-10">
-                            <div className="p-3 bg-[#7B2CFF]/10 rounded-2xl text-[#7B2CFF] border border-[#7B2CFF]/30">
+                            <div className="p-3 bg-[var(--amethyst)]/10 rounded-2xl text-[var(--amethyst)] border border-[var(--amethyst)]/30">
                                 <Compass size={24} />
                             </div>
                             <div>
@@ -429,7 +429,7 @@ export const ImplementationDeck: React.FC<ImplementationDeckProps> = ({ data, on
                             <div className="space-y-4">
                                 <div className="flex justify-between items-end px-1">
                                     <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Viability</span>
-                                    <span className="text-lg font-black font-mono text-[#7B2CFF] leading-none">{data.viability}%</span>
+                                    <span className="text-lg font-black font-mono text-[var(--amethyst)] leading-none">{data.viability}%</span>
                                 </div>
                                 <div className="h-1.5 w-full bg-black/60 rounded-full overflow-hidden border border-white/5 shadow-inner p-px">
                                     <motion.div
@@ -443,8 +443,8 @@ export const ImplementationDeck: React.FC<ImplementationDeckProps> = ({ data, on
 
                             <div className="space-y-4 px-1">
                                 {[
-                                    { label: 'Latency', val: '-24ms', color: '#10b981', icon: Gauge },
-                                    { label: 'Yield', val: '+41%', color: '#22d3ee', icon: Activity }
+                                    { label: 'Latency', val: '-24ms', color: 'var(--plasma-green)', icon: Gauge },
+                                    { label: 'Yield', val: '+41%', color: 'var(--cyan)', icon: Activity }
                                 ].map((stat, idx) => (
                                     <div key={idx} className="flex justify-between items-center py-2 border-b border-white/5 last:border-0 group/stat">
                                         <div className="flex items-center gap-2">
