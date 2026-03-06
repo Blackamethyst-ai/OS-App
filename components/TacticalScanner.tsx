@@ -137,50 +137,50 @@ const TacticalScanner: React.FC = () => {
                     {/* Reticle Brackets - Ultra-precise architectural profile */}
                     <div className={cn(
                         "absolute top-0 left-0 w-16 h-16 border-t border-l transition-all duration-1000",
-                        isVerified ? "border-[#10b981] shadow-[0_0_60px_#10b981]" : "border-white/5"
+                        isVerified ? "border-[var(--plasma-green)] shadow-[0_0_60px_#10b981]" : "border-white/5"
                     )} />
                     <div className={cn(
                         "absolute top-0 right-0 w-16 h-16 border-t border-r transition-all duration-1000",
-                        isVerified ? "border-[#10b981] shadow-[0_0_60px_#10b981]" : "border-white/5"
+                        isVerified ? "border-[var(--plasma-green)] shadow-[0_0_60px_#10b981]" : "border-white/5"
                     )} />
                     <div className={cn(
                         "absolute bottom-0 left-0 w-16 h-16 border-b border-l transition-all duration-1000",
-                        isVerified ? "border-[#10b981] shadow-[0_0_60px_#10b981]" : "border-white/5"
+                        isVerified ? "border-[var(--plasma-green)] shadow-[0_0_60px_#10b981]" : "border-white/5"
                     )} />
                     <div className={cn(
                         "absolute bottom-0 right-0 w-16 h-16 border-b border-r transition-all duration-1000",
-                        isVerified ? "border-[#10b981] shadow-[0_0_60px_#10b981]" : "border-white/5"
+                        isVerified ? "border-[var(--plasma-green)] shadow-[0_0_60px_#10b981]" : "border-white/5"
                     )} />
 
                     {/* Scanning Axis Rails - Minimalist refraction */}
                     <div className={cn(
                         "absolute w-[200vw] h-px transition-all duration-1000",
-                        isVerified ? "bg-[#10b981]/10" : "bg-white/[0.005]"
+                        isVerified ? "bg-[var(--plasma-green)]/10" : "bg-white/[0.005]"
                     )} />
                     <div className={cn(
                         "absolute h-[200vh] w-px transition-all duration-1000",
-                        isVerified ? "bg-[#10b981]/10" : "bg-white/[0.005]"
+                        isVerified ? "bg-[var(--plasma-green)]/10" : "bg-white/[0.005]"
                     )} />
 
                     <Crosshair 
                         size={40} 
                         className={cn(
                             "transition-all duration-1000",
-                            isVerified ? "text-[#10b981] scale-110 rotate-180" : "text-white/5 rotate-0"
+                            isVerified ? "text-[var(--plasma-green)] scale-110 rotate-180" : "text-white/5 rotate-0"
                         )} 
                     />
                 </div>
 
                 <div className={cn(
                     "mt-12 px-14 py-8 bg-[#010102]/95 backdrop-blur-5xl border rounded-[3rem] shadow-[0_80px_160px_rgba(0,0,0,1)] transition-all duration-1000 min-w-[360px] overflow-hidden",
-                    isVerified ? "border-[#10b981]/30 scale-105" : "border-white/5"
+                    isVerified ? "border-[var(--plasma-green)]/30 scale-105" : "border-white/5"
                 )}>
                     <div className="flex items-center justify-between mb-6">
                         <div className="flex items-center gap-6">
-                            <Scan size={24} className={isVerified ? "text-[#10b981]" : "text-gray-800"} />
+                            <Scan size={24} className={isVerified ? "text-[var(--plasma-green)]" : "text-gray-800"} />
                             <span className={cn(
                                 "text-[12px] font-black font-mono uppercase tracking-[0.7em]",
-                                isVerified ? "text-[#10b981]" : "text-gray-800"
+                                isVerified ? "text-[var(--plasma-green)]" : "text-gray-800"
                             )}>
                                 {isVerified ? "IDENTITY_LOCKED" : "OCULUS_SCAN"}
                             </span>
@@ -191,7 +191,7 @@ const TacticalScanner: React.FC = () => {
                                     key={i}
                                     animate={isVerified ? { opacity: 1, scale: 1.2 } : { opacity: [0.05, 0.3, 0.05] }}
                                     transition={{ duration: 3, repeat: Infinity, delay: i * 0.6 }}
-                                    className={cn("w-2.5 h-2.5 rounded-full", isVerified ? "bg-[#10b981]" : "bg-gray-900")}
+                                    className={cn("w-2.5 h-2.5 rounded-full", isVerified ? "bg-[var(--plasma-green)]" : "bg-gray-900")}
                                 />
                             ))}
                         </div>
@@ -204,7 +204,7 @@ const TacticalScanner: React.FC = () => {
                         </div>
                         <div className="flex justify-between text-[10px] font-mono text-gray-700 uppercase tracking-[0.5em]">
                             <span>Signal_Auth</span>
-                            <span className={cn("font-black tracking-[0.3em]", isVerified ? "text-[#10b981]" : "text-gray-900")}>
+                            <span className={cn("font-black tracking-[0.3em]", isVerified ? "text-[var(--plasma-green)]" : "text-gray-900")}>
                                 {isVerified ? "CONFIRMED" : "SEARCHING..."}
                             </span>
                         </div>
@@ -216,7 +216,7 @@ const TacticalScanner: React.FC = () => {
                                     animate={{ opacity: 1, height: 'auto' }}
                                     className="pt-6 flex flex-col gap-4 border-t border-white/10 mt-5"
                                 >
-                                    <div className="flex items-center gap-6 text-base font-black text-[#10b981] uppercase tracking-[0.4em]">
+                                    <div className="flex items-center gap-6 text-base font-black text-[var(--plasma-green)] uppercase tracking-[0.4em]">
                                         <ShieldCheck size={24} />
                                         <span>Dico Angelo Confirmed</span>
                                     </div>

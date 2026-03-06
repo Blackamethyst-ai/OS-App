@@ -278,8 +278,8 @@ const SovereignGallery: React.FC = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-4 flex-shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#7B2CFF]/30 to-[#18E6FF]/30 border border-[#7B2CFF]/40 flex items-center justify-center">
-                        <ImageIcon className="w-4 h-4 text-[#18E6FF]" />
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[var(--amethyst)]/30 to-[var(--cyan)]/30 border border-[#7B2CFF]/40 flex items-center justify-center">
+                        <ImageIcon className="w-4 h-4 text-[var(--cyan)]" />
                     </div>
                     <div>
                         <h2 className="text-sm font-semibold tracking-wider text-white/90 uppercase">
@@ -304,7 +304,7 @@ const SovereignGallery: React.FC = () => {
                     {/* Upload button */}
                     <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#7B2CFF]/20 border border-[#7B2CFF]/40 hover:bg-[#7B2CFF]/30 transition-all text-xs font-mono text-[#18E6FF] tracking-wide"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#7B2CFF]/20 border border-[#7B2CFF]/40 hover:bg-[#7B2CFF]/30 transition-all text-xs font-mono text-[var(--cyan)] tracking-wide"
                     >
                         <Plus className="w-3.5 h-3.5" />
                         ADD ASSETS
@@ -330,7 +330,7 @@ const SovereignGallery: React.FC = () => {
                             className={cn(
                                 'px-2.5 py-1 rounded-full text-[10px] font-mono tracking-wider border transition-all whitespace-nowrap',
                                 activeCollection === col
-                                    ? 'bg-[#7B2CFF]/30 border-[#7B2CFF]/60 text-[#18E6FF]'
+                                    ? 'bg-[#7B2CFF]/30 border-[#7B2CFF]/60 text-[var(--cyan)]'
                                     : 'bg-white/5 border-white/10 text-white/40 hover:border-white/20 hover:text-white/60'
                             )}
                         >
@@ -347,16 +347,16 @@ const SovereignGallery: React.FC = () => {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl border-2 border-dashed border-[#18E6FF]/60 rounded-xl"
+                        className="absolute inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xl border-2 border-dashed border-[var(--cyan)]/60 rounded-xl"
                     >
                         <div className="flex flex-col items-center gap-3">
                             <motion.div
                                 animate={{ y: [0, -8, 0] }}
                                 transition={{ repeat: Infinity, duration: 1.5 }}
                             >
-                                <Upload className="w-12 h-12 text-[#18E6FF]" />
+                                <Upload className="w-12 h-12 text-[var(--cyan)]" />
                             </motion.div>
-                            <span className="text-sm font-mono text-[#18E6FF] tracking-widest">
+                            <span className="text-sm font-mono text-[var(--cyan)] tracking-widest">
                                 DROP ASSETS TO SECURE
                             </span>
                         </div>
@@ -375,7 +375,7 @@ const SovereignGallery: React.FC = () => {
                     >
                         <div className="flex items-center gap-3">
                             <div className="w-5 h-5 border-2 border-[#7B2CFF] border-t-transparent rounded-full animate-spin" />
-                            <span className="text-sm font-mono text-[#18E6FF] tracking-wider">
+                            <span className="text-sm font-mono text-[var(--cyan)] tracking-wider">
                                 SECURING ASSETS...
                             </span>
                         </div>
@@ -391,7 +391,7 @@ const SovereignGallery: React.FC = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         className="flex flex-col items-center gap-4 p-8"
                     >
-                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#7B2CFF]/10 to-[#18E6FF]/10 border border-[#7B2CFF]/20 flex items-center justify-center">
+                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[var(--amethyst)]/10 to-[var(--cyan)]/10 border border-[#7B2CFF]/20 flex items-center justify-center">
                             <FolderOpen className="w-8 h-8 text-white/20" />
                         </div>
                         <div className="text-center">
@@ -404,7 +404,7 @@ const SovereignGallery: React.FC = () => {
                         </div>
                         <button
                             onClick={() => fileInputRef.current?.click()}
-                            className="mt-2 flex items-center gap-2 px-4 py-2 rounded-lg bg-[#7B2CFF]/20 border border-[#7B2CFF]/40 hover:bg-[#7B2CFF]/30 transition-all text-xs font-mono text-[#18E6FF] tracking-wider"
+                            className="mt-2 flex items-center gap-2 px-4 py-2 rounded-lg bg-[#7B2CFF]/20 border border-[#7B2CFF]/40 hover:bg-[#7B2CFF]/30 transition-all text-xs font-mono text-[var(--cyan)] tracking-wider"
                         >
                             <Upload className="w-4 h-4" />
                             UPLOAD FIRST ASSET
@@ -506,7 +506,7 @@ const ImageCard: React.FC<{
                 {/* Scan line effect */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <motion.div
-                        className="absolute left-0 right-0 h-px bg-[#18E6FF]/30"
+                        className="absolute left-0 right-0 h-px bg-[var(--cyan)]/30"
                         initial={{ top: '100%' }}
                         whileInView={{ top: '-10%' }}
                         transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
@@ -514,10 +514,10 @@ const ImageCard: React.FC<{
                 </div>
 
                 {/* Corner accents */}
-                <div className="absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-[#18E6FF]/50" />
-                <div className="absolute top-1.5 right-1.5 w-3 h-3 border-t border-r border-[#18E6FF]/50" />
-                <div className="absolute bottom-1.5 left-1.5 w-3 h-3 border-b border-l border-[#18E6FF]/50" />
-                <div className="absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-[#18E6FF]/50" />
+                <div className="absolute top-1.5 left-1.5 w-3 h-3 border-t border-l border-[var(--cyan)]/50" />
+                <div className="absolute top-1.5 right-1.5 w-3 h-3 border-t border-r border-[var(--cyan)]/50" />
+                <div className="absolute bottom-1.5 left-1.5 w-3 h-3 border-b border-l border-[var(--cyan)]/50" />
+                <div className="absolute bottom-1.5 right-1.5 w-3 h-3 border-b border-r border-[var(--cyan)]/50" />
 
                 {/* Info bar */}
                 <div className="absolute bottom-0 left-0 right-0 p-2">
@@ -526,10 +526,10 @@ const ImageCard: React.FC<{
                             {image.name}
                         </span>
                         <div className="flex items-center gap-1">
-                            <span className="text-[8px] font-mono text-[#18E6FF]/60">
+                            <span className="text-[8px] font-mono text-[var(--cyan)]/60">
                                 {image.width}x{image.height}
                             </span>
-                            <ZoomIn className="w-3 h-3 text-[#18E6FF]/60" />
+                            <ZoomIn className="w-3 h-3 text-[var(--cyan)]/60" />
                         </div>
                     </div>
                 </div>
@@ -576,7 +576,7 @@ const Lightbox: React.FC<{
                     <span className="text-[10px] font-mono text-white/30 truncate max-w-[300px]">
                         {image.name}
                     </span>
-                    <span className="text-[10px] font-mono text-[#18E6FF]/40">
+                    <span className="text-[10px] font-mono text-[var(--cyan)]/40">
                         {image.width} x {image.height}
                     </span>
                 </div>
@@ -640,8 +640,8 @@ const Lightbox: React.FC<{
             {/* Corner frame accents */}
             <div className="absolute top-14 left-4 w-8 h-8 border-t-2 border-l-2 border-[#7B2CFF]/30 pointer-events-none" />
             <div className="absolute top-14 right-4 w-8 h-8 border-t-2 border-r-2 border-[#7B2CFF]/30 pointer-events-none" />
-            <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[#18E6FF]/30 pointer-events-none" />
-            <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-[#18E6FF]/30 pointer-events-none" />
+            <div className="absolute bottom-4 left-4 w-8 h-8 border-b-2 border-l-2 border-[var(--cyan)]/30 pointer-events-none" />
+            <div className="absolute bottom-4 right-4 w-8 h-8 border-b-2 border-r-2 border-[var(--cyan)]/30 pointer-events-none" />
 
             {/* Delete confirmation */}
             <AnimatePresence>

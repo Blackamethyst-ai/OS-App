@@ -117,8 +117,8 @@ const EmotionalResonanceGraph: React.FC = () => {
         <div className="w-full h-full bg-[#050505] border border-[#222] rounded-lg overflow-hidden relative group flex flex-col">
             <div className="flex items-center justify-between px-4 py-1.5 border-b border-[#222] bg-[#0a0a0a] shrink-0">
                 <div className="flex items-center gap-4 text-[9px] font-mono uppercase tracking-widest">
-                    <span className="text-[#9d4edd] flex items-center gap-1"><Activity className="w-3 h-3"/> Tension</span>
-                    <span className="text-[#22d3ee] flex items-center gap-1"><AudioWaveform className="w-3 h-3"/> Dynamics</span>
+                    <span className="text-[var(--amethyst-soft)] flex items-center gap-1"><Activity className="w-3 h-3"/> Tension</span>
+                    <span className="text-[var(--cyan)] flex items-center gap-1"><AudioWaveform className="w-3 h-3"/> Dynamics</span>
                 </div>
                 
                 <div className="flex gap-1">
@@ -186,13 +186,13 @@ const EmotionalResonanceGraph: React.FC = () => {
                 <div className="flex flex-col gap-1.5">
                     <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase">
                         <span>Tension Bias</span>
-                        <span className="text-[#9d4edd]">SHIFT</span>
+                        <span className="text-[var(--amethyst-soft)]">SHIFT</span>
                     </div>
                     <div className="flex gap-2">
                         <button onClick={() => nudgeTension(-10)} className="px-2 py-0.5 bg-[#1f1f1f] rounded text-[9px] hover:text-white">-</button>
                         <div className="flex-1 h-4 bg-[#111] rounded flex items-center px-2 relative overflow-hidden">
                             <div className="w-full h-0.5 bg-[#333]"></div>
-                            <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 bg-[#9d4edd] rounded-full -translate-y-1/2 -translate-x-1/2"></div>
+                            <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 bg-[var(--amethyst-soft)] rounded-full -translate-y-1/2 -translate-x-1/2"></div>
                         </div>
                         <button onClick={() => nudgeTension(10)} className="px-2 py-0.5 bg-[#1f1f1f] rounded text-[9px] hover:text-white">+</button>
                     </div>
@@ -200,13 +200,13 @@ const EmotionalResonanceGraph: React.FC = () => {
                 <div className="flex flex-col gap-1.5">
                     <div className="flex justify-between text-[8px] font-mono text-gray-500 uppercase">
                         <span>Dynamics Range</span>
-                        <span className="text-[#22d3ee]">AMP</span>
+                        <span className="text-[var(--cyan)]">AMP</span>
                     </div>
                     <div className="flex gap-2">
                         <button onClick={() => scaleDynamics(0.9)} className="px-2 py-0.5 bg-[#1f1f1f] rounded text-[9px] hover:text-white">-</button>
                         <div className="flex-1 h-4 bg-[#111] rounded flex items-center px-2 relative overflow-hidden">
                             <div className="w-full h-0.5 bg-[#333]"></div>
-                            <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 bg-[#22d3ee] rounded-full -translate-y-1/2 -translate-x-1/2"></div>
+                            <div className="absolute top-1/2 left-1/2 w-1.5 h-1.5 bg-[var(--cyan)] rounded-full -translate-y-1/2 -translate-x-1/2"></div>
                         </div>
                         <button onClick={() => scaleDynamics(1.1)} className="px-2 py-0.5 bg-[#1f1f1f] rounded text-[9px] hover:text-white">+</button>
                     </div>

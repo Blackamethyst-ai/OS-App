@@ -253,12 +253,12 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                    Power X-Ray
                </h1>
                <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-1">
-                   Live Intelligence Diagnostic // <span className="text-[#22d3ee]">Hybrid Grounding</span>
+                   Live Intelligence Diagnostic // <span className="text-[var(--cyan)]">Hybrid Grounding</span>
                </p>
            </div>
            
            <form onSubmit={handleAnalyze} className="relative group w-96">
-                <div className="relative flex items-center bg-[#0a0a0a] border border-[#333] rounded-sm p-1 focus-within:border-[#9d4edd] transition-colors shadow-inner">
+                <div className="relative flex items-center bg-[#0a0a0a] border border-[#333] rounded-sm p-1 focus-within:border-[var(--amethyst-soft)] transition-colors shadow-inner">
                   <input
                     type="text"
                     value={input}
@@ -285,12 +285,12 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
             className="flex items-center gap-3 mb-6 relative z-10 bg-white/5 p-2 rounded border border-white/5"
           >
             <div className="flex items-center gap-2 px-2 border-r border-white/10 text-[9px] font-mono font-bold text-gray-500 uppercase tracking-widest">
-              <Layers size={12} className="text-[#9d4edd]" /> Internal Context
+              <Layers size={12} className="text-[var(--amethyst-soft)]" /> Internal Context
             </div>
             <div className="flex-1 flex gap-2 overflow-x-auto no-scrollbar py-1">
               <button 
                 onClick={toggleAllSources}
-                className={`px-3 py-1 rounded text-[9px] font-mono uppercase transition-all border whitespace-nowrap ${selectedSourceIds.size === availableSources.length ? 'bg-[#9d4edd] text-black border-[#9d4edd]' : 'bg-black/50 border-white/10 text-gray-500 hover:text-white'}`}
+                className={`px-3 py-1 rounded text-[9px] font-mono uppercase transition-all border whitespace-nowrap ${selectedSourceIds.size === availableSources.length ? 'bg-[var(--amethyst-soft)] text-black border-[var(--amethyst-soft)]' : 'bg-black/50 border-white/10 text-gray-500 hover:text-white'}`}
               >
                 {selectedSourceIds.size === availableSources.length ? 'DESELECT ALL' : 'SELECT ALL'}
               </button>
@@ -300,7 +300,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                   onClick={() => toggleSource(source.id)}
                   className={`flex items-center gap-2 px-3 py-1 rounded text-[9px] font-mono uppercase transition-all border whitespace-nowrap group
                     ${selectedSourceIds.has(source.id) 
-                      ? 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd] shadow-[0_0_10px_rgba(157,78,221,0.2)]' 
+                      ? 'bg-[var(--amethyst-soft)]/20 border-[var(--amethyst-soft)] text-[var(--amethyst-soft)] shadow-[0_0_10px_rgba(157,78,221,0.2)]' 
                       : 'bg-black/50 border-white/5 text-gray-600 hover:border-white/20 hover:text-gray-400'}
                   `}
                 >
@@ -350,7 +350,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                 >
                     <div className="col-span-12 lg:col-span-3 space-y-6">
                         <div className="flex items-center gap-3 mb-2 pb-2 border-b border-[#333] border-dashed">
-                            <Activity className="w-3 h-3 text-[#22d3ee]" />
+                            <Activity className="w-3 h-3 text-[var(--cyan)]" />
                             <h2 className="text-[10px] font-black font-mono uppercase tracking-[0.3em] text-gray-500">Live Core Dynamics</h2>
                         </div>
                         <PowerCard
@@ -378,7 +378,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                         {data.groundingSources && data.groundingSources.length > 0 && (
                             <div className="pt-4 mt-4 border-t border-[#1f1f1f]">
                                 <div className="flex items-center gap-2 mb-3">
-                                    <Globe className="w-3 h-3 text-[#22d3ee]" />
+                                    <Globe className="w-3 h-3 text-[var(--cyan)]" />
                                     <span className="text-[9px] font-black font-mono uppercase tracking-widest text-gray-500">Grounded Sources</span>
                                 </div>
                                 <div className="space-y-2">
@@ -388,10 +388,10 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                                             href={source.uri} 
                                             target="_blank" 
                                             rel="noopener noreferrer"
-                                            className="flex items-center justify-between p-2 rounded bg-black border border-[#222] hover:border-[#22d3ee]/50 transition-all group"
+                                            className="flex items-center justify-between p-2 rounded bg-black border border-[#222] hover:border-[var(--cyan)]/50 transition-all group"
                                         >
                                             <span className="text-[9px] font-mono text-gray-400 truncate max-w-[180px] group-hover:text-white">{source.title}</span>
-                                            <ExternalLink size={10} className="text-gray-600 group-hover:text-[#22d3ee]" />
+                                            <ExternalLink size={10} className="text-gray-600 group-hover:text-[var(--cyan)]" />
                                         </a>
                                     ))}
                                 </div>
@@ -401,7 +401,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
 
                     <div className="col-span-12 lg:col-span-5 flex flex-col gap-6">
                         <div className="flex items-center gap-3 mb-0 pb-2 border-b border-[#333] border-dashed">
-                            <Radar className="w-3 h-3 text-[#9d4edd]" />
+                            <Radar className="w-3 h-3 text-[var(--amethyst-soft)]" />
                             <h2 className="text-[10px] font-black font-mono uppercase tracking-[0.3em] text-gray-500">Power Signature</h2>
                         </div>
                         
@@ -466,7 +466,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                     <div className="col-span-12 lg:col-span-4 flex flex-col gap-8">
                         <div className="flex flex-col">
                             <div className="flex items-center gap-3 mb-4 pb-2 border-b border-[#333] border-dashed">
-                                <ShieldCheck className="w-3 h-3 text-[#9d4edd]" />
+                                <ShieldCheck className="w-3 h-3 text-[var(--amethyst-soft)]" />
                                 <h2 className="text-[10px] font-black font-mono uppercase tracking-[0.3em] text-gray-500">Attack Vectors</h2>
                             </div>
                             
@@ -477,10 +477,10 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: 0.3 + (i * 0.1) }}
-                                        className="bg-[#050505] border border-[#222] p-4 rounded hover:border-[#9d4edd]/40 transition-all relative group shadow-lg"
+                                        className="bg-[#050505] border border-[#222] p-4 rounded hover:border-[var(--amethyst-soft)]/40 transition-all relative group shadow-lg"
                                     >
                                         <div className="flex items-start gap-3 mb-3">
-                                            <div className="p-1.5 rounded bg-[#111] border border-[#333] text-gray-500 group-hover:text-[#9d4edd] transition-colors">
+                                            <div className="p-1.5 rounded bg-[#111] border border-[#333] text-gray-500 group-hover:text-[var(--amethyst-soft)] transition-colors">
                                                 <Terminal size={14} />
                                             </div>
                                             <div className="flex-1 min-w-0">
@@ -505,15 +505,15 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                             </div>
                         </div>
 
-                        <div className="flex-1 bg-gradient-to-br from-[#9d4edd]/10 to-transparent border border-[#9d4edd]/20 p-8 flex flex-col justify-center text-center relative overflow-hidden group shadow-2xl">
+                        <div className="flex-1 bg-gradient-to-br from-[var(--amethyst-soft)]/10 to-transparent border border-[var(--amethyst-soft)]/20 p-8 flex flex-col justify-center text-center relative overflow-hidden group shadow-2xl">
                              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                                 <Activity className="w-16 h-16 text-[#9d4edd] animate-pulse" />
+                                 <Activity className="w-16 h-16 text-[var(--amethyst-soft)] animate-pulse" />
                              </div>
                              <div className="absolute -left-4 -bottom-4 opacity-5 rotate-12">
                                 <Zap className="w-32 h-32 text-white" />
                              </div>
                              
-                             <h3 className="text-[10px] font-black font-mono text-[#9d4edd] uppercase tracking-[0.5em] mb-4">Sovereign Insight</h3>
+                             <h3 className="text-[10px] font-black font-mono text-[var(--amethyst-soft)] uppercase tracking-[0.5em] mb-4">Sovereign Insight</h3>
                              <div className="relative z-10">
                                  <p className="text-[13px] font-medium text-white italic leading-relaxed font-mono drop-shadow-lg">
                                      "{data.insight}"
@@ -522,11 +522,11 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
                              
                              <div className="mt-6 flex justify-center gap-8 opacity-40">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] animate-ping" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--amethyst-soft)] animate-ping" />
                                     <span className="text-[8px] font-mono uppercase tracking-widest">Logic Lock</span>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-[#22d3ee] animate-pulse" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--cyan)] animate-pulse" />
                                     <span className="text-[8px] font-mono uppercase tracking-widest">Auth Valid</span>
                                 </div>
                              </div>
@@ -542,7 +542,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
       <div className="mt-4 border-t border-[#1f1f1f] pt-4 flex justify-between items-center text-[8px] font-mono text-gray-700 uppercase tracking-widest relative z-10 shrink-0">
           <div className="flex gap-6">
               <span className="flex items-center gap-2"><Activity size={10} className="text-[#42be65]" /> Grounded context feed active</span>
-              <span className="flex items-center gap-2"><ShieldCheck size={10} className="text-[#22d3ee]" /> Enclave Attestation: Valid</span>
+              <span className="flex items-center gap-2"><ShieldCheck size={10} className="text-[var(--cyan)]" /> Enclave Attestation: Valid</span>
           </div>
           <div className="flex gap-4">
               <span>OS_VERSION: 4.2.1-XRAY</span>

@@ -29,11 +29,11 @@ export const GpuCard: React.FC<GpuCardProps> = ({
     return (
         <motion.div
             onClick={() => onSelect(gpu)}
-            className={`p-5 bg-[#0a0a0a] border rounded-2xl cursor-pointer transition-all relative overflow-hidden group/gpu ${isSelected ? 'border-[#22d3ee] shadow-xl' : 'border-white/5 hover:border-white/15'}`}
+            className={`p-5 bg-[#0a0a0a] border rounded-2xl cursor-pointer transition-all relative overflow-hidden group/gpu ${isSelected ? 'border-[var(--cyan)] shadow-xl' : 'border-white/5 hover:border-white/15'}`}
         >
             <div className="flex justify-between items-start mb-5">
                 <div className="flex items-center gap-2">
-                    <div className="p-2 bg-white/5 rounded-xl text-gray-600 group-hover/gpu:text-[#22d3ee] transition-all">
+                    <div className="p-2 bg-white/5 rounded-xl text-gray-600 group-hover/gpu:text-[var(--cyan)] transition-all">
                         <Box size={18} />
                     </div>
                     {gpu.era === 'SILICON' && (
@@ -44,7 +44,7 @@ export const GpuCard: React.FC<GpuCardProps> = ({
                 </div>
                 <div className={`px-3 py-1 rounded-md text-[8px] font-medium font-mono uppercase tracking-widest border transition-colors ${
                     stockStatus === 'IN_STOCK'
-                        ? 'text-[#10b981]/80 bg-[#10b981]/5 border-[#10b981]/20'
+                        ? 'text-[var(--plasma-green)]/80 bg-[var(--plasma-green)]/5 border-[var(--plasma-green)]/20'
                         : stockStatus === 'LIMITED'
                             ? 'text-gray-400 bg-white/5 border-white/10'
                             : 'text-gray-500 bg-white/[0.02] border-white/5'
@@ -63,11 +63,11 @@ export const GpuCard: React.FC<GpuCardProps> = ({
                         {gpu.livePrice ? 'Market Price' : 'MSRP'}
                     </span>
                     <div className="flex items-center gap-2">
-                        <span className="text-base font-black font-mono text-[#10b981] tracking-tighter">
+                        <span className="text-base font-black font-mono text-[var(--plasma-green)] tracking-tighter">
                             ${displayPrice.toLocaleString()}
                         </span>
                         {priceTrend !== 0 && (
-                            <span className={`text-[9px] font-mono flex items-center gap-0.5 ${priceTrend > 0 ? 'text-amber-400/70' : 'text-[#10b981]/70'}`}>
+                            <span className={`text-[9px] font-mono flex items-center gap-0.5 ${priceTrend > 0 ? 'text-amber-400/70' : 'text-[var(--plasma-green)]/70'}`}>
                                 {priceTrend > 0 ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                                 {Math.abs(priceTrend).toFixed(1)}%
                             </span>
@@ -75,7 +75,7 @@ export const GpuCard: React.FC<GpuCardProps> = ({
                     </div>
                 </div>
                 {isFetchingPrice && isSelected && (
-                    <Loader2 size={14} className="text-[#22d3ee] animate-spin" />
+                    <Loader2 size={14} className="text-[var(--cyan)] animate-spin" />
                 )}
             </div>
         </motion.div>

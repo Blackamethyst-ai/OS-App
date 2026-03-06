@@ -148,8 +148,8 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                     {/* Header */}
                     <div className="p-6 border-b border-white/5 flex items-center justify-between">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-[#10b981]/10 rounded-xl">
-                                <ShoppingCart size={20} className="text-[#10b981]" />
+                            <div className="p-3 bg-[var(--plasma-green)]/10 rounded-xl">
+                                <ShoppingCart size={20} className="text-[var(--plasma-green)]" />
                             </div>
                             <div>
                                 <h2 className="text-lg font-black font-mono text-white uppercase tracking-tight">Procurement</h2>
@@ -166,8 +166,8 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                         {(['quantity', 'quotes', 'confirm', 'complete'] as const).map((s, i) => (
                             <React.Fragment key={s}>
                                 <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${
-                                    step === s ? 'bg-[#10b981]/20 text-[#10b981]' :
-                                    ['quantity', 'quotes', 'confirm', 'complete'].indexOf(step) > i ? 'text-[#10b981]/60' : 'text-gray-700'
+                                    step === s ? 'bg-[var(--plasma-green)]/20 text-[var(--plasma-green)]' :
+                                    ['quantity', 'quotes', 'confirm', 'complete'].indexOf(step) > i ? 'text-[var(--plasma-green)]/60' : 'text-gray-700'
                                 }`}>
                                     {['quantity', 'quotes', 'confirm', 'complete'].indexOf(step) > i ? (
                                         <CheckCircle2 size={12} />
@@ -189,13 +189,13 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                     <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl">
                                         <div className="flex items-start gap-4">
                                             <div className="p-3 bg-white/5 rounded-xl">
-                                                <Package size={24} className="text-[#22d3ee]" />
+                                                <Package size={24} className="text-[var(--cyan)]" />
                                             </div>
                                             <div className="flex-1">
                                                 <h3 className="text-sm font-black text-white uppercase">{gpu.model}</h3>
                                                 <p className="text-[9px] text-gray-600 font-mono mt-1">{gpu.manufacturer} • {gpu.arch} • {gpu.specs.vram}</p>
                                                 <div className="mt-3 flex items-center gap-4">
-                                                    <span className="text-xl font-black font-mono text-[#10b981]">${(gpu.livePrice?.price || gpu.msrp).toLocaleString()}</span>
+                                                    <span className="text-xl font-black font-mono text-[var(--plasma-green)]">${(gpu.livePrice?.price || gpu.msrp).toLocaleString()}</span>
                                                     <span className="text-[8px] font-mono text-gray-600 uppercase">per unit</span>
                                                 </div>
                                             </div>
@@ -221,13 +221,13 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                             >+</button>
                                         </div>
                                         {quantity >= 5 && (
-                                            <p className="text-[9px] text-[#10b981] font-mono">Bulk discount available for {quantity}+ units</p>
+                                            <p className="text-[9px] text-[var(--plasma-green)] font-mono">Bulk discount available for {quantity}+ units</p>
                                         )}
                                     </div>
 
-                                    <div className="p-4 bg-[#10b981]/10 border border-[#10b981]/20 rounded-xl flex items-center justify-between">
+                                    <div className="p-4 bg-[var(--plasma-green)]/10 border border-[var(--plasma-green)]/20 rounded-xl flex items-center justify-between">
                                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Estimated Total</span>
-                                        <span className="text-2xl font-black font-mono text-[#10b981]">${totalCost.toLocaleString()}</span>
+                                        <span className="text-2xl font-black font-mono text-[var(--plasma-green)]">${totalCost.toLocaleString()}</span>
                                     </div>
 
                                     {/* Data Sources Status */}
@@ -235,11 +235,11 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                         <div className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-3">Data Sources</div>
                                         <div className="flex items-center gap-4">
                                             <div className="flex items-center gap-2">
-                                                <Wifi size={10} className={dataSourceStatus.minerstat.available ? 'text-[#10b981]' : 'text-gray-600'} />
+                                                <Wifi size={10} className={dataSourceStatus.minerstat.available ? 'text-[var(--plasma-green)]' : 'text-gray-600'} />
                                                 <span className="text-[9px] text-gray-500 font-mono">minerstat</span>
                                             </div>
                                             <div className="flex items-center gap-2">
-                                                <Wifi size={10} className={dataSourceStatus.priceApi.available ? 'text-[#10b981]' : 'text-gray-600'} />
+                                                <Wifi size={10} className={dataSourceStatus.priceApi.available ? 'text-[var(--plasma-green)]' : 'text-gray-600'} />
                                                 <span className="text-[9px] text-gray-500 font-mono">
                                                     PriceAPI {dataSourceStatus.priceApi.available && `(${dataSourceStatus.priceApi.credits.remaining} credits)`}
                                                 </span>
@@ -286,12 +286,12 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                             <div
                                                 key={quote.id}
                                                 onClick={() => handleSelectQuote(quote)}
-                                                className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl hover:border-[#10b981]/30 cursor-pointer transition-all group"
+                                                className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl hover:border-[var(--plasma-green)]/30 cursor-pointer transition-all group"
                                             >
                                                 <div className="flex items-start justify-between">
                                                     <div className="flex items-start gap-4">
-                                                        <div className="p-2.5 bg-white/5 rounded-xl group-hover:bg-[#10b981]/10 transition-colors">
-                                                            <Building2 size={18} className="text-gray-500 group-hover:text-[#10b981] transition-colors" />
+                                                        <div className="p-2.5 bg-white/5 rounded-xl group-hover:bg-[var(--plasma-green)]/10 transition-colors">
+                                                            <Building2 size={18} className="text-gray-500 group-hover:text-[var(--plasma-green)] transition-colors" />
                                                         </div>
                                                         <div>
                                                             <div className="flex items-center gap-2">
@@ -302,7 +302,7 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                                             </div>
                                                             <div className="flex items-center gap-3 mt-1">
                                                                 <div className="flex items-center gap-1">
-                                                                    <Star size={10} className="text-[#f1c21b] fill-[#f1c21b]" />
+                                                                    <Star size={10} className="text-[var(--executive-gold)] fill-[#f1c21b]" />
                                                                     <span className="text-[9px] text-gray-500 font-mono">{quote.rating}</span>
                                                                 </div>
                                                                 <div className="flex items-center gap-1">
@@ -317,12 +317,12 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                                         </div>
                                                     </div>
                                                     <div className="text-right">
-                                                        <div className="text-lg font-black font-mono text-[#10b981]">${quote.totalPrice.toLocaleString()}</div>
+                                                        <div className="text-lg font-black font-mono text-[var(--plasma-green)]">${quote.totalPrice.toLocaleString()}</div>
                                                         <div className="text-[8px] text-gray-600 font-mono">${quote.unitPrice.toLocaleString()} / unit</div>
                                                     </div>
                                                 </div>
                                                 {quote.inStock ? (
-                                                    <div className="mt-3 flex items-center gap-2 text-[8px] text-[#10b981] font-mono">
+                                                    <div className="mt-3 flex items-center gap-2 text-[8px] text-[var(--plasma-green)] font-mono">
                                                         <CheckCircle2 size={10} /> In Stock - Ready to Ship
                                                     </div>
                                                 ) : (
@@ -369,7 +369,7 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                         </div>
                                         <div className="flex justify-between items-center py-3">
                                             <span className="text-[10px] font-black text-white uppercase">Total</span>
-                                            <span className="text-xl font-black font-mono text-[#10b981]">${selectedQuote.totalPrice.toLocaleString()}</span>
+                                            <span className="text-xl font-black font-mono text-[var(--plasma-green)]">${selectedQuote.totalPrice.toLocaleString()}</span>
                                         </div>
                                     </div>
 
@@ -386,8 +386,8 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                             {step === 'processing' && (
                                 <motion.div key="processing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-12 flex flex-col items-center justify-center gap-6">
                                     <div className="relative">
-                                        <Loader2 size={48} className="text-[#10b981] animate-spin" />
-                                        <div className="absolute inset-0 blur-2xl bg-[#10b981]/30 rounded-full" />
+                                        <Loader2 size={48} className="text-[var(--plasma-green)] animate-spin" />
+                                        <div className="absolute inset-0 blur-2xl bg-[var(--plasma-green)]/30 rounded-full" />
                                     </div>
                                     <div className="text-center">
                                         <h3 className="text-lg font-black text-white uppercase tracking-tight">Processing Order</h3>
@@ -399,10 +399,10 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                             {step === 'complete' && (
                                 <motion.div key="complete" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="py-8 flex flex-col items-center justify-center gap-6">
                                     <div className="relative">
-                                        <div className="w-20 h-20 bg-[#10b981]/20 rounded-full flex items-center justify-center">
-                                            <CheckCircle2 size={40} className="text-[#10b981]" />
+                                        <div className="w-20 h-20 bg-[var(--plasma-green)]/20 rounded-full flex items-center justify-center">
+                                            <CheckCircle2 size={40} className="text-[var(--plasma-green)]" />
                                         </div>
-                                        <Sparkles size={20} className="absolute -top-2 -right-2 text-[#f1c21b]" />
+                                        <Sparkles size={20} className="absolute -top-2 -right-2 text-[var(--executive-gold)]" />
                                     </div>
                                     <div className="text-center">
                                         <h3 className="text-lg font-black text-white uppercase tracking-tight">Order Confirmed</h3>
@@ -410,7 +410,7 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                     </div>
                                     <div className="p-5 bg-white/[0.02] border border-white/5 rounded-2xl w-full max-w-sm">
                                         <div className="flex items-center gap-3 text-[10px] text-gray-400">
-                                            <Truck size={14} className="text-[#22d3ee]" />
+                                            <Truck size={14} className="text-[var(--cyan)]" />
                                             <span>Estimated delivery: {selectedQuote?.leadTime}</span>
                                         </div>
                                     </div>
@@ -429,7 +429,7 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                             <button
                                 onClick={handleGetQuotes}
                                 disabled={isLoading}
-                                className="px-6 py-2.5 bg-[#10b981] text-black rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-[#10b981]/90 transition-colors disabled:opacity-50"
+                                className="px-6 py-2.5 bg-[var(--plasma-green)] text-black rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-[var(--plasma-green)]/90 transition-colors disabled:opacity-50"
                             >
                                 {isLoading ? <Loader2 size={14} className="animate-spin" /> : <FileText size={14} />}
                                 Get Quotes
@@ -440,7 +440,7 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                             <button
                                 onClick={handleConfirmOrder}
                                 disabled={isLoading}
-                                className="px-6 py-2.5 bg-[#10b981] text-black rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-[#10b981]/90 transition-colors disabled:opacity-50"
+                                className="px-6 py-2.5 bg-[var(--plasma-green)] text-black rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-[var(--plasma-green)]/90 transition-colors disabled:opacity-50"
                             >
                                 {isLoading ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
                                 Confirm Order

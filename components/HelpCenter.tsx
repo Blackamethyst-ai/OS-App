@@ -45,7 +45,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                 
                 <div className="h-16 border-b border-[#1f1f1f] bg-[#111] flex items-center justify-between px-8 relative z-10 shrink-0">
                     <div className="flex items-center gap-3">
-                        <HelpCircle className="w-5 h-5 text-[#9d4edd]" />
+                        <HelpCircle className="w-5 h-5 text-[var(--amethyst-soft)]" />
                         <h2 className="text-sm font-bold font-mono uppercase tracking-widest text-white">V9.5 - THE D-Ecosystem Guide</h2>
                     </div>
                     <button onClick={onClose} className="p-2 text-gray-500 hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d4edd]" aria-label="Close help center">
@@ -56,7 +56,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-10 relative z-10 bg-black/40">
                     <div className="mb-12">
                         <div className="flex items-center gap-3 mb-6">
-                            <Layers className="w-5 h-5 text-[#9d4edd]" />
+                            <Layers className="w-5 h-5 text-[var(--amethyst-soft)]" />
                             <h2 className="text-lg font-black font-mono text-white uppercase tracking-[0.2em]">Core Operational Modules</h2>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -73,12 +73,12 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-12">
-                        <div className="p-8 bg-[#050505] border border-[#222] rounded-2xl relative overflow-hidden group hover:border-[#9d4edd]/50 transition-colors">
+                        <div className="p-8 bg-[#050505] border border-[#222] rounded-2xl relative overflow-hidden group hover:border-[var(--amethyst-soft)]/50 transition-colors">
                             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <Zap className="w-24 h-24 text-white" />
                             </div>
                             <div className="flex items-center gap-3 mb-6">
-                                <Zap className="w-5 h-5 text-[#f1c21b]" />
+                                <Zap className="w-5 h-5 text-[var(--executive-gold)]" />
                                 <h3 className="text-sm font-bold font-mono uppercase text-white tracking-widest">Keyboard Protocols</h3>
                             </div>
                             <ul className="space-y-4 font-mono text-xs">
@@ -101,12 +101,12 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                             </ul>
                         </div>
 
-                        <div className="p-8 bg-[#050505] border border-[#222] rounded-2xl relative overflow-hidden group hover:border-[#22d3ee]/50 transition-colors">
+                        <div className="p-8 bg-[#050505] border border-[#222] rounded-2xl relative overflow-hidden group hover:border-[var(--cyan)]/50 transition-colors">
                             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <Terminal className="w-24 h-24 text-white" />
                             </div>
                             <div className="flex items-center gap-3 mb-6">
-                                <Info className="w-5 h-5 text-[#22d3ee]" />
+                                <Info className="w-5 h-5 text-[var(--cyan)]" />
                                 <h3 className="text-sm font-bold font-mono uppercase text-white tracking-widest">Neural Integration</h3>
                             </div>
                             <p className="text-[10px] text-gray-400 font-mono leading-relaxed mb-6">
@@ -114,37 +114,37 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                             </p>
                             <div className="space-y-3">
                                 <div className="flex items-center gap-3 p-2 bg-white/5 rounded border border-white/10 text-[9px] font-mono text-gray-300">
-                                    <Activity className="w-3.5 h-3.5 text-[#9d4edd]" />
+                                    <Activity className="w-3.5 h-3.5 text-[var(--amethyst-soft)]" />
                                     <span>"Analyze hardware thermal map"</span>
                                 </div>
                                 <div className="flex items-center gap-3 p-2 bg-white/5 rounded border border-white/10 text-[9px] font-mono text-gray-300">
-                                    <Command className="w-3.5 h-3.5 text-[#22d3ee]" />
+                                    <Command className="w-3.5 h-3.5 text-[var(--cyan)]" />
                                     <span>"Switch to light theme"</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* New Section: Technical Sovereignty (React/TS Best Practices) */}
-                        <div className="p-8 bg-[#050505] border border-[#f1c21b]/20 rounded-2xl relative overflow-hidden group hover:border-[#f1c21b]/50 transition-colors">
+                        <div className="p-8 bg-[#050505] border border-[var(--executive-gold)]/20 rounded-2xl relative overflow-hidden group hover:border-[var(--executive-gold)]/50 transition-colors">
                             <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                                 <Code className="w-24 h-24 text-white" />
                             </div>
                             <div className="flex items-center gap-3 mb-6">
-                                <ShieldCheck className="w-5 h-5 text-[#f1c21b]" />
+                                <ShieldCheck className="w-5 h-5 text-[var(--executive-gold)]" />
                                 <h3 className="text-sm font-bold font-mono uppercase text-white tracking-widest">Technical Sovereignty</h3>
                             </div>
                             <p className="text-[10px] text-gray-400 font-mono leading-relaxed mb-4">
-                                Maintain structural integrity in custom components. Resolve <span className="text-[#f1c21b]">"Property props does not exist"</span> errors via explicit child typing.
+                                Maintain structural integrity in custom components. Resolve <span className="text-[var(--executive-gold)]">"Property props does not exist"</span> errors via explicit child typing.
                             </p>
                             <div className="space-y-4">
                                 <div className="p-3 bg-black/60 rounded-xl border border-white/5 space-y-2 shadow-inner">
-                                    <div className="flex items-center gap-2 text-[8px] font-black text-[#f1c21b] uppercase">
+                                    <div className="flex items-center gap-2 text-[8px] font-black text-[var(--executive-gold)] uppercase">
                                         <CheckCircle2 size={10} /> Step 1: Define Item Props
                                     </div>
                                     <div className="text-[8px] text-gray-500 font-mono italic">Create specialized interfaces for children elements.</div>
                                 </div>
                                 <div className="p-3 bg-black/60 rounded-xl border border-white/5 space-y-2 shadow-inner">
-                                    <div className="flex items-center gap-2 text-[8px] font-black text-[#22d3ee] uppercase">
+                                    <div className="flex items-center gap-2 text-[8px] font-black text-[var(--cyan)] uppercase">
                                         <CheckCircle2 size={10} /> Step 2: Generic Type Safety
                                     </div>
                                     <div className="text-[8px] text-gray-500 font-mono italic">Cast children as ReactElement&lt;T&gt; to access internal props.</div>

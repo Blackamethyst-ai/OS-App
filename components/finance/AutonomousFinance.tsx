@@ -87,13 +87,13 @@ const EconomicLatticeVisualizer = () => {
 };
 
 const FinanceMetric = ({ label, value, trend, icon: Icon, color }: any) => (
-    <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-2xl p-5 group hover:border-[#10b981]/30 transition-all shadow-xl flex flex-col gap-3 relative overflow-hidden crystalline">
+    <div className="bg-[var(--bg-card-top)] border border-[var(--border-main)] rounded-2xl p-5 group hover:border-[var(--plasma-green)]/30 transition-all shadow-xl flex flex-col gap-3 relative overflow-hidden crystalline">
         <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-[#10b981]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
         <div className="flex justify-between items-start">
             <div className="p-2.5 rounded-xl bg-black/10 text-gray-400 group-hover:text-[var(--text-primary)] transition-all">
                 <Icon size={18} style={{ color: trend > 0 ? '#10b981' : color }} />
             </div>
-            <div className={`flex items-center gap-1 text-[10px] font-black font-mono ${trend > 0 ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
+            <div className={`flex items-center gap-1 text-[10px] font-black font-mono ${trend > 0 ? 'text-[var(--plasma-green)]' : 'text-[#ef4444]'}`}>
                 {trend > 0 ? <ArrowUp size={10} /> : <ArrowDownRight size={10} />}
                 {Math.abs(trend)}%
             </div>
@@ -170,10 +170,10 @@ const AutonomousFinance: React.FC = () => {
             <AnimatePresence>
                 {confirmingOp && (
                     <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/70 backdrop-blur-2xl">
-                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-[#0a0a0a] border border-[#10b981]/30 rounded-[3rem] w-full max-w-xl p-10 shadow-2xl relative overflow-hidden crystalline">
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-[#0a0a0a] border border-[var(--plasma-green)]/30 rounded-[3rem] w-full max-w-xl p-10 shadow-2xl relative overflow-hidden crystalline">
                              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[#10b981] to-transparent" />
                              <h2 className="text-2xl font-black text-white mb-6 uppercase tracking-widest flex items-center gap-4">
-                                <Bot className="text-[#9d4edd]" />
+                                <Bot className="text-[var(--amethyst-soft)]" />
                                 Propose to Swarm
                              </h2>
                              <div className="p-8 bg-black/40 rounded-[2rem] border border-white/5 mb-8 shadow-inner">
@@ -183,7 +183,7 @@ const AutonomousFinance: React.FC = () => {
                              </div>
                              <div className="flex gap-4">
                                 <button onClick={() => setConfirmingOp(null)} className="flex-1 py-5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-gray-500 hover:text-white transition-all">Cancel</button>
-                                <button onClick={() => handleProposeToSwarm(confirmingOp)} className="flex-1 py-5 bg-[#9d4edd] text-black rounded-2xl text-[10px] font-black uppercase shadow-[0_0_30px_rgba(157,78,221,0.3)] transition-all hover:scale-105 active:scale-95">Initiate Swarm Vote</button>
+                                <button onClick={() => handleProposeToSwarm(confirmingOp)} className="flex-1 py-5 bg-[var(--amethyst-soft)] text-black rounded-2xl text-[10px] font-black uppercase shadow-[0_0_30px_rgba(157,78,221,0.3)] transition-all hover:scale-105 active:scale-95">Initiate Swarm Vote</button>
                              </div>
                         </motion.div>
                     </div>
@@ -194,13 +194,13 @@ const AutonomousFinance: React.FC = () => {
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#10b981]/40 to-transparent" />
                 <div className="flex items-center gap-16">
                     <div className="flex items-center gap-5">
-                        <div className="p-3.5 bg-[#10b981]/10 border border-[#10b981]/40 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.15)]">
-                            <Landmark className="w-7 h-7 text-[#10b981]" />
+                        <div className="p-3.5 bg-[var(--plasma-green)]/10 border border-[var(--plasma-green)]/40 rounded-2xl shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+                            <Landmark className="w-7 h-7 text-[var(--plasma-green)]" />
                         </div>
                         <div>
                             <h1 className="text-xl font-black font-mono text-[var(--text-primary)] uppercase tracking-[0.5em] leading-none">Financial Core</h1>
                             <span className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.4em] mt-3 block flex items-center gap-2">
-                                <Activity size={12} className="text-[#10b981]" /> 
+                                <Activity size={12} className="text-[var(--plasma-green)]" /> 
                                 Sovereign Finance Module // V9.5
                             </span>
                         </div>
@@ -252,10 +252,10 @@ const AutonomousFinance: React.FC = () => {
                                         <EconomicLatticeVisualizer />
                                         <div className="flex justify-between items-center mb-10 relative z-10">
                                             <div className="flex items-center gap-4">
-                                                <ChartIcon size={22} className="text-[#10b981]" />
+                                                <ChartIcon size={22} className="text-[var(--plasma-green)]" />
                                                 <span className="text-xs font-black font-mono text-white uppercase tracking-[0.4em]">Asset Deployment Matrix</span>
                                             </div>
-                                            <button onClick={fetchLiveOpportunities} disabled={isSearching} className="px-6 py-2.5 bg-[#10b981]/10 hover:bg-[#10b981] hover:text-black border border-[#10b981]/30 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-3 active:scale-95 shadow-xl">
+                                            <button onClick={fetchLiveOpportunities} disabled={isSearching} className="px-6 py-2.5 bg-[var(--plasma-green)]/10 hover:bg-[var(--plasma-green)] hover:text-black border border-[var(--plasma-green)]/30 rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-3 active:scale-95 shadow-xl">
                                                 {isSearching ? <Loader2 size={14} className="animate-spin" /> : <RefreshCw size={14} />}
                                                 Sync Reality Oracles
                                             </button>
@@ -263,15 +263,15 @@ const AutonomousFinance: React.FC = () => {
 
                                         <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 relative z-10">
                                             {marketData.opportunities.length > 0 ? marketData.opportunities.map(op => (
-                                                <div key={op.id} className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] hover:border-[#10b981]/40 transition-all group/op relative overflow-hidden shadow-inner">
-                                                    <h4 className="text-base font-black text-white uppercase mb-4 tracking-tight group-hover:text-[#10b981] transition-colors">{op.title}</h4>
+                                                <div key={op.id} className="p-8 bg-black/40 border border-white/5 rounded-[2.5rem] hover:border-[var(--plasma-green)]/40 transition-all group/op relative overflow-hidden shadow-inner">
+                                                    <h4 className="text-base font-black text-white uppercase mb-4 tracking-tight group-hover:text-[var(--plasma-green)] transition-colors">{op.title}</h4>
                                                     <p className="text-[12px] text-gray-500 italic mb-8 leading-relaxed font-mono">"{op.logic}"</p>
                                                     <div className="flex justify-between items-end border-t border-white/5 pt-6">
                                                         <div className="flex flex-col">
                                                             <span className="text-[8px] text-gray-600 uppercase font-black tracking-widest mb-1">Expected APY</span>
-                                                            <span className="text-xl font-black text-[#10b981] font-mono">{op.yield}</span>
+                                                            <span className="text-xl font-black text-[var(--plasma-green)] font-mono">{op.yield}</span>
                                                         </div>
-                                                        <button onClick={() => setConfirmingOp(op)} className="px-8 py-3.5 bg-[#10b981] text-black text-[10px] font-black uppercase rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-xl">Bridge</button>
+                                                        <button onClick={() => setConfirmingOp(op)} className="px-8 py-3.5 bg-[var(--plasma-green)] text-black text-[10px] font-black uppercase rounded-2xl transition-all hover:scale-105 active:scale-95 shadow-xl">Bridge</button>
                                                     </div>
                                                 </div>
                                             )) : (

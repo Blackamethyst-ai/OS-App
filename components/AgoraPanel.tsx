@@ -284,8 +284,8 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
             <AnimatePresence>
                 {whisperTarget && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-center justify-center" onClick={() => setWhisperTarget(null)}>
-                        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-[#111] border border-[#9d4edd]/30 rounded-2xl p-6 w-96 shadow-[0_0_40px_rgba(157,78,221,0.2)]" onClick={e => e.stopPropagation()}>
-                            <p className="text-xs font-bold uppercase tracking-widest text-[#9d4edd] mb-3">Whisper Protocol</p>
+                        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="bg-[#111] border border-[var(--amethyst-soft)]/30 rounded-2xl p-6 w-96 shadow-[0_0_40px_rgba(157,78,221,0.2)]" onClick={e => e.stopPropagation()}>
+                            <p className="text-xs font-bold uppercase tracking-widest text-[var(--amethyst-soft)] mb-3">Whisper Protocol</p>
                             <p className="text-[10px] text-gray-500 mb-4">Inject a directive for this agent</p>
                             <input
                                 autoFocus
@@ -293,18 +293,18 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                                 onChange={e => setWhisperInput(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && submitWhisper()}
                                 placeholder="Enter directive..."
-                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-[#9d4edd]/50 mb-4"
+                                className="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-gray-600 focus:outline-none focus:border-[var(--amethyst-soft)]/50 mb-4"
                                 aria-label="Whisper directive input"
                             />
                             <div className="flex gap-2 justify-end">
                                 <button onClick={() => setWhisperTarget(null)} className="px-4 py-2 text-xs text-gray-500 hover:text-white transition-colors">Cancel</button>
-                                <button onClick={submitWhisper} disabled={!whisperInput.trim()} className="px-4 py-2 bg-[#9d4edd]/20 border border-[#9d4edd]/30 rounded-lg text-xs font-bold text-[#9d4edd] hover:bg-[#9d4edd]/30 disabled:opacity-30 transition-all">Inject</button>
+                                <button onClick={submitWhisper} disabled={!whisperInput.trim()} className="px-4 py-2 bg-[var(--amethyst-soft)]/20 border border-[var(--amethyst-soft)]/30 rounded-lg text-xs font-bold text-[var(--amethyst-soft)] hover:bg-[var(--amethyst-soft)]/30 disabled:opacity-30 transition-all">Inject</button>
                             </div>
                         </motion.div>
                     </motion.div>
                 )}
                 {lastIntervention && (
-                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute top-20 left-1/2 -translate-x-1/2 z-50 bg-[#9d4edd]/90 backdrop-blur text-black px-6 py-2 rounded-full font-bold font-mono text-xs shadow-[0_0_20px_rgba(157,78,221,0.5)] flex items-center gap-3 pointer-events-none">
+                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="absolute top-20 left-1/2 -translate-x-1/2 z-50 bg-[var(--amethyst-soft)]/90 backdrop-blur text-black px-6 py-2 rounded-full font-bold font-mono text-xs shadow-[0_0_20px_rgba(157,78,221,0.5)] flex items-center gap-3 pointer-events-none">
                         <Zap className="w-4 h-4 fill-current" />
                         <span>CHAIR INTERVENTION: {lastIntervention.target}</span>
                     </motion.div>
@@ -315,7 +315,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                 <div className="absolute top-0 left-0 right-0 p-6 flex justify-between items-start z-20 pointer-events-none">
                     <div className="pointer-events-auto flex items-center gap-4">
                         <div className="flex flex-col">
-                            <span className="text-[10px] text-[#9d4edd] font-mono uppercase tracking-widest flex items-center gap-2">
+                            <span className="text-[10px] text-[var(--amethyst-soft)] font-mono uppercase tracking-widest flex items-center gap-2">
                                 <Activity className="w-3 h-3" /> Debate Protocol
                             </span>
                             <span className="text-xl font-bold text-white font-mono">
@@ -325,10 +325,10 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                     </div>
                     
                     <div className="flex gap-2 pointer-events-auto">
-                        <button onClick={() => setIsNarrationMuted(!isNarrationMuted)} className={`flex items-center gap-2 px-3 py-1.5 rounded border transition-all text-[10px] font-mono uppercase tracking-wider ${!isNarrationMuted ? 'bg-[#9d4edd]/10 border-[#9d4edd]/30 text-[#9d4edd]' : 'bg-[#111] border border-[#333] text-gray-500 hover:text-white'}`}>
-                            {isNarrationMuted ? <VolumeX className="w-3 h-3 text-gray-500" /> : <Volume2 className="w-3 h-3 text-[#f59e0b] animate-pulse" />}
+                        <button onClick={() => setIsNarrationMuted(!isNarrationMuted)} className={`flex items-center gap-2 px-3 py-1.5 rounded border transition-all text-[10px] font-mono uppercase tracking-wider ${!isNarrationMuted ? 'bg-[var(--amethyst-soft)]/10 border-[var(--amethyst-soft)]/30 text-[var(--amethyst-soft)]' : 'bg-[#111] border border-[#333] text-gray-500 hover:text-white'}`}>
+                            {isNarrationMuted ? <VolumeX className="w-3 h-3 text-gray-500" /> : <Volume2 className="w-3 h-3 text-[var(--amber)] animate-pulse" />}
                         </button>
-                        <button onClick={toggleVoice} className={`flex items-center gap-2 px-3 py-1.5 rounded border transition-all text-[10px] font-mono uppercase tracking-wider ${isVoiceActive ? 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.2)]' : 'bg-[#111] border border-[#333] text-gray-500 hover:text-white'}`}>
+                        <button onClick={toggleVoice} className={`flex items-center gap-2 px-3 py-1.5 rounded border transition-all text-[10px] font-mono uppercase tracking-wider ${isVoiceActive ? 'bg-[var(--amethyst-soft)]/20 border-[var(--amethyst-soft)] text-[var(--amethyst-soft)] shadow-[0_0_15px_rgba(157,78,221,0.2)]' : 'bg-[#111] border border-[#333] text-gray-500 hover:text-white'}`}>
                             {isVoiceActive ? <Radio className="w-3 h-3 animate-pulse" /> : <Mic className="w-3 h-3" />}
                             {isVoiceActive ? 'MODERATOR LINK ACTIVE' : 'MODERATOR MUTED'}
                         </button>
@@ -342,11 +342,11 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                     {status === 'IDLE' ? (
                         <div className="text-center z-10">
                             <div className="w-20 h-20 bg-[#111] rounded-full flex items-center justify-center mx-auto mb-6 border border-[#333] shadow-[0_0_40px_rgba(157,78,221,0.2)]">
-                                <Users className="w-8 h-8 text-[#9d4edd]" />
+                                <Users className="w-8 h-8 text-[var(--amethyst-soft)]" />
                             </div>
                             <h2 className="text-xl font-mono text-white mb-2 uppercase tracking-widest">Neural Senate</h2>
                             <p className="text-xs text-gray-500 max-w-sm mx-auto mb-8 font-mono leading-relaxed">Agents possess dynamic mental states that evolve through debate.</p>
-                            <button onClick={startSimulation} className="px-8 py-3 bg-[#9d4edd] text-black font-bold font-mono uppercase tracking-widest hover:bg-[#b06bf7] transition-all shadow-lg">Summon Agents</button>
+                            <button onClick={startSimulation} className="px-8 py-3 bg-[var(--amethyst-soft)] text-black font-bold font-mono uppercase tracking-widest hover:bg-[#b06bf7] transition-all shadow-lg">Summon Agents</button>
                         </div>
                     ) : (
                         <div className="relative w-full h-full flex items-center justify-center">
@@ -365,7 +365,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                                 )}
                                 {status === 'GEN_PERSONAS' && (
                                     <div className="absolute inset-0 flex items-center justify-center bg-black/60 z-10">
-                                        <Loader2 className="w-8 h-8 text-[#9d4edd] animate-spin" />
+                                        <Loader2 className="w-8 h-8 text-[var(--amethyst-soft)] animate-spin" />
                                     </div>
                                 )}
                             </div>
@@ -424,7 +424,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                     <div className="flex items-center"><MessageSquare className="w-4 h-4 text-gray-500 mr-2" /><span className="text-xs font-mono uppercase text-gray-400">Senate Transcript</span></div>
                     {status === 'DEBATING' && (
                         <div className="flex items-center gap-2 px-2 py-1 bg-[#1f1f1f] rounded border border-[#333]">
-                            {isNarrationMuted ? <VolumeX className="w-3 h-3 text-gray-500" /> : <Volume2 className="w-3 h-3 text-[#f59e0b] animate-pulse" />}
+                            {isNarrationMuted ? <VolumeX className="w-3 h-3 text-gray-500" /> : <Volume2 className="w-3 h-3 text-[var(--amber)] animate-pulse" />}
                             <span className="text-[9px] text-gray-500 font-mono">{isNarrationMuted ? 'Audio Muted' : 'Live Narration'}</span>
                         </div>
                     )}
@@ -438,9 +438,9 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                                 <div className="flex items-center gap-2">
                                     <span className="font-bold" style={{ color: persona?.avatar_color }}>{persona?.name || 'Unknown'}</span>
                                     <span className="text-[9px] text-gray-600 bg-[#111] px-1 rounded border border-[#222]">{persona?.role || 'AGENT'}</span>
-                                    {isSpeaking && <div className="w-2 h-2 rounded-full bg-[#9d4edd] animate-pulse" />}
+                                    {isSpeaking && <div className="w-2 h-2 rounded-full bg-[var(--amethyst-soft)] animate-pulse" />}
                                 </div>
-                                <div className={`bg-[#111] border p-3 rounded-tr-lg rounded-b-lg text-gray-300 leading-relaxed relative ${isSpeaking ? 'border-[#9d4edd]' : 'border-[#222]'}`}>
+                                <div className={`bg-[#111] border p-3 rounded-tr-lg rounded-b-lg text-gray-300 leading-relaxed relative ${isSpeaking ? 'border-[var(--amethyst-soft)]' : 'border-[#222]'}`}>
                                     {turn.newMindset && (
                                         <div className="absolute right-2 top-2 flex gap-1">
                                             {turn.newMindset.alignment > 60 && <div className="w-1.5 h-1.5 rounded-full bg-[#42be65]"></div>}
@@ -462,17 +462,17 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                             <h3 className="text-sm font-bold font-mono text-white uppercase tracking-widest">Action Learning</h3>
                             <div className="flex items-center gap-2">
                                 <span className="text-[10px] text-gray-500 uppercase">Viability</span>
-                                <div className={`text-xl font-bold font-mono ${report.viabilityScore > 70 ? 'text-[#42be65]' : 'text-[#f59e0b]'}`}>{report.viabilityScore}%</div>
+                                <div className={`text-xl font-bold font-mono ${report.viabilityScore > 70 ? 'text-[#42be65]' : 'text-[var(--amber)]'}`}>{report.viabilityScore}%</div>
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-4 mb-4">
                             <div className="bg-[#111] p-3 rounded border border-[#222]"><div className="text-[9px] text-gray-500 font-mono uppercase mb-1">Consensus</div><p className="text-[10px] leading-relaxed text-gray-300 line-clamp-3">{report.consensus}</p></div>
-                            <div className="bg-[#111] p-3 rounded border border-[#9d4edd]/30 relative overflow-hidden"><div className="absolute inset-0 bg-[#9d4edd]/5"></div><div className="text-[9px] text-[#9d4edd] font-mono uppercase mb-1">Projected Upside</div><div className="text-2xl font-bold text-[#9d4edd] flex items-center gap-2">+{report.projectedUpside || 0}%<ArrowUpRight className="w-4 h-4" /></div><div className="text-[9px] text-gray-500 mt-1">If fixes applied</div></div>
+                            <div className="bg-[#111] p-3 rounded border border-[var(--amethyst-soft)]/30 relative overflow-hidden"><div className="absolute inset-0 bg-[var(--amethyst-soft)]/5"></div><div className="text-[9px] text-[var(--amethyst-soft)] font-mono uppercase mb-1">Projected Upside</div><div className="text-2xl font-bold text-[var(--amethyst-soft)] flex items-center gap-2">+{report.projectedUpside || 0}%<ArrowUpRight className="w-4 h-4" /></div><div className="text-[9px] text-gray-500 mt-1">If fixes applied</div></div>
                         </div>
                         <div className="flex-1 overflow-y-auto custom-scrollbar mb-4"><div className="grid grid-cols-1 gap-2">{report.actionableFixes.map((pt, i) => (<div key={i} className="bg-[#051a05] border border-green-900/30 p-2 rounded text-[10px] flex gap-2"><CheckCircle className="w-3 h-3 text-[#42be65] shrink-0" /><span className="text-gray-300">{pt}</span></div>))}</div></div>
                         <div className="flex gap-2 mt-auto">
                             <button className="flex-1 py-2 bg-[#1f1f1f] border border-[#333] hover:border-white text-xs font-mono text-gray-300 uppercase rounded flex items-center justify-center gap-2 transition-all"><Save className="w-3 h-3" /> Archive Sim</button>
-                            <button onClick={exportToProcessMap} className="flex-1 py-2 bg-[#9d4edd] text-black text-xs font-mono font-bold uppercase rounded flex items-center justify-center gap-2 hover:bg-[#b06bf7] transition-all shadow-[0_0_15px_rgba(157,78,221,0.3)]"><GitCommit className="w-3 h-3" /> Inject to Process</button>
+                            <button onClick={exportToProcessMap} className="flex-1 py-2 bg-[var(--amethyst-soft)] text-black text-xs font-mono font-bold uppercase rounded flex items-center justify-center gap-2 hover:bg-[#b06bf7] transition-all shadow-[0_0_15px_rgba(157,78,221,0.3)]"><GitCommit className="w-3 h-3" /> Inject to Process</button>
                         </div>
                     </motion.div>
                 )}

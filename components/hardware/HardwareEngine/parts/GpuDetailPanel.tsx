@@ -46,12 +46,12 @@ export const GpuDetailPanel: React.FC<GpuDetailPanelProps> = ({
                     {gpu.bom.map((item, i) => (
                         <div
                             key={i}
-                            className="p-2.5 bg-black border border-white/5 rounded-xl flex items-center justify-between group/bom-item hover:border-[#22d3ee]/30 transition-all"
+                            className="p-2.5 bg-black border border-white/5 rounded-xl flex items-center justify-between group/bom-item hover:border-[var(--cyan)]/30 transition-all"
                         >
                             <span className="text-[9px] font-black text-gray-400 uppercase truncate">{item}</span>
                             <button
                                 onClick={() => onFetchSupplyChain(item)}
-                                className="p-1 text-gray-700 hover:text-[#22d3ee] rounded transition-all"
+                                className="p-1 text-gray-700 hover:text-[var(--cyan)] rounded transition-all"
                                 aria-label="View supply chain"
                             >
                                 <ExternalLink size={10} />
@@ -84,7 +84,7 @@ export const GpuDetailPanel: React.FC<GpuDetailPanelProps> = ({
                 </div>
                 <div className="mt-2 p-2 bg-black border border-white/5 rounded-lg">
                     <span className="text-gray-600 block text-[8px]">MTBF (Est.)</span>
-                    <span className="text-[#10b981] font-bold text-sm">{gpu.mtbf.toLocaleString()}h</span>
+                    <span className="text-[var(--plasma-green)] font-bold text-sm">{gpu.mtbf.toLocaleString()}h</span>
                 </div>
             </div>
 
@@ -99,7 +99,7 @@ export const GpuDetailPanel: React.FC<GpuDetailPanelProps> = ({
                     </div>
                     <button
                         onClick={() => onOpenProcurement(gpu)}
-                        className="px-4 py-2 bg-[#10b981] text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg"
+                        className="px-4 py-2 bg-[var(--plasma-green)] text-black rounded-lg text-[9px] font-black uppercase tracking-widest transition-all hover:scale-105 active:scale-95 shadow-lg"
                     >
                         Procure Unit
                     </button>

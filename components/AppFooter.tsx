@@ -39,7 +39,7 @@ const AppFooter: React.FC = () => {
                     <div className="text-[10px] font-mono text-[var(--text-muted)] uppercase tracking-[0.4em] flex items-center gap-4">
                         <span className="text-[var(--stellar-white)] font-black">© 2026</span>
                         <span className="opacity-20 hidden lg:block">//</span>
-                        <span className="hidden lg:block text-[#9d4edd] font-black uppercase [text-shadow:0_0_10px_rgba(157,78,221,0.5)]">V9.5</span>
+                        <span className="hidden lg:block text-[var(--amethyst-soft)] font-black uppercase [text-shadow:0_0_10px_rgba(157,78,221,0.5)]">V1.0</span>
                     </div>
                 </div>
 

@@ -117,7 +117,7 @@ const ExecutiveBanner = () => {
                         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />
                         <div className={cn(
                             "w-12 h-12 rounded-full border p-1 glass-action flex items-center justify-center relative transition-all duration-700 z-10",
-                            voice.isActive ? "border-[#f1c21b] shadow-[0_0_15px_rgba(241,194,27,0.3)] scale-105" : "border-white/10"
+                            voice.isActive ? "border-[var(--executive-gold)] shadow-[0_0_15px_rgba(241,194,27,0.3)] scale-105" : "border-white/10"
                         )}>
                             <div className="w-full h-full rounded-full overflow-hidden bg-black/20 flex items-center justify-center border border-white/5">
                                 {user.avatar ? (
@@ -134,7 +134,7 @@ const ExecutiveBanner = () => {
                             "px-3 py-1 rounded-lg text-[8px] font-black font-mono uppercase tracking-widest transition-all flex items-center gap-1.5 border glass-action active:scale-95",
                             voice.isActive 
                                 ? "bg-red-500/10 border-red-500/20 text-red-400" 
-                                : "text-[#f1c21b] hover:text-white"
+                                : "text-[var(--executive-gold)] hover:text-white"
                         )}
                     >
                         {voice.isActive ? <MicOff size={8} /> : <Mic size={8} />}
@@ -145,7 +145,7 @@ const ExecutiveBanner = () => {
                 <div className="flex-1 flex flex-col gap-0.5">
                     <div className="flex items-center gap-3 mb-1">
                         <div className="flex items-center gap-1.5 px-2 py-0.5 glass-action rounded-full border-white/10" onClick={() => toggleProfile(true)}>
-                            <ShieldCheck size={10} className="text-[#10b981]" />
+                            <ShieldCheck size={10} className="text-[var(--plasma-green)]" />
                             <span className="text-[8px] font-black font-mono text-white/90 uppercase tracking-widest">Sovereign_Enclave_V1</span>
                         </div>
                     </div>
@@ -174,7 +174,7 @@ const AgentHive = () => {
         <div className="flex items-center gap-4 py-2 border-t border-white/5 mt-auto">
             <div className="flex flex-col gap-0.5">
                 <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Agent_Hive</span>
-                <span className="text-[7px] font-mono text-[#10b981] uppercase tracking-tighter">Active Swarm</span>
+                <span className="text-[7px] font-mono text-[var(--plasma-green)] uppercase tracking-tighter">Active Swarm</span>
             </div>
             <div className="flex gap-2.5">
                 {agents.activeAgents.map((agent, i) => (
@@ -188,11 +188,11 @@ const AgentHive = () => {
                         <div className={cn(
                             "w-10 h-11 flex items-center justify-center transition-all duration-500",
                             agent.status === 'ACTIVE' || agent.status === 'THINKING' 
-                                ? "bg-[#9d4edd]/20 border border-[#9d4edd]/40 shadow-[0_0_10px_rgba(157,78,221,0.2)]" 
+                                ? "bg-[var(--amethyst-soft)]/20 border border-[var(--amethyst-soft)]/40 shadow-[0_0_10px_rgba(157,78,221,0.2)]" 
                                 : "bg-white/5 border border-white/10 opacity-40"
                         )} style={{ clipPath: 'polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)' }}>
                             {agent.status === 'THINKING' ? (
-                                <Loader2 size={14} className="animate-spin text-[#9d4edd]" />
+                                <Loader2 size={14} className="animate-spin text-[var(--amethyst-soft)]" />
                             ) : (
                                 <Bot size={14} className={agent.status === 'ACTIVE' ? "text-white" : "text-gray-500"} />
                             )}
@@ -219,7 +219,7 @@ const MetricCard = ({ title, value, detail, icon: Icon, color, data, trend }: an
                 </div>
                 <span className="text-[9px] font-black font-mono text-gray-500 uppercase tracking-widest group-hover:text-white transition-colors">{title}</span>
             </div>
-            <div className={`flex items-center gap-1 text-[8px] font-mono font-black ${trend === 'up' ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
+            <div className={`flex items-center gap-1 text-[8px] font-mono font-black ${trend === 'up' ? 'text-[var(--plasma-green)]' : 'text-[#ef4444]'}`}>
                 {trend === 'up' ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
                 {detail}
             </div>
@@ -316,7 +316,7 @@ const Dashboard: React.FC = () => {
                   </div>
                   <div className="crystalline rounded-3xl p-6 h-56 relative overflow-hidden shadow-xl">
                       <div className="flex items-center gap-3 mb-6 relative z-10">
-                        <ChartIcon size={14} className="text-[#f1c21b]" />
+                        <ChartIcon size={14} className="text-[var(--executive-gold)]" />
                         <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Network Topology</span>
                       </div>
                       <div className="flex-1 h-36 relative z-10">
@@ -337,7 +337,7 @@ const Dashboard: React.FC = () => {
                   <div className="flex-1 crystalline rounded-[2.5rem] overflow-hidden relative group flex flex-col border border-white/10 shadow-2xl">
                       <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-white/[0.01] shrink-0 z-20">
                           <div className="flex items-center gap-3">
-                              <Hexagon size={14} className="text-[#f1c21b]/70" />
+                              <Hexagon size={14} className="text-[var(--executive-gold)]/70" />
                               <span className="text-[10px] font-medium font-mono text-white/80 uppercase tracking-widest">Operations</span>
                           </div>
                           <div className="flex gap-4">
@@ -390,11 +390,11 @@ const Dashboard: React.FC = () => {
                   <div className="crystalline rounded-3xl p-5 h-40 shadow-xl flex flex-col gap-3 relative overflow-hidden">
                       <div className="flex items-center justify-between relative z-10">
                          <div className="flex items-center gap-3">
-                             <Fingerprint size={14} className="text-[#f1c21b]" />
+                             <Fingerprint size={14} className="text-[var(--executive-gold)]" />
                              <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Biometric Anchor</span>
                          </div>
                          <label className="cursor-pointer p-1 glass-action rounded-lg transition-all border-white/10 group/label">
-                            <Upload size={10} className="text-gray-500 group-hover/label:text-[#f1c21b]" />
+                            <Upload size={10} className="text-gray-500 group-hover/label:text-[var(--executive-gold)]" />
                             <input type="file" className="hidden" onChange={handleAnchorSwap} accept="image/*" />
                          </label>
                       </div>
@@ -408,8 +408,8 @@ const Dashboard: React.FC = () => {
                                 </>
                           ) : (
                                 <label className="flex flex-col items-center gap-2 cursor-pointer p-4 group/label opacity-40 hover:opacity-100 transition-all">
-                                    <div className="p-2 rounded-lg glass-action border border-white/5 group-hover/label:border-[#f1c21b] transition-all">
-                                        <Upload size={16} className="text-gray-600 group-hover/label:text-[#f1c21b]" />
+                                    <div className="p-2 rounded-lg glass-action border border-white/5 group-hover/label:border-[var(--executive-gold)] transition-all">
+                                        <Upload size={16} className="text-gray-600 group-hover/label:text-[var(--executive-gold)]" />
                                     </div>
                                     <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Load Identity Key</span>
                                     <input type="file" className="hidden" onChange={handleAnchorSwap} />
@@ -423,7 +423,7 @@ const Dashboard: React.FC = () => {
                   </div>
 
                   <div className="flex-1 crystalline rounded-3xl p-6 flex flex-col gap-6 shadow-xl relative overflow-hidden">
-                      <div className="flex items-center gap-3 text-[#10b981] relative z-10">
+                      <div className="flex items-center gap-3 text-[var(--plasma-green)] relative z-10">
                           <DollarSign size={16} />
                           <span className="text-[10px] font-black uppercase tracking-widest text-white">Capital Velocity</span>
                       </div>

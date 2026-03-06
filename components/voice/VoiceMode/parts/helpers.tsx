@@ -166,7 +166,7 @@ export const NodePersona: React.FC<NodePersonaProps> = ({ image, freqs, color, l
                     transition={{ duration: 2, repeat: Infinity }}
                     className={cn(
                         "relative z-10 w-36 h-36 rounded-full border-2 overflow-hidden bg-black shadow-2xl transition-all duration-700 p-1.5",
-                        isThinking ? "border-[#f1c21b]" : "border-white/10"
+                        isThinking ? "border-[var(--executive-gold)]" : "border-white/10"
                     )}
                 >
                     <div className="w-full h-full rounded-full overflow-hidden border border-white/5 relative">
@@ -183,7 +183,7 @@ export const NodePersona: React.FC<NodePersonaProps> = ({ image, freqs, color, l
                                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                                     className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center"
                                 >
-                                    <Loader2 className="w-8 h-8 text-[#f1c21b] animate-spin" />
+                                    <Loader2 className="w-8 h-8 text-[var(--executive-gold)] animate-spin" />
                                 </motion.div>
                             )}
                         </AnimatePresence>

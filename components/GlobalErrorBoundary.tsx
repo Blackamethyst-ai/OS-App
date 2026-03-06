@@ -49,9 +49,9 @@ export class GlobalErrorBoundary extends Component<Props, State> {
             }
 
             return (
-                <div className="fixed inset-0 z-[9999] bg-[#020204] flex flex-col items-center justify-center text-[#18E6FF] font-mono p-8">
+                <div className="fixed inset-0 z-[9999] bg-[#020204] flex flex-col items-center justify-center text-[var(--cyan)] font-mono p-8">
                     <div className="w-full max-w-2xl border border-[#7B2CFF]/50 bg-black/80 rounded-2xl p-8 shadow-[0_0_100px_rgba(123,44,255,0.2)] backdrop-blur-xl relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#7B2CFF] via-[#18E6FF] to-[#7B2CFF] opacity-50" />
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--amethyst)] via-[#18E6FF] to-[var(--amethyst)] opacity-50" />
 
                         <div className="flex items-center gap-4 mb-8">
                             <div className="p-4 bg-[#7B2CFF]/20 rounded-full animate-pulse">
@@ -73,7 +73,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
 
                         <button
                             onClick={this.handleReset}
-                            className="w-full py-4 bg-[#7B2CFF] hover:bg-[#18E6FF] text-white font-black uppercase tracking-widest text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-3 group"
+                            className="w-full py-4 bg-[#7B2CFF] hover:bg-[var(--cyan)] text-white font-black uppercase tracking-widest text-sm rounded-xl transition-all duration-300 flex items-center justify-center gap-3 group"
                         >
                             <RefreshCw size={18} className="group-hover:rotate-180 transition-transform duration-500" />
                             Reboot System Kernel

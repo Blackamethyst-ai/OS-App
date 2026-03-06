@@ -122,11 +122,11 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
                             
                             <div className="flex justify-between items-center">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-2 bg-[#9d4edd]/20 rounded-lg text-[#9d4edd]">
+                                    <div className="p-2 bg-[var(--amethyst-soft)]/20 rounded-lg text-[var(--amethyst-soft)]">
                                         <History size={16} />
                                     </div>
                                     <div>
-                                        <div className="text-[#9d4edd] text-[10px] font-black font-mono uppercase tracking-[0.2em]">Temporal Navigation Hub</div>
+                                        <div className="text-[var(--amethyst-soft)] text-[10px] font-black font-mono uppercase tracking-[0.2em]">Temporal Navigation Hub</div>
                                         <div className="text-[8px] font-mono text-gray-500 uppercase tracking-widest mt-0.5">
                                             {snapshots.length} SECURE CHECKPOINTS IDENTIFIED
                                         </div>
@@ -178,17 +178,17 @@ const TimeTravelScrubber: React.FC<TimeTravelScrubberProps> = ({ mode, onRestore
                                                 <div 
                                                     className={`w-3.5 h-3.5 rounded-full border-2 transition-all duration-500 relative
                                                         ${isActive 
-                                                            ? 'bg-[#9d4edd] border-[#9d4edd] shadow-[0_0_15px_#9d4edd] scale-125' 
+                                                            ? 'bg-[var(--amethyst-soft)] border-[var(--amethyst-soft)] shadow-[0_0_15px_#9d4edd] scale-125' 
                                                             : isLast && activeIndex === null 
                                                                 ? 'bg-[#42be65] border-[#42be65] animate-pulse' 
                                                                 : 'bg-[#111] border-gray-700 hover:border-white'
                                                         }`}
                                                 >
-                                                    <div className={`absolute -top-6 left-1/2 -translate-x-1/2 w-px h-6 ${isActive ? 'bg-[#9d4edd]' : 'bg-white/10'}`}></div>
+                                                    <div className={`absolute -top-6 left-1/2 -translate-x-1/2 w-px h-6 ${isActive ? 'bg-[var(--amethyst-soft)]' : 'bg-white/10'}`}></div>
                                                 </div>
 
                                                 <div className="flex flex-col items-center">
-                                                    <span className={`text-[9px] font-black font-mono uppercase tracking-widest ${isActive ? 'text-[#9d4edd]' : 'text-gray-500'}`}>
+                                                    <span className={`text-[9px] font-black font-mono uppercase tracking-widest ${isActive ? 'text-[var(--amethyst-soft)]' : 'text-gray-500'}`}>
                                                         {isAuto ? 'AUTO' : 'SAVE'}
                                                     </span>
                                                     <span className="text-[8px] font-mono text-gray-600 mt-0.5">

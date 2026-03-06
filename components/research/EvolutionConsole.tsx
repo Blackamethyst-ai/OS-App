@@ -59,13 +59,13 @@ const CycleCard: React.FC<{ cycle: EvolutionCycle }> = ({ cycle }) => {
         <div className={cn(
             "p-4 rounded-xl border transition-all",
             isActive
-                ? "bg-[#9d4edd]/10 border-[#9d4edd]/30 animate-pulse"
+                ? "bg-[var(--amethyst-soft)]/10 border-[var(--amethyst-soft)]/30 animate-pulse"
                 : "bg-white/5 border-white/10"
         )}>
             <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                     <RefreshCw size={14} className={cn(
-                        isActive ? "text-[#9d4edd] animate-spin" : "text-gray-500"
+                        isActive ? "text-[var(--amethyst-soft)] animate-spin" : "text-gray-500"
                     )} />
                     <span className="text-[10px] font-black font-mono uppercase tracking-wider text-white">
                         Cycle #{cycle.id.slice(-6)}
@@ -74,7 +74,7 @@ const CycleCard: React.FC<{ cycle: EvolutionCycle }> = ({ cycle }) => {
                 <span className={cn(
                     "text-[9px] font-mono px-2 py-0.5 rounded-full",
                     isActive
-                        ? "bg-[#9d4edd]/20 text-[#9d4edd]"
+                        ? "bg-[var(--amethyst-soft)]/20 text-[var(--amethyst-soft)]"
                         : "bg-white/5 text-gray-500"
                 )}>
                     {isActive ? 'ACTIVE' : 'COMPLETE'}
@@ -83,15 +83,15 @@ const CycleCard: React.FC<{ cycle: EvolutionCycle }> = ({ cycle }) => {
 
             <div className="grid grid-cols-3 gap-3 mb-3">
                 <div className="text-center">
-                    <div className="text-[18px] font-black text-[#22d3ee]">{cycle.signalsAnalyzed}</div>
+                    <div className="text-[18px] font-black text-[var(--cyan)]">{cycle.signalsAnalyzed}</div>
                     <div className="text-[8px] font-mono text-gray-600 uppercase">Signals</div>
                 </div>
                 <div className="text-center">
-                    <div className="text-[18px] font-black text-[#9d4edd]">{cycle.hypothesesGenerated}</div>
+                    <div className="text-[18px] font-black text-[var(--amethyst-soft)]">{cycle.hypothesesGenerated}</div>
                     <div className="text-[8px] font-mono text-gray-600 uppercase">Hypotheses</div>
                 </div>
                 <div className="text-center">
-                    <div className="text-[18px] font-black text-[#10b981]">{cycle.evolutionsDeployed}</div>
+                    <div className="text-[18px] font-black text-[var(--plasma-green)]">{cycle.evolutionsDeployed}</div>
                     <div className="text-[8px] font-mono text-gray-600 uppercase">Deployed</div>
                 </div>
             </div>
@@ -102,7 +102,7 @@ const CycleCard: React.FC<{ cycle: EvolutionCycle }> = ({ cycle }) => {
                 </span>
                 <span className={cn(
                     "text-[9px] font-mono",
-                    cycle.netImpact > 0 ? "text-[#10b981]" : cycle.netImpact < 0 ? "text-red-500" : "text-gray-500"
+                    cycle.netImpact > 0 ? "text-[var(--plasma-green)]" : cycle.netImpact < 0 ? "text-red-500" : "text-gray-500"
                 )}>
                     Impact: {cycle.netImpact > 0 ? '+' : ''}{cycle.netImpact}%
                 </span>
@@ -136,7 +136,7 @@ const EvolutionCard: React.FC<{
         >
             <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#9d4edd]/20 rounded-xl text-[#9d4edd]">
+                    <div className="p-2 bg-[var(--amethyst-soft)]/20 rounded-xl text-[var(--amethyst-soft)]">
                         <Dna size={16} />
                     </div>
                     <div>
@@ -174,10 +174,10 @@ const EvolutionCard: React.FC<{
                         <motion.div
                             initial={{ width: 0 }}
                             animate={{ width: `${evolution.confidence * 100}%` }}
-                            className="h-full bg-[#9d4edd]"
+                            className="h-full bg-[var(--amethyst-soft)]"
                         />
                     </div>
-                    <span className="text-[9px] font-mono text-[#9d4edd]">
+                    <span className="text-[9px] font-mono text-[var(--amethyst-soft)]">
                         {Math.round(evolution.confidence * 100)}%
                     </span>
                 </div>
@@ -261,7 +261,7 @@ const EvolutionConsole: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
                                 <motion.div
                                     animate={{ rotate: stats.isEvolving ? 360 : 0 }}
                                     transition={{ duration: 2, repeat: stats.isEvolving ? Infinity : 0, ease: 'linear' }}
-                                    className="p-2.5 bg-[#9d4edd]/20 rounded-xl text-[#9d4edd]"
+                                    className="p-2.5 bg-[var(--amethyst-soft)]/20 rounded-xl text-[var(--amethyst-soft)]"
                                 >
                                     <Dna size={20} />
                                 </motion.div>
@@ -316,7 +316,7 @@ const EvolutionConsole: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
                                     className={cn(
                                         "flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black font-mono uppercase tracking-wider transition-all",
                                         activeTab === tab.id
-                                            ? "bg-[#9d4edd] text-black"
+                                            ? "bg-[var(--amethyst-soft)] text-black"
                                             : "bg-white/5 text-gray-500 hover:bg-white/10"
                                     )}
                                 >
@@ -327,7 +327,7 @@ const EvolutionConsole: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
 
                             <button
                                 onClick={() => selfEvolution.triggerAnalysis()}
-                                className="ml-auto flex items-center gap-2 px-4 py-2 bg-[#22d3ee]/20 text-[#22d3ee] rounded-xl text-[10px] font-black font-mono uppercase tracking-wider hover:bg-[#22d3ee]/30 transition-all"
+                                className="ml-auto flex items-center gap-2 px-4 py-2 bg-[var(--cyan)]/20 text-[var(--cyan)] rounded-xl text-[10px] font-black font-mono uppercase tracking-wider hover:bg-[var(--cyan)]/30 transition-all"
                             >
                                 <Play size={14} />
                                 Trigger Evolution
@@ -421,7 +421,7 @@ const EvolutionConsole: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ 
                                         className="bg-[#0a0a0c] border border-white/10 rounded-2xl w-full max-w-4xl max-h-[80vh] overflow-hidden flex flex-col"
                                     >
                                         <div className="flex items-center justify-between p-4 border-b border-white/5">
-                                            <div className="flex items-center gap-2 text-[#9d4edd]">
+                                            <div className="flex items-center gap-2 text-[var(--amethyst-soft)]">
                                                 <Code size={16} />
                                                 <span className="text-[11px] font-black font-mono uppercase">Generated Code</span>
                                             </div>

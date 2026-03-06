@@ -85,11 +85,11 @@ export const StrategicConsole: React.FC = () => {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.02)_0%,transparent_70%)] pointer-events-none" />
             <div className="flex items-center justify-between border-b border-white/5 pb-4 relative z-10">
                 <div className="flex items-center gap-3">
-                    <Terminal size={14} className="text-[#22d3ee] animate-pulse" />
+                    <Terminal size={14} className="text-[var(--cyan)] animate-pulse" />
                     <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.3em]">Command Deck</span>
                 </div>
                 <div className="flex gap-1">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#10b981]" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[var(--plasma-green)]" />
                     <div className="w-1.5 h-1.5 rounded-full bg-white/20" />
                 </div>
             </div>
@@ -131,7 +131,7 @@ export const StrategicConsole: React.FC = () => {
                                 <span className="text-[9px] text-gray-400 font-mono uppercase">Integrity</span>
                                 <span className={cn(
                                     "text-lg font-black font-mono",
-                                    analysis.integrity > 80 ? "text-[#10b981]" : "text-[#ef4444]"
+                                    analysis.integrity > 80 ? "text-[var(--plasma-green)]" : "text-[#ef4444]"
                                 )}>{analysis.integrity}%</span>
                             </div>
 
@@ -147,7 +147,7 @@ export const StrategicConsole: React.FC = () => {
                         <button
                             onClick={handleGenerateProtocol}
                             disabled={isAnalyzing}
-                            className="w-full py-3 bg-[#22d3ee] hover:bg-[#18E6FF] text-black rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95"
+                            className="w-full py-3 bg-[var(--cyan)] hover:bg-[var(--cyan)] text-black rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95"
                         >
                             {isAnalyzing ? <Loader2 size={12} className="animate-spin" /> : <Zap size={12} />}
                             Deploy Counter-Strategy
@@ -160,7 +160,7 @@ export const StrategicConsole: React.FC = () => {
                             disabled={isAnalyzing}
                             className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 group"
                         >
-                            {isAnalyzing ? <Loader2 size={12} className="animate-spin" /> : <Activity size={12} className="group-hover:text-[#9d4edd] transition-colors" />}
+                            {isAnalyzing ? <Loader2 size={12} className="animate-spin" /> : <Activity size={12} className="group-hover:text-[var(--amethyst-soft)] transition-colors" />}
                             Run Stratum Diagnostics
                         </button>
                     </motion.div>

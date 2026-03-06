@@ -52,7 +52,7 @@ const OceanicArtifact: React.FC<{ art: StoredArtifact, index: number, onSelect: 
         >
             <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent pointer-events-none" />
             <div className="flex justify-between items-start relative z-10">
-                <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 text-gray-500 group-hover:text-[#9d4edd] transition-colors">
+                <div className="p-2.5 rounded-xl bg-black/40 border border-white/10 text-gray-500 group-hover:text-[var(--amethyst-soft)] transition-colors">
                     <Database size={16} />
                 </div>
                 <div className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">
@@ -61,16 +61,16 @@ const OceanicArtifact: React.FC<{ art: StoredArtifact, index: number, onSelect: 
             </div>
             
             <div className="relative z-10">
-                <h3 className="text-xs font-black text-white uppercase font-mono tracking-tighter mb-1 truncate leading-tight group-hover:text-[#18E6FF] transition-colors">{art.name}</h3>
+                <h3 className="text-xs font-black text-white uppercase font-mono tracking-tighter mb-1 truncate leading-tight group-hover:text-[var(--cyan)] transition-colors">{art.name}</h3>
                 <div className="flex items-center gap-2">
                     <span className="text-[8px] font-mono text-gray-500 uppercase">{classification}</span>
-                    <div className="w-1 h-1 rounded-full bg-[#10b981] animate-pulse" />
+                    <div className="w-1 h-1 rounded-full bg-[var(--plasma-green)] animate-pulse" />
                 </div>
             </div>
 
             <div className="pt-4 border-t border-white/5 flex justify-between items-center relative z-10">
                 <span className="text-[8px] font-mono text-gray-700">ID_{art.id.substring(0,4)}</span>
-                <Sparkles size={12} className="text-white/10 group-hover:text-[#9d4edd] transition-all" />
+                <Sparkles size={12} className="text-white/10 group-hover:text-[var(--amethyst-soft)] transition-all" />
             </div>
         </motion.div>
     );
@@ -257,12 +257,12 @@ const MemoryCore: React.FC = () => {
             <div className="w-80 border-r border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl flex flex-col shrink-0 z-20">
                 <div className="p-8 border-b border-white/5 flex items-center justify-between bg-black/10">
                     <div className="flex items-center gap-4">
-                        <div className="p-2 bg-[#9d4edd]/20 rounded-xl text-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.25)]">
+                        <div className="p-2 bg-[var(--amethyst-soft)]/20 rounded-xl text-[var(--amethyst-soft)] shadow-[0_0_15px_rgba(157,78,221,0.25)]">
                             <Database size={16} className={isIndexing ? 'animate-pulse' : ''} />
                         </div>
                         <span className="text-[11px] font-black font-mono uppercase tracking-[0.3em] text-white">Neural Vault</span>
                     </div>
-                    {isIndexing && <Loader2 size={14} className="text-[#9d4edd] animate-spin" />}
+                    {isIndexing && <Loader2 size={14} className="text-[var(--amethyst-soft)] animate-spin" />}
                 </div>
                 <div className="p-6 border-b border-white/5 space-y-4">
                     <form onSubmit={handleVectorSearch} className="relative group">
@@ -270,18 +270,18 @@ const MemoryCore: React.FC = () => {
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
                             placeholder="Semantic Probe..."
-                            className="w-full bg-black/40 border border-white/10 pl-10 pr-4 py-3 text-[11px] font-mono text-white focus:border-[#9d4edd] outline-none rounded-xl shadow-inner transition-all placeholder:text-gray-800 uppercase"
+                            className="w-full bg-black/40 border border-white/10 pl-10 pr-4 py-3 text-[11px] font-mono text-white focus:border-[var(--amethyst-soft)] outline-none rounded-xl shadow-inner transition-all placeholder:text-gray-800 uppercase"
                             data-voice-id="memory-search-input"
                             aria-label="Memory search input"
                         />
-                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700 group-focus-within:text-[#9d4edd] transition-colors" />
-                        {isSearching && <Loader2 size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin text-[#9d4edd]" />}
+                        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700 group-focus-within:text-[var(--amethyst-soft)] transition-colors" />
+                        {isSearching && <Loader2 size={14} className="absolute right-3.5 top-1/2 -translate-y-1/2 animate-spin text-[var(--amethyst-soft)]" />}
                     </form>
                     <div className="flex justify-between items-center px-1">
                         {semanticResults && (
-                            <button onClick={() => { setSearchQuery(''); setSemanticResults(null); }} className="text-[9px] font-mono text-[#9d4edd] hover:text-white uppercase tracking-widest font-black transition-colors flex items-center gap-2"><X size={10} /> Clear</button>
+                            <button onClick={() => { setSearchQuery(''); setSemanticResults(null); }} className="text-[9px] font-mono text-[var(--amethyst-soft)] hover:text-white uppercase tracking-widest font-black transition-colors flex items-center gap-2"><X size={10} /> Clear</button>
                         )}
-                        <button onClick={defragmentMatrix} className="text-[9px] font-mono text-gray-600 hover:text-[#18E6FF] uppercase tracking-widest font-black transition-colors flex items-center gap-2 ml-auto">
+                        <button onClick={defragmentMatrix} className="text-[9px] font-mono text-gray-600 hover:text-[var(--cyan)] uppercase tracking-widest font-black transition-colors flex items-center gap-2 ml-auto">
                             <RefreshCw size={10} /> Defrag
                         </button>
                     </div>
@@ -293,17 +293,17 @@ const MemoryCore: React.FC = () => {
                             <button 
                                 key={art.id} 
                                 onClick={() => { setSelectedArtifact(art); audio.playClick(); }} 
-                                className={`w-full text-left p-4 rounded-2xl border transition-all flex flex-col gap-2 relative overflow-hidden group ${selectedArtifact?.id === art.id ? 'border-[#9d4edd]/50 bg-[#9d4edd]/5 shadow-xl' : 'border-transparent hover:bg-white/5'}`}
+                                className={`w-full text-left p-4 rounded-2xl border transition-all flex flex-col gap-2 relative overflow-hidden group ${selectedArtifact?.id === art.id ? 'border-[var(--amethyst-soft)]/50 bg-[var(--amethyst-soft)]/5 shadow-xl' : 'border-transparent hover:bg-white/5'}`}
                             >
-                                <div className="absolute left-0 top-0 w-1 h-full bg-[#9d4edd] opacity-40" />
-                                <div className="text-[11px] font-black text-white truncate uppercase tracking-tighter font-mono group-hover:text-[#9d4edd] transition-colors">{art.name}</div>
+                                <div className="absolute left-0 top-0 w-1 h-full bg-[var(--amethyst-soft)] opacity-40" />
+                                <div className="text-[11px] font-black text-white truncate uppercase tracking-tighter font-mono group-hover:text-[var(--amethyst-soft)] transition-colors">{art.name}</div>
                                 <div className="flex items-center justify-between">
                                     <span className="text-[8px] text-gray-600 font-mono uppercase tracking-widest flex items-center gap-1.5">
                                         <FileIcon size={10} />
                                         {art.analysis?.classification || 'RAW_FRAGMENT'}
                                     </span>
                                     {semResult && (
-                                        <div className="flex items-center gap-1.5 bg-[#10b981]/10 px-1.5 rounded-full"><Zap size={8} className="text-[#10b981]" /><span className="text-[8px] text-[#10b981] font-black font-mono">{Math.round(semResult.score * 100)}%</span></div>
+                                        <div className="flex items-center gap-1.5 bg-[var(--plasma-green)]/10 px-1.5 rounded-full"><Zap size={8} className="text-[var(--plasma-green)]" /><span className="text-[8px] text-[var(--plasma-green)] font-black font-mono">{Math.round(semResult.score * 100)}%</span></div>
                                     )}
                                 </div>
                             </button>
@@ -314,7 +314,7 @@ const MemoryCore: React.FC = () => {
 
             <div className="flex-1 flex flex-col relative bg-transparent overflow-hidden">
                 {/* Viewport Scanline */}
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-[#9d4edd]/10 z-10 pointer-events-none" />
+                <div className="absolute top-0 left-0 w-full h-[2px] bg-[var(--amethyst-soft)]/10 z-10 pointer-events-none" />
 
                 <div className="h-16 border-b border-[var(--border-main)] bg-[var(--bg-header)] backdrop-blur-3xl flex items-center justify-between px-10 shrink-0 z-20">
                     <div className="flex bg-black/20 p-1.5 rounded-xl border border-white/5 shadow-inner">
@@ -336,7 +336,7 @@ const MemoryCore: React.FC = () => {
                         ))}
                     </div>
                     <div className="flex items-center gap-8">
-                        <label className="flex items-center gap-4 px-8 py-2.5 bg-[#9d4edd] text-black border border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest cursor-pointer shadow-[0_0_30px_rgba(157,78,221,0.3)] hover:scale-105 active:scale-95 transition-all">
+                        <label className="flex items-center gap-4 px-8 py-2.5 bg-[var(--amethyst-soft)] text-black border border-transparent rounded-2xl text-[10px] font-black uppercase tracking-widest cursor-pointer shadow-[0_0_30px_rgba(157,78,221,0.3)] hover:scale-105 active:scale-95 transition-all">
                             <Upload size={18} /> Ingest Artifact
                             <input type="file" multiple className="hidden" onChange={handleFileUpload} />
                         </label>
@@ -347,7 +347,7 @@ const MemoryCore: React.FC = () => {
                     <AnimatePresence mode="wait">
                         {isLoading ? (
                             <motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full flex flex-col items-center justify-center gap-6">
-                                <Loader2 size={32} className="text-[#9d4edd] animate-spin" />
+                                <Loader2 size={32} className="text-[var(--amethyst-soft)] animate-spin" />
                                 <span className="text-[10px] font-black font-mono text-gray-500 uppercase tracking-[0.4em]">Synchronizing Neural Vault...</span>
                             </motion.div>
                         ) : filteredArtifacts.length === 0 ? (
@@ -363,7 +363,7 @@ const MemoryCore: React.FC = () => {
                                     </p>
                                 </div>
                                 {!semanticResults && (
-                                    <label className="flex items-center gap-3 px-6 py-3 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#9d4edd] cursor-pointer hover:bg-[#9d4edd]/20 transition-all">
+                                    <label className="flex items-center gap-3 px-6 py-3 bg-[var(--amethyst-soft)]/10 border border-[var(--amethyst-soft)]/30 rounded-xl text-[10px] font-black uppercase tracking-widest text-[var(--amethyst-soft)] cursor-pointer hover:bg-[var(--amethyst-soft)]/20 transition-all">
                                         <Upload size={14} /> Ingest First Artifact
                                         <input type="file" multiple className="hidden" onChange={handleFileUpload} />
                                     </label>
@@ -403,14 +403,14 @@ const MemoryCore: React.FC = () => {
                                                 selectedArtifact?.id === art.id ? 'border-white/40 ring-4 ring-white/5 bg-white/[0.03]' : 'hover:border-white/20'
                                             )}
                                         >
-                                            <div className="text-sm font-black text-white uppercase truncate font-mono mb-2 tracking-tighter group-hover:text-[#9d4edd] transition-colors">{art.name}</div>
+                                            <div className="text-sm font-black text-white uppercase truncate font-mono mb-2 tracking-tighter group-hover:text-[var(--amethyst-soft)] transition-colors">{art.name}</div>
                                             <div className="flex flex-wrap gap-2 mb-4 h-6 overflow-hidden">
                                                 {Array.isArray(art.tags) && art.tags.slice(0, 3).map(tag => (
                                                     <span key={String(tag)} className="text-[7px] font-black font-mono text-gray-500 border border-white/5 bg-white/5 px-2 py-0.5 rounded uppercase tracking-tighter">{String(tag)}</span>
                                                 ))}
                                             </div>
                                             <div className="flex justify-between items-center border-t border-white/5 pt-4">
-                                                <div className="px-2 py-0.5 rounded text-[8px] font-black font-mono uppercase tracking-widest bg-[#9d4edd]/10 text-[#9d4edd]">
+                                                <div className="px-2 py-0.5 rounded text-[8px] font-black font-mono uppercase tracking-widest bg-[var(--amethyst-soft)]/10 text-[var(--amethyst-soft)]">
                                                     {art.analysis?.classification || 'RAW'}
                                                 </div>
                                                 <span className="text-[8px] text-gray-700 font-mono uppercase">ID_{art.id.substring(0,4)}</span>
@@ -434,7 +434,7 @@ const MemoryCore: React.FC = () => {
                     >
                         <div className="flex justify-between items-start shrink-0">
                             <div className="space-y-2 text-white">
-                                <h2 className="text-3xl font-black uppercase font-mono tracking-tighter truncate max-w-[360px] leading-tight group-hover:text-[#9d4edd]">{selectedArtifact.name}</h2>
+                                <h2 className="text-3xl font-black uppercase font-mono tracking-tighter truncate max-w-[360px] leading-tight group-hover:text-[var(--amethyst-soft)]">{selectedArtifact.name}</h2>
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-600 uppercase tracking-widest">
                                         <Clock size={10} /> {new Date(selectedArtifact.timestamp).toLocaleTimeString()}
@@ -452,7 +452,7 @@ const MemoryCore: React.FC = () => {
                             </div>
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4 text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] px-2">
-                                    <Sparkles size={16} className="text-[#9d4edd]" /> Technical Summary
+                                    <Sparkles size={16} className="text-[var(--amethyst-soft)]" /> Technical Summary
                                 </div>
                                 <div className="p-10 bg-black/60 border border-white/5 rounded-[3.5rem] text-[15px] font-mono text-gray-300 leading-relaxed italic border-l-[6px] border-l-[#9d4edd] shadow-inner">
                                     "{renderSafe(selectedArtifact.analysis?.summary) || 'Integrity check in progress.'}"
@@ -464,7 +464,7 @@ const MemoryCore: React.FC = () => {
                             <button 
                                 onClick={handleDeepReconstruction} 
                                 disabled={isReconstructing}
-                                className="w-full py-6 bg-[#9d4edd] text-black rounded-[2rem] text-[12px] font-black uppercase tracking-[0.5em] shadow-[0_20px_50px_rgba(157,78,221,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5 group/recon"
+                                className="w-full py-6 bg-[var(--amethyst-soft)] text-black rounded-[2rem] text-[12px] font-black uppercase tracking-[0.5em] shadow-[0_20px_50px_rgba(157,78,221,0.4)] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-5 group/recon"
                             >
                                 {isReconstructing ? <Loader2 size={22} className="animate-spin" /> : <BrainCircuit size={22} />}
                                 Neural Reconstruction

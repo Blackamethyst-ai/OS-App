@@ -157,8 +157,8 @@ export const TreeView: React.FC<TreeViewProps> = ({ data }) => {
 
         const getEntropyColor = (val: number) => {
             if (val > 75) return 'text-red-500';
-            if (val > 35) return 'text-[#f59e0b]';
-            return 'text-[#10b981]';
+            if (val > 35) return 'text-[var(--amber)]';
+            return 'text-[var(--plasma-green)]';
         };
 
         return (
@@ -169,7 +169,7 @@ export const TreeView: React.FC<TreeViewProps> = ({ data }) => {
                 >
                     <div className={cn(
                         "w-5 h-5 rounded-lg flex items-center justify-center border transition-all shadow-lg",
-                        isFolder ? "bg-[#f1c21b]/10 border-[#f1c21b]/30 text-[#f1c21b]" : "bg-white/5 border-white/10 text-gray-600"
+                        isFolder ? "bg-[var(--executive-gold)]/10 border-[var(--executive-gold)]/30 text-[var(--executive-gold)]" : "bg-white/5 border-white/10 text-gray-600"
                     )}>
                         {isFolder ? <FolderOpen size={10} /> : <FileText size={10} />}
                     </div>
@@ -195,7 +195,7 @@ export const TreeView: React.FC<TreeViewProps> = ({ data }) => {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(241,194,27,0.01)_0%,transparent_60%)] pointer-events-none" />
             <div className="flex items-center justify-between mb-6 px-1 relative z-10">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-[#f1c21b]/10 rounded-xl border border-[#f1c21b]/30 text-[#f1c21b]">
+                    <div className="p-2 bg-[var(--executive-gold)]/10 rounded-xl border border-[var(--executive-gold)]/30 text-[var(--executive-gold)]">
                         <FolderTree size={14} />
                     </div>
                     <div>
@@ -211,7 +211,7 @@ export const TreeView: React.FC<TreeViewProps> = ({ data }) => {
 
             <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center px-1 opacity-40 group-hover/tree:opacity-100 transition-opacity relative z-10">
                 <span className="text-[7px] font-mono text-gray-600 uppercase tracking-[0.2em] font-black">Recursive_Lattice</span>
-                <button className="text-[7px] font-black font-mono text-[#f1c21b] hover:text-white transition-colors uppercase tracking-widest">
+                <button className="text-[7px] font-black font-mono text-[var(--executive-gold)] hover:text-white transition-colors uppercase tracking-widest">
                     Raw Manifest
                 </button>
             </div>
@@ -256,7 +256,7 @@ export const ProposalQueue: React.FC = () => {
                             </div>
                             <button onClick={() => dismissProposal(prop.id)} className="text-gray-700 hover:text-red-500 transition-colors"><X size={12} /></button>
                         </div>
-                        <h4 className="text-[11px] font-black text-[#9d4edd] uppercase mb-1">{prop.title}</h4>
+                        <h4 className="text-[11px] font-black text-[var(--amethyst-soft)] uppercase mb-1">{prop.title}</h4>
                         <p className="text-[9px] text-gray-500 font-mono leading-relaxed line-clamp-2 uppercase italic mb-3">"{prop.description}"</p>
 
                         <div className="flex gap-2">
@@ -320,9 +320,9 @@ export const ImplementationDeck: React.FC<ImplementationDeckProps> = ({ data, on
                 <div className="flex justify-between items-start mb-8 relative z-10">
                     <div className="space-y-3">
                         <div className="flex items-center gap-2">
-                            <div className="px-2.5 py-0.5 bg-[#10b981]/10 border border-[#10b981]/30 rounded-full flex items-center gap-1.5 backdrop-blur-xl">
-                                <ShieldCheck size={9} className="text-[#10b981]" />
-                                <span className="text-[8px] font-black text-[#10b981] uppercase tracking-[0.3em]">Verified</span>
+                            <div className="px-2.5 py-0.5 bg-[var(--plasma-green)]/10 border border-[var(--plasma-green)]/30 rounded-full flex items-center gap-1.5 backdrop-blur-xl">
+                                <ShieldCheck size={9} className="text-[var(--plasma-green)]" />
+                                <span className="text-[8px] font-black text-[var(--plasma-green)] uppercase tracking-[0.3em]">Verified</span>
                             </div>
                             <span className="text-[8px] font-mono text-gray-600 uppercase tracking-[0.4em] font-black opacity-60">ID: {crypto.randomUUID().split('-')[0].toUpperCase()}</span>
                         </div>
@@ -337,7 +337,7 @@ export const ImplementationDeck: React.FC<ImplementationDeckProps> = ({ data, on
                             <span className="text-[7px] font-black text-gray-600 uppercase tracking-widest mb-0.5 opacity-50">Risk Vector</span>
                             <span className={cn(
                                 "text-lg font-black font-mono tracking-widest",
-                                data.riskVector === 'LOW' ? "text-[#10b981]" : "text-[#ef4444]"
+                                data.riskVector === 'LOW' ? "text-[var(--plasma-green)]" : "text-[#ef4444]"
                             )}>{data.riskVector}</span>
                         </div>
                     </div>
@@ -366,7 +366,7 @@ export const ImplementationDeck: React.FC<ImplementationDeckProps> = ({ data, on
             <div className="grid grid-cols-12 gap-6">
                 <div className="col-span-8 space-y-4">
                     <div className="flex items-center gap-3 px-3 mb-1">
-                        <ListChecks size={20} className="text-[#10b981]" />
+                        <ListChecks size={20} className="text-[var(--plasma-green)]" />
                         <div>
                             <span className="text-base font-black text-white uppercase tracking-[0.4em]">Protocol Execution</span>
                         </div>
@@ -381,14 +381,14 @@ export const ImplementationDeck: React.FC<ImplementationDeckProps> = ({ data, on
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.05 }}
-                                className="p-6 bg-[#0a0a0c] border border-white/5 rounded-[2.5rem] flex items-center gap-8 group hover:border-[#10b981]/40 transition-all shadow-2xl relative overflow-hidden backdrop-blur-4xl"
+                                className="p-6 bg-[#0a0a0c] border border-white/5 rounded-[2.5rem] flex items-center gap-8 group hover:border-[var(--plasma-green)]/40 transition-all shadow-2xl relative overflow-hidden backdrop-blur-4xl"
                             >
-                                <div className="w-12 h-12 bg-black border border-white/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[#10b981] group-hover:text-black transition-all shadow-2xl relative z-10 overflow-hidden group-hover:scale-105">
+                                <div className="w-12 h-12 bg-black border border-white/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-[var(--plasma-green)] group-hover:text-black transition-all shadow-2xl relative z-10 overflow-hidden group-hover:scale-105">
                                     <span className="text-xl font-black font-mono">{(i + 1).toString().padStart(2, '0')}</span>
                                 </div>
                                 <div className="flex-1 min-w-0 relative z-10">
                                     <div className="flex justify-between items-center mb-1">
-                                        <div className="text-[9px] font-black text-[#10b981] uppercase tracking-[0.4em] opacity-60 group-hover:opacity-100 flex items-center gap-4">
+                                        <div className="text-[9px] font-black text-[var(--plasma-green)] uppercase tracking-[0.4em] opacity-60 group-hover:opacity-100 flex items-center gap-4">
                                             {step.phase || step.role || 'CORE_LOGIC'}
                                             <div className="h-px w-8 bg-current opacity-20" />
                                         </div>
@@ -436,7 +436,7 @@ export const ImplementationDeck: React.FC<ImplementationDeckProps> = ({ data, on
                                         initial={{ width: 0 }}
                                         animate={{ width: `${data.viability}%` }}
                                         transition={{ duration: 2, ease: "circOut" }}
-                                        className="h-full rounded-full bg-gradient-to-r from-[#7B2CFF] to-[#18E6FF]"
+                                        className="h-full rounded-full bg-gradient-to-r from-[var(--amethyst)] to-[var(--cyan)]"
                                     />
                                 </div>
                             </div>
@@ -462,7 +462,7 @@ export const ImplementationDeck: React.FC<ImplementationDeckProps> = ({ data, on
                                     disabled={isDeploying}
                                     className={cn(
                                         "w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.5em] transition-all flex items-center justify-center gap-4 shadow-inner active:scale-95 group",
-                                        isDeploying ? "bg-gray-900 text-gray-600 cursor-default" : "bg-[#10b981] hover:bg-[#15d192] text-black shadow-[0_15px_40px_rgba(16,185,129,0.2)]"
+                                        isDeploying ? "bg-gray-900 text-gray-600 cursor-default" : "bg-[var(--plasma-green)] hover:bg-[#15d192] text-black shadow-[0_15px_40px_rgba(16,185,129,0.2)]"
                                     )}
                                 >
                                     {isDeploying ? <Loader2 size={18} className="animate-spin" /> : <PlayCircle size={20} className="group-hover:rotate-90 transition-transform duration-1000 fill-current" />}

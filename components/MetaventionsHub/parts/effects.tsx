@@ -232,7 +232,7 @@ export const Scanline: React.FC = () => (
     <motion.div
         animate={{ top: ['-20%', '120%'] }}
         transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
-        className="absolute left-0 right-0 h-40 bg-gradient-to-b from-transparent via-[#9d4edd]/5 to-transparent pointer-events-none z-20"
+        className="absolute left-0 right-0 h-40 bg-gradient-to-b from-transparent via-[var(--amethyst-soft)]/5 to-transparent pointer-events-none z-20"
     />
 );
 
@@ -275,7 +275,7 @@ export const DirectoryPeek: React.FC<DirectoryPeekProps> = ({ manifest }) => {
         <div className="crystalline rounded-[2.5rem] p-6 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/peek shrink-0 invisible-glass hover:border-white/10 transition-all">
             <div className="flex items-center justify-between relative z-10 px-1">
                 <div className="flex items-center gap-3">
-                    <FolderTree size={14} className="text-[#f1c21b]" />
+                    <FolderTree size={14} className="text-[var(--executive-gold)]" />
                     <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.3em]">
                         Drive Topology
                     </span>

@@ -28,7 +28,7 @@ const HubItem = ({ icon: Icon, label, onClick, color }: HubItemProps) => (
         onClick={onClick}
         className="w-full flex items-center gap-4 px-4 py-2.5 hover:bg-white/[0.03] transition-all group rounded-lg text-left relative"
     >
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-0 bg-[#9d4edd] opacity-0 group-hover:h-1/2 group-hover:opacity-100 transition-all" />
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-0 bg-[var(--amethyst-soft)] opacity-0 group-hover:h-1/2 group-hover:opacity-100 transition-all" />
         <Icon size={16} className="text-gray-500 group-hover:text-white transition-colors" />
         <span className="text-[11px] font-mono text-gray-300 group-hover:text-white tracking-widest uppercase transition-colors">
             {label}
@@ -123,10 +123,10 @@ const SynapticContextHub: React.FC = () => {
                     {/* Header */}
                     <div className="px-4 py-4 space-y-1">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-[10px] font-black font-mono text-[#9d4edd] uppercase tracking-[0.2em]">
+                            <h3 className="text-[10px] font-black font-mono text-[var(--amethyst-soft)] uppercase tracking-[0.2em]">
                                 Synaptic Context Hub
                             </h3>
-                            <Zap size={12} className="text-[#9d4edd] animate-pulse" />
+                            <Zap size={12} className="text-[var(--amethyst-soft)] animate-pulse" />
                         </div>
                         <div className="flex items-center gap-1.5 opacity-40">
                             <Hash size={10} className="text-gray-500" />

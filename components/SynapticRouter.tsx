@@ -123,7 +123,7 @@ const SynapticRouter: React.FC = () => {
         <div className="flex-1 relative overflow-hidden flex flex-col perspective-2000">
             <Suspense fallback={
                 <div className="h-full w-full flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm">
-                    <Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" />
+                    <Loader2 className="w-10 h-10 text-[var(--amethyst-soft)] animate-spin mb-4" />
                 </div>
             }>
                 {/* Fix: Changed mode from 'popLayout' to 'wait' to eliminate the multiple window overlap during sector shifts */}

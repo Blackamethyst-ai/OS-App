@@ -123,8 +123,8 @@ const DiscoveryLab: React.FC = () => {
 
             <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/80 backdrop-blur-md flex items-center justify-between px-6 z-20 shrink-0">
                 <div className="flex items-center gap-3">
-                    <div className="p-1.5 bg-[#22d3ee]/10 border border-[#22d3ee] rounded shadow-[0_0_15px_rgba(34,211,238,0.3)]">
-                        <FlaskConical className="w-4 h-4 text-[#22d3ee]" />
+                    <div className="p-1.5 bg-[var(--cyan)]/10 border border-[var(--cyan)] rounded shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+                        <FlaskConical className="w-4 h-4 text-[var(--cyan)]" />
                     </div>
                     <div>
                         <h1 className="text-sm font-bold font-mono uppercase tracking-widest text-white uppercase">V9.5 - THE D-Ecosystem</h1>
@@ -139,17 +139,17 @@ const DiscoveryLab: React.FC = () => {
                                 initial={{ opacity: 0, scale: 0.9 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.9 }}
-                                className="flex items-center gap-2 px-3 py-1.5 bg-[#22d3ee]/10 border border-[#22d3ee]/40 rounded-lg text-[#22d3ee]"
+                                className="flex items-center gap-2 px-3 py-1.5 bg-[var(--cyan)]/10 border border-[var(--cyan)]/40 rounded-lg text-[var(--cyan)]"
                             >
                                 <Lock size={12} className="animate-pulse" />
                                 <span className="text-[9px] font-black font-mono uppercase tracking-widest">Mission Locked View</span>
-                                <button onClick={() => setFilterTaskId(null)} className="ml-2 p-1 hover:bg-[#22d3ee] hover:text-black rounded transition-all"><X size={12} /></button>
+                                <button onClick={() => setFilterTaskId(null)} className="ml-2 p-1 hover:bg-[var(--cyan)] hover:text-black rounded transition-all"><X size={12} /></button>
                             </motion.div>
                         )}
                     </AnimatePresence>
 
                     <div className="flex gap-2">
-                        <label className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-[#333] hover:border-[#9d4edd] text-gray-400 hover:text-[#9d4edd] rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer">
+                        <label className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-[#333] hover:border-[var(--amethyst-soft)] text-gray-400 hover:text-[var(--amethyst-soft)] rounded-xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer">
                             {isUploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
                             {isUploading ? 'INDEXING...' : 'Ingest Sources'}
                             <input type="file" multiple className="hidden" onChange={handleFileUpload} />
@@ -157,12 +157,12 @@ const DiscoveryLab: React.FC = () => {
                         <button
                             onClick={handleCompress}
                             disabled={isCompressing || activeKnowledge.length < 5}
-                            className="px-4 py-2 bg-[#9d4edd]/10 border border-[#9d4edd]/30 text-[#9d4edd] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#9d4edd] hover:text-black transition-all flex items-center gap-2"
+                            className="px-4 py-2 bg-[var(--amethyst-soft)]/10 border border-[var(--amethyst-soft)]/30 text-[var(--amethyst-soft)] rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[var(--amethyst-soft)] hover:text-black transition-all flex items-center gap-2"
                         >
                             {isCompressing ? <Loader2 className="w-3 h-3 animate-spin" /> : <Minimize2 className="w-3 h-3" />}
                             Distill Axioms
                         </button>
-                        <button onClick={handleGenerateHypotheses} disabled={discovery?.isLoading} className="px-4 py-2 bg-[#22d3ee] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#67e8f9] transition-all flex items-center gap-2">
+                        <button onClick={handleGenerateHypotheses} disabled={discovery?.isLoading} className="px-4 py-2 bg-[var(--cyan)] text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[#67e8f9] transition-all flex items-center gap-2">
                             {discovery?.isLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles size={20} className="w-3 h-3" />}
                             Hypothesize
                         </button>
@@ -174,16 +174,16 @@ const DiscoveryLab: React.FC = () => {
                 <div className="w-1/3 flex flex-col gap-4">
                     <div className="bg-[#050505]/80 backdrop-blur-xl border border-[var(--border-main)] rounded-[2rem] p-4 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                         <div className="flex gap-2">
-                            <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleResearchDispatch()} placeholder="Enter research vector..." className="flex-1 bg-[#111] border border-[#333] p-2 text-xs text-white font-mono rounded outline-none focus:border-[#22d3ee]" />
-                            <button onClick={() => handleResearchDispatch()} className="p-2 bg-[#22d3ee] text-black rounded hover:bg-[#67e8f9] transition-all shadow-lg" aria-label="Start research"><ArrowRight className="w-4 h-4" /></button>
+                            <input type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleResearchDispatch()} placeholder="Enter research vector..." className="flex-1 bg-[#111] border border-[#333] p-2 text-xs text-white font-mono rounded outline-none focus:border-[var(--cyan)]" />
+                            <button onClick={() => handleResearchDispatch()} className="p-2 bg-[var(--cyan)] text-black rounded hover:bg-[#67e8f9] transition-all shadow-lg" aria-label="Start research"><ArrowRight className="w-4 h-4" /></button>
                         </div>
                     </div>
 
                     <div className="flex-1 bg-[#050505]/80 backdrop-blur-xl border border-[var(--border-main)] rounded-[2rem] overflow-hidden flex flex-col shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
                         <div className="p-3 border-b border-[#333] bg-[#0a0a0a]/50 flex justify-between items-center text-[10px] font-mono text-gray-500 uppercase tracking-widest">
-                            <div className="flex items-center gap-2"><Activity size={14} className="text-[#f59e0b]" /> Active Probes</div>
+                            <div className="flex items-center gap-2"><Activity size={14} className="text-[var(--amber)]" /> Active Probes</div>
                             {filterTaskId && (
-                                <button onClick={() => setFilterTaskId(null)} className="text-[#22d3ee] hover:underline flex items-center gap-1"><Unlock size={12} /> Reset Hub</button>
+                                <button onClick={() => setFilterTaskId(null)} className="text-[var(--cyan)] hover:underline flex items-center gap-1"><Unlock size={12} /> Reset Hub</button>
                             )}
                         </div>
                         <div className="flex-1 overflow-y-auto p-3 space-y-3 custom-scrollbar">
@@ -191,16 +191,16 @@ const DiscoveryLab: React.FC = () => {
                                 <div
                                     key={task.id}
                                     onClick={() => setFilterTaskId(task.id === filterTaskId ? null : task.id)}
-                                    className={`bg-[#111] border p-3 rounded-lg group cursor-pointer transition-all hover:border-[#22d3ee] ${filterTaskId === task.id ? 'border-[#22d3ee] bg-[#22d3ee]/5 shadow-[0_0_15px_rgba(34,211,238,0.15)]' : 'border-[#222]'}`}
+                                    className={`bg-[#111] border p-3 rounded-lg group cursor-pointer transition-all hover:border-[var(--cyan)] ${filterTaskId === task.id ? 'border-[var(--cyan)] bg-[var(--cyan)]/5 shadow-[0_0_15px_rgba(34,211,238,0.15)]' : 'border-[#222]'}`}
                                 >
                                     <div className="flex justify-between items-center mb-2">
                                         <span className="text-[10px] font-bold text-white truncate max-w-[150px] uppercase font-mono">{task.query}</span>
-                                        {task.status !== 'COMPLETED' ? <Loader2 className="w-3 h-3 text-[#f59e0b] animate-spin" /> : <CheckCircle2 className="w-3 h-3 text-[#42be65]" />}
+                                        {task.status !== 'COMPLETED' ? <Loader2 className="w-3 h-3 text-[var(--amber)] animate-spin" /> : <CheckCircle2 className="w-3 h-3 text-[#42be65]" />}
                                     </div>
-                                    <div className="h-1 bg-[#333] rounded-full overflow-hidden mb-1"><div className="h-full bg-[#f59e0b]" style={{ width: `${task.progress}%` }} /></div>
+                                    <div className="h-1 bg-[#333] rounded-full overflow-hidden mb-1"><div className="h-full bg-[var(--amber)]" style={{ width: `${task.progress}%` }} /></div>
                                     <div className="flex justify-between items-center">
                                         <div className="text-[8px] text-gray-600 font-mono truncate max-w-[140px]">{Array.isArray(task.logs) ? task.logs[task.logs.length - 1] : 'Idle'}</div>
-                                        {filterTaskId === task.id && <span className="text-[7px] font-black text-[#22d3ee] animate-pulse">LOCK_ACTIVE</span>}
+                                        {filterTaskId === task.id && <span className="text-[7px] font-black text-[var(--cyan)] animate-pulse">LOCK_ACTIVE</span>}
                                     </div>
                                 </div>
                             ))}
@@ -213,12 +213,12 @@ const DiscoveryLab: React.FC = () => {
                 <div className="w-1/3 flex flex-col gap-4">
                     <div className="flex-1 bg-[#0a0a0a]/90 backdrop-blur-xl border border-[#333] rounded-xl overflow-hidden flex flex-col shadow-2xl">
                         <div className="p-3 border-b border-[#333] flex justify-between items-center text-[10px] font-mono text-gray-500 uppercase">
-                            <Minimize2 size={14} className="text-[#9d4edd]" /> Distilled Axioms
+                            <Minimize2 size={14} className="text-[var(--amethyst-soft)]" /> Distilled Axioms
                         </div>
                         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar text-[11px]">
                             {axioms.map(axiom => (
-                                <div key={axiom.id} className="p-4 bg-black/40 border border-[#9d4edd]/30 rounded-xl relative group hover:border-[#9d4edd] transition-all">
-                                    <div className="absolute top-2 right-3 text-[8px] font-mono text-[#9d4edd]/60">DENSITY: {axiom.reductionFactor}%</div>
+                                <div key={axiom.id} className="p-4 bg-black/40 border border-[var(--amethyst-soft)]/30 rounded-xl relative group hover:border-[var(--amethyst-soft)] transition-all">
+                                    <div className="absolute top-2 right-3 text-[8px] font-mono text-[var(--amethyst-soft)]/60">DENSITY: {axiom.reductionFactor}%</div>
                                     <p className="text-gray-300 leading-relaxed font-mono italic">"{axiom.statement}"</p>
                                     <div className="mt-2 flex items-center gap-2">
                                         <CheckCircle2 size={10} className="text-[#42be65]" />

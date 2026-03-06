@@ -197,11 +197,11 @@ const GlobalStatusBar: React.FC = () => {
                     <div className="flex items-center gap-4">
                         <div className="flex flex-col items-center gap-1 min-w-[85px]">
                             <div className="flex items-center gap-1.5 text-[6px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none">
-                                <Gauge size={8} className="text-[#18E6FF]" />
+                                <Gauge size={8} className="text-[var(--cyan)]" />
                                 <span>Neural_Load</span>
                             </div>
                             <div className="w-14 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
-                                <motion.div animate={{ width: `${neuralLoad}%` }} className={cn("h-full bg-[#18E6FF]")} />
+                                <motion.div animate={{ width: `${neuralLoad}%` }} className={cn("h-full bg-[var(--cyan)]")} />
                             </div>
                         </div>
 
@@ -209,9 +209,9 @@ const GlobalStatusBar: React.FC = () => {
                             <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Integrity</span>
                             <div className="flex items-center gap-2">
                                 <div className="w-10 h-1 bg-white/5 rounded-full overflow-hidden">
-                                    <motion.div animate={{ width: `${driveHealth}%` }} className="h-full bg-[#10b981]" />
+                                    <motion.div animate={{ width: `${driveHealth}%` }} className="h-full bg-[var(--plasma-green)]" />
                                 </div>
-                                <span className="text-[8px] font-black font-mono text-[#10b981] w-[30px] text-right">{driveHealth.toFixed(1)}%</span>
+                                <span className="text-[8px] font-black font-mono text-[var(--plasma-green)] w-[30px] text-right">{driveHealth.toFixed(1)}%</span>
                             </div>
                         </div>
 
@@ -219,22 +219,22 @@ const GlobalStatusBar: React.FC = () => {
                             <div className="flex flex-col gap-0.5 min-w-[50px]">
                                 <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Optical</span>
                                 <div className="flex items-center gap-1">
-                                    <span className="text-[10px] font-black font-mono text-[#22d3ee]">{fps}</span>
+                                    <span className="text-[10px] font-black font-mono text-[var(--cyan)]">{fps}</span>
                                     <span className="text-[5px] text-gray-700 font-black uppercase">FPS</span>
                                 </div>
                             </div>
                             <div className="flex flex-col gap-0.5 min-w-[55px]">
                                 <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Lattice</span>
                                 <div className="flex items-center gap-1">
-                                    <span className="text-[10px] font-black font-mono text-[#f59e0b]">{memory?.used || 0}</span>
+                                    <span className="text-[10px] font-black font-mono text-[var(--amber)]">{memory?.used || 0}</span>
                                     <span className="text-[5px] text-gray-700 font-black uppercase">MB</span>
                                 </div>
                             </div>
                             <div className="flex flex-col gap-0.5 min-w-[70px] pl-4 border-l border-white/5">
                                 <span className="text-[6px] font-black font-mono text-gray-600 uppercase tracking-widest leading-none whitespace-nowrap">Sys_Latency</span>
                                 <div className="flex items-center gap-1">
-                                    <Activity size={8} className="text-[#22d3ee]" />
-                                    <span className="text-[10px] font-black font-mono text-[#22d3ee]">{latency}ms</span>
+                                    <Activity size={8} className="text-[var(--cyan)]" />
+                                    <span className="text-[10px] font-black font-mono text-[var(--cyan)]">{latency}ms</span>
                                 </div>
                             </div>
                         </div>
@@ -246,8 +246,8 @@ const GlobalStatusBar: React.FC = () => {
 
                 {/* CENTRAL COMMAND INPUT */}
                 <div className="flex-1 flex items-center px-6 relative z-10 min-w-0">
-                    <form onSubmit={handleSubmit} className="w-full relative flex items-center gap-3 bg-black/60 rounded-xl px-4 py-2 border border-white/5 focus-within:border-[#9d4edd]/50 transition-all shadow-inner group/input">
-                        <SearchCode size={14} className={cn("shrink-0 transition-all", agentState.isThinking ? 'text-[#9d4edd] animate-pulse' : 'text-gray-700')} />
+                    <form onSubmit={handleSubmit} className="w-full relative flex items-center gap-3 bg-black/60 rounded-xl px-4 py-2 border border-white/5 focus-within:border-[var(--amethyst)]/50 transition-all shadow-inner group/input">
+                        <SearchCode size={14} className={cn("shrink-0 transition-all", agentState.isThinking ? 'text-[var(--amethyst)] animate-pulse' : 'text-gray-700')} />
                         <input
                             value={input}
                             onChange={e => setInput(e.target.value)}
@@ -259,11 +259,11 @@ const GlobalStatusBar: React.FC = () => {
                     </form>
                     <div className="flex items-center gap-3 ml-4 shrink-0">
                         <div className="flex items-center gap-1.5" title={`Agent Core: ${serviceHealth.agentCore}`}>
-                            <div className={cn("w-1.5 h-1.5 rounded-full", serviceHealth.agentCore === 'online' ? 'bg-[#10b981]' : serviceHealth.agentCore === 'checking' ? 'bg-amber-500 animate-pulse' : 'bg-red-500/60')} />
+                            <div className={cn("w-1.5 h-1.5 rounded-full", serviceHealth.agentCore === 'online' ? 'bg-[var(--plasma-green)]' : serviceHealth.agentCore === 'checking' ? 'bg-amber-500 animate-pulse' : 'bg-red-500/60')} />
                             <span className="text-[7px] font-mono text-gray-600 tracking-wider">MCP</span>
                         </div>
                         <div className="flex items-center gap-1.5" title={`Ollama: ${serviceHealth.ollama}`}>
-                            <div className={cn("w-1.5 h-1.5 rounded-full", serviceHealth.ollama === 'online' ? 'bg-[#10b981]' : serviceHealth.ollama === 'checking' ? 'bg-amber-500 animate-pulse' : 'bg-red-500/60')} />
+                            <div className={cn("w-1.5 h-1.5 rounded-full", serviceHealth.ollama === 'online' ? 'bg-[var(--plasma-green)]' : serviceHealth.ollama === 'checking' ? 'bg-amber-500 animate-pulse' : 'bg-red-500/60')} />
                             <span className="text-[7px] font-mono text-gray-600 tracking-wider">LLM</span>
                         </div>
                     </div>
@@ -290,9 +290,9 @@ const GlobalStatusBar: React.FC = () => {
                             "flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all relative overflow-hidden group/voice mr-2",
                             voice.isActive
                                 ? voice.isOverlayVisible
-                                    ? 'bg-[#9d4edd]/20 border-[#9d4edd] text-[#9d4edd] shadow-[0_0_15px_rgba(157,78,221,0.3)]'
-                                    : 'bg-[#9d4edd]/10 border-[#9d4edd]/50 text-[#9d4edd]/70'
-                                : 'bg-black/40 border-white/10 text-gray-500 hover:text-[#9d4edd] hover:border-[#9d4edd]/50'
+                                    ? 'bg-[var(--amethyst)]/20 border-[var(--amethyst)] text-[var(--amethyst)] shadow-[0_0_15px_rgba(123,44,255,0.3)]'
+                                    : 'bg-[var(--amethyst)]/10 border-[var(--amethyst)]/50 text-[var(--amethyst)]/70'
+                                : 'bg-black/40 border-white/10 text-gray-500 hover:text-[var(--amethyst)] hover:border-[var(--amethyst)]/50'
                         )}
                         title={voice.isOverlayVisible ? 'Hide voice overlay' : 'Show voice overlay'}
                     >
@@ -309,8 +309,8 @@ const GlobalStatusBar: React.FC = () => {
                         className={cn(
                             "flex items-center gap-2 px-3 py-1.5 rounded-xl border transition-all relative overflow-hidden group/snap mr-3",
                             isSaving
-                                ? 'bg-[#10b981]/20 border-[#10b981] text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]'
-                                : 'bg-black/40 border-white/10 text-gray-500 hover:text-[#10b981] hover:border-[#10b981]/50'
+                                ? 'bg-[var(--plasma-green)]/20 border-[var(--plasma-green)] text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+                                : 'bg-black/40 border-white/10 text-gray-500 hover:text-[var(--plasma-green)] hover:border-[var(--plasma-green)]/50'
                         )}
                     >
                         {isSaving ? <Loader2 size={10} className="animate-spin" /> : <Save size={10} className="group-hover/snap:scale-125 transition-transform" />}
@@ -325,7 +325,7 @@ const GlobalStatusBar: React.FC = () => {
                         className={cn(
                             "flex items-center gap-2.5 px-3 py-1.5 rounded-xl border cursor-pointer transition-all duration-500 ml-1",
                             dreamStatus.isDreaming
-                                ? "bg-[#9d4edd]/20 border-[#9d4edd]/50 shadow-[0_0_15px_rgba(157,78,221,0.3)]"
+                                ? "bg-[var(--amethyst)]/20 border-[var(--amethyst)]/50 shadow-[0_0_15px_rgba(123,44,255,0.3)]"
                                 : "bg-black/60 border-white/10 hover:border-white/20"
                         )}
                     >
@@ -338,7 +338,7 @@ const GlobalStatusBar: React.FC = () => {
                             className={cn(
                                 "p-1 rounded-lg",
                                 dreamStatus.isDreaming
-                                    ? "bg-[#9d4edd]/30 text-[#9d4edd]"
+                                    ? "bg-[var(--amethyst)]/30 text-[var(--amethyst)]"
                                     : "bg-white/5 text-gray-500"
                             )}
                         >
@@ -347,7 +347,7 @@ const GlobalStatusBar: React.FC = () => {
                         <div className="flex flex-col">
                             <span className={cn(
                                 "text-[8px] font-black font-mono uppercase tracking-widest leading-none",
-                                dreamStatus.isDreaming ? "text-[#9d4edd]" : "text-gray-500"
+                                dreamStatus.isDreaming ? "text-[var(--amethyst)]" : "text-gray-500"
                             )}>
                                 {dreamStatus.isDreaming ? 'DREAMING' : 'AWAKE'}
                             </span>
@@ -369,7 +369,7 @@ const GlobalStatusBar: React.FC = () => {
                                         key={i}
                                         animate={{ scale: [1, 1.5, 1] }}
                                         transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-                                        className="w-1 h-1 rounded-full bg-[#9d4edd]"
+                                        className="w-1 h-1 rounded-full bg-[var(--amethyst)]"
                                     />
                                 ))}
                             </motion.div>
@@ -383,7 +383,7 @@ const GlobalStatusBar: React.FC = () => {
                 <div className="flex items-center gap-6 pl-6 shrink-0 relative z-10">
                     <div className="flex flex-col items-center gap-0.5 border-r border-white/5 pr-6 min-w-[80px]">
                         <div className="flex items-center gap-1.5 text-[6px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none mb-1">
-                            <Fingerprint size={10} className="text-[#9d4edd]" />
+                            <Fingerprint size={10} className="text-[var(--amethyst)]" />
                             <span>Auth_Token</span>
                         </div>
                         <span className="text-[9px] font-mono text-gray-400 font-bold tracking-tighter uppercase leading-none">0xFD2..9A</span>
@@ -410,7 +410,7 @@ const GlobalStatusBar: React.FC = () => {
                             }}
                             className={cn(
                                 "p-2.5 rounded-xl border transition-all bg-black/40 border-white/5 text-gray-500 hover:text-white shadow-inner h-10 w-10 flex items-center justify-center",
-                                isScrubberOpen ? "bg-[#9d4edd]/20 border-[#9d4edd] text-white shadow-[0_0_15px_#9d4edd33]" : ""
+                                isScrubberOpen ? "bg-[var(--amethyst)]/20 border-[var(--amethyst)] text-white shadow-[0_0_15px_var(--amethyst)33]" : ""
                             )}
                         >
                             <HistoryIcon size={14} />

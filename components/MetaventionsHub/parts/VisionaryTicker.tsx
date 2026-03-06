@@ -32,7 +32,7 @@ export const VisionaryTicker: React.FC = () => {
                     exit={{ opacity: 0, y: -10 }}
                     className="flex items-center gap-3"
                 >
-                    <Sparkles size={10} className="text-[#f1c21b] animate-pulse" />
+                    <Sparkles size={10} className="text-[var(--executive-gold)] animate-pulse" />
                     <span className="text-[8px] font-black font-mono text-gray-400 uppercase tracking-[0.4em] italic">
                         {VISIONARY_DIRECTIVES[index]}
                     </span>

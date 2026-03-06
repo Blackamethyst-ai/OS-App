@@ -65,7 +65,7 @@ export const TelemetrySidebar: React.FC<TelemetrySidebarProps> = ({
         <div className="p-5 border-b border-white/5 bg-white/[0.01]">
             <div className="flex items-center justify-between mb-5 px-1">
                 <div className="flex items-center gap-2.5">
-                    <SlidersHorizontal size={14} className="text-[#22d3ee]" />
+                    <SlidersHorizontal size={14} className="text-[var(--cyan)]" />
                     <h2 className="text-[10px] font-black text-white uppercase tracking-widest">Hardware Parameters</h2>
                 </div>
             </div>
@@ -80,9 +80,9 @@ export const TelemetrySidebar: React.FC<TelemetrySidebarProps> = ({
             {/* CapEx Management */}
             <div className="space-y-3">
                 <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 px-1">
-                    <DollarSign size={12} className="text-[#10b981]" /> CapEx Management
+                    <DollarSign size={12} className="text-[var(--plasma-green)]" /> CapEx Management
                 </span>
-                <div className="p-5 bg-[#0a1a0a] border border-[#10b981]/20 rounded-2xl space-y-3 relative overflow-hidden shadow-xl">
+                <div className="p-5 bg-[#0a1a0a] border border-[var(--plasma-green)]/20 rounded-2xl space-y-3 relative overflow-hidden shadow-xl">
                     <div className="grid grid-cols-2 gap-3 relative z-10">
                         <div className="space-y-1">
                             <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Projected Cost</span>
@@ -96,12 +96,12 @@ export const TelemetrySidebar: React.FC<TelemetrySidebarProps> = ({
                         </div>
                         <div className="space-y-1 text-right">
                             <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Efficiency Yield</span>
-                            <div className="text-lg font-black font-mono text-[#10b981] tracking-tighter">
+                            <div className="text-lg font-black font-mono text-[var(--plasma-green)] tracking-tighter">
                                 {finTelemetry.roiProjection > 0 ? `+${finTelemetry.roiProjection}%` : '--'}
                             </div>
                         </div>
                     </div>
-                    <div className="pt-2 border-t border-[#10b981]/10">
+                    <div className="pt-2 border-t border-[var(--plasma-green)]/10">
                         <div className="flex justify-between items-center">
                             <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Annual Maintenance Est.</span>
                             <div className="text-sm font-black font-mono text-amber-500/80">
@@ -123,42 +123,42 @@ export const TelemetrySidebar: React.FC<TelemetrySidebarProps> = ({
             {/* AI Analysis Tools */}
             <div className="space-y-3">
                 <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 px-1">
-                    <FlaskConical size={12} className="text-[#9d4edd]" /> AI Analysis
+                    <FlaskConical size={12} className="text-[var(--amethyst-soft)]" /> AI Analysis
                 </span>
                 <div className="space-y-2">
                     <button
                         onClick={onResearchComponents}
                         disabled={!selectedGpu || isResearchingComponents}
-                        className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[#9d4edd]/30 hover:bg-[#9d4edd]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
+                        className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[var(--amethyst-soft)]/30 hover:bg-[var(--amethyst-soft)]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
                     >
                         {isResearchingComponents ? (
-                            <Loader2 size={14} className="text-[#9d4edd] animate-spin" />
+                            <Loader2 size={14} className="text-[var(--amethyst-soft)] animate-spin" />
                         ) : (
-                            <Microscope size={14} className="text-gray-600 group-hover:text-[#9d4edd] transition-colors" />
+                            <Microscope size={14} className="text-gray-600 group-hover:text-[var(--amethyst-soft)] transition-colors" />
                         )}
                         <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest group-hover:text-white transition-colors">Research Components</span>
                     </button>
                     <button
                         onClick={onGenerateManifest}
                         disabled={!selectedGpu || isGeneratingManifest}
-                        className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[#22d3ee]/30 hover:bg-[#22d3ee]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
+                        className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[var(--cyan)]/30 hover:bg-[var(--cyan)]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
                     >
                         {isGeneratingManifest ? (
-                            <Loader2 size={14} className="text-[#22d3ee] animate-spin" />
+                            <Loader2 size={14} className="text-[var(--cyan)] animate-spin" />
                         ) : (
-                            <FileText size={14} className="text-gray-600 group-hover:text-[#22d3ee] transition-colors" />
+                            <FileText size={14} className="text-gray-600 group-hover:text-[var(--cyan)] transition-colors" />
                         )}
                         <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest group-hover:text-white transition-colors">Generate Manifest</span>
                     </button>
                     <button
                         onClick={onAnalyzeImpact}
                         disabled={!selectedGpu || isAnalyzingImpact}
-                        className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[#10b981]/30 hover:bg-[#10b981]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
+                        className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[var(--plasma-green)]/30 hover:bg-[var(--plasma-green)]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
                     >
                         {isAnalyzingImpact ? (
-                            <Loader2 size={14} className="text-[#10b981] animate-spin" />
+                            <Loader2 size={14} className="text-[var(--plasma-green)] animate-spin" />
                         ) : (
-                            <Target size={14} className="text-gray-600 group-hover:text-[#10b981] transition-colors" />
+                            <Target size={14} className="text-gray-600 group-hover:text-[var(--plasma-green)] transition-colors" />
                         )}
                         <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest group-hover:text-white transition-colors">Analyze Impact</span>
                     </button>
@@ -170,17 +170,17 @@ export const TelemetrySidebar: React.FC<TelemetrySidebarProps> = ({
                         <span className="text-[7px] text-gray-600 uppercase tracking-widest">Latest Analysis</span>
                         {componentResearch && (
                             <div className="text-[8px] text-gray-400 truncate">
-                                <span className="text-[#9d4edd]">Components:</span> {typeof componentResearch === 'string' ? componentResearch.slice(0, 50) : 'Complete'}...
+                                <span className="text-[var(--amethyst-soft)]">Components:</span> {typeof componentResearch === 'string' ? componentResearch.slice(0, 50) : 'Complete'}...
                             </div>
                         )}
                         {deploymentManifest && (
                             <div className="text-[8px] text-gray-400 truncate">
-                                <span className="text-[#22d3ee]">Manifest:</span> {typeof deploymentManifest === 'string' ? deploymentManifest.slice(0, 50) : 'Generated'}...
+                                <span className="text-[var(--cyan)]">Manifest:</span> {typeof deploymentManifest === 'string' ? deploymentManifest.slice(0, 50) : 'Generated'}...
                             </div>
                         )}
                         {crossSectorImpact && (
                             <div className="text-[8px] text-gray-400 truncate">
-                                <span className="text-[#10b981]">Impact:</span> {typeof crossSectorImpact === 'string' ? crossSectorImpact.slice(0, 50) : 'Analyzed'}...
+                                <span className="text-[var(--plasma-green)]">Impact:</span> {typeof crossSectorImpact === 'string' ? crossSectorImpact.slice(0, 50) : 'Analyzed'}...
                             </div>
                         )}
                     </div>
@@ -192,7 +192,7 @@ export const TelemetrySidebar: React.FC<TelemetrySidebarProps> = ({
         <div className="p-6 border-t border-white/5 bg-black shrink-0 space-y-4 shadow-2xl">
             <div className="flex justify-between items-center text-[8px] font-medium font-mono text-gray-600 uppercase tracking-widest">
                 <span>System Status</span>
-                <span className="text-[#22d3ee]/70">Operational</span>
+                <span className="text-[var(--cyan)]/70">Operational</span>
             </div>
             <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-white/[0.01] border border-white/5 rounded-xl flex flex-col gap-1">
@@ -201,7 +201,7 @@ export const TelemetrySidebar: React.FC<TelemetrySidebarProps> = ({
                 </div>
                 <div className="p-3 bg-white/[0.01] border border-white/5 rounded-xl flex flex-col gap-1">
                     <span className="text-[7px] text-gray-600 uppercase font-mono tracking-widest">Estimated Life</span>
-                    <span className="text-sm font-black font-mono text-[#10b981]">{mtbf.toLocaleString()}h</span>
+                    <span className="text-sm font-black font-mono text-[var(--plasma-green)]">{mtbf.toLocaleString()}h</span>
                 </div>
             </div>
         </div>

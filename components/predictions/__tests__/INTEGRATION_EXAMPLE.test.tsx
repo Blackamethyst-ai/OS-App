@@ -61,7 +61,7 @@ export const DashboardPredictionExample = () => {
           value={currentIntent}
           onChange={(e) => setCurrentIntent(e.target.value)}
           placeholder="What are you working on?"
-          className="w-full px-3 py-2 mb-4 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-mono placeholder-gray-500 focus:border-[#f1c21b] focus:outline-none transition-all"
+          className="w-full px-3 py-2 mb-4 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-mono placeholder-gray-500 focus:border-[var(--executive-gold)] focus:outline-none transition-all"
         />
 
         {/* Prediction Panel */}

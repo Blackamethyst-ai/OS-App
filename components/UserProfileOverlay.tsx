@@ -144,7 +144,7 @@ const UserProfileOverlay: React.FC = () => {
         <button
             onClick={() => { actions.setTheme(mode); audio.playClick(); }}
             className={`flex-1 py-3 rounded-lg border flex flex-col items-center justify-center gap-2 transition-all ${theme === mode
-                ? 'bg-[#9d4edd] text-black border-[#9d4edd] shadow-lg scale-105'
+                ? 'bg-[var(--amethyst-soft)] text-black border-[var(--amethyst-soft)] shadow-lg scale-105'
                 : 'bg-[#111] text-gray-500 border-[#333] hover:border-gray-500 hover:text-gray-300'
                 } ${isCompact ? 'py-2 gap-1' : ''}`}
         >
@@ -168,11 +168,11 @@ const UserProfileOverlay: React.FC = () => {
                     >
                         {/* Background Cybernetic Grid */}
                         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent_25%,rgba(157,78,221,0.02)_50%,transparent_75%,transparent)] bg-[size:20px_20px] pointer-events-none"></div>
-                        <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-[#9d4edd] to-transparent opacity-50"></div>
+                        <div className="absolute top-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--amethyst-soft)] to-transparent opacity-50"></div>
 
                         {/* Header */}
                         <div className="h-14 border-b border-[#1f1f1f] flex items-center justify-between px-6 bg-[#111]">
-                            <div className="flex items-center gap-2 text-[#9d4edd]">
+                            <div className="flex items-center gap-2 text-[var(--amethyst-soft)]">
                                 <ScanFace className="w-5 h-5" />
                                 <span className="font-mono font-bold uppercase tracking-widest text-xs">Identity Fabrication</span>
                             </div>
@@ -187,7 +187,7 @@ const UserProfileOverlay: React.FC = () => {
                             {/* Avatar Section - Modular Resizing */}
                             <div className={`flex items-center transition-all ${isCompact ? 'flex-col gap-3 shrink-0' : 'justify-center gap-6'}`}>
                                 <div className="relative group/avatar cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-                                    <div className={`rounded-full border-2 border-[#333] group-hover/avatar:border-[#9d4edd] overflow-hidden bg-[#050505] flex items-center justify-center transition-all shadow-[0_0_30px_rgba(0,0,0,0.5)] relative ${isCompact ? 'w-24 h-24' : 'w-32 h-32'
+                                    <div className={`rounded-full border-2 border-[#333] group-hover/avatar:border-[var(--amethyst-soft)] overflow-hidden bg-[#050505] flex items-center justify-center transition-all shadow-[0_0_30px_rgba(0,0,0,0.5)] relative ${isCompact ? 'w-24 h-24' : 'w-32 h-32'
                                         }`}>
                                         {editAvatar ? (
                                             <img src={editAvatar} alt="Avatar" className="w-full h-full object-cover" />
@@ -197,13 +197,13 @@ const UserProfileOverlay: React.FC = () => {
 
                                         {isGenerating && (
                                             <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
-                                                <Loader2 className="w-8 h-8 text-[#9d4edd] animate-spin" />
+                                                <Loader2 className="w-8 h-8 text-[var(--amethyst-soft)] animate-spin" />
                                             </div>
                                         )}
                                     </div>
 
                                     {/* Tech Ring Animation */}
-                                    <div className="absolute -inset-3 border border-dashed border-[#9d4edd]/30 rounded-full animate-[spin_10s_linear_infinite] pointer-events-none opacity-0 group-hover/avatar:opacity-100 transition-opacity"></div>
+                                    <div className="absolute -inset-3 border border-dashed border-[var(--amethyst-soft)]/30 rounded-full animate-[spin_10s_linear_infinite] pointer-events-none opacity-0 group-hover/avatar:opacity-100 transition-opacity"></div>
 
                                     <input
                                         ref={fileInputRef}
@@ -212,7 +212,7 @@ const UserProfileOverlay: React.FC = () => {
                                         accept="image/*"
                                         onChange={handleFileChange}
                                     />
-                                    <div className="absolute bottom-0 right-0 bg-[#1f1f1f] p-1.5 rounded-full border border-[#333] shadow-lg group-hover/avatar:border-[#9d4edd]">
+                                    <div className="absolute bottom-0 right-0 bg-[#1f1f1f] p-1.5 rounded-full border border-[#333] shadow-lg group-hover/avatar:border-[var(--amethyst-soft)]">
                                         <Camera className="w-3 h-3 text-white" />
                                     </div>
                                 </div>
@@ -229,7 +229,7 @@ const UserProfileOverlay: React.FC = () => {
                                     <button
                                         onClick={handleGenerateAvatar}
                                         disabled={isGenerating || !(editName || '').trim()}
-                                        className="px-4 py-2 bg-[#9d4edd]/10 hover:bg-[#9d4edd]/20 border border-[#9d4edd]/50 rounded text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider transition-all flex items-center gap-2 disabled:opacity-50 w-full justify-center"
+                                        className="px-4 py-2 bg-[var(--amethyst-soft)]/10 hover:bg-[var(--amethyst-soft)]/20 border border-[var(--amethyst-soft)]/50 rounded text-[10px] font-mono text-[var(--amethyst-soft)] uppercase tracking-wider transition-all flex items-center gap-2 disabled:opacity-50 w-full justify-center"
                                     >
                                         <Sparkles className="w-3 h-3" />
                                         {isCompact ? 'Generate' : 'AI Generate'}
@@ -246,7 +246,7 @@ const UserProfileOverlay: React.FC = () => {
                                             type="text"
                                             value={editName}
                                             onChange={(e) => setEditName(e.target.value)}
-                                            className="w-full bg-[#050505] border border-[#333] p-3 pl-10 text-white font-mono text-sm focus:border-[#9d4edd] outline-none rounded-lg transition-colors"
+                                            className="w-full bg-[#050505] border border-[#333] p-3 pl-10 text-white font-mono text-sm focus:border-[var(--amethyst-soft)] outline-none rounded-lg transition-colors"
                                             placeholder="Enter Operator Name..."
                                         />
                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">
@@ -262,7 +262,7 @@ const UserProfileOverlay: React.FC = () => {
                                             <select
                                                 value={editRole}
                                                 onChange={(e) => setEditRole(e.target.value)}
-                                                className="w-full bg-[#111] border border-[#222] p-3 text-xs font-mono text-[#22d3ee] font-bold uppercase outline-none appearance-none rounded-lg cursor-pointer hover:border-[#9d4edd] transition-colors"
+                                                className="w-full bg-[#111] border border-[#222] p-3 text-xs font-mono text-[var(--cyan)] font-bold uppercase outline-none appearance-none rounded-lg cursor-pointer hover:border-[var(--amethyst-soft)] transition-colors"
                                             >
                                                 {ROLES.map(role => (
                                                     <option key={role} value={role}>{role}</option>
@@ -299,7 +299,7 @@ const UserProfileOverlay: React.FC = () => {
                                             type="password"
                                             value={editApiKey}
                                             onChange={(e) => setEditApiKey(e.target.value)}
-                                            className="w-full bg-[#050505] border border-[#333] p-3 pl-10 text-white font-mono text-sm focus:border-[#9d4edd] outline-none rounded-lg transition-colors"
+                                            className="w-full bg-[#050505] border border-[#333] p-3 pl-10 text-white font-mono text-sm focus:border-[var(--amethyst-soft)] outline-none rounded-lg transition-colors"
                                             placeholder="AI Studio Key (Optional)"
                                         />
                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600">
@@ -324,7 +324,7 @@ const UserProfileOverlay: React.FC = () => {
                                 <button
                                     onClick={handleSave}
                                     disabled={isSaving || !(editName || '').trim()}
-                                    className="w-full py-4 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-bold font-mono text-xs uppercase tracking-[0.2em] rounded-lg transition-all shadow-[0_0_20px_rgba(157,78,221,0.4)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+                                    className="w-full py-4 bg-[var(--amethyst-soft)] hover:bg-[#b06bf7] text-black font-bold font-mono text-xs uppercase tracking-[0.2em] rounded-lg transition-all shadow-[0_0_20px_rgba(157,78,221,0.4)] flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mt-2"
                                 >
                                     {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                                     {isSaving ? 'ENCODING...' : 'SAVE IDENTITY'}

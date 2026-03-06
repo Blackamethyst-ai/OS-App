@@ -361,14 +361,14 @@ const DEcosystem: React.FC<DEcosystemProps> = ({ sectorOverrides = {} }) => {
         <div className="flex flex-col gap-2">
           <span className="text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none">Kernel_Sync</span>
           <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-6 py-3 rounded-2xl border border-white/5 shadow-2xl">
-            <Globe size={14} className="text-[#22d3ee] animate-pulse" />
+            <Globe size={14} className="text-[var(--cyan)] animate-pulse" />
             <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Global_Grid: Stable</span>
           </div>
         </div>
         <div className="flex flex-col gap-2">
           <span className="text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest leading-none">Trust_Index</span>
           <div className="flex items-center gap-4 bg-black/60 backdrop-blur-2xl px-6 py-3 rounded-2xl border border-white/5 shadow-2xl">
-            <ShieldCheck size={14} className="text-[#10b981]" />
+            <ShieldCheck size={14} className="text-[var(--plasma-green)]" />
             <span className="text-[10px] font-black font-mono text-white uppercase tracking-widest">Audit: Verified</span>
           </div>
         </div>

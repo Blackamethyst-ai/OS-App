@@ -15,7 +15,7 @@ const MiniWaveform = ({ isActive }: { isActive: boolean }) => (
                 key={i}
                 animate={isActive ? { height: [2, 12, 2] } : { height: 2 }}
                 transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.1 }}
-                className={`w-0.5 rounded-full ${isActive ? 'bg-[#9d4edd]' : 'bg-gray-700'}`}
+                className={`w-0.5 rounded-full ${isActive ? 'bg-[var(--amethyst-soft)]' : 'bg-gray-700'}`}
             />
         ))}
     </div>
@@ -75,11 +75,11 @@ const VoiceCoreOverlay = () => {
           <div className="flex items-center gap-3 overflow-hidden">
             <GripHorizontal className="w-4 h-4 text-gray-700 flex-shrink-0" />
             <div className="flex items-center gap-2 overflow-hidden">
-                <div className={`p-1.5 rounded-lg ${voice.isActive ? 'bg-[#9d4edd]/20 text-[#9d4edd]' : 'bg-white/5 text-gray-600'}`}>
+                <div className={`p-1.5 rounded-lg ${voice.isActive ? 'bg-[var(--amethyst-soft)]/20 text-[var(--amethyst-soft)]' : 'bg-white/5 text-gray-600'}`}>
                     <Radio size={12} className={voice.isActive ? 'animate-pulse' : ''} />
                 </div>
                 <div className="flex flex-col">
-                    <span className="font-mono text-[7px] text-[#9d4edd] font-black tracking-[0.2em] truncate uppercase leading-none">
+                    <span className="font-mono text-[7px] text-[var(--amethyst-soft)] font-black tracking-[0.2em] truncate uppercase leading-none">
                         {voice.isConnecting ? 'Handshaking...' : 'Handshake_Stable'}
                     </span>
                     <span className="text-[6px] text-gray-600 font-mono tracking-widest uppercase mt-0.5">Protocol_Zenith.v1</span>
@@ -112,20 +112,20 @@ const VoiceCoreOverlay = () => {
                   {/* Neural Transcript Loop */}
                   <div className="flex-1 bg-black/60 border border-white/5 rounded-xl p-3 font-mono text-[8px] text-gray-400 overflow-y-auto custom-scrollbar flex flex-col shadow-inner" ref={scrollRef}>
                     <div className="flex items-center justify-between mb-2 border-b border-white/5 pb-1.5 shrink-0">
-                        <div className="flex items-center gap-1.5 text-[#9d4edd] font-black uppercase tracking-widest">
+                        <div className="flex items-center gap-1.5 text-[var(--amethyst-soft)] font-black uppercase tracking-widest">
                             <Terminal size={9} /> Neural_Stream
                         </div>
                         <span className="text-[6px] opacity-30 font-bold tracking-tighter">AES256</span>
                     </div>
                     <div className="flex-1 space-y-2">
                         {voice.transcripts.map((t, i) => (
-                            <div key={i} className={`flex gap-1.5 animate-in slide-in-from-left-1 ${t.role === 'user' ? 'text-[#22d3ee]' : 'text-[#9d4edd]'}`}>
+                            <div key={i} className={`flex gap-1.5 animate-in slide-in-from-left-1 ${t.role === 'user' ? 'text-[var(--cyan)]' : 'text-[var(--amethyst-soft)]'}`}>
                                 <span className="opacity-40 shrink-0 font-black">[{t.role === 'user' ? 'OP' : 'AI'}]</span>
                                 <span className="flex-1 text-gray-300 leading-relaxed italic">{(t.text || '').toString()}</span>
                             </div>
                         ))}
                         {voice.partialTranscript && (
-                            <div className={`italic opacity-50 flex gap-1.5 animate-pulse ${voice.partialTranscript.role === 'user' ? 'text-[#22d3ee]' : 'text-[#9d4edd]'}`}>
+                            <div className={`italic opacity-50 flex gap-1.5 animate-pulse ${voice.partialTranscript.role === 'user' ? 'text-[var(--cyan)]' : 'text-[var(--amethyst-soft)]'}`}>
                                 <span className="shrink-0 font-black">[...]</span>
                                 <span className="flex-1">{(voice.partialTranscript.text || '').toString()}</span>
                             </div>
@@ -143,13 +143,13 @@ const VoiceCoreOverlay = () => {
                   <div className="w-12 flex flex-col gap-1.5 shrink-0">
                        <button 
                           onClick={handleDownloadTxt}
-                          className="flex flex-col items-center justify-center gap-1 bg-[#111] hover:bg-[#9d4edd]/10 border border-white/5 text-gray-600 hover:text-[#9d4edd] py-2 rounded-xl transition-all group"
+                          className="flex flex-col items-center justify-center gap-1 bg-[#111] hover:bg-[var(--amethyst-soft)]/10 border border-white/5 text-gray-600 hover:text-[var(--amethyst-soft)] py-2 rounded-xl transition-all group"
                        >
                           <FileText size={14} className="group-hover:scale-110 transition-transform" />
                           <span className="text-[6px] uppercase font-black tracking-widest">Export</span>
                        </button>
-                       <div className="flex-1 border border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center opacity-20 hover:opacity-100 transition-opacity hover:border-[#9d4edd]/30">
-                           <Zap size={14} className="text-[#9d4edd]" />
+                       <div className="flex-1 border border-dashed border-white/10 rounded-xl flex flex-col items-center justify-center opacity-20 hover:opacity-100 transition-opacity hover:border-[var(--amethyst-soft)]/30">
+                           <Zap size={14} className="text-[var(--amethyst-soft)]" />
                            <span className="text-[6px] font-black font-mono mt-1 uppercase tracking-widest">Core</span>
                        </div>
                   </div>

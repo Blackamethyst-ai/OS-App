@@ -95,7 +95,7 @@ export const PredictionDemo: React.FC = () => {
           onClick={() => setActiveTab('full')}
           className={`px-6 py-2 rounded-lg font-mono text-sm uppercase tracking-wider transition-all ${
             activeTab === 'full'
-              ? 'bg-[#f1c21b] text-black font-black'
+              ? 'bg-[var(--executive-gold)] text-black font-black'
               : 'bg-white/5 text-gray-400 hover:bg-white/10'
           }`}
         >
@@ -105,7 +105,7 @@ export const PredictionDemo: React.FC = () => {
           onClick={() => setActiveTab('components')}
           className={`px-6 py-2 rounded-lg font-mono text-sm uppercase tracking-wider transition-all ${
             activeTab === 'components'
-              ? 'bg-[#f1c21b] text-black font-black'
+              ? 'bg-[var(--executive-gold)] text-black font-black'
               : 'bg-white/5 text-gray-400 hover:bg-white/10'
           }`}
         >
@@ -125,7 +125,7 @@ export const PredictionDemo: React.FC = () => {
               value={intent}
               onChange={(e) => setIntent(e.target.value)}
               placeholder="e.g., implement authentication system, refactor API layer, build multi-agent orchestrator..."
-              className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white font-mono placeholder-gray-500 focus:border-[#f1c21b] focus:outline-none transition-all"
+              className="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-white font-mono placeholder-gray-500 focus:border-[var(--executive-gold)] focus:outline-none transition-all"
             />
             <p className="text-xs text-gray-500 font-mono mt-2">
               {intent.length < 3
@@ -265,15 +265,15 @@ export const PredictionDemo: React.FC = () => {
           Meta-Learning Engine • Phase 7 Complete • OS-App Integration Ready
         </p>
         <div className="flex items-center justify-center gap-4 text-xs text-gray-500 font-mono">
-          <a href="https://github.com/Dicoangelo/researchgravity" target="_blank" rel="noopener noreferrer" className="hover:text-[#f1c21b] transition-colors">
+          <a href="https://github.com/Dicoangelo/researchgravity" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--executive-gold)] transition-colors">
             📖 Documentation
           </a>
           <span>•</span>
-          <a href="https://github.com/Dicoangelo/OS-App" target="_blank" rel="noopener noreferrer" className="hover:text-[#f1c21b] transition-colors">
+          <a href="https://github.com/Dicoangelo/OS-App" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--executive-gold)] transition-colors">
             🚀 Integration Guide
           </a>
           <span>•</span>
-          <a href="https://github.com/Dicoangelo/researchgravity" target="_blank" rel="noopener noreferrer" className="hover:text-[#f1c21b] transition-colors">
+          <a href="https://github.com/Dicoangelo/researchgravity" target="_blank" rel="noopener noreferrer" className="hover:text-[var(--executive-gold)] transition-colors">
             🔌 API Docs
           </a>
         </div>

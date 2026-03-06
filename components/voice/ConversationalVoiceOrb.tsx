@@ -70,19 +70,19 @@ const stateColors: Record<ConversationalVoiceState, { bg: string; ring: string; 
         text: 'text-gray-400',
     },
     LISTENING: {
-        bg: 'bg-[#22d3ee]/20',
-        ring: 'border-[#22d3ee]',
-        text: 'text-[#22d3ee]',
+        bg: 'bg-[var(--cyan)]/20',
+        ring: 'border-[var(--cyan)]',
+        text: 'text-[var(--cyan)]',
     },
     PROCESSING: {
-        bg: 'bg-[#f59e0b]/20',
-        ring: 'border-[#f59e0b]',
-        text: 'text-[#f59e0b]',
+        bg: 'bg-[var(--amber)]/20',
+        ring: 'border-[var(--amber)]',
+        text: 'text-[var(--amber)]',
     },
     SPEAKING: {
-        bg: 'bg-[#9d4edd]/20',
-        ring: 'border-[#9d4edd]',
-        text: 'text-[#9d4edd]',
+        bg: 'bg-[var(--amethyst-soft)]/20',
+        ring: 'border-[var(--amethyst-soft)]',
+        text: 'text-[var(--amethyst-soft)]',
     },
     ERROR: {
         bg: 'bg-red-500/20',
@@ -218,8 +218,8 @@ export const ConversationalVoiceOrb: React.FC<ConversationalVoiceOrbProps> = ({
                             {transcript && (
                                 <div className="mb-3">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <Radio size={10} className="text-[#22d3ee]" />
-                                        <span className="text-[10px] font-mono text-[#22d3ee] font-bold uppercase tracking-wider">
+                                        <Radio size={10} className="text-[var(--cyan)]" />
+                                        <span className="text-[10px] font-mono text-[var(--cyan)] font-bold uppercase tracking-wider">
                                             You
                                         </span>
                                     </div>
@@ -233,8 +233,8 @@ export const ConversationalVoiceOrb: React.FC<ConversationalVoiceOrbProps> = ({
                             {response && (
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <Waves size={10} className="text-[#9d4edd]" />
-                                        <span className="text-[10px] font-mono text-[#9d4edd] font-bold uppercase tracking-wider">
+                                        <Waves size={10} className="text-[var(--amethyst-soft)]" />
+                                        <span className="text-[10px] font-mono text-[var(--amethyst-soft)] font-bold uppercase tracking-wider">
                                             AI
                                         </span>
                                     </div>
@@ -322,7 +322,7 @@ export const ConversationalVoiceOrb: React.FC<ConversationalVoiceOrbProps> = ({
                     >
                         <Waveform
                             isActive={state === 'LISTENING' || state === 'SPEAKING'}
-                            color={state === 'LISTENING' ? 'bg-[#22d3ee]' : 'bg-[#9d4edd]'}
+                            color={state === 'LISTENING' ? 'bg-[var(--cyan)]' : 'bg-[var(--amethyst-soft)]'}
                         />
                     </motion.div>
                 )}

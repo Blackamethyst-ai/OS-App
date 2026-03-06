@@ -36,7 +36,7 @@ export const CompactMetric: React.FC<CompactMetricProps> = ({
             <div className="p-1.5 rounded-lg bg-white/5 text-gray-500 group-hover:text-white transition-all">
                 <Icon size={12} style={{ color }} />
             </div>
-            <div className={`text-[8px] font-mono font-black flex items-center gap-0.5 ${trend === 'up' ? 'text-[#10b981]' : 'text-[#ef4444]'}`}>
+            <div className={`text-[8px] font-mono font-black flex items-center gap-0.5 ${trend === 'up' ? 'text-[var(--plasma-green)]' : 'text-[#ef4444]'}`}>
                 {trend === 'up' ? <TrendingUp size={8} /> : <TrendingDown size={8} />}
                 {detail}
             </div>
@@ -85,7 +85,7 @@ export const CapitalVelocity: React.FC<CapitalVelocityProps> = ({ telemetry }) =
         <div className="crystalline rounded-[2rem] p-5 shadow-2xl flex flex-col gap-4 relative overflow-hidden group/cap shrink-0 invisible-glass border border-white/5 hover:border-white/20 transition-all duration-700">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.01)_0%,transparent_70%)] pointer-events-none" />
             <div className="flex items-center gap-4 relative z-10">
-                <div className="p-2 bg-[#10b981]/10 rounded-xl text-[#10b981] border border-[#10b981]/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                <div className="p-2 bg-[var(--plasma-green)]/10 rounded-xl text-[var(--plasma-green)] border border-[var(--plasma-green)]/20 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
                     <DollarSign size={16} />
                 </div>
                 <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.4em]">
@@ -130,13 +130,13 @@ export const SwarmBox: React.FC = () => {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(157,78,221,0.02)_0%,transparent_70%)] pointer-events-none" />
             <div className="flex items-center justify-between px-1 relative z-10">
                 <div className="flex items-center gap-2.5">
-                    <Hexagon size={12} className="text-[#9d4edd] animate-pulse" />
+                    <Hexagon size={12} className="text-[var(--amethyst-soft)] animate-pulse" />
                     <span className="text-[8px] font-black font-mono text-white uppercase tracking-[0.4em]">
                         Swarm Matrix
                     </span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-1 h-1 rounded-full bg-[#10b981] shadow-[0_0_8px_#10b981]" />
+                    <div className="w-1 h-1 rounded-full bg-[var(--plasma-green)] shadow-[0_0_8px_#10b981]" />
                     <span className="text-[6px] font-mono text-gray-600 uppercase tracking-widest">
                         Active
                     </span>
@@ -156,7 +156,7 @@ export const SwarmBox: React.FC = () => {
                             className={cn(
                                 "aspect-square flex flex-col items-center justify-center rounded-xl border transition-all duration-700 shadow-inner relative overflow-hidden",
                                 isActive
-                                    ? "bg-black/60 border-[#9d4edd]/30 shadow-[0_0_10px_rgba(157,78,221,0.1)]"
+                                    ? "bg-black/60 border-[var(--amethyst-soft)]/30 shadow-[0_0_10px_rgba(157,78,221,0.1)]"
                                     : "bg-black/10 border-white/5 opacity-10"
                             )}
                         >
@@ -165,14 +165,14 @@ export const SwarmBox: React.FC = () => {
                                     <Bot
                                         size={14}
                                         className={cn(
-                                            isThinking ? "text-[#f1c21b] animate-spin" : "text-[#9d4edd]"
+                                            isThinking ? "text-[var(--executive-gold)] animate-spin" : "text-[var(--amethyst-soft)]"
                                         )}
                                     />
                                     {isThinking && (
                                         <motion.div
                                             animate={{ opacity: [0, 0.4, 0] }}
                                             transition={{ duration: 1.5, repeat: Infinity }}
-                                            className="absolute inset-0 bg-[#f1c21b]/10"
+                                            className="absolute inset-0 bg-[var(--executive-gold)]/10"
                                         />
                                     )}
                                 </>
@@ -186,7 +186,7 @@ export const SwarmBox: React.FC = () => {
             <div className="pt-2 border-t border-white/5 relative z-10">
                 <div className="flex justify-between items-center text-[6px] font-mono text-gray-700 uppercase tracking-widest">
                     <span>LATTICE_OK</span>
-                    <span className="text-[#10b981] font-black opacity-60">The D-Ecosystem</span>
+                    <span className="text-[var(--plasma-green)] font-black opacity-60">The D-Ecosystem</span>
                 </div>
             </div>
         </div>
@@ -203,12 +203,12 @@ interface SystemPulseProps {
 export const SystemPulse: React.FC<SystemPulseProps> = ({ active }) => (
     <div className="flex items-center gap-3">
         <div className={`relative w-3 h-3 rounded-full ${
-            active ? 'bg-[#10b981]' : 'bg-gray-700'
+            active ? 'bg-[var(--plasma-green)]' : 'bg-gray-700'
         }`}>
             {active && (
                 <>
-                    <div className="absolute inset-0 rounded-full bg-[#10b981] animate-ping opacity-75" />
-                    <div className="absolute inset-0 rounded-full bg-[#10b981] shadow-[0_0_10px_#10b981]" />
+                    <div className="absolute inset-0 rounded-full bg-[var(--plasma-green)] animate-ping opacity-75" />
+                    <div className="absolute inset-0 rounded-full bg-[var(--plasma-green)] shadow-[0_0_10px_#10b981]" />
                 </>
             )}
         </div>

@@ -44,7 +44,7 @@ const DNABuilder = () => {
             >
                 <div className="absolute top-0 right-0 p-8 opacity-[0.03]"><Dna size={160} /></div>
                 <div className="text-center space-y-4 relative z-10">
-                    <div className="w-20 h-20 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-[2rem] flex items-center justify-center mx-auto text-[#9d4edd] shadow-[0_0_40px_rgba(157,78,221,0.2)]">
+                    <div className="w-20 h-20 bg-[var(--amethyst-soft)]/10 border border-[var(--amethyst-soft)]/30 rounded-[2rem] flex items-center justify-center mx-auto text-[var(--amethyst-soft)] shadow-[0_0_40px_rgba(157,78,221,0.2)]">
                         <Sliders size={40} />
                     </div>
                     <div className="space-y-1">
@@ -92,7 +92,7 @@ const DNABuilder = () => {
                             <button 
                                 key={dna.id}
                                 onClick={() => applyBaseline(dna)}
-                                className="p-4 bg-black/5 border border-[var(--border-main)] hover:border-[#9d4edd]/50 rounded-2xl text-left transition-all group shadow-xl"
+                                className="p-4 bg-black/5 border border-[var(--border-main)] hover:border-[var(--amethyst-soft)]/50 rounded-2xl text-left transition-all group shadow-xl"
                             >
                                 <div className="text-[10px] font-black text-[var(--text-main)] uppercase mb-1 flex items-center justify-between">
                                     {dna.label}
@@ -125,7 +125,7 @@ const BibliomorphicEngine: React.FC = () => {
       <div className="w-[320px] flex flex-col border-r border-[var(--border-main)] bg-[var(--bg-side)] relative z-20 min-w-[320px]">
           <div className="h-16 flex items-center px-6 border-b border-[var(--border-main)] bg-black/5">
               <div className="flex items-center gap-3">
-                  <div className="w-2.5 h-2.5 bg-[#9d4edd] rounded-full shadow-[0_0_10px_#9d4edd] animate-pulse"></div>
+                  <div className="w-2.5 h-2.5 bg-[var(--amethyst-soft)] rounded-full shadow-[0_0_10px_#9d4edd] animate-pulse"></div>
                   <span className="font-mono font-black text-[var(--text-main)] tracking-[0.2em] text-xs uppercase">Vision Sector</span>
               </div>
           </div>
@@ -163,11 +163,11 @@ const BibliomorphicEngine: React.FC = () => {
                               </div>
                               <div className="flex justify-between items-center text-[10px] font-mono">
                                   <span className="text-[var(--text-muted)] font-bold tracking-widest uppercase">Excitement</span>
-                                  <span className="text-[#f59e0b] font-black">{voice.mentalState.excitement}%</span>
+                                  <span className="text-[var(--amber)] font-black">{voice.mentalState.excitement}%</span>
                               </div>
                               <div className="flex justify-between items-center text-[10px] font-mono">
                                   <span className="text-[var(--text-muted)] font-bold tracking-widest uppercase">Alignment</span>
-                                  <span className="text-[#22d3ee] font-black">{voice.mentalState.alignment}%</span>
+                                  <span className="text-[var(--cyan)] font-black">{voice.mentalState.alignment}%</span>
                               </div>
                           </div>
                       </motion.div>

@@ -359,7 +359,7 @@ const HardwareEngine: React.FC = () => {
                     {/* Compute Flux Toggle */}
                     <button
                         onClick={() => { setShowComputeFlux(!showComputeFlux); audio.playClick(); }}
-                        className={`p-2 rounded-lg border transition-all ${showComputeFlux ? 'bg-[#22d3ee]/10 border-[#22d3ee]/40 text-[#22d3ee]' : 'bg-[#0a0a0a] border-white/10 text-gray-600 hover:text-white'}`}
+                        className={`p-2 rounded-lg border transition-all ${showComputeFlux ? 'bg-[var(--cyan)]/10 border-[var(--cyan)]/40 text-[var(--cyan)]' : 'bg-[#0a0a0a] border-white/10 text-gray-600 hover:text-white'}`}
                         title="Toggle Compute Flux Visualization"
                     >
                         <Activity size={14} />
@@ -379,7 +379,7 @@ const HardwareEngine: React.FC = () => {
                                         <h2 className="text-xl font-black font-mono text-white uppercase tracking-tight">Component Procurement Hub</h2>
                                         <div className="flex items-center gap-4">
                                             <div className="relative">
-                                                <div className="flex items-center bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-1.5 w-64 focus-within:border-[#22d3ee] transition-all">
+                                                <div className="flex items-center bg-[#0a0a0a] border border-white/10 rounded-lg px-3 py-1.5 w-64 focus-within:border-[var(--cyan)] transition-all">
                                                     <Search size={12} className="text-gray-600 mr-2" />
                                                     <input
                                                         value={gpuSearchQuery}
@@ -422,7 +422,7 @@ const HardwareEngine: React.FC = () => {
                                         {/* Cache Stats */}
                                         <div className="flex items-center gap-2 px-3 py-1.5 bg-[#0a0a0a] border border-white/5 rounded-lg">
                                             <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Cache</span>
-                                            <span className="text-[9px] font-bold font-mono text-[#22d3ee]">{cacheStats.entries}</span>
+                                            <span className="text-[9px] font-bold font-mono text-[var(--cyan)]">{cacheStats.entries}</span>
                                             {cacheStats.oldestEntry && (
                                                 <span className="text-[7px] font-mono text-gray-700">
                                                     ({Math.round(cacheStats.oldestEntry / 60000)}m old)
@@ -437,7 +437,7 @@ const HardwareEngine: React.FC = () => {
                                         <button
                                             onClick={handleFetchAllPrices}
                                             disabled={isFetchingPrice}
-                                            className="px-3 py-1.5 bg-[#0a0a0a] border border-white/10 rounded-lg hover:border-[#10b981]/50 transition-all disabled:opacity-50 flex items-center gap-2"
+                                            className="px-3 py-1.5 bg-[#0a0a0a] border border-white/10 rounded-lg hover:border-[var(--plasma-green)]/50 transition-all disabled:opacity-50 flex items-center gap-2"
                                             title="Fetch all prices"
                                         >
                                             <Download size={11} className="text-gray-500" />
@@ -446,7 +446,7 @@ const HardwareEngine: React.FC = () => {
                                         <button
                                             onClick={handleRefreshPrice}
                                             disabled={isFetchingPrice}
-                                            className="p-2 bg-[#0a0a0a] border border-white/10 rounded-lg hover:border-[#22d3ee]/50 transition-all disabled:opacity-50"
+                                            className="p-2 bg-[#0a0a0a] border border-white/10 rounded-lg hover:border-[var(--cyan)]/50 transition-all disabled:opacity-50"
                                             title="Refresh selected price"
                                         >
                                             <RefreshCw size={12} className={`text-gray-500 ${isFetchingPrice ? 'animate-spin' : ''}`} />
@@ -530,10 +530,10 @@ const HardwareEngine: React.FC = () => {
                                         )}
                                     </div>
                                 ) : (
-                                    <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-white/10 rounded-3xl bg-[#050505]/40 group hover:border-[#22d3ee]/20 transition-all">
+                                    <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-white/10 rounded-3xl bg-[#050505]/40 group hover:border-[var(--cyan)]/20 transition-all">
                                         <label className="flex flex-col items-center gap-6 cursor-pointer text-center p-12">
                                             <div className="w-20 h-20 rounded-2xl bg-[#0a0a0a] border border-white/10 flex items-center justify-center group-hover:scale-110 transition-all shadow-2xl">
-                                                <Upload size={32} className="text-gray-700 group-hover:text-[#22d3ee] transition-colors" />
+                                                <Upload size={32} className="text-gray-700 group-hover:text-[var(--cyan)] transition-colors" />
                                             </div>
                                             <div className="space-y-2">
                                                 <h2 className="text-lg font-black text-white font-mono uppercase tracking-[0.3em]">Import Blueprint</h2>
@@ -571,19 +571,19 @@ const HardwareEngine: React.FC = () => {
                                     <div className="space-y-4">
                                         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5">
                                             <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Power Draw</span>
-                                            <div className="mt-3 text-3xl font-black font-mono text-[#22d3ee]">{powerDraw}W</div>
+                                            <div className="mt-3 text-3xl font-black font-mono text-[var(--cyan)]">{powerDraw}W</div>
                                             <div className="mt-2 h-2 bg-white/5 rounded-full overflow-hidden">
-                                                <div className="h-full bg-gradient-to-r from-[#22d3ee] to-[#9d4edd] rounded-full transition-all" style={{ width: `${Math.min(100, (parseFloat(powerDraw) / 500) * 100)}%` }} />
+                                                <div className="h-full bg-gradient-to-r from-[#22d3ee] to-[var(--amethyst-soft)] rounded-full transition-all" style={{ width: `${Math.min(100, (parseFloat(powerDraw) / 500) * 100)}%` }} />
                                             </div>
                                         </div>
                                         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5">
                                             <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">MTBF Estimate</span>
-                                            <div className="mt-3 text-3xl font-black font-mono text-[#10b981]">{mtbf.toLocaleString()}h</div>
+                                            <div className="mt-3 text-3xl font-black font-mono text-[var(--plasma-green)]">{mtbf.toLocaleString()}h</div>
                                             <p className="text-[8px] text-gray-600 mt-2">Based on current thermal profile</p>
                                         </div>
                                         <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5">
                                             <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Cooling Efficiency</span>
-                                            <div className="mt-3 text-3xl font-black font-mono text-[#9d4edd]">{fanSpeed} RPM</div>
+                                            <div className="mt-3 text-3xl font-black font-mono text-[var(--amethyst-soft)]">{fanSpeed} RPM</div>
                                             <p className="text-[8px] text-gray-600 mt-2">{fanSpeed > 4000 ? 'High performance mode' : fanSpeed > 2000 ? 'Balanced cooling' : 'Silent operation'}</p>
                                         </div>
                                     </div>
@@ -604,7 +604,7 @@ const HardwareEngine: React.FC = () => {
                                     <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-5 flex flex-col">
                                         <div className="flex items-center justify-between mb-4">
                                             <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Live Supply Data</span>
-                                            {isFetchingSupply && <Loader2 size={12} className="text-[#22d3ee] animate-spin" />}
+                                            {isFetchingSupply && <Loader2 size={12} className="text-[var(--cyan)] animate-spin" />}
                                         </div>
                                         {liveSupplyData ? (
                                             <div className="flex-1 overflow-y-auto custom-scrollbar space-y-3">
@@ -636,15 +636,15 @@ const HardwareEngine: React.FC = () => {
                                         <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-4">Procurement Pipeline</span>
                                         {selectedGpu ? (
                                             <div className="flex-1 space-y-3">
-                                                <div className="p-4 bg-[#10b981]/10 border border-[#10b981]/20 rounded-xl">
+                                                <div className="p-4 bg-[var(--plasma-green)]/10 border border-[var(--plasma-green)]/20 rounded-xl">
                                                     <div className="flex items-center gap-3 mb-2">
-                                                        <CheckCircle2 size={16} className="text-[#10b981]" />
+                                                        <CheckCircle2 size={16} className="text-[var(--plasma-green)]" />
                                                         <span className="text-[10px] font-black text-white uppercase">{selectedGpu.model}</span>
                                                     </div>
                                                     <p className="text-[9px] text-gray-500">{selectedGpu.manufacturer} • {selectedGpu.arch}</p>
                                                     <div className="mt-3 flex items-center justify-between">
-                                                        <span className="text-lg font-black font-mono text-[#10b981]">${(selectedGpu.livePrice?.price || selectedGpu.msrp).toLocaleString()}</span>
-                                                        <span className={`text-[8px] font-mono px-2 py-1 rounded ${selectedGpu.livePrice?.stock === 'IN_STOCK' ? 'bg-[#10b981]/20 text-[#10b981]' : 'bg-amber-500/20 text-amber-500'}`}>
+                                                        <span className="text-lg font-black font-mono text-[var(--plasma-green)]">${(selectedGpu.livePrice?.price || selectedGpu.msrp).toLocaleString()}</span>
+                                                        <span className={`text-[8px] font-mono px-2 py-1 rounded ${selectedGpu.livePrice?.stock === 'IN_STOCK' ? 'bg-[var(--plasma-green)]/20 text-[var(--plasma-green)]' : 'bg-amber-500/20 text-amber-500'}`}>
                                                             {selectedGpu.livePrice?.stock === 'IN_STOCK' ? 'Ready to Ship' : 'Lead Time Applies'}
                                                         </span>
                                                     </div>
@@ -654,7 +654,7 @@ const HardwareEngine: React.FC = () => {
                                                     {selectedGpu.bom.slice(0, 4).map((item, i) => (
                                                         <div key={i} className="p-2 bg-white/[0.02] border border-white/5 rounded-lg flex items-center justify-between">
                                                             <span className="text-[9px] font-mono text-gray-400">{item}</span>
-                                                            <button onClick={() => fetchSupplyChain(item)} className="text-[7px] text-[#22d3ee] hover:underline">Track</button>
+                                                            <button onClick={() => fetchSupplyChain(item)} className="text-[7px] text-[var(--cyan)] hover:underline">Track</button>
                                                         </div>
                                                     ))}
                                                 </div>
@@ -670,10 +670,10 @@ const HardwareEngine: React.FC = () => {
                         ) : (
                             /* FALLBACK - Upload Interface */
                             <div className="h-full flex flex-col gap-5">
-                                <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-white/10 rounded-3xl bg-[#050505]/40 group hover:border-[#22d3ee]/20 transition-all duration-700 relative">
+                                <div className="flex-1 flex flex-col items-center justify-center border border-dashed border-white/10 rounded-3xl bg-[#050505]/40 group hover:border-[var(--cyan)]/20 transition-all duration-700 relative">
                                     <label className="flex flex-col items-center gap-6 cursor-pointer text-center p-12">
                                         <div className="w-20 h-20 rounded-2xl bg-[#0a0a0a] border border-white/10 flex items-center justify-center group-hover:scale-110 transition-all shadow-2xl">
-                                            <Upload size={32} className="text-gray-700 group-hover:text-[#22d3ee] transition-colors" />
+                                            <Upload size={32} className="text-gray-700 group-hover:text-[var(--cyan)] transition-colors" />
                                         </div>
                                         <div className="space-y-2">
                                             <h2 className="text-lg font-black text-white font-mono uppercase tracking-[0.3em]">Import Asset Blueprint</h2>
@@ -690,7 +690,7 @@ const HardwareEngine: React.FC = () => {
                 <div className="w-[320px] border-l border-[#1f1f1f] bg-[#050505] flex flex-col shrink-0 z-30 shadow-2xl relative">
                     <div className="p-5 border-b border-white/5 bg-white/[0.01]">
                         <div className="flex items-center justify-between mb-5 px-1">
-                            <div className="flex items-center gap-2.5"><SlidersHorizontal size={14} className="text-[#22d3ee]" /><h2 className="text-[10px] font-black text-white uppercase tracking-widest">Hardware Parameters</h2></div>
+                            <div className="flex items-center gap-2.5"><SlidersHorizontal size={14} className="text-[var(--cyan)]" /><h2 className="text-[10px] font-black text-white uppercase tracking-widest">Hardware Parameters</h2></div>
                         </div>
                         <div className="space-y-2">
                             <PerformanceMixer label="CPU FREQUENCY" value={clockSpeed} unit="GHz" min={1.2} max={6.4} color={eraColor} onValueChange={setClockSpeed} />
@@ -701,8 +701,8 @@ const HardwareEngine: React.FC = () => {
 
                     <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-8">
                         <div className="space-y-3">
-                            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 px-1"><DollarSign size={12} className="text-[#10b981]"/> CapEx Management</span>
-                            <div className="p-5 bg-[#0a1a0a] border border-[#10b981]/20 rounded-2xl space-y-3 relative overflow-hidden shadow-xl">
+                            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 px-1"><DollarSign size={12} className="text-[var(--plasma-green)]"/> CapEx Management</span>
+                            <div className="p-5 bg-[#0a1a0a] border border-[var(--plasma-green)]/20 rounded-2xl space-y-3 relative overflow-hidden shadow-xl">
                                 <div className="grid grid-cols-2 gap-3 relative z-10">
                                     <div className="space-y-1">
                                         <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Projected Cost</span>
@@ -710,11 +710,11 @@ const HardwareEngine: React.FC = () => {
                                     </div>
                                     <div className="space-y-1 text-right">
                                         <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Efficiency Yield</span>
-                                        <div className="text-lg font-black font-mono text-[#10b981] tracking-tighter">{finTelemetry.roiProjection > 0 ? `+${finTelemetry.roiProjection}%` : '--'}</div>
+                                        <div className="text-lg font-black font-mono text-[var(--plasma-green)] tracking-tighter">{finTelemetry.roiProjection > 0 ? `+${finTelemetry.roiProjection}%` : '--'}</div>
                                     </div>
                                 </div>
                                 {/* Maintenance Estimate */}
-                                <div className="pt-2 border-t border-[#10b981]/10">
+                                <div className="pt-2 border-t border-[var(--plasma-green)]/10">
                                     <div className="flex justify-between items-center">
                                         <span className="text-[7px] font-mono text-gray-600 uppercase tracking-widest">Annual Maintenance Est.</span>
                                         <div className="text-sm font-black font-mono text-amber-500/80">${maintenanceEst > 0 ? maintenanceEst.toLocaleString() : '--'}/yr</div>
@@ -728,42 +728,42 @@ const HardwareEngine: React.FC = () => {
                         {/* AI Analysis Tools */}
                         <div className="space-y-3">
                             <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-1.5 px-1">
-                                <FlaskConical size={12} className="text-[#9d4edd]"/> AI Analysis
+                                <FlaskConical size={12} className="text-[var(--amethyst-soft)]"/> AI Analysis
                             </span>
                             <div className="space-y-2">
                                 <button
                                     onClick={handleResearchComponents}
                                     disabled={!selectedGpu || isResearchingComponents}
-                                    className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[#9d4edd]/30 hover:bg-[#9d4edd]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
+                                    className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[var(--amethyst-soft)]/30 hover:bg-[var(--amethyst-soft)]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
                                 >
                                     {isResearchingComponents ? (
-                                        <Loader2 size={14} className="text-[#9d4edd] animate-spin" />
+                                        <Loader2 size={14} className="text-[var(--amethyst-soft)] animate-spin" />
                                     ) : (
-                                        <Microscope size={14} className="text-gray-600 group-hover:text-[#9d4edd] transition-colors" />
+                                        <Microscope size={14} className="text-gray-600 group-hover:text-[var(--amethyst-soft)] transition-colors" />
                                     )}
                                     <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest group-hover:text-white transition-colors">Research Components</span>
                                 </button>
                                 <button
                                     onClick={handleGenerateManifest}
                                     disabled={!selectedGpu || isGeneratingManifest}
-                                    className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[#22d3ee]/30 hover:bg-[#22d3ee]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
+                                    className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[var(--cyan)]/30 hover:bg-[var(--cyan)]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
                                 >
                                     {isGeneratingManifest ? (
-                                        <Loader2 size={14} className="text-[#22d3ee] animate-spin" />
+                                        <Loader2 size={14} className="text-[var(--cyan)] animate-spin" />
                                     ) : (
-                                        <FileText size={14} className="text-gray-600 group-hover:text-[#22d3ee] transition-colors" />
+                                        <FileText size={14} className="text-gray-600 group-hover:text-[var(--cyan)] transition-colors" />
                                     )}
                                     <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest group-hover:text-white transition-colors">Generate Manifest</span>
                                 </button>
                                 <button
                                     onClick={handleAnalyzeImpact}
                                     disabled={!selectedGpu || isAnalyzingImpact}
-                                    className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[#10b981]/30 hover:bg-[#10b981]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
+                                    className="w-full p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center gap-3 hover:border-[var(--plasma-green)]/30 hover:bg-[var(--plasma-green)]/5 transition-all disabled:opacity-40 disabled:cursor-not-allowed group"
                                 >
                                     {isAnalyzingImpact ? (
-                                        <Loader2 size={14} className="text-[#10b981] animate-spin" />
+                                        <Loader2 size={14} className="text-[var(--plasma-green)] animate-spin" />
                                     ) : (
-                                        <Target size={14} className="text-gray-600 group-hover:text-[#10b981] transition-colors" />
+                                        <Target size={14} className="text-gray-600 group-hover:text-[var(--plasma-green)] transition-colors" />
                                     )}
                                     <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest group-hover:text-white transition-colors">Analyze Impact</span>
                                 </button>
@@ -774,17 +774,17 @@ const HardwareEngine: React.FC = () => {
                                     <span className="text-[7px] text-gray-600 uppercase tracking-widest">Latest Analysis</span>
                                     {componentResearch && (
                                         <div className="text-[8px] text-gray-400 truncate">
-                                            <span className="text-[#9d4edd]">Components:</span> {typeof componentResearch === 'string' ? componentResearch.slice(0, 50) : 'Complete'}...
+                                            <span className="text-[var(--amethyst-soft)]">Components:</span> {typeof componentResearch === 'string' ? componentResearch.slice(0, 50) : 'Complete'}...
                                         </div>
                                     )}
                                     {deploymentManifest && (
                                         <div className="text-[8px] text-gray-400 truncate">
-                                            <span className="text-[#22d3ee]">Manifest:</span> {typeof deploymentManifest === 'string' ? deploymentManifest.slice(0, 50) : 'Generated'}...
+                                            <span className="text-[var(--cyan)]">Manifest:</span> {typeof deploymentManifest === 'string' ? deploymentManifest.slice(0, 50) : 'Generated'}...
                                         </div>
                                     )}
                                     {crossSectorImpact && (
                                         <div className="text-[8px] text-gray-400 truncate">
-                                            <span className="text-[#10b981]">Impact:</span> {typeof crossSectorImpact === 'string' ? crossSectorImpact.slice(0, 50) : 'Analyzed'}...
+                                            <span className="text-[var(--plasma-green)]">Impact:</span> {typeof crossSectorImpact === 'string' ? crossSectorImpact.slice(0, 50) : 'Analyzed'}...
                                         </div>
                                     )}
                                 </div>
@@ -793,10 +793,10 @@ const HardwareEngine: React.FC = () => {
                     </div>
 
                     <div className="p-6 border-t border-white/5 bg-black shrink-0 space-y-4 shadow-2xl">
-                        <div className="flex justify-between items-center text-[8px] font-medium font-mono text-gray-600 uppercase tracking-widest"><span>System Status</span><span className="text-[#22d3ee]/70">Operational</span></div>
+                        <div className="flex justify-between items-center text-[8px] font-medium font-mono text-gray-600 uppercase tracking-widest"><span>System Status</span><span className="text-[var(--cyan)]/70">Operational</span></div>
                         <div className="grid grid-cols-2 gap-3">
                             <div className="p-3 bg-white/[0.01] border border-white/5 rounded-xl flex flex-col gap-1"><span className="text-[7px] text-gray-600 uppercase font-mono tracking-widest">Unit Wattage</span><span className="text-sm font-black font-mono text-white">{powerDraw}W</span></div>
-                            <div className="p-3 bg-white/[0.01] border border-white/5 rounded-xl flex flex-col gap-1"><span className="text-[7px] text-gray-600 uppercase font-mono tracking-widest">Estimated Life</span><span className="text-sm font-black font-mono text-[#10b981]">{mtbf.toLocaleString()}h</span></div>
+                            <div className="p-3 bg-white/[0.01] border border-white/5 rounded-xl flex flex-col gap-1"><span className="text-[7px] text-gray-600 uppercase font-mono tracking-widest">Estimated Life</span><span className="text-sm font-black font-mono text-[var(--plasma-green)]">{mtbf.toLocaleString()}h</span></div>
                         </div>
                     </div>
                 </div>
@@ -805,7 +805,7 @@ const HardwareEngine: React.FC = () => {
             <div className="h-10 bg-[#0a0a0a] border-t border-[#1f1f1f] px-8 flex items-center justify-between text-[9px] font-mono text-gray-700 shrink-0 relative z-[60]">
                 <div className="flex gap-10 items-center overflow-x-auto no-scrollbar whitespace-nowrap">
                     <div className="flex items-center gap-2 text-emerald-500/80 font-bold uppercase tracking-widest"><ShieldCheck size={14} /> D-Production Valid</div>
-                    <div className="flex items-center gap-2 uppercase tracking-widest"><Binary size={14} className="text-[#22d3ee]/70" /> Bus_Sync: 1.2 GHz</div>
+                    <div className="flex items-center gap-2 uppercase tracking-widest"><Binary size={14} className="text-[var(--cyan)]/70" /> Bus_Sync: 1.2 GHz</div>
                 </div>
                 <div className="flex items-center gap-8 shrink-0">
                     <span className="font-black text-gray-500 uppercase tracking-widest leading-none">THE D-ECOSYSTEM SYSTEMS_ENGINE</span>

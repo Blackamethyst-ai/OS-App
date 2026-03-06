@@ -197,7 +197,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                 </div>
             </div>
 
-            <div className="bg-[#10b981]/10 border border-[#10b981]/20 rounded-xl p-3 text-[10px] text-[#10b981]">
+            <div className="bg-[var(--plasma-green)]/10 border border-[var(--plasma-green)]/20 rounded-xl p-3 text-[10px] text-[var(--plasma-green)]">
                 <strong>🔐 Military-grade encryption:</strong> Your keys are encrypted using AES-GCM with PBKDF2 key derivation (100,000 iterations). Even if someone accesses your browser storage, they cannot read your API keys without the master password.
             </div>
 
@@ -376,8 +376,8 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
             {/* Content */}
             <div className="p-6 space-y-4">
                 <div className="flex items-center gap-2 text-[10px] text-gray-400 mb-4">
-                    <Shield size={12} className="text-[#10b981]" />
-                    <span className="text-[#10b981]">Vault unlocked</span>
+                    <Shield size={12} className="text-[var(--plasma-green)]" />
+                    <span className="text-[var(--plasma-green)]">Vault unlocked</span>
                     <span className="text-gray-600">•</span>
                     {PROVIDERS.find(p => p.id === activeProvider)?.description}
                 </div>
@@ -408,7 +408,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg ${validationResult.valid
-                            ? 'bg-[#10b981]/20 text-[#10b981]'
+                            ? 'bg-[var(--plasma-green)]/20 text-[var(--plasma-green)]'
                             : 'bg-red-500/20 text-red-400'
                             }`}
                     >

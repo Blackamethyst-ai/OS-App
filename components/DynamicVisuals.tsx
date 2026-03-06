@@ -212,8 +212,8 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                 <svg ref={svgRef} className="w-full h-full cursor-move" />
                 <div className="absolute top-10 left-10 space-y-4 pointer-events-none">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-[#18E6FF]/10 border border-[#18E6FF]/30 rounded-2xl shadow-[0_0_20px_rgba(24,230,255,0.15)]">
-                            <Compass className="text-[#18E6FF]" size={20} />
+                        <div className="p-3 bg-[var(--cyan)]/10 border border-[var(--cyan)]/30 rounded-2xl shadow-[0_0_20px_rgba(24,230,255,0.15)]">
+                            <Compass className="text-[var(--cyan)]" size={20} />
                         </div>
                         <div>
                             <h2 className="text-sm font-black text-white uppercase tracking-[0.4em] leading-none">Strategic Intelligence</h2>
@@ -224,11 +224,11 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
 
                 <div className="absolute bottom-10 left-10 flex gap-4 pointer-events-none">
                     <div className="px-4 py-2 bg-black/60 backdrop-blur-2xl border border-white/5 rounded-xl flex items-center gap-3">
-                        <Activity size={12} className="text-[#10b981] animate-pulse" />
+                        <Activity size={12} className="text-[var(--plasma-green)] animate-pulse" />
                         <span className="text-[8px] font-mono text-gray-400 uppercase tracking-widest">Physics Core: Nominal</span>
                     </div>
                     <div className="px-4 py-2 bg-black/60 backdrop-blur-2xl border border-white/5 rounded-xl flex items-center gap-3">
-                        <GitBranch size={12} className="text-[#9d4edd]" />
+                        <GitBranch size={12} className="text-[var(--amethyst-soft)]" />
                         <span className="text-[8px] font-mono text-gray-400 uppercase tracking-widest">Lattice Depth: {artifacts.length}P</span>
                     </div>
                 </div>
@@ -239,10 +239,10 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
 
                 <div className="h-20 border-b border-white/5 flex items-center justify-between px-10 bg-white/[0.01] shrink-0">
                     <div className="flex items-center gap-3">
-                        <Zap size={16} className="text-[#f1c21b]" />
+                        <Zap size={16} className="text-[var(--executive-gold)]" />
                         <span className="text-[10px] font-black text-white uppercase tracking-[0.4em]">Forensic Insight</span>
                     </div>
-                    {isSynthesizing && <Loader2 size={16} className="text-[#9d4edd] animate-spin" />}
+                    {isSynthesizing && <Loader2 size={16} className="text-[var(--amethyst-soft)] animate-spin" />}
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-10 space-y-12">
@@ -257,14 +257,14 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                                 className="space-y-12"
                             >
                                 <div className="space-y-6">
-                                    <div className="flex items-center gap-3 text-[#18E6FF]">
+                                    <div className="flex items-center gap-3 text-[var(--cyan)]">
                                         <Target size={14} className="animate-pulse" />
                                         <span className="text-[9px] font-black uppercase tracking-widest">Primary Focus Node</span>
                                     </div>
                                     <h3 className="text-4xl font-black text-white uppercase font-mono tracking-tighter leading-[1.1]">{activeArtifact.name}</h3>
 
                                     <div className="flex flex-wrap gap-3">
-                                        <div className="px-4 py-1.5 bg-[#9d4edd]/10 border border-[#9d4edd]/30 rounded-full text-[8px] font-black text-[#9d4edd] uppercase tracking-widest">
+                                        <div className="px-4 py-1.5 bg-[var(--amethyst-soft)]/10 border border-[var(--amethyst-soft)]/30 rounded-full text-[8px] font-black text-[var(--amethyst-soft)] uppercase tracking-widest">
                                             {activeArtifact.analysis?.classification || 'RAW_FRAGMENT'}
                                         </div>
                                         <div className="px-4 py-1.5 bg-white/5 border border-white/10 rounded-full text-[8px] font-mono text-gray-500 uppercase tracking-widest flex items-center gap-2">
@@ -278,10 +278,10 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                                         <Sparkles size={100} />
                                     </div>
                                     <div className="flex items-center gap-3 mb-6 border-b border-white/5 pb-4">
-                                        <Activity size={12} className="text-[#9d4edd]" />
+                                        <Activity size={12} className="text-[var(--amethyst-soft)]" />
                                         <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Neural Summary & Context</span>
                                     </div>
-                                    <p className="text-base text-gray-300 font-mono leading-relaxed italic border-l-2 border-[#9d4edd] pl-8 transition-colors duration-700 select-text">
+                                    <p className="text-base text-gray-300 font-mono leading-relaxed italic border-l-2 border-[var(--amethyst-soft)] pl-8 transition-colors duration-700 select-text">
                                         "{renderSafe(activeArtifact.analysis?.summary) || 'Integrity check in progress. Logic extraction pending node stabilization.'}"
                                     </p>
                                 </div>
@@ -292,12 +292,12 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                                             <Fingerprint size={14} />
                                             <span className="text-[9px] font-black uppercase tracking-widest">Semantic Markers</span>
                                         </div>
-                                        <span className="text-[8px] font-mono text-[#18E6FF]">{Array.isArray(activeArtifact.analysis?.entities) ? activeArtifact.analysis.entities.length : 0} Entities</span>
+                                        <span className="text-[8px] font-mono text-[var(--cyan)]">{Array.isArray(activeArtifact.analysis?.entities) ? activeArtifact.analysis.entities.length : 0} Entities</span>
                                     </div>
                                     <div className="grid grid-cols-2 gap-3">
                                         {activeArtifact.analysis && Array.isArray(activeArtifact.analysis.entities) && activeArtifact.analysis.entities.map((ent, i) => (
                                             <div key={i} className="px-5 py-3 bg-white/[0.02] border border-white/5 rounded-2xl text-[9px] font-mono text-gray-400 flex items-center gap-3 hover:border-white/20 transition-all cursor-default group/ent">
-                                                <div className="w-1 h-1 rounded-full bg-[#18E6FF] shadow-[0_0_8px_#18E6FF] group-hover/ent:scale-150 transition-transform" />
+                                                <div className="w-1 h-1 rounded-full bg-[var(--cyan)] shadow-[0_0_8px_#18E6FF] group-hover/ent:scale-150 transition-transform" />
                                                 {renderSafe(ent)}
                                             </div>
                                         ))}
@@ -307,7 +307,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
                                 <div className="pt-10 border-t border-white/5">
                                     <button
                                         onClick={() => onSelect(activeArtifact)}
-                                        className="w-full py-6 bg-[#18E6FF] text-black font-black font-mono text-[10px] uppercase tracking-[0.5em] rounded-[2.5rem] transition-all shadow-[0_20px_50px_rgba(24,230,255,0.3)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-4 group/btn"
+                                        className="w-full py-6 bg-[var(--cyan)] text-black font-black font-mono text-[10px] uppercase tracking-[0.5em] rounded-[2.5rem] transition-all shadow-[0_20px_50px_rgba(24,230,255,0.3)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-4 group/btn"
                                     >
                                         <Maximize size={20} className="group-hover/btn:rotate-90 transition-transform duration-500" /> Initialize Deep Reconstruction
                                     </button>
@@ -327,8 +327,8 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
 
                 <div className="h-12 bg-black border-t border-white/5 px-10 flex items-center justify-between text-[7px] font-mono text-gray-700 tracking-[0.3em] shrink-0 uppercase font-black">
                     <div className="flex gap-6">
-                        <span className="flex items-center gap-2"><CheckCircle2 size={10} className="text-[#10b981]" /> Handshake Verified</span>
-                        <span className="flex items-center gap-2"><Globe size={10} className="text-[#18E6FF]" /> Grid_Active</span>
+                        <span className="flex items-center gap-2"><CheckCircle2 size={10} className="text-[var(--plasma-green)]" /> Handshake Verified</span>
+                        <span className="flex items-center gap-2"><Globe size={10} className="text-[var(--cyan)]" /> Grid_Active</span>
                     </div>
                     <span>Zenith_Vis_v9.5</span>
                 </div>

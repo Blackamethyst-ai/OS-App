@@ -31,7 +31,7 @@ const FeatureToggleRow: React.FC<FeatureToggleRowProps> = ({
         <div className="flex items-center gap-3">
             <div className={cn(
                 "p-2 rounded-lg transition-all",
-                enabled ? "bg-[#22d3ee]/20 text-[#22d3ee]" : "bg-white/5 text-gray-600"
+                enabled ? "bg-[var(--cyan)]/20 text-[var(--cyan)]" : "bg-white/5 text-gray-600"
             )}>
                 <Icon size={16} />
             </div>
@@ -46,7 +46,7 @@ const FeatureToggleRow: React.FC<FeatureToggleRowProps> = ({
                 onClick={() => onChange(!enabled)}
                 className={cn(
                     "w-10 h-5 rounded-full transition-all relative",
-                    enabled ? "bg-[#22d3ee]" : "bg-white/10"
+                    enabled ? "bg-[var(--cyan)]" : "bg-white/10"
                 )}
             >
                 <motion.div
@@ -121,8 +121,8 @@ const PowerControlPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
                         <div className="p-6 border-b border-white/5 bg-black/40">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <div className="p-3 bg-[#22d3ee]/20 rounded-xl">
-                                        <Zap size={20} className="text-[#22d3ee]" />
+                                    <div className="p-3 bg-[var(--cyan)]/20 rounded-xl">
+                                        <Zap size={20} className="text-[var(--cyan)]" />
                                     </div>
                                     <div>
                                         <h2 className="text-[14px] font-black font-mono text-white uppercase tracking-wider">
@@ -188,7 +188,7 @@ const PowerControlPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
                             <div className="p-4 bg-white/[0.02] rounded-2xl border border-white/5 space-y-3">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
-                                        <DollarSign size={14} className="text-[#22d3ee]" />
+                                        <DollarSign size={14} className="text-[var(--cyan)]" />
                                         <span className="text-[10px] font-mono text-gray-400 uppercase">Today's Usage</span>
                                     </div>
                                     <span className="text-[12px] font-black font-mono text-white">
@@ -201,7 +201,7 @@ const PowerControlPanel: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
                                         animate={{ width: `${powerService.getDailyUsagePercent()}%` }}
                                         className={cn(
                                             "h-full rounded-full transition-all",
-                                            powerService.isApproachingLimit() ? "bg-amber-500" : "bg-[#22d3ee]",
+                                            powerService.isApproachingLimit() ? "bg-amber-500" : "bg-[var(--cyan)]",
                                             powerService.isBudgetExceeded() && "bg-red-500"
                                         )}
                                     />

@@ -21,12 +21,12 @@ const PeerMeshOverlay: React.FC = () => {
                 className="w-full max-w-4xl h-[70vh] bg-[#0a0a0a] border border-[#333] rounded-3xl overflow-hidden shadow-2xl flex flex-col relative"
             >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.05)_0%,transparent_70%)] pointer-events-none"></div>
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-[#10b981] opacity-50"></div>
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--amethyst-soft)] via-[#22d3ee] to-[var(--plasma-green)] opacity-50"></div>
 
                 {/* Header */}
                 <div className="h-16 border-b border-[#1f1f1f] bg-white/[0.02] flex items-center justify-between px-8 shrink-0">
                     <div className="flex items-center gap-4">
-                        <div className="p-2 bg-[#22d3ee]/20 rounded-xl text-[#22d3ee] shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+                        <div className="p-2 bg-[var(--cyan)]/20 rounded-xl text-[var(--cyan)] shadow-[0_0_20px_rgba(34,211,238,0.2)]">
                             <Globe size={20} />
                         </div>
                         <div>
@@ -52,12 +52,12 @@ const PeerMeshOverlay: React.FC = () => {
                                 <motion.div 
                                     key={peer.id}
                                     layout
-                                    className="p-4 bg-[#111] border border-[#222] rounded-2xl flex items-center justify-between group hover:border-[#22d3ee]/40 transition-all"
+                                    className="p-4 bg-[#111] border border-[#222] rounded-2xl flex items-center justify-between group hover:border-[var(--cyan)]/40 transition-all"
                                 >
                                     <div className="flex items-center gap-4">
                                         <div className="w-10 h-10 rounded-xl flex items-center justify-center relative shadow-lg" style={{ backgroundColor: `${peer.color}20`, border: `1px solid ${peer.color}40`, color: peer.color }}>
                                             <span className="text-sm font-black font-mono">{peer.name.charAt(0)}</span>
-                                            <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-[#10b981] border-2 border-[#111] animate-pulse"></div>
+                                            <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full bg-[var(--plasma-green)] border-2 border-[#111] animate-pulse"></div>
                                         </div>
                                         <div>
                                             <div className="text-xs font-black text-white uppercase font-mono">{peer.name}</div>
@@ -65,7 +65,7 @@ const PeerMeshOverlay: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="text-[8px] font-mono text-[#22d3ee] uppercase tracking-tighter mb-1 flex items-center gap-1.5 justify-end">
+                                        <div className="text-[8px] font-mono text-[var(--cyan)] uppercase tracking-tighter mb-1 flex items-center gap-1.5 justify-end">
                                             <Target size={10} /> {peer.activeSector}
                                         </div>
                                         <span className="text-[7px] text-gray-600 font-mono">Synced {Math.floor((Date.now() - peer.lastSeen)/1000)}s ago</span>
@@ -92,15 +92,15 @@ const PeerMeshOverlay: React.FC = () => {
                                         className="flex gap-4 items-start border-l border-white/5 pl-4 py-1"
                                     >
                                         <div className="mt-1 shrink-0">
-                                            <div className="w-1.5 h-1.5 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]"></div>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--amethyst-soft)] shadow-[0_0_8px_#9d4edd]"></div>
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-center mb-1">
-                                                <span className="text-[10px] font-bold text-[#22d3ee] font-mono uppercase">{event.userName}</span>
+                                                <span className="text-[10px] font-bold text-[var(--cyan)] font-mono uppercase">{event.userName}</span>
                                                 <span className="text-[8px] text-gray-600 font-mono">{new Date(event.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'})}</span>
                                             </div>
                                             <p className="text-[11px] text-gray-300 font-mono leading-relaxed">
-                                                <span className="text-[#9d4edd] font-black mr-2">{" >>> "}</span>
+                                                <span className="text-[var(--amethyst-soft)] font-black mr-2">{" >>> "}</span>
                                                 {event.action}
                                                 {event.target && <span className="text-gray-500 ml-2">[{event.target}]</span>}
                                             </p>
@@ -120,11 +120,11 @@ const PeerMeshOverlay: React.FC = () => {
 
                 <div className="h-10 bg-black border-t border-[#1f1f1f] px-8 flex items-center justify-between text-[8px] font-mono text-gray-600 shrink-0">
                     <div className="flex items-center gap-6">
-                        <span className="flex items-center gap-2 uppercase tracking-widest text-[#10b981]">
+                        <span className="flex items-center gap-2 uppercase tracking-widest text-[var(--plasma-green)]">
                             <Shield size={12} /> End-to-End Encrypted
                         </span>
                         <span className="flex items-center gap-2 uppercase tracking-widest">
-                            <Zap size={12} className="text-[#f59e0b]" /> Low Latency Sync
+                            <Zap size={12} className="text-[var(--amber)]" /> Low Latency Sync
                         </span>
                     </div>
                     <div className="uppercase tracking-[0.4em]">Sovereign Swarm Architecture</div>

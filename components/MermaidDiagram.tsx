@@ -140,7 +140,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
       <AnimatePresence>
         {isRendering && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 z-50 bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center">
-            <Loader2 className="w-10 h-10 text-[#9d4edd] animate-spin mb-4" />
+            <Loader2 className="w-10 h-10 text-[var(--amethyst-soft)] animate-spin mb-4" />
             <span className="text-[10px] font-black font-mono text-gray-500 uppercase tracking-[0.3em]">Crystallizing Diagram...</span>
           </motion.div>
         )}
@@ -152,7 +152,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-3 z-50 opacity-0 group-hover:opacity-100 transition-all">
          <div className="flex bg-[#0a0a0a]/90 border border-[#333] rounded-full p-2 shadow-2xl backdrop-blur-xl">
              <button onClick={() => setTransform(p => ({...p, scale: Math.max(0.1, p.scale - 0.2)}))} className="p-2 text-gray-400 hover:text-white transition-colors" aria-label="Zoom out"><ZoomOut className="w-4 h-4"/></button>
-             <button onClick={() => setTransform({x:0, y:0, scale:1})} className="p-2 text-[#9d4edd] font-mono text-[10px] w-12 flex items-center justify-center gap-1" aria-label="Reset zoom"><Target className="w-3 h-3"/>{Math.round(transform.scale * 100)}%</button>
+             <button onClick={() => setTransform({x:0, y:0, scale:1})} className="p-2 text-[var(--amethyst-soft)] font-mono text-[10px] w-12 flex items-center justify-center gap-1" aria-label="Reset zoom"><Target className="w-3 h-3"/>{Math.round(transform.scale * 100)}%</button>
              <button onClick={() => setTransform(p => ({...p, scale: Math.min(10, p.scale + 0.2)}))} className="p-2 text-gray-400 hover:text-white transition-colors" aria-label="Zoom in"><ZoomIn className="w-4 h-4"/></button>
          </div>
       </div>

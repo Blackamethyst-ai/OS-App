@@ -41,7 +41,7 @@ export const RelationalMemory: React.FC<RelationalMemoryProps> = ({ history }) =
                         "relative ml-16 p-6 rounded-[2.5rem] border transition-all group overflow-hidden shadow-2xl",
                         entry.role === 'USER'
                             ? "bg-white/[0.01] border-white/5"
-                            : "bg-[#9d4edd]/5 border-[#9d4edd]/20"
+                            : "bg-[var(--amethyst-soft)]/5 border-[var(--amethyst-soft)]/20"
                     )}
                 >
                     <div
@@ -54,7 +54,7 @@ export const RelationalMemory: React.FC<RelationalMemoryProps> = ({ history }) =
                                 "w-8 h-8 rounded-2xl border flex items-center justify-center shadow-lg",
                                 entry.role === 'USER'
                                     ? "bg-black/40 border-white/10 text-gray-500"
-                                    : "bg-[#9d4edd]/20 border-[#9d4edd]/40 text-[#9d4edd]"
+                                    : "bg-[var(--amethyst-soft)]/20 border-[var(--amethyst-soft)]/40 text-[var(--amethyst-soft)]"
                             )}>
                                 {entry.role === 'USER' ? <User size={14} /> : <Bot size={14} />}
                             </div>

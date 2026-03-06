@@ -35,14 +35,14 @@ const DynamicWidget: React.FC<DynamicWidgetProps> = ({ result, onClose }) => {
                         initial={{ width: 0 }} 
                         animate={{ width: '100%' }} 
                         transition={{ duration: 0.8 }}
-                        className="h-full bg-gradient-to-r from-[#9d4edd] via-[#22d3ee] to-[#10b981]" 
+                        className="h-full bg-gradient-to-r from-[var(--amethyst-soft)] via-[#22d3ee] to-[var(--plasma-green)]" 
                     />
                 </div>
 
                 {/* Header */}
                 <div className="h-16 border-b border-white/5 flex items-center justify-between px-7 bg-white/[0.01] relative z-10">
                     <div className="flex items-center gap-4">
-                        <div className="p-2.5 bg-[#9d4edd]/20 rounded-2xl text-[#9d4edd] shadow-[0_0_20px_rgba(157,78,221,0.25)] border border-[#9d4edd]/30">
+                        <div className="p-2.5 bg-[var(--amethyst-soft)]/20 rounded-2xl text-[var(--amethyst-soft)] shadow-[0_0_20px_rgba(157,78,221,0.25)] border border-[var(--amethyst-soft)]/30">
                             {result.uiHint === 'TABLE' ? <Database size={18} /> : 
                              result.uiHint === 'STAT' ? <Zap size={18} /> : 
                              <Activity size={18} />}
@@ -73,13 +73,13 @@ const DynamicWidget: React.FC<DynamicWidgetProps> = ({ result, onClose }) => {
                                 <thead>
                                     <tr className="text-gray-500 border-b border-white/10 bg-white/[0.03]">
                                         {Object.keys(result.data[0]).map(key => (
-                                            <th key={key} className="py-4 px-5 uppercase tracking-tighter font-black text-[#9d4edd]">{key}</th>
+                                            <th key={key} className="py-4 px-5 uppercase tracking-tighter font-black text-[var(--amethyst-soft)]">{key}</th>
                                         ))}
                                     </tr>
                                 </thead>
                                 <tbody className="text-gray-300">
                                     {result.data.map((row, i) => (
-                                        <tr key={i} className="border-b border-white/5 hover:bg-[#22d3ee]/5 transition-all group">
+                                        <tr key={i} className="border-b border-white/5 hover:bg-[var(--cyan)]/5 transition-all group">
                                             {Object.values(row).map((val: any, j) => (
                                                 <td key={j} className="py-4 px-5 truncate max-w-[200px] group-hover:text-white font-medium">{String(val)}</td>
                                             ))}
@@ -93,19 +93,19 @@ const DynamicWidget: React.FC<DynamicWidgetProps> = ({ result, onClose }) => {
                     {result.uiHint === 'STAT' && (
                         <div className="grid grid-cols-2 gap-5">
                             {Object.entries(result.data).map(([key, val]) => (
-                                <div key={key} className="bg-black/60 border border-white/5 p-6 rounded-3xl group hover:border-[#9d4edd]/40 transition-all relative overflow-hidden">
+                                <div key={key} className="bg-black/60 border border-white/5 p-6 rounded-3xl group hover:border-[var(--amethyst-soft)]/40 transition-all relative overflow-hidden">
                                     <div className="absolute top-0 right-0 p-3 opacity-0 group-hover:opacity-10 transition-all">
                                         <ArrowUpRight size={24} className="text-white" />
                                     </div>
                                     <div className="text-[9px] text-gray-600 uppercase font-black font-mono mb-3 tracking-widest">{key}</div>
-                                    <div className="text-2xl font-black text-white font-mono group-hover:text-[#22d3ee] transition-colors">{String(val)}</div>
+                                    <div className="text-2xl font-black text-white font-mono group-hover:text-[var(--cyan)] transition-colors">{String(val)}</div>
                                 </div>
                             ))}
                         </div>
                     )}
 
                     {result.uiHint === 'MESSAGE' && (
-                        <div className="p-8 bg-[#22d3ee]/5 border border-[#22d3ee]/30 rounded-3xl text-cyan-50 text-xs font-mono leading-relaxed italic border-l-[6px] border-l-[#22d3ee] shadow-[0_0_30px_rgba(34,211,238,0.05)]">
+                        <div className="p-8 bg-[var(--cyan)]/5 border border-[var(--cyan)]/30 rounded-3xl text-cyan-50 text-xs font-mono leading-relaxed italic border-l-[6px] border-l-[#22d3ee] shadow-[0_0_30px_rgba(34,211,238,0.05)]">
                             {result.data.message}
                         </div>
                     )}
@@ -122,10 +122,10 @@ const DynamicWidget: React.FC<DynamicWidgetProps> = ({ result, onClose }) => {
                 {/* Footer Telemetry */}
                 <div className="h-12 border-t border-white/5 bg-black/90 flex items-center justify-between px-7 text-[9px] font-mono text-gray-600 relative z-10">
                     <div className="flex gap-8">
-                        <span className="flex items-center gap-2"><Shield size={11} className="text-[#10b981]" /> SECURITY: ATTESTED</span>
-                        <span className="flex items-center gap-2"><Activity size={11} className="text-[#22d3ee]" /> INTEGRITY: NOMINAL</span>
+                        <span className="flex items-center gap-2"><Shield size={11} className="text-[var(--plasma-green)]" /> SECURITY: ATTESTED</span>
+                        <span className="flex items-center gap-2"><Activity size={11} className="text-[var(--cyan)]" /> INTEGRITY: NOMINAL</span>
                     </div>
-                    <div className="flex items-center gap-2.5 text-[#10b981] font-black tracking-widest">
+                    <div className="flex items-center gap-2.5 text-[var(--plasma-green)] font-black tracking-widest">
                         <motion.div 
                             animate={{ opacity: [0.3, 1, 0.3] }}
                             transition={{ duration: 1.2, repeat: Infinity }}

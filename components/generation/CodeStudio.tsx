@@ -94,11 +94,11 @@ const CodeStudio: React.FC = () => {
       </div>
 
       <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 backdrop-blur z-30 flex items-center px-8 justify-between shrink-0 relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/30 to-transparent" />
+          <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--amethyst-soft)]/30 to-transparent" />
           <div className="flex items-center gap-8 relative z-10">
               <div className="flex items-center gap-3">
-                <div className="p-1.5 bg-[#9d4edd]/10 border border-[#9d4edd] rounded shadow-[0_0_15px_rgba(157,78,221,0.2)]">
-                    <Code size={18} className="text-[#9d4edd]" />
+                <div className="p-1.5 bg-[var(--amethyst-soft)]/10 border border-[var(--amethyst-soft)] rounded shadow-[0_0_15px_rgba(157,78,221,0.2)]">
+                    <Code size={18} className="text-[var(--amethyst-soft)]" />
                 </div>
                 <div>
                     <h1 className="text-sm font-black font-mono text-white uppercase tracking-widest leading-none">Logic Forge</h1>
@@ -109,13 +109,13 @@ const CodeStudio: React.FC = () => {
               <div className="flex items-center gap-1 bg-[#111] p-1 rounded-xl border border-white/5 shadow-inner">
                 <button 
                     onClick={() => setActiveTab('IDE')} 
-                    className={`px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${codeStudio.activeTab === 'IDE' ? 'bg-[#9d4edd] text-black shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                    className={`px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${codeStudio.activeTab === 'IDE' ? 'bg-[var(--amethyst-soft)] text-black shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                     <Terminal size={14} /> IDE
                 </button>
                 <button 
                     onClick={() => setActiveTab('ACTIONS')} 
-                    className={`px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${codeStudio.activeTab === 'ACTIONS' ? 'bg-[#9d4edd] text-black shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                    className={`px-5 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${codeStudio.activeTab === 'ACTIONS' ? 'bg-[var(--amethyst-soft)] text-black shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
                 >
                     <ListTodo size={14} /> Actions
                 </button>
@@ -124,17 +124,17 @@ const CodeStudio: React.FC = () => {
 
           <div className="flex items-center gap-4 relative z-10">
               <div className="flex items-center gap-3 px-4 py-2 bg-black/40 border border-white/5 rounded-xl shadow-inner">
-                  <Activity size={12} className="text-[#10b981] animate-pulse" />
+                  <Activity size={12} className="text-[var(--plasma-green)] animate-pulse" />
                   <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest">Coherence: 94.2%</span>
               </div>
               <button onClick={handleCopy} className="flex items-center gap-2 px-4 py-2 bg-[#111] border border-[#222] rounded-xl text-[10px] font-mono text-gray-400 hover:text-white transition-all">
-                  {isCopied ? <Check size={14} className="text-[#10b981]" /> : <Copy size={14} />}
+                  {isCopied ? <Check size={14} className="text-[var(--plasma-green)]" /> : <Copy size={14} />}
                   {isCopied ? 'SYNCED' : 'BUFF_COPY'}
               </button>
               <button
                 onClick={handleGenerate}
                 disabled={codeStudio.isLoading}
-                className="px-6 py-2.5 bg-[#9d4edd] hover:bg-[#b06bf7] text-black font-black font-mono text-[10px] uppercase rounded-xl transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(157,78,221,0.4)] disabled:opacity-50 active:scale-95"
+                className="px-6 py-2.5 bg-[var(--amethyst-soft)] hover:bg-[#b06bf7] text-black font-black font-mono text-[10px] uppercase rounded-xl transition-all flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(157,78,221,0.4)] disabled:opacity-50 active:scale-95"
                 data-voice-id="codestudio-generate-button"
                 aria-label="Generate code"
               >
@@ -163,8 +163,8 @@ const CodeStudio: React.FC = () => {
                               {codeStudio.isLoading ? (
                                   <div className="h-full flex flex-col items-center justify-center gap-6 opacity-60 py-20">
                                       <div className="relative">
-                                          <Loader2 size={64} className="text-[#9d4edd] animate-spin" />
-                                          <div className="absolute inset-0 blur-3xl bg-[#9d4edd]/20 animate-pulse" />
+                                          <Loader2 size={64} className="text-[var(--amethyst-soft)] animate-spin" />
+                                          <div className="absolute inset-0 blur-3xl bg-[var(--amethyst-soft)]/20 animate-pulse" />
                                       </div>
                                       <div className="text-center space-y-2">
                                           <p className="text-[11px] font-black font-mono text-white uppercase tracking-[0.5em]">Forging Recursive Logic...</p>
@@ -177,18 +177,18 @@ const CodeStudio: React.FC = () => {
                                     animate={{ opacity: 1 }}
                                     className="relative flex group/codeblock"
                                   >
-                                      <div className="absolute inset-0 bg-gradient-to-r from-[#9d4edd]/5 via-transparent to-transparent opacity-0 group-hover/codeblock:opacity-100 transition-opacity pointer-events-none" />
+                                      <div className="absolute inset-0 bg-gradient-to-r from-[var(--amethyst-soft)]/5 via-transparent to-transparent opacity-0 group-hover/codeblock:opacity-100 transition-opacity pointer-events-none" />
                                       <div className="w-10 shrink-0 text-right pr-4 border-r border-white/5 text-[10px] font-mono text-gray-700 select-none space-y-[1.4em] pt-[0.2em]">
                                           {codeLines.map((_, i) => <div key={i}>{i + 1}</div>)}
                                       </div>
-                                      <pre className="flex-1 pl-6 font-mono text-[13px] text-gray-300 leading-[1.4em] whitespace-pre-wrap selection:bg-[#9d4edd]/40">
+                                      <pre className="flex-1 pl-6 font-mono text-[13px] text-gray-300 leading-[1.4em] whitespace-pre-wrap selection:bg-[var(--amethyst-soft)]/40">
                                           <code dangerouslySetInnerHTML={{ __html: highlightCode(codeStudio.generatedCode, codeStudio.language) }} />
                                       </pre>
                                   </motion.div>
                               ) : (
                                   <div className="h-full flex flex-col items-center justify-center text-center opacity-20 group py-40">
-                                      <div className="w-32 h-32 rounded-full border-2 border-dashed border-gray-700 flex items-center justify-center mb-8 group-hover:scale-110 transition-all group-hover:border-[#9d4edd]/40">
-                                          <Waves size={64} className="text-gray-500 group-hover:text-[#9d4edd] transition-colors" />
+                                      <div className="w-32 h-32 rounded-full border-2 border-dashed border-gray-700 flex items-center justify-center mb-8 group-hover:scale-110 transition-all group-hover:border-[var(--amethyst-soft)]/40">
+                                          <Waves size={64} className="text-gray-500 group-hover:text-[var(--amethyst-soft)] transition-colors" />
                                       </div>
                                       <p className="text-sm font-mono uppercase tracking-[0.4em]">Compiler Standing By</p>
                                       <p className="text-[9px] text-gray-600 mt-2 uppercase font-mono tracking-widest">Input operational directive to initialize fabrication</p>
@@ -215,7 +215,7 @@ const CodeStudio: React.FC = () => {
           <div className="w-[420px] border-l border-[#1f1f1f] bg-[#0a0a0a] flex flex-col shrink-0 relative z-20 shadow-2xl">
                 <div className="p-6 border-b border-[#1f1f1f] flex items-center justify-between bg-white/[0.01] shrink-0">
                     <div className="flex items-center gap-3">
-                        <Activity size={16} className="text-[#22d3ee] animate-pulse" />
+                        <Activity size={16} className="text-[var(--cyan)] animate-pulse" />
                         <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.4em]">Neural Diagnostic</span>
                     </div>
                     {syntaxErrors.length > 0 && <span className="text-[8px] font-black px-2.5 py-1 rounded bg-red-500/10 text-red-500 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.1)]">ALERTS_DETECTED</span>}
@@ -242,8 +242,8 @@ const CodeStudio: React.FC = () => {
                         <div className="h-full flex flex-col items-center justify-center p-10 text-center opacity-30 group grayscale hover:grayscale-0 transition-all duration-1000">
                             <div className="relative">
                                 {/* Fix: Added missing ShieldCheck to imports to resolve "Cannot find name 'ShieldCheck'" error on line 241. */}
-                                <ShieldCheck size={80} className="text-[#10b981] mb-8 group-hover:scale-110 transition-transform duration-700" />
-                                <div className="absolute inset-0 blur-3xl bg-[#10b981]/20 animate-pulse" />
+                                <ShieldCheck size={80} className="text-[var(--plasma-green)] mb-8 group-hover:scale-110 transition-transform duration-700" />
+                                <div className="absolute inset-0 blur-3xl bg-[var(--plasma-green)]/20 animate-pulse" />
                             </div>
                             <p className="text-sm font-black font-mono text-white uppercase tracking-[0.4em]">Lattice Verified</p>
                             <p className="text-[9px] font-mono text-gray-500 mt-3 uppercase tracking-widest leading-relaxed">Zero entropy drift detected.<br/>Buffer structural integrity optimal.</p>
@@ -254,14 +254,14 @@ const CodeStudio: React.FC = () => {
                 <div className="p-8 border-t border-[#1f1f1f] bg-black/60 backdrop-blur-3xl shrink-0">
                     <div className="flex items-center justify-between mb-4 px-1">
                         <span className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em]">Operational Directive</span>
-                        <Zap size={12} className="text-[#9d4edd] animate-pulse" />
+                        <Zap size={12} className="text-[var(--amethyst-soft)] animate-pulse" />
                     </div>
                     <div className="relative group">
-                        <div className="absolute inset-0 bg-[#9d4edd]/5 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
+                        <div className="absolute inset-0 bg-[var(--amethyst-soft)]/5 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity" />
                         <textarea
                             value={codeStudio.prompt}
                             onChange={e => setCodeStudioState({ prompt: e.target.value })}
-                            className="w-full bg-[#0a0a0a] border border-white/5 p-6 rounded-[2.5rem] text-xs font-mono text-gray-300 outline-none h-48 resize-none focus:border-[#9d4edd]/50 transition-all placeholder:text-gray-800 shadow-inner group-hover:border-white/10 relative z-10"
+                            className="w-full bg-[#0a0a0a] border border-white/5 p-6 rounded-[2.5rem] text-xs font-mono text-gray-300 outline-none h-48 resize-none focus:border-[var(--amethyst-soft)]/50 transition-all placeholder:text-gray-800 shadow-inner group-hover:border-white/10 relative z-10"
                             placeholder="Input strategic intent sequence..."
                             data-voice-id="codestudio-prompt-input"
                             aria-label="Code generation prompt"
@@ -275,14 +275,14 @@ const CodeStudio: React.FC = () => {
                         <select 
                             value={codeStudio.model}
                             onChange={(e) => setCodeStudioState({ model: e.target.value })}
-                            className="flex-1 bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-[10px] font-mono text-gray-400 outline-none focus:border-[#9d4edd] transition-all cursor-pointer hover:bg-[#1a1a1a]"
+                            className="flex-1 bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-[10px] font-mono text-gray-400 outline-none focus:border-[var(--amethyst-soft)] transition-all cursor-pointer hover:bg-[#1a1a1a]"
                         >
                             <option value="gemini-2.0-flash">PRO_FORGE_V3</option>
                             <option value="gemini-2.0-flash">FLASH_FORGE_V3</option>
                         </select>
-                        <div className="px-4 py-3 bg-[#10b981]/5 border border-[#10b981]/20 rounded-xl flex items-center gap-3">
-                            <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
-                            <span className="text-[9px] font-mono text-[#10b981] font-black uppercase">STABLE</span>
+                        <div className="px-4 py-3 bg-[var(--plasma-green)]/5 border border-[var(--plasma-green)]/20 rounded-xl flex items-center gap-3">
+                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--plasma-green)] animate-pulse" />
+                            <span className="text-[9px] font-mono text-[var(--plasma-green)] font-black uppercase">STABLE</span>
                         </div>
                     </div>
                 </div>
@@ -291,14 +291,14 @@ const CodeStudio: React.FC = () => {
 
       <div className="h-10 bg-[#0a0a0a] border-t border-[#1f1f1f] px-10 flex items-center justify-between text-[9px] font-mono text-gray-700 shrink-0 relative z-20 uppercase font-black tracking-[0.4em]">
           <div className="flex gap-12 items-center">
-              <div className="flex items-center gap-3 text-[#10b981]">
+              <div className="flex items-center gap-3 text-[var(--plasma-green)]">
                 <CheckCircle2 size={14} className="shadow-[0_0_10px_#10b981]" /> Sync_Stable
               </div>
               <div className="flex items-center gap-3">
-                <GitBranch size={14} className="text-[#9d4edd]" /> Lattice_Active
+                <GitBranch size={14} className="text-[var(--amethyst-soft)]" /> Lattice_Active
               </div>
               <div className="flex items-center gap-3">
-                <Target size={14} className="text-[#22d3ee]" /> Segment: {codeStudio.activeTab}
+                <Target size={14} className="text-[var(--cyan)]" /> Segment: {codeStudio.activeTab}
               </div>
           </div>
           <div className="flex items-center gap-6">

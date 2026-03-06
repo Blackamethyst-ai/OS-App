@@ -353,7 +353,7 @@ const CommandPalette: React.FC = () => {
                         className="w-full max-w-2xl crystalline border border-[var(--border-main)] rounded-[2rem] shadow-[0_60px_150px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col shimmer-edge"
                     >
                         <div className="flex items-center px-8 py-6 border-b border-white/10 bg-white/[0.03]">
-                            <Command className="w-6 h-6 text-[#9d4edd] mr-5 animate-pulse" />
+                            <Command className="w-6 h-6 text-[var(--amethyst-soft)] mr-5 animate-pulse" />
                             <input
                                 ref={inputRef}
                                 type="text"
@@ -364,14 +364,14 @@ const CommandPalette: React.FC = () => {
                                 className="flex-1 bg-transparent border-none outline-none text-white font-mono text-base placeholder:text-gray-600 uppercase tracking-widest"
                                 autoComplete="off"
                             />
-                            {isLoading && <Loader2 size={5} className="w-5 h-5 text-[#9d4edd] animate-spin ml-4" />}
+                            {isLoading && <Loader2 size={5} className="w-5 h-5 text-[var(--amethyst-soft)] animate-spin ml-4" />}
                             <button onClick={() => toggleCommandPalette(false)} className="ml-5 p-2 text-gray-500 hover:text-white transition-colors glass-action rounded-xl"><X className="w-5 h-5" /></button>
                         </div>
 
                         {/* Knowledge Search Results */}
                         {isKnowledgeMode && knowledgeQuery.length > 1 && (
                             <div className="flex flex-col border-b border-white/10">
-                                <div className="px-8 py-3 text-[9px] text-[#18E6FF] font-black font-mono uppercase tracking-[0.4em] flex items-center justify-between bg-[#18E6FF]/5 border-b border-white/10">
+                                <div className="px-8 py-3 text-[9px] text-[var(--cyan)] font-black font-mono uppercase tracking-[0.4em] flex items-center justify-between bg-[var(--cyan)]/5 border-b border-white/10">
                                     <span className="flex items-center gap-3"><Database className="w-4 h-4" /> Knowledge_Base_Search</span>
                                     {isSearching && <Loader2 size={3.5} className="w-3.5 h-3.5 animate-spin" />}
                                 </div>
@@ -383,7 +383,7 @@ const CommandPalette: React.FC = () => {
                                                     {r.content.slice(0, 200)}{r.content.length > 200 ? '...' : ''}
                                                 </div>
                                                 <div className="flex items-center gap-4 text-[9px] font-mono">
-                                                    <span className="px-2 py-0.5 bg-[#9d4edd]/20 text-[#9d4edd] rounded uppercase">{r.category}</span>
+                                                    <span className="px-2 py-0.5 bg-[var(--amethyst-soft)]/20 text-[var(--amethyst-soft)] rounded uppercase">{r.category}</span>
                                                     <span className="text-gray-500">{Math.round(r.similarity * 100)}% match</span>
                                                     {r.tags?.length > 0 && (
                                                         <span className="text-gray-600">{r.tags.slice(0, 3).join(', ')}</span>
@@ -404,7 +404,7 @@ const CommandPalette: React.FC = () => {
                             <div className="flex flex-col">
                                 {(aiSuggestions.length > 0 || isPredicting) && (
                                     <div className="bg-black/20">
-                                        <div className="px-8 py-3 text-[9px] text-[#9d4edd] font-black font-mono uppercase tracking-[0.4em] flex items-center justify-between border-b border-white/10 bg-white/[0.05]">
+                                        <div className="px-8 py-3 text-[9px] text-[var(--amethyst-soft)] font-black font-mono uppercase tracking-[0.4em] flex items-center justify-between border-b border-white/10 bg-white/[0.05]">
                                             <span className="flex items-center gap-3"><BrainCircuit className="w-4 h-4" /> Predicted_Contextual_Signals</span>
                                             {isPredicting && <Loader2 size={3.5} className="w-3.5 h-3.5 animate-spin" />}
                                         </div>
@@ -414,12 +414,12 @@ const CommandPalette: React.FC = () => {
                                                 const Icon = getIcon(s.iconName);
                                                 return (
                                                     <button key={s.id} onClick={() => { setInput(s.command); inputRef.current?.focus(); }} className="w-full flex items-center px-8 py-5 hover:bg-white/[0.08] text-gray-400 hover:text-white transition-all group border-b border-white/5 last:border-0">
-                                                        <div className="w-10 h-10 flex items-center justify-center rounded-2xl glass-action text-gray-500 border-white/10 mr-5 transition-all group-hover:bg-[#9d4edd] group-hover:text-black group-hover:border-[#9d4edd] shadow-lg"><Icon className="w-5 h-5" /></div>
+                                                        <div className="w-10 h-10 flex items-center justify-center rounded-2xl glass-action text-gray-500 border-white/10 mr-5 transition-all group-hover:bg-[var(--amethyst-soft)] group-hover:text-black group-hover:border-[var(--amethyst-soft)] shadow-lg"><Icon className="w-5 h-5" /></div>
                                                         <div className="flex-1 text-left min-w-0">
                                                             <div className="text-[11px] font-black font-mono group-hover:text-white uppercase tracking-wider">{s.label}</div>
                                                             <div className="text-[9px] text-gray-600 font-mono truncate lowercase opacity-60 mt-0.5">protocol.exec::{s.reasoning}</div>
                                                         </div>
-                                                        <span className="text-[9px] font-mono text-[#9d4edd] opacity-0 group-hover:opacity-100 transition-all flex items-center gap-2 uppercase tracking-widest font-black">Invoke <ChevronRight className="w-3 h-3" /></span>
+                                                        <span className="text-[9px] font-mono text-[var(--amethyst-soft)] opacity-0 group-hover:opacity-100 transition-all flex items-center gap-2 uppercase tracking-widest font-black">Invoke <ChevronRight className="w-3 h-3" /></span>
                                                     </button>
                                                 );
                                             })}
@@ -432,7 +432,7 @@ const CommandPalette: React.FC = () => {
                                     <div className="grid grid-cols-2 max-h-[200px] overflow-y-auto custom-scrollbar">
                                         {staticSuggestions.map((s) => (
                                             <button key={s.id} onClick={() => { setInput(s.command); inputRef.current?.focus(); }} className="flex items-center px-8 py-4 hover:bg-white/[0.05] text-gray-500 hover:text-white transition-all group border-b border-r border-white/5">
-                                                <div className="w-8 h-8 flex items-center justify-center rounded-xl glass-action text-gray-600 group-hover:text-[#9d4edd] mr-4 transition-all border-white/10 group-hover:border-[#9d4edd]/40"><s.icon size={14} /></div>
+                                                <div className="w-8 h-8 flex items-center justify-center rounded-xl glass-action text-gray-600 group-hover:text-[var(--amethyst-soft)] mr-4 transition-all border-white/10 group-hover:border-[var(--amethyst-soft)]/40"><s.icon size={14} /></div>
                                                 <span className="text-[10px] font-mono font-black uppercase tracking-widest flex-1 text-left">{s.label}</span>
                                             </button>
                                         ))}
@@ -443,18 +443,18 @@ const CommandPalette: React.FC = () => {
 
                         <div className="bg-white/[0.02] p-4 px-8 text-[9px] text-gray-600 font-black font-mono border-t border-white/10 flex justify-between items-center">
                             <div className="flex items-center gap-8">
-                                <span className="flex items-center gap-2 group cursor-help hover:text-[#18E6FF] transition-colors" title="Type ? to search knowledge"><Database size={12} /> ?KNOW</span>
+                                <span className="flex items-center gap-2 group cursor-help hover:text-[var(--cyan)] transition-colors" title="Type ? to search knowledge"><Database size={12} /> ?KNOW</span>
                                 <span className="flex items-center gap-2 group cursor-help hover:text-white transition-colors"><History size={12} /> CACHED</span>
                                 <span className="flex items-center gap-2 group cursor-help hover:text-white transition-colors"><Palette size={12} /> SKINS</span>
                             </div>
                             <div className="flex items-center gap-4">
                                 <span className="px-2 py-1 glass-action rounded-lg uppercase text-[8px] border-white/10">Esc: Sever</span>
-                                <span className="px-2 py-1 bg-[#9d4edd]/20 text-[#9d4edd] rounded-lg uppercase text-[8px] border border-[#9d4edd]/30">Enter: Commit</span>
+                                <span className="px-2 py-1 bg-[var(--amethyst-soft)]/20 text-[var(--amethyst-soft)] rounded-lg uppercase text-[8px] border border-[var(--amethyst-soft)]/30">Enter: Commit</span>
                             </div>
                         </div>
 
                         {result && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-8 py-5 bg-[#9d4edd]/15 border-t border-[#9d4edd]/40 text-[#9d4edd] text-[11px] font-black font-mono uppercase tracking-widest flex items-center">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-8 py-5 bg-[var(--amethyst-soft)]/15 border-t border-[var(--amethyst-soft)]/40 text-[var(--amethyst-soft)] text-[11px] font-black font-mono uppercase tracking-widest flex items-center">
                                 <Sparkles className="w-5 h-5 mr-4 animate-pulse" />
                                 {result}
                             </motion.div>

@@ -82,7 +82,7 @@ const HolographicCommandDeck: React.FC = () => {
                 <motion.div 
                     animate={{ opacity: [0.1, 0.3, 0.1], scale: [1, 1.1, 1] }}
                     transition={{ duration: 5, repeat: Infinity }}
-                    className="absolute inset-x-0 -bottom-20 h-64 bg-gradient-to-t from-[#7B2CFF]/20 via-transparent to-transparent blur-[100px] rounded-full opacity-0 group-hover/deck:opacity-100 transition-opacity"
+                    className="absolute inset-x-0 -bottom-20 h-64 bg-gradient-to-t from-[var(--amethyst)]/20 via-transparent to-transparent blur-[100px] rounded-full opacity-0 group-hover/deck:opacity-100 transition-opacity"
                 />
 
                 <div className="crystalline px-10 py-4 rounded-[4rem] flex items-center gap-8 shadow-[0_60px_150px_rgba(0,0,0,1)] border border-white/10 relative overflow-hidden group-hover/deck:border-white/20 transition-all glass-refraction">
@@ -91,13 +91,13 @@ const HolographicCommandDeck: React.FC = () => {
                     {/* Stress Gauge HUD (Visual Innovation) */}
                     <div className="flex flex-col items-center gap-3 px-6 border-r border-white/5 mr-2">
                          <div className="flex items-center gap-3 text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest">
-                            <Gauge size={12} className="text-[#18E6FF]" />
+                            <Gauge size={12} className="text-[var(--cyan)]" />
                             <span>Neural_Load</span>
                          </div>
                          <div className="w-20 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5 shadow-inner">
                             <motion.div 
                                 animate={{ width: `${stress}%` }}
-                                className={cn("h-full transition-colors duration-1000", stress > 30 ? "bg-[#ef4444]" : "bg-[#18E6FF]")} 
+                                className={cn("h-full transition-colors duration-1000", stress > 30 ? "bg-[#ef4444]" : "bg-[var(--cyan)]")} 
                             />
                          </div>
                     </div>
@@ -138,7 +138,7 @@ const HolographicCommandDeck: React.FC = () => {
                     
                     <div className="flex flex-col items-center gap-3 px-6 border-l border-white/5 ml-2">
                          <div className="flex items-center gap-3 text-[8px] font-black font-mono text-gray-500 uppercase tracking-widest">
-                            <Fingerprint size={12} className="text-[#9d4edd]" />
+                            <Fingerprint size={12} className="text-[var(--amethyst-soft)]" />
                             <span>Auth_Token</span>
                          </div>
                          <span className="text-[10px] font-mono text-gray-400 font-bold tracking-tighter">0xFD2..9A</span>

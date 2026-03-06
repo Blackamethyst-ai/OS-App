@@ -42,13 +42,13 @@ const ResearchTray: React.FC = () => {
                     className="h-14 flex items-center justify-between px-6 bg-[#111] hover:bg-[#1a1a1a] cursor-pointer transition-all border-b border-white/5 relative shrink-0"
                 >
                     <div className="flex items-center gap-4">
-                        <div className={`p-2 rounded-lg border transition-all ${activeTasks.length > 0 ? 'bg-[#9d4edd]/20 text-[#9d4edd] border-[#9d4edd]/30 animate-pulse' : 'bg-white/5 border-transparent text-gray-600'}`}>
+                        <div className={`p-2 rounded-lg border transition-all ${activeTasks.length > 0 ? 'bg-[var(--amethyst-soft)]/20 text-[var(--amethyst-soft)] border-[var(--amethyst-soft)]/30 animate-pulse' : 'bg-white/5 border-transparent text-gray-600'}`}>
                             <BrainCircuit className="w-4 h-4" />
                         </div>
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black font-mono text-white uppercase tracking-[0.2em]">Research Swarm</span>
                             <div className="flex items-center gap-2 mt-0.5">
-                                <div className={`w-1.5 h-1.5 rounded-full ${activeTasks.length > 0 ? 'bg-[#10b981]' : 'bg-gray-800'}`} />
+                                <div className={`w-1.5 h-1.5 rounded-full ${activeTasks.length > 0 ? 'bg-[var(--plasma-green)]' : 'bg-gray-800'}`} />
                                 <span className="text-[7px] text-gray-500 font-mono uppercase tracking-widest">{activeTasks.length} Operations Active</span>
                             </div>
                         </div>
@@ -65,13 +65,13 @@ const ResearchTray: React.FC = () => {
                                         <div className="absolute top-0 right-0 p-4 opacity-[0.02] group-hover/task:opacity-[0.05] transition-opacity rotate-12"><Target size={60} /></div>
                                         <div className="flex justify-between items-start mb-3 relative z-10">
                                             <span className="text-[11px] font-black text-white truncate max-w-[260px] flex items-center gap-3 uppercase font-mono leading-none">
-                                                {task.status === 'SWARM_VERIFY' ? <GitBranch className="w-4 h-4 text-[#f59e0b] animate-pulse" /> : <Loader2 className="w-4 h-4 text-[#9d4edd] animate-spin" />}
+                                                {task.status === 'SWARM_VERIFY' ? <GitBranch className="w-4 h-4 text-[var(--amber)] animate-pulse" /> : <Loader2 className="w-4 h-4 text-[var(--amethyst-soft)] animate-spin" />}
                                                 {task.query}
                                             </span>
                                             <button onClick={() => { cancelResearchTask(task.id); audio.playError(); }} className="p-1.5 text-gray-700 hover:text-red-500 transition-colors bg-white/5 rounded-lg" aria-label="Cancel research task"><Square size={12} fill="currentColor" /></button>
                                         </div>
                                         <div className="w-full bg-[#111] h-1 rounded-full overflow-hidden mb-3 shadow-inner">
-                                            <motion.div initial={{ width: 0 }} animate={{ width: `${task.progress}%` }} className="h-full bg-gradient-to-r from-[#9d4edd] to-[#22d3ee] shadow-[0_0_10px_#9d4edd]" />
+                                            <motion.div initial={{ width: 0 }} animate={{ width: `${task.progress}%` }} className="h-full bg-gradient-to-r from-[var(--amethyst-soft)] to-[#22d3ee] shadow-[0_0_10px_#9d4edd]" />
                                         </div>
                                         <div className="flex items-center gap-2 relative z-10">
                                             <Activity size={10} className="text-gray-700" />
@@ -83,13 +83,13 @@ const ResearchTray: React.FC = () => {
                                 ))}
                                 
                                 {completedTasks.map(task => (
-                                    <div key={task.id} className={`bg-[#080808] border rounded-2xl transition-all duration-500 ${selectedTaskId === task.id ? 'border-[#9d4edd]/40 bg-[#9d4edd]/5' : 'border-white/5 opacity-70 hover:opacity-100 hover:border-white/10'}`}>
+                                    <div key={task.id} className={`bg-[#080808] border rounded-2xl transition-all duration-500 ${selectedTaskId === task.id ? 'border-[var(--amethyst-soft)]/40 bg-[var(--amethyst-soft)]/5' : 'border-white/5 opacity-70 hover:opacity-100 hover:border-white/10'}`}>
                                         <div className="p-4 flex justify-between items-center cursor-pointer" onClick={() => { setSelectedTaskId(selectedTaskId === task.id ? null : task.id); audio.playClick(); }}>
                                             <div className="flex items-center gap-3 min-w-0">
-                                                <div className="p-2 bg-[#10b981]/10 rounded-lg"><CheckCircle2 size={16} className="text-[#10b981]" /></div>
+                                                <div className="p-2 bg-[var(--plasma-green)]/10 rounded-lg"><CheckCircle2 size={16} className="text-[var(--plasma-green)]" /></div>
                                                 <span className="text-[10px] font-black text-gray-300 truncate uppercase font-mono tracking-widest">{task.query}</span>
                                             </div>
-                                            <ChevronRight size={14} className={`text-gray-700 transition-transform duration-500 ${selectedTaskId === task.id ? 'rotate-90 text-[#9d4edd]' : ''}`} />
+                                            <ChevronRight size={14} className={`text-gray-700 transition-transform duration-500 ${selectedTaskId === task.id ? 'rotate-90 text-[var(--amethyst-soft)]' : ''}`} />
                                         </div>
                                         
                                         <AnimatePresence>
@@ -97,18 +97,18 @@ const ResearchTray: React.FC = () => {
                                                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="px-4 pb-4 space-y-3 overflow-hidden">
                                                     <div className="h-px bg-white/5 mb-3" />
                                                     <div className="flex items-center gap-2 px-1 mb-2">
-                                                        <Zap size={10} className="text-[#f59e0b]" />
+                                                        <Zap size={10} className="text-[var(--amber)]" />
                                                         <span className="text-[8px] font-black text-gray-600 uppercase tracking-[0.2em]">Crystallized intelligence</span>
                                                     </div>
                                                     {task.findings.slice(0, 3).map((f: any, i: number) => (
                                                         <button 
                                                             key={i} 
                                                             onClick={() => handleBranch(f.fact, task.id)} 
-                                                            className="w-full text-left p-3.5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-[#9d4edd]/30 transition-all group relative overflow-hidden"
+                                                            className="w-full text-left p-3.5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-[var(--amethyst-soft)]/30 transition-all group relative overflow-hidden"
                                                         >
-                                                            <div className="absolute inset-0 bg-gradient-to-r from-[#9d4edd]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                            <div className="absolute inset-0 bg-gradient-to-r from-[var(--amethyst-soft)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                                             <p className="text-[10px] text-gray-400 font-mono leading-relaxed group-hover:text-white transition-colors relative z-10 line-clamp-2">"{f.fact || 'Discrete logic finding recorded.'}"</p>
-                                                            <div className="mt-2 text-[7px] text-[#9d4edd] opacity-0 group-hover:opacity-100 flex items-center gap-2 font-black uppercase tracking-[0.3em] transition-all relative z-10">
+                                                            <div className="mt-2 text-[7px] text-[var(--amethyst-soft)] opacity-0 group-hover:opacity-100 flex items-center gap-2 font-black uppercase tracking-[0.3em] transition-all relative z-10">
                                                                 <Split size={10} className="animate-pulse" /> Sprout Mission Vector
                                                             </div>
                                                         </button>

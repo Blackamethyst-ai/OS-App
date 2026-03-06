@@ -62,12 +62,12 @@ const SystemTerminal: React.FC = () => {
                     style={tiltStyle}
                     className={cn(
                         "fixed top-0 left-0 right-0 h-96 bg-[#050505]/95 backdrop-blur-md border-b z-[9999] shadow-2xl font-mono text-xs flex flex-col transition-all duration-700 crystalline",
-                        isBeingInspected ? "border-[#22d3ee] shadow-[0_0_40px_rgba(34,211,238,0.3)]" : "border-[#9d4edd]"
+                        isBeingInspected ? "border-[var(--cyan)] shadow-[0_0_40px_rgba(34,211,238,0.3)]" : "border-[var(--amethyst-soft)]"
                     )}
                 >
                     {/* Header */}
                     <div className="h-8 bg-[#111] border-b border-[#333] flex items-center justify-between px-4 shrink-0 relative overflow-hidden">
-                        <div className="flex items-center gap-2 text-[#9d4edd] relative z-10">
+                        <div className="flex items-center gap-2 text-[var(--amethyst-soft)] relative z-10">
                             <Terminal className="w-4 h-4" />
                             <span className="uppercase tracking-widest font-bold">System Mind // ROOT ACCESS</span>
                         </div>
@@ -77,7 +77,7 @@ const SystemTerminal: React.FC = () => {
                                 initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                                 className="absolute inset-0 flex items-center justify-center pointer-events-none"
                             >
-                                <div className="flex items-center gap-3 px-4 py-0.5 bg-[#22d3ee] text-black rounded-full shadow-[0_0_15px_#22d3ee]">
+                                <div className="flex items-center gap-3 px-4 py-0.5 bg-[var(--cyan)] text-black rounded-full shadow-[0_0_15px_#22d3ee]">
                                     <Scan size={10} className="animate-pulse" />
                                     <span className="text-[8px] font-black uppercase tracking-[0.3em]">ROOT_DIAGNOSTIC_ACTIVE</span>
                                 </div>
@@ -90,7 +90,7 @@ const SystemTerminal: React.FC = () => {
                     {/* Process Monitor (HTOP Style) */}
                     <div className="bg-[#0a0a0a] border-b border-[#333] p-2 flex gap-4 shrink-0 overflow-x-auto">
                         {/* Voice Core Status */}
-                        <div className={`flex items-center gap-2 px-3 py-1 rounded border ${voice.isActive ? 'border-[#22d3ee]/50 bg-[#22d3ee]/10 text-[#22d3ee]' : 'border-[#333] text-gray-500'}`}>
+                        <div className={`flex items-center gap-2 px-3 py-1 rounded border ${voice.isActive ? 'border-[var(--cyan)]/50 bg-[var(--cyan)]/10 text-[var(--cyan)]' : 'border-[#333] text-gray-500'}`}>
                             <Radio className={`w-3 h-3 ${voice.isActive ? 'animate-pulse' : ''}`} />
                             <span className="font-bold">VOICE_CORE: {voice.isActive ? 'ONLINE' : 'STANDBY'}</span>
                         </div>
@@ -98,7 +98,7 @@ const SystemTerminal: React.FC = () => {
                         {/* Research Agents */}
                         {activeResearch.length > 0 ? (
                             activeResearch.map(task => (
-                                <div key={task.id} className="flex items-center gap-2 px-3 py-1 rounded border border-[#9d4edd]/50 bg-[#9d4edd]/10 text-[#9d4edd]">
+                                <div key={task.id} className="flex items-center gap-2 px-3 py-1 rounded border border-[var(--amethyst-soft)]/50 bg-[var(--amethyst-soft)]/10 text-[var(--amethyst-soft)]">
                                     <BrainCircuit className="w-3 h-3 animate-spin" />
                                     <span className="font-bold truncate max-w-[150px]">RSRCH: {task.query}</span>
                                     <span className="text-[9px] opacity-70">{task.progress}%</span>
@@ -113,7 +113,7 @@ const SystemTerminal: React.FC = () => {
 
                         {/* Swarm Engine */}
                         {isSwarming && (
-                            <div className="flex items-center gap-2 px-3 py-1 rounded border border-[#f59e0b]/50 bg-[#f59e0b]/10 text-[#f59e0b]">
+                            <div className="flex items-center gap-2 px-3 py-1 rounded border border-[var(--amber)]/50 bg-[var(--amber)]/10 text-[var(--amber)]">
                                 <GitBranch className="w-3 h-3 animate-pulse" />
                                 <span className="font-bold">SWARM: ACTIVE</span>
                             </div>
@@ -145,7 +145,7 @@ const SystemTerminal: React.FC = () => {
                                     log.level === 'ERROR' ? 'text-red-500' : 
                                     log.level === 'WARN' ? 'text-yellow-500' : 
                                     log.level === 'SUCCESS' ? 'text-[#42be65]' :
-                                    log.level === 'SYSTEM' ? 'text-[#9d4edd]' : 'text-blue-400'
+                                    log.level === 'SYSTEM' ? 'text-[var(--amethyst-soft)]' : 'text-blue-400'
                                 }`}>{log.level}</span>
                                 <span className="text-gray-500">::</span>
                                 <span className={`break-all ${log.level === 'ERROR' ? 'text-red-300' : 'text-gray-300'}`}>
@@ -158,7 +158,7 @@ const SystemTerminal: React.FC = () => {
 
                     {/* Input */}
                     <div className="h-10 border-t border-[#333] flex items-center px-4 gap-2 bg-black">
-                        <span className="text-[#9d4edd] font-bold animate-pulse">$</span>
+                        <span className="text-[var(--amethyst-soft)] font-bold animate-pulse">$</span>
                         <input 
                             type="text" 
                             value={cmd}
@@ -223,7 +223,7 @@ const QuantumDock: React.FC = () => {
                         </AnimatePresence>
 
                         {/* Icon */}
-                        <div className="w-12 h-12 rounded-xl bg-[#1f1f1f] border border-[#333] group-hover:border-[#9d4edd] flex items-center justify-center shadow-lg transition-colors relative overflow-hidden">
+                        <div className="w-12 h-12 rounded-xl bg-[#1f1f1f] border border-[#333] group-hover:border-[var(--amethyst-soft)] flex items-center justify-center shadow-lg transition-colors relative overflow-hidden">
                             <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                             {getIcon(item.type)}
                         </div>

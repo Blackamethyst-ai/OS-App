@@ -74,7 +74,7 @@ const TaskBoard: React.FC = () => {
             <div className="flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-4">
                     <h2 className="text-sm font-black font-mono text-white uppercase tracking-[0.3em] flex items-center gap-2">
-                        <ListTodo className="w-5 h-5 text-[#9d4edd]" /> Operational Backlog
+                        <ListTodo className="w-5 h-5 text-[var(--amethyst-soft)]" /> Operational Backlog
                     </h2>
                     <div className="h-4 w-px bg-white/10" />
                     <div className="flex items-center gap-2">
@@ -94,17 +94,17 @@ const TaskBoard: React.FC = () => {
                         </select>
                     </div>
                 </div>
-                <button onClick={() => setIsCreating(true)} className="px-4 py-2 bg-[#9d4edd] text-black text-[10px] font-black uppercase rounded-lg hover:bg-[#b06bf7] transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(157,78,221,0.3)]">
+                <button onClick={() => setIsCreating(true)} className="px-4 py-2 bg-[var(--amethyst-soft)] text-black text-[10px] font-black uppercase rounded-lg hover:bg-[#b06bf7] transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(157,78,221,0.3)]">
                     <Plus size={14} /> New Protocol
                 </button>
             </div>
 
             {isCreating && (
-                <motion.form initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} onSubmit={handleCreate} className="bg-[#0a0a0a] border border-[#9d4edd]/30 p-4 rounded-xl flex gap-4">
-                    <input autoFocus value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} className="flex-1 bg-black border border-[#333] px-4 py-2 rounded-lg text-xs font-mono text-white outline-none focus:border-[#9d4edd]" placeholder="Enter task title..." />
+                <motion.form initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} onSubmit={handleCreate} className="bg-[#0a0a0a] border border-[var(--amethyst-soft)]/30 p-4 rounded-xl flex gap-4">
+                    <input autoFocus value={newTaskTitle} onChange={e => setNewTaskTitle(e.target.value)} className="flex-1 bg-black border border-[#333] px-4 py-2 rounded-lg text-xs font-mono text-white outline-none focus:border-[var(--amethyst-soft)]" placeholder="Enter task title..." />
                     <div className="flex gap-2">
                         <button type="button" onClick={() => setIsCreating(false)} className="px-4 py-2 text-gray-500 hover:text-white uppercase text-[9px] font-black">Cancel</button>
-                        <button type="submit" className="px-6 py-2 bg-[#9d4edd] text-black rounded-lg uppercase text-[9px] font-black">Add</button>
+                        <button type="submit" className="px-6 py-2 bg-[var(--amethyst-soft)] text-black rounded-lg uppercase text-[9px] font-black">Add</button>
                     </div>
                 </motion.form>
             )}
@@ -165,13 +165,13 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
                     <div className="flex items-center gap-2">
                         <span className="text-[8px] font-black font-mono px-1.5 py-0.5 rounded border border-white/5 bg-black/50" style={{ color: PRIORITY_COLORS[task.priority] }}>{task.priority}</span>
                         <div className="flex items-center gap-1">
-                            {isDone && <CheckCircle2 size={10} className="text-[#10b981]" />}
-                            <span className={`text-[8px] font-mono uppercase ${isDone ? 'text-[#10b981]' : 'text-gray-600'}`}>{STATUS_LABELS[task.status]}</span>
+                            {isDone && <CheckCircle2 size={10} className="text-[var(--plasma-green)]" />}
+                            <span className={`text-[8px] font-mono uppercase ${isDone ? 'text-[var(--plasma-green)]' : 'text-gray-600'}`}>{STATUS_LABELS[task.status]}</span>
                         </div>
                     </div>
                 </div>
                 <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={handleAIBreakdown} title="AI Decompose" disabled={isBreakingDown} className="p-1.5 hover:bg-[#9d4edd]/10 rounded text-gray-500 hover:text-[#9d4edd] transition-all">
+                    <button onClick={handleAIBreakdown} title="AI Decompose" disabled={isBreakingDown} className="p-1.5 hover:bg-[var(--amethyst-soft)]/10 rounded text-gray-500 hover:text-[var(--amethyst-soft)] transition-all">
                         {isBreakingDown ? <Loader2 size={12} className="animate-spin" /> : <Sparkles size={12} />}
                     </button>
                     <button onClick={() => deleteTask(task.id)} title="Delete" className="p-1.5 hover:bg-red-500/10 rounded text-gray-700 hover:text-red-500">
@@ -197,16 +197,16 @@ const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
                             }}
                             className="w-full flex items-center gap-2.5 text-[9px] font-mono group/sub text-left hover:bg-white/5 p-1 rounded transition-colors"
                         >
-                            <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${s.completed ? 'bg-[#10b981] border-[#10b981] shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'border-gray-800 bg-black'}`}>
+                            <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center transition-all ${s.completed ? 'bg-[var(--plasma-green)] border-[var(--plasma-green)] shadow-[0_0_8px_rgba(16,185,129,0.4)]' : 'border-gray-800 bg-black'}`}>
                                 {s.completed && <Check size={8} className="text-black font-black" />}
                             </div>
-                            <span className={`flex-1 transition-all ${s.completed ? 'line-through opacity-30 text-[#10b981]' : 'text-gray-400 group-hover/sub:text-gray-200'}`}>{s.title}</span>
+                            <span className={`flex-1 transition-all ${s.completed ? 'line-through opacity-30 text-[var(--plasma-green)]' : 'text-gray-400 group-hover/sub:text-gray-200'}`}>{s.title}</span>
                         </button>
                     ))}
                 </div>
             )}
 
-            <button onClick={toggleStatus} className={`mt-2 w-full py-1.5 rounded-lg border text-[9px] font-black uppercase transition-all ${isDone ? 'bg-transparent border-[#333] text-gray-600 hover:text-white' : 'bg-[#111] border-[#333] text-[#9d4edd] hover:bg-[#9d4edd] hover:text-black'}`}>
+            <button onClick={toggleStatus} className={`mt-2 w-full py-1.5 rounded-lg border text-[9px] font-black uppercase transition-all ${isDone ? 'bg-transparent border-[#333] text-gray-600 hover:text-white' : 'bg-[#111] border-[#333] text-[var(--amethyst-soft)] hover:bg-[var(--amethyst-soft)] hover:text-black'}`}>
                 {isDone ? 'Re-Open Protocol' : 'Complete Cycle'}
             </button>
         </motion.div>

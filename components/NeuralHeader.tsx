@@ -11,7 +11,7 @@ const NeuralHeader: React.FC = () => {
         <motion.div
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="relative cursor-pointer group flex items-center justify-center bg-black/40 rounded-xl border border-white/5 hover:border-[#9d4edd]/50 transition-all shadow-inner px-3 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d4edd] focus-visible:outline-offset-2"
+            className="relative cursor-pointer group flex items-center justify-center bg-black/40 rounded-xl border border-white/5 hover:border-[var(--amethyst-soft)]/50 transition-all shadow-inner px-3 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#9d4edd] focus-visible:outline-offset-2"
             role="button"
             tabIndex={0}
             aria-label="Toggle terminal"
@@ -19,7 +19,7 @@ const NeuralHeader: React.FC = () => {
             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleTerminal(); } }}
         >
             <MetaventionsLogo size={28} />
-            <div className="absolute inset-0 rounded-xl bg-[#9d4edd]/5 opacity-0 group-hover:opacity-100 transition-opacity blur-md" />
+            <div className="absolute inset-0 rounded-xl bg-[var(--amethyst-soft)]/5 opacity-0 group-hover:opacity-100 transition-opacity blur-md" />
         </motion.div>
     );
 };

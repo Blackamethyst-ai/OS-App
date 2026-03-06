@@ -272,11 +272,11 @@ const AgentControlCenter: React.FC = () => {
 
             {/* Command Header */}
             <div className="h-20 border-b border-white/5 bg-black/40 backdrop-blur-3xl z-40 flex items-center justify-between px-10 shrink-0 relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[#9d4edd]/50 to-transparent" />
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--amethyst-soft)]/50 to-transparent" />
                 <div className="flex items-center gap-12">
                     <div className="flex items-center gap-4">
-                        <div className="p-3 bg-[#9d4edd]/10 border border-[#9d4edd]/40 rounded-2xl shadow-xl">
-                            <BrainCircuit className="w-5 h-5 text-[#9d4edd]" />
+                        <div className="p-3 bg-[var(--amethyst-soft)]/10 border border-[var(--amethyst-soft)]/40 rounded-2xl shadow-xl">
+                            <BrainCircuit className="w-5 h-5 text-[var(--amethyst-soft)]" />
                         </div>
                         <div>
                             <h1 className="text-sm font-black text-white uppercase tracking-[0.5em] leading-none">Swarm Hub</h1>
@@ -298,7 +298,7 @@ const AgentControlCenter: React.FC = () => {
                                 onClick={() => { setViewMode(tab.id as any); audio.playClick(); }}
                                 className={cn(
                                     "px-5 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all",
-                                    viewMode === tab.id ? "bg-[#9d4edd] text-black shadow-lg shadow-[#9d4edd]/30" : "text-gray-600 hover:text-gray-300"
+                                    viewMode === tab.id ? "bg-[var(--amethyst-soft)] text-black shadow-lg shadow-[#9d4edd]/30" : "text-gray-600 hover:text-gray-300"
                                 )}
                             >
                                 <tab.icon size={12} className={viewMode === tab.id ? 'fill-current' : ''} /> {tab.label}
@@ -314,8 +314,8 @@ const AgentControlCenter: React.FC = () => {
                         className={cn(
                             "px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2.5 transition-all border",
                             isKnowledgePanelOpen
-                                ? "bg-[#18E6FF]/20 text-[#18E6FF] border-[#18E6FF]/40 shadow-[0_0_20px_rgba(24,230,255,0.2)]"
-                                : "bg-black/40 border-white/10 text-gray-500 hover:text-[#18E6FF] hover:border-[#18E6FF]/30"
+                                ? "bg-[var(--cyan)]/20 text-[var(--cyan)] border-[var(--cyan)]/40 shadow-[0_0_20px_rgba(24,230,255,0.2)]"
+                                : "bg-black/40 border-white/10 text-gray-500 hover:text-[var(--cyan)] hover:border-[var(--cyan)]/30"
                         )}
                     >
                         <BookOpen size={14} className={isKnowledgePanelOpen ? 'fill-current' : ''} />
@@ -332,7 +332,7 @@ const AgentControlCenter: React.FC = () => {
                         className={cn(
                             "flex items-center gap-3 px-4 py-2 rounded-xl border transition-all active:scale-95",
                             preferences.autonomyEnabled
-                                ? "bg-[#10b981]/10 border-[#10b981]/40 text-[#10b981] shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                                ? "bg-[var(--plasma-green)]/10 border-[var(--plasma-green)]/40 text-[var(--plasma-green)] shadow-[0_0_20px_rgba(16,185,129,0.2)]"
                                 : "bg-black/40 border-white/10 text-gray-500 hover:text-white hover:bg-white/5"
                         )}
                     >
@@ -354,7 +354,7 @@ const AgentControlCenter: React.FC = () => {
                         className={cn(
                             "flex items-center gap-3 px-4 py-2 rounded-xl border transition-all active:scale-95",
                             isVoiceEnabled
-                                ? "bg-[#9d4edd]/10 border-[#9d4edd]/40 text-[#9d4edd] shadow-[0_0_20px_rgba(157,78,221,0.2)]"
+                                ? "bg-[var(--amethyst-soft)]/10 border-[var(--amethyst-soft)]/40 text-[var(--amethyst-soft)] shadow-[0_0_20px_rgba(157,78,221,0.2)]"
                                 : "bg-black/40 border-white/10 text-gray-500 hover:text-white hover:bg-white/5"
                         )}
                         title={apiKeyService.getKey('eleven_labs') ? "Toggle Neural Voice" : "Configure ElevenLabs"}
@@ -373,7 +373,7 @@ const AgentControlCenter: React.FC = () => {
                         <span className="text-[9px] font-mono text-gray-600 uppercase tracking-widest block mb-1">Swarm_Sync_Status</span>
                         <div className="flex items-center gap-4">
                             <span className="text-xl font-black font-mono text-white tracking-tighter">98.4%</span>
-                            <div className="w-2 h-2 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_12px_#10b981]" />
+                            <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_12px_#10b981]" />
                         </div>
                     </div>
                 </div>
@@ -406,26 +406,26 @@ const AgentControlCenter: React.FC = () => {
                                     <div className="flex items-center gap-6 relative z-10">
                                         <div className="relative">
                                             <div className="w-14 h-14 rounded-[2rem] border border-white/10 flex items-center justify-center bg-black/40 relative overflow-hidden group/avatar shadow-2xl p-1">
-                                                <Bot size={32} className="text-[#9d4edd] group-hover/avatar:scale-110 transition-transform duration-1000" />
-                                                <div className="absolute inset-0 bg-gradient-to-tr from-[#9d4edd]/20 to-transparent opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
+                                                <Bot size={32} className="text-[var(--amethyst-soft)] group-hover/avatar:scale-110 transition-transform duration-1000" />
+                                                <div className="absolute inset-0 bg-gradient-to-tr from-[var(--amethyst-soft)]/20 to-transparent opacity-0 group-hover/avatar:opacity-100 transition-opacity" />
                                             </div>
                                             <motion.div
                                                 animate={{ scale: [1, 1.2, 1], opacity: [1, 0.5, 1] }}
                                                 transition={{ duration: 2, repeat: Infinity }}
                                                 className="absolute -bottom-0.5 -right-0.5 w-6 h-6 bg-[#0a0a0a] border border-white/10 rounded-full flex items-center justify-center shadow-2xl"
                                             >
-                                                <div className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_12px_#10b981]" />
+                                                <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] shadow-[0_0_12px_#10b981]" />
                                             </motion.div>
                                         </div>
                                         <div className="space-y-1">
                                             <h2 className="text-lg font-black text-white uppercase tracking-[0.2em] leading-none font-mono">{activeAgent.name}_Mind_v4</h2>
                                             <div className="flex items-center gap-6">
                                                 <div className="flex items-center gap-2">
-                                                    <Target size={12} className="text-[#9d4edd]" />
+                                                    <Target size={12} className="text-[var(--amethyst-soft)]" />
                                                     <span className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">{activeAgent.context}</span>
                                                 </div>
                                                 <div className="h-3 w-px bg-white/10" />
-                                                <div className="flex items-center gap-2 text-[#10b981]">
+                                                <div className="flex items-center gap-2 text-[var(--plasma-green)]">
                                                     <ShieldCheck size={12} />
                                                     <span className="text-[9px] font-mono font-black uppercase tracking-widest">Enclave_Attested_L0</span>
                                                 </div>
@@ -472,8 +472,8 @@ const AgentControlCenter: React.FC = () => {
                                             <RelationalMemory history={activeAgent.memoryBuffer} />
                                             {activeAgent.status === 'THINKING' && (
                                                 <div className="mt-12 p-10 flex flex-col items-center gap-8 opacity-60">
-                                                    <Loader2 className="w-12 h-12 animate-spin text-[#9d4edd]" />
-                                                    <span className="text-xs font-mono uppercase tracking-[0.6em] animate-pulse text-[#9d4edd] font-black uppercase">Crystallizing Neural Logic...</span>
+                                                    <Loader2 className="w-12 h-12 animate-spin text-[var(--amethyst-soft)]" />
+                                                    <span className="text-xs font-mono uppercase tracking-[0.6em] animate-pulse text-[var(--amethyst-soft)] font-black uppercase">Crystallizing Neural Logic...</span>
                                                 </div>
                                             )}
                                         </div>
@@ -492,12 +492,12 @@ const AgentControlCenter: React.FC = () => {
                                                         whileHover={{ y: -3, scale: 1.01 }}
                                                         className="p-5 bg-white/[0.02] border border-white/5 rounded-[2rem] flex flex-col gap-4 group transition-all shadow-2xl relative overflow-hidden"
                                                     >
-                                                        <div className="absolute inset-0 bg-gradient-to-tr from-[#9d4edd]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                        <div className="absolute inset-0 bg-gradient-to-tr from-[var(--amethyst-soft)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                                         <div className="flex justify-between items-start relative z-10">
-                                                            <div className="p-3 rounded-2xl bg-black/40 text-[#9d4edd] border border-[#9d4edd]/30 shadow-lg">
+                                                            <div className="p-3 rounded-2xl bg-black/40 text-[var(--amethyst-soft)] border border-[var(--amethyst-soft)]/30 shadow-lg">
                                                                 <Zap size={16} className="group-hover:scale-110 transition-transform" />
                                                             </div>
-                                                            <div className="w-2 h-2 rounded-full bg-[#10b981] shadow-[0_0_10px_#10b981]" />
+                                                            <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] shadow-[0_0_10px_#10b981]" />
                                                         </div>
                                                         <div className="text-[12px] font-black text-white uppercase font-mono tracking-widest leading-tight relative z-10">{cap.split('_').join(' ')}</div>
                                                         <div className="text-[8px] text-gray-600 font-mono uppercase tracking-[0.2em] relative z-10">Protocol: Integrated</div>
@@ -505,10 +505,10 @@ const AgentControlCenter: React.FC = () => {
                                                 ))}
                                                 <button
                                                     onClick={() => window.location.hash = '/nexus'}
-                                                    className="p-6 border-2 border-dashed border-white/5 rounded-[2rem] flex flex-col items-center justify-center gap-4 opacity-30 hover:opacity-100 hover:border-[#9d4edd]/50 transition-all cursor-pointer group shadow-2xl"
+                                                    className="p-6 border-2 border-dashed border-white/5 rounded-[2rem] flex flex-col items-center justify-center gap-4 opacity-30 hover:opacity-100 hover:border-[var(--amethyst-soft)]/50 transition-all cursor-pointer group shadow-2xl"
                                                 >
-                                                    <div className="p-4 bg-white/5 rounded-full group-hover:bg-[#9d4edd]/10 transition-colors">
-                                                        <Plus size={32} className="text-gray-600 group-hover:text-[#9d4edd] transition-all" />
+                                                    <div className="p-4 bg-white/5 rounded-full group-hover:bg-[var(--amethyst-soft)]/10 transition-colors">
+                                                        <Plus size={32} className="text-gray-600 group-hover:text-[var(--amethyst-soft)] transition-all" />
                                                     </div>
                                                     <span className="text-[10px] font-black uppercase text-gray-500 font-mono tracking-[0.4em] group-hover:text-white">Graft Capability</span>
                                                 </button>
@@ -564,13 +564,13 @@ const AgentControlCenter: React.FC = () => {
             <div className="h-10 border-t border-white/5 bg-black/90 px-12 flex items-center justify-between text-[9px] font-mono text-gray-700 tracking-[0.5em] shrink-0 z-50 uppercase font-black">
                 <div className="flex gap-20">
                     <div className="flex items-center gap-5">
-                        <Activity size={16} className="text-[#10b981]" /> SYNC: STABLE
+                        <Activity size={16} className="text-[var(--plasma-green)]" /> SYNC: STABLE
                     </div>
                     <div className="flex items-center gap-5">
-                        <Cpu size={16} className="text-[#9d4edd]" /> LOAD: {Math.floor(Math.random() * 10 + 5)}%
+                        <Cpu size={16} className="text-[var(--amethyst-soft)]" /> LOAD: {Math.floor(Math.random() * 10 + 5)}%
                     </div>
                     <div className="flex items-center gap-5">
-                        <Database size={16} className="text-[#22d3ee]" /> RELATIONAL_MESH: ACTIVE
+                        <Database size={16} className="text-[var(--cyan)]" /> RELATIONAL_MESH: ACTIVE
                     </div>
                 </div>
                 <div className="flex items-center gap-12">

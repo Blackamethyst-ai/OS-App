@@ -188,7 +188,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
             {/* HUD Overlays */}
             <div className="absolute top-8 left-10 z-10 flex flex-col gap-2 pointer-events-none">
                 <div className="flex items-center gap-4">
-                    <div className="p-2 bg-[#9d4edd]/10 rounded-xl text-[#9d4edd] border border-[#9d4edd]/30 shadow-[0_0_20px_rgba(157,78,221,0.2)]">
+                    <div className="p-2 bg-[var(--amethyst-soft)]/10 rounded-xl text-[var(--amethyst-soft)] border border-[var(--amethyst-soft)]/30 shadow-[0_0_20px_rgba(157,78,221,0.2)]">
                         <BrainCircuit size={20} />
                     </div>
                     <div>
@@ -199,7 +199,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
             </div>
 
             <div className="absolute bottom-10 left-10 z-20 flex items-center gap-4 bg-[#0a0a0a]/90 backdrop-blur-xl border border-[#1f1f1f] rounded-2xl px-5 py-3 shadow-[0_30px_60px_rgba(0,0,0,0.8)]">
-                <Search size={14} className="text-gray-600 group-focus-within/graph:text-[#22d3ee] transition-colors" />
+                <Search size={14} className="text-gray-600 group-focus-within/graph:text-[var(--cyan)] transition-colors" />
                 <input 
                     type="text"
                     value={searchTerm}
@@ -242,7 +242,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
                             <div className="p-6 bg-white/[0.02] border border-white/5 rounded-2xl relative overflow-hidden group/info">
                                 <div className="absolute top-0 right-0 p-3 opacity-[0.05] group-hover/info:opacity-10 transition-opacity"><Info size={40} /></div>
                                 <div className="flex items-center gap-2 mb-3">
-                                    <Activity size={10} className="text-[#9d4edd]" />
+                                    <Activity size={10} className="text-[var(--amethyst-soft)]" />
                                     <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Structural metadata</span>
                                 </div>
                                 <p className="text-[11px] text-gray-400 leading-relaxed font-mono italic">
@@ -251,7 +251,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
                             </div>
                             
                             <div className="pt-2 flex flex-col gap-3">
-                                <button onClick={handleBranch} className="w-full py-4 bg-[#9d4edd] text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[#b06bf7] transition-all flex items-center justify-center gap-3 shadow-[0_15px_30px_rgba(157,78,221,0.3)] group/branch">
+                                <button onClick={handleBranch} className="w-full py-4 bg-[var(--amethyst-soft)] text-black rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[#b06bf7] transition-all flex items-center justify-center gap-3 shadow-[0_15px_30px_rgba(157,78,221,0.3)] group/branch">
                                     <GitBranch size={16} className="group-hover/branch:scale-110 transition-transform" /> Initialize Branch Probe
                                 </button>
                                 <button className="w-full py-3.5 bg-[#111] border border-[#222] text-gray-500 hover:text-white rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95">
@@ -263,7 +263,7 @@ const KnowledgeGraph: React.FC<KnowledgeGraphProps> = ({ nodes, onNodeClick }) =
                         <div className="h-px w-full bg-white/5" />
                         <div className="flex justify-between items-center text-[8px] font-mono text-gray-700 uppercase tracking-widest">
                             <span>Rel: {activeNode.connections.length} nodes</span>
-                            <span className="text-[#22d3ee]">Signal_Stable</span>
+                            <span className="text-[var(--cyan)]">Signal_Stable</span>
                         </div>
                     </motion.div>
                 )}

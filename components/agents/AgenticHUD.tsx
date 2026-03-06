@@ -48,7 +48,7 @@ const AgenticHUD: React.FC = () => {
                         >
                             <div className="flex items-center justify-between mb-4">
                                 <div className="flex items-center gap-3">
-                                    <div className="p-1.5 bg-[#9d4edd]/20 rounded-lg text-[#9d4edd]"><Terminal size={14} /></div>
+                                    <div className="p-1.5 bg-[var(--amethyst-soft)]/20 rounded-lg text-[var(--amethyst-soft)]"><Terminal size={14} /></div>
                                     <span className="text-10px font-black text-white font-mono uppercase tracking-widest">Thought Stream</span>
                                 </div>
                                 <button onClick={() => setHUDClosed(true)} className="text-gray-600 hover:text-white"><X size={14} /></button>
@@ -60,7 +60,7 @@ const AgenticHUD: React.FC = () => {
                                         <span className={`px-2 py-0.5 rounded text-8px font-black shrink-0 border ${
                                             h.role === 'user' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 
                                             h.role === 'tool' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
-                                            'bg-[#9d4edd]/10 text-[#9d4edd] border-[#9d4edd]/20'
+                                            'bg-[var(--amethyst-soft)]/10 text-[var(--amethyst-soft)] border-[var(--amethyst-soft)]/20'
                                         }`}>
                                             {h.toolName || h.role.toUpperCase()}
                                         </span>

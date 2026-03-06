@@ -147,12 +147,12 @@ const MasterStabilizationProtocol: React.FC = () => {
                     exit={{ opacity: 0 }}
                     className="fixed top-24 right-8 z-[9000] pointer-events-none"
                 >
-                    <div className="flex items-center gap-3 px-4 py-2 bg-[#10b981]/10 border border-[#10b981]/40 rounded-full backdrop-blur-md shadow-[0_0_20px_rgba(16,185,129,0.2)]">
-                        <ShieldCheck size={14} className="text-[#10b981]" />
-                        <span className="text-[10px] font-black font-mono text-[#10b981] uppercase tracking-widest">
+                    <div className="flex items-center gap-3 px-4 py-2 bg-[var(--plasma-green)]/10 border border-[var(--plasma-green)]/40 rounded-full backdrop-blur-md shadow-[0_0_20px_rgba(16,185,129,0.2)]">
+                        <ShieldCheck size={14} className="text-[var(--plasma-green)]" />
+                        <span className="text-[10px] font-black font-mono text-[var(--plasma-green)] uppercase tracking-widest">
                             Stability Protocol Active
                         </span>
-                        <Zap size={12} className="text-[#10b981] animate-pulse" />
+                        <Zap size={12} className="text-[var(--plasma-green)] animate-pulse" />
                     </div>
                 </motion.div>
             )}

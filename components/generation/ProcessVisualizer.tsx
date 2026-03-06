@@ -64,8 +64,8 @@ const ExecutiveNode = ({ id, data: nodeData, selected, dragging }: NodeProps) =>
                     <div className="flex justify-between items-start mb-1.5">
                         <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest font-black">NODE_REF_{id.substring(0, 4)}</span>
                         {isDone ? (
-                            <div className="flex items-center gap-1 bg-[#10b981]/10 px-2 py-0.5 rounded-full border border-[#10b981]/30">
-                                <span className="text-[7px] font-black font-mono text-[#10b981] uppercase">Verified</span>
+                            <div className="flex items-center gap-1 bg-[var(--plasma-green)]/10 px-2 py-0.5 rounded-full border border-[var(--plasma-green)]/30">
+                                <span className="text-[7px] font-black font-mono text-[var(--plasma-green)] uppercase">Verified</span>
                             </div>
                         ) : (
                             <span className="text-[7px] font-black font-mono text-gray-500 uppercase tracking-widest">{data.status || 'STAGING'}</span>
@@ -103,7 +103,7 @@ const ExecutiveNode = ({ id, data: nodeData, selected, dragging }: NodeProps) =>
                     </div>
                 </div>
                 {selected && !isDone && (
-                    <button onClick={handleComplete} className="p-2 glass-action rounded-xl text-[var(--cyan)] hover:text-[#10b981] transition-all active:scale-90">
+                    <button onClick={handleComplete} className="p-2 glass-action rounded-xl text-[var(--cyan)] hover:text-[var(--plasma-green)] transition-all active:scale-90">
                         <CheckCircle size={16} />
                     </button>
                 )}
@@ -247,7 +247,7 @@ const ProcessVisualizerContent = () => {
                     <button onClick={handleAutoOrganize} className="p-2 bg-[var(--bg-panel)] border border-[var(--border-main)] hover:border-[var(--cyan)] rounded-xl text-gray-500 hover:text-[var(--cyan)] transition-all active:scale-90 group shadow-xl">
                         <RefreshCw size={16} className="group-hover:rotate-180 transition-transform duration-700" />
                     </button>
-                    <button onClick={handleRunGlobalSequence} className="px-6 py-2 bg-[#f1c21b] text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(241,194,27,0.3)] flex items-center gap-3 active:scale-95 group">
+                    <button onClick={handleRunGlobalSequence} className="px-6 py-2 bg-[var(--executive-gold)] text-black rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-[0_0_30px_rgba(241,194,27,0.3)] flex items-center gap-3 active:scale-95 group">
                         <Zap size={14} className="fill-current" /> Initialize Protocol
                     </button>
                 </div>
@@ -307,7 +307,7 @@ const ProcessVisualizerContent = () => {
                                     <div className="space-y-4">
                                         <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Pattern Library</label>
                                         <div className="grid grid-cols-3 gap-3">
-                                            <button onClick={() => handleApplyPreset('PARA')} className="px-5 py-3 bg-[#f1c21b]/10 border border-[#f1c21b]/20 hover:border-[#f1c21b] rounded-2xl text-[9px] font-black uppercase tracking-widest text-[#f1c21b] flex items-center gap-3 transition-all hover:bg-[#f1c21b] hover:text-black shadow-xl">
+                                            <button onClick={() => handleApplyPreset('PARA')} className="px-5 py-3 bg-[var(--executive-gold)]/10 border border-[var(--executive-gold)]/20 hover:border-[var(--executive-gold)] rounded-2xl text-[9px] font-black uppercase tracking-widest text-[var(--executive-gold)] flex items-center gap-3 transition-all hover:bg-[var(--executive-gold)] hover:text-black shadow-xl">
                                                 <FolderTree size={14} /> PARA 2.0 Imperial
                                             </button>
                                             <button onClick={() => handleApplyPreset('INFRA')} className="px-5 py-3 bg-[var(--cyan)]/10 border border-[var(--cyan)]/20 hover:border-[var(--cyan)] rounded-2xl text-[9px] font-black uppercase tracking-widest text-[var(--cyan)] flex items-center gap-3 transition-all hover:bg-[var(--cyan)] hover:text-black shadow-xl">
@@ -335,7 +335,7 @@ const ProcessVisualizerContent = () => {
                                 <button
                                     onClick={handleGenerateGraph}
                                     disabled={isGeneratingGraph || !architecturePrompt.trim()}
-                                    className="w-full bg-[#f1c21b] text-black py-6 rounded-[2.5rem] font-black text-[12px] uppercase tracking-[0.5em] flex items-center justify-center gap-5 shadow-[0_20px_50px_rgba(241,194,27,0.3)] hover:bg-yellow-400 transition-all disabled:opacity-30 active:scale-95 relative z-10 group/gen"
+                                    className="w-full bg-[var(--executive-gold)] text-black py-6 rounded-[2.5rem] font-black text-[12px] uppercase tracking-[0.5em] flex items-center justify-center gap-5 shadow-[0_20px_50px_rgba(241,194,27,0.3)] hover:bg-yellow-400 transition-all disabled:opacity-30 active:scale-95 relative z-10 group/gen"
                                     data-voice-id="process-generate-button"
                                     aria-label="Generate system manifest"
                                 >
@@ -360,7 +360,7 @@ const ProcessVisualizerContent = () => {
                                                 <p className="text-[10px] text-gray-500 font-mono uppercase tracking-[0.3em] mt-3">Verified Sequence // System Auth L0</p>
                                             </div>
                                         </div>
-                                        <div className="text-[10px] font-black text-[#10b981] px-4 py-1.5 rounded-full border border-[#10b981]/30 bg-[#10b981]/10 uppercase tracking-widest shadow-xl">Stable Release</div>
+                                        <div className="text-[10px] font-black text-[var(--plasma-green)] px-4 py-1.5 rounded-full border border-[var(--plasma-green)]/30 bg-[var(--plasma-green)]/10 uppercase tracking-widest shadow-xl">Stable Release</div>
                                     </div>
 
                                     <div className="space-y-4">
@@ -423,8 +423,8 @@ const ProcessVisualizerContent = () => {
                                         <div className="flex justify-between items-center text-[8px] font-black font-mono text-gray-700 uppercase tracking-[0.4em]">
                                             <span>Production Grade Protocol</span>
                                             <div className="flex gap-1.5">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse" />
-                                                <div className="w-1.5 h-1.5 rounded-full bg-[#10b981] animate-pulse delay-75" />
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--plasma-green)] animate-pulse" />
+                                                <div className="w-1.5 h-1.5 rounded-full bg-[var(--plasma-green)] animate-pulse delay-75" />
                                             </div>
                                         </div>
                                     </div>
@@ -493,7 +493,7 @@ const ProcessVisualizerContent = () => {
                                     </div>
                                     <div className="p-8 bg-black/40 crystalline border border-white/10 rounded-3xl pointer-events-auto">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-2 h-2 rounded-full bg-[#22d3ee]/50" />
+                                            <div className="w-2 h-2 rounded-full bg-[var(--cyan)]/50" />
                                             <span className="text-[10px] text-gray-500 font-medium uppercase tracking-widest">Evolution Monitor</span>
                                         </div>
                                     </div>

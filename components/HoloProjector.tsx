@@ -122,10 +122,10 @@ const HoloProjector: React.FC = () => {
 
                     <div className="h-16 border-b border-[#1f1f1f] bg-[#0a0a0a]/90 flex items-center justify-between px-6 z-10 shrink-0">
                         <div className="flex items-center gap-4">
-                            <div className="p-2 bg-[#9d4edd]/10 border border-[#9d4edd] rounded">
-                                {holo.activeArtifact.type === 'IMAGE' && <ImageIcon className="w-5 h-5 text-[#9d4edd]" />}
-                                {holo.activeArtifact.type === 'CODE' && <Code className="w-5 h-5 text-[#9d4edd]" />}
-                                {holo.activeArtifact.type === 'TEXT' && <FileText className="w-5 h-5 text-[#9d4edd]" />}
+                            <div className="p-2 bg-[var(--amethyst-soft)]/10 border border-[var(--amethyst-soft)] rounded">
+                                {holo.activeArtifact.type === 'IMAGE' && <ImageIcon className="w-5 h-5 text-[var(--amethyst-soft)]" />}
+                                {holo.activeArtifact.type === 'CODE' && <Code className="w-5 h-5 text-[var(--amethyst-soft)]" />}
+                                {holo.activeArtifact.type === 'TEXT' && <FileText className="w-5 h-5 text-[var(--amethyst-soft)]" />}
                             </div>
                             <div>
                                 <h2 className="text-sm font-bold text-white font-mono tracking-widest uppercase">{holo.activeArtifact.title}</h2>
@@ -133,7 +133,7 @@ const HoloProjector: React.FC = () => {
                             </div>
                         </div>
                         <div className="flex items-center gap-3">
-                            <button onClick={handleAnalyze} disabled={holo.isAnalyzing} className="flex items-center gap-2 px-4 py-2 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[10px] font-mono uppercase tracking-wider transition-all disabled:opacity-50">
+                            <button onClick={handleAnalyze} disabled={holo.isAnalyzing} className="flex items-center gap-2 px-4 py-2 bg-[#1f1f1f] hover:bg-[var(--amethyst-soft)] hover:text-black border border-[#333] rounded text-[10px] font-mono uppercase tracking-wider transition-all disabled:opacity-50">
                                 {holo.isAnalyzing ? <Loader2 className="w-3 h-3 animate-spin" /> : <BrainCircuit className="w-3 h-3" />}
                                 Deep Scan
                             </button>
@@ -160,7 +160,7 @@ const HoloProjector: React.FC = () => {
                                 <div className="w-full h-full relative">
                                     {isTransforming && (
                                         <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm z-20">
-                                            <Loader2 className="w-8 h-8 text-[#9d4edd] animate-spin" />
+                                            <Loader2 className="w-8 h-8 text-[var(--amethyst-soft)] animate-spin" />
                                         </div>
                                     )}
                                     <pre className="w-full h-full p-6 bg-[#080808] border border-[#222] rounded text-xs font-mono text-gray-300 overflow-auto whitespace-pre-wrap">
@@ -172,7 +172,7 @@ const HoloProjector: React.FC = () => {
                                 <div className="w-full h-full relative">
                                     {isTransforming && (
                                         <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm z-20">
-                                            <Loader2 className="w-8 h-8 text-[#9d4edd] animate-spin" />
+                                            <Loader2 className="w-8 h-8 text-[var(--amethyst-soft)] animate-spin" />
                                         </div>
                                     )}
                                     <div className="w-full h-full max-w-3xl p-8 bg-[#080808] border border-[#222] rounded text-sm font-mono text-gray-300 overflow-auto leading-relaxed mx-auto">
@@ -191,7 +191,7 @@ const HoloProjector: React.FC = () => {
                                     className="border-l border-[#1f1f1f] bg-[#0a0a0a] flex flex-col shrink-0"
                                 >
                                     <div className="h-10 border-b border-[#1f1f1f] flex items-center justify-between px-4 bg-[#111]">
-                                        <span className="text-[10px] font-mono text-[#9d4edd] uppercase tracking-wider flex items-center gap-2">
+                                        <span className="text-[10px] font-mono text-[var(--amethyst-soft)] uppercase tracking-wider flex items-center gap-2">
                                             <Terminal className="w-3 h-3" /> Diagnostic Result
                                         </span>
                                         <button onClick={() => setHoloAnalysis(null)} className="text-gray-500 hover:text-white transition-colors"><X size={3} className="w-3 h-3" /></button>
@@ -210,13 +210,13 @@ const HoloProjector: React.FC = () => {
 
                             {holo.activeArtifact.type === 'CODE' && (
                                 <>
-                                    <button onClick={() => handleTransform('Refactor code for cleanliness and performance. Keep functionality.')} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase tracking-wider transition-all">
+                                    <button onClick={() => handleTransform('Refactor code for cleanliness and performance. Keep functionality.')} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-[var(--amethyst-soft)] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase tracking-wider transition-all">
                                         <Wand2 className="w-3 h-3" /> Refactor
                                     </button>
                                     <button onClick={() => handleTransform('Find potential bugs and security vulnerabilities. Add comments explaining fixes.')} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-red-900/30 hover:text-red-400 hover:border-red-500 border border-[#333] rounded text-[9px] font-mono uppercase tracking-wider transition-all">
                                         <Scan className="w-3 h-3" /> Debug Scan
                                     </button>
-                                    <button onClick={() => handleTransform('Add detailed JSDoc/Docstring comments to all functions.')} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase tracking-wider transition-all">
+                                    <button onClick={() => handleTransform('Add detailed JSDoc/Docstring comments to all functions.')} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-[var(--amethyst-soft)] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase tracking-wider transition-all">
                                         <FileText className="w-3 h-3" /> Document
                                     </button>
                                 </>
@@ -224,13 +224,13 @@ const HoloProjector: React.FC = () => {
 
                             {holo.activeArtifact.type === 'TEXT' && (
                                 <>
-                                    <button onClick={() => handleTransform('Summarize this text into 3 key bullet points.')} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase tracking-wider transition-all">
+                                    <button onClick={() => handleTransform('Summarize this text into 3 key bullet points.')} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-[var(--amethyst-soft)] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase tracking-wider transition-all">
                                         <FileText className="w-3 h-3" /> Summarize
                                     </button>
-                                    <button onClick={() => handleTransform('Expand this text with more detailed explanations and examples.')} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase tracking-wider transition-all">
+                                    <button onClick={() => handleTransform('Expand this text with more detailed explanations and examples.')} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-[var(--amethyst-soft)] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase tracking-wider transition-all">
                                         <Edit className="w-3 h-3" /> Expand
                                     </button>
-                                    <button onClick={() => handleTransform('Rewrite this text to be more professional and concise.')} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-[#9d4edd] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase tracking-wider transition-all">
+                                    <button onClick={() => handleTransform('Rewrite this text to be more professional and concise.')} className="flex items-center gap-2 px-3 py-1.5 bg-[#1f1f1f] hover:bg-[var(--amethyst-soft)] hover:text-black border border-[#333] rounded text-[9px] font-mono uppercase tracking-wider transition-all">
                                         <Wand2 className="w-3 h-3" /> Polish
                                     </button>
                                 </>

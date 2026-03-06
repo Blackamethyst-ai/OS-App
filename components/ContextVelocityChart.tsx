@@ -78,13 +78,13 @@ const ContextVelocityChart: React.FC<ContextVelocityChartProps> = ({ onDrillDown
       <div className="flex justify-between items-center mb-6 shrink-0 relative z-10">
         <div className="flex flex-col gap-1.5">
           <h3 className="text-[11px] font-black text-white uppercase tracking-[0.4em] font-mono leading-none flex items-center gap-3">
-            <Activity size={16} className="text-[#9d4edd] animate-pulse" /> Context Velocity
+            <Activity size={16} className="text-[var(--amethyst-soft)] animate-pulse" /> Context Velocity
           </h3>
           <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest pl-7">Temporal index // v4.0</span>
         </div>
-        <div className="flex items-center gap-3 px-4 py-1.5 bg-[#10b981]/5 border border-[#10b981]/20 rounded-full shadow-inner group-hover/chart:border-[#10b981]/40 transition-all">
-          <Radio size={10} className="text-[#10b981] animate-pulse" />
-          <span className="text-[9px] font-black font-mono text-[#10b981] uppercase tracking-widest leading-none">Live</span>
+        <div className="flex items-center gap-3 px-4 py-1.5 bg-[var(--plasma-green)]/5 border border-[var(--plasma-green)]/20 rounded-full shadow-inner group-hover/chart:border-[var(--plasma-green)]/40 transition-all">
+          <Radio size={10} className="text-[var(--plasma-green)] animate-pulse" />
+          <span className="text-[9px] font-black font-mono text-[var(--plasma-green)] uppercase tracking-widest leading-none">Live</span>
         </div>
       </div>
 

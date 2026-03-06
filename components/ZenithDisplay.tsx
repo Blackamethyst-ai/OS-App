@@ -156,7 +156,7 @@ const IntelRibbon = () => {
 
       <div className="flex items-center gap-4 px-6 shrink-0 z-20">
         <div className="flex items-center gap-2">
-          <Globe size={10} className={cn("text-[#18E6FF]", isUpdating && "animate-spin")} />
+          <Globe size={10} className={cn("text-[var(--cyan)]", isUpdating && "animate-spin")} />
           <span className="text-[7px] font-black font-mono text-gray-500 uppercase tracking-widest">Reality_Grounded</span>
         </div>
         <div className="h-2 w-px bg-white/10" />
@@ -169,7 +169,7 @@ const IntelRibbon = () => {
       >
         {intel.map((item, i) => (
           <div key={i} className="flex items-center gap-3">
-            <div className="w-1 h-1 rounded-full bg-[#9d4edd] shadow-[0_0_8px_#9d4edd]" />
+            <div className="w-1 h-1 rounded-full bg-[var(--amethyst-soft)] shadow-[0_0_8px_#9d4edd]" />
             <span className="text-[9px] font-black font-mono text-white/40 uppercase tracking-[0.4em] group-hover/ribbon:text-white/80 transition-colors">{item}</span>
           </div>
         ))}
@@ -216,7 +216,7 @@ const AgentMonologues = () => {
             className="absolute text-right"
           >
             <div className="flex flex-col gap-1 pr-12">
-              <span className="text-[7px] font-mono text-[#9d4edd] uppercase tracking-widest font-black">[{activeMonologue.agent}_MONOLOGUE]</span>
+              <span className="text-[7px] font-mono text-[var(--amethyst-soft)] uppercase tracking-widest font-black">[{activeMonologue.agent}_MONOLOGUE]</span>
               <span className="text-[10px] font-mono text-white/20 italic tracking-tight uppercase whitespace-nowrap">{activeMonologue.text}</span>
             </div>
           </motion.div>
@@ -235,17 +235,17 @@ const TacticalOverlay = () => (
         <motion.div
           initial={{ opacity: 0, x: -30 }}
           animate={{ opacity: 1, x: 0 }}
-          className="flex items-center gap-4 px-6 py-2.5 bg-[#0a0a0a]/80 backdrop-blur-3xl border border-[#9d4edd]/50 rounded-2xl shadow-[0_0_40px_rgba(157,78,221,0.15)] pointer-events-auto cursor-pointer group/id"
+          className="flex items-center gap-4 px-6 py-2.5 bg-[#0a0a0a]/80 backdrop-blur-3xl border border-[var(--amethyst-soft)]/50 rounded-2xl shadow-[0_0_40px_rgba(157,78,221,0.15)] pointer-events-auto cursor-pointer group/id"
         >
           <div className="relative">
-            <ShieldCheck size={18} className="text-[#10b981] animate-pulse" />
-            <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 rounded-full bg-[#10b981]/20" />
+            <ShieldCheck size={18} className="text-[var(--plasma-green)] animate-pulse" />
+            <motion.div animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0, 0.5] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 rounded-full bg-[var(--plasma-green)]/20" />
           </div>
-          <span className="text-[11px] font-black text-white font-mono uppercase tracking-[0.5em] leading-none group-hover/id:text-[#10b981] transition-colors">Identity_Verified_L0</span>
+          <span className="text-[11px] font-black text-white font-mono uppercase tracking-[0.5em] leading-none group-hover/id:text-[var(--plasma-green)] transition-colors">Identity_Verified_L0</span>
         </motion.div>
 
         <div className="flex flex-col gap-4 pl-2 relative">
-          <div className="absolute left-[-24px] top-0 bottom-0 w-[1.5px] bg-gradient-to-b from-[#9d4edd] via-[#18E6FF] to-transparent opacity-40" />
+          <div className="absolute left-[-24px] top-0 bottom-0 w-[1.5px] bg-gradient-to-b from-[var(--amethyst-soft)] via-[#18E6FF] to-transparent opacity-40" />
 
           <motion.h2
             initial={{ opacity: 0, filter: 'blur(10px)' }}
@@ -255,12 +255,12 @@ const TacticalOverlay = () => (
           >
             Sovereign
             <br />
-            <span className="text-[#9d4edd] [text-shadow:0_0_20px_rgba(157,78,221,0.5)]">Architect</span>
+            <span className="text-[var(--amethyst-soft)] [text-shadow:0_0_20px_rgba(157,78,221,0.5)]">Architect</span>
           </motion.h2>
 
           <div className="flex items-center gap-8 mt-4">
             <div className="flex items-center gap-3">
-              <Cpu size={12} className="text-[#18E6FF]" />
+              <Cpu size={12} className="text-[var(--cyan)]" />
               <span className="text-[10px] font-mono text-gray-400 uppercase tracking-[0.6em] font-black drop-shadow-md">Core_Lattice_Authorized</span>
             </div>
             <div className="h-[1px] w-24 bg-gradient-to-r from-white/20 to-transparent" />
@@ -275,9 +275,9 @@ const TacticalOverlay = () => (
         >
           <div className="flex flex-col items-end gap-1">
             <span className="text-[7px] font-mono text-gray-500 uppercase tracking-widest leading-none">Sync_Vector</span>
-            <span className="text-11px font-mono text-[#18E6FF] font-black uppercase tracking-widest group-hover/sync:animate-pulse">Zenith_Active</span>
+            <span className="text-11px font-mono text-[var(--cyan)] font-black uppercase tracking-widest group-hover/sync:animate-pulse">Zenith_Active</span>
           </div>
-          <Target size={22} className="text-[#18E6FF] animate-[spin_8s_linear_infinite]" />
+          <Target size={22} className="text-[var(--cyan)] animate-[spin_8s_linear_infinite]" />
         </motion.div>
 
         <div className="flex flex-col items-end gap-2 pr-2">
@@ -287,7 +287,7 @@ const TacticalOverlay = () => (
                 key={i}
                 animate={{ opacity: [0.1, 0.4, 0.1] }}
                 transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}
-                className="w-1.5 h-1.5 rounded-full bg-[#9d4edd]"
+                className="w-1.5 h-1.5 rounded-full bg-[var(--amethyst-soft)]"
               />
             ))}
           </div>
@@ -308,7 +308,7 @@ const TacticalOverlay = () => (
         <div className="space-y-2">
           <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest block opacity-60 font-black">Neural_Architecture</span>
           <div className="flex items-center gap-3">
-            <GitBranch size={14} className="text-[#9d4edd]" />
+            <GitBranch size={14} className="text-[var(--amethyst-soft)]" />
             <span className="text-base font-black font-mono text-white uppercase tracking-[0.2em]">Recursive_Logic</span>
           </div>
         </div>
@@ -319,11 +319,11 @@ const TacticalOverlay = () => (
           <div className="flex flex-col items-end gap-1.5">
             <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest font-black opacity-60 leading-none">System_Attestation</span>
             <div className="flex items-center gap-3">
-              <span className="text-[13px] font-black font-mono text-[#10b981] uppercase tracking-[0.2em]">Optimal_L0</span>
-              <Lock size={12} className="text-[#10b981]" />
+              <span className="text-[13px] font-black font-mono text-[var(--plasma-green)] uppercase tracking-[0.2em]">Optimal_L0</span>
+              <Lock size={12} className="text-[var(--plasma-green)]" />
             </div>
           </div>
-          <div className="w-4 h-4 rounded-full bg-[#10b981] animate-pulse shadow-[0_0_20px_#10b981]" />
+          <div className="w-4 h-4 rounded-full bg-[var(--plasma-green)] animate-pulse shadow-[0_0_20px_#10b981]" />
         </div>
       </div>
     </div>
@@ -337,10 +337,10 @@ export const ZenithDisplay = ({ currentZenithImage }: { currentZenithImage: stri
         <div className="absolute inset-0 flex items-center justify-center bg-black/60 backdrop-blur-2xl z-50">
           <div className="flex flex-col items-center gap-8">
             <div className="relative">
-              <Loader2 size={16} className="text-[#9d4edd] animate-spin" />
-              <div className="absolute inset-0 blur-2xl bg-[#9d4edd]/30 rounded-full animate-pulse" />
+              <Loader2 size={16} className="text-[var(--amethyst-soft)] animate-spin" />
+              <div className="absolute inset-0 blur-2xl bg-[var(--amethyst-soft)]/30 rounded-full animate-pulse" />
             </div>
-            <span className="text-[#9d4edd] font-mono text-xs animate-pulse tracking-[1em] uppercase font-black">Establishing_Zenith_Link...</span>
+            <span className="text-[var(--amethyst-soft)] font-mono text-xs animate-pulse tracking-[1em] uppercase font-black">Establishing_Zenith_Link...</span>
           </div>
         </div>
       )}

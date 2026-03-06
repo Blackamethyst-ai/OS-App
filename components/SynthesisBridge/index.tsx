@@ -226,7 +226,7 @@ const SynthesisBridge: React.FC = () => {
         {/* Global HUD Status Strip */}
         <div className="h-10 bg-[#020204]/95 border-t border-white/5 px-12 flex items-center justify-between text-[9px] font-mono text-gray-700 shrink-0 relative z-[60] backdrop-blur-4xl uppercase font-black tracking-widest">
             <div className="flex gap-16 items-center">
-                <div className="flex items-center gap-3 text-[#10b981] group cursor-pointer leading-none">
+                <div className="flex items-center gap-3 text-[var(--plasma-green)] group cursor-pointer leading-none">
                     <ShieldCheck size={16} className="group-hover:scale-110 transition-transform" />
                     <span className="shimmer-text">Sync_Stable</span>
                 </div>

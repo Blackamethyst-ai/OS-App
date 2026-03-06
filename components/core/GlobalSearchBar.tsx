@@ -196,7 +196,7 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
                                 ? "bg-transparent border-none"
                                 : "bg-black/40 border border-white/10 rounded-full shadow-inner group-hover:border-white/20",
                             validationError && !isIntegrated ? "border-red-500/50" : "",
-                            (isFocused || isBeingInspected) && !isIntegrated ? "border-[#f1c21b] shadow-[0_0_15px_rgba(241,194,27,0.3)]" : ""
+                            (isFocused || isBeingInspected) && !isIntegrated ? "border-[var(--executive-gold)] shadow-[0_0_15px_rgba(241,194,27,0.3)]" : ""
                         )}
                         placeholder="Locate intelligence..."
                         data-voice-id="global-search-input"
@@ -204,7 +204,7 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
                     />
 
                     <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                        {search.isSearching ? <Loader2 className="w-3.5 h-3.5 text-[#f1c21b] animate-spin" /> : <Search className={cn("w-3.5 h-3.5 transition-colors", isFocused ? "text-[#f1c21b]" : "text-gray-500")} />}
+                        {search.isSearching ? <Loader2 className="w-3.5 h-3.5 text-[var(--executive-gold)] animate-spin" /> : <Search className={cn("w-3.5 h-3.5 transition-colors", isFocused ? "text-[var(--executive-gold)]" : "text-gray-500")} />}
                     </div>
 
                     <AnimatePresence>
@@ -262,11 +262,11 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
                                                 selectedIndex === i ? "bg-white/[0.05]" : "hover:bg-white/[0.02]"
                                             )}
                                         >
-                                            {selectedIndex === i && <motion.div layoutId="search-active" className="absolute left-0 top-0 bottom-0 w-1 bg-[#f1c21b] shadow-[0_0_15px_#f1c21b]" />}
+                                            {selectedIndex === i && <motion.div layoutId="search-active" className="absolute left-0 top-0 bottom-0 w-1 bg-[var(--executive-gold)] shadow-[0_0_15px_#f1c21b]" />}
 
                                             <div className={cn(
                                                 "w-10 h-10 rounded-xl border flex items-center justify-center shrink-0 transition-all",
-                                                selectedIndex === i ? "bg-[#f1c21b]/20 border-[#f1c21b]/40 text-[#f1c21b]" : "bg-black/40 border-white/5 text-gray-700"
+                                                selectedIndex === i ? "bg-[var(--executive-gold)]/20 border-[var(--executive-gold)]/40 text-[var(--executive-gold)]" : "bg-black/40 border-white/5 text-gray-700"
                                             )}>
                                                 {item.category === 'COMMANDS' ? <Terminal size={18} /> :
                                                     item.category === 'MEMORY' ? <Database size={18} /> :
@@ -289,7 +289,7 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
                                                 </div>
                                                 <p className="text-[9px] text-gray-400 font-mono line-clamp-1 leading-relaxed" title={item.description}>{item.description}</p>
                                             </div>
-                                            <ArrowRight className={cn("w-4 h-4 mt-1 transition-all", selectedIndex === i ? "text-[#f1c21b] translate-x-0" : "text-gray-800 -translate-x-2")} />
+                                            <ArrowRight className={cn("w-4 h-4 mt-1 transition-all", selectedIndex === i ? "text-[var(--executive-gold)] translate-x-0" : "text-gray-800 -translate-x-2")} />
                                         </button>
                                     ))}
                                 </div>
@@ -317,7 +317,7 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
                                             onClick={() => setSearchState({ query: hist })}
                                             className="w-full text-left px-5 py-3.5 hover:bg-white/[0.05] text-[10px] font-mono text-gray-400 flex items-center gap-4 transition-colors border-b border-white/5 group/hist"
                                         >
-                                            <Clock size={12} className="text-gray-700 group-hover/hist:text-[#22d3ee]" />
+                                            <Clock size={12} className="text-gray-700 group-hover/hist:text-[var(--cyan)]" />
                                             <span className="flex-1 truncate">{hist}</span>
                                             <ArrowRight size={10} className="text-gray-800 opacity-0 group-hover/hist:opacity-100 -translate-x-2 group-hover/hist:translate-x-0 transition-all" />
                                         </button>
@@ -326,8 +326,8 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
                             ) : (
                                 <div className="p-16 text-center space-y-8">
                                     <div className="relative inline-block">
-                                        <BrainCircuit size={64} className="text-[#f1c21b] opacity-20 animate-pulse" />
-                                        <div className="absolute inset-0 blur-2xl bg-[#f1c21b]/10 rounded-full" />
+                                        <BrainCircuit size={64} className="text-[var(--executive-gold)] opacity-20 animate-pulse" />
+                                        <div className="absolute inset-0 blur-2xl bg-[var(--executive-gold)]/10 rounded-full" />
                                     </div>
                                     <div className="space-y-2">
                                         <p className="text-[11px] font-black font-mono text-gray-500 uppercase tracking-[0.6em]">System Oracle Idle</p>
@@ -340,11 +340,11 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
                         <div className="p-3 bg-white/[0.01] border-t border-white/5 flex justify-between items-center px-6">
                             <div className="flex gap-4 items-center">
                                 <span className="flex items-center gap-1.5 text-[8px] font-mono text-gray-600">
-                                    <Zap size={10} className="text-[#f1c21b]" /> Debounce: 400ms
+                                    <Zap size={10} className="text-[var(--executive-gold)]" /> Debounce: 400ms
                                 </span>
                             </div>
                             <div className="flex gap-2">
-                                <span className="px-1.5 py-0.5 bg-[#f1c21b]/20 text-[#f1c21b] border border-[#f1c21b]/30 rounded text-[7px] font-bold">ENTER to Sync</span>
+                                <span className="px-1.5 py-0.5 bg-[var(--executive-gold)]/20 text-[var(--executive-gold)] border border-[var(--executive-gold)]/30 rounded text-[7px] font-bold">ENTER to Sync</span>
                             </div>
                         </div>
                     </MotionDiv>
