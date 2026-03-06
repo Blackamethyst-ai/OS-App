@@ -124,21 +124,25 @@ export const HoloCard: React.FC<HoloCardProps> = ({
 }) => (
     <motion.div
         className={`relative overflow-hidden rounded-2xl ${className}`}
-        whileHover={{ scale: 1.01 }}
+        whileHover={{ scale: 1.005 }}
         transition={{ type: 'spring', stiffness: 400 }}
     >
         {/* Gradient border */}
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-500/20 via-transparent to-blue-500/20" />
+        <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[var(--amethyst)]/20 via-transparent to-[var(--cyan)]/15" />
 
         {/* Glass effect */}
-        <div className="absolute inset-[1px] rounded-2xl bg-black/60 backdrop-blur-xl" />
+        <div className="absolute inset-[1px] rounded-2xl bg-black/70 backdrop-blur-xl" />
+
+        {/* Shimmer sweep */}
+        <div className="absolute inset-0 rounded-2xl glass-refraction opacity-50" />
 
         {/* Glow effect */}
         {active && (
             <motion.div
-                className={`absolute inset-0 rounded-2xl bg-${glowColor}-500/10`}
-                animate={{ opacity: [0.1, 0.3, 0.1] }}
-                transition={{ repeat: Infinity, duration: 2 }}
+                className="absolute inset-0 rounded-2xl"
+                style={{ background: 'radial-gradient(ellipse at 50% 0%, var(--amethyst) 0%, transparent 60%)' }}
+                animate={{ opacity: [0.05, 0.12, 0.05] }}
+                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
             />
         )}
 
@@ -160,25 +164,25 @@ interface PhaseOrbProps {
 
 export const PhaseOrb: React.FC<PhaseOrbProps> = ({ phase, isActive, label, icon }) => (
     <motion.div
-        className={`flex flex-col items-center gap-2 ${isActive ? 'opacity-100' : 'opacity-30'}`}
-        animate={isActive ? { scale: [1, 1.1, 1] } : {}}
-        transition={{ repeat: isActive ? Infinity : 0, duration: 1.5 }}
+        className={`flex flex-col items-center gap-2 ${isActive ? 'opacity-100' : 'opacity-30 hover:opacity-50'} transition-opacity`}
+        animate={isActive ? { scale: [1, 1.05, 1] } : {}}
+        transition={{ repeat: isActive ? Infinity : 0, duration: 2, ease: "easeInOut" }}
     >
         <div
-            className={`w-12 h-12 rounded-full flex items-center justify-center border-2 ${
+            className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${
                 isActive
-                    ? 'bg-purple-500/20 border-purple-500 text-purple-400'
+                    ? 'bg-[var(--amethyst)]/20 border-[var(--amethyst-soft)] text-[var(--amethyst-soft)] shadow-[0_0_20px_rgba(123,44,255,0.3)]'
                     : 'bg-white/5 border-white/10 text-gray-500'
             }`}
         >
             {icon}
         </div>
-        <span className="text-xs text-gray-400">{label}</span>
+        <span className={`text-xs font-mono uppercase tracking-wider ${isActive ? 'text-white' : 'text-gray-500'}`}>{label}</span>
         {isActive && (
             <motion.div
-                className="w-2 h-2 rounded-full bg-purple-500"
+                className="w-1.5 h-1.5 rounded-full bg-[var(--amethyst-soft)] shadow-[0_0_8px_var(--amethyst-soft)]"
                 animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
-                transition={{ repeat: Infinity, duration: 1 }}
+                transition={{ repeat: Infinity, duration: 1.5 }}
             />
         )}
     </motion.div>
@@ -210,9 +214,9 @@ export const EventStream: React.FC<EventStreamProps> = ({ events }) => {
     }, [events.length]);
 
     const levelColors = {
-        info: 'text-blue-400',
-        success: 'text-green-400',
-        warning: 'text-yellow-400',
+        info: 'text-[var(--azure-blue)]',
+        success: 'text-[var(--plasma-green)]',
+        warning: 'text-[var(--executive-gold)]',
         error: 'text-red-400',
     };
 

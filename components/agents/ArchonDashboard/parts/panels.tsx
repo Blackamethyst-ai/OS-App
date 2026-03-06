@@ -61,7 +61,7 @@ export const ModelOrchestrationPanel: React.FC<ModelOrchestrationPanelProps> = (
                                         key={model.id}
                                         className={`px-3 py-2 rounded-lg border relative ${
                                             isActive
-                                                ? 'border-green-500 bg-green-500/20 ring-2 ring-green-500/50'
+                                                ? 'border-[var(--plasma-green)] bg-[var(--plasma-green)]/20 ring-2 ring-green-500/50'
                                                 : model.available
                                                 ? `border-${config.color}-500/30 bg-${config.color}-500/5`
                                                 : 'border-white/5 bg-white/5 opacity-40'
@@ -72,7 +72,7 @@ export const ModelOrchestrationPanel: React.FC<ModelOrchestrationPanelProps> = (
                                     >
                                         {isActive && (
                                             <motion.div
-                                                className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full"
+                                                className="absolute -top-1 -right-1 w-3 h-3 bg-[var(--plasma-green)] rounded-full"
                                                 animate={{ scale: [1, 1.2, 1] }}
                                                 transition={{ repeat: Infinity, duration: 1 }}
                                             />
@@ -80,7 +80,7 @@ export const ModelOrchestrationPanel: React.FC<ModelOrchestrationPanelProps> = (
                                         <div className={`text-xs truncate ${isActive ? 'text-green-300 font-medium' : 'text-white'}`}>
                                             {model.name}
                                         </div>
-                                        <div className={`text-xs ${isActive ? 'text-green-400' : 'text-gray-500'}`}>
+                                        <div className={`text-xs ${isActive ? 'text-[var(--plasma-green)]' : 'text-gray-500'}`}>
                                             {isActive ? 'ACTIVE' : model.provider}
                                         </div>
                                     </motion.div>
@@ -143,8 +143,8 @@ export const GoalCommandCenter: React.FC<GoalCommandCenterProps> = ({
         <div className="h-full flex flex-col">
             {/* Input */}
             <div className="relative mb-4">
-                <div className="flex items-center gap-2 bg-black/40 border border-purple-500/30 rounded-xl px-4 py-3">
-                    <Crosshair className="w-5 h-5 text-purple-400" />
+                <div className="flex items-center gap-2 bg-black/40 border border-[var(--amethyst-soft)]/30 rounded-xl px-4 py-3">
+                    <Crosshair className="w-5 h-5 text-[var(--amethyst-soft)]" />
                     <input
                         type="text"
                         value={input}
@@ -158,7 +158,7 @@ export const GoalCommandCenter: React.FC<GoalCommandCenterProps> = ({
                     <motion.button
                         onClick={handleSubmit}
                         disabled={!input.trim() || isSubmitting || !isReady}
-                        className="p-2 bg-purple-500 rounded-lg text-white disabled:opacity-30"
+                        className="p-2 bg-[var(--amethyst-soft)] rounded-lg text-white disabled:opacity-30"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                     >
@@ -191,7 +191,7 @@ export const GoalCommandCenter: React.FC<GoalCommandCenterProps> = ({
                                         setInput(suggestion);
                                         setShowSuggestions(false);
                                     }}
-                                    className="w-full px-4 py-2 text-left text-sm text-gray-400 hover:bg-purple-500/20 hover:text-white transition-colors"
+                                    className="w-full px-4 py-2 text-left text-sm text-gray-400 hover:bg-[var(--amethyst-soft)]/20 hover:text-white transition-colors"
                                 >
                                     {suggestion}
                                 </button>
@@ -219,7 +219,7 @@ export const GoalCommandCenter: React.FC<GoalCommandCenterProps> = ({
                                     goal.status === 'active'
                                         ? 'border-blue-500/50 bg-blue-500/10'
                                         : goal.status === 'completed'
-                                        ? 'border-green-500/30 bg-green-500/5'
+                                        ? 'border-[var(--plasma-green)]/30 bg-[var(--plasma-green)]/5'
                                         : goal.status === 'escalated'
                                         ? 'border-orange-500/30 bg-orange-500/5'
                                         : 'border-white/10 bg-white/5'
@@ -264,7 +264,7 @@ export const GoalCommandCenter: React.FC<GoalCommandCenterProps> = ({
                                                     </div>
                                                 )}
                                                 {(goal.result || goal.output) && (
-                                                    <div className="text-xs text-green-400 bg-green-500/10 rounded-lg p-2">
+                                                    <div className="text-xs text-[var(--plasma-green)] bg-[var(--plasma-green)]/10 rounded-lg p-2">
                                                         {(goal.result || goal.output)?.substring(0, 200)}...
                                                     </div>
                                                 )}
@@ -343,8 +343,8 @@ export const OrganismLayersPanel: React.FC<OrganismLayersPanelProps> = ({
 
     const statusColors = {
         idle: 'text-gray-400',
-        busy: 'text-green-400',
-        sleeping: 'text-blue-400',
+        busy: 'text-[var(--plasma-green)]',
+        sleeping: 'text-[var(--azure-blue)]',
         disabled: 'text-red-400',
     };
 
@@ -402,8 +402,8 @@ export const OrganismLayersPanel: React.FC<OrganismLayersPanelProps> = ({
                             <div className="text-center">
                                 <div className="text-gray-500">Success</div>
                                 <div className={`font-medium ${
-                                    layer.metrics.successRate >= 0.9 ? 'text-green-400' :
-                                    layer.metrics.successRate >= 0.7 ? 'text-yellow-400' : 'text-red-400'
+                                    layer.metrics.successRate >= 0.9 ? 'text-[var(--plasma-green)]' :
+                                    layer.metrics.successRate >= 0.7 ? 'text-[var(--executive-gold)]' : 'text-red-400'
                                 }`}>
                                     {(layer.metrics.successRate * 100).toFixed(0)}%
                                 </div>
@@ -411,8 +411,8 @@ export const OrganismLayersPanel: React.FC<OrganismLayersPanelProps> = ({
                             <div className="text-center">
                                 <div className="text-gray-500">DQ</div>
                                 <div className={`font-medium ${
-                                    layer.metrics.avgDqScore >= 0.8 ? 'text-green-400' :
-                                    layer.metrics.avgDqScore >= 0.6 ? 'text-yellow-400' : 'text-red-400'
+                                    layer.metrics.avgDqScore >= 0.8 ? 'text-[var(--plasma-green)]' :
+                                    layer.metrics.avgDqScore >= 0.6 ? 'text-[var(--executive-gold)]' : 'text-red-400'
                                 }`}>
                                     {layer.metrics.avgDqScore.toFixed(2)}
                                 </div>

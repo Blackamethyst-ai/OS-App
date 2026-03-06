@@ -142,23 +142,23 @@ const ArchonDashboard: React.FC = () => {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-4">
                         <motion.div
-                            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 via-blue-500 to-cyan-500 flex items-center justify-center"
+                            className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[var(--amethyst)] via-[var(--azure-blue)] to-[var(--cyan)] flex items-center justify-center shadow-[0_0_30px_rgba(123,44,255,0.3)]"
                             animate={{ rotate: phase !== 'idle' ? 360 : 0 }}
                             transition={{ duration: 3, repeat: phase !== 'idle' ? Infinity : 0, ease: 'linear' }}
                         >
                             <Brain className="w-8 h-8 text-white" />
                         </motion.div>
                         <div>
-                            <h1 className="text-3xl font-black tracking-tight flex items-center gap-3">
+                            <h1 className="text-3xl font-black tracking-tight flex items-center gap-3 font-mono uppercase">
                                 ARCHON
                                 <motion.span
                                     animate={{ opacity: [0.5, 1, 0.5] }}
                                     transition={{ repeat: Infinity, duration: 2 }}
                                 >
-                                    <Sparkles className="w-6 h-6 text-yellow-400" />
+                                    <Sparkles className="w-6 h-6 text-[var(--executive-gold)]" />
                                 </motion.span>
                             </h1>
-                            <p className="text-sm text-gray-500">Autonomous Meta-Orchestrator v1.0</p>
+                            <p className="text-[10px] text-[var(--text-muted)] font-mono uppercase tracking-[0.3em]">Autonomous Meta-Orchestrator // V1.0</p>
                         </div>
                     </div>
 
@@ -167,17 +167,17 @@ const ArchonDashboard: React.FC = () => {
                         <div className="flex items-center gap-2">
                             {isReady ? (
                                 <motion.div
-                                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-500/30"
+                                    className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--plasma-green)]/10 border border-[var(--plasma-green)]/30"
                                     animate={{ boxShadow: ['0 0 0 0 rgba(34, 197, 94, 0)', '0 0 0 10px rgba(34, 197, 94, 0)'] }}
                                     transition={{ repeat: Infinity, duration: 1.5 }}
                                 >
-                                    <span className="w-2 h-2 rounded-full bg-green-500" />
-                                    <span className="text-green-400 text-sm font-medium">ONLINE</span>
+                                    <span className="w-2 h-2 rounded-full bg-[var(--plasma-green)]" />
+                                    <span className="text-[var(--plasma-green)] text-sm font-medium">ONLINE</span>
                                 </motion.div>
                             ) : (
-                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-yellow-500/10 border border-yellow-500/30">
-                                    <RefreshCw className="w-4 h-4 text-yellow-400 animate-spin" />
-                                    <span className="text-yellow-400 text-sm font-medium">INITIALIZING</span>
+                                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--executive-gold)]/10 border border-[var(--executive-gold)]/30">
+                                    <RefreshCw className="w-4 h-4 text-[var(--executive-gold)] animate-spin" />
+                                    <span className="text-[var(--executive-gold)] text-sm font-medium">INITIALIZING</span>
                                 </div>
                             )}
                         </div>
@@ -208,9 +208,9 @@ const ArchonDashboard: React.FC = () => {
                                 <PhaseOrb phase={p.id} isActive={phase === p.id} label={p.label} icon={p.icon} />
                                 {i < phases.length - 1 && (
                                     <motion.div
-                                        className={`flex-1 h-0.5 mx-2 ${
+                                        className={`flex-1 h-0.5 mx-2 rounded-full ${
                                             phases.findIndex((ph) => ph.id === phase) > i
-                                                ? 'bg-purple-500'
+                                                ? 'bg-[var(--amethyst-soft)] shadow-[0_0_8px_var(--amethyst-soft)]'
                                                 : 'bg-white/10'
                                         }`}
                                         animate={
@@ -233,7 +233,7 @@ const ArchonDashboard: React.FC = () => {
                         <HoloCard className="h-full p-4">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-bold flex items-center gap-2">
-                                    <Target className="w-5 h-5 text-purple-400" />
+                                    <Target className="w-5 h-5 text-[var(--amethyst-soft)]" />
                                     Mission Control
                                 </h2>
                                 <span className="text-xs text-gray-500 px-2 py-1 rounded-full bg-white/5">
@@ -254,7 +254,7 @@ const ArchonDashboard: React.FC = () => {
                         {/* Stats */}
                         <HoloCard className="p-4">
                             <h2 className="text-lg font-bold flex items-center gap-2 mb-4">
-                                <Activity className="w-5 h-5 text-cyan-400" />
+                                <Activity className="w-5 h-5 text-[var(--cyan)]" />
                                 Telemetry
                             </h2>
                             <div className="flex justify-around">
@@ -262,13 +262,13 @@ const ArchonDashboard: React.FC = () => {
                                     value={telemetry?.goalsProcessed || 0}
                                     max={100}
                                     label="Goals"
-                                    color="#a855f7"
+                                    color="var(--amethyst-soft)"
                                 />
                                 <TelemetryRing
                                     value={(telemetry?.avgDqScore || 0) * 100}
                                     max={100}
                                     label="Avg DQ"
-                                    color="#22c55e"
+                                    color="var(--plasma-green)"
                                 />
                                 <TelemetryRing
                                     value={100 - (telemetry?.escalations || 0) * 10}
@@ -286,7 +286,7 @@ const ArchonDashboard: React.FC = () => {
                                 </div>
                                 <div className="p-3 rounded-lg bg-white/5">
                                     <div className="text-xs text-gray-500">Est. Cost</div>
-                                    <div className="text-lg font-bold text-green-400">
+                                    <div className="text-lg font-bold text-[var(--plasma-green)]">
                                         ${(telemetry?.costEstimate || 0).toFixed(4)}
                                     </div>
                                 </div>
@@ -297,11 +297,11 @@ const ArchonDashboard: React.FC = () => {
                         <HoloCard className="flex-1 p-4 min-h-0">
                             <div className="flex items-center justify-between mb-3">
                                 <h2 className="text-sm font-bold flex items-center gap-2">
-                                    <Terminal className="w-4 h-4 text-green-400" />
+                                    <Terminal className="w-4 h-4 text-[var(--plasma-green)]" />
                                     Event Stream
                                 </h2>
                                 <div className="flex items-center gap-1">
-                                    <Waves className="w-3 h-3 text-green-400" />
+                                    <Waves className="w-3 h-3 text-[var(--plasma-green)]" />
                                     <span className="text-xs text-gray-500">{events.length}</span>
                                 </div>
                             </div>
@@ -317,13 +317,13 @@ const ArchonDashboard: React.FC = () => {
                         <HoloCard className="flex-1 p-4">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-lg font-bold flex items-center gap-2">
-                                    <Bot className="w-5 h-5 text-blue-400" />
+                                    <Bot className="w-5 h-5 text-[var(--azure-blue)]" />
                                     Model Fleet
                                 </h2>
                                 <div className="flex items-center gap-2 text-xs">
                                     {activeModelId ? (
                                         <motion.span
-                                            className="text-green-400 font-medium"
+                                            className="text-[var(--plasma-green)] font-medium"
                                             animate={{ opacity: [1, 0.5, 1] }}
                                             transition={{ repeat: Infinity, duration: 1 }}
                                         >

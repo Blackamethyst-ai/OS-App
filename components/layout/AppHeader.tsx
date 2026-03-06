@@ -51,11 +51,7 @@ const AppHeader: React.FC = () => {
                                 onDragOver={onDragOver}
                                 onDrop={(e) => onDrop(e as unknown as React.DragEvent, index)}
                                 onDragEnd={onDragEnd}
-                                whileHover={{
-                                    y: -1,
-                                    scale: 1.05,
-                                    x: [0, -0.5, 0.5, 0]
-                                }}
+                                whileHover={{ y: -1, scale: 1.03 }}
                                 whileTap={{ scale: 0.95 }}
                                 onClick={() => { window.location.hash = item.path; audio.playClick(); }}
                                 className={cn(
@@ -63,23 +59,34 @@ const AppHeader: React.FC = () => {
                                     draggedIndex === index && "opacity-50"
                                 )}
                             >
+                                {/* Hover pill background */}
+                                <div className={cn(
+                                    "absolute inset-x-1 inset-y-2 rounded-xl transition-all duration-300",
+                                    mode === item.id ? "bg-white/[0.04]" : "bg-transparent group-hover:bg-white/[0.03]"
+                                )} />
                                 <span className={cn(
-                                    "text-[10px] font-black uppercase tracking-[0.15em] font-mono transition-all duration-500 relative z-10",
-                                    mode === item.id ? 'text-[var(--cyan)]' : 'text-[var(--text-muted)] group-hover:text-[var(--cyan)]'
+                                    "text-[10px] font-black uppercase tracking-[0.15em] font-mono transition-all duration-500 relative z-10 flex items-center gap-2",
+                                    mode === item.id ? 'text-[var(--cyan)]' : 'text-[var(--text-muted)] group-hover:text-white/70'
                                 )}>
                                     {item.label}
+                                    {mode === item.id && (
+                                        <motion.div
+                                            layoutId="nav-dot"
+                                            className="w-1 h-1 rounded-full bg-[var(--cyan)] shadow-[0_0_6px_var(--cyan)]"
+                                        />
+                                    )}
                                 </span>
                                 {mode === item.id && (
                                     <motion.div
                                         layoutId="nav-underline"
-                                        className="absolute bottom-[-4px] left-2 right-2 h-[3px] z-20 rounded-full"
-                                        initial={{ opacity: 0 }}
+                                        className="absolute bottom-[-4px] left-2 right-2 h-[2px] z-20 rounded-full bg-gradient-to-r from-[var(--amethyst)] to-[var(--cyan)]"
+                                        initial={{ opacity: 0, scaleX: 0.5 }}
                                         animate={{
                                             opacity: 1,
-                                            background: "linear-gradient(90deg, var(--amethyst), var(--cyan))",
-                                            boxShadow: "0 0 12px rgba(123, 44, 255, 0.6), 0 0 24px rgba(24, 230, 255, 0.3)"
+                                            scaleX: 1,
+                                            boxShadow: "0 0 12px rgba(123, 44, 255, 0.5), 0 0 20px rgba(24, 230, 255, 0.2)"
                                         }}
-                                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                                        transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                     />
                                 )}
                             </motion.button>

@@ -50,6 +50,7 @@ const AppFooter: React.FC = () => {
 
                 {/* Right: Links */}
                 <div className="flex items-center gap-10">
+                    <div className="h-6 w-px bg-white/5 hidden sm:block" />
                     <nav className="flex items-center gap-8">
                         {[
                             { label: 'LINKEDIN', href: 'https://www.linkedin.com/in/dico-angelo/' },
@@ -61,10 +62,10 @@ const AppFooter: React.FC = () => {
                                 href={link.href}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="text-[10px] font-black font-mono text-[var(--text-muted)] hover:text-[var(--cyan)] transition-all tracking-[0.4em] uppercase relative group"
+                                className="text-[10px] font-black font-mono text-[var(--text-muted)] hover:text-[var(--cyan)] transition-all duration-300 tracking-[0.4em] uppercase relative group"
                             >
                                 {link.label}
-                                <span className="absolute -bottom-1.5 left-0 w-0 h-[1px] bg-[var(--cyan)] transition-all group-hover:w-full shadow-[0_0_15px_var(--cyan)]" />
+                                <span className="absolute -bottom-1.5 left-0 w-0 h-[1px] bg-[var(--cyan)] transition-all duration-300 group-hover:w-full shadow-[0_0_10px_var(--cyan)]" />
                             </a>
                         ))}
                     </nav>
