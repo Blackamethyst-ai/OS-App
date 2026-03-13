@@ -25,6 +25,7 @@ import type {
 } from './types';
 import { DEFAULT_CPB_CONFIG } from './types';
 import { extractPathSignals, selectPath } from './router';
+import { getLearnedRoutingFromFeedback } from './feedbackAdapter';
 
 // ============================================================================
 // ORCHESTRATOR CLASS
@@ -72,7 +73,8 @@ export class CognitivePrecisionBridge {
             });
 
             const signals = extractPathSignals(request.query, request.context, this.config);
-            const routing = selectPath(signals, this.config);
+            const learnedRouting = getLearnedRoutingFromFeedback();
+            const routing = selectPath(signals, this.config, learnedRouting);
             const selectedPath = request.forcePath || routing.path;
 
             updateStatus({

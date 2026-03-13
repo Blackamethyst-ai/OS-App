@@ -148,8 +148,8 @@ export const CPBMonitorPanel: React.FC<CPBMonitorPanelProps> = ({ status, lastRe
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-purple-500/20">
-                        <BrainCircuit size={16} className="text-purple-400" />
+                    <div className="p-2 rounded-lg bg-[var(--amethyst-soft)]/20">
+                        <BrainCircuit size={16} className="text-[var(--amethyst-soft)]" />
                     </div>
                     <div>
                         <h3 className="text-sm font-semibold text-white">Cognitive Precision Bridge</h3>
@@ -245,7 +245,7 @@ export const CPBMonitorPanel: React.FC<CPBMonitorPanelProps> = ({ status, lastRe
                                 {/* DQ Score */}
                                 <div className="p-3 rounded-lg bg-gray-800/50">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <Target size={12} className="text-cyan-400" />
+                                        <Target size={12} className="text-[var(--cyan)]" />
                                         <span className="text-xs text-gray-400">DQ Score</span>
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export const CPBMonitorPanel: React.FC<CPBMonitorPanelProps> = ({ status, lastRe
                                             {(lastResult.dqScore.score * 100).toFixed(0)}%
                                         </span>
                                         {lastResult.verified && (
-                                            <CheckCircle2 size={12} className="text-green-400" />
+                                            <CheckCircle2 size={12} className="text-[var(--plasma-green)]" />
                                         )}
                                     </div>
                                     <DQBreakdown dqScore={lastResult.dqScore} />
@@ -271,7 +271,7 @@ export const CPBMonitorPanel: React.FC<CPBMonitorPanelProps> = ({ status, lastRe
                                 {/* Execution Time */}
                                 <div className="p-3 rounded-lg bg-gray-800/50">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <Clock size={12} className="text-blue-400" />
+                                        <Clock size={12} className="text-[var(--azure-blue)]" />
                                         <span className="text-xs text-gray-400">Time</span>
                                     </div>
                                     <span className="text-lg font-bold text-white">
@@ -282,7 +282,7 @@ export const CPBMonitorPanel: React.FC<CPBMonitorPanelProps> = ({ status, lastRe
                                 {/* Confidence */}
                                 <div className="p-3 rounded-lg bg-gray-800/50">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <TrendingUp size={12} className="text-green-400" />
+                                        <TrendingUp size={12} className="text-[var(--plasma-green)]" />
                                         <span className="text-xs text-gray-400">Confidence</span>
                                     </div>
                                     <span className="text-lg font-bold text-white">
@@ -293,7 +293,7 @@ export const CPBMonitorPanel: React.FC<CPBMonitorPanelProps> = ({ status, lastRe
                                 {/* Tokens */}
                                 <div className="p-3 rounded-lg bg-gray-800/50">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <Cpu size={12} className="text-purple-400" />
+                                        <Cpu size={12} className="text-[var(--amethyst-soft)]" />
                                         <span className="text-xs text-gray-400">Tokens</span>
                                     </div>
                                     <span className="text-lg font-bold text-white">

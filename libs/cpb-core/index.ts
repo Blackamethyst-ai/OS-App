@@ -80,5 +80,11 @@ export {
     cpbExecute
 } from './orchestrator';
 
+// Feedback adapter
+export {
+    adaptFeedbackToRouting,
+    getLearnedRoutingFromFeedback
+} from './feedbackAdapter';
+
 // Default export
 export { default } from './orchestrator';

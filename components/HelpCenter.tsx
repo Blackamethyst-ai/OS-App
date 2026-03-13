@@ -159,7 +159,7 @@ const HelpCenter: React.FC<HelpCenterProps> = ({ onClose }) => {
                         <span className="uppercase tracking-[0.3em] uppercase">V1.0 - THE D-Ecosystem // Proprietary Interface</span>
                     </div>
                     <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] animate-pulse"></div>
                         <span className="uppercase tracking-widest">HIVE_LINK_OK</span>
                     </div>
                 </div>

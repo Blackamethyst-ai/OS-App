@@ -21,10 +21,10 @@ const FrictionCard: React.FC<{ signal: FrictionSignal }> = ({ signal }) => {
         switch (type) {
             case 'ERROR': return 'text-red-500 bg-red-500/10 border-red-500/30';
             case 'REPEATED_ACTION': return 'text-amber-500 bg-amber-500/10 border-amber-500/30';
-            case 'DEAD_END': return 'text-purple-500 bg-purple-500/10 border-purple-500/30';
-            case 'LONG_PAUSE': return 'text-blue-500 bg-blue-500/10 border-blue-500/30';
+            case 'DEAD_END': return 'text-[var(--amethyst-soft)] bg-[var(--amethyst-soft)]/10 border-[var(--amethyst-soft)]/30';
+            case 'LONG_PAUSE': return 'text-[var(--azure-blue)] bg-[var(--azure-blue)]/10 border-[var(--azure-blue)]/30';
             case 'ABANDONMENT': return 'text-gray-500 bg-gray-500/10 border-gray-500/30';
-            default: return 'text-cyan-500 bg-cyan-500/10 border-cyan-500/30';
+            default: return 'text-[var(--cyan)] bg-[var(--cyan)]/10 border-[var(--cyan)]/30';
         }
     };
 
@@ -120,9 +120,9 @@ const EvolutionCard: React.FC<{
     const getStatusStyle = (status: EvolutionHypothesis['status']) => {
         switch (status) {
             case 'PROPOSED': return 'bg-amber-500/20 text-amber-500 border-amber-500/30';
-            case 'APPROVED': return 'bg-green-500/20 text-green-500 border-green-500/30';
+            case 'APPROVED': return 'bg-[var(--plasma-green)]/20 text-[var(--plasma-green)] border-[var(--plasma-green)]/30';
             case 'REJECTED': return 'bg-red-500/20 text-red-500 border-red-500/30';
-            case 'DEPLOYED': return 'bg-cyan-500/20 text-cyan-500 border-cyan-500/30';
+            case 'DEPLOYED': return 'bg-[var(--cyan)]/20 text-[var(--cyan)] border-[var(--cyan)]/30';
             case 'ROLLED_BACK': return 'bg-gray-500/20 text-gray-500 border-gray-500/30';
             default: return 'bg-white/10 text-gray-400 border-white/10';
         }
@@ -193,7 +193,7 @@ const EvolutionCard: React.FC<{
                         <>
                             <button
                                 onClick={onApprove}
-                                className="p-1.5 bg-green-500/20 rounded-lg hover:bg-green-500/30 transition-all text-green-500"
+                                className="p-1.5 bg-[var(--plasma-green)]/20 rounded-lg hover:bg-[var(--plasma-green)]/30 transition-all text-[var(--plasma-green)]"
                             >
                                 <Check size={14} />
                             </button>

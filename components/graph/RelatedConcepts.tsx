@@ -142,7 +142,7 @@ export function RelatedConcepts({
       {/* Loading State */}
       {isLoading && (
         <div className="flex items-center justify-center p-8">
-          <div className="animate-spin w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full" />
+          <div className="animate-spin w-6 h-6 border-2 border-[var(--azure-blue)] border-t-transparent rounded-full" />
         </div>
       )}
 

@@ -103,7 +103,7 @@ export const BiometricPanel = memo(({
 
   const getLightingIcon = (status: BiometricPerformance['lightingStatus']) => {
     switch (status) {
-      case 'GOOD': return <Sun className="w-3.5 h-3.5 text-yellow-400" />;
+      case 'GOOD': return <Sun className="w-3.5 h-3.5 text-[var(--executive-gold)]" />;
       case 'LOW': return <SunDim className="w-3.5 h-3.5 text-orange-400" />;
       case 'VERY_LOW': return <Moon className="w-3.5 h-3.5 text-red-400" />;
     }
@@ -111,15 +111,15 @@ export const BiometricPanel = memo(({
 
   const getLightingColor = (status: BiometricPerformance['lightingStatus']) => {
     switch (status) {
-      case 'GOOD': return 'text-green-400';
+      case 'GOOD': return 'text-[var(--plasma-green)]';
       case 'LOW': return 'text-orange-400';
       case 'VERY_LOW': return 'text-red-400';
     }
   };
 
   const getFpsColor = (fps: number) => {
-    if (fps >= 50) return 'text-green-400';
-    if (fps >= 30) return 'text-yellow-400';
+    if (fps >= 50) return 'text-[var(--plasma-green)]';
+    if (fps >= 30) return 'text-[var(--executive-gold)]';
     if (fps >= 15) return 'text-orange-400';
     return 'text-red-400';
   };
@@ -137,7 +137,7 @@ export const BiometricPanel = memo(({
           <div
             className={cn(
               'w-2 h-2 rounded-full',
-              isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-500'
+              isActive ? 'bg-[var(--plasma-green)] animate-pulse' : 'bg-gray-500'
             )}
           />
           <span className="text-xs text-white/60">
@@ -155,7 +155,7 @@ export const BiometricPanel = memo(({
         {/* Header with Status */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Brain className="w-5 h-5 text-purple-400" />
+            <Brain className="w-5 h-5 text-[var(--amethyst-soft)]" />
             <span className="text-sm font-medium text-white">Biometric Sensors</span>
           </div>
           <div className="flex items-center gap-3">
@@ -171,7 +171,7 @@ export const BiometricPanel = memo(({
             <div
               className={cn(
                 'w-2 h-2 rounded-full transition-colors',
-                isActive ? 'bg-green-500 animate-pulse' : 'bg-gray-500'
+                isActive ? 'bg-[var(--plasma-green)] animate-pulse' : 'bg-gray-500'
               )}
             />
             <span className="text-xs text-white/60">
@@ -195,8 +195,8 @@ export const BiometricPanel = memo(({
             <div className="text-center">
               <div className={cn(
                 'text-sm font-mono font-bold',
-                performance.processingLatency < 16 ? 'text-green-400' :
-                performance.processingLatency < 33 ? 'text-yellow-400' : 'text-red-400'
+                performance.processingLatency < 16 ? 'text-[var(--plasma-green)]' :
+                performance.processingLatency < 33 ? 'text-[var(--executive-gold)]' : 'text-red-400'
               )}>
                 {performance.processingLatency.toFixed(1)}
               </div>
@@ -285,7 +285,7 @@ export const BiometricPanel = memo(({
               <span className={cn(
                 'text-xs flex items-center gap-1',
                 stressLevel.trend === 'RISING' ? 'text-red-400' :
-                stressLevel.trend === 'FALLING' ? 'text-green-400' : 'text-white/40'
+                stressLevel.trend === 'FALLING' ? 'text-[var(--plasma-green)]' : 'text-white/40'
               )}>
                 {stressLevel.trend === 'RISING' ? '↑' :
                  stressLevel.trend === 'FALLING' ? '↓' : '−'}
@@ -301,13 +301,13 @@ export const BiometricPanel = memo(({
                 <Eye className="w-4 h-4 text-white/60" />
                 <span className="text-xs text-white/60">Attention</span>
               </div>
-              <span className="text-xs font-medium text-cyan-400">
+              <span className="text-xs font-medium text-[var(--cyan)]">
                 {attentionScore}%
               </span>
             </div>
             <div className="relative h-2 bg-white/5 rounded-full overflow-hidden">
               <motion.div
-                className="absolute inset-y-0 left-0 rounded-full bg-cyan-500"
+                className="absolute inset-y-0 left-0 rounded-full bg-[var(--cyan)]"
                 initial={{ width: 0 }}
                 animate={{ width: `${attentionScore}%` }}
                 transition={{ duration: 0.3 }}
@@ -331,13 +331,13 @@ export const BiometricPanel = memo(({
                 <Gauge className="w-4 h-4 text-white/60" />
                 <span className="text-xs text-white/60">Cognitive Load</span>
               </div>
-              <span className="text-xs font-medium text-purple-400">
+              <span className="text-xs font-medium text-[var(--amethyst-soft)]">
                 {cognitiveLoad}%
               </span>
             </div>
             <div className="relative h-2 bg-white/5 rounded-full overflow-hidden">
               <motion.div
-                className="absolute inset-y-0 left-0 rounded-full bg-purple-500"
+                className="absolute inset-y-0 left-0 rounded-full bg-[var(--amethyst-soft)]"
                 initial={{ width: 0 }}
                 animate={{ width: `${cognitiveLoad}%` }}
                 transition={{ duration: 0.3 }}
@@ -373,7 +373,7 @@ export const BiometricPanel = memo(({
                   className={cn(
                     'flex-1 text-[10px] py-1 rounded transition-colors',
                     uiComplexity === level
-                      ? 'bg-purple-500/30 text-purple-300 border border-purple-500/50'
+                      ? 'bg-[var(--amethyst-soft)]/30 text-purple-300 border border-[var(--amethyst-soft)]/50'
                       : 'bg-white/5 text-white/40 hover:bg-white/10'
                   )}
                 >
@@ -386,19 +386,19 @@ export const BiometricPanel = memo(({
 
         {/* Gaze Tracking Indicator with enhanced info */}
         {currentFixation && (
-          <div className="bg-cyan-500/10 border border-cyan-500/30 rounded-lg p-2">
+          <div className="bg-[var(--cyan)]/10 border border-[var(--cyan)]/30 rounded-lg p-2">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Crosshair className="w-4 h-4 text-cyan-400" />
+                <Crosshair className="w-4 h-4 text-[var(--cyan)]" />
                 <span className="text-xs text-cyan-300">
                   Fixation: {(currentFixation.duration / 1000).toFixed(1)}s
                   {currentFixation.targetElement && (
-                    <span className="text-cyan-400/60"> → {currentFixation.targetElement}</span>
+                    <span className="text-[var(--cyan)]/60"> → {currentFixation.targetElement}</span>
                   )}
                 </span>
               </div>
               {currentFixation.duration >= 2000 && (
-                <span className="text-[10px] text-green-400 bg-green-500/20 px-1.5 py-0.5 rounded">
+                <span className="text-[10px] text-[var(--plasma-green)] bg-[var(--plasma-green)]/20 px-1.5 py-0.5 rounded">
                   LOCKED
                 </span>
               )}
@@ -455,7 +455,7 @@ export const BiometricPanel = memo(({
                   'flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-medium transition-colors',
                   isActive
                     ? 'bg-red-500/20 text-red-300 hover:bg-red-500/30'
-                    : 'bg-green-500/20 text-green-300 hover:bg-green-500/30'
+                    : 'bg-[var(--plasma-green)]/20 text-green-300 hover:bg-[var(--plasma-green)]/30'
                 )}
                 data-voice-id="biometric-sensors-toggle"
                 aria-label={isActive ? 'Stop biometric sensors' : 'Start biometric sensors'}
@@ -468,7 +468,7 @@ export const BiometricPanel = memo(({
                 className={cn(
                   'flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-colors',
                   biometric.adaptiveUIEnabled
-                    ? 'bg-purple-500/20 text-purple-300 hover:bg-purple-500/30'
+                    ? 'bg-[var(--amethyst-soft)]/20 text-purple-300 hover:bg-[var(--amethyst-soft)]/30'
                     : 'bg-white/5 text-white/40 hover:bg-white/10'
                 )}
                 data-voice-id="biometric-adaptive-ui-toggle"
@@ -528,14 +528,14 @@ export const BiometricPanel = memo(({
                     </span>
 
                     <span className="text-white/40">Face Detected:</span>
-                    <span className={performance.faceDetected ? 'text-green-400' : 'text-red-400'}>
+                    <span className={performance.faceDetected ? 'text-[var(--plasma-green)]' : 'text-red-400'}>
                       {performance.faceDetected ? 'Yes' : 'No'}
                     </span>
 
                     <span className="text-white/40">Detection Quality:</span>
                     <span className={cn(
-                      faceDetectionService.getDetectionQuality() === 'HIGH' && 'text-green-400',
-                      faceDetectionService.getDetectionQuality() === 'MEDIUM' && 'text-yellow-400',
+                      faceDetectionService.getDetectionQuality() === 'HIGH' && 'text-[var(--plasma-green)]',
+                      faceDetectionService.getDetectionQuality() === 'MEDIUM' && 'text-[var(--executive-gold)]',
                       faceDetectionService.getDetectionQuality() === 'LOW' && 'text-orange-400',
                       faceDetectionService.getDetectionQuality() === 'NONE' && 'text-red-400',
                     )}>
@@ -558,7 +558,7 @@ export const BiometricPanel = memo(({
                     </span>
 
                     <span className="text-white/40">Mode:</span>
-                    <span className={realtimeMode ? 'text-amber-400' : 'text-blue-400'}>
+                    <span className={realtimeMode ? 'text-amber-400' : 'text-[var(--azure-blue)]'}>
                       {realtimeMode ? 'Fast (1s avg)' : 'Stable (10s avg)'}
                     </span>
                   </div>

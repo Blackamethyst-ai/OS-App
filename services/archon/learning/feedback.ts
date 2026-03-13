@@ -318,6 +318,13 @@ export class FeedbackLearner {
     return bestModel;
   }
 
+  /**
+   * Get all model performance records
+   */
+  getAllModelPerformance(): ModelPerformanceRecord[] {
+    return Array.from(this.modelPerformance.values());
+  }
+
   // ===========================================================================
   // STATISTICS
   // ===========================================================================
@@ -547,7 +554,7 @@ export class FeedbackLearner {
 // SUPPORTING TYPES
 // =============================================================================
 
-interface ModelPerformanceRecord {
+export interface ModelPerformanceRecord {
   modelId: string;
   totalInvocations: number;
   successCount: number;

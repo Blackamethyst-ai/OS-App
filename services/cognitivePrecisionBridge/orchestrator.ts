@@ -26,6 +26,7 @@ import type {
 } from './types';
 import { DEFAULT_CPB_CONFIG } from './types';
 import { selectPath, extractPathSignals, canUseDirectPath } from './router';
+import { getLearnedRoutingFromFeedback } from '../../libs/cpb-core/feedbackAdapter';
 import { recursiveLLMQuery, rlmEnhancedQuery, RLMResult, RLMStatus } from '../recursiveLanguageModel';
 import { adaptiveConsensusEngine, quickConsensus } from '../adaptiveConsensus';
 import { scoreDQHeuristic, scoreDQWithLLM, DQScore } from '../dqScoring';
@@ -128,7 +129,8 @@ class CognitivePrecisionBridgeOrchestrator {
             // ================================================================
             this.updateStatus('analyzing', 'Analyzing request...');
 
-            const routingDecision = selectPath(request, this.config);
+            const learnedRouting = getLearnedRoutingFromFeedback();
+            const routingDecision = selectPath(request, this.config, learnedRouting);
             this.currentPath = routingDecision.selectedPath;
 
             logger.debug(`Selected path: ${this.currentPath} (confidence: ${routingDecision.confidence.toFixed(2)})`, undefined, 'CPBOrchestrator');

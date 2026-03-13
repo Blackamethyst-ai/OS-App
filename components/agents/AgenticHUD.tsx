@@ -58,7 +58,7 @@ const AgenticHUD: React.FC = () => {
                                 {state.history.map((h, i) => (
                                     <div key={i} className={`flex gap-3 items-start animate-in fade-in`}>
                                         <span className={`px-2 py-0.5 rounded text-8px font-black shrink-0 border ${
-                                            h.role === 'user' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' : 
+                                            h.role === 'user' ? 'bg-[var(--azure-blue)]/10 text-[var(--azure-blue)] border-[var(--azure-blue)]/20' : 
                                             h.role === 'tool' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' :
                                             'bg-[var(--amethyst-soft)]/10 text-[var(--amethyst-soft)] border-[var(--amethyst-soft)]/20'
                                         }`}>

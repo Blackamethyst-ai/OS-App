@@ -140,12 +140,12 @@ export function ExperimentLogger({
                     initial={{ opacity: 0, x: 300 }}
                     animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: 300 }}
-                    className="fixed right-4 top-20 w-80 bg-black/90 border border-purple-500/30 rounded-2xl shadow-2xl z-50 overflow-hidden"
+                    className="fixed right-4 top-20 w-80 bg-black/90 border border-[var(--amethyst-soft)]/30 rounded-2xl shadow-2xl z-50 overflow-hidden"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-white/10">
                         <div className="flex items-center gap-2">
-                            <FlaskConical size={18} className="text-purple-400" />
+                            <FlaskConical size={18} className="text-[var(--amethyst-soft)]" />
                             <span className="text-sm font-bold text-white uppercase tracking-wider">
                                 Experiment Logger
                             </span>
@@ -172,7 +172,7 @@ export function ExperimentLogger({
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-400">Condition:</span>
-                                <span className={aceEnabled ? 'text-cyan-400' : 'text-orange-400'}>
+                                <span className={aceEnabled ? 'text-[var(--cyan)]' : 'text-orange-400'}>
                                     {aceEnabled ? 'C2 (ACE)' : 'C1 (Baseline)'}
                                 </span>
                             </div>
@@ -184,14 +184,14 @@ export function ExperimentLogger({
                                 <>
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Complexity:</span>
-                                        <span className="text-yellow-400 uppercase">{complexity || '—'}</span>
+                                        <span className="text-[var(--executive-gold)] uppercase">{complexity || '—'}</span>
                                     </div>
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">DQ Score:</span>
                                         <span className={
                                             dqScore
-                                                ? dqScore.overall >= 0.7 ? 'text-green-400' :
-                                                  dqScore.overall >= 0.5 ? 'text-yellow-400' : 'text-red-400'
+                                                ? dqScore.overall >= 0.7 ? 'text-[var(--plasma-green)]' :
+                                                  dqScore.overall >= 0.5 ? 'text-[var(--executive-gold)]' : 'text-red-400'
                                                 : 'text-gray-500'
                                         }>
                                             {dqScore ? `${(dqScore.overall * 100).toFixed(0)}%` : '—'}
@@ -204,7 +204,7 @@ export function ExperimentLogger({
                         <button
                             onClick={logCurrentRun}
                             disabled={!currentTask || rounds === undefined}
-                            className="w-full mt-3 py-2 bg-purple-600 hover:bg-purple-500 disabled:bg-gray-700 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-2"
+                            className="w-full mt-3 py-2 bg-[var(--amethyst)] hover:bg-[var(--amethyst-soft)] disabled:bg-gray-700 disabled:cursor-not-allowed text-white text-xs font-bold uppercase tracking-wider rounded-lg transition-colors flex items-center justify-center gap-2"
                         >
                             <Check size={14} />
                             Log This Trial
@@ -219,7 +219,7 @@ export function ExperimentLogger({
                             </div>
                             <button
                                 onClick={() => setShowStats(!showStats)}
-                                className="text-[10px] text-purple-400 hover:text-purple-300"
+                                className="text-[10px] text-[var(--amethyst-soft)] hover:text-purple-300"
                             >
                                 {showStats ? 'Hide' : 'Show'} Details
                             </button>
@@ -231,7 +231,7 @@ export function ExperimentLogger({
                                 <div className="text-[9px] text-gray-500 uppercase">C1 Baseline</div>
                             </div>
                             <div className="bg-white/5 rounded-lg p-2 text-center">
-                                <div className="text-lg font-bold text-cyan-400">{c2Trials.length}</div>
+                                <div className="text-lg font-bold text-[var(--cyan)]">{c2Trials.length}</div>
                                 <div className="text-[9px] text-gray-500 uppercase">C2 ACE</div>
                             </div>
                         </div>
@@ -257,7 +257,7 @@ export function ExperimentLogger({
                                 {c1AvgRounds > 0 && c2AvgRounds > 0 && (
                                     <div className="flex justify-between">
                                         <span className="text-gray-400">Reduction:</span>
-                                        <span className="text-green-400 font-mono">
+                                        <span className="text-[var(--plasma-green)] font-mono">
                                             {((c1AvgRounds - c2AvgRounds) / c1AvgRounds * 100).toFixed(1)}%
                                         </span>
                                     </div>
@@ -309,7 +309,7 @@ export function ExperimentLogger({
                             </div>
                             <div className="mt-1 h-1 bg-white/10 rounded-full overflow-hidden">
                                 <div
-                                    className="h-full bg-purple-500 transition-all"
+                                    className="h-full bg-[var(--amethyst-soft)] transition-all"
                                     style={{ width: `${trials.length}%` }}
                                 />
                             </div>

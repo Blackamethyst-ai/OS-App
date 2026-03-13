@@ -25,9 +25,9 @@ const NotificationCard: React.FC<{
     const getStyles = () => {
         switch (type) {
             case 'ERROR': return { bg: 'bg-[#1a0505]/95', border: 'border-red-500', text: 'text-red-500', subtext: 'text-red-400', icon: <AlertOctagon className="w-5 h-5" />, glow: 'shadow-[0_0_30px_rgba(239,68,68,0.2)]' };
-            case 'SUCCESS': return { bg: 'bg-[#051a05]/95', border: 'border-[#42be65]', text: 'text-[#42be65]', subtext: 'text-green-400', icon: <CheckCircle2 className="w-5 h-5" />, glow: 'shadow-[0_0_30px_rgba(66,190,101,0.2)]' };
+            case 'SUCCESS': return { bg: 'bg-[#051a05]/95', border: 'border-[#42be65]', text: 'text-[#42be65]', subtext: 'text-[var(--plasma-green)]', icon: <CheckCircle2 className="w-5 h-5" />, glow: 'shadow-[0_0_30px_rgba(66,190,101,0.2)]' };
             case 'WARNING': return { bg: 'bg-[#1a1205]/95', border: 'border-[var(--amber)]', text: 'text-[var(--amber)]', subtext: 'text-amber-400', icon: <AlertTriangle className="w-5 h-5" />, glow: 'shadow-[0_0_30_px_rgba(245,158,11,0.2)]' };
-            default: return { bg: 'bg-[#05051a]/95', border: 'border-[var(--cyan)]', text: 'text-[var(--cyan)]', subtext: 'text-cyan-400', icon: <Info className="w-5 h-5" />, glow: 'shadow-[0_0_30px_rgba(34,211,238,0.2)]' };
+            default: return { bg: 'bg-[#05051a]/95', border: 'border-[var(--cyan)]', text: 'text-[var(--cyan)]', subtext: 'text-[var(--cyan)]', icon: <Info className="w-5 h-5" />, glow: 'shadow-[0_0_30px_rgba(34,211,238,0.2)]' };
         }
     };
 

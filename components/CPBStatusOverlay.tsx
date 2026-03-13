@@ -83,7 +83,7 @@ const CPBStatusOverlay: React.FC = () => {
             >
                 <div className={cn(
                     "relative bg-black/80 backdrop-blur-xl border rounded-2xl p-4 min-w-[320px] shadow-2xl",
-                    isError ? "border-red-500/50" : isComplete ? "border-green-500/50" : "border-white/10"
+                    isError ? "border-red-500/50" : isComplete ? "border-[var(--plasma-green)]/50" : "border-white/10"
                 )}>
                     {/* Glow effect */}
                     <div
@@ -124,7 +124,7 @@ const CPBStatusOverlay: React.FC = () => {
                         {/* Status indicator */}
                         <div className={cn(
                             "flex items-center gap-1.5 px-2 py-1 rounded-full text-[8px] font-bold uppercase",
-                            isComplete ? "bg-green-500/20 text-green-400" :
+                            isComplete ? "bg-[var(--plasma-green)]/20 text-[var(--plasma-green)]" :
                             isError ? "bg-red-500/20 text-red-400" :
                             "bg-white/5 text-gray-400"
                         )}>
@@ -170,14 +170,14 @@ const CPBStatusOverlay: React.FC = () => {
                             <div className="flex items-center justify-between text-[9px]">
                                 <div className="flex items-center gap-3">
                                     <div className="flex items-center gap-1">
-                                        <Sparkles size={10} className="text-yellow-400" />
+                                        <Sparkles size={10} className="text-[var(--executive-gold)]" />
                                         <span className="text-gray-400">DQ:</span>
                                         <span className="text-white font-bold">
                                             {(cpb.lastResult.dqScore * 100).toFixed(0)}%
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-1">
-                                        <Zap size={10} className="text-cyan-400" />
+                                        <Zap size={10} className="text-[var(--cyan)]" />
                                         <span className="text-gray-400">Time:</span>
                                         <span className="text-white font-mono">
                                             {cpb.lastResult.executionTimeMs}ms
@@ -185,7 +185,7 @@ const CPBStatusOverlay: React.FC = () => {
                                     </div>
                                 </div>
                                 {cpb.lastResult.verified && (
-                                    <div className="flex items-center gap-1 text-green-400">
+                                    <div className="flex items-center gap-1 text-[var(--plasma-green)]">
                                         <CheckCircle size={10} />
                                         <span className="uppercase text-[8px]">Verified</span>
                                     </div>

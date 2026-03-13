@@ -217,7 +217,7 @@ export const GoalCommandCenter: React.FC<GoalCommandCenterProps> = ({
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 className={`border rounded-xl overflow-hidden ${
                                     goal.status === 'active'
-                                        ? 'border-blue-500/50 bg-blue-500/10'
+                                        ? 'border-[var(--azure-blue)]/50 bg-[var(--azure-blue)]/10'
                                         : goal.status === 'completed'
                                         ? 'border-[var(--plasma-green)]/30 bg-[var(--plasma-green)]/5'
                                         : goal.status === 'escalated'
@@ -381,7 +381,7 @@ export const OrganismLayersPanel: React.FC<OrganismLayersPanelProps> = ({
                             </div>
                             <div className="flex items-center gap-2">
                                 {layer.phase && (
-                                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300">
+                                    <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--azure-blue)]/20 text-blue-300">
                                         {layer.phase}
                                     </span>
                                 )}

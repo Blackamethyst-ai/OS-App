@@ -136,7 +136,7 @@ export const AdaptiveContainer: React.FC<AdaptiveContainerProps> = ({
               exit={{ opacity: 0 }}
               className="absolute inset-0 z-50 pointer-events-none"
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-cyan-500/5 to-purple-500/5 animate-pulse" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[var(--amethyst-soft)]/5 via-cyan-500/5 to-purple-500/5 animate-pulse" />
               <motion.div
                 animate={{
                   x: ['-100%', '100%'],
@@ -158,8 +158,8 @@ export const AdaptiveContainer: React.FC<AdaptiveContainerProps> = ({
             <div className="flex items-center gap-2">
               <div className={cn(
                 'w-2 h-2 rounded-full',
-                evaluationScore >= 70 ? 'bg-green-500' :
-                evaluationScore >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                evaluationScore >= 70 ? 'bg-[var(--plasma-green)]' :
+                evaluationScore >= 50 ? 'bg-[var(--executive-gold)]' : 'bg-red-500'
               )} />
               <span>Score: {evaluationScore}</span>
             </div>
@@ -167,14 +167,14 @@ export const AdaptiveContainer: React.FC<AdaptiveContainerProps> = ({
             <div>Latency: {regenerationLatency.toFixed(0)}ms</div>
             <div>Iterations: {iterationCount}</div>
             {gazeSemantics?.primaryTarget && (
-              <div className="text-cyan-400">
+              <div className="text-[var(--cyan)]">
                 Gaze: {gazeSemantics.primaryTarget.semanticLabel}
               </div>
             )}
             {lastEvaluation?.verdict && (
               <div className={cn(
-                lastEvaluation.verdict === 'OPTIMAL' ? 'text-green-400' :
-                lastEvaluation.verdict === 'ACCEPTABLE' ? 'text-yellow-400' :
+                lastEvaluation.verdict === 'OPTIMAL' ? 'text-[var(--plasma-green)]' :
+                lastEvaluation.verdict === 'ACCEPTABLE' ? 'text-[var(--executive-gold)]' :
                 'text-red-400'
               )}>
                 Verdict: {lastEvaluation.verdict}
@@ -197,8 +197,8 @@ export const AdaptiveContainer: React.FC<AdaptiveContainerProps> = ({
               height: gazeSemantics.primaryTarget.boundingBox.height,
             }}
           >
-            <div className="absolute inset-0 border-2 border-cyan-500/30 rounded-lg">
-              <div className="absolute -top-6 left-0 bg-cyan-500/20 text-cyan-300 text-[10px] px-2 py-0.5 rounded">
+            <div className="absolute inset-0 border-2 border-[var(--cyan)]/30 rounded-lg">
+              <div className="absolute -top-6 left-0 bg-[var(--cyan)]/20 text-cyan-300 text-[10px] px-2 py-0.5 rounded">
                 {gazeSemantics.primaryTarget.semanticLabel}
               </div>
             </div>

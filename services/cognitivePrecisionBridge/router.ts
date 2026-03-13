@@ -23,17 +23,20 @@ import type {
 import { DEFAULT_CPB_CONFIG } from './types';
 import { estimateComplexity } from '../complexityEstimator';
 import type { AtomicTask } from '../../types';
+import { convergenceMemory } from '../convergenceMemory';
 
 // ============================================================================
 // SIGNAL EXTRACTION
 // ============================================================================
 
 /**
- * Extract path-determining signals from request
+ * Extract path-determining signals from request.
+ * Optional overrides: stressLevel (US-021), convergenceStats (US-022).
  */
 export function extractPathSignals(
     request: CPBRequest,
-    config: CPBConfig = DEFAULT_CPB_CONFIG
+    config: CPBConfig = DEFAULT_CPB_CONFIG,
+    options?: { stressLevel?: number }
 ): PathSignals {
     const contextLength = (request.context?.length || 0) + request.query.length;
 
@@ -60,7 +63,7 @@ export function extractPathSignals(
     // Check for ground truth availability (check complexity property as proxy)
     const hasGroundTruth = !!request.task?.complexity && request.task.complexity === 'HIGH';
 
-    return {
+    const signals: PathSignals = {
         contextLength,
         queryComplexity,
         requiresConsensus,
@@ -69,6 +72,38 @@ export function extractPathSignals(
         timeBudgetMs: request.timeBudgetMs || config.standardPathMs,
         qualityTarget: request.qualityTarget || config.dqThreshold
     };
+
+    // US-021: Attach biometric stress level when available
+    if (options?.stressLevel != null && options.stressLevel >= 0) {
+        signals.stressLevel = options.stressLevel;
+    }
+
+    return signals;
+}
+
+/**
+ * US-022: Enrich signals with convergence memory stats (async).
+ * Returns enriched copy; no-ops when < 10 records or service unavailable.
+ */
+export async function enrichWithConvergenceStats(
+    signals: PathSignals
+): Promise<PathSignals> {
+    try {
+        const stats = await convergenceMemory.getStats();
+        if (stats.totalPatterns >= 10) {
+            return {
+                ...signals,
+                convergenceStats: {
+                    totalPatterns: stats.totalPatterns,
+                    avgDQScore: stats.avgDQScore,
+                    avgRoundsToConverge: stats.avgRoundsToConverge,
+                },
+            };
+        }
+    } catch {
+        // Graceful degradation — convergenceMemory unavailable
+    }
+    return signals;
 }
 
 /**
@@ -229,6 +264,25 @@ function scorePathsOnSignals(
         scores.ace.reasoning += ' (ground truth enables better verification)';
     }
 
+    // US-021: Biometric stress bias — high stress favors simpler/guided paths
+    if (signals.stressLevel != null && signals.stressLevel > 70) {
+        const stressBias = Math.min(0.3, (signals.stressLevel - 70) / 100);
+        scores.direct.score += stressBias;
+        scores.direct.reasoning += ' (stress-guided simplification)';
+        scores.cascade.score -= stressBias;
+        scores.hybrid.score -= stressBias * 0.5;
+    }
+
+    // US-022: Convergence memory boost — higher historical DQ = higher path confidence
+    if (signals.convergenceStats && signals.convergenceStats.totalPatterns >= 10) {
+        const dqBoost = (signals.convergenceStats.avgDQScore - 0.5) * 0.2; // max ~0.1
+        if (dqBoost > 0) {
+            scores.ace.score += dqBoost;
+            scores.ace.reasoning += ` (convergence history: ${signals.convergenceStats.avgDQScore.toFixed(2)} avg DQ)`;
+            scores.hybrid.score += dqBoost * 0.5;
+        }
+    }
+
     return scores;
 }
 
@@ -359,6 +413,7 @@ export function wouldBenefitFromConsensus(request: CPBRequest): boolean {
 
 export default {
     extractPathSignals,
+    enrichWithConvergenceStats,
     selectPath,
     canUseDirectPath,
     needsRLMPath,

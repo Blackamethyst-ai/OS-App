@@ -176,7 +176,7 @@ export function SessionExplorer({
             <div className="p-4">
               {sessionsLoading ? (
                 <div className="flex justify-center p-8">
-                  <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" />
+                  <div className="animate-spin w-8 h-8 border-2 border-[var(--azure-blue)] border-t-transparent rounded-full" />
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -188,7 +188,7 @@ export function SessionExplorer({
                         p-4 border rounded-lg cursor-pointer transition-all
                         ${
                           selectedSessionId === session.id
-                            ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
+                            ? 'border-[var(--azure-blue)] bg-blue-50 dark:bg-blue-900/20'
                             : 'border-gray-200 dark:border-gray-700 hover:border-blue-300'
                         }
                       `}
@@ -224,7 +224,7 @@ export function SessionExplorer({
                 </div>
               ) : lineageLoading ? (
                 <div className="flex-1 flex items-center justify-center">
-                  <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" />
+                  <div className="animate-spin w-8 h-8 border-2 border-[var(--azure-blue)] border-t-transparent rounded-full" />
                 </div>
               ) : lineage ? (
                 <>
@@ -278,7 +278,7 @@ export function SessionExplorer({
             <div className="h-full p-4">
               {graphLoading ? (
                 <div className="flex items-center justify-center h-full">
-                  <div className="animate-spin w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full" />
+                  <div className="animate-spin w-8 h-8 border-2 border-[var(--azure-blue)] border-t-transparent rounded-full" />
                 </div>
               ) : sessionsGraph ? (
                 <div className="h-full flex flex-col">

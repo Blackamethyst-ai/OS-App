@@ -129,7 +129,7 @@ const SystemTerminal: React.FC = () => {
                         
                         {/* Hardware */}
                         {isScanning && (
-                            <div className="flex items-center gap-2 px-3 py-1 rounded border border-blue-500/50 bg-blue-500/10 text-blue-400">
+                            <div className="flex items-center gap-2 px-3 py-1 rounded border border-[var(--azure-blue)]/50 bg-[var(--azure-blue)]/10 text-[var(--azure-blue)]">
                                 <Cpu className="w-3 h-3 animate-spin" />
                                 <span className="font-bold">HW_SCAN: RUNNING</span>
                             </div>
@@ -143,9 +143,9 @@ const SystemTerminal: React.FC = () => {
                                 <span className="text-gray-600 shrink-0">[{log.timestamp}]</span>
                                 <span className={`shrink-0 font-bold w-16 text-right ${
                                     log.level === 'ERROR' ? 'text-red-500' : 
-                                    log.level === 'WARN' ? 'text-yellow-500' : 
+                                    log.level === 'WARN' ? 'text-[var(--executive-gold)]' : 
                                     log.level === 'SUCCESS' ? 'text-[#42be65]' :
-                                    log.level === 'SYSTEM' ? 'text-[var(--amethyst-soft)]' : 'text-blue-400'
+                                    log.level === 'SYSTEM' ? 'text-[var(--amethyst-soft)]' : 'text-[var(--azure-blue)]'
                                 }`}>{log.level}</span>
                                 <span className="text-gray-500">::</span>
                                 <span className={`break-all ${log.level === 'ERROR' ? 'text-red-300' : 'text-gray-300'}`}>
@@ -185,9 +185,9 @@ const QuantumDock: React.FC = () => {
     const getIcon = (type: string) => {
         switch(type) {
             case 'IMAGE': return <ImageIcon className="w-5 h-5 text-pink-400" />;
-            case 'CODE': return <Code className="w-5 h-5 text-yellow-400" />;
-            case 'ANALYSIS': return <Activity className="w-5 h-5 text-green-400" />;
-            default: return <FileText className="w-5 h-5 text-blue-400" />;
+            case 'CODE': return <Code className="w-5 h-5 text-[var(--executive-gold)]" />;
+            case 'ANALYSIS': return <Activity className="w-5 h-5 text-[var(--plasma-green)]" />;
+            default: return <FileText className="w-5 h-5 text-[var(--azure-blue)]" />;
         }
     };
 

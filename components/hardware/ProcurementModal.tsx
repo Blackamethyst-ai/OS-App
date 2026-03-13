@@ -275,12 +275,12 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                     ) : quotes.map(quote => {
                                         // Determine source badge color and text
                                         const sourceBadge = quote.id.includes('minerstat')
-                                            ? { color: 'text-cyan-500 bg-cyan-500/10', text: 'minerstat' }
+                                            ? { color: 'text-[var(--cyan)] bg-[var(--cyan)]/10', text: 'minerstat' }
                                             : quote.id.includes('priceapi')
-                                            ? { color: 'text-purple-500 bg-purple-500/10', text: 'PriceAPI' }
+                                            ? { color: 'text-[var(--amethyst-soft)] bg-[var(--amethyst-soft)]/10', text: 'PriceAPI' }
                                             : quote.id.includes('msrp')
                                             ? { color: 'text-gray-500 bg-gray-500/10', text: 'MSRP Est.' }
-                                            : { color: 'text-blue-500 bg-blue-500/10', text: 'Live' };
+                                            : { color: 'text-[var(--azure-blue)] bg-[var(--azure-blue)]/10', text: 'Live' };
 
                                         return (
                                             <div
@@ -373,9 +373,9 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                         </div>
                                     </div>
 
-                                    <div className="p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl flex items-start gap-3">
-                                        <Database size={16} className="text-cyan-500 shrink-0 mt-0.5" />
-                                        <div className="text-[9px] text-cyan-400/80 leading-relaxed">
+                                    <div className="p-4 bg-[var(--cyan)]/10 border border-[var(--cyan)]/20 rounded-xl flex items-start gap-3">
+                                        <Database size={16} className="text-[var(--cyan)] shrink-0 mt-0.5" />
+                                        <div className="text-[9px] text-[var(--cyan)]/80 leading-relaxed">
                                             <p className="font-bold mb-1">Real Market Data</p>
                                             <p>Pricing sourced from minerstat and PriceAPI. Order placement is simulated.</p>
                                         </div>

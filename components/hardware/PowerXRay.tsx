@@ -238,8 +238,8 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
       switch(severity?.toUpperCase()) {
           case 'CRITICAL': return 'text-red-500 border-red-500/30 bg-red-500/10 shadow-[0_0_10px_rgba(239,68,68,0.2)]';
           case 'HIGH': return 'text-orange-500 border-orange-500/30 bg-orange-500/10';
-          case 'MEDIUM': return 'text-yellow-500 border-yellow-500/30 bg-yellow-500/10';
-          default: return 'text-blue-500 border-blue-500/30 bg-blue-500/10';
+          case 'MEDIUM': return 'text-[var(--executive-gold)] border-[var(--executive-gold)]/30 bg-[var(--executive-gold)]/10';
+          default: return 'text-[var(--azure-blue)] border-[var(--azure-blue)]/30 bg-[var(--azure-blue)]/10';
       }
   };
 

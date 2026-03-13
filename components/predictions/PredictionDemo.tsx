@@ -81,7 +81,7 @@ export const PredictionDemo: React.FC = () => {
         </p>
         <div className="flex items-center justify-center gap-4 text-xs font-mono">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <div className="w-2 h-2 rounded-full bg-[var(--plasma-green)] animate-pulse" />
             <span className="text-gray-500">API Ready</span>
           </div>
           <div className="text-gray-600">|</div>

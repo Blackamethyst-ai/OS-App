@@ -166,7 +166,7 @@ ${result.output}
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => setShowExperimentLogger(!showExperimentLogger)}
-                                className={`p-2 rounded-lg transition-all ${showExperimentLogger ? 'bg-purple-600 text-white shadow-lg shadow-purple-500/30' : 'hover:bg-white/5 text-gray-600'}`}
+                                className={`p-2 rounded-lg transition-all ${showExperimentLogger ? 'bg-[var(--amethyst)] text-white shadow-lg shadow-purple-500/30' : 'hover:bg-white/5 text-gray-600'}`}
                                 title="Experiment Logger"
                             >
                                 <FlaskConical size={18} />

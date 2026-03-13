@@ -328,18 +328,18 @@ const DEcosystem: React.FC<DEcosystemProps> = ({ sectorOverrides = {} }) => {
           transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           className="w-96 h-96 rounded-full bg-[#050508]/80 backdrop-blur-[80px] border border-[var(--amethyst)]/30 flex flex-col items-center justify-center shadow-[0_0_200px_rgba(123,44,255,0.25)] relative"
         >
-          <div className="absolute inset-[-60px] rounded-full border border-purple-500/5 animate-[ping_10s_linear_infinite]" />
-          <div className="absolute inset-[-120px] rounded-full border border-cyan-500/5 animate-[pulse_15s_ease-in-out_infinite]" />
+          <div className="absolute inset-[-60px] rounded-full border border-[var(--amethyst-soft)]/5 animate-[ping_10s_linear_infinite]" />
+          <div className="absolute inset-[-120px] rounded-full border border-[var(--cyan)]/5 animate-[pulse_15s_ease-in-out_infinite]" />
 
           <div className="relative z-10 flex flex-col items-center">
             <div className="flex gap-4 mb-8">
-              <Binary size={16} className="text-purple-500/60" />
-              <span className="text-[12px] font-black font-mono text-purple-400 uppercase tracking-[1em] opacity-80 text-center leading-relaxed">Neural<br />Coherence</span>
-              <Binary size={16} className="text-purple-500/60" />
+              <Binary size={16} className="text-[var(--amethyst-soft)]/60" />
+              <span className="text-[12px] font-black font-mono text-[var(--amethyst-soft)] uppercase tracking-[1em] opacity-80 text-center leading-relaxed">Neural<br />Coherence</span>
+              <Binary size={16} className="text-[var(--amethyst-soft)]/60" />
             </div>
 
             <span className="text-9xl font-black font-mono text-white tracking-tighter drop-shadow-[0_0_80px_rgba(255,255,255,0.3)]">
-              {coherence.toFixed(1)}<span className="text-4xl text-purple-500 opacity-50">%</span>
+              {coherence.toFixed(1)}<span className="text-4xl text-[var(--amethyst-soft)] opacity-50">%</span>
             </span>
 
             <div className="flex gap-4 mt-12 h-20 items-end">

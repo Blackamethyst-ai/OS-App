@@ -36,6 +36,15 @@ export interface PathSignals {
     hasGroundTruth: boolean;
     timeBudgetMs: number;
     qualityTarget: number; // 0-1 DQ threshold
+
+    // US-021: Biometric stress signal (0-100, optional)
+    stressLevel?: number;
+    // US-022: Convergence memory stats (optional)
+    convergenceStats?: {
+        totalPatterns: number;
+        avgDQScore: number;
+        avgRoundsToConverge: number;
+    };
 }
 
 // ============================================================================

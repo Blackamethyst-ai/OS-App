@@ -80,7 +80,7 @@ const ExecutiveNode = ({ id, data: nodeData, selected, dragging }: NodeProps) =>
                             </div>
                             <span className={cn(
                                 "text-[8px] font-black font-mono uppercase tracking-[0.2em]",
-                                data.risk === 'HIGH' ? 'text-red-500' : data.risk === 'MEDIUM' ? 'text-amber-500' : 'text-blue-400'
+                                data.risk === 'HIGH' ? 'text-red-500' : data.risk === 'MEDIUM' ? 'text-amber-500' : 'text-[var(--azure-blue)]'
                             )}>{data.risk} RISK</span>
                         </div>
                     ) : (
@@ -335,7 +335,7 @@ const ProcessVisualizerContent = () => {
                                 <button
                                     onClick={handleGenerateGraph}
                                     disabled={isGeneratingGraph || !architecturePrompt.trim()}
-                                    className="w-full bg-[var(--executive-gold)] text-black py-6 rounded-[2.5rem] font-black text-[12px] uppercase tracking-[0.5em] flex items-center justify-center gap-5 shadow-[0_20px_50px_rgba(241,194,27,0.3)] hover:bg-yellow-400 transition-all disabled:opacity-30 active:scale-95 relative z-10 group/gen"
+                                    className="w-full bg-[var(--executive-gold)] text-black py-6 rounded-[2.5rem] font-black text-[12px] uppercase tracking-[0.5em] flex items-center justify-center gap-5 shadow-[0_20px_50px_rgba(241,194,27,0.3)] hover:bg-[var(--executive-gold)] transition-all disabled:opacity-30 active:scale-95 relative z-10 group/gen"
                                     data-voice-id="process-generate-button"
                                     aria-label="Generate system manifest"
                                 >
