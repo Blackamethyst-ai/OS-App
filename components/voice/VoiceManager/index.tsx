@@ -21,6 +21,7 @@ import {
     type CPBStatus,
 } from '../../../services/capabilities';
 import { AppMode } from '../../../types';
+import { TaskStatus, TaskPriority } from '../../../types/domain/tasks';
 import { LiveServerMessage } from '@google/genai';
 import { audio } from '../../../services/audioService';
 import { CODEBASE_KNOWLEDGE, buildCodebaseContext } from '../../../services/archon';
@@ -520,8 +521,8 @@ const VoiceManager: React.FC = () => {
                     addTask({
                         title,
                         description,
-                        status: 'TODO' as any,
-                        priority: priority as any,
+                        status: TaskStatus.TODO,
+                        priority: priority as TaskPriority,
                         tags
                     });
 
@@ -1061,8 +1062,8 @@ const VoiceManager: React.FC = () => {
                         addTask({
                             title: task.description || task.instruction,
                             description: `Atomic task from goal: "${goal}"\n\nInstruction: ${task.instruction}\nInput: ${task.isolated_input}`,
-                            status: 'TODO' as any,
-                            priority: (task.weight > 0.7 ? 'HIGH' : 'MEDIUM') as any,
+                            status: TaskStatus.TODO,
+                            priority: task.weight > 0.7 ? TaskPriority.HIGH : TaskPriority.MEDIUM,
                             tags: ['decomposed', 'voice-created']
                         });
                         createdTasks.push(task.description || task.instruction);
@@ -2831,8 +2832,8 @@ Output the code with brief explanation.`,
                         addTask({
                             title: `🎯 GOAL: ${goalText}`,
                             description: `Voice-tracked goal created at ${new Date().toLocaleString()}`,
-                            status: 'TODO' as any,
-                            priority: 'HIGH' as any,
+                            status: TaskStatus.TODO,
+                            priority: TaskPriority.HIGH,
                             tags: ['goal', 'voice-created']
                         });
 

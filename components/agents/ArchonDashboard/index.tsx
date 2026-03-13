@@ -349,7 +349,7 @@ const ArchonDashboard: React.FC = () => {
                                 layers={organismLayers}
                                 onLayerClick={(layerId) => {
                                     console.log('Layer clicked:', layerId);
-                                    // TODO: Open layer details modal
+                                    // FUTURE: implement layer details modal (layerId)
                                 }}
                             />
                         </HoloCard>
