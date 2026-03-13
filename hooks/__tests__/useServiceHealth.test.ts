@@ -20,7 +20,7 @@ describe('useServiceHealth', () => {
     });
 
     it('should set online when services respond ok', async () => {
-        let resolvers: Array<(v: any) => void> = [];
+        const resolvers: Array<(v: any) => void> = [];
         (globalThis.fetch as any).mockImplementation(() => new Promise(r => resolvers.push(r)));
 
         const { result } = renderHook(() => useServiceHealth());
@@ -36,7 +36,7 @@ describe('useServiceHealth', () => {
     });
 
     it('should set offline when services fail', async () => {
-        let rejecters: Array<(e: Error) => void> = [];
+        const rejecters: Array<(e: Error) => void> = [];
         (globalThis.fetch as any).mockImplementation(() => new Promise((_, rej) => rejecters.push(rej)));
 
         const { result } = renderHook(() => useServiceHealth());
@@ -51,7 +51,7 @@ describe('useServiceHealth', () => {
     });
 
     it('should set offline when response is not ok', async () => {
-        let resolvers: Array<(v: any) => void> = [];
+        const resolvers: Array<(v: any) => void> = [];
         (globalThis.fetch as any).mockImplementation(() => new Promise(r => resolvers.push(r)));
 
         const { result } = renderHook(() => useServiceHealth());
