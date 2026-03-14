@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quality Sweep — Autonomous Codebase Hygiene</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg-primary: #0a0a0f;
+  --bg-card: #12121a;
+  --bg-code: #0d0d14;
+  --bg-nav: rgba(10, 10, 15, 0.92);
+  --border-dim: #1a1a2e;
+  --border-glow-cyan: rgba(0, 212, 255, 0.25);
+  --border-glow-green: rgba(0, 255, 136, 0.2);
+  --border-glow-amber: rgba(255, 170, 0, 0.2);
+  --cyan: #00d4ff;
+  --green: #00ff88;
+  --amber: #ffaa00;
+  --red: #ff4466;
+  --text-primary: #e8e8f0;
+  --text-secondary: #8888a0;
+  --text-dim: #555570;
+  --font-body: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'SF Mono', 'Fira Code', 'JetBrains Mono', 'Cascadia Code', monospace;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --max-width: 1080px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  line-height: 1.7;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: rgba(0, 212, 255, 0.3); color: #fff; }
+
+/* ═══════════════════════════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════════════════════════ */
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: var(--bg-nav);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border-dim);
+  padding: 0 24px;
+  transition: box-shadow 0.3s;
+}
+.nav.scrolled { box-shadow: 0 4px 30px rgba(0,0,0,0.5); }
+.nav-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+}
+.nav-brand {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--cyan);
+  font-weight: 600;
+  letter-spacing: -0.5px;
+}
+.nav-brand span { color: var(--text-dim); }
+.nav-links {
+  display: flex;
+  gap: 4px;
+  list-style: none;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+.nav-links a {
+  display: block;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  transition: color 0.2s, background 0.2s;
+}
+.nav-links a:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+.nav-links a.active { color: var(--cyan); background: rgba(0, 212, 255, 0.08); }
+
+/* Progress bar */
+.progress-bar {
+  position: fixed; top: 56px; left: 0; height: 2px; z-index: 101;
+  background: linear-gradient(90deg, var(--cyan), var(--green));
+  transition: width 0.15s ease-out;
+  width: 0%;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LAYOUT
+   ═══════════════════════════════════════════════════════════════ */
+.container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+section {
+  padding: 100px 0 60px;
+  min-height: 50vh;
+}
+section:first-of-type { padding-top: 0; }
+
+/* ═══════════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════════ */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+
+/* ═══════════════════════════════════════════════════════════════
+   HERO
+   ═══════════════════════════════════════════════════════════════ */
+.hero {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 120px 24px 80px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, rgba(0, 212, 255, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  color: var(--green);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  border-radius: 999px;
+  margin-bottom: 32px;
+  background: rgba(0, 255, 136, 0.04);
+}
+.hero-badge .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  animation: pulse-dot 2s infinite;
+}
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.hero h1 {
+  font-size: clamp(48px, 8vw, 80px);
+  font-weight: 800;
+  letter-spacing: -2px;
+  line-height: 1.05;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #fff 0%, var(--cyan) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.hero .subtitle {
+  font-size: clamp(18px, 3vw, 24px);
+  color: var(--text-secondary);
+  font-weight: 400;
+  margin-bottom: 40px;
+}
+.hero .tagline {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--amber);
+  margin-bottom: 48px;
+}
+
+/* Terminal animation */
+.terminal-hero {
+  width: 100%;
+  max-width: 540px;
+  background: var(--bg-code);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  text-align: left;
+}
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: rgba(255,255,255,0.02);
+  border-bottom: 1px solid var(--border-dim);
+}
+.terminal-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+}
+.terminal-dot.r { background: #ff5f57; }
+.terminal-dot.y { background: #febc2e; }
+.terminal-dot.g { background: #28c840; }
+.terminal-bar span {
+  margin-left: auto;
+  font-size: 11px;
+  font-family: var(--font-mono);
+  color: var(--text-dim);
+}
+.terminal-body {
+  padding: 20px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.8;
+  min-height: 100px;
+}
+.terminal-body .prompt { color: var(--green); }
+.terminal-body .cmd { color: var(--text-primary); }
+.terminal-body .cursor {
+  display: inline-block;
+  width: 8px;
+  height: 16px;
+  background: var(--cyan);
+  margin-left: 2px;
+  animation: blink 1s step-end infinite;
+  vertical-align: text-bottom;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.terminal-body .output { color: var(--text-secondary); }
+.terminal-body .success { color: var(--green); }
+.terminal-body .info { color: var(--cyan); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION HEADINGS
+   ═══════════════════════════════════════════════════════════════ */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--cyan);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+}
+.section-title {
+  font-size: clamp(28px, 4vw, 40px);
+  font-weight: 700;
+  letter-spacing: -1px;
+  margin-bottom: 16px;
+}
+.section-desc {
+  color: var(--text-secondary);
+  font-size: 17px;
+  max-width: 640px;
+  margin-bottom: 48px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   PIPELINE
+   ═══════════════════════════════════════════════════════════════ */
+.pipeline {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  margin: 48px 0;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.pipeline-step {
+  flex: 1;
+  min-width: 160px;
+  padding: 20px 16px;
+  text-align: center;
+  position: relative;
+  border: 1px solid var(--border-dim);
+  background: var(--bg-card);
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.pipeline-step:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.pipeline-step:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+.pipeline-step:hover {
+  border-color: var(--border-glow-cyan);
+  box-shadow: 0 0 20px rgba(0, 212, 255, 0.08);
+}
+.pipeline-step::after {
+  content: '';
+  position: absolute;
+  right: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0; height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 10px solid var(--border-dim);
+  z-index: 2;
+}
+.pipeline-step:last-child::after { display: none; }
+.pipeline-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  margin-bottom: 8px;
+}
+.pipeline-step:nth-child(1) .pipeline-num { background: rgba(0,212,255,0.15); color: var(--cyan); }
+.pipeline-step:nth-child(2) .pipeline-num { background: rgba(0,255,136,0.15); color: var(--green); }
+.pipeline-step:nth-child(3) .pipeline-num { background: rgba(255,170,0,0.15); color: var(--amber); }
+.pipeline-step:nth-child(4) .pipeline-num { background: rgba(255,68,102,0.15); color: var(--red); }
+.pipeline-step:nth-child(5) .pipeline-num { background: rgba(0,212,255,0.15); color: var(--cyan); }
+.pipeline-name {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+.pipeline-detail {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+}
+
+.feature-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 20px;
+  background: rgba(0, 212, 255, 0.04);
+  border: 1px solid rgba(0, 212, 255, 0.12);
+  border-radius: var(--radius-md);
+  margin-top: 24px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+.feature-note .icon { color: var(--cyan); font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   CARDS
+   ═══════════════════════════════════════════════════════════════ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin-bottom: 24px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.card:hover {
+  border-color: var(--border-glow-cyan);
+  box-shadow: 0 4px 40px rgba(0, 212, 255, 0.05);
+}
+.card-green:hover { border-color: var(--border-glow-green); box-shadow: 0 4px 40px rgba(0,255,136,0.05); }
+.card-amber:hover { border-color: var(--border-glow-amber); box-shadow: 0 4px 40px rgba(255,170,0,0.05); }
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+.card-phase {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.phase-1 { background: rgba(0,212,255,0.12); color: var(--cyan); }
+.phase-2 { background: rgba(0,255,136,0.12); color: var(--green); }
+.phase-3 { background: rgba(255,170,0,0.12); color: var(--amber); }
+.phase-4 { background: rgba(255,68,102,0.12); color: var(--red); }
+.phase-5 { background: rgba(0,212,255,0.12); color: var(--cyan); }
+.card-title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+.card-body ul {
+  list-style: none;
+  padding: 0;
+}
+.card-body li {
+  padding: 6px 0;
+  padding-left: 24px;
+  position: relative;
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+.card-body li::before {
+  content: '\2713';
+  position: absolute;
+  left: 0;
+  color: var(--green);
+  font-weight: 700;
+  font-size: 13px;
+}
+.card-commit {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 16px;
+  padding: 4px 12px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  border-radius: 999px;
+  background: rgba(0, 255, 136, 0.06);
+  border: 1px solid rgba(0, 255, 136, 0.15);
+  color: var(--green);
+}
+.card-commit.no-commit {
+  background: rgba(255, 170, 0, 0.06);
+  border-color: rgba(255, 170, 0, 0.15);
+  color: var(--amber);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CODE BLOCKS
+   ═══════════════════════════════════════════════════════════════ */
+.code-block {
+  background: var(--bg-code);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-md);
+  padding: 16px 20px;
+  margin: 16px 0;
+  overflow-x: auto;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 1.7;
+}
+.code-block .comment { color: var(--text-dim); }
+.code-block .cmd { color: var(--text-primary); }
+.code-block .string { color: var(--green); }
+.code-block .flag { color: var(--amber); }
+.code-block .keyword { color: var(--cyan); }
+.code-block .number { color: var(--amber); }
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.9em;
+  padding: 2px 7px;
+  background: rgba(0, 212, 255, 0.08);
+  border-radius: 4px;
+  color: var(--cyan);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TERMINAL COMPARISON
+   ═══════════════════════════════════════════════════════════════ */
+.comparison {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 32px 0;
+}
+@media (max-width: 700px) { .comparison { grid-template-columns: 1fr; } }
+.comparison-panel {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1px solid var(--border-dim);
+}
+.comparison-panel .panel-header {
+  padding: 10px 16px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--border-dim);
+}
+.comparison-panel.before .panel-header { color: var(--red); background: rgba(255,68,102,0.06); }
+.comparison-panel.after .panel-header { color: var(--green); background: rgba(0,255,136,0.06); }
+.comparison-panel .panel-body {
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  line-height: 2;
+  background: var(--bg-code);
+}
+.comparison-panel .panel-body .label { color: var(--text-dim); }
+.comparison-panel .panel-body .val { color: var(--text-primary); }
+.comparison-panel .panel-body .good { color: var(--green); }
+.comparison-panel .panel-body .bad { color: var(--red); }
+.comparison-panel .panel-body .neutral { color: var(--amber); }
+.comparison-panel .panel-body .delta { font-size: 11px; margin-left: 8px; }
+
+/* Commit log */
+.commit-log {
+  margin: 32px 0;
+  padding-left: 24px;
+  border-left: 2px solid var(--border-dim);
+}
+.commit-entry {
+  position: relative;
+  padding: 8px 0 8px 24px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+}
+.commit-entry::before {
+  content: '';
+  position: absolute;
+  left: -29px;
+  top: 14px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--green);
+  background: var(--bg-primary);
+}
+.commit-hash { color: var(--amber); }
+.commit-msg { color: var(--text-primary); }
+.commit-time { color: var(--text-dim); font-size: 11px; margin-left: 12px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   USE CASE GRID
+   ═══════════════════════════════════════════════════════════════ */
+.use-case-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+  margin: 32px 0;
+}
+.use-case {
+  padding: 24px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-dim);
+  background: var(--bg-card);
+  transition: border-color 0.3s, transform 0.2s;
+}
+.use-case:hover {
+  border-color: var(--border-glow-cyan);
+  transform: translateY(-2px);
+}
+.use-case-icon {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+.use-case-name {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+.use-case-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   AGENT PATTERNS TABLE
+   ═══════════════════════════════════════════════════════════════ */
+.patterns-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin: 32px 0;
+}
+@media (max-width: 700px) { .patterns-grid { grid-template-columns: 1fr; } }
+.pattern-col h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.pattern-item {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dim);
+  margin-bottom: 8px;
+  font-size: 14px;
+  background: var(--bg-card);
+}
+.pattern-item strong { display: block; margin-bottom: 2px; }
+.pattern-item .detail { color: var(--text-dim); font-size: 12px; font-family: var(--font-mono); }
+
+/* ═══════════════════════════════════════════════════════════════
+   CONFIG BLOCK
+   ═══════════════════════════════════════════════════════════════ */
+.config-block {
+  background: var(--bg-card);
+  border: 1px solid var(--border-dim);
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin: 32px 0;
+}
+.config-block h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.config-block p {
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: 16px;
+}
+.warning-box {
+  padding: 12px 16px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--amber);
+  background: rgba(255, 170, 0, 0.04);
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-top: 16px;
+}
+.warning-box strong { color: var(--amber); }
+
+/* ═══════════════════════════════════════════════════════════════
+   FAQ
+   ═══════════════════════════════════════════════════════════════ */
+.faq-item {
+  border-bottom: 1px solid var(--border-dim);
+  padding: 20px 0;
+}
+.faq-item:last-child { border-bottom: none; }
+.faq-q {
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.faq-q .q-mark {
+  color: var(--cyan);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.faq-a {
+  color: var(--text-secondary);
+  font-size: 15px;
+  padding-left: 26px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   QUICK START
+   ═══════════════════════════════════════════════════════════════ */
+.quick-start-steps {
+  counter-reset: step;
+  margin: 32px 0;
+}
+.qs-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border-dim);
+}
+.qs-step:last-child { border-bottom: none; }
+.qs-num {
+  counter-increment: step;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(0, 212, 255, 0.1);
+  border: 1px solid rgba(0, 212, 255, 0.2);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--cyan);
+  flex-shrink: 0;
+}
+.qs-content h4 { font-size: 16px; margin-bottom: 4px; }
+.qs-content p { color: var(--text-secondary); font-size: 14px; margin-bottom: 8px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   FOOTER
+   ═══════════════════════════════════════════════════════════════ */
+.footer {
+  padding: 48px 0;
+  border-top: 1px solid var(--border-dim);
+  text-align: center;
+}
+.footer-brand {
+  font-size: 14px;
+  color: var(--text-dim);
+  margin-bottom: 16px;
+}
+.footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.footer-links a {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 6px 14px;
+  border: 1px solid var(--border-dim);
+  border-radius: 999px;
+  transition: border-color 0.2s, color 0.2s;
+}
+.footer-links a:hover {
+  border-color: var(--cyan);
+  color: var(--cyan);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .pipeline { flex-direction: column; }
+  .pipeline-step { border-radius: var(--radius-sm) !important; }
+  .pipeline-step::after { display: none; }
+  section { padding: 60px 0 40px; }
+  .card { padding: 24px; }
+  .hero { padding: 100px 16px 60px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ NAVIGATION ═══════════════════ -->
+<nav class="nav" id="nav">
+  <div class="nav-inner">
+    <div class="nav-brand"><span>~/</span>quality-sweep</div>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#hero">Home</a></li>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#deep-dive">Phases</a></li>
+      <li><a href="#use-cases">Use Cases</a></li>
+      <li><a href="#demo">Demo</a></li>
+      <li><a href="#agents">Agents</a></li>
+      <li><a href="#config">Config</a></li>
+      <li><a href="#faq">FAQ</a></li>
+      <li><a href="#quickstart">Start</a></li>
+    </ul>
+  </div>
+</nav>
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<section class="hero" id="hero">
+  <div class="hero-badge reveal">
+    <span class="dot"></span>
+    Claude Code Skill
+  </div>
+  <h1 class="reveal reveal-delay-1">Quality Sweep</h1>
+  <p class="subtitle reveal reveal-delay-2">Autonomous Codebase Hygiene for Claude Code</p>
+  <p class="tagline reveal reveal-delay-3">One command. Five phases. Zero manual intervention.</p>
+
+  <div class="terminal-hero reveal reveal-delay-4">
+    <div class="terminal-bar">
+      <span class="terminal-dot r"></span>
+      <span class="terminal-dot y"></span>
+      <span class="terminal-dot g"></span>
+      <span>zsh &mdash; 80x24</span>
+    </div>
+    <div class="terminal-body" id="terminalAnim">
+      <div><span class="prompt">$</span> <span class="cmd" id="typeTarget"></span><span class="cursor" id="typeCursor"></span></div>
+      <div id="termOutput"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ OVERVIEW ═══════════════════ -->
+<section id="overview">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">01 / Overview</p>
+      <h2 class="section-title">What It Does</h2>
+      <p class="section-desc">A single command that measures your codebase health, fixes lint errors, writes missing tests, removes dead code, and patches vulnerabilities &mdash; committing after each phase for safe, atomic rollback.</p>
+    </div>
+
+    <div class="pipeline reveal reveal-delay-1">
+      <div class="pipeline-step">
+        <div class="pipeline-num">1</div>
+        <div class="pipeline-name">Baseline</div>
+        <div class="pipeline-detail">Measure current state</div>
+      </div>
+      <div class="pipeline-step">
+        <div class="pipeline-num">2</div>
+        <div class="pipeline-name">Lint Fix</div>
+        <div class="pipeline-detail">Auto-fix + manual</div>
+      </div>
+      <div class="pipeline-step">
+        <div class="pipeline-num">3</div>
+        <div class="pipeline-name">Test Coverage</div>
+        <div class="pipeline-detail">Parallel test agents</div>
+      </div>
+      <div class="pipeline-step">
+        <div class="pipeline-num">4</div>
+        <div class="pipeline-name">Dead Code</div>
+        <div class="pipeline-detail">Find &amp; remove orphans</div>
+      </div>
+      <div class="pipeline-step">
+        <div class="pipeline-num">5</div>
+        <div class="pipeline-name">Security</div>
+        <div class="pipeline-detail">Audit &amp; patch</div>
+      </div>
+    </div>
+
+    <div class="feature-note reveal reveal-delay-2">
+      <span class="icon">&#9432;</span>
+      <span>Each phase commits independently. Stashes existing work before starting, restores after completion. Your in-progress changes are never at risk.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ DEEP DIVE ═══════════════════ -->
+<section id="deep-dive">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">02 / Deep Dive</p>
+      <h2 class="section-title">How It Works</h2>
+      <p class="section-desc">Five autonomous phases, each with a clear scope and an independent commit. Every phase verifies the build before moving on.</p>
+    </div>
+
+    <!-- Phase 1 -->
+    <div class="card reveal">
+      <div class="card-header">
+        <div class="card-phase phase-1">1</div>
+        <div class="card-title">Baseline</div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>Runs lint, test suite, and build to establish the reference state</li>
+          <li>Documents current error count, test count, and build status</li>
+          <li>Auto-detects the project's toolchain from <code>package.json</code> / <code>pyproject.toml</code></li>
+        </ul>
+        <div class="code-block">
+          <span class="comment"># Adapt to the project's stack automatically</span><br>
+          <span class="cmd">npm run lint</span> <span class="flag">2>&1</span> <span class="cmd">| tail -100</span><br>
+          <span class="cmd">npm run test:run</span> <span class="flag">2>&1</span> <span class="cmd">| tail -40</span><br>
+          <span class="cmd">npm run build</span> <span class="flag">2>&1</span> <span class="cmd">| tail -20</span>
+        </div>
+        <div class="card-commit no-commit">No commit &mdash; measurement only</div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="card card-green reveal">
+      <div class="card-header">
+        <div class="card-phase phase-2">2</div>
+        <div class="card-title">Lint Fixes</div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>Runs auto-fix with <code>eslint --fix</code> (or equivalent linter)</li>
+          <li>Manually resolves remaining errors: unused imports, missing keys, type errors, a11y warnings</li>
+          <li>Verifies tests still pass after all lint fixes</li>
+        </ul>
+        <div class="code-block">
+          <span class="cmd">npx eslint . </span><span class="flag">--fix</span><br>
+          <span class="comment"># Target: 0 lint errors</span><br>
+          <span class="cmd">npm run test:run</span> <span class="comment"># verify no regressions</span>
+        </div>
+        <div class="card-commit">Commit: "fix: resolve all lint errors"</div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="card card-amber reveal">
+      <div class="card-header">
+        <div class="card-phase phase-3">3</div>
+        <div class="card-title">Test Coverage</div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>Spawns parallel background agents &mdash; each gets 2-3 specific files to test</li>
+          <li>Prioritizes: hooks/composables &rarr; core services &rarr; pure utilities</li>
+          <li>Each agent runs the test suite to verify its work; full suite runs after all agents complete</li>
+        </ul>
+        <div class="code-block">
+          <span class="comment"># Agent spawning pattern</span><br>
+          <span class="keyword">Agent</span>({<br>
+          &nbsp;&nbsp;<span class="string">mode</span>: <span class="string">"bypassPermissions"</span>,<br>
+          &nbsp;&nbsp;<span class="string">subagent_type</span>: <span class="string">"general-purpose"</span>,<br>
+          &nbsp;&nbsp;<span class="string">run_in_background</span>: <span class="keyword">true</span>,<br>
+          &nbsp;&nbsp;<span class="string">prompt</span>: <span class="string">"Write tests for useAuth.ts, useSession.ts. Run vitest to verify."</span><br>
+          })
+        </div>
+        <div class="card-commit">Commit: "test: add coverage for hooks and services"</div>
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="card reveal">
+      <div class="card-header">
+        <div class="card-phase phase-4">4</div>
+        <div class="card-title">Dead Code Removal</div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>Uses targeted bash loops to find orphaned files &mdash; never Explore agents (context limit risk)</li>
+          <li>Checks <code>App.tsx</code> and entry points for lazy/dynamic imports before deletion</li>
+          <li>Runs <code>vite build</code> after each deletion batch to verify nothing breaks</li>
+        </ul>
+        <div class="code-block">
+          <span class="comment"># Find orphaned components</span><br>
+          <span class="keyword">for</span> <span class="cmd">f</span> <span class="keyword">in</span> <span class="cmd">components/*.tsx;</span> <span class="keyword">do</span><br>
+          &nbsp;&nbsp;<span class="cmd">name=</span><span class="string">$(basename "$f" .tsx)</span><br>
+          &nbsp;&nbsp;<span class="cmd">count=</span><span class="string">$(grep -rl "$name" --include="*.tsx" . | \<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;grep -v node_modules | grep -v "$f" | wc -l)</span><br>
+          &nbsp;&nbsp;<span class="keyword">if</span> <span class="cmd">[ "$count" -eq "0" ];</span> <span class="keyword">then</span> <span class="cmd">echo</span> <span class="string">"DEAD: $f"</span>; <span class="keyword">fi</span><br>
+          <span class="keyword">done</span>
+        </div>
+        <div class="card-commit">Commit: "chore: remove 1,590 lines of dead code"</div>
+      </div>
+    </div>
+
+    <!-- Phase 5 -->
+    <div class="card reveal">
+      <div class="card-header">
+        <div class="card-phase phase-5">5</div>
+        <div class="card-title">Security Audit</div>
+      </div>
+      <div class="card-body">
+        <ul>
+          <li>Runs <code>npm audit fix</code> (or <code>pip-audit</code>, <code>cargo audit</code>, etc.)</li>
+          <li>Verifies build and tests still pass after patching</li>
+          <li>Reports total vulnerabilities fixed by severity</li>
+        </ul>
+        <div class="code-block">
+          <span class="cmd">npm audit fix</span><br>
+          <span class="cmd">npm run build</span> <span class="comment"># verify</span><br>
+          <span class="cmd">npm run test:run</span> <span class="comment"># verify</span>
+        </div>
+        <div class="card-commit">Commit: "fix: patch 7 security vulnerabilities"</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ USE CASES ═══════════════════ -->
+<section id="use-cases">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">03 / Use Cases</p>
+      <h2 class="section-title">When to Run It</h2>
+      <p class="section-desc">Quality sweeps fit naturally into existing development workflows. Here are the most common triggers.</p>
+    </div>
+
+    <div class="use-case-grid">
+      <div class="use-case reveal">
+        <div class="use-case-icon">&#128197;</div>
+        <div class="use-case-name">Weekly Hygiene</div>
+        <div class="use-case-desc">Schedule a sweep every Friday to prevent tech debt from compounding. Start the next week with a clean baseline.</div>
+      </div>
+      <div class="use-case reveal reveal-delay-1">
+        <div class="use-case-icon">&#128640;</div>
+        <div class="use-case-name">Pre-Release Cleanup</div>
+        <div class="use-case-desc">Run before major deployments to catch lint errors, dead code, and vulnerabilities that slipped through reviews.</div>
+      </div>
+      <div class="use-case reveal reveal-delay-2">
+        <div class="use-case-icon">&#128101;</div>
+        <div class="use-case-name">New Contributor Onboarding</div>
+        <div class="use-case-desc">Clean up the codebase before handing it off to a new team member. Fewer warnings means faster ramp-up.</div>
+      </div>
+      <div class="use-case reveal reveal-delay-3">
+        <div class="use-case-icon">&#128221;</div>
+        <div class="use-case-name">Post-Sprint Debt</div>
+        <div class="use-case-desc">After a feature sprint, accumulated warnings and unused code pile up. One command clears the backlog.</div>
+      </div>
+      <div class="use-case reveal reveal-delay-4">
+        <div class="use-case-icon">&#9881;</div>
+        <div class="use-case-name">CI Integration</div>
+        <div class="use-case-desc">Run in PR checks to enforce code quality gates. Block merges that introduce new lint errors or vulnerabilities.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ DEMO ═══════════════════ -->
+<section id="demo">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">04 / Live Results</p>
+      <h2 class="section-title">Before &amp; After</h2>
+      <p class="section-desc">Real results from a quality sweep on a production React application (OS-App, ~500 files, March 2026).</p>
+    </div>
+
+    <div class="comparison reveal">
+      <div class="comparison-panel before">
+        <div class="panel-header">Before Sweep</div>
+        <div class="panel-body">
+          <div><span class="label">Tests:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="val">962 passing</span> <span class="neutral">(40 files)</span></div>
+          <div><span class="label">Dead code:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="bad">~1,590 lines</span> <span class="label">across 9 files</span></div>
+          <div><span class="label">Vulnerabilities:&nbsp;</span><span class="bad">7</span> <span class="label">(5 high, 2 moderate)</span></div>
+          <div><span class="label">Lint errors:&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="val">0</span></div>
+        </div>
+      </div>
+      <div class="comparison-panel after">
+        <div class="panel-header">After Sweep</div>
+        <div class="panel-body">
+          <div><span class="label">Tests:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="val">1,034 passing</span> <span class="good">(46 files)</span> <span class="delta good">+7.5%</span></div>
+          <div><span class="label">Dead code:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="good">0 lines</span> <span class="delta good">-1,590 removed</span></div>
+          <div><span class="label">Vulnerabilities:&nbsp;</span><span class="good">0</span> <span class="delta good">-7 fixed</span></div>
+          <div><span class="label">Lint errors:&nbsp;&nbsp;&nbsp;&nbsp;</span><span class="val">0</span></div>
+        </div>
+      </div>
+    </div>
+
+    <h3 class="reveal" style="font-size:16px; margin-bottom:16px; color:var(--text-secondary);">Commit History</h3>
+    <div class="commit-log reveal">
+      <div class="commit-entry">
+        <span class="commit-hash">a3f7b2c</span> <span class="commit-msg">fix: resolve all lint errors</span><span class="commit-time">Phase 2</span>
+      </div>
+      <div class="commit-entry">
+        <span class="commit-hash">e91d4a8</span> <span class="commit-msg">test: add coverage for 6 hook files and 3 services</span><span class="commit-time">Phase 3</span>
+      </div>
+      <div class="commit-entry">
+        <span class="commit-hash">c5b0e1f</span> <span class="commit-msg">chore: remove 9 orphaned files (1,590 lines)</span><span class="commit-time">Phase 4</span>
+      </div>
+      <div class="commit-entry">
+        <span class="commit-hash">8d2a6c3</span> <span class="commit-msg">fix: patch 7 security vulnerabilities (5 high, 2 moderate)</span><span class="commit-time">Phase 5</span>
+      </div>
+      <div class="commit-entry">
+        <span class="commit-hash">f4e9b7d</span> <span class="commit-msg">docs: quality sweep summary &mdash; +72 tests, -1590 LOC, -7 vulns</span><span class="commit-time">Post-flight</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ AGENT INTELLIGENCE ═══════════════════ -->
+<section id="agents">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">05 / Agent Intelligence</p>
+      <h2 class="section-title">How Agents Are Orchestrated</h2>
+      <p class="section-desc">Quality sweeps use Claude Code's background agent system for parallel test writing &mdash; with strict scoping rules learned from production incidents.</p>
+    </div>
+
+    <div class="card reveal">
+      <div class="card-body">
+        <ul>
+          <li><strong style="color:var(--text-primary)">Parallel spawning</strong> &mdash; multiple test-writing agents run simultaneously, each targeting 2-3 specific files</li>
+          <li><strong style="color:var(--text-primary)">Well-scoped tasks</strong> &mdash; every agent prompt includes exact file paths, the test runner command, and a verification step</li>
+          <li><strong style="color:var(--text-primary)">Automatic fallback</strong> &mdash; if an agent fails or hits context limits, the work is done directly instead of re-spawning</li>
+          <li><strong style="color:var(--text-primary)">Permission pre-flight</strong> &mdash; verifies <code>Write</code>, <code>Edit</code>, <code>Bash(*)</code> permissions before spawning any agent</li>
+          <li><strong style="color:var(--text-primary)">Anti-pattern avoidance</strong> &mdash; never uses Explore agents for 500+ file codebases (context overflow)</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="patterns-grid reveal">
+      <div class="pattern-col">
+        <h3><span style="color:var(--green)">&#10003;</span> Patterns That Work</h3>
+        <div class="pattern-item">
+          <strong>Test writer A + Test writer B</strong>
+          <div class="detail">Different files, no conflicts</div>
+        </div>
+        <div class="pattern-item">
+          <strong>Test writer + Dead code scanner</strong>
+          <div class="detail">Read-only scan + write tests</div>
+        </div>
+        <div class="pattern-item">
+          <strong>Build + Lint + Test</strong>
+          <div class="detail">All read-only, independent checks</div>
+        </div>
+      </div>
+      <div class="pattern-col">
+        <h3><span style="color:var(--red)">&#10007;</span> Patterns That Break</h3>
+        <div class="pattern-item">
+          <strong>Two agents editing the same file</strong>
+          <div class="detail">Race condition &mdash; data loss risk</div>
+        </div>
+        <div class="pattern-item">
+          <strong>Explore agent on 500+ files</strong>
+          <div class="detail">Context overflow &mdash; agent crashes</div>
+        </div>
+        <div class="pattern-item">
+          <strong>Agent depending on another's output</strong>
+          <div class="detail">No inter-agent communication</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feature-note reveal">
+      <span class="icon">&#9888;</span>
+      <span><strong>Operational lesson (OS-App, March 2026):</strong> Two Explore agents failed with "prompt too long" on a 497-file codebase. Direct bash loops completed in seconds. Always prefer <code>grep -rl</code> loops over Explore agents for dead code detection.</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ CONFIGURATION ═══════════════════ -->
+<section id="config">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">06 / Configuration</p>
+      <h2 class="section-title">Required Setup</h2>
+      <p class="section-desc">Quality sweep runs autonomously, but it needs the right permissions to spawn background agents.</p>
+    </div>
+
+    <div class="config-block reveal">
+      <h3>~/.claude/settings.json</h3>
+      <p>The following permissions must be in the <code>allow</code> list for agents to function.</p>
+      <div class="code-block">
+{<br>
+&nbsp;&nbsp;<span class="string">"permissions"</span>: {<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"allow"</span>: [<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"Read"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"Write"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"Edit"</span>,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="string">"Bash(*)"</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;]<br>
+&nbsp;&nbsp;}<br>
+}
+      </div>
+      <div class="warning-box">
+        <strong>Warning:</strong> Without these permissions, background agents fail silently. The sweep will appear to run but agents produce no output. Always verify permissions before the first run.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FAQ ═══════════════════ -->
+<section id="faq">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">07 / FAQ</p>
+      <h2 class="section-title">Frequently Asked Questions</h2>
+    </div>
+
+    <div class="reveal">
+      <div class="faq-item">
+        <div class="faq-q"><span class="q-mark">Q</span> Does it modify my architecture?</div>
+        <div class="faq-a">No. Quality sweep only applies quality fixes &mdash; lint errors, test coverage, dead code, and security patches. It never refactors architecture or changes business logic.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span class="q-mark">Q</span> What if it breaks something?</div>
+        <div class="faq-a">Each phase commits separately, so you can revert any individual phase with <code>git revert</code>. The sweep also verifies build + tests after every phase before committing.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span class="q-mark">Q</span> Does it work on non-JavaScript projects?</div>
+        <div class="faq-a">Yes. It auto-detects the stack from config files: <code>package.json</code> (npm/yarn), <code>pyproject.toml</code> (pytest/ruff), <code>Cargo.toml</code> (cargo), and adapts commands accordingly.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span class="q-mark">Q</span> How long does it take?</div>
+        <div class="faq-a">Typically 5-15 minutes depending on codebase size. Parallel agent spawning for test writing is the main time saver compared to sequential execution.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span class="q-mark">Q</span> Can I run individual phases?</div>
+        <div class="faq-a">Not yet as a standalone feature &mdash; but since each phase commits independently, you can stop after any phase and the completed work is preserved.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span class="q-mark">Q</span> What about monorepos?</div>
+        <div class="faq-a">Target a specific subdirectory: <code>/quality-sweep packages/core</code>. The sweep scopes all operations to that directory.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q"><span class="q-mark">Q</span> Will it delete code I need?</div>
+        <div class="faq-a">It only removes files with zero imports anywhere in the project. It also checks entry points for lazy/dynamic imports, and always verifies with a full build before committing any deletion.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ QUICK START ═══════════════════ -->
+<section id="quickstart">
+  <div class="container">
+    <div class="reveal">
+      <p class="section-label">08 / Quick Start</p>
+      <h2 class="section-title">Get Started in 30 Seconds</h2>
+    </div>
+
+    <div class="quick-start-steps reveal">
+      <div class="qs-step">
+        <div class="qs-num">1</div>
+        <div class="qs-content">
+          <h4>Ensure permissions</h4>
+          <p>Verify your <code>~/.claude/settings.json</code> has Read, Write, Edit, and Bash(*) in the allow list.</p>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num">2</div>
+        <div class="qs-content">
+          <h4>Navigate to your project</h4>
+          <div class="code-block"><span class="cmd">cd ~/projects/apps/OS-App</span></div>
+        </div>
+      </div>
+      <div class="qs-step">
+        <div class="qs-num">3</div>
+        <div class="qs-content">
+          <h4>Run it</h4>
+          <div class="code-block"><span class="prompt">$</span> <span class="cmd">/quality-sweep</span></div>
+          <p>That is it. Sit back and watch the phases execute. Each commits independently &mdash; you will see the summary when it finishes.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<footer class="footer">
+  <div class="container">
+    <p class="footer-brand">Part of the Metaventions AI ecosystem</p>
+    <div class="footer-links">
+      <a href="#">/test</a>
+      <a href="#">/refactor</a>
+      <a href="#">/arch</a>
+      <a href="#">/debug</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ═══════════════════ JAVASCRIPT ═══════════════════ -->
+<script>
+(function() {
+  'use strict';
+
+  // ── Intersection Observer (reveal on scroll) ──
+  const observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(function(el) {
+    observer.observe(el);
+  });
+
+  // ── Progress bar ──
+  var progressBar = document.getElementById('progressBar');
+  var nav = document.getElementById('nav');
+  window.addEventListener('scroll', function() {
+    var scrollTop = window.scrollY;
+    var docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    var progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    progressBar.style.width = progress + '%';
+    if (scrollTop > 10) {
+      nav.classList.add('scrolled');
+    } else {
+      nav.classList.remove('scrolled');
+    }
+  });
+
+  // ── Active nav link ──
+  var sections = document.querySelectorAll('section[id]');
+  var navLinks = document.querySelectorAll('.nav-links a');
+  window.addEventListener('scroll', function() {
+    var scrollPos = window.scrollY + 120;
+    sections.forEach(function(section) {
+      var top = section.offsetTop;
+      var height = section.offsetHeight;
+      var id = section.getAttribute('id');
+      if (scrollPos >= top && scrollPos < top + height) {
+        navLinks.forEach(function(link) {
+          link.classList.remove('active');
+          if (link.getAttribute('href') === '#' + id) {
+            link.classList.add('active');
+          }
+        });
+      }
+    });
+  });
+
+  // ── Terminal typing animation ──
+  var typeTarget = document.getElementById('typeTarget');
+  var typeCursor = document.getElementById('typeCursor');
+  var termOutput = document.getElementById('termOutput');
+  var command = '/quality-sweep';
+  var charIndex = 0;
+  var outputLines = [
+    { text: '', delay: 600 },
+    { text: '<span class="info">Stashing uncommitted changes...</span>', delay: 400 },
+    { text: '<span class="output">Phase 1/5: Baseline measurement</span>', delay: 500 },
+    { text: '<span class="output">Phase 2/5: Lint fixes (auto + manual)</span>', delay: 500 },
+    { text: '<span class="output">Phase 3/5: Test coverage (3 agents spawned)</span>', delay: 600 },
+    { text: '<span class="output">Phase 4/5: Dead code removal</span>', delay: 500 },
+    { text: '<span class="output">Phase 5/5: Security audit</span>', delay: 500 },
+    { text: '', delay: 300 },
+    { text: '<span class="success">Done. 5 phases complete. 4 commits created.</span>', delay: 0 },
+    { text: '<span class="success">Tests: 962 -> 1,034 (+7.5%)  |  Dead code: -1,590 LOC  |  Vulns: -7</span>', delay: 0 }
+  ];
+
+  function typeCommand() {
+    if (charIndex < command.length) {
+      typeTarget.textContent += command[charIndex];
+      charIndex++;
+      setTimeout(typeCommand, 60 + Math.random() * 40);
+    } else {
+      typeCursor.style.display = 'none';
+      setTimeout(showOutputLines, 400);
+    }
+  }
+
+  var lineIndex = 0;
+  function showOutputLines() {
+    if (lineIndex < outputLines.length) {
+      var line = outputLines[lineIndex];
+      var div = document.createElement('div');
+      div.innerHTML = line.text;
+      termOutput.appendChild(div);
+      lineIndex++;
+      setTimeout(showOutputLines, line.delay);
+    }
+  }
+
+  // Start typing after a short delay
+  setTimeout(typeCommand, 1200);
+
+})();
+</script>
+</body>
+</html>
