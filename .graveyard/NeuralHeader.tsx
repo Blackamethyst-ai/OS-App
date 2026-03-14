@@ -1,0 +1,27 @@
+import React from 'react';
+import { useAppStore } from '../store';
+import { motion } from 'motion/react';
+import MetaventionsLogo from './MetaventionsLogo';
+
+const NeuralHeader: React.FC = () => {
+    const { actions } = useAppStore();
+    const { toggleTerminal } = actions;
+
+    return (
+        <motion.div
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="relative cursor-pointer group flex items-center justify-center bg-black/40 rounded-xl border border-white/5 hover:border-[var(--amethyst-soft)]/50 transition-all shadow-inner px-3 py-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--amethyst-soft)] focus-visible:outline-offset-2"
+            role="button"
+            tabIndex={0}
+            aria-label="Toggle terminal"
+            onClick={() => toggleTerminal()}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleTerminal(); } }}
+        >
+            <MetaventionsLogo size={28} />
+            <div className="absolute inset-0 rounded-xl bg-[var(--amethyst-soft)]/5 opacity-0 group-hover:opacity-100 transition-opacity blur-md" />
+        </motion.div>
+    );
+};
+
+export default NeuralHeader;
