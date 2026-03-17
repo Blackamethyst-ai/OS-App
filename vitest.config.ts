@@ -26,6 +26,8 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, '.'),
       'libs': path.resolve(__dirname, 'libs'),
+      '@metaventionsai/cpb-core': path.resolve(__dirname, 'libs/cpb-core/index.ts'),
+      '@metaventionsai/voice-nexus': path.resolve(__dirname, 'libs/voice-nexus/index.ts'),
     }
   }
 });
