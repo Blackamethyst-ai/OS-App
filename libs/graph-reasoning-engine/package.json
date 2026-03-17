@@ -56,5 +56,11 @@
   },
   "dependencies": {
     "ts-node": "^10.9.2"
+  },
+  "overrides": {
+    "rollup": ">=4.59.0",
+    "minimatch": ">=9.0.7",
+    "flatted": ">=3.4.0",
+    "ajv": ">=8.18.0"
   }
 }

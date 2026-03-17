@@ -47,7 +47,11 @@
   "overrides": {
     "node-fetch": "^2.7.0",
     "lodash": "^4.17.21",
-    "lodash-es": "^4.17.21"
+    "lodash-es": "^4.17.21",
+    "rollup": ">=4.59.0",
+    "minimatch": ">=9.0.7",
+    "flatted": ">=3.4.0",
+    "ajv": ">=8.18.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

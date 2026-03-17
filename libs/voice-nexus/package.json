@@ -139,5 +139,8 @@
     "tsup": "^8.0.1",
     "typescript": "^5.3.3",
     "vitest": "^4.0.18"
+  },
+  "overrides": {
+    "rollup": ">=4.59.0"
   }
 }
