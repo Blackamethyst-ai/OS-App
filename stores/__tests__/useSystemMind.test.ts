@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { useSystemMind } from '../useSystemMind';
+import { logger } from '../../services/logger';
 
 // Mock crypto.randomUUID
 vi.stubGlobal('crypto', {
@@ -313,7 +314,7 @@ describe('useSystemMind', () => {
                 throw new Error('Listener crashed');
             });
             const normalListener = vi.fn();
-            const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+            const loggerSpy = vi.spyOn(logger, 'error').mockImplementation(() => {});
 
             store.subscribeToEpoch(errorListener);
             store.subscribeToEpoch(normalListener);
@@ -322,7 +323,7 @@ describe('useSystemMind', () => {
             expect(() => store.setSector('ERROR_TEST')).not.toThrow();
 
             // Error should have been logged
-            expect(consoleSpy).toHaveBeenCalledWith(
+            expect(loggerSpy).toHaveBeenCalledWith(
                 '[SystemMind] Epoch listener error:',
                 expect.any(Error)
             );
@@ -330,7 +331,7 @@ describe('useSystemMind', () => {
             // Normal listener should still be called
             expect(normalListener).toHaveBeenCalled();
 
-            consoleSpy.mockRestore();
+            loggerSpy.mockRestore();
         });
     });
 

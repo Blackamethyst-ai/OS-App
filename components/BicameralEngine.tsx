@@ -10,6 +10,7 @@ import { TugOfWarChart } from './Visualizations/TugOfWarChart';
 import { AgentGraveyard } from './Visualizations/AgentGraveyard';
 import { SwarmStatus, AgentDNA } from '../types';
 import { audio } from '../services/audioService';
+import { logger } from '../services/logger';
 import { ExperimentLogger } from './ExperimentLogger';
 import { FlaskConical } from 'lucide-react';
 
@@ -132,7 +133,7 @@ ${result.output}
                     setLastCompletedRounds(result.voteLedger.totalRounds);
                     setLastCompletedOutput(result.output);
                 } catch (taskErr) {
-                    console.error("Task Swarm Fail", taskErr);
+                    logger.error("Task Swarm Fail", taskErr);
                     setBicameralState(prev => ({ 
                         plan: prev.plan.map(t => t.id === task.id ? { ...t, status: 'FAILED' } : t)
                     }));

@@ -1,5 +1,6 @@
 
 import { create } from 'zustand';
+import { logger } from '../services/logger';
 
 export interface NavigationNode {
     id: string;
@@ -124,13 +125,11 @@ const incrementEpoch = (set: any, get: any, reason: EpochChangeReason, details?:
         try {
             listener(event);
         } catch (e) {
-            console.error('[SystemMind] Epoch listener error:', e);
+            logger.error('[SystemMind] Epoch listener error:', e);
         }
     });
 
-    if (import.meta.env.DEV) {
-        console.log(`[SystemMind] Epoch ${newEpoch}: ${reason}${details ? ` (${details})` : ''}`);
-    }
+    logger.info(`[SystemMind] Epoch ${newEpoch}: ${reason}${details ? ` (${details})` : ''}`);
 };
 
 export const useSystemMind = create<SystemState>((set, get) => ({
@@ -227,7 +226,7 @@ export const useSystemMind = create<SystemState>((set, get) => ({
   executeAction: async (id, args) => {
       const action = get().actionRegistry[id];
       if (action) {
-          console.log(`[SystemMind] Executing Action: ${id}`, args);
+          logger.info(`[SystemMind] Executing Action: ${id}`, args);
           await action.callback(args);
           return { success: true, actionId: id };
       }

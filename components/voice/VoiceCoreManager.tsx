@@ -18,6 +18,7 @@ import { useAppStore } from '../../store';
 import { useSystemMind } from '../../stores/useSystemMind';
 import { useVoiceCore, type VoiceCoreState } from '../../services/voiceCoreIntegration';
 import { codebaseAwareness } from '../../services/codebaseAwareness';
+import { logger } from '../../services/logger';
 import { HIVE_AGENTS } from '../../services/geminiService';
 import { audio } from '../../services/audioService';
 import { AppMode } from '../../types';
@@ -177,7 +178,7 @@ const VoiceCoreManager: React.FC<VoiceCoreManagerProps> = ({
         // Handle finalized user speech
         setOnTranscript((text: string, isFinal: boolean) => {
             if (isFinal && text.trim()) {
-                if (showDebug) console.log('[VoiceCoreManager] Finalizing User Transcript:', text);
+                if (showDebug) logger.info('[VoiceCoreManager] Finalizing User Transcript:', text);
                 setVoiceState(prev => ({
                     transcripts: [...prev.transcripts, { role: 'user', text, timestamp: Date.now() }],
                     partialTranscript: null
@@ -187,7 +188,7 @@ const VoiceCoreManager: React.FC<VoiceCoreManagerProps> = ({
 
         // Handle AI response
         setOnResponse((text: string) => {
-            if (showDebug) console.log('[VoiceCoreManager] Received AI Response:', text);
+            if (showDebug) logger.info('[VoiceCoreManager] Received AI Response:', text);
             setVoiceState(prev => ({
                 transcripts: [...prev.transcripts, { role: 'model', text, timestamp: Date.now() }],
                 partialTranscript: null

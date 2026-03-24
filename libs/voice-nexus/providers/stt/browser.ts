@@ -21,6 +21,7 @@
  */
 
 import type { STTProvider } from '../../types';
+import { logger } from '../../../../services/logger';
 
 export interface BrowserSTTOptions {
     /** Language for recognition (default: 'en-US') */
@@ -139,7 +140,7 @@ export function createBrowserSTT(options?: BrowserSTTOptions): STTProvider {
         };
 
         rec.onerror = (event: Event & { error: string }) => {
-            console.error('Speech recognition error:', event.error);
+            logger.error('Speech recognition error:', event.error);
             if (rejectStop) {
                 rejectStop(new Error(`Speech recognition error: ${event.error}`));
                 rejectStop = null;

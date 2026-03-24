@@ -28,6 +28,7 @@ import VoiceCoreOverlay from './VoiceCoreOverlay';
 import ConversationalVoiceOrb from './ConversationalVoiceOrb';
 import { useAppStore } from '../../store';
 import { supabase } from '../../services/supabaseService';
+import { logger } from '../../services/logger';
 
 export type VoiceSystemMode = 'gemini' | 'conversational';
 
@@ -55,7 +56,7 @@ const VoiceSystem: React.FC<VoiceSystemProps> = ({
         return async (transcript: string): Promise<string> => {
             // This should be overridden by parent component
             // For now, return a placeholder
-            console.log('[VoiceSystem] Generate response for:', transcript);
+            logger.info('[VoiceSystem] Generate response for:', transcript);
             return `I heard: "${transcript}". To enable AI responses, provide an onGenerateResponse callback.`;
         };
     }, []);

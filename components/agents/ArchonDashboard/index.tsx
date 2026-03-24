@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { useArchon, eventBus } from '@/services/archon';
+import { logger } from '../../../services/logger';
 
 // Import extracted components
 import {
@@ -111,7 +112,7 @@ const ArchonDashboard: React.FC = () => {
             try {
                 await processGoal(goalText);
             } catch (error) {
-                console.error('Failed to process goal:', error);
+                logger.error('Failed to process goal:', error);
             } finally {
                 setIsSubmitting(false);
             }
@@ -348,7 +349,7 @@ const ArchonDashboard: React.FC = () => {
                             <OrganismLayersPanel
                                 layers={organismLayers}
                                 onLayerClick={(layerId) => {
-                                    console.log('Layer clicked:', layerId);
+                                    logger.info('Layer clicked:', layerId);
                                     // FUTURE: implement layer details modal (layerId)
                                 }}
                             />

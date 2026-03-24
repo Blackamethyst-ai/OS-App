@@ -1,6 +1,7 @@
 import { apiKeyService } from '../../../services/apiKeyService';
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAppStore } from '../../../store';
+import { logger } from '../../../services/logger';
 import {
     analyzeSchematic, researchComponents, fileToGenerativePart,
     promptSelectKey, generateXRayVariant, generateIsometricSchematic,
@@ -216,7 +217,7 @@ const HardwareEngine: React.FC = () => {
             }));
             setLastPriceUpdate(Date.now());
         } catch (error) {
-            console.error('Failed to fetch GPU price:', error);
+            logger.error('Failed to fetch GPU price:', error);
         } finally {
             setIsFetchingPrice(false);
         }
@@ -260,7 +261,7 @@ const HardwareEngine: React.FC = () => {
             addLog('SUCCESS', `PRICE_SYNC: ${prices.size} prices updated.`);
             audio.playSuccess();
         } catch (error) {
-            console.error('Batch price fetch failed:', error);
+            logger.error('Batch price fetch failed:', error);
             addLog('ERROR', 'PRICE_SYNC: Batch fetch failed.');
             audio.playError();
         } finally {
@@ -320,7 +321,7 @@ const HardwareEngine: React.FC = () => {
             const data = await getLiveSupplyChainData(compName);
             setLiveSupplyData(data);
             addLog('SUCCESS', `SUPPLY_SYNC: Logistics data locked.`);
-        } catch (e) { console.error(e); } finally { setIsFetchingSupply(false); }
+        } catch (e) { logger.error('Supply chain fetch failed', e); } finally { setIsFetchingSupply(false); }
     };
 
     return (

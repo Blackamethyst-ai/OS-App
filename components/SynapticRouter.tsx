@@ -1,14 +1,16 @@
 
-import React, { useEffect, useState, Suspense, lazy, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useCallback, Suspense, lazy, useMemo, useRef } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-    Copy, Eye, Wand2, Terminal, Code, X, Search, Activity, 
-    Layers, ArrowUpRight, Hash, Database, GitBranch, Loader2, Scan 
+import {
+    Copy, Eye, Wand2, Terminal, Code, X, Search, Activity,
+    Layers, ArrowUpRight, Hash, Database, GitBranch, Loader2, Scan,
+    AlertTriangle, RefreshCw
 } from 'lucide-react';
 import { performGlobalSearch } from '../services/geminiService';
 import { AppMode } from '../types';
 import { audio } from '../services/audioService';
+import { GlobalErrorBoundary } from './GlobalErrorBoundary';
 
 // Lazy Load Views for performance
 const Dashboard = lazy(() => import('./core/Dashboard'));
@@ -50,6 +52,42 @@ const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> =
     [AppMode.ARCHON]: { x: 0, y: 0, z: 2 },
     [AppMode.META_LEARNING]: { x: -1, y: 1, z: 1 },
     [AppMode.SOVEREIGN_GALLERY]: { x: 0.5, y: -0.5, z: -0.5 }
+};
+
+/**
+ * Panel-level error fallback — allows retrying the current sector
+ * without a full page reload, unlike the root GlobalErrorBoundary.
+ */
+const PanelErrorFallback: React.FC<{ sectorName: string }> = ({ sectorName }) => {
+    const handleRetry = useCallback(() => {
+        // Force re-mount by navigating to hub and back
+        const currentHash = window.location.hash;
+        window.location.hash = '#/metaventions-hub';
+        requestAnimationFrame(() => { window.location.hash = currentHash; });
+    }, []);
+
+    return (
+        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+            <div className="w-full max-w-lg border border-[var(--amethyst)]/30 bg-black/60 rounded-2xl p-8 backdrop-blur-xl">
+                <div className="flex items-center justify-center gap-3 mb-6">
+                    <AlertTriangle size={32} className="text-[var(--amethyst)]" />
+                    <h2 className="text-xl font-bold text-[#F8FAFC] uppercase tracking-widest">
+                        Sector Fault
+                    </h2>
+                </div>
+                <p className="text-sm text-[#94A3B8] mb-6">
+                    The <span className="text-[var(--cyan)] font-mono">{sectorName}</span> sector encountered an error and was isolated to protect system stability.
+                </p>
+                <button
+                    onClick={handleRetry}
+                    className="px-8 py-3 bg-[var(--amethyst)] hover:bg-[var(--cyan)] text-white font-bold uppercase tracking-widest text-xs rounded-xl transition-all duration-300 flex items-center justify-center gap-2 mx-auto group"
+                >
+                    <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-500" />
+                    Retry Sector
+                </button>
+            </div>
+        </div>
+    );
 };
 
 const SynapticRouter: React.FC = () => {
@@ -162,24 +200,26 @@ const SynapticRouter: React.FC = () => {
                             isFixedLayout ? 'overflow-hidden' : 'overflow-y-auto custom-scrollbar pb-8'
                         }`}
                     >
-                        {mode === AppMode.DASHBOARD && <Dashboard />}
-                        {mode === AppMode.METAVENTIONS_HUB && <MetaventionsHub />}
-                        {mode === AppMode.SYNTHESIS_BRIDGE && <SynthesisBridge />}
-                        {mode === AppMode.BIBLIOMORPHIC && <BibliomorphicEngine />}
-                        {mode === AppMode.PROCESS_MAP && <ProcessVisualizer />}
-                        {mode === AppMode.MEMORY_CORE && <MemoryCore />}
-                        {mode === AppMode.IMAGE_GEN && <ImageGen className="h-full flex-1" />}
-                        {mode === AppMode.HARDWARE_ENGINEER && <HardwareEngine />}
-                        {mode === AppMode.VOICE_MODE && <VoiceMode />}
-                        {mode === AppMode.CODE_STUDIO && <CodeStudio />}
-                        {mode === AppMode.AGENT_CONTROL && <AgentControlCenter />}
-                        {mode === AppMode.AUTONOMOUS_FINANCE && <AutonomousFinance />}
-                        {(mode as any) === 'NEXUS' && <NexusAPIExplorer />}
-                        {mode === AppMode.AGENT_CORE_TEST && <AgentCoreTest />}
-                        {mode === AppMode.CPB_TEST && <CPBTest />}
-                        {mode === AppMode.ARCHON && <ArchonDashboard />}
-                        {mode === AppMode.META_LEARNING && <MetaLearningDashboard />}
-                        {mode === AppMode.SOVEREIGN_GALLERY && <SovereignGallery />}
+                        <GlobalErrorBoundary fallback={<PanelErrorFallback sectorName={mode} />}>
+                            {mode === AppMode.DASHBOARD && <Dashboard />}
+                            {mode === AppMode.METAVENTIONS_HUB && <MetaventionsHub />}
+                            {mode === AppMode.SYNTHESIS_BRIDGE && <SynthesisBridge />}
+                            {mode === AppMode.BIBLIOMORPHIC && <BibliomorphicEngine />}
+                            {mode === AppMode.PROCESS_MAP && <ProcessVisualizer />}
+                            {mode === AppMode.MEMORY_CORE && <MemoryCore />}
+                            {mode === AppMode.IMAGE_GEN && <ImageGen className="h-full flex-1" />}
+                            {mode === AppMode.HARDWARE_ENGINEER && <HardwareEngine />}
+                            {mode === AppMode.VOICE_MODE && <VoiceMode />}
+                            {mode === AppMode.CODE_STUDIO && <CodeStudio />}
+                            {mode === AppMode.AGENT_CONTROL && <AgentControlCenter />}
+                            {mode === AppMode.AUTONOMOUS_FINANCE && <AutonomousFinance />}
+                            {(mode as any) === 'NEXUS' && <NexusAPIExplorer />}
+                            {mode === AppMode.AGENT_CORE_TEST && <AgentCoreTest />}
+                            {mode === AppMode.CPB_TEST && <CPBTest />}
+                            {mode === AppMode.ARCHON && <ArchonDashboard />}
+                            {mode === AppMode.META_LEARNING && <MetaLearningDashboard />}
+                            {mode === AppMode.SOVEREIGN_GALLERY && <SovereignGallery />}
+                        </GlobalErrorBoundary>
                     </motion.main>
                 </AnimatePresence>
             </Suspense>

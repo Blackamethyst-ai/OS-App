@@ -11,6 +11,7 @@ import {
 } from '../../../services/geminiService';
 import { AnimatePresence } from 'motion/react';
 import { audio } from '../../../services/audioService';
+import { logger } from '../../../services/logger';
 
 // Import types and extracted components
 import {
@@ -1657,7 +1658,7 @@ ${videoPrompt}
                         const aBlob = await aRes.blob();
                         audioFolder?.file(`narration_${frame.index + 1}.pcm`, aBlob);
                     }
-                } catch (e) { console.error(e); }
+                } catch (e) { logger.error('Audio narration export failed', e); }
             }
         }
 

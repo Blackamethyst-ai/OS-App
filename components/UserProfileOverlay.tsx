@@ -6,6 +6,7 @@ import { generateAvatar, promptSelectKey } from '../services/geminiService';
 import { motion, AnimatePresence } from 'motion/react';
 import { User, X, Camera, Save, ShieldCheck, Loader2, Fingerprint, ScanFace, Sparkles, ChevronDown, Upload, Sun, Moon, Contrast, Activity, Key } from 'lucide-react';
 import { audio } from '../services/audioService';
+import { logger } from '../services/logger';
 import { AppTheme } from '../types';
 
 const ROLES = ['ARCHITECT', 'OPERATOR', 'SENTINEL', 'NETRUNNER', 'OVERWATCH'];
@@ -27,6 +28,16 @@ const UserProfileOverlay: React.FC = () => {
     const [isGenerating, setIsGenerating] = useState(false);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    // Handle Escape key to close profile
+    useEffect(() => {
+        if (!isProfileOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') actions.toggleProfile(false);
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isProfileOpen, actions]);
 
     // Sync local state when store updates (e.g. initial load)
     useEffect(() => {
@@ -73,7 +84,7 @@ const UserProfileOverlay: React.FC = () => {
             setEditAvatar(avatarUrl);
             audio.playSuccess();
         } catch (err: any) {
-            console.error("Avatar Gen Error:", err);
+            logger.error("Avatar Gen Error:", err);
             actions.addLog('ERROR', `AVATAR_GEN: ${err.message}`);
             audio.playError();
         } finally {
@@ -115,7 +126,7 @@ const UserProfileOverlay: React.FC = () => {
                 actions.toggleProfile(false);
             }, 800);
         } catch (err) {
-            console.error("Profile Save Error", err);
+            logger.error("Profile Save Error", err);
             actions.addLog('ERROR', "PROFILE_SAVE_FAILED: Write access denied");
             setIsSaving(false);
             audio.playError();
@@ -156,13 +167,16 @@ const UserProfileOverlay: React.FC = () => {
     return (
         <AnimatePresence>
             {isProfileOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-md" role="presentation">
                     <motion.div
                         ref={containerRef}
                         initial={{ opacity: 0, scale: 0.9, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         onClick={(e) => e.stopPropagation()}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="User Profile"
                         className={`bg-[#0a0a0a] border border-[var(--border-main)] rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,1)] relative group transition-all duration-500 ease-in-out ${isCompact ? 'w-[600px] h-auto' : 'w-[500px]'
                             }`}
                     >
@@ -176,7 +190,7 @@ const UserProfileOverlay: React.FC = () => {
                                 <ScanFace className="w-5 h-5" />
                                 <span className="font-mono font-bold uppercase tracking-widest text-xs">Identity Fabrication</span>
                             </div>
-                            <button onClick={() => actions.toggleProfile(false)} className="text-gray-500 hover:text-white transition-colors">
+                            <button onClick={() => actions.toggleProfile(false)} aria-label="Close profile" className="text-gray-500 hover:text-white transition-colors">
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
@@ -186,7 +200,7 @@ const UserProfileOverlay: React.FC = () => {
 
                             {/* Avatar Section - Modular Resizing */}
                             <div className={`flex items-center transition-all ${isCompact ? 'flex-col gap-3 shrink-0' : 'justify-center gap-6'}`}>
-                                <div className="relative group/avatar cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                                <div className="relative group/avatar cursor-pointer" role="button" tabIndex={0} aria-label="Change avatar" onClick={() => fileInputRef.current?.click()} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }}>
                                     <div className={`rounded-full border-2 border-[#333] group-hover/avatar:border-[var(--amethyst-soft)] overflow-hidden bg-[#050505] flex items-center justify-center transition-all shadow-[0_0_30px_rgba(0,0,0,0.5)] relative ${isCompact ? 'w-24 h-24' : 'w-32 h-32'
                                         }`}>
                                         {editAvatar ? (

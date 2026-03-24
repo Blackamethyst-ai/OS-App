@@ -1,0 +1,242 @@
+{
+  "name": "OS-App Iteration Cycle — Polish, Harden, Test, Optimize",
+  "branchName": "ralph/os-app-iteration-cycle",
+  "description": "Complete polish plan (batches 9-10), harden UI/UX, expand test coverage to 90%+ on critical paths, and optimize bundle performance with lazy loading and code splitting.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Polish Batch 9 — Component Logger Migration",
+      "description": "As a developer, I want all 23 component files migrated from console.* to logger.* so that production logging is consistent and controllable.",
+      "acceptanceCriteria": [
+        "All 23 files listed in POLISH_PLAN.md Batch 9 use import { logger } from '@/services/logger' (adjust relative path as needed)",
+        "Zero console.log/warn/error calls remain in those 23 files (verify with: grep -rn 'console\\.' on each file)",
+        "components/voice/VoiceManager/index.tsx (16 calls) fully migrated",
+        "components/MasterStabilizationProtocol.tsx (5 calls) fully migrated",
+        "No behavioral changes — logger calls match original severity levels (log→info, warn→warn, error→error)",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "See POLISH_PLAN.md Batch 9 for full file list. Logger is at services/logger.ts.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-002",
+      "title": "Polish Batch 10 — Hooks, Libs, Stores Logger Migration",
+      "description": "As a developer, I want all 20 remaining files (hooks, libs, stores, misc) migrated to the logger so the polish plan is 100% complete.",
+      "acceptanceCriteria": [
+        "All 20 files listed in POLISH_PLAN.md Batch 10 use logger.* instead of console.*",
+        "hooks/useConversationalVoice.ts (7 calls) fully migrated",
+        "libs/voice-nexus/providers/stt/deepgram.ts (8 calls) fully migrated",
+        "libs/voice-nexus/providers/vad/silero.ts (7 calls) fully migrated",
+        "POLISH_PLAN.md updated to mark batches 9 and 10 as Done in the summary table",
+        "Grep confirms zero console.* in production files outside skip list (logger.ts, scripts/, libs/*/examples/, vite.config.ts, test files)",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "See POLISH_PLAN.md Batch 10 for full file list. This completes the polish plan.",
+      "dependsOn": ["US-001"]
+    },
+    {
+      "id": "US-003",
+      "title": "Dead Code Sweep — Components and Hooks",
+      "description": "As a developer, I want unused components and hooks identified and archived to .graveyard/ so the codebase stays lean.",
+      "acceptanceCriteria": [
+        "Import analysis run across all 75+ components in components/ — list of unreferenced components produced",
+        "Import analysis run across all 28+ hooks in hooks/ — list of unreferenced hooks produced",
+        "Disconnected code with real logic archived to .graveyard/ with MANIFEST.md entries (original path, capability, why disconnected, how to recover)",
+        "Empty stubs and () => null components deleted outright",
+        "Git history checked for each candidate: git log --all -p -S 'import.*ComponentName' to verify disconnection",
+        "No build regressions: npm run build succeeds",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ".graveyard/ already exists. Follow dead-code-policy: archive don't delete. Check git history before removing.",
+      "dependsOn": ["US-002"]
+    },
+    {
+      "id": "US-004",
+      "title": "Accessibility Audit — Interactive Components",
+      "description": "As a user, I want all interactive components to be keyboard-navigable and screen-reader accessible so the app meets WCAG AA.",
+      "acceptanceCriteria": [
+        "All buttons, links, and controls have aria-label or visible text",
+        "All modals trap focus and support Escape to close",
+        "Tab order is logical across Dashboard, CommandPalette, AgentControlCenter",
+        "Color contrast ratios meet WCAG AA (4.5:1 for text, 3:1 for large text)",
+        "Form inputs have associated labels (htmlFor or aria-labelledby)",
+        "No div or span used as interactive element without role and tabIndex",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "Batch 1 of polish plan already added some aria labels. Build on that work.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-005",
+      "title": "Error Boundary Coverage",
+      "description": "As a user, I want graceful error handling across all major views so crashes don't white-screen the app.",
+      "acceptanceCriteria": [
+        "GlobalErrorBoundary wraps the app root in index.tsx",
+        "Each major panel has a local error boundary: Dashboard, AgentControlCenter, BiometricPanel, VoiceManager",
+        "Error boundaries show a recovery UI with Retry action (not just a blank screen)",
+        "Error boundaries log to logger.error with component stack trace",
+        "Existing GlobalErrorBoundary.tsx component is reused or extended (not duplicated)",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "GlobalErrorBoundary.tsx already exists in components/. Verify its current coverage before adding new boundaries.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-006",
+      "title": "Test Coverage — Kernel Services",
+      "description": "As a developer, I want 90%+ test coverage on services/kernel/ so kernel changes are safe to ship.",
+      "acceptanceCriteria": [
+        "AgentKernel.ts has unit tests covering: init, dispatch, error handling, shutdown",
+        "mcpContextBridge.ts has tests covering: context injection, bridge protocol, error paths",
+        "KernelScheduler.ts has tests covering: task scheduling, cancellation, priority ordering",
+        "IntentResolver.ts has tests covering: intent matching, ambiguity resolution, fallback",
+        "Tests use Vitest + happy-dom environment",
+        "npx vitest run --coverage shows 90%+ line coverage for services/kernel/",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "Read each kernel file first to understand the API surface before writing tests. Tests go in services/kernel/__tests__/.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-007",
+      "title": "Test Coverage — Capabilities Registry",
+      "description": "As a developer, I want the capabilities registry thoroughly tested so capability execution is reliable.",
+      "acceptanceCriteria": [
+        "registry.ts tested: registration, lookup, execution, error for unknown capability",
+        "providers/dynamic.ts tested: dynamic capability creation, validation",
+        "providers/ui.ts, providers/tabs.ts, providers/actions.ts each have basic smoke tests",
+        "CPB routing integration tested: query routing, confidence thresholds, path selection",
+        "Tests go in services/capabilities/__tests__/",
+        "npx vitest run --coverage shows 90%+ line coverage for services/capabilities/",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "Read services/capabilities/README.md for registry API documentation before writing tests.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-008",
+      "title": "Test Coverage — Voice Pipeline",
+      "description": "As a developer, I want the voice pipeline tested end-to-end so voice features don't regress.",
+      "acceptanceCriteria": [
+        "voiceNexus/orchestrator.ts tested: mode switching, provider fallback, error recovery",
+        "voiceNexus/preflightCheck.ts tested: all check paths (pass, fail, partial)",
+        "voiceCoreIntegration.ts tested: core integration hooks",
+        "STT/TTS provider mocks established for reliable testing (no real API calls)",
+        "Tests go in services/voiceNexus/__tests__/",
+        "npx vitest run --coverage shows 85%+ line coverage for services/voiceNexus/",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "Voice providers need mocking — create shared mock fixtures for STT/TTS/VAD providers.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-009",
+      "title": "Lazy Loading — Heavy Dependencies",
+      "description": "As a user, I want the app to load fast by deferring heavy libraries until needed.",
+      "acceptanceCriteria": [
+        "Three.js (@react-three/fiber, three) loaded only when 3D visualization component is opened — use React.lazy or dynamic import()",
+        "face-api.js loaded only when BiometricPanel is activated — use dynamic import()",
+        "mermaid loaded only when MermaidDiagram component renders — use dynamic import()",
+        "d3 loaded only when chart components (recharts is separate, focus on direct d3 usage) render",
+        "Initial bundle size reduced by at least 30% compared to before (measure with npm run build, note sizes before and after)",
+        "Loading states (spinner or skeleton) shown while lazy chunks download",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "Measure baseline bundle size FIRST with npm run build before making changes. Record in notes.",
+      "dependsOn": ["US-003"]
+    },
+    {
+      "id": "US-010",
+      "title": "Code Splitting — Route-Level",
+      "description": "As a developer, I want route-level code splitting so each major view is its own chunk.",
+      "acceptanceCriteria": [
+        "Dashboard, AgentControlCenter, BiometricPanel, HardwareEngine are lazy-loaded via React.lazy()",
+        "Suspense boundaries with fallback UI (spinner or skeleton) wrap each lazy component",
+        "Vite build output shows separate chunks per major view (verify in dist/ after build)",
+        "No flash of unstyled content during chunk loading",
+        "Navigation between views works without full page reload",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "Check App.tsx to understand how views are currently rendered before adding lazy loading.",
+      "dependsOn": ["US-009"]
+    },
+    {
+      "id": "US-011",
+      "title": "Bundle Analysis and Size Budget",
+      "description": "As a developer, I want a bundle size budget enforced so regressions are caught automatically.",
+      "acceptanceCriteria": [
+        "rollup-plugin-visualizer added as devDependency in package.json",
+        "Visualizer configured in vite.config.ts (generates stats.html on build)",
+        "Baseline bundle size documented in a comment or CHANGELOG entry after optimization",
+        "npm run build completes and outputs chunk sizes",
+        "Total initial JS is under 500KB gzipped (or document actual size if target not yet achievable)",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "This is the final measurement story. Run after US-009 and US-010 to capture optimized sizes.",
+      "dependsOn": ["US-010"]
+    },
+    {
+      "id": "US-012",
+      "title": "Responsive Design Audit",
+      "description": "As a user, I want OS-App usable on tablet-sized screens (1024px+) without layout breakage.",
+      "acceptanceCriteria": [
+        "Dashboard layout adapts at 1024px breakpoint (no overlapping panels)",
+        "No horizontal scrollbars at 1024px viewport width",
+        "Modal dialogs fit within viewport at 1024px",
+        "Text remains readable — no truncation of critical information",
+        "Navigation remains accessible at 1024px",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "Check index.css and Tailwind classes for existing breakpoints before adding new ones.",
+      "dependsOn": ["US-004"]
+    }
+  ]
+}

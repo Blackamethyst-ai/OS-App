@@ -21,6 +21,7 @@
  */
 
 import type { STTProvider } from '../../types';
+import { logger } from '../../../../services/logger';
 
 export interface DeepgramSTTOptions {
     /** Deepgram API key - if not provided, will fetch from tokenEndpoint */
@@ -137,7 +138,7 @@ export function createDeepgramSTT(options: DeepgramSTTOptions): STTProvider {
                     return apiKey;
                 }
             } catch (err) {
-                console.error('[Deepgram] Failed to fetch token from Supabase:', err);
+                logger.error('[Deepgram] Failed to fetch token from Supabase:', err);
             }
         }
 
@@ -153,7 +154,7 @@ export function createDeepgramSTT(options: DeepgramSTTOptions): STTProvider {
                     }
                 }
             } catch (err) {
-                console.error('[Deepgram] Failed to fetch token from endpoint:', err);
+                logger.error('[Deepgram] Failed to fetch token from endpoint:', err);
             }
         }
 
@@ -222,10 +223,10 @@ export function createDeepgramSTT(options: DeepgramSTTOptions): STTProvider {
                 }
             } else if (data.type === 'Metadata') {
                 // Metadata received - connection established
-                console.log('[Deepgram] Connection established, ready for audio');
+                logger.info('[Deepgram] Connection established, ready for audio');
             }
         } catch (error) {
-            console.error('[Deepgram] Error parsing message:', error);
+            logger.error('[Deepgram] Error parsing message:', error);
         }
     }
 
@@ -346,7 +347,7 @@ export function createDeepgramSTT(options: DeepgramSTTOptions): STTProvider {
                     websocket = new WebSocket(buildWebSocketUrl(), ['token', key]);
 
                     websocket.onopen = async () => {
-                        console.log('[Deepgram] WebSocket connected');
+                        logger.info('[Deepgram] WebSocket connected');
                         try {
                             await startAudioCapture();
                             resolve();
@@ -358,7 +359,7 @@ export function createDeepgramSTT(options: DeepgramSTTOptions): STTProvider {
                     websocket.onmessage = handleMessage;
 
                     websocket.onerror = (event) => {
-                        console.error('[Deepgram] WebSocket error:', event);
+                        logger.error('[Deepgram] WebSocket error:', event);
                         if (rejectStop) {
                             rejectStop(new Error('WebSocket error'));
                             rejectStop = null;
@@ -367,7 +368,7 @@ export function createDeepgramSTT(options: DeepgramSTTOptions): STTProvider {
                     };
 
                     websocket.onclose = (event) => {
-                        console.log('[Deepgram] WebSocket closed:', event.code, event.reason);
+                        logger.info('[Deepgram] WebSocket closed:', event.code, event.reason);
                         isListening = false;
                         stopAudioCapture();
 

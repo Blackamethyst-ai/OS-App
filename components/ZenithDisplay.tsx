@@ -8,6 +8,7 @@ import { useAppStore } from '../store';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { retryGeminiRequest, getAI } from '../services/geminiService';
 import { cn } from '../utils/cn';
+import { logger } from '../services/logger';
 import TacticalScanner from './TacticalScanner';
 
 // Defined as a function to ensure THREE constants are initialized when needed
@@ -140,7 +141,7 @@ const IntelRibbon = () => {
           const items = response.text.split('|').map(s => s.trim()).filter(Boolean);
           if (items.length > 0) setIntel(items);
         }
-      } catch (e) { console.warn("Intel Ribbon Error", e); }
+      } catch (e) { logger.warn("Intel Ribbon Error", e); }
       finally { setIsUpdating(false); }
     };
 

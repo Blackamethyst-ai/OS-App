@@ -4,6 +4,7 @@ import { Scan, ShieldCheck, Crosshair } from 'lucide-react';
 import { cn } from '../utils/cn';
 import { audio } from '../services/audioService';
 import { generateSpeech } from '../services/geminiService';
+import { logger } from '../services/logger';
 
 const TacticalScanner: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -44,7 +45,7 @@ const TacticalScanner: React.FC = () => {
             source.connect(audioCtx.destination);
             source.start();
         } catch (e) {
-            console.error("TTS Synthesis Fault:", e);
+            logger.error("TTS Synthesis Fault:", e);
         }
     };
 

@@ -28,7 +28,7 @@ const AppHeader: React.FC = () => {
             />
 
             <div className="flex items-center gap-12 h-full w-full max-w-[2800px] mx-auto">
-                <div className="flex items-center gap-4 cursor-pointer group relative shrink-0" onClick={() => window.location.hash = '/metaventions-hub'}>
+                <div className="flex items-center gap-4 cursor-pointer group relative shrink-0" role="button" tabIndex={0} aria-label="Go to Metaventions Hub" onClick={() => window.location.hash = '/metaventions-hub'} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.location.hash = '/metaventions-hub'; } }}>
                     <MetaventionsLogo size={36} showText={true} className={cn("relative z-10 transition-all duration-700 group-hover:scale-110", focusedSelector === 'header' && "scale-125")} />
                 </div>
 

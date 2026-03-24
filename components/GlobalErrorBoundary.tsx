@@ -1,6 +1,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
+import { logger } from '../services/logger';
 
 interface Props {
     children: ReactNode;
@@ -14,13 +15,12 @@ interface State {
 }
 
 export class GlobalErrorBoundary extends Component<Props, State> {
+    state: State = { hasError: false, error: null, errorInfo: null };
+    props: Props;
+
     constructor(props: Props) {
         super(props);
-        this.state = {
-            hasError: false,
-            error: null,
-            errorInfo: null
-        };
+        this.props = props;
     }
 
     static getDerivedStateFromError(error: Error): State {
@@ -33,8 +33,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
             errorInfo
         });
 
-        // Log to system logs if available (we would need a hook or bridge here, but for now console)
-        console.error("🔴 GLOBAL ERROR CAUGHT:", error, errorInfo);
+        logger.error("GLOBAL ERROR CAUGHT:", error, errorInfo.componentStack);
     }
 
     handleReset = () => {

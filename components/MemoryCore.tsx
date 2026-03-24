@@ -1,10 +1,11 @@
 import { apiKeyService } from '../services/apiKeyService';
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo, useRef, Suspense, lazy } from 'react';
 import { neuralVault } from '../services/persistenceService';
 import { 
     promptSelectKey, classifyArtifact, generateEmbedding, fileToGenerativePart
 } from '../services/geminiService';
 import { useAppStore } from '../store';
+import { logger } from '../services/logger';
 import { 
     File as FileIcon, Loader2, Search, 
     Database, X, Upload, Activity, FileText, BrainCircuit,
@@ -17,7 +18,8 @@ import { motion, AnimatePresence } from 'motion/react';
 import { StoredArtifact } from '../types';
 import KnowledgeGraph from './KnowledgeGraph';
 import PowerXRay from './hardware/PowerXRay';
-import DynamicVisuals from './DynamicVisuals';
+// Lazy-load DynamicVisuals to defer d3.js (~117KB) until the DYNAMIC view is activated
+const DynamicVisuals = lazy(() => import('./DynamicVisuals'));
 import { audio } from '../services/audioService';
 import { cn } from '../utils/cn';
 import { renderSafe } from '../utils/renderSafe';
@@ -124,7 +126,7 @@ const MemoryCore: React.FC = () => {
 
             setArtifacts(combined as any);
         } catch (e) {
-            console.error("Memory Sync Failed", e);
+            logger.error("Memory Sync Failed", e);
         } finally {
             setIsLoading(false);
         }
@@ -384,7 +386,13 @@ const MemoryCore: React.FC = () => {
                             </motion.div>
                         ) : viewMode === 'DYNAMIC' ? (
                             <motion.div key="dynamic" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">
-                                <DynamicVisuals artifacts={artifacts} onSelect={setSelectedArtifact} />
+                                <Suspense fallback={
+                                    <div className="h-full w-full flex items-center justify-center">
+                                        <Loader2 className="w-8 h-8 text-[var(--amethyst-soft)] animate-spin" />
+                                    </div>
+                                }>
+                                    <DynamicVisuals artifacts={artifacts} onSelect={setSelectedArtifact} />
+                                </Suspense>
                             </motion.div>
                         ) : viewMode === 'XRAY' ? (
                             <motion.div key="xray" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="h-full">

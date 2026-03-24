@@ -1,6 +1,7 @@
 
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useAppStore } from '../store';
+import { logger } from '../services/logger';
 import { faceDetectionService } from '../services/faceDetectionService';
 import { agentKernel } from '../services/kernel';
 import { ShieldCheck, Zap } from 'lucide-react';
@@ -51,7 +52,7 @@ const MasterStabilizationProtocol: React.FC = () => {
                 // If transitioning for > 3 seconds, force reset
                 const duration = Date.now() - transitionStartRef.current;
                 if (duration > 3000) {
-                    console.warn("⚠️ STABILIZATION: Detected Transition Deadlock. Forcing reset.");
+                    logger.warn("STABILIZATION: Detected Transition Deadlock. Forcing reset.");
                     useAppStore.setState({ isTransitioning: false });
                     transitionStartRef.current = null;
                     triggerStabilizationVisual();
@@ -77,7 +78,7 @@ const MasterStabilizationProtocol: React.FC = () => {
 
                 // If consistently low confidence for ~2 seconds (10 checks), intervene
                 if (lowConfidenceFramesRef.current > 10) {
-                    if (import.meta.env.DEV) console.log("🛡️ STABILIZATION: Biometric Signal Weak. Injecting Synthetic Stability.");
+                    logger.info("STABILIZATION: Biometric Signal Weak. Injecting Synthetic Stability.");
 
                     // Temporarily relax the adaptive UI trigger thresholds
                     // This prevents the UI from "flickering" between complexity levels
@@ -98,7 +99,7 @@ const MasterStabilizationProtocol: React.FC = () => {
     // 3. KERNEL INTEGRITY WATCHDOG
     useEffect(() => {
         if (kernel.operationalState === 'ERROR') {
-            console.error("🔴 KERNEL ERROR DETECTED. Attempting Soft Reboot.");
+            logger.error("KERNEL ERROR DETECTED. Attempting Soft Reboot.");
             agentKernel.shutdown();
             setTimeout(() => {
                 agentKernel.boot().then(() => {
@@ -116,7 +117,7 @@ const MasterStabilizationProtocol: React.FC = () => {
             const timer = setTimeout(() => {
                 // If still generating after 15s, it's likely stuck
                 if (useAppStore.getState().dashboard.isGenerating) {
-                    console.warn("⚠️ STABILIZATION: Dashboard Generation Stuck. Resetting.");
+                    logger.warn("STABILIZATION: Dashboard Generation Stuck. Resetting.");
                     actions.setDashboardState({ isGenerating: false });
                     triggerStabilizationVisual();
                 }
@@ -129,7 +130,7 @@ const MasterStabilizationProtocol: React.FC = () => {
         if (process.isLoading) {
             const timer = setTimeout(() => {
                 if (useAppStore.getState().process.isLoading) {
-                    console.warn("⚠️ STABILIZATION: Process Map Loading Stuck. Resetting.");
+                    logger.warn("STABILIZATION: Process Map Loading Stuck. Resetting.");
                     actions.setProcessState({ isLoading: false });
                     triggerStabilizationVisual();
                 }

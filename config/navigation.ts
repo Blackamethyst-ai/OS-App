@@ -1,4 +1,5 @@
 import { AppMode } from '../types/domain/core';
+import { logger } from '../services/logger';
 
 export interface NavItem {
     id: AppMode | 'NEXUS';
@@ -48,7 +49,7 @@ export const persistNavOrder = (order: string[]): void => {
     try {
         localStorage.setItem(NAV_ORDER_KEY, JSON.stringify(order));
     } catch {
-        console.warn('Failed to persist nav order');
+        logger.warn('Failed to persist nav order');
     }
 };
 

@@ -343,13 +343,16 @@ const CommandPalette: React.FC = () => {
     return (
         <AnimatePresence>
             {isCommandPaletteOpen && (
-                <div className="fixed inset-0 z-[600] flex items-start justify-center pt-[15vh] bg-black/50 backdrop-blur-md" onClick={() => toggleCommandPalette(false)}>
+                <div className="fixed inset-0 z-[600] flex items-start justify-center pt-[15vh] bg-black/50 backdrop-blur-md" onClick={() => toggleCommandPalette(false)} role="presentation">
                     <MotionDiv
                         initial={{ opacity: 0, scale: 0.95, y: -20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.95, y: -10 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 220 }}
                         onClick={(e: any) => e.stopPropagation()}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="Command Palette"
                         className="w-full max-w-2xl crystalline border border-[var(--border-main)] rounded-[2rem] shadow-[0_60px_150px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col shimmer-edge"
                     >
                         <div className="flex items-center px-8 py-6 border-b border-white/10 bg-white/[0.03]">
@@ -361,11 +364,12 @@ const CommandPalette: React.FC = () => {
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && executeCommand()}
                                 placeholder="Initialize global directive..."
+                                aria-label="Command input"
                                 className="flex-1 bg-transparent border-none outline-none text-white font-mono text-base placeholder:text-gray-600 uppercase tracking-widest"
                                 autoComplete="off"
                             />
                             {isLoading && <Loader2 size={5} className="w-5 h-5 text-[var(--amethyst-soft)] animate-spin ml-4" />}
-                            <button onClick={() => toggleCommandPalette(false)} className="ml-5 p-2 text-gray-500 hover:text-white transition-colors glass-action rounded-xl"><X className="w-5 h-5" /></button>
+                            <button onClick={() => toggleCommandPalette(false)} aria-label="Close command palette" className="ml-5 p-2 text-gray-500 hover:text-white transition-colors glass-action rounded-xl"><X className="w-5 h-5" /></button>
                         </div>
 
                         {/* Knowledge Search Results */}

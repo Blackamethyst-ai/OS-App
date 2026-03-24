@@ -40,6 +40,16 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
     const [keyStatus, setKeyStatus] = useState(apiKeyService.getKeyStatus());
     const [confirmReset, setConfirmReset] = useState(false);
 
+    // Handle Escape key to close modal
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
+
     // Determine initial view based on vault status
     useEffect(() => {
         if (isOpen) {
@@ -211,11 +221,13 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                             setPasswordError('');
                         }}
                         placeholder="Create master password (min 8 chars)"
+                        aria-label="Create master password"
                         className="w-full px-4 py-3 pr-12 bg-black/60 border border-white/10 rounded-xl text-sm font-mono text-white placeholder:text-gray-700 focus:border-[var(--amethyst)]/50 focus:outline-none transition-colors"
                     />
                     <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
                         className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-600 hover:text-gray-400"
                     >
                         {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -230,6 +242,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                         setPasswordError('');
                     }}
                     placeholder="Confirm master password"
+                    aria-label="Confirm master password"
                     className="w-full px-4 py-3 bg-black/60 border border-white/10 rounded-xl text-sm font-mono text-white placeholder:text-gray-700 focus:border-[var(--amethyst)]/50 focus:outline-none transition-colors"
                 />
             </div>
@@ -288,12 +301,14 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                     }}
                     onKeyDown={(e) => e.key === 'Enter' && handleUnlockVault()}
                     placeholder="Enter master password"
+                    aria-label="Master password"
                     className="w-full px-4 py-3 pr-12 bg-black/60 border border-white/10 rounded-xl text-sm font-mono text-white placeholder:text-gray-700 focus:border-amber-500/50 focus:outline-none transition-colors"
                     autoFocus
                 />
                 <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
                     className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-600 hover:text-gray-400"
                 >
                     {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -392,10 +407,12 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                             setValidationResult(null);
                         }}
                         placeholder={`Enter ${activeProvider.toUpperCase()} API Key`}
+                        aria-label={`${activeProvider.toUpperCase()} API Key`}
                         className="w-full px-4 py-3 pr-12 bg-black/60 border border-white/10 rounded-xl text-sm font-mono text-white placeholder:text-gray-700 focus:border-[var(--amethyst)]/50 focus:outline-none transition-colors"
                     />
                     <button
                         onClick={() => setShowKey(!showKey)}
+                        aria-label={showKey ? 'Hide API key' : 'Show API key'}
                         className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-600 hover:text-gray-400"
                     >
                         {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -507,6 +524,9 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0.9, opacity: 0 }}
+                        role="dialog"
+                        aria-modal="true"
+                        aria-label="API Key Configuration"
                         className="w-[500px] bg-[#0a0a0c] border border-white/10 rounded-3xl shadow-2xl overflow-hidden"
                     >
                         {/* Header */}
@@ -528,7 +548,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
                                     </p>
                                 </div>
                             </div>
-                            <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
+                            <button onClick={onClose} aria-label="Close dialog" className="p-2 hover:bg-white/5 rounded-xl transition-colors">
                                 <X size={16} className="text-gray-500" />
                             </button>
                         </div>

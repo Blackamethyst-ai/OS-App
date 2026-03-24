@@ -6,6 +6,7 @@ import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as Rechar
 import { analyzePowerDynamics, promptSelectKey } from "../../services/geminiService";
 import { AnalysisResult, StoredArtifact } from "../../types";
 import { audio } from "../../services/audioService";
+import { logger } from '../../services/logger';
 
 const MotionDiv = motion.div as any;
 
@@ -216,7 +217,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
       setData(result);
       audio.playSuccess();
     } catch (err) {
-      console.error(err);
+      logger.error('Power analysis failed', err);
       audio.playError();
     } finally {
       setLoading(false);

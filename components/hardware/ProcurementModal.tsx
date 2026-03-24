@@ -5,7 +5,7 @@
  * Uses real vendor data from vendorService (minerstat + PriceAPI).
  */
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
     X, ShoppingCart, Package, Truck, CheckCircle2, AlertTriangle,
@@ -13,6 +13,7 @@ import {
     CreditCard, FileText, ArrowLeft, Sparkles, Database, Wifi
 } from 'lucide-react';
 import { useAppStore } from '../../store';
+import { logger } from '../../services/logger';
 import * as vendorService from '../../services/vendorService';
 import type { GpuWithLiveData, VendorQuote } from '../../types';
 
@@ -27,6 +28,16 @@ type Step = 'quantity' | 'quotes' | 'confirm' | 'processing' | 'complete';
 const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClose }) => {
     const { actions } = useAppStore();
     const { setHardwareState } = actions;
+
+    // Handle Escape key to close modal
+    useEffect(() => {
+        if (!isOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, onClose]);
 
     const [step, setStep] = useState<Step>('quantity');
     const [quantity, setQuantity] = useState(1);
@@ -64,7 +75,7 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
             setQuotes(realQuotes);
             setStep('quotes');
         } catch (error) {
-            console.error('[Procurement] Failed to fetch quotes:', error);
+            logger.error('[Procurement] Failed to fetch quotes:', error);
             setQuoteError('Failed to fetch vendor quotes. Please try again.');
         } finally {
             setIsLoading(false);
@@ -142,6 +153,9 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                     initial={{ scale: 0.95, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     exit={{ scale: 0.95, opacity: 0 }}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label="GPU Procurement"
                     className="w-[700px] max-h-[85vh] bg-[#0a0a0a] border border-white/10 rounded-3xl overflow-hidden shadow-2xl"
                     onClick={e => e.stopPropagation()}
                 >
@@ -156,7 +170,7 @@ const ProcurementModal: React.FC<ProcurementModalProps> = ({ gpu, isOpen, onClos
                                 <p className="text-[9px] text-gray-600 font-mono uppercase tracking-widest">{gpu.model}</p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-xl transition-colors">
+                        <button onClick={onClose} aria-label="Close procurement dialog" className="p-2 hover:bg-white/5 rounded-xl transition-colors">
                             <X size={20} className="text-gray-500" />
                         </button>
                     </div>

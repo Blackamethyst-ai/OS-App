@@ -4,4 +4,3 @@
  */
 
 export * from './directives';
-export * from './cpbConfigs';

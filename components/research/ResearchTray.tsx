@@ -84,7 +84,7 @@ const ResearchTray: React.FC = () => {
                                 
                                 {completedTasks.map(task => (
                                     <div key={task.id} className={`bg-[#080808] border rounded-2xl transition-all duration-500 ${selectedTaskId === task.id ? 'border-[var(--amethyst-soft)]/40 bg-[var(--amethyst-soft)]/5' : 'border-white/5 opacity-70 hover:opacity-100 hover:border-white/10'}`}>
-                                        <div className="p-4 flex justify-between items-center cursor-pointer" onClick={() => { setSelectedTaskId(selectedTaskId === task.id ? null : task.id); audio.playClick(); }}>
+                                        <div className="p-4 flex justify-between items-center cursor-pointer" role="button" tabIndex={0} aria-label={`Toggle details for ${task.query}`} onClick={() => { setSelectedTaskId(selectedTaskId === task.id ? null : task.id); audio.playClick(); }} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedTaskId(selectedTaskId === task.id ? null : task.id); audio.playClick(); } }}>
                                             <div className="flex items-center gap-3 min-w-0">
                                                 <div className="p-2 bg-[var(--plasma-green)]/10 rounded-lg"><CheckCircle2 size={16} className="text-[var(--plasma-green)]" /></div>
                                                 <span className="text-[10px] font-black text-gray-300 truncate uppercase font-mono tracking-widest">{task.query}</span>

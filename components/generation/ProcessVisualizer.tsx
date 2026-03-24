@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, Suspense, lazy } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import {
     ReactFlow, Background, Controls, MiniMap,
@@ -19,7 +19,8 @@ import * as Icons from 'lucide-react';
 import { useAppStore } from '../../store';
 import { useProcessVisualizerLogic, THEME } from '../../hooks/useProcessVisualizerLogic';
 import { renderSafe } from '../../utils/renderSafe';
-import MermaidDiagram from '../MermaidDiagram';
+// Lazy-load MermaidDiagram to defer mermaid library until diagram view is activated
+const MermaidDiagram = lazy(() => import('../MermaidDiagram'));
 import { audio } from '../../services/audioService';
 import { cn } from '../../utils/cn';
 
@@ -440,7 +441,13 @@ const ProcessVisualizerContent = () => {
                                     <Grid3X3 className="text-[var(--amethyst)]" size={28} />
                                     <span className="text-[11px] font-black font-mono text-white uppercase tracking-[0.6em]">System Topology Visualizer</span>
                                 </div>
-                                <MermaidDiagram code={processData.generatedCode || 'graph TD\nCORE[D-System Core] --> NODE[Infrastructure Node]'} />
+                                <Suspense fallback={
+                                    <div className="h-full w-full flex items-center justify-center">
+                                        <Loader2 className="w-8 h-8 text-[var(--amethyst-soft)] animate-spin" />
+                                    </div>
+                                }>
+                                    <MermaidDiagram code={processData.generatedCode || 'graph TD\nCORE[D-System Core] --> NODE[Infrastructure Node]'} />
+                                </Suspense>
                             </div>
                         </motion.div>
                     )}

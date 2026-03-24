@@ -25,6 +25,8 @@
  * ```
  */
 
+import { logger } from '../../../services/logger';
+
 export interface StreamingAudioPlayerOptions {
     /** Fade duration in ms for interruption crossfade (default: 50) */
     fadeDuration?: number;
@@ -108,7 +110,7 @@ export function createStreamingAudioPlayer(
             const clonedBuffer = chunk.slice(0);
             return await ctx.decodeAudioData(clonedBuffer);
         } catch (error) {
-            console.error('[StreamingAudioPlayer] Failed to decode chunk:', error);
+            logger.error('[StreamingAudioPlayer] Failed to decode chunk:', error);
             return null;
         }
     }
@@ -382,7 +384,7 @@ export async function streamSentenceBysentence(
                 onChunk(audio, i, sentences.length);
             }
         } catch (error) {
-            console.error(`[StreamTTS] Error synthesizing sentence ${i}:`, error);
+            logger.error(`[StreamTTS] Error synthesizing sentence ${i}:`, error);
             throw error;
         }
     }

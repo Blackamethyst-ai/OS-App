@@ -1,5 +1,6 @@
 
 import { useState, useCallback } from 'react';
+import { logger } from '../services/logger';
 // Fixed: Added GenerateContentResponse to imports from @google/genai
 import { GoogleGenAI, FunctionDeclaration, GenerateContentResponse } from "@google/genai";
 import { dynamicRegistry } from '../services/DynamicToolRegistry';
@@ -104,7 +105,7 @@ export const useAgentRuntime = () => {
             }
 
         } catch (e: any) {
-            console.error("Agent Runtime Error:", e);
+            logger.error("Agent Runtime Error:", e);
             const errorMsg = `ERROR: Cognitive failure. ${e.message}`;
             setState(prev => ({
                 ...prev,

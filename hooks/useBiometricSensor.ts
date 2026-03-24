@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { logger } from '../services/logger';
 import { useAppStore } from '../store';
 import { agentKernel } from '../services/kernel/AgentKernel';
 import { faceDetectionService, FaceDetectionResult } from '../services/faceDetectionService';
@@ -207,7 +208,7 @@ export const useBiometricSensor = (): UseBiometricSensorReturn => {
         }
       })
       .catch((error) => {
-        console.warn('BIOMETRIC: Face detection error', error);
+        logger.warn('BIOMETRIC: Face detection error', error);
       })
       .finally(() => {
         isFaceDetectionRunningRef.current = false;

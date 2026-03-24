@@ -22,6 +22,7 @@
  */
 
 import type { VADProvider, VADOptions, VADState, VADEvents } from '../../types';
+import { logger } from '../../../../services/logger';
 
 // Re-export for consumers who want to configure
 export type { VADOptions, VADState, VADEvents } from '../../types';
@@ -82,7 +83,7 @@ async function loadVADModule(): Promise<VADModule> {
         vadModule = await import('@ricky0123/vad-web' as any);
         return vadModule;
     } catch (error) {
-        console.error('[Silero VAD] Failed to load VAD module:', error);
+        logger.error('[Silero VAD] Failed to load VAD module:', error);
         return null;
     }
 }
@@ -140,7 +141,7 @@ export function createSileroVAD(options: SileroVADOptions): VADProvider {
 
         async start(): Promise<void> {
             if (isActive) {
-                console.warn('[Silero VAD] Already active');
+                logger.warn('[Silero VAD] Already active');
                 return;
             }
 
@@ -187,7 +188,7 @@ export function createSileroVAD(options: SileroVADOptions): VADProvider {
                 await micVAD.start();
                 isActive = true;
                 updateState('listening');
-                console.log('[Silero VAD] Started successfully');
+                logger.info('[Silero VAD] Started successfully');
             } catch (error) {
                 updateState('idle');
                 throw new Error(`Failed to start Silero VAD: ${error}`);
@@ -198,7 +199,7 @@ export function createSileroVAD(options: SileroVADOptions): VADProvider {
             if (micVAD && isActive) {
                 micVAD.pause();
                 updateState('paused');
-                console.log('[Silero VAD] Paused');
+                logger.info('[Silero VAD] Paused');
             }
         },
 
@@ -206,7 +207,7 @@ export function createSileroVAD(options: SileroVADOptions): VADProvider {
             if (micVAD && !micVAD.listening) {
                 await micVAD.start();
                 updateState('listening');
-                console.log('[Silero VAD] Resumed');
+                logger.info('[Silero VAD] Resumed');
             }
         },
 
@@ -216,7 +217,7 @@ export function createSileroVAD(options: SileroVADOptions): VADProvider {
                 micVAD = null;
                 isActive = false;
                 updateState('idle');
-                console.log('[Silero VAD] Stopped');
+                logger.info('[Silero VAD] Stopped');
             }
         },
     };

@@ -73,3 +73,17 @@ still exists elsewhere. If it doesn't, the graveyard copy IS the recovery path.
 - **Archived:** 2026-03-14
 - **Capability:** Stub component (was `() => null`)
 - **Status:** SAFE TO DELETE — never had real functionality
+
+## CPBMonitor.tsx
+- **Original path:** `components/CPBMonitor.tsx`
+- **Archived:** 2026-03-24
+- **Capability:** Visual dashboard for Cognitive Precision Bridge — displays real-time execution status, path routing (direct/ace/hybrid/cascade), quality metrics, and CPBStatusBadge. 419 lines of substantial UI logic.
+- **Why disconnected:** Only imported in test file (`components/__tests__/CPBTest.test.tsx`). No production component renders CPBMonitorPanel or CPBStatusBadge. Referenced as a string in `services/voiceUIContext.ts` and `data/cpbConfigs.ts` but never actually wired into the UI tree.
+- **Recovery:** Import `CPBMonitorPanel` and/or `CPBStatusBadge` from `.graveyard/CPBMonitor.tsx` into a dashboard view or the NeuralDock. Requires `CPBStatus` and `CPBResult` types from `services/cognitivePrecisionBridge/types`.
+
+## cpbConfigs.ts
+- **Original path:** `data/cpbConfigs.ts`
+- **Archived:** 2026-03-24
+- **Capability:** Configuration data (path colors, phase labels, descriptions) for CPBMonitor component. 69 lines.
+- **Why disconnected:** Never imported anywhere — was support data for CPBMonitor which was itself disconnected.
+- **Recovery:** Move back to `data/cpbConfigs.ts` when CPBMonitor is reconnected.

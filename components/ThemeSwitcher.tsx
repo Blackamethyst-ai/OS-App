@@ -62,7 +62,7 @@ const ThemeSwitcher: React.FC = () => {
             <AnimatePresence>
                 {isOpen && (
                     <>
-                        <div className="fixed inset-0 z-[100]" onClick={() => setIsOpen(false)} />
+                        <div className="fixed inset-0 z-[100]" onClick={() => setIsOpen(false)} role="presentation" aria-hidden="true" />
                         <motion.div
                             initial={{ opacity: 0, y: 10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}

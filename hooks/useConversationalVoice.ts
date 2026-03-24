@@ -51,6 +51,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import { logger } from '../services/logger';
 import { apiKeyService } from '../services/apiKeyService';
 
 // Types
@@ -234,7 +235,7 @@ export function useConversationalVoice(
             try {
                 await sttRef.current.stopStreaming();
             } catch (err) {
-                console.error('[ConversationalVoice] Error stopping STT:', err);
+                logger.error('[ConversationalVoice] Error stopping STT:', err);
             }
         }
 
@@ -272,7 +273,7 @@ export function useConversationalVoice(
     // Speak the response
     const speakResponse = useCallback(async (text: string) => {
         if (!ttsRef.current || !audioPlayerRef.current) {
-            console.warn('[ConversationalVoice] TTS not available, skipping speech');
+            logger.warn('[ConversationalVoice] TTS not available, skipping speech');
             return;
         }
 
@@ -300,7 +301,7 @@ export function useConversationalVoice(
                 await new Promise(resolve => setTimeout(resolve, 100));
             }
         } catch (err) {
-            console.error('[ConversationalVoice] TTS error:', err);
+            logger.error('[ConversationalVoice] TTS error:', err);
             throw err;
         }
     }, [voice, enableBargeIn]);
@@ -309,7 +310,7 @@ export function useConversationalVoice(
     const handleBargeIn = useCallback(async () => {
         if (state !== 'SPEAKING' || !enableBargeIn) return;
 
-        if (import.meta.env.DEV) console.log('[ConversationalVoice] Barge-in detected');
+        logger.info('[ConversationalVoice] Barge-in detected');
         onBargeIn?.();
 
         // Abort current response
@@ -417,13 +418,13 @@ export function useConversationalVoice(
                     // Playback complete
                 },
                 onInterrupt: () => {
-                    if (import.meta.env.DEV) console.log('[ConversationalVoice] Audio interrupted');
+                    logger.info('[ConversationalVoice] Audio interrupted');
                 },
             });
 
             return true;
         } catch (err) {
-            console.error('[ConversationalVoice] Failed to initialize providers:', err);
+            logger.error('[ConversationalVoice] Failed to initialize providers:', err);
             return false;
         }
     }, [deepgramApiKey, supabaseClient, elevenLabsApiKey, enableVAD, vadThreshold, enableBargeIn, state, handleBargeIn, clearSilenceTimer, startSilenceTimer]);

@@ -6,6 +6,7 @@
  */
 
 import { useEffect } from 'react';
+import { logger } from '../services/logger';
 import { useAppStore } from '../store';
 
 const AUTH_KEY = 'metaventions_authenticated';
@@ -31,7 +32,7 @@ export const useAuthPersistence = (): void => {
                 }
             }
         } catch (e) {
-            console.warn('Failed to restore auth state:', e);
+            logger.warn('Failed to restore auth state:', e);
         }
     }, []);
 
@@ -48,7 +49,7 @@ export const useAuthPersistence = (): void => {
                 }));
             }
         } catch (e) {
-            console.warn('Failed to persist auth state:', e);
+            logger.warn('Failed to persist auth state:', e);
         }
     }, [authenticated, user.displayName, user.role, user.clearanceLevel]);
 };

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'motion/react';
 import { Users, X, Globe, Activity, Terminal, Shield, Zap, Target } from 'lucide-react';
@@ -9,15 +9,27 @@ const PeerMeshOverlay: React.FC = () => {
     const { peers, events, isOverlayOpen } = collaboration;
     const { setCollabState } = actions;
 
+    useEffect(() => {
+        if (!isOverlayOpen) return;
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setCollabState({ isOverlayOpen: false });
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOverlayOpen, setCollabState]);
+
     if (!isOverlayOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/60 backdrop-blur-md p-10" onClick={() => setCollabState({ isOverlayOpen: false })}>
-            <motion.div 
+        <div className="fixed inset-0 z-[600] flex items-center justify-center bg-black/60 backdrop-blur-md p-10" onClick={() => setCollabState({ isOverlayOpen: false })} role="presentation">
+            <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 20 }}
                 onClick={(e) => e.stopPropagation()}
+                role="dialog"
+                aria-modal="true"
+                aria-label="Peer Mesh Overlay"
                 className="w-full max-w-4xl h-[70vh] bg-[#0a0a0a] border border-[#333] rounded-3xl overflow-hidden shadow-2xl flex flex-col relative"
             >
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.05)_0%,transparent_70%)] pointer-events-none"></div>
@@ -34,7 +46,7 @@ const PeerMeshOverlay: React.FC = () => {
                             <p className="text-[9px] text-gray-500 font-mono tracking-tighter uppercase">{peers.length} Nodes Connected</p>
                         </div>
                     </div>
-                    <button onClick={() => setCollabState({ isOverlayOpen: false })} className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-white">
+                    <button onClick={() => setCollabState({ isOverlayOpen: false })} aria-label="Close peer mesh overlay" className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-white">
                         <X size={24} />
                     </button>
                 </div>

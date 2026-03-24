@@ -159,11 +159,12 @@ const SystemTerminal: React.FC = () => {
                     {/* Input */}
                     <div className="h-10 border-t border-[#333] flex items-center px-4 gap-2 bg-black">
                         <span className="text-[var(--amethyst-soft)] font-bold animate-pulse">$</span>
-                        <input 
-                            type="text" 
+                        <input
+                            type="text"
                             value={cmd}
                             onChange={e => setCmd(e.target.value)}
                             onKeyDown={handleCommand}
+                            aria-label="System command input"
                             className="flex-1 bg-transparent outline-none text-white font-mono placeholder:text-gray-700"
                             placeholder="Enter system command..."
                             autoFocus
@@ -242,12 +243,15 @@ const QuantumDock: React.FC = () => {
             {/* Preview Modal */}
             <AnimatePresence>
                 {previewItem && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-12" onClick={() => setPreviewItem(null)}>
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-12" onClick={() => setPreviewItem(null)} role="presentation">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.9 }}
                             onClick={(e) => e.stopPropagation()}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-label="Artifact preview"
                             className="bg-[#0a0a0a] border border-[#333] rounded-xl overflow-hidden shadow-2xl max-w-4xl max-h-full flex flex-col"
                         >
                             <div className="h-12 border-b border-[#1f1f1f] flex items-center justify-between px-6 bg-[#111]">
@@ -257,9 +261,10 @@ const QuantumDock: React.FC = () => {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     {previewItem.type === 'CODE' && (
-                                        <button 
+                                        <button
                                             onClick={() => navigator.clipboard.writeText(previewItem.content)}
                                             className="p-2 hover:bg-[#222] rounded text-gray-400 hover:text-white"
+                                            aria-label="Copy code"
                                             title="Copy Code"
                                         >
                                             <Copy className="w-4 h-4" />
@@ -275,14 +280,14 @@ const QuantumDock: React.FC = () => {
                                             <Download className="w-4 h-4" />
                                         </a>
                                     )}
-                                    <button onClick={() => setPreviewItem(null)} className="p-2 hover:bg-red-900/50 rounded text-gray-400 hover:text-red-500">
+                                    <button onClick={() => setPreviewItem(null)} aria-label="Close preview" className="p-2 hover:bg-red-900/50 rounded text-gray-400 hover:text-red-500">
                                         <X className="w-4 h-4" />
                                     </button>
                                 </div>
                             </div>
                             <div className="p-0 overflow-auto bg-black flex items-center justify-center min-h-[300px]">
                                 {previewItem.type === 'IMAGE' ? (
-                                    <img src={previewItem.content} className="max-w-full max-h-[70vh]" />
+                                    <img src={previewItem.content} alt={previewItem.label || 'Artifact preview'} className="max-w-full max-h-[70vh]" />
                                 ) : previewItem.type === 'CODE' ? (
                                     <pre className="p-6 font-mono text-xs text-gray-300 whitespace-pre-wrap">
                                         {previewItem.content}

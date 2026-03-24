@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useSemanticSearch, useSessions } from '@antigravity/agent-core-sdk';
 import { elevenLabs, ELEVEN_LABS_VOICES } from '../../../services/elevenLabsService';
+import { logger } from '../../../services/logger';
 import { motion, AnimatePresence } from 'motion/react';
 import { AutonomousAgent, OperationalContext, MentalState, TaskStatus, AtomicTask } from '../../../types';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
@@ -194,7 +195,7 @@ const AgentControlCenter: React.FC = () => {
     // Fetch convergence stats when CONVERGENCE view is active
     useEffect(() => {
         if (viewMode === 'CONVERGENCE') {
-            convergenceMemory.getStats().then(setConvergenceStats).catch(console.warn);
+            convergenceMemory.getStats().then(setConvergenceStats).catch(e => logger.warn('Failed to get convergence stats', e));
         }
     }, [viewMode]);
 

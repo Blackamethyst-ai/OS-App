@@ -6,6 +6,7 @@ import { X, Scan, Download, Terminal, BrainCircuit, Loader2, Copy, FileText, Cod
 import { promptSelectKey, transformArtifact, retryGeminiRequest, getAI } from '../services/geminiService';
 import { GoogleGenAI, GenerateContentResponse } from '@google/genai';
 import { usePerspectiveRefraction } from '../hooks/usePerspectiveRefraction';
+import { logger } from '../services/logger';
 
 const HoloProjector: React.FC = () => {
     const { holo, actions } = useAppStore();
@@ -89,7 +90,7 @@ const HoloProjector: React.FC = () => {
             });
 
         } catch (err: any) {
-            console.error("Transform failed", err);
+            logger.error("Transform failed", err);
             setHoloAnalysis(`Transformation Error: ${err.message}`);
         } finally {
             setIsTransforming(false);

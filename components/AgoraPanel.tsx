@@ -5,6 +5,7 @@ import { SyntheticPersona, DebateTurn, SimulationReport, FileData, AppMode, Ment
 import { generatePersonas, runDebateTurn, synthesizeReport } from '../services/agoraService';
 import { liveSession, promptSelectKey, generateSpeech } from '../services/geminiService';
 import { useAppStore } from '../store';
+import { logger } from '../services/logger';
 import { Users, Loader2, MessageSquare, AlertCircle, CheckCircle, Mic, Zap, Activity, GitCommit, GitBranch, Save, Layers, ArrowUpRight, Radio, Volume2, VolumeX, Eye } from 'lucide-react';
 import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar as RechartRadar, ResponsiveContainer, LineChart, Line, YAxis } from 'recharts';
 import { FunctionDeclaration, Type } from '@google/genai';
@@ -94,7 +95,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
                 source.start();
             });
         } catch (e) {
-            console.error("Audio Playback Error", e);
+            logger.error("Audio Playback Error", e);
             return Promise.resolve();
         }
     };
@@ -159,7 +160,7 @@ const AgoraPanel: React.FC<AgoraPanelProps> = ({ artifact }) => {
             setReport(finalReport);
             setStatus('COMPLETE');
         } catch (e) {
-            console.error(e);
+            logger.error("Agora simulation failed", e);
             setStatus('IDLE');
         }
     };

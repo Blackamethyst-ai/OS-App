@@ -28,7 +28,10 @@ import { cn } from '../../utils/cn';
 import { renderSafe } from '../../utils/renderSafe';
 import DEcosystem from '../DEcosystem';
 import ContextVelocityChart from '../ContextVelocityChart';
-import { BiometricPanel, BiometricErrorBoundary } from '../biometric';
+import { BiometricErrorBoundary } from '../biometric';
+
+// Lazy load BiometricPanel (face detection + stress sensing - heavy deps)
+const BiometricPanel = React.lazy(() => import('../biometric/BiometricPanel').then(m => ({ default: m.BiometricPanel })));
 
 // Lazy load ZenithDisplay (uses three.js - ~500KB)
 const ZenithDisplay = React.lazy(() => import('../ZenithDisplay').then(m => ({ default: m.ZenithDisplay })));
@@ -356,7 +359,7 @@ const MetaventionsHub: React.FC = () => {
                     >
                         <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-[var(--amethyst-soft)]/50 to-transparent" />
                         <div className="flex items-center gap-10 relative z-10">
-                            <div className="relative group cursor-pointer" onClick={() => actions.toggleProfile(true)}>
+                            <div className="relative group cursor-pointer" role="button" tabIndex={0} aria-label="Open user profile" onClick={() => actions.toggleProfile(true)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); actions.toggleProfile(true); } }}>
                                 <div className="w-14 h-14 rounded-[2rem] border-2 border-[var(--amethyst-soft)]/30 overflow-hidden bg-black/60 flex items-center justify-center shadow-[0_0_30px_rgba(157,78,221,0.15)] group-hover:border-[var(--amethyst-soft)] group-hover:shadow-[0_0_40px_rgba(157,78,221,0.3)] transition-all duration-700">
                                     {user.avatar ? <img src={user.avatar} className="w-full h-full object-cover" alt="User" /> : <User size={24} className="text-gray-700" />}
                                 </div>
@@ -799,7 +802,13 @@ const MetaventionsHub: React.FC = () => {
                                 </div>
 
                                 {/* Biometric Sensors Panel - Gaze & Stress Detection */}
-                                <BiometricPanel showControls={true} />
+                                <Suspense fallback={
+                                    <div className="flex items-center justify-center p-8">
+                                        <Loader2 className="w-6 h-6 text-[var(--amethyst-soft)] animate-spin" />
+                                    </div>
+                                }>
+                                    <BiometricPanel showControls={true} />
+                                </Suspense>
 
                                 <DirectoryPeek manifest={dashboard.activeManifest} />
                                 <SwarmBox />

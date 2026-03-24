@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react';
+import { logger } from '../services/logger';
 import { useAppStore } from '../store';
 import { 
     generateResearchPlan, executeResearchQuery, compileResearchContext, 
@@ -30,7 +31,7 @@ export const useResearchAgent = () => {
                     useAppStore.setState({ research: parsed });
                 }
             } catch (e) {
-                console.error("Failed to restore research state", e);
+                logger.error("Failed to restore research state", e);
             }
         }
     }, []);

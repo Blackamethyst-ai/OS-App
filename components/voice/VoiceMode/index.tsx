@@ -10,6 +10,7 @@ import React, { useEffect, useRef, useState, useMemo } from 'react';
 import { useAppStore } from '../../../store';
 import { liveSession, promptSelectKey, HIVE_AGENTS, generateAvatar } from '../../../services/geminiService';
 import { voiceNexus, getVoiceCore } from '../../../services/voiceNexus';
+import { logger } from '../../../services/logger';
 import { runPreflightCheck, type PreflightResult } from '../../../services/voiceNexus/preflightCheck';
 // ... (imports)
 
@@ -81,7 +82,7 @@ const VoiceMode: React.FC = () => {
                         if (!url) url = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxIiBoZWlnaHQ9IjEiPjwvc3ZnPg==";
                         setVoiceState(prev => ({ agentAvatars: { ...prev.agentAvatars, [voice.voiceName]: url } }));
                     }
-                } catch (e) { console.warn(e); } finally { setIsGeneratingAvatar(false); }
+                } catch (e) { logger.warn('Avatar generation failed', e); } finally { setIsGeneratingAvatar(false); }
             };
             fetchAvatar();
         }
@@ -133,7 +134,7 @@ const VoiceMode: React.FC = () => {
             try {
                 getVoiceCore().primeAudio();
             } catch (e) {
-                console.warn('Failed to prime audio:', e);
+                logger.warn('Failed to prime audio:', e);
             }
 
             setVoiceState({ isConnecting: true, isActive: true });

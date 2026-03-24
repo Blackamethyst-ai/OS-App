@@ -144,7 +144,7 @@ const ExecutiveBanner = () => {
 
                 <div className="flex-1 flex flex-col gap-0.5">
                     <div className="flex items-center gap-3 mb-1">
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 glass-action rounded-full border-white/10" onClick={() => toggleProfile(true)}>
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 glass-action rounded-full border-white/10" role="button" tabIndex={0} aria-label="Open user profile" onClick={() => toggleProfile(true)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleProfile(true); } }}>
                             <ShieldCheck size={10} className="text-[var(--plasma-green)]" />
                             <span className="text-[8px] font-black font-mono text-white/90 uppercase tracking-widest">Sovereign_Enclave_V1</span>
                         </div>

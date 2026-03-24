@@ -11,6 +11,7 @@
  */
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { logger } from '../../services/logger';
 
 interface Props {
   children: ReactNode;
@@ -42,8 +43,8 @@ export class BiometricErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Log the error
-    console.error('BIOMETRIC_ERROR_BOUNDARY: Caught error:', error);
-    console.error('Component stack:', errorInfo.componentStack);
+    logger.error('BIOMETRIC_ERROR_BOUNDARY: Caught error:', error);
+    logger.error('Component stack:', errorInfo.componentStack);
 
     // Call optional error handler
     this.props.onError?.(error, errorInfo);

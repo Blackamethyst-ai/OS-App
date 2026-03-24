@@ -5,6 +5,7 @@ import mermaid from 'mermaid';
 import { motion, AnimatePresence } from 'motion/react';
 import { repairMermaidSyntax, promptSelectKey } from '../services/geminiService';
 import { useAppStore } from '../store';
+import { logger } from '../services/logger';
 
 interface MermaidDiagramProps {
   code: string;
@@ -110,7 +111,7 @@ const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ code }) => {
           const repairedCode = await repairMermaidSyntax(activeCode, error);
           setActiveCode(repairedCode);
           setProcessState({ generatedCode: repairedCode });
-      } catch (err) { console.error("Repair failed", err); }
+      } catch (err) { logger.error("Repair failed", err); }
       finally { setIsRepairing(false); }
   };
 

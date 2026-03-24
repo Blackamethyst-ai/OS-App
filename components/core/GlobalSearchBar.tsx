@@ -13,6 +13,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { audio } from '../../services/audioService';
 import { cn } from '../../utils/cn';
+import { logger } from '../../services/logger';
 
 const MotionDiv = motion.div as any;
 
@@ -116,7 +117,7 @@ const GlobalSearchBar: React.FC<GlobalSearchBarProps> = ({ isIntegrated = false 
             setSearchState({ results: finalResults, isSearching: false });
             setSelectedIndex(0);
         } catch (err) {
-            console.error("Search Fail", err);
+            logger.error("Search Fail", err);
             setSearchState({ isSearching: false });
         }
     }, [search.filter, setSearchState]);

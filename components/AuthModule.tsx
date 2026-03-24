@@ -111,6 +111,7 @@ const AuthModule: React.FC = () => {
                                     required
                                     value={credentials.username}
                                     onChange={e => setCredentials({ ...credentials, username: e.target.value })}
+                                    aria-label="Operator ID"
                                     className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-11 py-3.5 text-sm text-white font-mono focus:border-[var(--amethyst)]/60 focus:bg-white/[0.05] outline-none transition-all duration-300 placeholder-white/15"
                                     placeholder="Operator ID"
                                 />
@@ -123,6 +124,7 @@ const AuthModule: React.FC = () => {
                                     required
                                     value={credentials.password}
                                     onChange={e => setCredentials({ ...credentials, password: e.target.value })}
+                                    aria-label="Passphrase"
                                     className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-11 py-3.5 text-sm text-white font-mono focus:border-[var(--amethyst)]/60 focus:bg-white/[0.05] outline-none transition-all duration-300 placeholder-white/15"
                                     placeholder="Passphrase"
                                 />
