@@ -27,6 +27,10 @@ export default defineConfig({
       '@': path.resolve(__dirname, '.'),
       'libs': path.resolve(__dirname, 'libs'),
       '@metaventionsai/cpb-core': path.resolve(__dirname, 'libs/cpb-core/index.ts'),
+      '@metaventionsai/voice-nexus/providers/stt': path.resolve(__dirname, 'libs/voice-nexus/providers/stt/index.ts'),
+      '@metaventionsai/voice-nexus/providers/vad': path.resolve(__dirname, 'libs/voice-nexus/providers/vad/index.ts'),
+      '@metaventionsai/voice-nexus/providers/tts': path.resolve(__dirname, 'libs/voice-nexus/providers/tts/index.ts'),
+      '@metaventionsai/voice-nexus/audio': path.resolve(__dirname, 'libs/voice-nexus/audio/index.ts'),
       '@metaventionsai/voice-nexus': path.resolve(__dirname, 'libs/voice-nexus/index.ts'),
     }
   }
