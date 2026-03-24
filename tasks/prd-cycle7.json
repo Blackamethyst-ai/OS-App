@@ -1,0 +1,205 @@
+{
+  "name": "OS-App Iteration Cycle 7 — Voice, Pricing & Core Service Test Coverage",
+  "branchName": "ralph/os-app-cycle-7",
+  "description": "Expand test coverage to voice integration, pricing services, persistence, and CPB-related service files.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Test Coverage — voiceCoreIntegration.ts",
+      "description": "As a developer, I want test coverage for the voice core integration service (747 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/voiceCoreIntegration.test.ts created",
+        "Voice pipeline integration tested",
+        "State management tested",
+        "At least 10 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "25 tests in services/__tests__/voiceCoreIntegration.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-002",
+      "title": "Test Coverage — voiceUIContext.ts",
+      "description": "As a developer, I want test coverage for the voice UI context service (515 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/voiceUIContext.test.ts created",
+        "UI context state tested",
+        "Voice command routing tested",
+        "At least 10 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "21 tests in services/__tests__/voiceUIContext.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-003",
+      "title": "Test Coverage — faceDetectionService.ts",
+      "description": "As a developer, I want test coverage for the face detection service (456 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/faceDetectionService.test.ts created",
+        "Detection logic tested",
+        "State management tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "14 tests in services/__tests__/faceDetectionService.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-004",
+      "title": "Test Coverage — priceApiService.ts",
+      "description": "As a developer, I want test coverage for the price API service (309 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/priceApiService.test.ts created",
+        "API fetching tested",
+        "Error handling tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "13 tests in services/__tests__/priceApiService.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-005",
+      "title": "Test Coverage — minerstatService.ts",
+      "description": "As a developer, I want test coverage for the minerstat service (261 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/minerstatService.test.ts created",
+        "Mining data fetching tested",
+        "Cache behavior tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "17 tests in services/__tests__/minerstatService.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-006",
+      "title": "Test Coverage — persistenceService.ts",
+      "description": "As a developer, I want test coverage for the persistence service (266 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/persistenceService.test.ts created",
+        "Storage operations tested",
+        "Fallback behavior tested",
+        "At least 10 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "25 tests in services/__tests__/persistenceService.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-007",
+      "title": "Test Coverage — cpbService.ts",
+      "description": "As a developer, I want test coverage for the CPB service (185 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/cpbService.test.ts created",
+        "CPB routing tested",
+        "Path selection tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "17 tests in services/__tests__/cpbService.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-008",
+      "title": "Test Coverage — DynamicToolRegistry.ts",
+      "description": "As a developer, I want test coverage for the dynamic tool registry (158 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/DynamicToolRegistry.test.ts created",
+        "Tool registration tested",
+        "Tool execution tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "13 tests in services/__tests__/DynamicToolRegistry.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-009",
+      "title": "Test Coverage — supabaseService.ts",
+      "description": "As a developer, I want test coverage for the Supabase service (212 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/supabaseService.test.ts created",
+        "Voice storage operations tested",
+        "Configuration detection tested",
+        "At least 10 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "18 tests in services/__tests__/supabaseService.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-010",
+      "title": "Test Coverage — claudeService.ts",
+      "description": "As a developer, I want test coverage for the Claude service (174 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/claudeService.test.ts created",
+        "API integration tested",
+        "Error handling tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "14 tests in services/__tests__/claudeService.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-011",
+      "title": "Test Coverage — cpbProviders.ts",
+      "description": "As a developer, I want test coverage for the CPB providers (144 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/cpbProviders.test.ts created",
+        "Provider definitions tested",
+        "Provider lookup tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "20 tests in services/__tests__/cpbProviders.test.ts",
+      "dependsOn": []
+    }
+  ]
+}
