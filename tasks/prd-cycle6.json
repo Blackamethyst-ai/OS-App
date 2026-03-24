@@ -1,0 +1,151 @@
+{
+  "name": "OS-App Iteration Cycle 6 — Service & Hook Test Coverage Expansion",
+  "branchName": "ralph/os-app-cycle-6",
+  "description": "Expand test coverage to the next tier of untested service files and hooks.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Test Coverage — codebaseAwareness.ts",
+      "description": "As a developer, I want test coverage for the codebase awareness service (557 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/codebaseAwareness.test.ts created",
+        "Codebase scanning logic tested",
+        "Awareness state management tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "18 tests in services/__tests__/codebaseAwareness.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-002",
+      "title": "Test Coverage — gpuPricingService.ts",
+      "description": "As a developer, I want test coverage for the GPU pricing service (339 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/gpuPricingService.test.ts created",
+        "Price fetching fallback chain tested",
+        "Cache behavior tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "18 tests in services/__tests__/gpuPricingService.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-003",
+      "title": "Test Coverage — powerService.ts",
+      "description": "As a developer, I want test coverage for the power management service (282 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/powerService.test.ts created",
+        "Power mode switching tested",
+        "Budget tracking tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "16 tests in services/__tests__/powerService.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-004",
+      "title": "Test Coverage — liveSession.ts",
+      "description": "As a developer, I want test coverage for the live session service (292 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/liveSession.test.ts created",
+        "Session lifecycle tested",
+        "Tool call handling tested",
+        "At least 6 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "13 tests in services/__tests__/liveSession.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-005",
+      "title": "Test Coverage — toolRegistry.ts",
+      "description": "As a developer, I want test coverage for the legacy tool registry (221 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/toolRegistry.test.ts created",
+        "All tool functions tested",
+        "Error handling tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "13 tests in services/__tests__/toolRegistry.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-006",
+      "title": "Test Coverage — agents.ts",
+      "description": "As a developer, I want test coverage for the agents service (245 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/agents.test.ts created",
+        "Agent definitions tested",
+        "Agent lookup tested",
+        "At least 6 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "10 tests in services/__tests__/agents.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-007",
+      "title": "Test Coverage — useNavigation hook",
+      "description": "As a developer, I want test coverage for the navigation hook (82 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "hooks/__tests__/useNavigation.test.ts created",
+        "Navigation state tested",
+        "Drag-and-drop reorder tested",
+        "At least 6 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "12 tests in hooks/__tests__/useNavigation.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-008",
+      "title": "Test Coverage — useThemeVariables hook",
+      "description": "As a developer, I want test coverage for the theme variables hook (106 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "hooks/__tests__/useThemeVariables.test.ts created",
+        "Theme switching tested",
+        "CSS variable output tested",
+        "At least 6 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "10 tests in hooks/__tests__/useThemeVariables.test.ts",
+      "dependsOn": []
+    }
+  ]
+}
