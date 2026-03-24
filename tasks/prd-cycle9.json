@@ -1,0 +1,367 @@
+{
+  "name": "OS-App Iteration Cycle 9 — Component Test Coverage (Batch 1)",
+  "branchName": "ralph/os-app-cycle-9",
+  "description": "Expand test coverage to 20 largest untested React components.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Test Coverage — ApiKeyModal.tsx",
+      "description": "As a developer, I want test coverage for the API key modal component (567 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/ApiKeyModal.test.tsx created",
+        "Modal rendering tested",
+        "Key input/validation tested",
+        "At least 10 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "13 tests in components/__tests__/ApiKeyModal.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-002",
+      "title": "Test Coverage — MemoryCore.tsx",
+      "description": "As a developer, I want test coverage for the memory core component (502 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/MemoryCore.test.tsx created",
+        "Memory visualization tested",
+        "State management tested",
+        "At least 10 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "11 tests in components/__tests__/MemoryCore.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-003",
+      "title": "Test Coverage — AgoraPanel.tsx",
+      "description": "As a developer, I want test coverage for the Agora panel component (484 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/AgoraPanel.test.tsx created",
+        "Panel rendering tested",
+        "Debate interaction tested",
+        "At least 10 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "11 tests in components/__tests__/AgoraPanel.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-004",
+      "title": "Test Coverage — BicameralEngine.tsx",
+      "description": "As a developer, I want test coverage for the bicameral engine component (467 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/BicameralEngine.test.tsx created",
+        "Engine visualization tested",
+        "Consensus display tested",
+        "At least 10 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "11 tests in components/__tests__/BicameralEngine.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-005",
+      "title": "Test Coverage — GlobalStatusBar.tsx",
+      "description": "As a developer, I want test coverage for the global status bar (430 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/GlobalStatusBar.test.tsx created",
+        "Status display tested",
+        "Indicator rendering tested",
+        "At least 10 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "12 tests in components/__tests__/GlobalStatusBar.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-006",
+      "title": "Test Coverage — NexusAPIExplorer.tsx",
+      "description": "As a developer, I want test coverage for the Nexus API explorer (427 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/NexusAPIExplorer.test.tsx created",
+        "API listing tested",
+        "Explorer interaction tested",
+        "At least 10 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "12 tests in components/__tests__/NexusAPIExplorer.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-007",
+      "title": "Test Coverage — DEcosystem.tsx",
+      "description": "As a developer, I want test coverage for the DEcosystem component (382 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/DEcosystem.test.tsx created",
+        "Ecosystem rendering tested",
+        "Node interaction tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "10 tests in components/__tests__/DEcosystem.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-008",
+      "title": "Test Coverage — ZenithDisplay.tsx",
+      "description": "As a developer, I want test coverage for the Zenith display (379 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/ZenithDisplay.test.tsx created",
+        "Display rendering tested",
+        "Data visualization tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "10 tests in components/__tests__/ZenithDisplay.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-009",
+      "title": "Test Coverage — OverlayOS.tsx",
+      "description": "As a developer, I want test coverage for the OverlayOS component (361 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/OverlayOS.test.tsx created",
+        "Overlay rendering tested",
+        "State transitions tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "10 tests in components/__tests__/OverlayOS.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-010",
+      "title": "Test Coverage — UserProfileOverlay.tsx",
+      "description": "As a developer, I want test coverage for the user profile overlay (355 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/UserProfileOverlay.test.tsx created",
+        "Profile display tested",
+        "Edit interactions tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "12 tests in components/__tests__/UserProfileOverlay.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-011",
+      "title": "Test Coverage — DynamicVisuals.tsx",
+      "description": "As a developer, I want test coverage for dynamic visuals (339 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/DynamicVisuals.test.tsx created",
+        "Visual rendering tested",
+        "Animation state tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "10 tests in components/__tests__/DynamicVisuals.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-012",
+      "title": "Test Coverage — ExperimentLogger.tsx",
+      "description": "As a developer, I want test coverage for the experiment logger (324 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/ExperimentLogger.test.tsx created",
+        "Logging display tested",
+        "Entry management tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "12 tests in components/__tests__/ExperimentLogger.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-013",
+      "title": "Test Coverage — KnowledgeGraph.tsx",
+      "description": "As a developer, I want test coverage for the knowledge graph (274 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/KnowledgeGraph.test.tsx created",
+        "Graph rendering tested",
+        "Node interaction tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "10 tests in components/__tests__/KnowledgeGraph.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-014",
+      "title": "Test Coverage — HoloProjector.tsx",
+      "description": "As a developer, I want test coverage for the holo projector (246 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/HoloProjector.test.tsx created",
+        "Projection rendering tested",
+        "State management tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "12 tests in components/__tests__/HoloProjector.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-015",
+      "title": "Test Coverage — TacticalScanner.tsx",
+      "description": "As a developer, I want test coverage for the tactical scanner (234 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/TacticalScanner.test.tsx created",
+        "Scanner rendering tested",
+        "Scan results tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "10 tests in components/__tests__/TacticalScanner.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-016",
+      "title": "Test Coverage — SynapticRouter.tsx",
+      "description": "As a developer, I want test coverage for the synaptic router (230 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/SynapticRouter.test.tsx created",
+        "Router rendering tested",
+        "Routing logic tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "10 tests in components/__tests__/SynapticRouter.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-017",
+      "title": "Test Coverage — NeuralDock.tsx",
+      "description": "As a developer, I want test coverage for the neural dock (225 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/NeuralDock.test.tsx created",
+        "Dock rendering tested",
+        "Panel management tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "10 tests in components/__tests__/NeuralDock.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-018",
+      "title": "Test Coverage — EmotionalResonanceGraph.tsx",
+      "description": "As a developer, I want test coverage for the emotional resonance graph (218 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/EmotionalResonanceGraph.test.tsx created",
+        "Graph rendering tested",
+        "Data display tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "11 tests in components/__tests__/EmotionalResonanceGraph.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-019",
+      "title": "Test Coverage — TimeTravelScrubber.tsx",
+      "description": "As a developer, I want test coverage for the time travel scrubber (215 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/TimeTravelScrubber.test.tsx created",
+        "Scrubber rendering tested",
+        "Timeline navigation tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "9 tests in components/__tests__/TimeTravelScrubber.test.tsx",
+      "dependsOn": []
+    },
+    {
+      "id": "US-020",
+      "title": "Test Coverage — TaskBoard.tsx",
+      "description": "As a developer, I want test coverage for the task board (215 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "components/__tests__/TaskBoard.test.tsx created",
+        "Board rendering tested",
+        "Task management tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "13 tests in components/__tests__/TaskBoard.test.tsx",
+      "dependsOn": []
+    }
+  ]
+}
