@@ -18,8 +18,8 @@
         "npm run lint passes"
       ],
       "priority": 1,
-      "passes": false,
-      "notes": "See POLISH_PLAN.md Batch 9 for full file list. Logger is at services/logger.ts.",
+      "passes": true,
+      "notes": "Completed: all 23 component files migrated to logger.*",
       "dependsOn": []
     },
     {
@@ -38,7 +38,7 @@
         "npm run lint passes"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "notes": "See POLISH_PLAN.md Batch 10 for full file list. This completes the polish plan.",
       "dependsOn": ["US-001"]
     },
@@ -58,7 +58,7 @@
         "npm run lint passes"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": ".graveyard/ already exists. Follow dead-code-policy: archive don't delete. Check git history before removing.",
       "dependsOn": ["US-002"]
     },
@@ -78,7 +78,7 @@
         "npm run lint passes"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Batch 1 of polish plan already added some aria labels. Build on that work.",
       "dependsOn": []
     },
@@ -97,7 +97,7 @@
         "npm run lint passes"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "GlobalErrorBoundary.tsx already exists in components/. Verify its current coverage before adding new boundaries.",
       "dependsOn": []
     },
@@ -117,7 +117,7 @@
         "npm run lint passes"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Read each kernel file first to understand the API surface before writing tests. Tests go in services/kernel/__tests__/.",
       "dependsOn": []
     },
@@ -137,7 +137,7 @@
         "npm run lint passes"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Read services/capabilities/README.md for registry API documentation before writing tests.",
       "dependsOn": []
     },
@@ -157,7 +157,7 @@
         "npm run lint passes"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Voice providers need mocking — create shared mock fixtures for STT/TTS/VAD providers.",
       "dependsOn": []
     },
@@ -177,7 +177,7 @@
         "npm run lint passes"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Measure baseline bundle size FIRST with npm run build before making changes. Record in notes.",
       "dependsOn": ["US-003"]
     },
@@ -196,7 +196,7 @@
         "npm run lint passes"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "Check App.tsx to understand how views are currently rendered before adding lazy loading.",
       "dependsOn": ["US-009"]
     },
@@ -215,7 +215,7 @@
         "npm run lint passes"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "This is the final measurement story. Run after US-009 and US-010 to capture optimized sizes.",
       "dependsOn": ["US-010"]
     },
@@ -234,7 +234,7 @@
         "npm run lint passes"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Check index.css and Tailwind classes for existing breakpoints before adding new ones.",
       "dependsOn": ["US-004"]
     }
