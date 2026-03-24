@@ -1,0 +1,141 @@
+{
+  "name": "OS-App Iteration Cycle 3 — Logger Cleanup, Test Expansion, Vendor Shrink",
+  "branchName": "ralph/os-app-cycle-3",
+  "description": "Migrate remaining 113 console.* calls to logger, expand test coverage to untested service directories, refactor VoiceManager, and lazy-load recharts.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Logger Migration — Services and UI",
+      "description": "As a developer, I want remaining console.* calls in services/ and components/ migrated to logger.",
+      "acceptanceCriteria": [
+        "services/capabilities/registry.ts: 7 console calls migrated to logger",
+        "services/ui/SemanticGaze.ts: 5 console calls migrated",
+        "services/ui/JudgeAgent.ts: 2 console calls migrated",
+        "services/ui/DOMRegenerator.ts: 2 console calls migrated",
+        "components/ApiKeyModal.tsx: 3 console calls migrated",
+        "utils/validateToolCode.ts: 2 console calls migrated",
+        "Zero console.* in production services/ and components/ code",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "All 6 remaining console calls migrated across 5 files. JSDoc/URL exemptions verified.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-002",
+      "title": "Logger Migration — Library Core Files",
+      "description": "As a developer, I want console.* in lib core files (not examples) migrated.",
+      "acceptanceCriteria": [
+        "libs/voice-nexus/index.ts: 3 console calls migrated",
+        "libs/cpb-core/index.ts: 3 console calls migrated",
+        "cd libs/cpb-core && npm run build succeeds",
+        "cd libs/voice-nexus && npm run build succeeds",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "All console calls in libs were inside JSDoc examples — exempt from migration.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-003",
+      "title": "Test Coverage — CPB and UI Services",
+      "description": "As a developer, I want test coverage for CPB orchestrator and UI services.",
+      "acceptanceCriteria": [
+        "services/cognitivePrecisionBridge/__tests__/ directory created with tests",
+        "services/ui/__tests__/ directory created with tests",
+        "CPB orchestrator tested: routing, execution, error paths",
+        "AUIEngine tested: layout generation, evaluation",
+        "SemanticGaze tested: gaze pattern detection",
+        "At least 10 new tests added across both directories",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "orchestrator.test.ts (10 tests), AUIEngine.test.ts, SemanticGaze.test.ts created.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-004",
+      "title": "Test Coverage — Memory and Persistence",
+      "description": "As a developer, I want test coverage for memory and persistence services.",
+      "acceptanceCriteria": [
+        "services/memory/__tests__/ directory created with tests",
+        "services/persistence/__tests__/ directory created with tests",
+        "MemoryStore tested: store, retrieve, search, clear operations",
+        "Persistence tested: save, load, migration paths",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "ArtifactStore.test.ts, ContextCompiler.test.ts, Processor.test.ts (19 tests) created.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-005",
+      "title": "VoiceManager Refactor — Extract Modules",
+      "description": "As a developer, I want VoiceManager (5272 lines) split into focused modules under 2000 lines.",
+      "acceptanceCriteria": [
+        "VoiceManager/index.tsx reduced to under 2000 lines",
+        "Extracted modules placed in VoiceManager/parts/ or VoiceManager/ subdirectory",
+        "State management logic extracted to separate file",
+        "Command processing logic extracted to separate file",
+        "No behavioral changes — all voice features work identically",
+        "Existing VoiceManager tests in __tests__/index.test.ts still pass",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "Deferred — 5272 lines requires multi-step refactor beyond single iteration scope.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-006",
+      "title": "Recharts Lazy Loading",
+      "description": "As a developer, I want recharts (89KB gzip) lazy-loaded since charts aren't on first paint.",
+      "acceptanceCriteria": [
+        "All components importing from recharts use React.lazy or dynamic import",
+        "vendor-recharts chunk no longer loaded on initial page load",
+        "Charts render correctly when their views are opened",
+        "Suspense fallback shown while chart chunk downloads",
+        "npm run build shows recharts chunk still exists but is lazy-loaded",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "All 8 recharts-importing components already behind React.lazy() in SynapticRouter.tsx. No changes needed.",
+      "dependsOn": []
+    },
+    {
+      "id": "US-007",
+      "title": "Vendor-React Chunk Audit",
+      "description": "As a developer, I want the vendor-react chunk (65KB gzip) audited.",
+      "acceptanceCriteria": [
+        "dist/stats.html analyzed to identify what's in vendor-react",
+        "Document whether vendor-react can be reduced or if 65KB is the floor",
+        "Remove any unnecessary packages if found",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "Audited: react 19.2.4 + react-dom + scheduler + zustand 5.0.12 + use-sync-external-store. 65KB gzip is the floor — all essential.",
+      "dependsOn": []
+    }
+  ]
+}

@@ -13,6 +13,7 @@
 
 import { useSystemMind } from '../../stores/useSystemMind';
 import { useAppStore } from '../../store';
+import { logger } from '@/services/logger';
 import type {
     UnifiedAction,
     ActionRegistration,
@@ -288,8 +289,6 @@ export function getRegistryStats(): {
  */
 export function markInitialized(): void {
     registryState.initialized = true;
-    if (import.meta.env.DEV) {
-        const stats = getRegistryStats();
-        console.log(`[ActionRegistry] Initialized with ${stats.totalActions} actions`);
-    }
+    const stats = getRegistryStats();
+    logger.info(`[ActionRegistry] Initialized with ${stats.totalActions} actions`);
 }

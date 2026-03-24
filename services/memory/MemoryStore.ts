@@ -1,6 +1,7 @@
 import { LongTermMemory } from './interfaces';
 import { neuralVault } from '../persistenceService';
 import { generateEmbedding } from '../geminiService';
+import { logger } from '@/services/logger';
 
 /**
  * SovereignMemory: High-performance semantic recall core.
@@ -26,7 +27,7 @@ export class SovereignMemory implements LongTermMemory {
         await neuralVault.saveVector(artifactId, embedding, { key });
     }
     
-    console.debug(`[SovereignMemory] Traceized fragment: ${key}`);
+    logger.debug(`[SovereignMemory] Traceized fragment: ${key}`);
   }
 
   /**
@@ -51,7 +52,7 @@ export class SovereignMemory implements LongTermMemory {
         return `[RECALL_${Math.round(match.score * 100)}%] ${text}`;
     }));
 
-    console.debug(`[SovereignMemory] Vector Recall took ${(performance.now() - start).toFixed(2)}ms`);
+    logger.debug(`[SovereignMemory] Vector Recall took ${(performance.now() - start).toFixed(2)}ms`);
     return results.filter((r): r is string => r !== null);
   }
 

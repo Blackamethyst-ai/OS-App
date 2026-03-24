@@ -5,6 +5,7 @@
 
 import { VoiceActionResult } from './types';
 import { scanInteractiveElements } from './discovery';
+import { logger } from '@/services/logger';
 
 /**
  * Fill an input element by ID or fuzzy match
@@ -94,7 +95,7 @@ export function fillInput(identifier: string, text: string): VoiceActionResult {
           }
         }
       } catch (e) {
-        console.debug('[UniversalVoice] React fiber strategy failed, trying alternatives');
+        logger.debug('[UniversalVoice] React fiber strategy failed, trying alternatives');
       }
     }
 

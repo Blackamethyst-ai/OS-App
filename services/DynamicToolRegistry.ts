@@ -90,7 +90,7 @@ export class DynamicToolRegistry {
             };
         });
 
-        console.debug(`[DynamicToolRegistry] Hydrated ${this.dynamicManifests.length} evolved protocols.`);
+        logger.debug(`[DynamicToolRegistry] Hydrated ${this.dynamicManifests.length} evolved protocols.`);
     }
 
     /**

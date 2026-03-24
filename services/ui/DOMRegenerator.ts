@@ -88,7 +88,7 @@ class DOMRegeneratorService {
     const startTime = performance.now();
 
     if (this.isTransitioning && !options.force) {
-      if (import.meta.env.DEV) console.log('DOM_REGEN: Transition in progress, queueing...');
+      logger.debug('Transition in progress, queueing...', undefined, 'DOM_REGEN');
       return { success: false, reason: 'TRANSITION_IN_PROGRESS' };
     }
 
@@ -110,7 +110,7 @@ class DOMRegeneratorService {
       this.currentLayout = newLayout;
 
       const latency = performance.now() - startTime;
-      if (import.meta.env.DEV) console.log(`DOM_REGEN: Morph complete in ${latency.toFixed(0)}ms`);
+      logger.debug(`Morph complete in ${latency.toFixed(0)}ms`, undefined, 'DOM_REGEN');
 
       this.emit('MORPH_COMPLETE', {
         layout: newLayout,

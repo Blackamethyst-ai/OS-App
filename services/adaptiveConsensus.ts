@@ -244,7 +244,7 @@ export async function adaptiveConsensusEngine(
                     if (hopGroupingResult.winningGroup) {
                         winnerOutput = hopGroupingResult.winningGroup.representativeAnswer;
                         winningAgents = hopGroupingResult.winningGroup.agentContributors;
-                        if (import.meta.env.DEV) console.log(`[ACE] HRPO: ${hopGroupingResult.groups.length} groups formed, winning group has ${hopGroupingResult.winningGroup.votingStrength} votes`);
+                        logger.debug(`[ACE] HRPO: ${hopGroupingResult.groups.length} groups formed, winning group has ${hopGroupingResult.winningGroup.votingStrength} votes`);
                     }
                 }
 
