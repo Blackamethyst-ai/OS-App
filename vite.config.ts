@@ -51,6 +51,21 @@ export default defineConfig(({ mode }) => {
     },
     build: {
       chunkSizeWarningLimit: 2000,
+      // Prevent heavy visualization chunks from being modulepreloaded in index.html.
+      // They are code-split into separate chunks and should only load on demand.
+      modulePreload: {
+        resolveDependencies: (filename, deps, { hostId, hostType }) => {
+          const lazyChunkPatterns = [
+            'vendor-recharts', 'vendor-redux', 'vendor-d3',
+            'vendor-three', 'vendor-faceapi', 'vendor-tensorflow',
+            'vendor-onnx', 'vendor-xyflow', 'vendor-katex',
+            'vendor-cytoscape',
+          ];
+          return deps.filter(dep =>
+            !lazyChunkPatterns.some(pattern => dep.includes(pattern))
+          );
+        },
+      },
       // Strip console.log and debugger in production
       minify: 'esbuild',
       ...(mode === 'production' && {

@@ -6,7 +6,7 @@ import { useSystemMind } from './stores/useSystemMind';
 import { AppTheme } from './types';
 import Starfield from './components/Starfield';
 import { BackgroundEffect } from './components/shared';
-import { CommandPalette } from './components/core';
+import CommandPalette from './components/core/CommandPalette';
 import SystemNotification from './components/SystemNotification';
 import SynapticRouter from './components/SynapticRouter';
 import GlobalStatusBar from './components/GlobalStatusBar';

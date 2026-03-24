@@ -17,8 +17,8 @@
         "npm run lint passes"
       ],
       "priority": 1,
-      "passes": false,
-      "notes": "",
+      "passes": true,
+      "notes": "31 tests in services/biometric/__tests__/biometric.test.ts",
       "dependsOn": []
     },
     {
@@ -36,8 +36,8 @@
         "npm run lint passes"
       ],
       "priority": 1,
-      "passes": false,
-      "notes": "",
+      "passes": true,
+      "notes": "36 tests in services/voice/__tests__/voice.test.ts",
       "dependsOn": []
     },
     {
@@ -55,8 +55,8 @@
         "npm run lint passes"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": "",
+      "passes": true,
+      "notes": "34 tests in services/__tests__/tabNavigationRegistry.test.ts",
       "dependsOn": []
     },
     {
@@ -74,8 +74,8 @@
         "npm run lint passes"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": "",
+      "passes": true,
+      "notes": "22 tests in services/__tests__/geminiService.test.ts",
       "dependsOn": []
     },
     {
@@ -92,8 +92,8 @@
         "npm run lint passes"
       ],
       "priority": 3,
-      "passes": false,
-      "notes": "Legacy README.md documents migration from unifiedActionRegistry to capabilities. Archive before removing.",
+      "passes": true,
+      "notes": "Archived to .graveyard/legacy-README.md, directory removed",
       "dependsOn": []
     }
   ]
