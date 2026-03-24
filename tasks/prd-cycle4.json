@@ -1,0 +1,100 @@
+{
+  "name": "OS-App Iteration Cycle 4 — Test Coverage Expansion & Service Hardening",
+  "branchName": "ralph/os-app-cycle-4",
+  "description": "Expand test coverage to untested service directories and clean up dead legacy code.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Test Coverage — Biometric Services",
+      "description": "As a developer, I want test coverage for biometric processor and stress analysis.",
+      "acceptanceCriteria": [
+        "services/biometric/__tests__/ directory created",
+        "processor.ts tested: biometric data processing pipeline",
+        "stressAnalysis.ts tested: stress level calculation, trend detection",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-002",
+      "title": "Test Coverage — Voice Services",
+      "description": "As a developer, I want test coverage for voice action discovery and service.",
+      "acceptanceCriteria": [
+        "services/voice/__tests__/ directory created",
+        "actions.ts tested: action registration, execution",
+        "discovery.ts tested: voice command discovery, matching",
+        "service.ts tested: voice service lifecycle",
+        "At least 10 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-003",
+      "title": "Test Coverage — Tab Navigation Registry",
+      "description": "As a developer, I want test coverage for tabNavigationRegistry (800 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/tabNavigationRegistry.test.ts created",
+        "Tab registration tested",
+        "Navigation state management tested",
+        "Keyboard navigation tested",
+        "At least 6 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-004",
+      "title": "Test Coverage — GeminiService Core",
+      "description": "As a developer, I want test coverage for geminiService core functions.",
+      "acceptanceCriteria": [
+        "services/__tests__/geminiService.test.ts created",
+        "retryGeminiRequest tested: retry logic, backoff, error handling",
+        "safeParseJson tested: valid JSON, malformed input, edge cases",
+        "getAI tested: initialization, caching",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "",
+      "dependsOn": []
+    },
+    {
+      "id": "US-005",
+      "title": "Remove Legacy Directory",
+      "description": "As a developer, I want the empty legacy/ directory cleaned up.",
+      "acceptanceCriteria": [
+        "Verify no files import from services/legacy/",
+        "Archive README.md context to .graveyard/ per dead-code policy",
+        "Remove services/legacy/ directory",
+        "No build or test regressions",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "Legacy README.md documents migration from unifiedActionRegistry to capabilities. Archive before removing.",
+      "dependsOn": []
+    }
+  ]
+}

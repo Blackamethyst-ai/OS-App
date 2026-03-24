@@ -87,3 +87,10 @@ still exists elsewhere. If it doesn't, the graveyard copy IS the recovery path.
 - **Capability:** Configuration data (path colors, phase labels, descriptions) for CPBMonitor component. 69 lines.
 - **Why disconnected:** Never imported anywhere — was support data for CPBMonitor which was itself disconnected.
 - **Recovery:** Move back to `data/cpbConfigs.ts` when CPBMonitor is reconnected.
+
+## legacy-README.md
+- **Original path:** `services/legacy/README.md`
+- **Archived:** 2026-03-24
+- **Capability:** Documentation for the deprecated unifiedActionRegistry → capabilities migration. Contains rollback procedures, function mapping, and migration timeline.
+- **Why disconnected:** unifiedActionRegistry.ts was fully migrated to services/capabilities/ and deleted. The legacy/ directory contained only this README.
+- **Recovery:** Reference only — the migration is complete. See services/capabilities/ for the current implementation.
