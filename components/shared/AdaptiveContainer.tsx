@@ -96,7 +96,7 @@ export const AdaptiveContainer: React.FC<AdaptiveContainerProps> = ({
       opacity: 1,
       scale: 1,
       filter: 'blur(0px)',
-      transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] },
+      transition: { duration: 0.2, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] },
     },
   };
 

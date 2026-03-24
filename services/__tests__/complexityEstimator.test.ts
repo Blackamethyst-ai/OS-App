@@ -11,9 +11,10 @@ import {
 
 const makeTask = (instruction: string, input = '') => ({
     id: 'test-1',
+    description: 'test task',
     instruction,
     isolated_input: input,
-    priority: 1,
+    weight: 1,
 });
 
 describe('complexityEstimator', () => {
@@ -104,7 +105,7 @@ describe('complexityEstimator', () => {
 
         it('should blend historical when confidence is high', () => {
             const task = makeTask('simple task');
-            const historical = { gap: 10, rounds: 20, confidence: 0.9 };
+            const historical = { gap: 10, rounds: 20, confidence: 0.9, sampleCount: 5 };
             const thresholds = getAdaptiveThresholds(task, historical);
             // Should be weighted toward historical (60%)
             expect(thresholds.gap).toBeGreaterThan(5);
@@ -113,7 +114,7 @@ describe('complexityEstimator', () => {
 
         it('should ignore historical when confidence is low', () => {
             const task = makeTask('simple task');
-            const historical = { gap: 100, rounds: 100, confidence: 0.3 };
+            const historical = { gap: 100, rounds: 100, confidence: 0.3, sampleCount: 2 };
             const thresholds = getAdaptiveThresholds(task, historical);
             // Should use estimation only
             expect(thresholds.rounds).toBeLessThan(20);

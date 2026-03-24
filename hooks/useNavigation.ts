@@ -1,3 +1,4 @@
+import type React from 'react';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAppStore } from '../store';
 import { NavItem, getNavConfig, persistNavOrder } from '../config/navigation';

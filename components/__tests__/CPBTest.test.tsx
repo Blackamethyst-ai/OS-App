@@ -54,8 +54,8 @@ const CPBTest: React.FC = () => {
         if (!files) return;
 
         const newImages = await Promise.all(
-            Array.from(files).map(async (file) => {
-                const preview = URL.createObjectURL(file);
+            Array.from(files).map(async (file: File) => {
+                const preview = URL.createObjectURL(file as Blob);
                 const base64 = await fileToBase64(file);
                 return { file, preview, base64 };
             })

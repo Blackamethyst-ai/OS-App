@@ -8,16 +8,9 @@ import Starfield from './components/Starfield';
 import { BackgroundEffect } from './components/shared';
 import { CommandPalette } from './components/core';
 import SystemNotification from './components/SystemNotification';
-import OverlayOS from './components/OverlayOS';
-import HoloProjector from './components/HoloProjector';
 import SynapticRouter from './components/SynapticRouter';
-import UserProfileOverlay from './components/UserProfileOverlay';
-import VisualCortexOverlay from './components/VisualCortexOverlay';
 import GlobalStatusBar from './components/GlobalStatusBar';
-import PeerMeshOverlay from './components/PeerMeshOverlay';
 import AppFooter from './components/AppFooter';
-import AuthModule from './components/AuthModule';
-import SynapticContextHub from './components/SynapticContextHub';
 import { useAutoSave } from './hooks/useAutoSave';
 import { useDaemonSwarm } from './hooks/useDaemonSwarm';
 import { useVoiceControl } from './hooks/useVoiceControl';
@@ -37,17 +30,23 @@ import { audio } from './services/audioService';
 import { AnimatePresence } from 'motion/react';
 import { cn } from './utils/cn';
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
-import MasterStabilizationProtocol from './components/MasterStabilizationProtocol';
-import FocusOverlay from './components/overlays/FocusOverlay';
 import AppHeader from './components/layout/AppHeader';
 
-import { VoiceSystem } from './components/voice';
-
-// Lazy-loaded components (conditionally rendered)
+// Lazy-loaded components (conditionally rendered, not needed on first paint)
 const HelpCenter = lazy(() => import('./components/HelpCenter'));
 const AgenticHUD = lazy(() => import('./components/agents/AgenticHUD'));
 const TimeTravelScrubber = lazy(() => import('./components/TimeTravelScrubber'));
 const ApiKeyModal = lazy(() => import('./components/ApiKeyModal'));
+const OverlayOS = lazy(() => import('./components/OverlayOS'));
+const HoloProjector = lazy(() => import('./components/HoloProjector'));
+const UserProfileOverlay = lazy(() => import('./components/UserProfileOverlay'));
+const VisualCortexOverlay = lazy(() => import('./components/VisualCortexOverlay'));
+const PeerMeshOverlay = lazy(() => import('./components/PeerMeshOverlay'));
+const AuthModule = lazy(() => import('./components/AuthModule'));
+const SynapticContextHub = lazy(() => import('./components/SynapticContextHub'));
+const MasterStabilizationProtocol = lazy(() => import('./components/MasterStabilizationProtocol'));
+const FocusOverlay = lazy(() => import('./components/overlays/FocusOverlay'));
+const VoiceSystem = lazy(() => import('./components/voice/VoiceSystem'));
 const OperationalSidebar = lazy(() => import('./components/OperationalSidebar'));
 const PredictionDemo = lazy(() => import('./components/predictions/PredictionDemo'));
 
@@ -135,7 +134,7 @@ const App: React.FC = () => {
                 )}
                 style={{ backgroundColor: 'var(--bg-app)', color: 'var(--text-primary)', ...themeVars as any }}
             >
-                <MasterStabilizationProtocol />
+                <Suspense fallback={null}><MasterStabilizationProtocol /></Suspense>
                 <Starfield mode={mode} />
                 <BackgroundEffect isDarkMode={theme !== AppTheme.LIGHT} />
 
@@ -144,22 +143,27 @@ const App: React.FC = () => {
 
                 {/* SOVEREIGN GATE: Hard authentication barrier */}
                 {!authenticated ? (
-                    <AuthModule />
+                    <Suspense fallback={null}><AuthModule /></Suspense>
                 ) : (
                     <>
-                        <SynapticContextHub />
-
-                        <FocusOverlay />
-                        <UserProfileOverlay />
-                        <VisualCortexOverlay />
+                        <Suspense fallback={null}>
+                            <SynapticContextHub />
+                            <FocusOverlay />
+                            <UserProfileOverlay />
+                            <VisualCortexOverlay />
+                        </Suspense>
                         <CommandPalette />
-                        <PeerMeshOverlay />
+                        <Suspense fallback={null}>
+                            <PeerMeshOverlay />
+                        </Suspense>
                         <SystemNotification isOpen={isDiagnosticsOpen} onClose={() => actions.setDiagnosticsOpen(false)} />
-                        <OverlayOS />
-                        <HoloProjector />
+                        <Suspense fallback={null}>
+                            <OverlayOS />
+                            <HoloProjector />
+                        </Suspense>
 
                         {/* Unified Voice Stack (always mounted for voice functionality) */}
-                        <VoiceSystem />
+                        <Suspense fallback={null}><VoiceSystem /></Suspense>
 
                         {/* Time Travel Scrubber (lazy-loaded, conditionally rendered) */}
                         {isScrubberOpen && (

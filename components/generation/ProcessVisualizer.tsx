@@ -15,7 +15,7 @@ import {
     Network, Search, Cpu, Database, Brain, FolderTree, Cloud,
     Files, Share2, Compass, GitCommit, GitPullRequest, Layout
 } from 'lucide-react';
-import * as Icons from 'lucide-react';
+import { getIcon } from '../../utils/iconMap';
 import { useAppStore } from '../../store';
 import { useProcessVisualizerLogic, THEME } from '../../hooks/useProcessVisualizerLogic';
 import { renderSafe } from '../../utils/renderSafe';
@@ -26,7 +26,7 @@ import { cn } from '../../utils/cn';
 
 const ExecutiveNode = ({ id, data: nodeData, selected, dragging }: NodeProps) => {
     const data = nodeData as any;
-    const Icon = (Icons as any)[data.iconName as string] || Icons.Box;
+    const Icon = getIcon(data.iconName as string);
     const accentColor = data.color || 'var(--amethyst-soft)';
     const isDone = data.status === 'DONE' || data.status === 'COMPLETED';
     const drift = data.drift || 0;

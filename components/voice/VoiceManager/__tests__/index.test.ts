@@ -404,7 +404,7 @@ describe('VoiceManager tool-call routing', () => {
   });
 
   it('falls back to action execution when input_text hook fails', async () => {
-    mocks.fillInputMock.mockReturnValue({ success: false, error: 'No matching field' });
+    mocks.fillInputMock.mockReturnValue({ success: false, element: '' } as any);
     mocks.actionRegistry.set_mission_objective = { id: 'set_mission_objective' };
     mocks.executeActionMock.mockResolvedValue({ output: { ok: true } });
 
@@ -456,7 +456,7 @@ describe('VoiceManager tool-call routing', () => {
   });
 
   it('returns safe scan_ui output when allElements is missing', async () => {
-    mocks.scanInteractiveElementsMock.mockReturnValue({ summary: 'scan complete' });
+    mocks.scanInteractiveElementsMock.mockReturnValue({ summary: 'scan complete', allElements: [] });
     const onToolCall = await mountAndGetToolCallHandler();
     const result = await onToolCall('scan_ui', {});
 

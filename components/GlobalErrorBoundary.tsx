@@ -16,11 +16,9 @@ interface State {
 
 export class GlobalErrorBoundary extends Component<Props, State> {
     state: State = { hasError: false, error: null, errorInfo: null };
-    props: Props;
 
     constructor(props: Props) {
         super(props);
-        this.props = props;
     }
 
     static getDerivedStateFromError(error: Error): State {

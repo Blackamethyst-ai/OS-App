@@ -437,13 +437,21 @@ export class GenomeLayer extends AbstractOrganismLayer {
 
       // Execute with timeout
       const timeoutMs = skill.timeoutMs || 5000;
-      const timeoutPromise = new Promise<never>((_, reject) =>
-        setTimeout(() => reject(new Error(`Skill ${skill.name} timed out after ${timeoutMs}ms`)), timeoutMs)
-      );
 
-      const result = skill.runtime === 'async'
-        ? await Promise.race([handler(args), timeoutPromise])
-        : handler(args);
+      let result: unknown;
+      if (skill.runtime === 'async') {
+        let timeoutId: ReturnType<typeof setTimeout>;
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error(`Skill ${skill.name} timed out after ${timeoutMs}ms`)), timeoutMs);
+        });
+        try {
+          result = await Promise.race([handler(args), timeoutPromise]);
+        } finally {
+          clearTimeout(timeoutId!);
+        }
+      } else {
+        result = handler(args);
+      }
 
       return {
         success: true,

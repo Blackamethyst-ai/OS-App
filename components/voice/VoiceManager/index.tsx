@@ -8,6 +8,7 @@ import {
     runAgentReasoning
 } from '../../../services/geminiService';
 import { voiceNexus, analyzeComplexity, runPreflightCheck, formatPreflightResult } from '../../../services/voiceNexus';
+import type { VoiceMode } from '../../../services/voiceNexus/types';
 // Capabilities Registry (consolidated source of truth)
 import {
     executeCapability,
@@ -231,7 +232,7 @@ const VoiceManager: React.FC = () => {
             if (name === 'scan_ui') {
                 return handleScanUI({
                     addLog,
-                    scanInteractiveElements,
+                    scanInteractiveElements: () => ({ ...scanInteractiveElements() }),
                 });
             }
 
@@ -1704,7 +1705,9 @@ Output the code with brief explanation.`,
             if (name === 'voice_settings') {
                 const speed = typeof args.speed === 'number' ? args.speed : Number(args.speed);
                 const volume = typeof args.volume === 'number' ? args.volume : Number(args.volume);
-                const mode = typeof args.mode === 'string' ? args.mode.trim() : '';
+                const rawMode = typeof args.mode === 'string' ? args.mode.trim() : '';
+                const validModes: VoiceMode[] = ['realtime', 'turn-based', 'hybrid'];
+                const mode: VoiceMode | '' = validModes.includes(rawMode as VoiceMode) ? (rawMode as VoiceMode) : '';
                 addLog('SYSTEM', `VOICE: Adjusting settings...`);
                 if (mode) {
                     const { voiceNexus } = await import('../../../services/voiceNexus');

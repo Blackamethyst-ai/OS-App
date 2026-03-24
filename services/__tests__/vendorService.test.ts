@@ -24,7 +24,7 @@ describe('VendorService', () => {
         vi.mocked(priceApiService.hasApiKey).mockReturnValue(false);
         vi.mocked(priceApiService.hasCredits).mockReturnValue(false);
         vi.mocked(minerstatService.getListings).mockResolvedValue([]);
-        vi.mocked(priceApiService.getCreditsStatus).mockReturnValue({ used: 0, remaining: 0 });
+        vi.mocked(priceApiService.getCreditsStatus).mockReturnValue({ used: 0, remaining: 0, limit: 100 });
     });
 
     describe('getVendorQuotes', () => {

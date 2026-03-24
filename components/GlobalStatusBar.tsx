@@ -4,8 +4,8 @@ import { useAppStore } from '../store';
 import { KNOWLEDGE_LAYERS } from '../data/knowledgeLayers';
 import { neuralVault } from '../services/persistenceService';
 import { KnowledgeLayer, AppMode } from '../types';
-import * as Icons from 'lucide-react';
-import { Terminal, PanelRight, Gauge, Fingerprint, Users, SearchCode, Radio, Moon, Sun, History as HistoryIcon, Loader2, Save, Sparkles, Activity, Mic } from 'lucide-react';
+import { getIcon } from '../utils/iconMap';
+import { Terminal, PanelRight, Gauge, Fingerprint, Users, SearchCode, Radio, Moon, Sun, History as HistoryIcon, Loader2, Save, Sparkles, Activity, Mic, Layers } from 'lucide-react';
 import { dreamProtocol } from '../services/dreamProtocol';
 import { useAgentRuntime } from '../hooks/useAgentRuntime';
 import { useVisualCortex } from '../hooks/useVisualCortex';
@@ -46,7 +46,7 @@ const LayerControlMesh = memo(() => {
             {(Object.values(allLayers) as KnowledgeLayer[]).map((layer) => {
                 const isActive = activeLayerIds.includes(layer.id);
                 // Fix: Cast Icon to any to resolve "Icon cannot be used as a JSX component" in restricted environments.
-                const Icon = (Icons as any)[layer.icon as keyof typeof Icons] || Icons.Layers;
+                const Icon = getIcon(layer.icon as string, Layers);
                 return (
                     <motion.button
                         key={layer.id}

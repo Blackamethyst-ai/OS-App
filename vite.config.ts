@@ -97,6 +97,19 @@ export default defineConfig(({ mode }) => {
               // Let Vite handle remaining vendor splitting automatically
               // (removing catch-all 'vendor' prevents circular chunk deps)
             }
+
+            // App-level service splitting — reduce main entry chunk
+            const appRoot = rootPath + '/';
+            if (id.startsWith(appRoot)) {
+              const rel = id.slice(appRoot.length);
+              if (rel.startsWith('services/organisms/')) return 'app-organisms';
+              if (rel.startsWith('services/voiceNexus/')) return 'app-voice';
+              if (rel.startsWith('services/kernel/')) return 'app-kernel';
+              if (rel.startsWith('services/capabilities/') || rel.startsWith('services/actions/')) return 'app-capabilities';
+              if (rel.startsWith('services/cognitivePrecisionBridge/')) return 'app-cpb';
+              if (rel.startsWith('services/ui/')) return 'app-ui';
+              if (rel.startsWith('services/memory/')) return 'app-memory';
+            }
           },
         },
       },
