@@ -1,0 +1,136 @@
+{
+  "name": "OS-App Iteration Cycle 5 — Deep Service & Hook Test Coverage",
+  "branchName": "ralph/os-app-cycle-5",
+  "description": "Expand test coverage to largest untested service files and hooks.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Test Coverage — selfEvolution.ts",
+      "description": "As a developer, I want test coverage for the self-evolution service (638 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/selfEvolution.test.ts created",
+        "Evolution cycle logic tested",
+        "Pattern detection tested",
+        "State mutation safety tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "18 tests in services/__tests__/selfEvolution.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-002",
+      "title": "Test Coverage — dreamProtocol.ts",
+      "description": "As a developer, I want test coverage for the dream protocol service (400 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/dreamProtocol.test.ts created",
+        "Dream state transitions tested",
+        "Memory consolidation logic tested",
+        "Protocol lifecycle tested",
+        "At least 8 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "15 tests in services/__tests__/dreamProtocol.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-003",
+      "title": "Test Coverage — convergenceMemory.ts",
+      "description": "As a developer, I want test coverage for convergence memory (352 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/convergenceMemory.test.ts created",
+        "Memory storage and retrieval tested",
+        "Convergence detection tested",
+        "Edge cases (empty state, overflow) tested",
+        "At least 6 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "20 tests in services/__tests__/convergenceMemory.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-004",
+      "title": "Test Coverage — hopGrouping.ts",
+      "description": "As a developer, I want test coverage for hop grouping service (285 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/hopGrouping.test.ts created",
+        "Grouping algorithm tested",
+        "Hop chain construction tested",
+        "At least 6 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "16 tests in services/__tests__/hopGrouping.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-005",
+      "title": "Test Coverage — agentAuction.ts",
+      "description": "As a developer, I want test coverage for agent auction service (266 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "services/__tests__/agentAuction.test.ts created",
+        "Auction creation and bidding tested",
+        "Winner selection logic tested",
+        "At least 6 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "20 tests in services/__tests__/agentAuction.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-006",
+      "title": "Test Coverage — useAdaptiveUI hook",
+      "description": "As a developer, I want test coverage for the adaptive UI hook (262 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "hooks/__tests__/useAdaptiveUI.test.ts created",
+        "UI adaptation logic tested",
+        "State transitions tested",
+        "At least 6 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "18 tests in hooks/__tests__/useAdaptiveUI.test.ts",
+      "dependsOn": []
+    },
+    {
+      "id": "US-007",
+      "title": "Test Coverage — useResearchAgent hook",
+      "description": "As a developer, I want test coverage for the research agent hook (232 lines, 0 tests).",
+      "acceptanceCriteria": [
+        "hooks/__tests__/useResearchAgent.test.ts created",
+        "Agent initialization tested",
+        "Research query handling tested",
+        "At least 6 new tests added",
+        "npx tsc --noEmit passes",
+        "npx vitest run passes",
+        "npm run lint passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "16 tests in hooks/__tests__/useResearchAgent.test.ts",
+      "dependsOn": []
+    }
+  ]
+}
