@@ -53,6 +53,8 @@ const FocusOverlay = lazy(() => import('./components/overlays/FocusOverlay'));
 const VoiceSystem = lazy(() => import('./components/voice/VoiceSystem'));
 const OperationalSidebar = lazy(() => import('./components/OperationalSidebar'));
 const PredictionDemo = lazy(() => import('./components/predictions/PredictionDemo'));
+const WelcomeOverlay = lazy(() => import('./components/WelcomeOverlay'));
+const SettingsPanel = lazy(() => import('./components/SettingsPanel'));
 
 const App: React.FC = () => {
     // Batched selectors to reduce subscription overhead
@@ -95,11 +97,26 @@ const App: React.FC = () => {
 
     const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 
+    // Settings panel state
+    const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+    // Listen for settings toggle from AppHeader gear icon
+    useEffect(() => {
+        const handleToggle = () => setIsSettingsOpen(prev => !prev);
+        window.addEventListener('toggle-settings-panel', handleToggle);
+        return () => window.removeEventListener('toggle-settings-panel', handleToggle);
+    }, []);
+
     // Prediction demo toggle (via URL param: ?demo=predictions)
     const [showPredictionDemo, setShowPredictionDemo] = React.useState(() => {
         const params = new URLSearchParams(window.location.search);
         return params.get('demo') === 'predictions';
     });
+
+    // Welcome overlay — shown once for first-time users
+    const [showWelcome, setShowWelcome] = React.useState(
+        () => !localStorage.getItem('metaventions_onboarded')
+    );
 
     const { setSector } = useSystemMind();
 
@@ -170,6 +187,13 @@ const App: React.FC = () => {
                     <Suspense fallback={null}><AuthModule /></Suspense>
                 ) : (
                     <>
+                        {/* Welcome onboarding overlay — first-time users only */}
+                        {showWelcome && (
+                            <Suspense fallback={null}>
+                                <WelcomeOverlay />
+                            </Suspense>
+                        )}
+
                         <Suspense fallback={null}>
                             <SynapticContextHub />
                             <FocusOverlay />
@@ -202,6 +226,15 @@ const App: React.FC = () => {
                                 <ApiKeyModal isOpen={isApiKeyModalOpen} onClose={() => setIsApiKeyModalOpen(false)} />
                             </Suspense>
                         )}
+
+                        {/* Settings Panel (lazy-loaded, slides from right) */}
+                        <Suspense fallback={null}>
+                            <SettingsPanel
+                                isOpen={isSettingsOpen}
+                                onClose={() => setIsSettingsOpen(false)}
+                                onOpenApiKeyModal={() => { setIsSettingsOpen(false); setIsApiKeyModalOpen(true); }}
+                            />
+                        </Suspense>
 
                         <AnimatePresence>
                             {!isHUDClosed && (

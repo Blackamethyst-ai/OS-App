@@ -1,7 +1,7 @@
 import React from 'react';
 import { useAppStore } from '../../store';
 import { motion } from 'motion/react';
-import { User, ShieldCheck, Terminal } from 'lucide-react';
+import { User, ShieldCheck, Terminal, Settings } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { audio } from '../../services/audioService';
 import { useNavigation } from '../../hooks/useNavigation';
@@ -108,6 +108,14 @@ const AppHeader: React.FC = () => {
 
                 <div className="flex items-center gap-6 shrink-0 h-full">
                     <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => { window.dispatchEvent(new CustomEvent('toggle-settings-panel')); audio.playClick(); }}
+                            className="p-2 text-gray-500 hover:text-white transition-all border border-transparent hover:border-[#333] rounded-lg bg-transparent hover:bg-white/5 flex items-center justify-center"
+                            title="Settings"
+                            aria-label="Open settings"
+                        >
+                            <Settings size={18} />
+                        </button>
                         <ThemeSwitcher />
                         <button
                             onClick={() => { actions.toggleProfile(true); audio.playClick(); }}

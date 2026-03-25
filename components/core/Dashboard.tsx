@@ -111,7 +111,7 @@ const ExecutiveBanner = () => {
 
     return (
         <div className="w-full crystalline rounded-2xl p-4 mb-4 relative overflow-hidden group">
-            <div className="relative z-10 flex items-center gap-6">
+            <div className="relative z-10 flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
                 <div className="flex flex-col items-center gap-2 shrink-0">
                     <div className="relative w-16 h-16 flex items-center justify-center">
                         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none z-0" />
@@ -142,7 +142,7 @@ const ExecutiveBanner = () => {
                     </button>
                 </div>
 
-                <div className="flex-1 flex flex-col gap-0.5">
+                <div className="flex-1 flex flex-col gap-0.5 text-center sm:text-left min-w-0">
                     <div className="flex items-center gap-3 mb-1">
                         <div className="flex items-center gap-1.5 px-2 py-0.5 glass-action rounded-full border-white/10" role="button" tabIndex={0} aria-label="Open user profile" onClick={() => toggleProfile(true)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleProfile(true); } }}>
                             <ShieldCheck size={10} className="text-[var(--plasma-green)]" />
@@ -157,7 +157,7 @@ const ExecutiveBanner = () => {
                     </p>
                 </div>
 
-                <div className="flex flex-col items-end gap-3 shrink-0 px-6 border-l border-white/10">
+                <div className="flex flex-col items-center sm:items-end gap-3 shrink-0 sm:px-6 sm:border-l border-white/10">
                     <div className="text-right">
                         <span className="text-[8px] font-mono text-gray-600 uppercase tracking-widest block mb-0.5">System_Uptime</span>
                         <span className="text-lg font-black font-mono text-white tracking-tighter">99.99%</span>
@@ -171,7 +171,7 @@ const ExecutiveBanner = () => {
 const AgentHive = () => {
     const { agents } = useAppStore();
     return (
-        <div className="flex items-center gap-4 py-2 border-t border-white/5 mt-auto">
+        <div className="flex items-center gap-4 py-2 border-t border-white/5 mt-auto overflow-x-auto">
             <div className="flex flex-col gap-0.5">
                 <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest">Agent_Hive</span>
                 <span className="text-[7px] font-mono text-[var(--plasma-green)] uppercase tracking-tighter">Active Swarm</span>
@@ -308,9 +308,9 @@ const Dashboard: React.FC = () => {
           
           <ExecutiveBanner />
 
-          <div className="grid grid-cols-12 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-12 gap-4">
               {/* Left Column: Metrics and Topology */}
-              <div className="col-span-3 space-y-4">
+              <div className="md:col-span-1 xl:col-span-3 space-y-4">
                   <div className="grid grid-cols-1 gap-4">
                       <MetricCard title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="var(--executive-gold)" data={cpuHist} trend="up" />
                       <MetricCard title="BANDWIDTH" value={`${telemetry.net.toFixed(1)}GB/s`} detail="PEAK" icon={Radio} color="var(--cyan)" data={netHist} trend="up" />
@@ -335,7 +335,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Center Column: Strategic Operations Center */}
-              <div className="col-span-6 flex flex-col min-h-[600px]">
+              <div className="md:col-span-2 xl:col-span-6 flex flex-col min-h-[400px] xl:min-h-[600px]">
                   <div className="flex-1 crystalline rounded-[2.5rem] overflow-hidden relative group flex flex-col border border-white/10 shadow-2xl">
                       <div className="h-14 border-b border-white/5 flex items-center justify-between px-8 bg-white/[0.01] shrink-0 z-20">
                           <div className="flex items-center gap-3">
@@ -388,7 +388,7 @@ const Dashboard: React.FC = () => {
               </div>
 
               {/* Right Column: Identity, Logs, Capital */}
-              <div className="col-span-3 space-y-4 flex flex-col">
+              <div className="md:col-span-1 xl:col-span-3 space-y-4 flex flex-col">
                   <div className="crystalline rounded-3xl p-5 h-40 shadow-xl flex flex-col gap-3 relative overflow-hidden">
                       <div className="flex items-center justify-between relative z-10">
                          <div className="flex items-center gap-3">
@@ -450,7 +450,7 @@ const Dashboard: React.FC = () => {
               </div>
           </div>
 
-          <div className="w-full h-[600px] mt-8">
+          <div className="w-full h-[300px] md:h-[400px] xl:h-[600px] mt-8">
               <DEcosystem />
           </div>
       </div>
