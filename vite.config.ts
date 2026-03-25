@@ -143,29 +143,13 @@ export default defineConfig(({ mode }) => {
 
             // App-level service splitting — reduce main entry chunk
             const appRoot = rootPath + '/';
-            if (id.includes('geminiService')) console.log('[CHUNK-DEBUG] gemini id:', id);
-            if (id.includes('store') && !id.includes('node_modules') && !id.includes('external-store')) console.log('[CHUNK-DEBUG] store id:', id);
             if (id.startsWith(appRoot)) {
               const rel = id.slice(appRoot.length);
               if (rel.startsWith('services/organisms/')) return 'app-organisms';
               if (rel.startsWith('services/voiceNexus/')) return 'app-voice';
               if (rel.startsWith('services/kernel/')) return 'app-kernel';
-              // Capabilities sub-chunks (was single 985KB app-capabilities)
-              if (rel.startsWith('services/capabilities/adapters/')) return 'app-capabilities-adapters';
-              if (rel.startsWith('services/capabilities/providers/')) return 'app-capabilities-providers';
-              if (rel === 'services/capabilities/cpb.ts') return 'app-capabilities-cpb';
-              if (rel === 'services/capabilities/registry.ts' || rel === 'services/capabilities/types.ts') return 'app-capabilities-registry';
+              // Capabilities — lightweight registry + types (actions are lazy-loaded)
               if (rel.startsWith('services/capabilities/')) return 'app-capabilities';
-              // Actions sub-chunks by handler type
-              if (rel.startsWith('services/actions/handlers/sovereign.ts')) return 'app-actions-sovereign';
-              if (rel.startsWith('services/actions/handlers/generation.ts')) return 'app-actions-generation';
-              if (rel.startsWith('services/actions/handlers/analysis.ts')) return 'app-actions-analysis';
-              if (rel.startsWith('services/actions/handlers/')) return 'app-actions-handlers';
-              if (rel.startsWith('services/actions/')) return 'app-actions';
-              // Heavy shared services — isolate so they don't inflate consumer chunks
-              if (rel === 'services/geminiService.ts') return 'app-gemini';
-              if (rel === 'store.ts') return 'app-store';
-              if (rel.startsWith('services/archon/')) return 'app-archon';
               if (rel.startsWith('services/cognitivePrecisionBridge/')) return 'app-cpb';
               if (rel.startsWith('services/ui/')) return 'app-ui';
               if (rel.startsWith('services/memory/')) return 'app-memory';

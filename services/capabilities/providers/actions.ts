@@ -7,9 +7,6 @@
 import type { Capability, AppMode, CapabilityComplexity, CapabilitySource, CPBPath } from '../types';
 import { registerCapabilities } from '../registry';
 import { logger } from '../../logger';
-
-// Import from existing action registry
-import { ALL_HANDLER_ACTIONS } from '../../actions/handlers';
 import type { UnifiedAction, ActionComplexity, ActionSource } from '../../actions/types';
 
 /**
@@ -111,11 +108,22 @@ function actionToCapability(action: UnifiedAction): Capability {
   };
 }
 
+// Lazily-loaded action handlers — keeps the capabilities chunk small
+let _cachedActions: UnifiedAction[] | null = null;
+
+async function getHandlerActions(): Promise<UnifiedAction[]> {
+  if (_cachedActions) return _cachedActions;
+  const { ALL_HANDLER_ACTIONS } = await import('../../actions/handlers');
+  _cachedActions = ALL_HANDLER_ACTIONS;
+  return _cachedActions;
+}
+
 /**
  * Load all actions as capabilities
  */
-export function loadActionCapabilities(): void {
-  const capabilities = ALL_HANDLER_ACTIONS.map(actionToCapability);
+export async function loadActionCapabilities(): Promise<void> {
+  const actions = await getHandlerActions();
+  const capabilities = actions.map(actionToCapability);
   registerCapabilities(capabilities);
   logger.debug(`Loaded ${capabilities.length} action capabilities`, undefined, 'ActionsProvider');
 }
@@ -123,16 +131,18 @@ export function loadActionCapabilities(): void {
 /**
  * Get action capability count
  */
-export function getActionCapabilityCount(): number {
-  return ALL_HANDLER_ACTIONS.length;
+export async function getActionCapabilityCount(): Promise<number> {
+  const actions = await getHandlerActions();
+  return actions.length;
 }
 
 /**
  * Get actions grouped by category
  */
-export function getActionsByCategory(): Record<string, number> {
+export async function getActionsByCategory(): Promise<Record<string, number>> {
+  const actions = await getHandlerActions();
   const counts: Record<string, number> = {};
-  for (const action of ALL_HANDLER_ACTIONS) {
+  for (const action of actions) {
     const category = action.category || 'uncategorized';
     counts[category] = (counts[category] || 0) + 1;
   }

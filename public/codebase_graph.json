@@ -4473,8 +4473,7 @@
       "tier": 2,
       "exports": [
         "CPBExecutionResult",
-        "QueryRouteResult",
-        "routeQueryToCPB"
+        "QueryRouteResult"
       ],
       "imports": [],
       "isComponent": false,
@@ -4519,11 +4518,7 @@
       "radius": 2,
       "risk": "LOW",
       "tier": 3,
-      "exports": [
-        "loadActionCapabilities",
-        "getActionCapabilityCount",
-        "getActionsByCategory"
-      ],
+      "exports": [],
       "imports": [],
       "isComponent": false,
       "isService": false,
@@ -15047,11 +15042,6 @@
     },
     {
       "source": "file-246",
-      "target": "file-root-518",
-      "type": "imports"
-    },
-    {
-      "source": "file-246",
       "target": "file-root-520",
       "type": "imports"
     },
@@ -15108,11 +15098,6 @@
     {
       "source": "file-249",
       "target": "file-285",
-      "type": "imports"
-    },
-    {
-      "source": "file-249",
-      "target": "file-root-518",
       "type": "imports"
     },
     {
@@ -17822,10 +17807,10 @@
     }
   ],
   "metadata": {
-    "generatedAt": "2026-03-25T06:52:59.694Z",
+    "generatedAt": "2026-03-25T07:06:16.330Z",
     "rootDir": "/Users/dicoangelo/projects/apps/OS-App",
     "nodeCount": 523,
-    "edgeCount": 1574,
+    "edgeCount": 1572,
     "voiceEnabled": 9
   }
 }

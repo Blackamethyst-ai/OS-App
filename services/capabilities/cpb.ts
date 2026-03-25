@@ -12,10 +12,14 @@
  * - cascade: Full verification (critical decisions)
  */
 
-import { cpbExecutePath, extractPathSignals, selectPath } from '../cognitivePrecisionBridge';
 import type { CPBPath, CPBRequest, CPBResult, CPBStatus, PathSignals } from '../cognitivePrecisionBridge/types';
 import type { Capability, CapabilityComplexity } from './types';
 import { searchCapabilities, getCapability, executeCapability } from './registry';
+
+// Lazy-load heavy CPB orchestrator to keep capabilities chunk small
+async function getCPB() {
+  return import('../cognitivePrecisionBridge');
+}
 
 // Re-export CPB types for convenience
 export type { CPBPath, CPBResult, CPBStatus, PathSignals };
@@ -63,7 +67,7 @@ export interface QueryRouteResult {
  * Uses capability matching and CPB signal extraction to determine
  * the best path for query execution.
  */
-export function routeQueryToCPB(query: string, context?: string): QueryRouteResult {
+export async function routeQueryToCPB(query: string, context?: string): Promise<QueryRouteResult> {
   // Find matching capabilities
   const matches = searchCapabilities(query, { limit: 5 });
   const matchedCapabilities = matches.map((m) => m.capability);
@@ -94,7 +98,8 @@ export function routeQueryToCPB(query: string, context?: string): QueryRouteResu
     }
   }
 
-  // Fall back to CPB's path selection
+  // Fall back to CPB's path selection (lazy-loaded)
+  const { extractPathSignals, selectPath } = await getCPB();
   const signals = extractPathSignals({ query, context });
   const decision = selectPath(signals as unknown as CPBRequest);
 
@@ -122,7 +127,7 @@ export async function executeQueryWithCPB(
   context?: string,
   onStatus?: (status: CPBStatus) => void
 ): Promise<CPBExecutionResult> {
-  const routing = routeQueryToCPB(query, context);
+  const routing = await routeQueryToCPB(query, context);
   const startTime = Date.now();
 
   try {
@@ -144,7 +149,8 @@ export async function executeQueryWithCPB(
       }
     }
 
-    // Route through CPB for complex queries
+    // Route through CPB for complex queries (lazy-loaded)
+    const { cpbExecutePath } = await getCPB();
     const cpbResult: CPBResult = await cpbExecutePath(routing.path, query, context, onStatus);
 
     return {
@@ -216,7 +222,8 @@ export async function executeCapabilityWithCPB(
         ? COMPLEXITY_TO_PATH[capability.complexity]
         : capability.executionPath;
 
-    // Execute through CPB
+    // Execute through CPB (lazy-loaded)
+    const { cpbExecutePath } = await getCPB();
     const cpbResult = await cpbExecutePath(
       path as CPBPath,
       `Execute capability: ${capability.description}`,

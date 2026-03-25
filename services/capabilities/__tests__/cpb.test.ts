@@ -56,7 +56,7 @@ describe('CPB Routing', () => {
   });
 
   describe('routeQueryToCPB', () => {
-    it('should route to capability execution path when match found', () => {
+    it('should route to capability execution path when match found', async () => {
       registerCapability(
         createCap({
           id: 'route_test',
@@ -66,7 +66,7 @@ describe('CPB Routing', () => {
         })
       );
 
-      const result = routeQueryToCPB('route_test');
+      const result = await routeQueryToCPB('route_test');
 
       expect(result.path).toBe('ace');
       expect(result.confidence).toBe(0.85);
@@ -74,7 +74,7 @@ describe('CPB Routing', () => {
       expect(result.reasoning).toContain('route_test');
     });
 
-    it('should derive path from complexity when executionPath is auto', () => {
+    it('should derive path from complexity when executionPath is auto', async () => {
       // When executionPath is 'auto', registerCapability derives it via complexityToCPBPath.
       // For 'architecture' complexity, the derived path is 'hybrid'.
       // Since it gets stored as 'hybrid' (not 'auto'), the first branch matches
@@ -88,26 +88,26 @@ describe('CPB Routing', () => {
         })
       );
 
-      const result = routeQueryToCPB('auto_route');
+      const result = await routeQueryToCPB('auto_route');
 
       expect(result.path).toBe('hybrid');
       expect(result.confidence).toBe(0.85);
     });
 
-    it('should fall back to CPB path selection when no capability match', () => {
-      const result = routeQueryToCPB('something completely unknown xyz');
+    it('should fall back to CPB path selection when no capability match', async () => {
+      const result = await routeQueryToCPB('something completely unknown xyz');
 
       expect(result.path).toBe('direct'); // from mocked selectPath
       expect(result.confidence).toBe(0.6);
     });
 
-    it('should include matched capabilities in result', () => {
+    it('should include matched capabilities in result', async () => {
       registerCapabilities([
         createCap({ id: 'match_a', description: 'First match A' }),
         createCap({ id: 'match_b', description: 'Second match B' }),
       ]);
 
-      const result = routeQueryToCPB('match');
+      const result = await routeQueryToCPB('match');
       expect(result.matchedCapabilities.length).toBeGreaterThan(0);
     });
   });

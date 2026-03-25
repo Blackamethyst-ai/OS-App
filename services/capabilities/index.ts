@@ -237,8 +237,8 @@ export async function initializeCapabilities(): Promise<void> {
     }
 
     try {
-      // Load action capabilities
-      loadActionCapabilities();
+      // Load action capabilities (lazy-loaded to split the chunk)
+      await loadActionCapabilities();
     } catch (error) {
       logger.warn('Failed to load action capabilities', error, 'CapabilityRegistry');
     }

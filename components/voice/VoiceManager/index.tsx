@@ -334,7 +334,7 @@ const VoiceManager: React.FC = () => {
                 addLog('SYSTEM', `THINK: Processing "${task.slice(0, 50)}${task.length > 50 ? '...' : ''}"`);
 
                 // Route through CPB (using capabilities registry)
-                const routing = routeQueryToCPB(task, context);
+                const routing = await routeQueryToCPB(task, context);
                 addLog('SYSTEM', `THINK: Routed to ${routing.path} path (confidence: ${(routing.confidence * 100).toFixed(0)}%)`);
 
                 // Update CPB visual state - START
