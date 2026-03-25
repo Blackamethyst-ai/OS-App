@@ -50,7 +50,8 @@
     "lodash-es": "^4.17.21",
     "rollup": ">=4.59.0",
     "minimatch": ">=9.0.7",
-    "flatted": ">=3.4.0"
+    "flatted": ">=3.4.0",
+    "serialize-javascript": ">=7.0.4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
