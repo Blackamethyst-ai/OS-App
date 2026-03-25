@@ -183,7 +183,7 @@ export const StoryboardMode: React.FC<StoryboardModeProps> = ({
                                 <div className="absolute top-6 left-6 px-4 py-2 bg-black/70 backdrop-blur-xl border border-white/10 rounded-full text-[10px] font-black font-mono text-white z-10 shadow-2xl uppercase">Node_{i + 1}</div>
                                 <div className="absolute inset-0 bg-black/70 opacity-0 group-hover/frame:opacity-100 transition-opacity flex items-center justify-center gap-5 z-20">
                                     <button onClick={() => onRenderFrame(i)} className="p-4 bg-[var(--amethyst)] text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95" aria-label="Regenerate frame"><RefreshCw size={24} /></button>
-                                    {f.imageUrl && <button onClick={() => onOpenHoloProjector({ id: `f-${i}`, title: `Frame ${i + 1}`, type: 'IMAGE', content: f.imageUrl })} className="p-4 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95" aria-label="View full size"><Maximize size={24} /></button>}
+                                    {f.imageUrl && <button onClick={() => onOpenHoloProjector({ id: `f-${i}`, title: `Frame ${i + 1}`, type: 'IMAGE', content: f.imageUrl ?? '' })} className="p-4 bg-white text-black rounded-2xl shadow-2xl hover:scale-110 transition-transform active:scale-95" aria-label="View full size"><Maximize size={24} /></button>}
                                 </div>
                             </div>
                             <div className="p-8 space-y-6 overflow-y-auto max-h-[300px] custom-scrollbar">

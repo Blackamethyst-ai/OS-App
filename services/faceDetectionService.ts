@@ -224,19 +224,19 @@ class FaceDetectionService {
 
     return {
       // Left eye: points 36-41
-      leftEye: positions.slice(36, 42).map(p => ({ x: p.x, y: p.y })),
+      leftEye: positions.slice(36, 42).map((p: any) => ({ x: p.x, y: p.y })),
       // Right eye: points 42-47
-      rightEye: positions.slice(42, 48).map(p => ({ x: p.x, y: p.y })),
+      rightEye: positions.slice(42, 48).map((p: any) => ({ x: p.x, y: p.y })),
       // Nose: points 27-35
-      nose: positions.slice(27, 36).map(p => ({ x: p.x, y: p.y })),
+      nose: positions.slice(27, 36).map((p: any) => ({ x: p.x, y: p.y })),
       // Mouth: points 48-67
-      mouth: positions.slice(48, 68).map(p => ({ x: p.x, y: p.y })),
+      mouth: positions.slice(48, 68).map((p: any) => ({ x: p.x, y: p.y })),
       // Jaw outline: points 0-16
-      jawOutline: positions.slice(0, 17).map(p => ({ x: p.x, y: p.y })),
+      jawOutline: positions.slice(0, 17).map((p: any) => ({ x: p.x, y: p.y })),
       // Left eyebrow: points 17-21
-      leftEyebrow: positions.slice(17, 22).map(p => ({ x: p.x, y: p.y })),
+      leftEyebrow: positions.slice(17, 22).map((p: any) => ({ x: p.x, y: p.y })),
       // Right eyebrow: points 22-26
-      rightEyebrow: positions.slice(22, 27).map(p => ({ x: p.x, y: p.y })),
+      rightEyebrow: positions.slice(22, 27).map((p: any) => ({ x: p.x, y: p.y })),
     };
   }
 

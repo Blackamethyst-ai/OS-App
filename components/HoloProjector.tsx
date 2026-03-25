@@ -79,7 +79,7 @@ const HoloProjector: React.FC = () => {
             if (!hasKey) await promptSelectKey();
 
             const transformed = await transformArtifact(
-                holo.activeArtifact.content,
+                holo.activeArtifact.content ?? '',
                 holo.activeArtifact.type as any,
                 instruction
             );

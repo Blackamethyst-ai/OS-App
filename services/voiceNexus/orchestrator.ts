@@ -498,8 +498,8 @@ Simply acknowledge with "[TRANSCRIBED]" after capturing user speech.`;
     private async handleRealtimeMessage(message: LiveServerMessage): Promise<void> {
         // Handle tool calls
         if (message.toolCall && this.toolHandler) {
-            for (const fc of message.toolCall.functionCalls) {
-                await this.toolHandler(fc.name, fc.args);
+            for (const fc of message.toolCall.functionCalls ?? []) {
+                await this.toolHandler(fc.name ?? '', fc.args ?? {});
             }
         }
 

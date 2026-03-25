@@ -150,7 +150,7 @@ export function createDeepgramSTT(options: DeepgramSTTOptions): STTProvider {
                     const data = await response.json();
                     if (data.key) {
                         apiKey = data.key;
-                        return apiKey;
+                        return apiKey ?? '';
                     }
                 }
             } catch (err) {

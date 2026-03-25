@@ -204,7 +204,7 @@ export default function PowerXRay({ availableSources = [] }: { availableSources?
         const contents = await Promise.all(selectedArtifacts.map(async (art) => {
           try {
             // We expect the text content if it's a doc, or the analysis summary if it's an image
-            const text = await art.data.text();
+            const text = await art.data!.text();
             return `FILE: ${art.name}\nSUMMARY: ${art.analysis?.summary || 'No summary'}\nCONTENT_CHUNK: ${text.substring(0, 3000)}`;
           } catch (e) {
             return `FILE: ${art.name}\nMETADATA: ${JSON.stringify(art.analysis)}`;

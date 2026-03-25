@@ -460,12 +460,12 @@ export class WakeSleepAgent {
       emotionalSalience: this.biometricContext?.stressLevel ?? 0.3,
       recency: 1.0, // Maximum recency for new episodes
       accessCount: 0,
-      priority: this.priorityToNumber(task.priority),
+      priority: this.priorityToNumber(task.priority ?? 'medium'),
     };
 
     return {
       id,
-      taskId: task.id,
+      taskId: task.id ?? '',
       intent: task.intent,
       content: {
         contextPages: task.contextPages,

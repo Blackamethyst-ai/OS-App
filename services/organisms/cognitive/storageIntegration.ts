@@ -760,7 +760,7 @@ export class CognitiveStorageIntegration {
       avg_dq_score: metrics.avgDqScore,
       sleep_trigger: metrics.sleepTrigger,
       timestamp: Date.now(),
-      session_id: this.config.sessionId || null,
+      session_id: this.config.sessionId ?? '',
       synthetic_episodes: metrics.syntheticEpisodes || 0,
       cross_domain_patterns: JSON.stringify(metrics.crossDomainPatterns || []),
     };

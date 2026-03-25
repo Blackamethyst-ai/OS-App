@@ -26,7 +26,7 @@ import type { DQScore } from '../../archon/types';
 /**
  * Classification of episode learning state.
  */
-export type GoldilocksZone = 'too_easy' | 'goldilocks' | 'too_hard';
+export type GoldilocksZone = 'tooEasy' | 'goldilocks' | 'tooHard';
 
 /**
  * Learning metrics for an episode.
@@ -355,9 +355,9 @@ export class GoldilocksBuffer {
     const speed = this.computeLearningSpeed(episode);
 
     if (speed < this.config.tooHardThreshold) {
-      return 'too_hard';
+      return 'tooHard';
     } else if (speed > this.config.tooEasyThreshold) {
-      return 'too_easy';
+      return 'tooEasy';
     } else {
       return 'goldilocks';
     }
@@ -801,8 +801,8 @@ export class GoldilocksBuffer {
    * Classify zone from learning speed.
    */
   private classifyFromSpeed(speed: number): GoldilocksZone {
-    if (speed < this.config.tooHardThreshold) return 'too_hard';
-    if (speed > this.config.tooEasyThreshold) return 'too_easy';
+    if (speed < this.config.tooHardThreshold) return 'tooHard';
+    if (speed > this.config.tooEasyThreshold) return 'tooEasy';
     return 'goldilocks';
   }
 
@@ -924,7 +924,7 @@ export class GoldilocksBuffer {
   exportState(): {
     metrics: Array<[string, LearningMetrics]>;
     fisher: Array<[string, FisherInformation]>;
-    stats: typeof this.stats;
+    stats: { syntheticGenerated: number; selectionsPerformed: number; ewcApplications: number };
   } {
     return {
       metrics: Array.from(this.learningMetrics.entries()),

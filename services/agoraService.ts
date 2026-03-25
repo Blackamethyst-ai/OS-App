@@ -25,16 +25,16 @@ export async function generatePersonas(file: FileData, baselineMindset?: MentalS
                 : { skepticism: 50, excitement: 50, alignment: 50 };
 
             if (!baselineMindset) {
-                if (agent.weights.skepticism > 0.7) mindset.skepticism = 90;
-                if (agent.weights.creativity > 0.7) mindset.excitement = 90;
-                if (agent.weights.empathy > 0.7) mindset.alignment = 80;
+                if (agent.weights?.skepticism && agent.weights.skepticism > 0.7) mindset.skepticism = 90;
+                if (agent.weights?.creativity && agent.weights.creativity > 0.7) mindset.excitement = 90;
+                if (agent.weights?.empathy && agent.weights.empathy > 0.7) mindset.alignment = 80;
             }
 
             return {
                 id: agent.id,
                 name: agent.name,
                 role: agent.id.toUpperCase(),
-                bias: `Weights: Logic ${agent.weights.logic}, Skepticism ${agent.weights.skepticism}`,
+                bias: `Weights: Logic ${agent.weights?.logic}, Skepticism ${agent.weights?.skepticism}`,
                 systemPrompt: agent.systemPrompt,
                 avatar_color: colors[agent.id] || '#fff',
                 currentMindset: mindset,

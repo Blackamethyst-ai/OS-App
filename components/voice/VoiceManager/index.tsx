@@ -1163,7 +1163,7 @@ const VoiceManager: React.FC = () => {
                     return {
                         status: "CONSENSUS_FAILED",
                         error: errorMessage,
-                        lastPhase: lastStatus?.phase || 'unknown',
+                        lastPhase: (lastStatus as ACEStatus | null)?.phase || 'unknown',
                         instruction: `Consensus engine failed: ${errorMessage}. Offer to try again or analyze the question yourself.`
                     };
                 }
@@ -3341,8 +3341,8 @@ Output the code with brief explanation.`,
 
                     // Store in SovereignMemory for semantic search
                     await sovereignMemory.store(annotationId, JSON.stringify({
-                        type: 'annotation',
-                        ...newAnnotation
+                        ...newAnnotation,
+                        type: 'annotation'
                     }));
 
                     addLog('SYSTEM', `📌 ANNOTATED: ${annotationType} on ${targetItem}`);
@@ -3420,7 +3420,7 @@ Output the code with brief explanation.`,
                         // Generate contextual message
                         let message = `Mood logged, Sir.`;
                         if (typeof energy === 'number' && energy < 4) message += ' Perhaps a short break would help?';
-                        if (biometricData?.stressLevel > 50) message += ' I notice elevated stress indicators - consider a brief respite.';
+                        if ((biometricData?.stressLevel ?? 0) > 50) message += ' I notice elevated stress indicators - consider a brief respite.';
                         if (biometricData?.detectedMood && mood && biometricData.detectedMood !== mood) {
                             message += ` (Interesting: biometrics suggest ${biometricData.detectedMood}.)`;
                         }

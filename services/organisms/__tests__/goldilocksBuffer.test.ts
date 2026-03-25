@@ -165,7 +165,7 @@ describe('GoldilocksBuffer', () => {
         },
       });
       const zone = buffer.classifyEpisode(episode);
-      expect(zone).toBe('too_easy');
+      expect(zone).toBe('tooEasy');
     });
   });
 

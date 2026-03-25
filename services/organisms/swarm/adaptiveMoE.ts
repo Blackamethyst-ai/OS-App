@@ -704,7 +704,7 @@ export class AdaptiveExpertMixture {
     // Store outcome record
     const record: OutcomeRecord = {
       expertId,
-      taskId: task.id,
+      taskId: task.id ?? '',
       taskIntent: task.intent,
       specializations: [...spec.specialization],
       suitabilityScore: result.routing.suitabilityScores.get(expertId) || 0,

@@ -339,7 +339,7 @@ export function useConversationalVoice(
 
         // Start STT
         if (sttRef.current) {
-            await sttRef.current.startStreaming((text, isFinal) => {
+            await sttRef.current.startStreaming((text: string, isFinal: boolean) => {
                 setTranscript(text);
                 onPartialTranscript?.(text, !!isFinal);
 

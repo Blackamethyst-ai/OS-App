@@ -70,8 +70,8 @@ class RealtimeModeHandler implements ModeHandler {
     async handleMessage(message: LiveServerMessage, context: ModeContext): Promise<void> {
         // Handle tool calls
         if (message.toolCall && context.toolHandler) {
-            for (const fc of message.toolCall.functionCalls) {
-                await context.toolHandler(fc.name, fc.args);
+            for (const fc of message.toolCall.functionCalls ?? []) {
+                await context.toolHandler(fc.name ?? '', fc.args ?? {});
             }
         }
 

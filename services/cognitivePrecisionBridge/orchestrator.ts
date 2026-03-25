@@ -227,8 +227,8 @@ class CognitivePrecisionBridgeOrchestrator {
                 const image = images[0]; // Claude vision takes one image at a time
                 return claudeService.generateVision(
                     prompt,
-                    image.base64,
-                    image.mediaType,
+                    image.base64 ?? '',
+                    image.mediaType ?? 'image/png',
                     modelConfig.model
                 );
             }

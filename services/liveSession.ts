@@ -191,14 +191,14 @@ class LiveSession {
                     }, 'LiveSession');
 
                     if (message.toolCall) {
-                        for (const fc of message.toolCall.functionCalls) {
-                            const result = await this.onToolCall(fc.name, fc.args);
+                        for (const fc of message.toolCall.functionCalls ?? []) {
+                            const result = await this.onToolCall(fc.name ?? '', fc.args);
                             sessionPromise.then(s => s.sendToolResponse({
                                 functionResponses: { id: fc.id, name: fc.name, response: { result } }
                             }));
                         }
                     }
-                    const base64EncodedAudioString = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
+                    const base64EncodedAudioString = message.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
                     if (base64EncodedAudioString && this.audioContext && this.outputNode) {
                         // MUTE MIC: AI is about to speak
                         this.isSpeaking = true;

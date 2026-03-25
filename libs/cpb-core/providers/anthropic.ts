@@ -89,7 +89,7 @@ export function createClaudeProvider(options?: ClaudeProviderOptions): CPBProvid
             });
 
             // Extract text from response
-            const textBlock = response.content.find(block => block.type === 'text');
+            const textBlock = response.content.find((block: any) => block.type === 'text');
             if (!textBlock || textBlock.type !== 'text') {
                 throw new Error('No text response from Claude');
             }
@@ -132,8 +132,8 @@ export function createClaudeProvider(options?: ClaudeProviderOptions): CPBProvid
                     type: 'image',
                     source: {
                         type: 'base64',
-                        media_type: img.mediaType,
-                        data: img.base64,
+                        media_type: img.mediaType ?? '',
+                        data: img.base64 ?? '',
                     },
                 });
             }
@@ -152,7 +152,7 @@ export function createClaudeProvider(options?: ClaudeProviderOptions): CPBProvid
                 messages: [{ role: 'user', content }],
             });
 
-            const textBlock = response.content.find(block => block.type === 'text');
+            const textBlock = response.content.find((block: any) => block.type === 'text');
             if (!textBlock || textBlock.type !== 'text') {
                 throw new Error('No text response from Claude');
             }

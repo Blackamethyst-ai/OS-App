@@ -31,7 +31,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
             errorInfo
         });
 
-        logger.error("GLOBAL ERROR CAUGHT:", error, errorInfo.componentStack);
+        logger.error("GLOBAL ERROR CAUGHT:", error, errorInfo.componentStack ?? undefined);
     }
 
     handleReset = () => {

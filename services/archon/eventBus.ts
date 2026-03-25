@@ -174,7 +174,7 @@ class ArchonEventBus {
     }
 
     if (filter?.since) {
-      events = events.filter((e) => e.timestamp >= filter.since);
+      events = events.filter((e) => e.timestamp >= filter.since!);
     }
 
     if (filter?.limit) {

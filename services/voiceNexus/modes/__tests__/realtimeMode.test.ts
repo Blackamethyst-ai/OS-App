@@ -19,7 +19,7 @@ vi.mock('../../../liveSession', () => ({
             capturedOnAgentSwitch = handler;
         },
         get onAgentSwitch() {
-            return capturedOnAgentSwitch;
+            return capturedOnAgentSwitch!;
         }
     }
 }));
@@ -195,7 +195,7 @@ describe('RealtimeModeHandler', () => {
             });
 
             it('should skip tool calls when toolHandler missing', async () => {
-                mockContext.toolHandler = undefined;
+                mockContext.toolHandler = null;
 
                 const message = {
                     toolCall: {

@@ -922,7 +922,7 @@ export class SimpleMem {
         while (current && !visited.has(current)) {
           visited.add(current);
           chain.push(current);
-          const neighbors = graph.get(current) || [];
+          const neighbors: string[] = graph.get(current) || [];
           current = neighbors[0];
         }
         if (chain.length > 1) {

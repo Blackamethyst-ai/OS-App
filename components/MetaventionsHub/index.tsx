@@ -603,7 +603,7 @@ const MetaventionsHub: React.FC = () => {
                                                         <button onClick={handleDownloadMainAsset} className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-white shadow-2xl hover:scale-105 active:scale-95 transition-all">
                                                             <Download size={24} />
                                                         </button>
-                                                        <button onClick={(e) => { e.stopPropagation(); actions.openHoloProjector({ id: 'soc-scan', title: 'Holo Inspect', type: 'IMAGE', content: dashboard.hubViewUrl }); }} className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-[var(--cyan)] shadow-2xl hover:scale-105 active:scale-95 transition-all">
+                                                        <button onClick={(e) => { e.stopPropagation(); actions.openHoloProjector({ id: 'soc-scan', title: 'Holo Inspect', type: 'IMAGE', content: dashboard.hubViewUrl ?? undefined }); }} className="p-4 bg-black/60 hover:bg-black/80 backdrop-blur-3xl border border-white/10 rounded-2xl text-[var(--cyan)] shadow-2xl hover:scale-105 active:scale-95 transition-all">
                                                             <Maximize2 size={24} />
                                                         </button>
                                                     </div>

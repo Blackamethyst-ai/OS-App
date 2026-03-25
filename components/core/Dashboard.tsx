@@ -355,7 +355,7 @@ const Dashboard: React.FC = () => {
                                   <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/hero:opacity-100 transition-all duration-500 backdrop-blur-md z-30">
                                       <div className="flex gap-4 scale-90 group-hover/hero:scale-100 transition-transform">
                                           <button 
-                                              onClick={() => openHoloProjector({ id: 'identity', title: 'Sovereign Emergence', type: 'IMAGE', content: dashboard.identityUrl })}
+                                              onClick={() => openHoloProjector({ id: 'identity', title: 'Sovereign Emergence', type: 'IMAGE', content: dashboard.identityUrl ?? undefined })}
                                               className="p-4 glass-action rounded-full text-white"
                                           >
                                               <Maximize2 size={24} />

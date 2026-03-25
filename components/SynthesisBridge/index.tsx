@@ -13,7 +13,7 @@ import {
     FolderTree, Cloud, Globe, Network, Shield, Aperture,
     ShieldCheck, Gauge, Loader2, DatabaseZap, BookOpen
 } from 'lucide-react';
-import { Github } from 'lucide-react';
+import { GitFork as Github } from 'lucide-react';
 import { promptSelectKey, generateStructuredWorkflow } from '../../services/geminiService';
 import { KNOWLEDGE_LAYERS } from '../../data/knowledgeLayers';
 import { audio } from '../../services/audioService';

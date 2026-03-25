@@ -245,7 +245,7 @@ const MemoryCore: React.FC = () => {
     const graphNodes = useMemo(() => {
         return filteredArtifacts.map(a => ({
             id: a.id,
-            label: a.name,
+            label: a.name ?? '',
             type: 'CONCEPT' as const,
             strength: a.analysis?.ambiguityScore ? 100 - a.analysis.ambiguityScore : 70,
             connections: Array.isArray(a.tags) ? a.tags.map(t => String(t)) : [],
@@ -445,7 +445,7 @@ const MemoryCore: React.FC = () => {
                                 <h2 className="text-3xl font-black uppercase font-mono tracking-tighter truncate max-w-[360px] leading-tight group-hover:text-[var(--amethyst-soft)]">{selectedArtifact.name}</h2>
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center gap-1.5 text-[8px] font-mono text-gray-600 uppercase tracking-widest">
-                                        <Clock size={10} /> {new Date(selectedArtifact.timestamp).toLocaleTimeString()}
+                                        <Clock size={10} /> {new Date(selectedArtifact.timestamp ?? 0).toLocaleTimeString()}
                                     </div>
                                     <div className="h-3 w-px bg-white/10" />
                                     <div className="text-[8px] font-mono text-gray-600 uppercase tracking-widest">{selectedArtifact.type}</div>

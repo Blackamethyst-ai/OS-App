@@ -506,14 +506,14 @@ export const useProcessVisualizerLogic = () => {
                 // 4. Wrap Folders around their child nodes
                 const folderNodes = data.nodes.filter((n: any) => n.type === 'folder').map((f: any) => {
                     // Find children of this folder
-                    const children = rfFileNodes.filter(n => n.data.subtext.startsWith(f.path));
+                    const children = rfFileNodes.filter((n: any) => n.data.subtext.startsWith(f.path));
                     if (children.length === 0) return null;
 
                     // Compute bounding box
-                    const minX = Math.min(...children.map(c => c.position.x)) - 100;
-                    const minY = Math.min(...children.map(c => c.position.y)) - 250;
-                    const maxX = Math.max(...children.map(c => c.position.x)) + 400;
-                    const maxY = Math.max(...children.map(c => c.position.y)) + 400;
+                    const minX = Math.min(...children.map((c: any) => c.position.x)) - 100;
+                    const minY = Math.min(...children.map((c: any) => c.position.y)) - 250;
+                    const maxX = Math.max(...children.map((c: any) => c.position.x)) + 400;
+                    const maxY = Math.max(...children.map((c: any) => c.position.y)) + 400;
 
                     return {
                         id: f.id,

@@ -559,8 +559,8 @@ Respond ONLY with valid JSON (no markdown, no explanation):
     if (this.gazeHistory.length < 5) return 'FIXATED';
 
     const recent = this.gazeHistory.slice(-10);
-    const deltaXs = [];
-    const deltaYs = [];
+    const deltaXs: number[] = [];
+    const deltaYs: number[] = [];
 
     for (let i = 1; i < recent.length; i++) {
       deltaXs.push(recent[i].x - recent[i - 1].x);

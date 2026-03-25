@@ -55,7 +55,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
 
         nodes.push({
             id: hubArtifact.id,
-            label: hubArtifact.name,
+            label: hubArtifact.name ?? '',
             type: 'HUB',
             color: 'var(--cyan)',
             data: hubArtifact
@@ -66,7 +66,7 @@ const DynamicVisuals: React.FC<DynamicVisualsProps> = ({ artifacts, onSelect }) 
         otherArtifacts.forEach((art) => {
             nodes.push({
                 id: art.id,
-                label: art.name,
+                label: art.name ?? '',
                 type: 'SUBTOPIC',
                 color: 'var(--amethyst-soft)',
                 data: art

@@ -91,7 +91,7 @@ export const claudeProvider: CPBProvider = {
                 source: {
                     type: 'base64' as const,
                     media_type: img.mediaType as 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp',
-                    data: img.base64
+                    data: img.base64 ?? ''
                 }
             });
         }

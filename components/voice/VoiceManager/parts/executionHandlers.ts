@@ -1,7 +1,7 @@
 import type { Capability } from '../../../../services/capabilities';
 import type { TabNavigationResult } from '../../../../services/tabNavigationRegistry';
 
-type AddLog = (level: string, message: string) => void;
+type AddLog = (level: 'ERROR' | 'WARN' | 'SUCCESS' | 'INFO' | 'SYSTEM', message: string) => void;
 
 type LoggerLike = {
   warn: (message: string, error?: unknown, context?: string) => void;

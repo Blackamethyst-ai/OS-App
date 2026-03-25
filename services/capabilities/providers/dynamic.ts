@@ -97,10 +97,10 @@ export async function syncFromDynamicToolRegistry(): Promise<void> {
     for (const manifest of manifests) {
       if (!getCapability(`dynamic_${manifest.name}`)) {
         registerDynamicCapability(
-          manifest.name,
+          manifest.name ?? '',
           manifest.description || `Dynamic tool: ${manifest.name}`,
           async (args) => {
-            const result = await dynamicRegistry.execute(manifest.name, args);
+            const result = await dynamicRegistry.execute(manifest.name ?? '', args);
             return {
               success: result.success !== false,
               data: result,

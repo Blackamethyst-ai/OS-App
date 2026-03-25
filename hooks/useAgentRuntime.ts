@@ -58,11 +58,11 @@ export const useAgentRuntime = () => {
 
                 setState(prev => ({
                     ...prev,
-                    activeTool: toolName,
+                    activeTool: toolName ?? null,
                     history: [...prev.history, { role: 'model', content: `NEURAL_BRIDGE: Accessing [${toolName}]` }]
                 }));
 
-                const result: ToolResult = await dynamicRegistry.execute(toolName, call.args);
+                const result: ToolResult = await dynamicRegistry.execute(toolName ?? '', call.args);
 
                 setState(prev => ({
                     ...prev,

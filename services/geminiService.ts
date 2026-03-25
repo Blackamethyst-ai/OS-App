@@ -405,8 +405,8 @@ export async function generateAvatar(role: string, name: string, gender: string 
         contents: [{ text: prompt }],
         config: { imageConfig: { aspectRatio: '1:1' } }
     }));
-    const imagePart = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-    return imagePart ? `data:${imagePart.inlineData.mimeType};base64,${imagePart.inlineData.data}` : "";
+    const imagePart = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+    return imagePart ? `data:${imagePart.inlineData?.mimeType};base64,${imagePart.inlineData?.data}` : "";
 }
 
 // ... (Continuing pattern for all other functions with safe getAI() and advanced models) ...
@@ -491,8 +491,8 @@ export async function generateXRayVariant(data: FileData) {
         model: 'gemini-2.0-flash',
         contents: { parts: [{ inlineData: data.inlineData }, { text: "Thermal X-ray variant." }] },
     }));
-    const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-    return part ? `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` : "";
+    const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+    return part ? `data:${part.inlineData?.mimeType};base64,${part.inlineData?.data}` : "";
 }
 
 export async function generateIsometricSchematic(data: FileData) {
@@ -501,8 +501,8 @@ export async function generateIsometricSchematic(data: FileData) {
         model: 'gemini-2.0-flash',
         contents: { parts: [{ inlineData: data.inlineData }, { text: "3D isometric view." }] },
     }));
-    const part = response.candidates?.[0]?.content?.parts.find(p => p.inlineData);
-    return part ? `data:${part.inlineData.mimeType};base64,${part.inlineData.data}` : "";
+    const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+    return part ? `data:${part.inlineData?.mimeType};base64,${part.inlineData?.data}` : "";
 }
 
 export async function getLiveSupplyChainData(componentName: string) {
@@ -621,7 +621,7 @@ export async function generateSpeech(text: string, voice: string) {
             speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } }
         }
     }));
-    const part = response.candidates?.[0]?.content?.parts[0];
+    const part = response.candidates?.[0]?.content?.parts?.[0];
     return part?.inlineData?.data || "";
 }
 
@@ -1115,7 +1115,7 @@ export async function generateVideo(
         // Extract video from response
         const videoPart = response.candidates?.[0]?.content?.parts?.find(
             (p): p is { inlineData: { mimeType: string; data: string } } =>
-                'inlineData' in p && p.inlineData?.mimeType?.startsWith('video/')
+                !!('inlineData' in p && p.inlineData?.mimeType?.startsWith('video/'))
         );
 
         if (videoPart?.inlineData) {

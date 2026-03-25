@@ -114,8 +114,8 @@ export function createGeminiProvider(options?: GeminiProviderOptions): CPBProvid
             for (const img of images) {
                 contents.push({
                     inlineData: {
-                        mimeType: img.mediaType,
-                        data: img.base64,
+                        mimeType: img.mediaType ?? '',
+                        data: img.base64 ?? '',
                     },
                 });
             }
