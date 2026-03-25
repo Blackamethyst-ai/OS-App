@@ -1,5 +1,5 @@
 
-import React, { useEffect, Suspense, lazy } from 'react';
+import React, { useEffect, useState, useCallback, Suspense, lazy } from 'react';
 import { useAppStore } from './store';
 import { useShallow } from 'zustand/react/shallow';
 import { useSystemMind } from './stores/useSystemMind';
@@ -26,12 +26,15 @@ import { useKernelLifecycle } from './hooks/useKernelLifecycle';
 import { useTimeTravel } from './hooks/useTimeTravel';
 import { useAuthPersistence } from './hooks/useAuthPersistence';
 import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
+import { useIsMobile } from './hooks/useMobileDetect';
+import { useNavigation } from './hooks/useNavigation';
 import { hasFixedLayout } from './config/navigation';
 import { audio } from './services/audioService';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
 import { cn } from './utils/cn';
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import AppHeader from './components/layout/AppHeader';
+import { Menu } from 'lucide-react';
 
 // Lazy-loaded components (conditionally rendered, not needed on first paint)
 const HelpCenter = lazy(() => import('./components/HelpCenter'));
@@ -78,6 +81,19 @@ const App: React.FC = () => {
         isSidebarOpen: s.isSidebarOpen,
         isHUDClosed: s.isHUDClosed,
     })));
+
+    // Mobile responsive state
+    const isMobile = useIsMobile();
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    // Close mobile menu on route change
+    useEffect(() => {
+        const handleHashChange = () => setMobileMenuOpen(false);
+        window.addEventListener('hashchange', handleHashChange);
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    }, []);
+
+    const closeMobileMenu = useCallback(() => setMobileMenuOpen(false), []);
 
     // Prediction demo toggle (via URL param: ?demo=predictions)
     const [showPredictionDemo, setShowPredictionDemo] = React.useState(() => {
@@ -136,6 +152,12 @@ const App: React.FC = () => {
                 )}
                 style={{ backgroundColor: 'var(--bg-app)', color: 'var(--text-primary)', ...themeVars as any }}
             >
+                <a
+                    href="#main-content"
+                    className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-[var(--amethyst)] focus:text-white focus:rounded-lg focus:text-sm focus:font-mono"
+                >
+                    Skip to main content
+                </a>
                 <Suspense fallback={null}><MasterStabilizationProtocol /></Suspense>
                 <Starfield mode={mode} />
                 <BackgroundEffect isDarkMode={theme !== AppTheme.LIGHT} />
@@ -213,14 +235,30 @@ const App: React.FC = () => {
                             )}
                         </AnimatePresence>
 
-                        <AppHeader />
+                        {/* Mobile Header Bar — hamburger + title (mobile only) */}
+                        <div className="flex md:hidden items-center justify-between h-14 px-4 bg-[var(--bg-header)] border-b border-[var(--border-main)] backdrop-blur-3xl z-[100] shrink-0">
+                            <button
+                                onClick={() => setMobileMenuOpen(true)}
+                                className="p-2 rounded-xl border border-white/10 bg-black/40 text-gray-400 hover:text-white hover:border-[var(--amethyst-soft)]/40 transition-all"
+                                aria-label="Open menu"
+                            >
+                                <Menu size={22} />
+                            </button>
+                            <span className="text-xs font-black font-mono text-white/80 uppercase tracking-[0.2em]">Metaventions OS</span>
+                            <div className="w-10" />
+                        </div>
+
+                        {/* Desktop Header (hidden on mobile) */}
+                        <div className="hidden md:block">
+                            <AppHeader />
+                        </div>
 
                         {/* OS Kernel Dock Layer */}
                         <GlobalStatusBar />
 
-                        <div className="flex-1 flex overflow-hidden relative">
+                        <div id="main-content" className="flex-1 flex overflow-hidden relative">
                             <div className={cn(
-                                "flex-1 relative flex flex-col min-h-0 transition-all duration-1000 main-content-layer",
+                                "w-full flex-1 relative flex flex-col min-h-0 transition-all duration-1000 main-content-layer",
                                 isFixedLayout ? 'pb-0 overflow-hidden' : 'pb-1 overflow-y-auto no-scrollbar'
                             )}
                                 style={{
@@ -231,8 +269,9 @@ const App: React.FC = () => {
                                 <SynapticRouter />
                             </div>
 
+                            {/* Desktop sidebar */}
                             <AnimatePresence>
-                                {isSidebarOpen && (
+                                {isSidebarOpen && !isMobile && (
                                     <Suspense fallback={null}>
                                         <OperationalSidebar />
                                     </Suspense>
@@ -240,11 +279,93 @@ const App: React.FC = () => {
                             </AnimatePresence>
                         </div>
 
+                        {/* Mobile sidebar overlay */}
+                        <AnimatePresence>
+                            {mobileMenuOpen && isMobile && (
+                                <>
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        transition={{ duration: 0.2 }}
+                                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[998]"
+                                        onClick={closeMobileMenu}
+                                    />
+                                    <motion.div
+                                        initial={{ x: '-100%' }}
+                                        animate={{ x: 0 }}
+                                        exit={{ x: '-100%' }}
+                                        transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                        className="fixed top-0 left-0 bottom-0 w-[85vw] max-w-[380px] z-[999] bg-[#0a0a0c]/95 backdrop-blur-3xl border-r border-white/10 shadow-2xl flex flex-col"
+                                    >
+                                        <div className="h-14 border-b border-white/5 flex items-center justify-between px-5 bg-black/20 shrink-0">
+                                            <span className="text-xs font-black font-mono text-white uppercase tracking-[0.2em]">Navigation</span>
+                                            <button onClick={closeMobileMenu} className="text-gray-500 hover:text-white transition-colors p-1">
+                                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                                            </button>
+                                        </div>
+                                        <MobileNavContent onClose={closeMobileMenu} />
+                                    </motion.div>
+                                </>
+                            )}
+                        </AnimatePresence>
+
                         <AppFooter />
                     </>
                 )}
             </div>
         </GlobalErrorBoundary>
+    );
+};
+
+/** Mobile slide-in navigation panel */
+const MobileNavContent: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+    const mode = useAppStore(s => s.mode);
+    const actions = useAppStore(s => s.actions);
+    const { navItems } = useNavigation();
+
+    return (
+        <div className="flex-1 overflow-y-auto no-scrollbar py-4 px-3">
+            <div className="space-y-1">
+                {navItems.map((item) => (
+                    <button
+                        key={item.id}
+                        onClick={() => {
+                            window.location.hash = item.path;
+                            audio.playClick();
+                            onClose();
+                        }}
+                        className={cn(
+                            "w-full text-left px-4 py-3.5 rounded-xl transition-all duration-300 flex items-center gap-3",
+                            mode === item.id
+                                ? "bg-white/[0.06] text-[var(--cyan)] border border-[var(--cyan)]/20"
+                                : "text-gray-400 hover:bg-white/[0.04] hover:text-white border border-transparent"
+                        )}
+                    >
+                        <span className="text-[11px] font-black font-mono uppercase tracking-[0.15em]">
+                            {item.label}
+                        </span>
+                        {mode === item.id && (
+                            <div className="w-1.5 h-1.5 rounded-full bg-[var(--cyan)] shadow-[0_0_6px_var(--cyan)] ml-auto" />
+                        )}
+                    </button>
+                ))}
+            </div>
+
+            {/* Sidebar toggle in mobile menu */}
+            <div className="mt-8 px-2">
+                <div className="h-px bg-white/5 mb-4" />
+                <button
+                    onClick={() => {
+                        actions.setSidebarOpen(true);
+                        onClose();
+                    }}
+                    className="w-full text-left px-4 py-3 rounded-xl text-gray-500 hover:text-white hover:bg-white/[0.04] transition-all border border-transparent hover:border-white/5 flex items-center gap-3"
+                >
+                    <span className="text-[10px] font-black font-mono uppercase tracking-[0.15em]">Operational Suite</span>
+                </button>
+            </div>
+        </div>
     );
 };
 

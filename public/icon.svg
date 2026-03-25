@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#0a0a0a"/>
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7B2CFF"/>
+      <stop offset="100%" stop-color="#18E6FF"/>
+    </linearGradient>
+  </defs>
+  <!-- Main chevron matching MetaventionsLogo: M50 15L15 85H30L50 45L70 85H85L50 15Z scaled to 512 -->
+  <path d="M256 77L77 435H154L256 230L358 435H435L256 77Z" fill="url(#g)"/>
+  <!-- Inner delta glow -->
+  <path d="M215 435L256 369L297 435H215Z" fill="#f0f0ff" opacity="0.8"/>
+</svg>

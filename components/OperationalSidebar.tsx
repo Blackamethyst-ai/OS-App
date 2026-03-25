@@ -7,7 +7,9 @@ import ResearchTray from './research/ResearchTray';
 const OperationalSidebar: React.FC = () => {
     const actions = useAppStore(s => s.actions);
     return (
-        <motion.aside
+        <motion.nav
+            role="navigation"
+            aria-label="Operational sidebar"
             initial={{ x: 450, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: 450, opacity: 0 }}
@@ -22,7 +24,7 @@ const OperationalSidebar: React.FC = () => {
                     </div>
                     <span className="text-xs font-black font-mono text-white uppercase tracking-[0.3em]">Operational Suite</span>
                 </div>
-                <button onClick={() => actions.setSidebarOpen(false)} className="text-gray-500 hover:text-white transition-colors">
+                <button onClick={() => actions.setSidebarOpen(false)} aria-label="Close sidebar" className="text-gray-500 hover:text-white transition-colors">
                     <X size={20} />
                 </button>
             </div>
@@ -54,7 +56,7 @@ const OperationalSidebar: React.FC = () => {
                 </div>
                 <span>Zenith_OS_v1.0</span>
             </div>
-        </motion.aside>
+        </motion.nav>
     );
 };
 

@@ -46,7 +46,7 @@ export class GlobalErrorBoundary extends Component<Props, State> {
             }
 
             return (
-                <div className="fixed inset-0 z-[9999] bg-[#020204] flex flex-col items-center justify-center text-[var(--cyan)] font-mono p-8">
+                <div role="alert" aria-live="assertive" className="fixed inset-0 z-[9999] bg-[#020204] flex flex-col items-center justify-center text-[var(--cyan)] font-mono p-8">
                     <div className="w-full max-w-2xl border border-[var(--amethyst)]/50 bg-black/80 rounded-2xl p-8 shadow-[0_0_100px_rgba(123,44,255,0.2)] backdrop-blur-xl relative overflow-hidden">
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[var(--amethyst)] via-[var(--cyan)] to-[var(--amethyst)] opacity-50" />
 

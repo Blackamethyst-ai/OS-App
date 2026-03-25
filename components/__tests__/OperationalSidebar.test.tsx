@@ -11,6 +11,7 @@ vi.mock('motion/react', () => ({
   motion: {
     div: 'div',
     aside: 'aside',
+    nav: 'nav',
     span: 'span',
     button: 'button',
   },

@@ -52,7 +52,7 @@ export class RouteErrorBoundary extends Component<RouteErrorBoundaryProps, Route
     render() {
         if (this.state.hasError) {
             return (
-                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+                <div role="alert" aria-live="assertive" className="flex-1 flex flex-col items-center justify-center p-8 text-center">
                     <div className="w-full max-w-lg border border-[var(--amethyst)]/30 bg-[var(--obsidian,#020204)]/80 rounded-2xl p-8 backdrop-blur-xl shadow-[0_0_60px_rgba(123,44,255,0.15)]">
                         {/* Top accent bar */}
                         <div className="absolute top-0 left-0 w-full h-0.5 bg-gradient-to-r from-transparent via-[var(--amethyst)] to-transparent opacity-60 rounded-t-2xl" />

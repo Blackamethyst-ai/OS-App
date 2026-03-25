@@ -1,5 +1,8 @@
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import '@fontsource-variable/inter';
+import '@fontsource-variable/fira-code';
+import './styles/main.css';
 import App from './App';
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import { initializeCapabilities } from './services/capabilities';

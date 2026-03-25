@@ -94,7 +94,7 @@ const PanelErrorFallback: React.FC<{ sectorName: string }> = ({ sectorName }) =>
     }, []);
 
     return (
-        <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
+        <div role="alert" aria-live="assertive" className="flex-1 flex flex-col items-center justify-center p-8 text-center">
             <div className="w-full max-w-lg border border-[var(--amethyst)]/30 bg-black/60 rounded-2xl p-8 backdrop-blur-xl">
                 <div className="flex items-center justify-center gap-3 mb-6">
                     <AlertTriangle size={32} className="text-[var(--amethyst)]" />
@@ -191,12 +191,14 @@ const SynapticRouter: React.FC = () => {
     , [mode]);
 
     return (
-        <div className="flex-1 relative overflow-hidden flex flex-col perspective-2000">
+        <div id="main-content" className="flex-1 relative overflow-hidden flex flex-col perspective-2000">
             <Suspense fallback={<SectorSkeleton />}>
                 {/* Fix: Changed mode from 'popLayout' to 'wait' to eliminate the multiple window overlap during sector shifts */}
                 <AnimatePresence mode="wait" initial={false}>
                     <motion.main
                         key={mode}
+                        role="main"
+                        aria-live="polite"
                         layoutId="synaptic-sector"
                         initial={{ 
                             opacity: 0, 

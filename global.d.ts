@@ -28,3 +28,7 @@ interface ImportMetaEnv {
 interface ImportMeta {
     readonly env: ImportMetaEnv;
 }
+
+// Self-hosted font packages (CSS-only, no exports)
+declare module '@fontsource-variable/inter';
+declare module '@fontsource-variable/fira-code';

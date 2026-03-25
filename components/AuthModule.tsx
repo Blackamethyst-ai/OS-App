@@ -105,6 +105,7 @@ const AuthModule: React.FC = () => {
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.4, duration: 0.5 }}
                         onSubmit={handleAuth}
+                        aria-label="Authentication form"
                         className="space-y-5"
                     >
                         <div className="space-y-3">
@@ -115,6 +116,7 @@ const AuthModule: React.FC = () => {
                                     value={credentials.username}
                                     onChange={e => setCredentials({ ...credentials, username: e.target.value })}
                                     aria-label="Operator ID"
+                                    aria-describedby={error ? 'auth-error' : undefined}
                                     className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-11 py-3.5 text-sm text-white font-mono focus:border-[var(--amethyst)]/60 focus:bg-white/[0.05] outline-none transition-all duration-300 placeholder-white/15"
                                     placeholder="Operator ID"
                                 />
@@ -128,6 +130,7 @@ const AuthModule: React.FC = () => {
                                     value={credentials.password}
                                     onChange={e => setCredentials({ ...credentials, password: e.target.value })}
                                     aria-label="Passphrase"
+                                    aria-describedby={error ? 'auth-error' : undefined}
                                     className="w-full bg-white/[0.03] border border-white/[0.08] rounded-xl px-11 py-3.5 text-sm text-white font-mono focus:border-[var(--amethyst)]/60 focus:bg-white/[0.05] outline-none transition-all duration-300 placeholder-white/15"
                                     placeholder="Passphrase"
                                 />
@@ -154,6 +157,9 @@ const AuthModule: React.FC = () => {
                             <motion.div
                                 initial={{ opacity: 0, y: -8 }}
                                 animate={{ opacity: 1, y: 0 }}
+                                role="alert"
+                                aria-live="assertive"
+                                id="auth-error"
                                 className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400/90 text-[11px] font-mono text-center"
                             >
                                 {error}
