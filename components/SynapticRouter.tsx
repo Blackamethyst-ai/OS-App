@@ -11,6 +11,7 @@ import { performGlobalSearch } from '../services/geminiService';
 import { AppMode } from '../types';
 import { audio } from '../services/audioService';
 import { GlobalErrorBoundary } from './GlobalErrorBoundary';
+import { RouteErrorBoundary } from './RouteErrorBoundary';
 
 // Lazy Load Views for performance
 const Dashboard = lazy(() => import('./core/Dashboard'));
@@ -204,25 +205,101 @@ const SynapticRouter: React.FC = () => {
                         }`}
                     >
                         <GlobalErrorBoundary fallback={<PanelErrorFallback sectorName={mode} />}>
-                            {mode === AppMode.DASHBOARD && <Dashboard />}
-                            {mode === AppMode.METAVENTIONS_HUB && <MetaventionsHub />}
-                            {mode === AppMode.SYNTHESIS_BRIDGE && <SynthesisBridge />}
-                            {mode === AppMode.BIBLIOMORPHIC && <BibliomorphicEngine />}
-                            {mode === AppMode.PROCESS_MAP && <ProcessVisualizer />}
-                            {mode === AppMode.MEMORY_CORE && <MemoryCore />}
-                            {mode === AppMode.IMAGE_GEN && <ImageGen className="h-full flex-1" />}
-                            {mode === AppMode.HARDWARE_ENGINEER && <HardwareEngine />}
-                            {mode === AppMode.VOICE_MODE && <VoiceMode />}
-                            {mode === AppMode.CODE_STUDIO && <CodeStudio />}
-                            {mode === AppMode.AGENT_CONTROL && <AgentControlCenter />}
-                            {mode === AppMode.AUTONOMOUS_FINANCE && <AutonomousFinance />}
-                            {mode === AppMode.NEXUS && <NexusAPIExplorer />}
-                            {mode === AppMode.BICAMERAL && <BicameralEngine />}
-                            {mode === AppMode.AGENT_CORE_TEST && <AgentCoreTest />}
-                            {mode === AppMode.CPB_TEST && <CPBTest />}
-                            {mode === AppMode.ARCHON && <ArchonDashboard />}
-                            {mode === AppMode.META_LEARNING && <MetaLearningDashboard />}
-                            {mode === AppMode.SOVEREIGN_GALLERY && <SovereignGallery />}
+                            {mode === AppMode.DASHBOARD && (
+                                <RouteErrorBoundary sector="Dashboard">
+                                    <Dashboard />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.METAVENTIONS_HUB && (
+                                <RouteErrorBoundary sector="Metaventions Hub">
+                                    <MetaventionsHub />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.SYNTHESIS_BRIDGE && (
+                                <RouteErrorBoundary sector="Synthesis Bridge">
+                                    <SynthesisBridge />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.BIBLIOMORPHIC && (
+                                <RouteErrorBoundary sector="Bibliomorphic Engine">
+                                    <BibliomorphicEngine />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.PROCESS_MAP && (
+                                <RouteErrorBoundary sector="Process Visualizer">
+                                    <ProcessVisualizer />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.MEMORY_CORE && (
+                                <RouteErrorBoundary sector="Memory Core">
+                                    <MemoryCore />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.IMAGE_GEN && (
+                                <RouteErrorBoundary sector="Image Generation">
+                                    <ImageGen className="h-full flex-1" />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.HARDWARE_ENGINEER && (
+                                <RouteErrorBoundary sector="Hardware Engine">
+                                    <HardwareEngine />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.VOICE_MODE && (
+                                <RouteErrorBoundary sector="Voice Mode">
+                                    <VoiceMode />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.CODE_STUDIO && (
+                                <RouteErrorBoundary sector="Code Studio">
+                                    <CodeStudio />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.AGENT_CONTROL && (
+                                <RouteErrorBoundary sector="Agent Control Center">
+                                    <AgentControlCenter />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.AUTONOMOUS_FINANCE && (
+                                <RouteErrorBoundary sector="Autonomous Finance">
+                                    <AutonomousFinance />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.NEXUS && (
+                                <RouteErrorBoundary sector="Nexus API Explorer">
+                                    <NexusAPIExplorer />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.BICAMERAL && (
+                                <RouteErrorBoundary sector="Bicameral Engine">
+                                    <BicameralEngine />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.AGENT_CORE_TEST && (
+                                <RouteErrorBoundary sector="Agent Core Test">
+                                    <AgentCoreTest />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.CPB_TEST && (
+                                <RouteErrorBoundary sector="CPB Test">
+                                    <CPBTest />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.ARCHON && (
+                                <RouteErrorBoundary sector="Archon Dashboard">
+                                    <ArchonDashboard />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.META_LEARNING && (
+                                <RouteErrorBoundary sector="Meta Learning">
+                                    <MetaLearningDashboard />
+                                </RouteErrorBoundary>
+                            )}
+                            {mode === AppMode.SOVEREIGN_GALLERY && (
+                                <RouteErrorBoundary sector="Sovereign Gallery">
+                                    <SovereignGallery />
+                                </RouteErrorBoundary>
+                            )}
                         </GlobalErrorBoundary>
                     </motion.main>
                 </AnimatePresence>

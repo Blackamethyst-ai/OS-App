@@ -5,6 +5,7 @@
  */
 
 import { encrypt, decrypt, hashPassword, verifyPassword } from '../utils/cryptoService';
+import { GoogleGenAI } from '@google/genai';
 import { logger } from './logger';
 
 export interface ApiKeyConfig {
@@ -339,7 +340,6 @@ class ApiKeyService {
      */
     async validateGeminiKey(key: string): Promise<{ valid: boolean; error?: string }> {
         try {
-            const { GoogleGenAI } = await import('@google/genai');
             const ai = new GoogleGenAI({ apiKey: key });
 
             // Test with a minimal request

@@ -9,6 +9,7 @@ import { Modality, LiveServerMessage, Blob as GenAIBlob } from "@google/genai";
 import { getAI, SOVEREIGN_SYSTEM_INSTRUCTION } from './geminiService';
 import { HIVE_AGENTS } from './agents';
 import { logger } from './logger';
+import { apiKeyService } from './apiKeyService';
 
 // --- Audio Utilities ---
 
@@ -118,7 +119,6 @@ class LiveSession {
 
     async connect(agentName: string, config: LiveSessionConfig): Promise<void> {
         // Pre-flight: Check API key before attempting connection
-        const { apiKeyService } = await import('./apiKeyService');
         if (!apiKeyService.hasGeminiKey()) {
             const error = new Error('Gemini API key not configured. Go to Settings > API Keys to add it.');
             if (config.callbacks?.onerror) config.callbacks.onerror(error);

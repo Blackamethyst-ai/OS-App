@@ -1,6 +1,7 @@
 import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
+import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
 
 export default defineConfig(({ mode }) => {
@@ -31,6 +32,37 @@ export default defineConfig(({ mode }) => {
           return html;
         }
       },
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'robots.txt'],
+        manifest: {
+          name: 'Metaventions AI',
+          short_name: 'Metaventions',
+          description: 'Sovereign AI Platform',
+          theme_color: '#0a0a0a',
+          background_color: '#0a0a0a',
+          display: 'standalone',
+          start_url: '/',
+          icons: [
+            {
+              src: '/pwa-192x192.png',
+              sizes: '192x192',
+              type: 'image/png',
+            },
+            {
+              src: '/pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+            },
+            {
+              src: '/pwa-512x512.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'any maskable',
+            },
+          ],
+        },
+      }),
       visualizer({
         filename: 'dist/stats.html',
         gzipSize: true,
@@ -111,12 +143,29 @@ export default defineConfig(({ mode }) => {
 
             // App-level service splitting — reduce main entry chunk
             const appRoot = rootPath + '/';
+            if (id.includes('geminiService')) console.log('[CHUNK-DEBUG] gemini id:', id);
+            if (id.includes('store') && !id.includes('node_modules') && !id.includes('external-store')) console.log('[CHUNK-DEBUG] store id:', id);
             if (id.startsWith(appRoot)) {
               const rel = id.slice(appRoot.length);
               if (rel.startsWith('services/organisms/')) return 'app-organisms';
               if (rel.startsWith('services/voiceNexus/')) return 'app-voice';
               if (rel.startsWith('services/kernel/')) return 'app-kernel';
-              if (rel.startsWith('services/capabilities/') || rel.startsWith('services/actions/')) return 'app-capabilities';
+              // Capabilities sub-chunks (was single 985KB app-capabilities)
+              if (rel.startsWith('services/capabilities/adapters/')) return 'app-capabilities-adapters';
+              if (rel.startsWith('services/capabilities/providers/')) return 'app-capabilities-providers';
+              if (rel === 'services/capabilities/cpb.ts') return 'app-capabilities-cpb';
+              if (rel === 'services/capabilities/registry.ts' || rel === 'services/capabilities/types.ts') return 'app-capabilities-registry';
+              if (rel.startsWith('services/capabilities/')) return 'app-capabilities';
+              // Actions sub-chunks by handler type
+              if (rel.startsWith('services/actions/handlers/sovereign.ts')) return 'app-actions-sovereign';
+              if (rel.startsWith('services/actions/handlers/generation.ts')) return 'app-actions-generation';
+              if (rel.startsWith('services/actions/handlers/analysis.ts')) return 'app-actions-analysis';
+              if (rel.startsWith('services/actions/handlers/')) return 'app-actions-handlers';
+              if (rel.startsWith('services/actions/')) return 'app-actions';
+              // Heavy shared services — isolate so they don't inflate consumer chunks
+              if (rel === 'services/geminiService.ts') return 'app-gemini';
+              if (rel === 'store.ts') return 'app-store';
+              if (rel.startsWith('services/archon/')) return 'app-archon';
               if (rel.startsWith('services/cognitivePrecisionBridge/')) return 'app-cpb';
               if (rel.startsWith('services/ui/')) return 'app-ui';
               if (rel.startsWith('services/memory/')) return 'app-memory';

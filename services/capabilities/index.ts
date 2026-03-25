@@ -198,6 +198,11 @@ export {
 // ============================================================================
 
 import { logger } from '../logger';
+import { isInitialized, markInitialized, getStats } from './registry';
+import { loadTabCapabilities } from './providers/tabs';
+import { loadActionCapabilities } from './providers/actions';
+import { loadUICapabilities } from './providers/ui';
+import { syncFromDynamicToolRegistry } from './providers/dynamic';
 
 let initPromise: Promise<void> | null = null;
 
@@ -216,8 +221,6 @@ export async function initializeCapabilities(): Promise<void> {
   if (initPromise) return initPromise;
 
   initPromise = (async () => {
-    const { isInitialized, markInitialized } = await import('./registry');
-
     if (isInitialized()) {
       logger.debug('Already initialized', undefined, 'CapabilityRegistry');
       return;
@@ -228,7 +231,6 @@ export async function initializeCapabilities(): Promise<void> {
 
     try {
       // Load tab capabilities
-      const { loadTabCapabilities } = await import('./providers/tabs');
       loadTabCapabilities();
     } catch (error) {
       logger.warn('Failed to load tab capabilities', error, 'CapabilityRegistry');
@@ -236,7 +238,6 @@ export async function initializeCapabilities(): Promise<void> {
 
     try {
       // Load action capabilities
-      const { loadActionCapabilities } = await import('./providers/actions');
       loadActionCapabilities();
     } catch (error) {
       logger.warn('Failed to load action capabilities', error, 'CapabilityRegistry');
@@ -244,7 +245,6 @@ export async function initializeCapabilities(): Promise<void> {
 
     try {
       // Load UI capabilities (theme, voice toggle, etc.)
-      const { loadUICapabilities } = await import('./providers/ui');
       loadUICapabilities();
     } catch (error) {
       logger.warn('Failed to load UI capabilities', error, 'CapabilityRegistry');
@@ -252,7 +252,6 @@ export async function initializeCapabilities(): Promise<void> {
 
     try {
       // Sync dynamic tools
-      const { syncFromDynamicToolRegistry } = await import('./providers/dynamic');
       await syncFromDynamicToolRegistry();
     } catch (error) {
       logger.warn('Failed to sync dynamic tools', error, 'CapabilityRegistry');
@@ -260,7 +259,6 @@ export async function initializeCapabilities(): Promise<void> {
 
     markInitialized();
 
-    const { getStats } = await import('./registry');
     const stats = getStats();
     const elapsed = (performance.now() - startTime).toFixed(1);
 
