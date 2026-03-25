@@ -102,7 +102,7 @@ describe('LiveSession', () => {
     expect(mockGetAI).toHaveBeenCalled();
     expect(mockConnect).toHaveBeenCalledWith(
       expect.objectContaining({
-        model: 'gemini-live-2.5-flash-preview',
+        model: 'gemini-2.5-flash-preview-native-audio-dialog',
       })
     );
   }, 20000);

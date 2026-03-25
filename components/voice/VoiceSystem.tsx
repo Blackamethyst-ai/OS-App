@@ -78,7 +78,7 @@ const VoiceSystem: React.FC<VoiceSystemProps> = ({
             {/* Conversational Voice Orb (Deepgram + Claude + ElevenLabs + VAD) */}
             {(mode === 'conversational' || showConversationalOrb) && isConversationalReady && (
                 <ConversationalVoiceOrb
-                    supabaseClient={supabase}
+                    supabaseClient={supabase ?? undefined}
                     elevenLabsApiKey={elevenLabsApiKey}
                     voice="mike"
                     enableVAD={true}

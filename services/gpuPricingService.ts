@@ -31,6 +31,7 @@ const STORAGE_KEY = 'gpu_price_cache';
  */
 function initCache(): PriceCache {
     try {
+        if (typeof localStorage === 'undefined') return {};
         const stored = localStorage.getItem(STORAGE_KEY);
         if (stored) {
             const parsed = JSON.parse(stored) as PriceCache;
@@ -55,6 +56,7 @@ function initCache(): PriceCache {
  */
 function persistCache(cache: PriceCache): void {
     try {
+        if (typeof localStorage === 'undefined') return;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(cache));
     } catch (e) {
         logger.warn('Failed to persist cache', e, 'GPU Pricing');
@@ -115,7 +117,7 @@ async function fetchGeminiPrice(gpuModel: string, msrp: number): Promise<LiveGpu
         const ai = getAI();
         const response = await retryGeminiRequest<GenerateContentResponse>(() =>
             ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-2.5-flash',
                 contents: `Find the current market price for "${gpuModel}" GPU in January 2026.
 
 Search for:

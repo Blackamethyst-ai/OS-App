@@ -215,7 +215,7 @@ Output format:
 - Pattern identified
 - Optimization opportunity
 - Confidence (0-1)`,
-                'gemini-2.0-flash',
+                'gemini-2.5-flash',
                 'You are an AI systems analyst identifying patterns in user behavior and system operations.'
             );
 
@@ -251,7 +251,7 @@ Output format:
                 `Based on current mode "${currentMode}" and recent activity: "${recentLogs}"
                 
 Predict the user's likely next 3 actions and why. Format as brief bullet points.`,
-                'gemini-2.0-flash',
+                'gemini-2.5-flash',
                 'You are a predictive AI that anticipates user needs.'
             );
 

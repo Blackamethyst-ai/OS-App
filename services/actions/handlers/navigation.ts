@@ -42,6 +42,12 @@ const SECTOR_MAP: Record<string, AppMode> = {
   'TREASURY': AppMode.AUTONOMOUS_FINANCE,
   'ARCHON': AppMode.ARCHON,
   'GOD': AppMode.ARCHON,
+  'META_LEARNING': AppMode.META_LEARNING,
+  'PREDICTIONS': AppMode.META_LEARNING,
+  'SOVEREIGN_GALLERY': AppMode.SOVEREIGN_GALLERY,
+  'GALLERY': AppMode.SOVEREIGN_GALLERY,
+  'NEXUS': AppMode.NEXUS,
+  'API': AppMode.NEXUS,
 };
 
 export const NAVIGATION_ACTIONS: UnifiedAction[] = [

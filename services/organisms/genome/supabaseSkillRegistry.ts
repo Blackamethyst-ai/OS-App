@@ -96,7 +96,7 @@ export class SupabaseSkillRegistry implements SkillRegistry {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabase!
         .from('genome_skills')
         .select('*')
         .order('created_at', { ascending: true });
@@ -210,7 +210,7 @@ export class SupabaseSkillRegistry implements SkillRegistry {
       updated_at: skill.updatedAt,
     };
 
-    const { error } = await supabase.from('genome_skills').upsert(row, {
+    const { error } = await supabase!.from('genome_skills').upsert(row, {
       onConflict: 'id',
     });
 
@@ -220,7 +220,7 @@ export class SupabaseSkillRegistry implements SkillRegistry {
   }
 
   private async deleteFromSupabase(skillId: string): Promise<void> {
-    const { error } = await supabase.from('genome_skills').delete().eq('id', skillId);
+    const { error } = await supabase!.from('genome_skills').delete().eq('id', skillId);
 
     if (error) {
       throw error;
@@ -229,7 +229,7 @@ export class SupabaseSkillRegistry implements SkillRegistry {
 
   private async clearSupabase(): Promise<void> {
     // Delete all skills (use with caution!)
-    const { error } = await supabase.from('genome_skills').delete().neq('id', '');
+    const { error } = await supabase!.from('genome_skills').delete().neq('id', '');
 
     if (error) {
       throw error;

@@ -421,8 +421,8 @@ export function isDeepgramSTTAvailable(options?: { apiKey?: string; supabaseClie
     if (options) {
         return !!(options.apiKey || options.supabaseClient || options.tokenEndpoint) && typeof WebSocket !== 'undefined';
     }
-    // Check for environment variable as fallback
-    const envKey = typeof process !== 'undefined' ? process.env?.DEEPGRAM_API_KEY : undefined;
+    // Check for environment variable as fallback (Vite browser builds use import.meta.env)
+    const envKey = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_DEEPGRAM_API_KEY : undefined;
     return !!envKey && typeof WebSocket !== 'undefined';
 }
 

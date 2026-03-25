@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { cpbExecute, cpbExecutePath } from '../services/cognitivePrecisionBridge';
 import type { CPBPath, CPBStatus, CPBResult } from '../services/cognitivePrecisionBridge/types';
-import { CPBMonitorPanel, CPBStatusBadge } from '../.graveyard/CPBMonitor';
+import { CPBMonitorPanel, CPBStatusBadge } from './CPBMonitor';
 import { useAppStore } from '../store';
 
 const PATH_OPTIONS: { value: CPBPath; label: string; icon: React.ReactNode; description: string }[] = [

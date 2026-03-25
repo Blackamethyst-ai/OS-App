@@ -23,6 +23,10 @@ vi.mock('../logger', () => ({
   },
 }));
 
+// Ensure env vars are set so supabase client is created (not null)
+vi.stubEnv('VITE_SUPABASE_URL', 'https://test.supabase.co');
+vi.stubEnv('VITE_SUPABASE_ANON_KEY', 'test-anon-key');
+
 /**
  * Build a thenable chain mock that supports all Supabase query patterns.
  * Every method returns the chain. The chain is thenable so `await chain.method()` works

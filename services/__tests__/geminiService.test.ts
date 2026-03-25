@@ -151,7 +151,7 @@ describe('geminiService', () => {
       const result = await retryGeminiRequest(fn, 3, 10);
       expect(result).toEqual({ text: 'success' });
       expect(fn).toHaveBeenCalledTimes(1);
-      expect(mockRecordCall).toHaveBeenCalledWith('gemini-2.0-flash', true);
+      expect(mockRecordCall).toHaveBeenCalledWith('gemini-2.5-flash', true);
     });
 
     it('should retry on 429 rate limit errors', async () => {
@@ -200,7 +200,7 @@ describe('geminiService', () => {
       const { retryGeminiRequest } = await import('../geminiService');
       const fn = vi.fn().mockRejectedValue(new Error('404 Not Found'));
       await expect(retryGeminiRequest(fn, 3, 10)).rejects.toThrow();
-      expect(mockRecordCall).toHaveBeenCalledWith('gemini-2.0-flash', false);
+      expect(mockRecordCall).toHaveBeenCalledWith('gemini-2.5-flash', false);
     });
 
     it('should retry on fetch failed errors', async () => {
@@ -220,7 +220,7 @@ describe('geminiService', () => {
       mockGetGeminiKey.mockReturnValue('test-api-key');
       mockGenerateContent.mockResolvedValue({ text: 'Hello, Sir.' });
       const { generateText } = await import('../geminiService');
-      const result = await generateText('Hello', 'gemini-2.0-flash');
+      const result = await generateText('Hello', 'gemini-2.5-flash');
       expect(result).toBe('Hello, Sir.');
     });
 
@@ -229,9 +229,9 @@ describe('geminiService', () => {
       mockGetGeminiKey.mockReturnValue('test-api-key');
       mockGenerateContent.mockResolvedValue({ text: 'Cached response' });
       const { generateText } = await import('../geminiService');
-      await generateText('test prompt', 'gemini-2.0-flash');
+      await generateText('test prompt', 'gemini-2.5-flash');
       mockGenerateContent.mockClear();
-      const result = await generateText('test prompt', 'gemini-2.0-flash');
+      const result = await generateText('test prompt', 'gemini-2.5-flash');
       expect(result).toBe('Cached response');
       // Should not have called the API again
       expect(mockGenerateContent).not.toHaveBeenCalled();

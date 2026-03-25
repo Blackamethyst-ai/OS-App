@@ -2,7 +2,7 @@ import { AppMode } from '../types/domain/core';
 import { logger } from '../services/logger';
 
 export interface NavItem {
-    id: AppMode | 'NEXUS';
+    id: AppMode;
     label: string;
     path: string;
     fixedLayout?: boolean;
@@ -28,7 +28,7 @@ export const DEFAULT_NAV_CONFIG: NavItem[] = [
     { id: AppMode.VOICE_MODE, label: 'VOICE CORE', path: '/voice', fixedLayout: true, demoVisible: true },
     { id: AppMode.SYNTHESIS_BRIDGE, label: 'SYNTHESIS', path: '/bridge', fixedLayout: true, requiredClearance: 4, demoVisible: true },
     { id: AppMode.CPB_TEST, label: 'CPB', path: '/cpb-test', fixedLayout: true, demoVisible: true },
-    { id: 'NEXUS', label: 'NEXUS', path: '/nexus', requiredClearance: 8 },
+    { id: AppMode.NEXUS, label: 'NEXUS', path: '/nexus', requiredClearance: 8 },
 ];
 
 // Storage key for persisted nav order
@@ -85,7 +85,7 @@ export const getNavConfig = (clearanceLevel: number = 10, demoMode: boolean = fa
 export const NAV_CONFIG = DEFAULT_NAV_CONFIG;
 
 // Helper to check if current mode uses fixed layout
-export const isFixedLayoutMode = (mode: AppMode | 'NEXUS'): boolean => {
+export const isFixedLayoutMode = (mode: AppMode): boolean => {
     const navItem = DEFAULT_NAV_CONFIG.find(item => item.id === mode);
     return navItem?.fixedLayout ?? false;
 };
@@ -96,6 +96,6 @@ const FIXED_LAYOUT_MODES = new Set([
     AppMode.DASHBOARD
 ]);
 
-export const hasFixedLayout = (mode: AppMode | 'NEXUS'): boolean => {
+export const hasFixedLayout = (mode: AppMode): boolean => {
     return FIXED_LAYOUT_MODES.has(mode);
 };

@@ -113,7 +113,7 @@ describe('tabNavigationRegistry', () => {
     });
 
     it('returns tabs for NEXUS special sector', () => {
-      const tabs = findTabsInSector('NEXUS');
+      const tabs = findTabsInSector(AppMode.NEXUS);
       expect(tabs.length).toBe(1);
       expect(tabs[0].id).toBe('nexus-main');
     });
@@ -280,7 +280,7 @@ describe('tabNavigationRegistry', () => {
     });
 
     it('includes subtab info for nexus', () => {
-      const context = generateTabContext('NEXUS');
+      const context = generateTabContext(AppMode.NEXUS);
       expect(context).toContain('CURRENT SECTOR (Nexus)');
       expect(context).toContain('Subtabs:');
     });

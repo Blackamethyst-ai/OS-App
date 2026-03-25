@@ -16,10 +16,9 @@ if (!supabaseUrl || !supabaseKey) {
     logger.warn('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY', undefined, 'Supabase');
 }
 
-export const supabase: SupabaseClient = createClient(
-    supabaseUrl || '',
-    supabaseKey || ''
-);
+export const supabase: SupabaseClient | null = (supabaseUrl && supabaseKey)
+    ? createClient(supabaseUrl, supabaseKey)
+    : null;
 
 // =============================================================================
 // Voice Session Types
@@ -65,7 +64,7 @@ export const voiceStorage = {
     async createSession(session: Omit<VoiceSession, 'transcript_count'>): Promise<VoiceSession | null> {
         if (!this.isConfigured()) return null;
 
-        const { data, error } = await supabase
+        const { data, error } = await supabase!
             .from('voice_sessions')
             .insert({
                 ...session,
@@ -88,7 +87,7 @@ export const voiceStorage = {
     async endSession(sessionId: string, transcriptCount: number): Promise<void> {
         if (!this.isConfigured()) return;
 
-        const { error } = await supabase
+        const { error } = await supabase!
             .from('voice_sessions')
             .update({
                 ended_at: new Date().toISOString(),
@@ -107,7 +106,7 @@ export const voiceStorage = {
     async saveTranscript(transcript: VoiceTranscript): Promise<VoiceTranscript | null> {
         if (!this.isConfigured()) return null;
 
-        const { data, error } = await supabase
+        const { data, error } = await supabase!
             .from('voice_transcripts')
             .insert(transcript)
             .select()
@@ -119,7 +118,7 @@ export const voiceStorage = {
         }
 
         // Update session transcript count
-        await supabase.rpc('increment_transcript_count', { session_id: transcript.session_id });
+        await supabase!.rpc('increment_transcript_count', { session_id: transcript.session_id });
 
         return data;
     },
@@ -130,7 +129,7 @@ export const voiceStorage = {
     async getRecentSessions(limit: number = 10): Promise<VoiceSession[]> {
         if (!this.isConfigured()) return [];
 
-        const { data, error } = await supabase
+        const { data, error } = await supabase!
             .from('voice_sessions')
             .select('*')
             .order('started_at', { ascending: false })
@@ -150,7 +149,7 @@ export const voiceStorage = {
     async getSessionTranscripts(sessionId: string): Promise<VoiceTranscript[]> {
         if (!this.isConfigured()) return [];
 
-        const { data, error } = await supabase
+        const { data, error } = await supabase!
             .from('voice_transcripts')
             .select('*')
             .eq('session_id', sessionId)
@@ -171,7 +170,7 @@ export const voiceStorage = {
         if (!this.isConfigured()) return [];
 
         // Use the generated tsvector column for full-text search
-        const { data, error } = await supabase
+        const { data, error } = await supabase!
             .from('voice_transcripts')
             .select('*')
             .textSearch('text_search', query, { type: 'websearch' })
@@ -195,8 +194,8 @@ export const voiceStorage = {
         }
 
         const [sessionsResult, transcriptsResult] = await Promise.all([
-            supabase.from('voice_sessions').select('id', { count: 'exact', head: true }),
-            supabase.from('voice_transcripts').select('id', { count: 'exact', head: true })
+            supabase!.from('voice_sessions').select('id', { count: 'exact', head: true }),
+            supabase!.from('voice_transcripts').select('id', { count: 'exact', head: true })
         ]);
 
         const totalSessions = sessionsResult.count || 0;

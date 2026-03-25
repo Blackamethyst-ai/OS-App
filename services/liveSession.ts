@@ -137,10 +137,10 @@ class LiveSession {
 
         const voiceName = agent?.voice || 'Zephyr';
 
-        logger.debug('Connecting with', { agentName, voiceName, model: 'gemini-live-2.5-flash-preview' }, 'LiveSession');
+        logger.debug('Connecting with', { agentName, voiceName, model: 'gemini-2.5-flash-preview-native-audio-dialog' }, 'LiveSession');
 
         const sessionPromise = ai.live.connect({
-            model: 'gemini-live-2.5-flash-preview',
+            model: 'gemini-2.5-flash-preview-native-audio-dialog',
             callbacks: {
                 onopen: async () => {
                     try {

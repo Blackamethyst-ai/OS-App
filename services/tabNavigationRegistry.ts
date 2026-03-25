@@ -24,7 +24,7 @@ import { useSystemMind } from '../stores/useSystemMind';
 
 export interface TabDefinition {
     id: string;
-    sectorMode: AppMode | 'NEXUS';
+    sectorMode: AppMode;
     sectorLabel: string;
     tabKey: string;
     tabLabel: string;
@@ -43,7 +43,7 @@ export interface SubtabDefinition {
 
 export interface TabNavigationResult {
     success: boolean;
-    sector?: AppMode | 'NEXUS';
+    sector?: AppMode;
     sectorLabel?: string;
     tab?: string;
     tabLabel?: string;
@@ -60,11 +60,11 @@ export interface TabNavigationResult {
 
 export const TAB_REGISTRY: TabDefinition[] = [
     // =========================================================================
-    // NEXUS (Special - not in AppMode)
+    // NEXUS
     // =========================================================================
     {
         id: 'nexus-main',
-        sectorMode: 'NEXUS',
+        sectorMode: AppMode.NEXUS,
         sectorLabel: 'Nexus',
         tabKey: 'nexus',
         tabLabel: 'Nexus Matrix',
@@ -517,7 +517,7 @@ export const TAB_REGISTRY: TabDefinition[] = [
 // Sector Route Map
 // =============================================================================
 
-const SECTOR_ROUTES: Record<AppMode | 'NEXUS', string> = {
+const SECTOR_ROUTES: Record<AppMode, string> = {
     [AppMode.DASHBOARD]: '/dashboard',
     [AppMode.METAVENTIONS_HUB]: '/metaventions-hub',
     [AppMode.BIBLIOMORPHIC]: '/bibliomorphic',
@@ -536,7 +536,7 @@ const SECTOR_ROUTES: Record<AppMode | 'NEXUS', string> = {
     [AppMode.ARCHON]: '/archon',
     [AppMode.META_LEARNING]: '/meta-learning',
     [AppMode.SOVEREIGN_GALLERY]: '/vault',
-    'NEXUS': '/nexus'
+    [AppMode.NEXUS]: '/nexus'
 };
 
 // =============================================================================
@@ -584,7 +584,7 @@ export function findTab(query: string): TabDefinition | null {
 /**
  * Find tabs in a specific sector
  */
-export function findTabsInSector(sector: AppMode | 'NEXUS'): TabDefinition[] {
+export function findTabsInSector(sector: AppMode): TabDefinition[] {
     return TAB_REGISTRY.filter(t => t.sectorMode === sector);
 }
 
@@ -676,8 +676,8 @@ export function navigateToTab(query: string): TabNavigationResult {
     const { setMode, setBibliomorphicState, setCodeStudioState, setProcessState } = useAppStore.getState().actions;
 
     // Set the sector mode
-    if (result.sector && result.sector !== 'NEXUS') {
-        setMode(result.sector as AppMode);
+    if (result.sector) {
+        setMode(result.sector);
     }
 
     // Set the route
@@ -729,7 +729,7 @@ export function navigateToTab(query: string): TabNavigationResult {
 /**
  * Generate context for AI about available tabs
  */
-export function generateTabContext(currentSector?: AppMode | 'NEXUS'): string {
+export function generateTabContext(currentSector?: AppMode): string {
     const sectors = new Map<string, TabDefinition[]>();
 
     for (const tab of TAB_REGISTRY) {
