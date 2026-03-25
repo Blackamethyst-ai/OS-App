@@ -29,6 +29,7 @@ import ConversationalVoiceOrb from './ConversationalVoiceOrb';
 import { useAppStore } from '../../store';
 import { supabase } from '../../services/supabaseService';
 import { logger } from '../../services/logger';
+import { AppMode } from '../../types/domain/core';
 
 export type VoiceSystemMode = 'gemini' | 'conversational';
 
@@ -67,13 +68,16 @@ const VoiceSystem: React.FC<VoiceSystemProps> = ({
     // Supabase client provides secure Deepgram token fetching
     const isConversationalReady = Boolean(supabase || elevenLabsApiKey);
 
+    // Mount VoiceManager when in gemini mode OR when on voice route (isActive)
+    const { mode: appMode, voice } = useAppStore();
+    const needsVoiceManager = mode === 'gemini' || appMode === AppMode.VOICE_MODE || voice.isActive;
+
     return (
         <>
             <VoiceCoreOverlay />
 
-            {/* Gemini Live - Primary Voice System (Full Duplex, Native TTS) */}
-            {/* Always mount VoiceManager — VoiceMode (#/voice) depends on it for liveSession */}
-            <VoiceManager />
+            {/* Gemini Live - Mount when in gemini mode, on voice route, or voice is active */}
+            {needsVoiceManager && <VoiceManager />}
 
             {/* Conversational Voice Orb (Deepgram + Claude + ElevenLabs + VAD) */}
             {(mode === 'conversational' || showConversationalOrb) && isConversationalReady && (
