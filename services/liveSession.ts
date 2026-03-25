@@ -231,8 +231,9 @@ class LiveSession {
                 onclose: config.callbacks?.onclose || (() => { }),
             },
             config: {
-                ...config,
                 systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION + (config.systemInstruction ? `\n\nLOCAL_OVERRIDE: ${config.systemInstruction}` : ""),
+                ...(config.outputAudioTranscription && { outputAudioTranscription: config.outputAudioTranscription }),
+                ...(config.inputAudioTranscription && { inputAudioTranscription: config.inputAudioTranscription }),
                 responseModalities: [Modality.AUDIO],
                 speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName } } },
                 tools: [
