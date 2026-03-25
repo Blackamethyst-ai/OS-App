@@ -79,10 +79,18 @@ class ElevenLabsService {
      * Stream speech (returns a ReadableStream - for advanced usage)
      * For now, returns an AudioBuffer to play immediately via AudioContext
      */
+    private _audioCtx: AudioContext | null = null;
+    private getAudioContext(): AudioContext {
+        if (!this._audioCtx || this._audioCtx.state === 'closed') {
+            const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+            this._audioCtx = new AudioCtx();
+        }
+        return this._audioCtx;
+    }
+
     async streamSpeech(text: string, voiceId: string): Promise<AudioBuffer> {
         const arrayBuffer = await this.generateSpeech(text, voiceId, 'eleven_turbo_v2_5');
-        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-        const ctx = new AudioCtx();
+        const ctx = this.getAudioContext();
         return await ctx.decodeAudioData(arrayBuffer);
     }
 
@@ -90,8 +98,7 @@ class ElevenLabsService {
      * Play raw audio directly
      */
     async playAudio(buffer: ArrayBuffer): Promise<void> {
-        const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-        const ctx = new AudioCtx();
+        const ctx = this.getAudioContext();
         const audioBuffer = await ctx.decodeAudioData(buffer);
 
         const source = ctx.createBufferSource();

@@ -59,6 +59,7 @@ class ApiKeyService {
         }
 
         // Try to auto-unlock from session
+        if (typeof sessionStorage === 'undefined') return;
         const sessionPassword = sessionStorage.getItem(SESSION_KEY);
         if (sessionPassword) {
             const success = await this.unlockVault(sessionPassword);

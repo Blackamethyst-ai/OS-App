@@ -83,7 +83,7 @@ describe('GrokService', () => {
         await grokService.generateContent(messages);
 
         const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-        expect(body.model).toBe('grok-beta');
+        expect(body.model).toBe('grok-3-mini');
         expect(body.stream).toBe(false);
         expect(body.temperature).toBe(0.7);
         expect(body.messages).toEqual(messages);

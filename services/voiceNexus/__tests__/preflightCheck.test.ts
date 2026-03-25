@@ -117,10 +117,10 @@ describe('PreflightCheck', () => {
         it('should error when vault is locked and no env key', () => {
             mockIsVaultUnlocked.mockReturnValue(false);
             const savedKey = import.meta.env.VITE_GEMINI_API_KEY;
-            import.meta.env.VITE_GEMINI_API_KEY = '';
+            (import.meta.env as any).VITE_GEMINI_API_KEY = '';
 
             const result = runPreflightCheck();
-            import.meta.env.VITE_GEMINI_API_KEY = savedKey;
+            (import.meta.env as any).VITE_GEMINI_API_KEY = savedKey;
 
             // The actual error message is 'API key vault is locked...'
             expect(result.errors).toEqual(
@@ -135,10 +135,10 @@ describe('PreflightCheck', () => {
             mockIsVaultUnlocked.mockReturnValue(false);
             mockHasVault.mockReturnValue(false);
             const savedKey = import.meta.env.VITE_GEMINI_API_KEY;
-            import.meta.env.VITE_GEMINI_API_KEY = '';
+            (import.meta.env as any).VITE_GEMINI_API_KEY = '';
 
             const result = runPreflightCheck();
-            import.meta.env.VITE_GEMINI_API_KEY = savedKey;
+            (import.meta.env as any).VITE_GEMINI_API_KEY = savedKey;
 
             expect(result.errors).toEqual(
                 expect.arrayContaining([
@@ -349,9 +349,9 @@ describe('PreflightCheck', () => {
         it('should include recommendations section when present', () => {
             mockIsVaultUnlocked.mockReturnValue(false);
             const savedKey = import.meta.env.VITE_GEMINI_API_KEY;
-            import.meta.env.VITE_GEMINI_API_KEY = '';
+            (import.meta.env as any).VITE_GEMINI_API_KEY = '';
             const result = runPreflightCheck();
-            import.meta.env.VITE_GEMINI_API_KEY = savedKey;
+            (import.meta.env as any).VITE_GEMINI_API_KEY = savedKey;
             const formatted = formatPreflightResult(result);
 
             expect(formatted).toContain('Recommendations:');
@@ -386,10 +386,10 @@ describe('PreflightCheck', () => {
             mockBrowserSTTIsAvailable.mockReturnValue(false);
             mockGetKey.mockReturnValue(null);
             const savedKey = import.meta.env.VITE_GEMINI_API_KEY;
-            import.meta.env.VITE_GEMINI_API_KEY = '';
+            (import.meta.env as any).VITE_GEMINI_API_KEY = '';
 
             const result = canStartVoice();
-            import.meta.env.VITE_GEMINI_API_KEY = savedKey;
+            (import.meta.env as any).VITE_GEMINI_API_KEY = savedKey;
             expect(result.ok).toBe(false);
             expect(result.reason).toContain('vault');
         });

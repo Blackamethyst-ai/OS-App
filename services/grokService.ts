@@ -15,7 +15,7 @@ class GrokService {
     async generateContent(
         messages: GrokMessage[],
         systemPrompt?: string,
-        model: string = 'grok-beta'
+        model: string = 'grok-3-mini'
     ): Promise<string> {
         const apiKey = apiKeyService.getKey('grok');
 

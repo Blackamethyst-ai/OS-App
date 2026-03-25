@@ -12,9 +12,9 @@ import { logger } from '../../../logger';
 
 // Model mappings for each tier
 const GEMINI_MODELS = {
-    fast: 'gemini-2.5-flash-preview-05-20',
-    balanced: 'gemini-2.5-flash-preview-05-20',
-    deep: 'gemini-2.5-flash-preview-05-20',
+    fast: 'gemini-2.5-flash',
+    balanced: 'gemini-2.5-flash',
+    deep: 'gemini-2.5-pro',
 } as const;
 
 // Voice-optimized system prompt
