@@ -242,7 +242,7 @@ describe('SkillWeaver', () => {
 
   describe('synthesize()', () => {
     it('should synthesize a skill from registered skills', async () => {
-      const sharedSchema = { type: 'object', properties: { data: { type: 'string' } } };
+      const sharedSchema = { type: 'object' as const, properties: { data: { type: 'string' as const } } };
       const skillA = createMockSkill({ id: 'sa', name: 'SkillA', inputSchema: sharedSchema, outputSchema: sharedSchema });
       const skillB = createMockSkill({ id: 'sb', name: 'SkillB', inputSchema: sharedSchema, outputSchema: sharedSchema });
       registry.register(skillA);

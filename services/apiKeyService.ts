@@ -37,6 +37,7 @@ class ApiKeyService {
      * Check if a vault exists (master password has been set)
      */
     hasVault(): boolean {
+        if (typeof localStorage === 'undefined') return false;
         return !!localStorage.getItem(PASSWORD_HASH_KEY);
     }
 

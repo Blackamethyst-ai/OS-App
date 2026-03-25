@@ -52,8 +52,8 @@ vi.mock('../generation/CodeStudio', () => ({ default: () => <div data-testid="mo
 vi.mock('../agents/AgentControlCenter', () => ({ default: () => <div data-testid="mock-AgentControlCenter">AgentControlCenter</div> }));
 vi.mock('../finance/AutonomousFinance', () => ({ default: () => <div data-testid="mock-AutonomousFinance">AutonomousFinance</div> }));
 vi.mock('../NexusAPIExplorer', () => ({ default: () => <div data-testid="mock-NexusAPIExplorer">NexusAPIExplorer</div> }));
-vi.mock('../__tests__/AgentCoreTest.test', () => ({ default: () => <div data-testid="mock-AgentCoreTest">AgentCoreTest</div> }));
-vi.mock('../__tests__/CPBTest.test', () => ({ default: () => <div data-testid="mock-CPBTest">CPBTest</div> }));
+vi.mock('../AgentCoreTest', () => ({ default: () => <div data-testid="mock-AgentCoreTest">AgentCoreTest</div> }));
+vi.mock('../CPBTest', () => ({ default: () => <div data-testid="mock-CPBTest">CPBTest</div> }));
 vi.mock('../agents/ArchonDashboard', () => ({ default: () => <div data-testid="mock-ArchonDashboard">ArchonDashboard</div> }));
 vi.mock('../predictions/MetaLearningDashboard', () => ({ default: () => <div data-testid="mock-MetaLearningDashboard">MetaLearningDashboard</div> }));
 vi.mock('../SovereignGallery', () => ({ default: () => <div data-testid="mock-SovereignGallery">SovereignGallery</div> }));

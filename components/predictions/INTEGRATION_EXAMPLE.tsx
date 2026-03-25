@@ -11,7 +11,7 @@
  */
 
 import React, { useState } from 'react';
-import { PredictionPanel, PredictionBadge } from '../index';
+import { PredictionPanel, PredictionBadge } from './index';
 import type { SearchResult } from '@antigravity/agent-core-sdk';
 
 /**
