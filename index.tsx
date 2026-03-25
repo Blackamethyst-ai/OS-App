@@ -4,6 +4,7 @@ import App from './App';
 import { GlobalErrorBoundary } from './components/GlobalErrorBoundary';
 import { initializeCapabilities } from './services/capabilities';
 import { logger } from './services/logger';
+import { reportWebVitals } from './services/webVitals';
 
 const renderApp = () => {
   const rootElement = document.getElementById('root');
@@ -27,3 +28,6 @@ initializeCapabilities().then(() => {
   // Still render the app even if capabilities fail
   renderApp();
 });
+
+// Report Core Web Vitals (LCP, FID, CLS)
+reportWebVitals();

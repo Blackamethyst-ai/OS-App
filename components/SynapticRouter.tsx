@@ -4,7 +4,7 @@ import { useAppStore } from '../store';
 import { motion, AnimatePresence } from 'motion/react';
 import {
     Copy, Eye, Wand2, Terminal, Code, X, Search, Activity,
-    Layers, ArrowUpRight, Hash, Database, GitBranch, Loader2, Scan,
+    Layers, ArrowUpRight, Hash, Database, GitBranch, Scan,
     AlertTriangle, RefreshCw
 } from 'lucide-react';
 import { performGlobalSearch } from '../services/geminiService';
@@ -12,6 +12,7 @@ import { AppMode } from '../types';
 import { audio } from '../services/audioService';
 import { GlobalErrorBoundary } from './GlobalErrorBoundary';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
+import SectorSkeleton from './SectorSkeleton';
 
 // Lazy Load Views for performance
 const Dashboard = lazy(() => import('./core/Dashboard'));
@@ -33,6 +34,29 @@ const ArchonDashboard = lazy(() => import('./agents/ArchonDashboard'));
 const MetaLearningDashboard = lazy(() => import('./predictions/MetaLearningDashboard'));
 const SovereignGallery = lazy(() => import('./SovereignGallery'));
 const BicameralEngine = lazy(() => import('./BicameralEngine'));
+
+// --- DYNAMIC PAGE TITLES ---
+const SECTOR_TITLES: Record<AppMode, string> = {
+    [AppMode.DASHBOARD]: 'Dashboard',
+    [AppMode.METAVENTIONS_HUB]: 'Hub',
+    [AppMode.SYNTHESIS_BRIDGE]: 'Synthesis Bridge',
+    [AppMode.BIBLIOMORPHIC]: 'Bibliomorphic Engine',
+    [AppMode.PROCESS_MAP]: 'Process Visualizer',
+    [AppMode.MEMORY_CORE]: 'Memory Core',
+    [AppMode.IMAGE_GEN]: 'Image Generation',
+    [AppMode.HARDWARE_ENGINEER]: 'Hardware Engine',
+    [AppMode.VOICE_MODE]: 'Voice Core',
+    [AppMode.CODE_STUDIO]: 'Code Studio',
+    [AppMode.AGENT_CONTROL]: 'Agent Control',
+    [AppMode.AUTONOMOUS_FINANCE]: 'Finance',
+    [AppMode.BICAMERAL]: 'Bicameral Engine',
+    [AppMode.NEXUS]: 'Nexus API',
+    [AppMode.AGENT_CORE_TEST]: 'SDK Test',
+    [AppMode.CPB_TEST]: 'CPB Test',
+    [AppMode.ARCHON]: 'Archon',
+    [AppMode.META_LEARNING]: 'Meta Learning',
+    [AppMode.SOVEREIGN_GALLERY]: 'Sovereign Vault',
+};
 
 // --- CYCLE 1: SPATIAL COORDINATE MAP ---
 const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> = {
@@ -97,6 +121,11 @@ const SynapticRouter: React.FC = () => {
     const { mode, previousMode, contextMenu, actions } = useAppStore();
     const lastSyncedHash = useRef<string>('');
     const [routeInfo, setRouteInfo] = useState({ path: '', sub: '', params: '' });
+
+    // --- Dynamic page title ---
+    useEffect(() => {
+        document.title = `${SECTOR_TITLES[mode] || mode} — Metaventions AI`;
+    }, [mode]);
 
     // Transition Logic: Calculate Warp Vector
     const warpDirection = useMemo(() => {
@@ -163,11 +192,7 @@ const SynapticRouter: React.FC = () => {
 
     return (
         <div className="flex-1 relative overflow-hidden flex flex-col perspective-2000">
-            <Suspense fallback={
-                <div className="h-full w-full flex flex-col items-center justify-center bg-black/20 backdrop-blur-sm">
-                    <Loader2 className="w-10 h-10 text-[var(--amethyst-soft)] animate-spin mb-4" />
-                </div>
-            }>
+            <Suspense fallback={<SectorSkeleton />}>
                 {/* Fix: Changed mode from 'popLayout' to 'wait' to eliminate the multiple window overlap during sector shifts */}
                 <AnimatePresence mode="wait" initial={false}>
                     <motion.main

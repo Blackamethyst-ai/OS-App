@@ -25,6 +25,7 @@ import { useKernelUptime } from './hooks/useKernelUptime';
 import { useKernelLifecycle } from './hooks/useKernelLifecycle';
 import { useTimeTravel } from './hooks/useTimeTravel';
 import { useAuthPersistence } from './hooks/useAuthPersistence';
+import { useGlobalShortcuts } from './hooks/useGlobalShortcuts';
 import { hasFixedLayout } from './config/navigation';
 import { audio } from './services/audioService';
 import { AnimatePresence } from 'motion/react';
@@ -95,6 +96,7 @@ const App: React.FC = () => {
     useKernelUptime();
     useKernelLifecycle();
 
+    useGlobalShortcuts();
     useAutoSave();
     useDaemonSwarm();
     useVoiceControl();
