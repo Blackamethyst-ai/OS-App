@@ -10,6 +10,7 @@
  */
 
 import { getAI, retryGeminiRequest, safeParseJson } from './geminiService';
+import { MODEL_REGISTRY } from './modelRegistry';
 import { logger } from './logger';
 import * as minerstatService from './minerstatService';
 import * as priceApiService from './priceApiService';
@@ -117,7 +118,7 @@ async function fetchGeminiPrice(gpuModel: string, msrp: number): Promise<LiveGpu
         const ai = getAI();
         const response = await retryGeminiRequest<GenerateContentResponse>(() =>
             ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: MODEL_REGISTRY.gemini.fast,
                 contents: `Find the current market price for "${gpuModel}" GPU in January 2026.
 
 Search for:

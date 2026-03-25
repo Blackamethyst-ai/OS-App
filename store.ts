@@ -9,7 +9,7 @@ import {
     MarketDataState, ContextMenuState, DashboardState, ProcessState,
     ImageGenState, CodeStudioState, HardwareState, MemorySliceState,
     BibliomorphicState, DiscoveryState, ResearchState, BicameralState,
-    AgentsState, CollaborationState, SynthesisState, KnowledgeState,
+    AgentsState, CollaborationState, SynthesisState, KnowledgeState, Toast, ToastType,
     // Action types
     SliceUpdater, HoloArtifact, ProcessNodeUpdateParams, TaskParams,
     TaskUpdateParams, ResearchTaskParams, ResearchTaskUpdateParams,
@@ -64,6 +64,7 @@ interface AppState {
     collaboration: CollaborationState;
     contextMenu: ContextMenuState;
     synthesis: SynthesisState;
+    toasts: Toast[];
     isHelpOpen: boolean;
     isScrubberOpen: boolean;
     isDiagnosticsOpen: boolean;
@@ -137,6 +138,9 @@ interface AppState {
         deployStrategyToLattice: (strategy: TechnicalManifest) => void;
         addSwarmProposal: (proposal: SwarmProposal) => void;
         dismissProposal: (id: string) => void;
+        // Toast actions
+        addToast: (type: ToastType, message: string, duration?: number) => void;
+        removeToast: (id: string) => void;
         // Kernel & Biometric actions
         setKernelState: (update: Partial<KernelState>) => void;
         setBiometricState: (update: Partial<BiometricState>) => void;
@@ -183,6 +187,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     collaboration: INITIAL_COLLABORATION,
     contextMenu: INITIAL_CONTEXT_MENU,
     synthesis: INITIAL_SYNTHESIS,
+
+    // Toast notifications
+    toasts: [],
 
     // UI flags
     isHelpOpen: false,
@@ -429,6 +436,15 @@ export const useAppStore = create<AppState>((set, get) => ({
         }),
         addSwarmProposal: (proposal) => set((state) => ({ synthesis: { ...state.synthesis, incomingProposals: [proposal, ...state.synthesis.incomingProposals].slice(0, 5) } })),
         dismissProposal: (id) => set((state) => ({ synthesis: { ...state.synthesis, incomingProposals: state.synthesis.incomingProposals.filter(p => p.id !== id) } })),
+        // Toast actions
+        addToast: (type, message, duration) => set((state) => {
+            const id = (window.crypto && window.crypto.randomUUID) ? window.crypto.randomUUID() : Math.random().toString(36).substring(2, 15);
+            const next = [...state.toasts, { id, type, message, duration }];
+            return { toasts: next.length > 5 ? next.slice(next.length - 5) : next };
+        }),
+        removeToast: (id) => set((state) => ({
+            toasts: state.toasts.filter(t => t.id !== id)
+        })),
         // Kernel & Biometric actions
         setKernelState: (update) => set((state) => ({
             kernel: { ...state.kernel, ...update }

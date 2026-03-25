@@ -55,6 +55,7 @@ const OperationalSidebar = lazy(() => import('./components/OperationalSidebar'))
 const PredictionDemo = lazy(() => import('./components/predictions/PredictionDemo'));
 const WelcomeOverlay = lazy(() => import('./components/WelcomeOverlay'));
 const SettingsPanel = lazy(() => import('./components/SettingsPanel'));
+const ToastSystem = lazy(() => import('./components/ToastSystem'));
 
 const App: React.FC = () => {
     // Batched selectors to reduce subscription overhead
@@ -194,6 +195,7 @@ const App: React.FC = () => {
                             </Suspense>
                         )}
 
+                        <Suspense fallback={null}><ToastSystem /></Suspense>
                         <Suspense fallback={null}>
                             <SynapticContextHub />
                             <FocusOverlay />

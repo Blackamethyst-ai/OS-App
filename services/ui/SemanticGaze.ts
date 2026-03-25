@@ -22,6 +22,7 @@ import {
   GazeSemanticContext,
   GazePattern,
 } from './types';
+import { MODEL_REGISTRY } from '../modelRegistry';
 import { logger } from '../logger';
 
 // ============================================================================
@@ -32,7 +33,7 @@ type VLMProvider = 'claude' | 'gemini' | 'auto';
 
 const CONFIG = {
   provider: 'auto' as VLMProvider, // 'claude', 'gemini', or 'auto'
-  claudeModel: 'claude-sonnet-4-6',
+  claudeModel: MODEL_REGISTRY.claude.standard,
   geminiModel: 'gemini-2.0-flash',
   analysisCooldownMs: 500, // Don't analyze more than 2x per second
   maxCacheSize: 50,

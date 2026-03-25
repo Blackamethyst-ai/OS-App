@@ -1,5 +1,6 @@
 import { apiKeyService } from './apiKeyService';
 import { logger } from './logger';
+import { MODEL_REGISTRY } from './modelRegistry';
 
 export interface GrokMessage {
     role: 'system' | 'user' | 'assistant';
@@ -15,7 +16,7 @@ class GrokService {
     async generateContent(
         messages: GrokMessage[],
         systemPrompt?: string,
-        model: string = 'grok-3-mini'
+        model: string = MODEL_REGISTRY.grok.fast
     ): Promise<string> {
         const apiKey = apiKeyService.getKey('grok');
 

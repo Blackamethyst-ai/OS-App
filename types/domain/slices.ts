@@ -487,3 +487,16 @@ export interface SynthesisState {
 export interface KnowledgeState {
     activeLayers: string[];
 }
+
+// =============================================================================
+// Toast State
+// =============================================================================
+
+export type ToastType = 'success' | 'error' | 'info' | 'warning';
+
+export interface Toast {
+    id: string;
+    type: ToastType;
+    message: string;
+    duration?: number;
+}

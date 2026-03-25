@@ -14,6 +14,7 @@ import { apiKeyService } from './apiKeyService';
 import { ollamaService } from './ollamaService';
 import { grokService } from './grokService';
 import { cpb, type CPBStatus, type CPBResult } from './cpbService';
+import { MODEL_REGISTRY } from './modelRegistry';
 import { ModelTier } from '../types';
 
 export interface RouterConfig {
@@ -59,34 +60,34 @@ class ModelRouter {
 
         // 1. FAST tier - ELITE: Use Sonnet instead of Flash
         if (config.tier === 'fast') {
-            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-sonnet-4-6');
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.standard);
             if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
         }
 
         // 2. POWERFUL tier - ELITE: Use Opus for maximum reasoning
         if (config.tier === 'powerful') {
-            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-opus-4-6');
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
             if (hasGrok) return this.callGrok(prompt, systemPrompt);
             if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
         }
 
         // 3. CREATIVE tier - ELITE: Use Opus for creative depth
         if (config.tier === 'creative') {
-            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-opus-4-6');
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
             if (hasGrok) return this.callGrok(prompt, systemPrompt);
             if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
         }
 
         // 4. BALANCED tier - ELITE: Default to Sonnet
         if (config.tier === 'balanced') {
-            if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-sonnet-4-6');
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.standard);
             if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
         }
 
         // 5. FALLBACK CASCADE & PREFERENCES
         // ELITE: Preferred provider with Opus/Sonnet defaults
         if (config.preferredProvider === 'claude' && hasClaude) {
-            return this.callClaude(prompt, systemPrompt, 'claude-opus-4-6');
+            return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
         }
         if (config.preferredProvider === 'grok' && hasGrok) return this.callGrok(prompt, systemPrompt);
         if (config.preferredProvider === 'gemini' && hasGemini) {
@@ -94,7 +95,7 @@ class ModelRouter {
         }
 
         // ELITE: Ultimate Catch-all - Opus first, then Pro
-        if (hasClaude) return this.callClaude(prompt, systemPrompt, 'claude-opus-4-6');
+        if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
         if (hasGrok) return this.callGrok(prompt, systemPrompt);
         if (hasGemini) {
             return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');

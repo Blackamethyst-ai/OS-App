@@ -7,7 +7,7 @@ import MetaventionsLogo from './MetaventionsLogo';
 
 const AuthModule: React.FC = () => {
     const { actions } = useAppStore();
-    const { setAuthenticated, setUserProfile, setMode } = actions;
+    const { setAuthenticated, setUserProfile, setMode, addToast } = actions;
     const [view, setView] = useState<'LOGIN' | 'REGISTER'>('LOGIN');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -52,6 +52,7 @@ const AuthModule: React.FC = () => {
         }
 
         setAuthenticated(true);
+        addToast('success', 'Welcome back, operator.');
         setIsLoading(false);
     };
 

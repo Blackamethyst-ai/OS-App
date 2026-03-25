@@ -9,6 +9,7 @@ import type { CPBProvider, GenerateOptions, ImageInput } from '@metaventionsai/c
 import { generateText, generateWithVision } from './geminiService';
 import { claudeService, type ClaudeContentBlock } from './claudeService';
 import { apiKeyService } from './apiKeyService';
+import { MODEL_REGISTRY } from './modelRegistry';
 
 /**
  * Gemini Provider - Fast path (Flash) and balanced (Pro)
@@ -65,7 +66,7 @@ export const claudeProvider: CPBProvider = {
     },
 
     async generate(prompt: string, options?: GenerateOptions): Promise<string> {
-        const model = options?.model || 'claude-sonnet-4-6';
+        const model = options?.model || MODEL_REGISTRY.claude.standard;
 
         return claudeService.generateContent(
             [{ role: 'user', content: prompt }],
@@ -79,7 +80,7 @@ export const claudeProvider: CPBProvider = {
         images: ImageInput[],
         options?: GenerateOptions
     ): Promise<string> {
-        const model = options?.model || 'claude-sonnet-4-6';
+        const model = options?.model || MODEL_REGISTRY.claude.standard;
 
         // Build content array with images
         const content: ClaudeContentBlock[] = [];

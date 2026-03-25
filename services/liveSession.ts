@@ -7,6 +7,7 @@
 
 import { Modality, LiveServerMessage, Blob as GenAIBlob } from "@google/genai";
 import { getAI, SOVEREIGN_SYSTEM_INSTRUCTION } from './geminiService';
+import { MODEL_REGISTRY } from './modelRegistry';
 import { HIVE_AGENTS } from './agents';
 import { logger } from './logger';
 import { apiKeyService } from './apiKeyService';
@@ -140,7 +141,7 @@ class LiveSession {
         logger.debug('Connecting with', { agentName, voiceName, model: 'gemini-2.5-flash-preview-native-audio-dialog' }, 'LiveSession');
 
         const sessionPromise = ai.live.connect({
-            model: 'gemini-2.5-flash-preview-native-audio-dialog',
+            model: MODEL_REGISTRY.gemini.live,
             callbacks: {
                 onopen: async () => {
                     try {

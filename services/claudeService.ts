@@ -5,6 +5,7 @@
  */
 import { apiKeyService } from './apiKeyService';
 import { logger } from './logger';
+import { MODEL_REGISTRY } from './modelRegistry';
 
 export interface ClaudeTextContent {
     type: 'text';
@@ -50,7 +51,7 @@ class ClaudeService {
     async generateContent(
         messages: ClaudeMessage[],
         systemPrompt?: string,
-        model: string = 'claude-sonnet-4-6'
+        model: string = MODEL_REGISTRY.claude.standard
     ): Promise<string> {
         const apiKey = apiKeyService.getKey('claude');
 
@@ -102,7 +103,7 @@ class ClaudeService {
         prompt: string,
         imageBase64: string,
         mediaType: 'image/png' | 'image/jpeg' | 'image/gif' | 'image/webp' = 'image/png',
-        model: string = 'claude-sonnet-4-6'
+        model: string = MODEL_REGISTRY.claude.standard
     ): Promise<string> {
         const apiKey = apiKeyService.getKey('claude');
 

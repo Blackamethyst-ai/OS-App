@@ -7,15 +7,16 @@
 
 import type { ReasoningProvider, ReasoningConfig, ReasoningResult } from '../../types';
 import { claudeService } from '../../../claudeService';
+import { MODEL_REGISTRY } from '../../../modelRegistry';
 import { apiKeyService } from '../../../apiKeyService';
 import { SOVEREIGN_SYSTEM_INSTRUCTION } from '../../../geminiService';
 import { logger } from '../../../logger';
 
 // Model mappings for each tier
 const CLAUDE_MODELS = {
-    fast: 'claude-haiku-4-5-20251001',
-    balanced: 'claude-sonnet-4-6',
-    deep: 'claude-opus-4-6',
+    fast: MODEL_REGISTRY.claude.fast,
+    balanced: MODEL_REGISTRY.claude.standard,
+    deep: MODEL_REGISTRY.claude.deep,
 } as const;
 
 // System prompt for voice interactions

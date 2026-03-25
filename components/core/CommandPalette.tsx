@@ -1,468 +1,418 @@
-import { apiKeyService } from '../../services/apiKeyService';
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useAppStore } from '../../store';
-import { useSystemMind } from '../../stores/useSystemMind';
-import { interpretIntent, predictNextActions, promptSelectKey } from '../../services/geminiService';
-import { executeCapability } from '../../services/capabilities';
-import { AppMode, SuggestedAction, AppTheme } from '../../types';
-import { Command, Loader2, X, Sparkles, ChevronRight, Code, Cpu, Mic, Zap, Image, BookOpen, Layers, Terminal, Activity, Search, Shield, BrainCircuit, Split, Palette, History, User, HardDrive, Settings, FlaskConical, Target, Database } from 'lucide-react';
+import { AppMode, AppTheme } from '../../types';
+import { audio } from '../../services/audioService';
+import {
+    Search, X, Command, Layers, Cpu, Mic, Split, Palette,
+    Code, Terminal, Activity, Image, BookOpen, Shield, Zap,
+    BrainCircuit, Settings, Keyboard, Compass, Database,
+    Wallet, FlaskConical, Eye, Sparkles, Target, Globe
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useSemanticSearch } from '@antigravity/agent-core-sdk';
 
 const MotionDiv = motion.div as any;
 
-const CommandPalette: React.FC = () => {
-    const {
-        isCommandPaletteOpen,
-        mode,
-        system,
-        user,
-        actions
-    } = useAppStore();
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
-    const {
-        toggleCommandPalette,
-        setMode,
-        setProcessState,
-        setImageGenState,
-        setCodeStudioState,
-        setHardwareState,
-        setVoiceState,
-        setBibliomorphicState,
-        setTheme,
-        addResearchTask,
-        setFocusedSelector,
-        addLog
-    } = actions;
+type ResultCategory = 'sector' | 'action' | 'shortcut';
 
-    const [input, setInput] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-    const [isPredicting, setIsPredicting] = useState(false);
-    const [result, setResult] = useState<string | null>(null);
-    const [aiSuggestions, setAiSuggestions] = useState<SuggestedAction[]>([]);
-    const inputRef = useRef<HTMLInputElement>(null);
+interface PaletteItem {
+    id: string;
+    label: string;
+    category: ResultCategory;
+    icon: React.FC<{ className?: string; size?: number }>;
+    shortcut?: string;
+    onSelect: () => void;
+}
 
-    // Knowledge search mode: triggers when input starts with ? or "know"
-    const isKnowledgeMode = input.startsWith('?') || input.toLowerCase().startsWith('know ');
-    const knowledgeQuery = isKnowledgeMode
-        ? input.replace(/^\?/, '').replace(/^know\s+/i, '').trim()
-        : '';
+// ---------------------------------------------------------------------------
+// Sector icon mapping
+// ---------------------------------------------------------------------------
 
-    const { results: knowledgeResults, isLoading: isSearching } = useSemanticSearch({
-        query: knowledgeQuery,
-        limit: 6,
-        debounceMs: 300,
-    });
+const SECTOR_META: Record<string, { icon: React.FC<any>; shortcut?: string }> = {
+    DASHBOARD:           { icon: Layers,        shortcut: '1' },
+    METAVENTIONS_HUB:    { icon: Sparkles,      shortcut: '2' },
+    BIBLIOMORPHIC:       { icon: BookOpen,       shortcut: '3' },
+    PROCESS_MAP:         { icon: Activity,       shortcut: '4' },
+    MEMORY_CORE:         { icon: Database,       shortcut: '5' },
+    IMAGE_GEN:           { icon: Image,          shortcut: '6' },
+    HARDWARE_ENGINEER:   { icon: Cpu,            shortcut: '7' },
+    CODE_STUDIO:         { icon: Code,           shortcut: '8' },
+    VOICE_MODE:          { icon: Mic,            shortcut: '9' },
+    SYNTHESIS_BRIDGE:    { icon: Zap },
+    BICAMERAL:           { icon: Split },
+    AGENT_CONTROL:       { icon: BrainCircuit },
+    AUTONOMOUS_FINANCE:  { icon: Wallet },
+    AGENT_CORE_TEST:     { icon: FlaskConical },
+    CPB_TEST:            { icon: Target },
+    ARCHON:              { icon: Shield },
+    META_LEARNING:       { icon: Eye },
+    SOVEREIGN_GALLERY:   { icon: Globe },
+    NEXUS:               { icon: Compass },
+};
 
-    const staticSuggestions = useMemo(() => {
-        const base = [
-            { id: 'nav-dashboard', label: 'Navigate: Dashboard', command: 'Navigate to Dashboard', icon: Layers },
-            { id: 'nav-hw', label: 'Navigate: Hardware Core', command: 'Navigate to Hardware', icon: Cpu },
-            { id: 'nav-voice', label: 'Initialize Voice Core', command: 'Open Voice Mode', icon: Mic },
-            { id: 'nav-bicameral', label: 'Engage Swarm Intelligence', command: 'Open Bicameral Engine', icon: Split },
-            { id: 'theme-midnight', label: 'UI Skin: Midnight Blue', command: 'Switch to Midnight Theme', icon: Palette },
-            { id: 'theme-amber', label: 'UI Skin: Amber Terminal', command: 'Switch to Amber Theme', icon: Palette },
-        ];
+// ---------------------------------------------------------------------------
+// Fuzzy match — all chars in query appear in order in target
+// Returns matched char indices or null
+// ---------------------------------------------------------------------------
 
-        switch (mode) {
-            case AppMode.CODE_STUDIO:
-                return [
-                    { id: 'code-gen', label: 'Generate React Hook', command: 'Write a custom React state hook', icon: Code },
-                    { id: 'code-api', label: 'Create FastAPI Endpoint', command: 'Write a Python FastAPI router', icon: Terminal },
-                    ...base
-                ];
-            case AppMode.IMAGE_GEN:
-                return [
-                    { id: 'img-4k', label: 'Set Resolution to 4K', command: 'Set image resolution to 4K', icon: Image },
-                    { id: 'img-cyber', label: 'Generate Neo-Tokyo', command: 'Generate a futuristic cityscape with rain', icon: Sparkles },
-                    ...base
-                ];
-            case AppMode.BIBLIOMORPHIC:
-                return [
-                    { id: 'biblio-hyp', label: 'Generate Hypotheses', command: 'Generate new hypotheses from research', icon: FlaskConical },
-                    ...base
-                ];
-            default:
-                return [
-                    { id: 'gen-code', label: 'Open Studio', command: 'Open Code Studio', icon: Code },
-                    { id: 'analyze-pwr', label: 'Analyze System Power', command: 'Analyze power systems', icon: Activity },
-                    ...base
-                ];
+function fuzzyMatch(query: string, target: string): number[] | null {
+    const q = query.toLowerCase();
+    const t = target.toLowerCase();
+    const indices: number[] = [];
+    let qi = 0;
+    for (let ti = 0; ti < t.length && qi < q.length; ti++) {
+        if (t[ti] === q[qi]) {
+            indices.push(ti);
+            qi++;
         }
-    }, [mode]);
+    }
+    return qi === q.length ? indices : null;
+}
+
+// ---------------------------------------------------------------------------
+// Highlighted label renderer
+// ---------------------------------------------------------------------------
+
+const HighlightedLabel: React.FC<{ text: string; indices: number[] }> = ({ text, indices }) => {
+    const set = new Set(indices);
+    return (
+        <span>
+            {text.split('').map((ch, i) =>
+                set.has(i)
+                    ? <span key={i} className="text-[var(--amethyst-soft)]">{ch}</span>
+                    : <span key={i}>{ch}</span>
+            )}
+        </span>
+    );
+};
+
+// ---------------------------------------------------------------------------
+// Human-readable labels for enum keys
+// ---------------------------------------------------------------------------
+
+function humanize(key: string): string {
+    return key
+        .split('_')
+        .map(w => w.charAt(0) + w.slice(1).toLowerCase())
+        .join(' ');
+}
+
+// ---------------------------------------------------------------------------
+// Component
+// ---------------------------------------------------------------------------
+
+const CommandPalette: React.FC = () => {
+    const { isCommandPaletteOpen, theme, isSidebarOpen, actions } = useAppStore();
+    const { toggleCommandPalette, setMode, setTheme, setSidebarOpen } = actions;
+
+    const [query, setQuery] = useState('');
+    const [selectedIndex, setSelectedIndex] = useState(0);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const listRef = useRef<HTMLDivElement>(null);
+
+    // -----------------------------------------------------------------------
+    // Build the full item catalogue
+    // -----------------------------------------------------------------------
+
+    const allItems = useMemo<PaletteItem[]>(() => {
+        const items: PaletteItem[] = [];
+
+        // Sectors — all 19 AppMode entries
+        for (const key of Object.keys(AppMode) as (keyof typeof AppMode)[]) {
+            const mode = AppMode[key];
+            const meta = SECTOR_META[key] || { icon: Compass };
+            items.push({
+                id: `sector-${key}`,
+                label: humanize(key),
+                category: 'sector',
+                icon: meta.icon,
+                shortcut: meta.shortcut,
+                onSelect: () => {
+                    setMode(mode);
+                    window.location.hash = mode;
+                    audio.playTransition();
+                    toggleCommandPalette(false);
+                },
+            });
+        }
+
+        // Actions
+        const themeValues = Object.values(AppTheme);
+        const currentIdx = themeValues.indexOf(theme);
+        items.push({
+            id: 'action-toggle-theme',
+            label: 'Toggle Theme',
+            category: 'action',
+            icon: Palette,
+            shortcut: 'T',
+            onSelect: () => {
+                const next = themeValues[(currentIdx + 1) % themeValues.length];
+                setTheme(next);
+                audio.playTransition();
+                toggleCommandPalette(false);
+            },
+        });
+
+        items.push({
+            id: 'action-open-settings',
+            label: 'Open Settings',
+            category: 'action',
+            icon: Settings,
+            shortcut: ',',
+            onSelect: () => {
+                window.dispatchEvent(new CustomEvent('toggle-settings-panel'));
+                toggleCommandPalette(false);
+            },
+        });
+
+        items.push({
+            id: 'action-toggle-sidebar',
+            label: 'Toggle Sidebar',
+            category: 'action',
+            icon: Layers,
+            shortcut: 'B',
+            onSelect: () => {
+                setSidebarOpen(!isSidebarOpen);
+                toggleCommandPalette(false);
+            },
+        });
+
+        // Shortcuts — reference list
+        const shortcuts: { label: string; shortcut: string }[] = [
+            { label: 'Command Palette',   shortcut: '\u2318K' },
+            { label: 'Quick Search',      shortcut: '/' },
+            { label: 'Close / Cancel',    shortcut: 'Esc' },
+            { label: 'Navigate Results',  shortcut: '\u2191\u2193' },
+            { label: 'Select Result',     shortcut: '\u21B5' },
+        ];
+        for (const s of shortcuts) {
+            items.push({
+                id: `shortcut-${s.label}`,
+                label: s.label,
+                category: 'shortcut',
+                icon: Keyboard,
+                shortcut: s.shortcut,
+                onSelect: () => {},  // informational only
+            });
+        }
+
+        return items;
+    }, [theme, isSidebarOpen, setMode, setTheme, setSidebarOpen, toggleCommandPalette]);
+
+    // -----------------------------------------------------------------------
+    // Filtered + scored results (max 10)
+    // -----------------------------------------------------------------------
+
+    const filteredResults = useMemo(() => {
+        if (!query.trim()) return allItems.slice(0, 10);
+
+        const scored: { item: PaletteItem; indices: number[]; score: number }[] = [];
+        for (const item of allItems) {
+            const indices = fuzzyMatch(query, item.label);
+            if (indices) {
+                // Tighter matches (fewer gaps) score higher
+                const spread = indices.length > 1 ? indices[indices.length - 1] - indices[0] : 0;
+                const score = indices.length * 10 - spread;
+                scored.push({ item, indices, score });
+            }
+        }
+        scored.sort((a, b) => b.score - a.score);
+        return scored.slice(0, 10);
+    }, [query, allItems]);
+
+    // Wrap results for rendering
+    const results = useMemo(() => {
+        if (!query.trim()) {
+            return allItems.slice(0, 10).map(item => ({ item, indices: [] as number[] }));
+        }
+        return filteredResults as { item: PaletteItem; indices: number[] }[];
+    }, [query, allItems, filteredResults]);
+
+    // -----------------------------------------------------------------------
+    // Reset state when palette opens
+    // -----------------------------------------------------------------------
+
+    useEffect(() => {
+        if (isCommandPaletteOpen) {
+            setQuery('');
+            setSelectedIndex(0);
+            setTimeout(() => inputRef.current?.focus(), 30);
+        }
+    }, [isCommandPaletteOpen]);
+
+    // Reset selected index when results change
+    useEffect(() => {
+        setSelectedIndex(0);
+    }, [query]);
+
+    // -----------------------------------------------------------------------
+    // Global keyboard: Cmd+K to open/close
+    // -----------------------------------------------------------------------
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
-            const target = e.target as HTMLElement;
-            const isInput = target.matches('input, textarea, [contenteditable]');
-
             if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
                 e.preventDefault();
                 toggleCommandPalette();
             }
-
-            if (e.key === '/' && !isInput && !isCommandPaletteOpen) {
-                e.preventDefault();
-                toggleCommandPalette(true);
-            }
-
-            if (e.key === 'Escape' && isCommandPaletteOpen) {
-                e.preventDefault();
-                toggleCommandPalette(false);
-            }
         };
-
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isCommandPaletteOpen, toggleCommandPalette]);
+    }, [toggleCommandPalette]);
 
-    // SYNCHRONIZED CLOCK: Register CommandPalette shortcuts as voice-accessible actions
+    // -----------------------------------------------------------------------
+    // Internal keyboard navigation
+    // -----------------------------------------------------------------------
+
+    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+        const count = results.length;
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            setSelectedIndex(i => (i + 1) % count);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            setSelectedIndex(i => (i - 1 + count) % count);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (results[selectedIndex]) {
+                results[selectedIndex].item.onSelect();
+            }
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            toggleCommandPalette(false);
+        }
+    }, [results, selectedIndex, toggleCommandPalette]);
+
+    // Scroll selected item into view
     useEffect(() => {
-        const systemMind = useSystemMind.getState();
+        if (!listRef.current) return;
+        const el = listRef.current.children[selectedIndex] as HTMLElement | undefined;
+        el?.scrollIntoView({ block: 'nearest' });
+    }, [selectedIndex]);
 
-        // Register command palette actions with SystemMind
-        systemMind.registerActions([
-            {
-                id: 'cmd_toggle_palette',
-                description: '[Keyboard] Toggle command palette (Cmd/Ctrl+K)',
-                callback: async () => {
-                    toggleCommandPalette();
-                    return { success: true };
-                },
-                sectors: [],  // Global
-                priority: 60
-            },
-            {
-                id: 'cmd_open_palette',
-                description: '[Keyboard] Open command palette',
-                callback: async () => {
-                    toggleCommandPalette(true);
-                    return { success: true };
-                },
-                sectors: [],
-                priority: 60
-            },
-            {
-                id: 'cmd_close_palette',
-                description: '[Keyboard] Close command palette',
-                callback: async () => {
-                    toggleCommandPalette(false);
-                    return { success: true };
-                },
-                sectors: [],
-                priority: 55
-            },
-            {
-                id: 'cmd_theme_midnight',
-                description: '[Theme] Switch to Midnight Core theme',
-                callback: async () => {
-                    setTheme(AppTheme.MIDNIGHT);
-                    return { success: true, theme: 'MIDNIGHT' };
-                },
-                sectors: [],
-                priority: 50
-            },
-            {
-                id: 'cmd_theme_amber',
-                description: '[Theme] Switch to Amber Protocol theme',
-                callback: async () => {
-                    setTheme(AppTheme.AMBER);
-                    return { success: true, theme: 'AMBER' };
-                },
-                sectors: [],
-                priority: 50
-            },
-            {
-                id: 'cmd_theme_dark',
-                description: '[Theme] Switch to Dark Mode theme',
-                callback: async () => {
-                    setTheme(AppTheme.DARK);
-                    return { success: true, theme: 'DARK' };
-                },
-                sectors: [],
-                priority: 50
-            },
-            {
-                id: 'cmd_theme_neon',
-                description: '[Theme] Switch to Neon Cyber theme',
-                callback: async () => {
-                    setTheme(AppTheme.NEON_CYBER);
-                    return { success: true, theme: 'NEON_CYBER' };
-                },
-                sectors: [],
-                priority: 50
-            }
-        ]);
-    }, [toggleCommandPalette, setTheme]);
+    // -----------------------------------------------------------------------
+    // Category tag colors
+    // -----------------------------------------------------------------------
 
-    useEffect(() => {
-        if (isCommandPaletteOpen) {
-            setTimeout(() => inputRef.current?.focus(), 50);
-            setInput('');
-            setResult(null);
-            setAiSuggestions([]);
-
-            const fetchSuggestions = async () => {
-                setIsPredicting(true);
-                try {
-                    const hasKey = apiKeyService.hasGeminiKey();
-                    if (hasKey) {
-                        const lastLog = system.logs.length > 0 ? system.logs[system.logs.length - 1].message : undefined;
-                        const suggestions = await predictNextActions(mode, {}, lastLog);
-                        setAiSuggestions(suggestions);
-                    }
-                } catch (e) { addLog('ERROR', `AI Prediction Failed: ${e}`); }
-                finally { setIsPredicting(false); }
-            };
-            fetchSuggestions();
-        }
-    }, [isCommandPaletteOpen, mode, system.logs, addLog]);
-
-    const executeCommand = async () => {
-        if (!input.trim()) return;
-        setIsLoading(true);
-        setResult(null);
-
-        const lowInput = input.toLowerCase();
-
-        // SYNCHRONIZED CLOCK: Notify SystemMind of command execution
-        // This ensures voice context knows when keyboard commands are used
-        try {
-            const systemMind = useSystemMind.getState();
-            systemMind.uplinkData('command_executed', {
-                command: input,
-                timestamp: Date.now(),
-                source: 'command_palette'
-            });
-        } catch (e) {
-            // SystemMind may not be initialized
-        }
-
-        if (lowInput.startsWith("focus ") || lowInput.startsWith("target ")) {
-            const selector = input.split(' ').slice(1).join(' ');
-            if (selector) {
-                setFocusedSelector(selector);
-                setResult(`Targeting element: ${selector}`);
-                setTimeout(() => toggleCommandPalette(false), 800);
-                setIsLoading(false);
-                return;
-            }
-        }
-
-        if (lowInput.includes('theme') || lowInput.includes('switch to')) {
-            let theme: AppTheme | null = null;
-            let msg = '';
-            if (lowInput.includes('midnight')) { theme = AppTheme.MIDNIGHT; msg = 'Midnight Core Enabled'; }
-            else if (lowInput.includes('amber')) { theme = AppTheme.AMBER; msg = 'Amber Protocol Engaged'; }
-            else if (lowInput.includes('dark')) { theme = AppTheme.DARK; msg = 'Dark Mode Restored'; }
-            else if (lowInput.includes('light')) { theme = AppTheme.LIGHT; msg = 'High Clarity Skin Active'; }
-            else if (lowInput.includes('neon')) { theme = AppTheme.NEON_CYBER; msg = 'Neon Entropy Initialized'; }
-
-            if (theme && msg) {
-                // Use capabilities registry for theme switching (US-005)
-                await executeCapability('ui_toggle_theme', { theme });
-                setResult(msg);
-                setTimeout(() => toggleCommandPalette(false), 800);
-                setIsLoading(false);
-                return;
-            }
-        }
-
-        try {
-            const hasKey = apiKeyService.hasGeminiKey();
-            if (!hasKey) { await promptSelectKey(); setIsLoading(false); return; }
-
-            if (lowInput.startsWith("research")) {
-                const query = input.replace(/^research\s+/i, '').trim();
-                if (query) {
-                    addResearchTask({ id: crypto.randomUUID(), query, status: 'QUEUED', progress: 0, logs: ['Dispatched via Command Palette'], timestamp: Date.now() });
-                    setResult(`Agent Dispatched: Researching "${query}"...`);
-                    setTimeout(() => toggleCommandPalette(false), 1200);
-                    setIsLoading(false);
-                    return;
-                }
-            }
-
-            // Fixed: Typed intent result from interpretIntent to resolve unknown property access
-            const intent = await interpretIntent(input) as { action: string, target?: string, parameters?: any, reasoning: string };
-
-            switch (intent.action) {
-                case 'NAVIGATE':
-                    if (intent.target) {
-                        const targetMode = AppMode[intent.target as keyof typeof AppMode];
-                        if (targetMode) {
-                            if (targetMode === AppMode.BICAMERAL) {
-                                setMode(AppMode.BIBLIOMORPHIC);
-                                setBibliomorphicState({ activeTab: 'bicameral' });
-                            } else {
-                                setMode(targetMode);
-                            }
-                            setResult(`Redirecting to ${intent.target} Sector...`);
-                            setTimeout(() => toggleCommandPalette(false), 800);
-                        }
-                    }
-                    break;
-                case 'FOCUS_ELEMENT':
-                    // Fixed: Safely accessed parameters through explicit typing
-                    if (intent.parameters?.selector) {
-                        setFocusedSelector(intent.parameters.selector);
-                        setResult(`Focusing UI context: ${intent.parameters.selector}`);
-                        setTimeout(() => toggleCommandPalette(false), 800);
-                    }
-                    break;
-                default:
-                    setResult(`Protocol Executed: ${intent.action}`);
-                    if (intent.reasoning) addLog('INFO', `COMMAND_LOG: ${intent.reasoning}`);
-                    setTimeout(() => toggleCommandPalette(false), 1500);
-            }
-
-        } catch (err) {
-            addLog('ERROR', `Command interpretation failure: ${err}`);
-            setResult("Command interpretation failure.");
-        } finally {
-            setIsLoading(false);
-        }
+    const categoryColor: Record<ResultCategory, string> = {
+        sector:   'bg-[var(--cyan,#22d3ee)]/20 text-[var(--cyan,#22d3ee)]',
+        action:   'bg-emerald-500/20 text-emerald-400',
+        shortcut: 'bg-amber-500/20 text-amber-400',
     };
 
-    const getIcon = (name: string) => {
-        switch (name) {
-            case 'Zap': return Zap;
-            case 'Code': return Code;
-            case 'Search': return Search;
-            case 'Cpu': return Cpu;
-            case 'Image': return Image;
-            case 'BookOpen': return BookOpen;
-            case 'Shield': return Shield;
-            case 'Terminal': return Terminal;
-            case 'Palette': return Palette;
-            case 'Target': return Target;
-            default: return Sparkles;
-        }
-    };
+    // -----------------------------------------------------------------------
+    // Render
+    // -----------------------------------------------------------------------
 
     return (
         <AnimatePresence>
             {isCommandPaletteOpen && (
-                <div className="fixed inset-0 z-[600] flex items-start justify-center pt-[15vh] bg-black/50 backdrop-blur-md" onClick={() => toggleCommandPalette(false)} role="presentation">
+                <div
+                    className="fixed inset-0 z-[1000] flex items-start justify-center pt-[15vh] bg-black/60 backdrop-blur-sm"
+                    onClick={() => toggleCommandPalette(false)}
+                    role="presentation"
+                >
                     <MotionDiv
-                        initial={{ opacity: 0, scale: 0.95, y: -20 }}
+                        initial={{ opacity: 0, scale: 0.96, y: -16 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                        transition={{ type: 'spring', damping: 25, stiffness: 220 }}
-                        onClick={(e: any) => e.stopPropagation()}
+                        exit={{ opacity: 0, scale: 0.96, y: -10 }}
+                        transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+                        onClick={(e: React.MouseEvent) => e.stopPropagation()}
                         role="dialog"
                         aria-modal="true"
                         aria-label="Command Palette"
-                        className="w-full max-w-2xl crystalline border border-[var(--border-main)] rounded-[2rem] shadow-[0_60px_150px_rgba(0,0,0,0.9)] overflow-hidden flex flex-col shimmer-edge"
+                        className="w-full max-w-xl crystalline border border-[var(--border-main)] rounded-2xl shadow-[0_40px_120px_rgba(0,0,0,0.85)] overflow-hidden flex flex-col"
                     >
-                        <div className="flex items-center px-8 py-6 border-b border-white/10 bg-white/[0.03]">
-                            <Command className="w-6 h-6 text-[var(--amethyst-soft)] mr-5 animate-pulse" />
+                        {/* Search input */}
+                        <div className="flex items-center px-5 py-4 border-b border-white/10 bg-white/[0.03]">
+                            <Search className="w-5 h-5 text-[var(--amethyst-soft)] mr-3 shrink-0" />
                             <input
                                 ref={inputRef}
                                 type="text"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && executeCommand()}
-                                placeholder="Initialize global directive..."
-                                aria-label="Command input"
-                                className="flex-1 bg-transparent border-none outline-none text-white font-mono text-base placeholder:text-gray-600 uppercase tracking-widest"
+                                value={query}
+                                onChange={(e) => setQuery(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                placeholder="Search sectors, actions, shortcuts..."
+                                aria-label="Command search"
+                                className="flex-1 bg-transparent border-none outline-none text-white font-mono text-sm placeholder:text-gray-500"
                                 autoComplete="off"
+                                spellCheck={false}
                             />
-                            {isLoading && <Loader2 size={5} className="w-5 h-5 text-[var(--amethyst-soft)] animate-spin ml-4" />}
-                            <button onClick={() => toggleCommandPalette(false)} aria-label="Close command palette" className="ml-5 p-2 text-gray-500 hover:text-white transition-colors glass-action rounded-xl"><X className="w-5 h-5" /></button>
+                            <button
+                                onClick={() => toggleCommandPalette(false)}
+                                aria-label="Close"
+                                className="ml-3 p-1.5 text-gray-500 hover:text-white transition-colors rounded-lg hover:bg-white/10"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
                         </div>
 
-                        {/* Knowledge Search Results */}
-                        {isKnowledgeMode && knowledgeQuery.length > 1 && (
-                            <div className="flex flex-col border-b border-white/10">
-                                <div className="px-8 py-3 text-[9px] text-[var(--cyan)] font-black font-mono uppercase tracking-[0.4em] flex items-center justify-between bg-[var(--cyan)]/5 border-b border-white/10">
-                                    <span className="flex items-center gap-3"><Database className="w-4 h-4" /> Knowledge_Base_Search</span>
-                                    {isSearching && <Loader2 size={3.5} className="w-3.5 h-3.5 animate-spin" />}
+                        {/* Results list */}
+                        <div ref={listRef} className="max-h-[400px] overflow-y-auto custom-scrollbar">
+                            {results.length === 0 && (
+                                <div className="px-5 py-8 text-center text-gray-500 text-xs font-mono">
+                                    No results for "{query}"
                                 </div>
-                                <div className="max-h-[350px] overflow-y-auto custom-scrollbar">
-                                    {knowledgeResults.length > 0 ? (
-                                        knowledgeResults.map((r, i) => (
-                                            <div key={i} className="px-8 py-4 border-b border-white/5 last:border-0 hover:bg-white/[0.03] transition-colors">
-                                                <div className="text-[11px] text-white font-mono leading-relaxed mb-2">
-                                                    {r.content.slice(0, 200)}{r.content.length > 200 ? '...' : ''}
-                                                </div>
-                                                <div className="flex items-center gap-4 text-[9px] font-mono">
-                                                    <span className="px-2 py-0.5 bg-[var(--amethyst-soft)]/20 text-[var(--amethyst-soft)] rounded uppercase">{r.category}</span>
-                                                    <span className="text-gray-500">{Math.round(r.similarity * 100)}% match</span>
-                                                    {r.tags?.length > 0 && (
-                                                        <span className="text-gray-600">{r.tags.slice(0, 3).join(', ')}</span>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : !isSearching ? (
-                                        <div className="px-8 py-6 text-gray-500 text-[11px] font-mono text-center">
-                                            No results found for "{knowledgeQuery}"
-                                        </div>
-                                    ) : null}
-                                </div>
-                            </div>
-                        )}
-
-                        {!input && !isLoading && !result && (
-                            <div className="flex flex-col">
-                                {(aiSuggestions.length > 0 || isPredicting) && (
-                                    <div className="bg-black/20">
-                                        <div className="px-8 py-3 text-[9px] text-[var(--amethyst-soft)] font-black font-mono uppercase tracking-[0.4em] flex items-center justify-between border-b border-white/10 bg-white/[0.05]">
-                                            <span className="flex items-center gap-3"><BrainCircuit className="w-4 h-4" /> Predicted_Contextual_Signals</span>
-                                            {isPredicting && <Loader2 size={3.5} className="w-3.5 h-3.5 animate-spin" />}
+                            )}
+                            {results.map((r, idx) => {
+                                const Icon = r.item.icon;
+                                const isActive = idx === selectedIndex;
+                                return (
+                                    <button
+                                        key={r.item.id}
+                                        onClick={() => r.item.onSelect()}
+                                        onMouseEnter={() => setSelectedIndex(idx)}
+                                        className={`w-full flex items-center gap-3 px-5 py-3 text-left transition-colors ${
+                                            isActive
+                                                ? 'bg-white/[0.08] text-white'
+                                                : 'text-gray-400 hover:bg-white/[0.05] hover:text-white'
+                                        }`}
+                                    >
+                                        {/* Icon */}
+                                        <div className={`w-8 h-8 flex items-center justify-center rounded-lg shrink-0 ${
+                                            isActive
+                                                ? 'bg-[var(--amethyst-soft)]/20 text-[var(--amethyst-soft)]'
+                                                : 'bg-white/5 text-gray-500'
+                                        }`}>
+                                            <Icon className="w-4 h-4" />
                                         </div>
 
-                                        <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
-                                            {aiSuggestions.map((s) => {
-                                                const Icon = getIcon(s.iconName);
-                                                return (
-                                                    <button key={s.id} onClick={() => { setInput(s.command); inputRef.current?.focus(); }} className="w-full flex items-center px-8 py-5 hover:bg-white/[0.08] text-gray-400 hover:text-white transition-all group border-b border-white/5 last:border-0">
-                                                        <div className="w-10 h-10 flex items-center justify-center rounded-2xl glass-action text-gray-500 border-white/10 mr-5 transition-all group-hover:bg-[var(--amethyst-soft)] group-hover:text-black group-hover:border-[var(--amethyst-soft)] shadow-lg"><Icon className="w-5 h-5" /></div>
-                                                        <div className="flex-1 text-left min-w-0">
-                                                            <div className="text-[11px] font-black font-mono group-hover:text-white uppercase tracking-wider">{s.label}</div>
-                                                            <div className="text-[9px] text-gray-600 font-mono truncate lowercase opacity-60 mt-0.5">protocol.exec::{s.reasoning}</div>
-                                                        </div>
-                                                        <span className="text-[9px] font-mono text-[var(--amethyst-soft)] opacity-0 group-hover:opacity-100 transition-all flex items-center gap-2 uppercase tracking-widest font-black">Invoke <ChevronRight className="w-3 h-3" /></span>
-                                                    </button>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
+                                        {/* Label with highlighted chars */}
+                                        <span className="flex-1 text-xs font-mono font-semibold truncate">
+                                            {r.indices.length > 0
+                                                ? <HighlightedLabel text={r.item.label} indices={r.indices} />
+                                                : r.item.label
+                                            }
+                                        </span>
 
-                                <div className="border-t border-white/10">
-                                    <div className="px-8 py-3 text-[9px] text-gray-500 font-black font-mono uppercase tracking-[0.4em] bg-white/[0.03]">Static System Protocols</div>
-                                    <div className="grid grid-cols-2 max-h-[200px] overflow-y-auto custom-scrollbar">
-                                        {staticSuggestions.map((s) => (
-                                            <button key={s.id} onClick={() => { setInput(s.command); inputRef.current?.focus(); }} className="flex items-center px-8 py-4 hover:bg-white/[0.05] text-gray-500 hover:text-white transition-all group border-b border-r border-white/5">
-                                                <div className="w-8 h-8 flex items-center justify-center rounded-xl glass-action text-gray-600 group-hover:text-[var(--amethyst-soft)] mr-4 transition-all border-white/10 group-hover:border-[var(--amethyst-soft)]/40"><s.icon size={14} /></div>
-                                                <span className="text-[10px] font-mono font-black uppercase tracking-widest flex-1 text-left">{s.label}</span>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                                        {/* Category tag */}
+                                        <span className={`px-2 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider shrink-0 ${categoryColor[r.item.category]}`}>
+                                            {r.item.category}
+                                        </span>
 
-                        <div className="bg-white/[0.02] p-4 px-8 text-[9px] text-gray-600 font-black font-mono border-t border-white/10 flex justify-between items-center">
-                            <div className="flex items-center gap-8">
-                                <span className="flex items-center gap-2 group cursor-help hover:text-[var(--cyan)] transition-colors" title="Type ? to search knowledge"><Database size={12} /> ?KNOW</span>
-                                <span className="flex items-center gap-2 group cursor-help hover:text-white transition-colors"><History size={12} /> CACHED</span>
-                                <span className="flex items-center gap-2 group cursor-help hover:text-white transition-colors"><Palette size={12} /> SKINS</span>
-                            </div>
+                                        {/* Shortcut hint */}
+                                        {r.item.shortcut && (
+                                            <kbd className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded text-[10px] font-mono text-gray-500 shrink-0">
+                                                {r.item.shortcut}
+                                            </kbd>
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* Footer */}
+                        <div className="px-5 py-2.5 border-t border-white/10 bg-white/[0.02] flex items-center justify-between text-[9px] font-mono text-gray-600">
                             <div className="flex items-center gap-4">
-                                <span className="px-2 py-1 glass-action rounded-lg uppercase text-[8px] border-white/10">Esc: Sever</span>
-                                <span className="px-2 py-1 bg-[var(--amethyst-soft)]/20 text-[var(--amethyst-soft)] rounded-lg uppercase text-[8px] border border-[var(--amethyst-soft)]/30">Enter: Commit</span>
+                                <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 bg-white/5 rounded text-[8px]">&uarr;&darr;</kbd> Navigate</span>
+                                <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 bg-white/5 rounded text-[8px]">&crarr;</kbd> Select</span>
+                                <span className="flex items-center gap-1"><kbd className="px-1 py-0.5 bg-white/5 rounded text-[8px]">Esc</kbd> Close</span>
                             </div>
+                            <span className="text-gray-700">{results.length} result{results.length !== 1 ? 's' : ''}</span>
                         </div>
-
-                        {result && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-8 py-5 bg-[var(--amethyst-soft)]/15 border-t border-[var(--amethyst-soft)]/40 text-[var(--amethyst-soft)] text-[11px] font-black font-mono uppercase tracking-widest flex items-center">
-                                <Sparkles className="w-5 h-5 mr-4 animate-pulse" />
-                                {result}
-                            </motion.div>
-                        )}
                     </MotionDiv>
                 </div>
             )}

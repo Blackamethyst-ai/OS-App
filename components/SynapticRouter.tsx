@@ -120,12 +120,21 @@ const PanelErrorFallback: React.FC<{ sectorName: string }> = ({ sectorName }) =>
 const SynapticRouter: React.FC = () => {
     const { mode, previousMode, contextMenu, actions } = useAppStore();
     const lastSyncedHash = useRef<string>('');
+    const sectorToastCount = useRef(0);
     const [routeInfo, setRouteInfo] = useState({ path: '', sub: '', params: '' });
 
     // --- Dynamic page title ---
     useEffect(() => {
         document.title = `${SECTOR_TITLES[mode] || mode} — Metaventions AI`;
     }, [mode]);
+
+    // Toast on sector change (first 3 only to avoid spam)
+    useEffect(() => {
+        if (previousMode && previousMode !== mode && sectorToastCount.current < 3) {
+            sectorToastCount.current++;
+            actions.addToast('info', `Sector: ${SECTOR_TITLES[mode] || mode}`);
+        }
+    }, [mode, previousMode, actions]);
 
     // Transition Logic: Calculate Warp Vector
     const warpDirection = useMemo(() => {

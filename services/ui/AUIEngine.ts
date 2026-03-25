@@ -14,6 +14,7 @@
  */
 
 import { getAI, safeParseJson } from '../geminiService';
+import { MODEL_REGISTRY } from '../modelRegistry';
 import { logger } from '../logger';
 import { claudeService } from '../claudeService';
 import { apiKeyService } from '../apiKeyService';
@@ -36,8 +37,8 @@ type LLMProvider = 'claude' | 'gemini' | 'auto';
 
 const CONFIG = {
   provider: 'auto' as LLMProvider,
-  claudeModel: 'claude-sonnet-4-6',
-  geminiModel: 'gemini-2.5-flash',
+  claudeModel: MODEL_REGISTRY.claude.standard,
+  geminiModel: MODEL_REGISTRY.gemini.fast,
   generationTimeoutMs: 3000,
   maxRetries: 2,
   cooldownMs: 1000,

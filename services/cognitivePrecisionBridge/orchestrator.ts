@@ -33,6 +33,7 @@ import { scoreDQHeuristic, scoreDQWithLLM, DQScore } from '../dqScoring';
 import { convergenceMemory } from '../convergenceMemory';
 import { retryGeminiRequest, getAI } from '../geminiService';
 import { claudeService } from '../claudeService';
+import { MODEL_REGISTRY } from '../modelRegistry';
 import type { AtomicTask } from '../../types';
 import { logger } from '../logger';
 
@@ -51,11 +52,11 @@ function getModelForPath(path: CPBPath, forceModel?: ReasoningModel): { provider
             case 'gemini-2.0-flash':
                 return { provider: 'gemini', model: 'gemini-2.0-flash' };
             case 'claude-haiku':
-                return { provider: 'claude', model: 'claude-haiku-4-5-20251001' };
+                return { provider: 'claude', model: MODEL_REGISTRY.claude.fast };
             case 'claude-sonnet':
-                return { provider: 'claude', model: 'claude-sonnet-4-6' };
+                return { provider: 'claude', model: MODEL_REGISTRY.claude.standard };
             case 'claude-opus':
-                return { provider: 'claude', model: 'claude-opus-4-6' };
+                return { provider: 'claude', model: MODEL_REGISTRY.claude.deep };
         }
     }
 
@@ -64,31 +65,31 @@ function getModelForPath(path: CPBPath, forceModel?: ReasoningModel): { provider
         case 'direct':
             // ELITE: Even direct uses Sonnet for quality
             return claudeService.isConfigured()
-                ? { provider: 'claude', model: 'claude-sonnet-4-6' }
+                ? { provider: 'claude', model: MODEL_REGISTRY.claude.standard }
                 : { provider: 'gemini', model: 'gemini-2.0-flash' };
         case 'rlm':
             // ELITE: RLM uses Sonnet for better compression quality
             return claudeService.isConfigured()
-                ? { provider: 'claude', model: 'claude-sonnet-4-6' }
+                ? { provider: 'claude', model: MODEL_REGISTRY.claude.standard }
                 : { provider: 'gemini', model: 'gemini-2.0-flash' };
         case 'ace':
             // ELITE: ACE uses Opus for maximum reasoning depth
             return claudeService.isConfigured()
-                ? { provider: 'claude', model: 'claude-opus-4-6' }
+                ? { provider: 'claude', model: MODEL_REGISTRY.claude.deep }
                 : { provider: 'gemini', model: 'gemini-2.0-flash' };
         case 'hybrid':
             // ELITE: Hybrid uses Opus for final synthesis
             return claudeService.isConfigured()
-                ? { provider: 'claude', model: 'claude-opus-4-6' }
+                ? { provider: 'claude', model: MODEL_REGISTRY.claude.deep }
                 : { provider: 'gemini', model: 'gemini-2.0-flash' };
         case 'cascade':
             // ELITE: Cascade uses Opus with extended context
             return claudeService.isConfigured()
-                ? { provider: 'claude', model: 'claude-opus-4-6' }
+                ? { provider: 'claude', model: MODEL_REGISTRY.claude.deep }
                 : { provider: 'gemini', model: 'gemini-2.0-flash' };
         default:
             return claudeService.isConfigured()
-                ? { provider: 'claude', model: 'claude-sonnet-4-6' }
+                ? { provider: 'claude', model: MODEL_REGISTRY.claude.standard }
                 : { provider: 'gemini', model: 'gemini-2.0-flash' };
     }
 }

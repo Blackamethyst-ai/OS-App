@@ -1,4 +1,5 @@
 import { GoogleGenAI, Type, Modality, GenerateContentResponse, LiveServerMessage, Schema, Blob as GenAIBlob } from "@google/genai";
+import { MODEL_REGISTRY } from './modelRegistry';
 import {
     AppMode, AspectRatio, ImageSize, FileData, MentalState,
     Result, AnalysisResult, AutonomousAgent, OperationalContext,
@@ -159,7 +160,7 @@ function setCache(key: string, response: string): void {
  * Generic text generation entry point for ModelRouter
  * Includes response caching with 1-hour TTL for identical prompts
  */
-export async function generateText(prompt: string, model: string = 'gemini-2.5-flash', systemInstruction?: string): Promise<string> {
+export async function generateText(prompt: string, model: string = MODEL_REGISTRY.gemini.fast, systemInstruction?: string): Promise<string> {
     // Check cache first
     const cacheKey = getCacheKey(prompt, model, systemInstruction);
     const cached = getFromCache(cacheKey);
@@ -222,7 +223,7 @@ import { useAppStore } from '../store';
 // DEPRECATED: This old function is now replaced by promptSelectKey at the top of the file
 // Keeping import for backwards compatibility
 
-export async function retryGeminiRequest<T>(fn: () => Promise<T>, retries = 3, delay = 1000, model = 'gemini-2.5-flash'): Promise<T> {
+export async function retryGeminiRequest<T>(fn: () => Promise<T>, retries = 3, delay = 1000, model: string = MODEL_REGISTRY.gemini.fast): Promise<T> {
     // Lazy import to avoid circular dependency
     const { apiUsageService } = await import('./apiUsageService');
 
@@ -515,7 +516,7 @@ export async function getLiveSupplyChainData(componentName: string) {
     return safeParseJson<any>(response.text);
 }
 
-export async function generateCode(prompt: string, lang: string, model: string = 'gemini-2.5-flash') {
+export async function generateCode(prompt: string, lang: string, model: string = MODEL_REGISTRY.gemini.fast) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         model: model as any,

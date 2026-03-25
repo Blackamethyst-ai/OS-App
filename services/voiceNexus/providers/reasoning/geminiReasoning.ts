@@ -7,14 +7,15 @@
 
 import type { ReasoningProvider, ReasoningConfig, ReasoningResult } from '../../types';
 import { getAI, SOVEREIGN_SYSTEM_INSTRUCTION } from '../../../geminiService';
+import { MODEL_REGISTRY } from '../../../modelRegistry';
 import { apiKeyService } from '../../../apiKeyService';
 import { logger } from '../../../logger';
 
 // Model mappings for each tier
 const GEMINI_MODELS = {
-    fast: 'gemini-2.5-flash',
-    balanced: 'gemini-2.5-flash',
-    deep: 'gemini-2.5-pro',
+    fast: MODEL_REGISTRY.gemini.fast,
+    balanced: MODEL_REGISTRY.gemini.fast,
+    deep: MODEL_REGISTRY.gemini.deep,
 } as const;
 
 // Voice-optimized system prompt
