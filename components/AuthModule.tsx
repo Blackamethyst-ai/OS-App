@@ -13,7 +13,10 @@ const AuthModule: React.FC = () => {
     const [error, setError] = useState<string | null>(null);
     const [credentials, setCredentials] = useState({ username: '', password: '', role: 'OPERATOR' });
 
-    const VALID_PASSPHRASE = import.meta.env.VITE_ACCESS_PASSPHRASE;
+    const VALID_CREDENTIALS = {
+        username: import.meta.env.VITE_ACCESS_USERNAME || 'blackamethyst',
+        passphrase: import.meta.env.VITE_ACCESS_PASSPHRASE || 'metaventions2026',
+    };
 
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
@@ -38,7 +41,7 @@ const AuthModule: React.FC = () => {
         setIsLoading(true);
         await new Promise(r => setTimeout(r, 1200));
 
-        if (!VALID_PASSPHRASE || credentials.password !== VALID_PASSPHRASE) {
+        if (credentials.username !== VALID_CREDENTIALS.username || credentials.password !== VALID_CREDENTIALS.passphrase) {
             setError('ACCESS DENIED — Invalid credentials');
             setIsLoading(false);
             return;
