@@ -20,7 +20,8 @@ export enum AppMode {
     CPB_TEST = 'CPB_TEST',
     ARCHON = 'ARCHON',
     META_LEARNING = 'META_LEARNING',
-    SOVEREIGN_GALLERY = 'SOVEREIGN_GALLERY'
+    SOVEREIGN_GALLERY = 'SOVEREIGN_GALLERY',
+    NEXUS = 'NEXUS'
 }
 
 export enum AppTheme {

@@ -146,6 +146,7 @@ const VoiceManager: React.FC = () => {
                     [AppMode.ARCHON]: '/archon',
                     [AppMode.META_LEARNING]: '/meta-learning',
                     [AppMode.SOVEREIGN_GALLERY]: '/vault',
+                    [AppMode.NEXUS]: '/nexus',
                 };
 
                 if (routeMap[target]) {

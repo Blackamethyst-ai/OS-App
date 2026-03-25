@@ -31,6 +31,7 @@ const CPBTest = lazy(() => import('./CPBTest'));
 const ArchonDashboard = lazy(() => import('./agents/ArchonDashboard'));
 const MetaLearningDashboard = lazy(() => import('./predictions/MetaLearningDashboard'));
 const SovereignGallery = lazy(() => import('./SovereignGallery'));
+const BicameralEngine = lazy(() => import('./BicameralEngine'));
 
 // --- CYCLE 1: SPATIAL COORDINATE MAP ---
 const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> = {
@@ -51,7 +52,8 @@ const SECTOR_COORDINATES: Record<AppMode, { x: number; y: number; z: number }> =
     [AppMode.CPB_TEST]: { x: 0.5, y: -0.5, z: 0.5 },
     [AppMode.ARCHON]: { x: 0, y: 0, z: 2 },
     [AppMode.META_LEARNING]: { x: -1, y: 1, z: 1 },
-    [AppMode.SOVEREIGN_GALLERY]: { x: 0.5, y: -0.5, z: -0.5 }
+    [AppMode.SOVEREIGN_GALLERY]: { x: 0.5, y: -0.5, z: -0.5 },
+    [AppMode.NEXUS]: { x: 1, y: 1, z: 1 }
 };
 
 /**
@@ -130,7 +132,8 @@ const SynapticRouter: React.FC = () => {
                 'voice': AppMode.VOICE_MODE,
                 'agents': AppMode.AGENT_CONTROL,
                 'finance': AppMode.AUTONOMOUS_FINANCE,
-                'nexus': 'NEXUS' as any,
+                'nexus': AppMode.NEXUS,
+                'bicameral': AppMode.BICAMERAL,
                 'sdk-test': AppMode.AGENT_CORE_TEST,
                 'cpb-test': AppMode.CPB_TEST,
                 'archon': AppMode.ARCHON,
@@ -154,7 +157,7 @@ const SynapticRouter: React.FC = () => {
     }, [actions, mode]);
 
     const isFixedLayout = useMemo(() => 
-        mode === AppMode.METAVENTIONS_HUB || mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.AUTONOMOUS_FINANCE || mode === AppMode.SOVEREIGN_GALLERY || (mode as any) === 'NEXUS'
+        mode === AppMode.METAVENTIONS_HUB || mode === AppMode.PROCESS_MAP || mode === AppMode.CODE_STUDIO || mode === AppMode.IMAGE_GEN || mode === AppMode.AGENT_CONTROL || mode === AppMode.HARDWARE_ENGINEER || mode === AppMode.AUTONOMOUS_FINANCE || mode === AppMode.SOVEREIGN_GALLERY || mode === AppMode.NEXUS
     , [mode]);
 
     return (
@@ -213,7 +216,8 @@ const SynapticRouter: React.FC = () => {
                             {mode === AppMode.CODE_STUDIO && <CodeStudio />}
                             {mode === AppMode.AGENT_CONTROL && <AgentControlCenter />}
                             {mode === AppMode.AUTONOMOUS_FINANCE && <AutonomousFinance />}
-                            {(mode as any) === 'NEXUS' && <NexusAPIExplorer />}
+                            {mode === AppMode.NEXUS && <NexusAPIExplorer />}
+                            {mode === AppMode.BICAMERAL && <BicameralEngine />}
                             {mode === AppMode.AGENT_CORE_TEST && <AgentCoreTest />}
                             {mode === AppMode.CPB_TEST && <CPBTest />}
                             {mode === AppMode.ARCHON && <ArchonDashboard />}

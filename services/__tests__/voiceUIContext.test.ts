@@ -21,6 +21,7 @@ vi.mock('../../types', () => {
     ARCHON: 'ARCHON',
     META_LEARNING: 'META_LEARNING',
     SOVEREIGN_GALLERY: 'SOVEREIGN_GALLERY',
+    NEXUS: 'NEXUS',
   } as const;
   return { AppMode };
 });

@@ -103,6 +103,7 @@ const VoiceCoreManager: React.FC<VoiceCoreManagerProps> = ({
             [AppMode.ARCHON]: '/archon',
             [AppMode.META_LEARNING]: '/meta-learning',
             [AppMode.SOVEREIGN_GALLERY]: '/vault',
+            [AppMode.NEXUS]: '/nexus',
         };
 
         const route = routeMap[mode];

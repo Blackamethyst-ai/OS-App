@@ -423,6 +423,25 @@ export const UI_KNOWLEDGE_BASE: Record<AppMode, SectorKnowledge> = {
             'Full-screen cinematic image viewing'
         ],
         voiceCommands: ['open vault', 'gallery', 'sovereign vault', 'show images', 'asset vault']
+    },
+    [AppMode.NEXUS]: {
+        id: AppMode.NEXUS,
+        name: 'Nexus API Explorer',
+        shortName: 'Nexus',
+        description: 'API exploration and testing interface for the Metaventions platform endpoints and integrations.',
+        features: [
+            'API endpoint discovery',
+            'Request/response inspection',
+            'Integration testing',
+            'Schema exploration'
+        ],
+        keyComponents: ['NexusAPIExplorer'],
+        useCases: [
+            'Test API endpoints',
+            'Explore available integrations',
+            'Debug API responses'
+        ],
+        voiceCommands: ['open nexus', 'api explorer', 'nexus matrix']
     }
 };
 
