@@ -30,10 +30,10 @@ vi.mock('lucide-react', () => ({
   Fingerprint: (props: any) => <span data-testid="icon-fingerprint" {...props} />,
 }));
 
-const mockAddLog = vi.fn();
-const mockToggleTerminal = vi.fn();
-const mockSetDiagnosticsOpen = vi.fn();
-const mockPlayClick = vi.fn();
+const mockAddLog = vi.hoisted(() => vi.fn());
+const mockToggleTerminal = vi.hoisted(() => vi.fn());
+const mockSetDiagnosticsOpen = vi.hoisted(() => vi.fn());
+const mockPlayClick = vi.hoisted(() => vi.fn());
 
 vi.mock('../../store', () => ({
   useAppStore: vi.fn(() => ({

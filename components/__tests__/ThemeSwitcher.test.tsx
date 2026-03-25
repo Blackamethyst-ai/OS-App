@@ -117,10 +117,11 @@ describe('ThemeSwitcher', () => {
   });
 
   it('closes dropdown when backdrop is clicked', () => {
-    render(<ThemeSwitcher />);
+    const { container } = render(<ThemeSwitcher />);
     fireEvent.click(screen.getByLabelText('Change interface theme'));
     expect(screen.getByText('Interface Skin // Global Vector')).toBeTruthy();
-    const backdrop = screen.getByRole('presentation');
+    // The backdrop has role="presentation" and aria-hidden="true", so query by class
+    const backdrop = container.querySelector('.fixed.inset-0')!;
     fireEvent.click(backdrop);
     expect(screen.queryByText('Interface Skin // Global Vector')).toBeNull();
   });
