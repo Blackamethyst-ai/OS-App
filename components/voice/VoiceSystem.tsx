@@ -72,7 +72,8 @@ const VoiceSystem: React.FC<VoiceSystemProps> = ({
             <VoiceCoreOverlay />
 
             {/* Gemini Live - Primary Voice System (Full Duplex, Native TTS) */}
-            {mode === 'gemini' && <VoiceManager />}
+            {/* Always mount VoiceManager — VoiceMode (#/voice) depends on it for liveSession */}
+            <VoiceManager />
 
             {/* Conversational Voice Orb (Deepgram + Claude + ElevenLabs + VAD) */}
             {(mode === 'conversational' || showConversationalOrb) && isConversationalReady && (
