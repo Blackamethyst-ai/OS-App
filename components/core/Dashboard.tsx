@@ -23,6 +23,7 @@ import { audio } from '../../services/audioService';
 import { cn } from '../../utils/cn';
 import DEcosystem from '../DEcosystem';
 import ContextVelocityChart from '../ContextVelocityChart';
+import { useApiUsage } from '../../hooks/useApiUsage';
 
 const ExecutiveBanner = () => {
     const { user, voice, actions } = useAppStore();
@@ -240,40 +241,47 @@ const MetricCard = ({ title, value, detail, icon: Icon, color, data, trend }: an
 );
 
 const Dashboard: React.FC = () => {
-  const { dashboard, user, voice, kernel, actions } = useAppStore();
+  const { dashboard, user, voice, kernel, agents, actions } = useAppStore();
   const { setDashboardState, setMode, setVoiceState, addLog, openHoloProjector, toggleProfile } = actions;
 
-  // Initial telemetry constants
-  const INITIAL_CPU = 12.5;
-  const INITIAL_NET = 0.8;
-  const INITIAL_MEM = 58;
-  const INITIAL_HEALTH = 98;
   const HISTORY_LENGTH = 20;
 
-  const [telemetry, setTelemetry] = useState({ cpu: INITIAL_CPU, net: INITIAL_NET, mem: INITIAL_MEM, health: INITIAL_HEALTH });
-  const [cpuHist, setCpuHist] = useState(Array.from({length: HISTORY_LENGTH}, () => ({ value: 10 + Math.random() * 5 })));
-  const [netHist, setNetHist] = useState(Array.from({length: HISTORY_LENGTH}, () => ({ value: 5 + Math.random() * 10 })));
+  // Real telemetry: API usage from apiUsageService
+  const { stats: apiStats } = useApiUsage();
+  const activeAgentCount = agents.activeAgents.length;
+
+  // Uptime tracking from app mount
+  const [mountTime] = useState(() => Date.now());
+  const [uptime, setUptime] = useState('0h 0m');
+
+  // History for sparkline charts
+  const [apiCallHist, setApiCallHist] = useState<{value: number}[]>(Array.from({length: HISTORY_LENGTH}, () => ({ value: 0 })));
+  const [agentHist, setAgentHist] = useState<{value: number}[]>(Array.from({length: HISTORY_LENGTH}, () => ({ value: 0 })));
 
   useEffect(() => {
       const interval = setInterval(() => {
-          setTelemetry(prev => {
-              const newCpu = Math.max(5, Math.min(95, prev.cpu + (Math.random() * 6 - 3)));
-              setCpuHist(h => [...h, { value: newCpu }].slice(-20));
-              return { ...prev, cpu: newCpu };
-          });
-          
+          // Update uptime display
+          const elapsed = Date.now() - mountTime;
+          const hours = Math.floor(elapsed / 3600000);
+          const minutes = Math.floor((elapsed % 3600000) / 60000);
+          setUptime(`${hours}h ${minutes}m`);
+
+          // Push real values into history for sparklines
+          setApiCallHist(h => [...h, { value: apiStats.totalCalls }].slice(-HISTORY_LENGTH));
+          setAgentHist(h => [...h, { value: activeAgentCount }].slice(-HISTORY_LENGTH));
+
           setDashboardState({
               topologyData: [
                   { s: 'LOGIC', A: Math.round(kernel.integrity) },
-                  { s: 'SPEED', A: 88 + Math.random() * 5 },
+                  { s: 'SPEED', A: Math.min(100, 80 + apiStats.callsThisMinute * 2) },
                   { s: 'SECURITY', A: 96 },
-                  { s: 'YIELD', A: 84 + Math.random() * 2 },
-                  { s: 'SCALE', A: 91 }
+                  { s: 'YIELD', A: apiStats.totalCalls > 0 ? Math.round(((apiStats.totalCalls - apiStats.errors) / apiStats.totalCalls) * 100) : 100 },
+                  { s: 'SCALE', A: Math.min(100, 70 + activeAgentCount * 10) }
               ]
           });
       }, 5000);
       return () => clearInterval(interval);
-  }, [kernel.integrity, setDashboardState]);
+  }, [kernel.integrity, setDashboardState, mountTime, apiStats, activeAgentCount]);
 
   const handleIdentitySync = async () => {
     setDashboardState({ isGenerating: true });
@@ -312,9 +320,9 @@ const Dashboard: React.FC = () => {
               {/* Left Column: Metrics and Topology */}
               <div className="md:col-span-1 xl:col-span-3 space-y-4">
                   <div className="grid grid-cols-1 gap-4">
-                      <MetricCard title="CPU LOAD" value={`${telemetry.cpu.toFixed(1)}%`} detail="STABLE" icon={Cpu} color="var(--executive-gold)" data={cpuHist} trend="up" />
-                      <MetricCard title="BANDWIDTH" value={`${telemetry.net.toFixed(1)}GB/s`} detail="PEAK" icon={Radio} color="var(--cyan)" data={netHist} trend="up" />
-                      <MetricCard title="TRUST INDEX" value="NOMINAL" detail="VERIFIED" icon={Shield} color="var(--plasma-green)" data={[{value:98},{value:99},{value:98}]} trend="up" />
+                      <MetricCard title="API CALLS" value={apiStats.totalCalls} detail={`${apiStats.callsThisMinute}/min`} icon={Zap} color="var(--executive-gold)" data={apiCallHist} trend={apiStats.callsThisMinute > 0 ? 'up' : 'down'} />
+                      <MetricCard title="ACTIVE AGENTS" value={activeAgentCount} detail={activeAgentCount > 0 ? 'ONLINE' : 'IDLE'} icon={Bot} color="var(--cyan)" data={agentHist} trend={activeAgentCount > 0 ? 'up' : 'down'} />
+                      <MetricCard title="UPTIME" value={uptime} detail="LIVE" icon={Activity} color="var(--plasma-green)" data={apiCallHist.slice(-6)} trend="up" />
                   </div>
                   <div className="crystalline rounded-3xl p-6 h-56 relative overflow-hidden shadow-xl">
                       <div className="flex items-center gap-3 mb-6 relative z-10">

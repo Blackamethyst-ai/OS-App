@@ -13,6 +13,7 @@ import { audio } from '../services/audioService';
 import { GlobalErrorBoundary } from './GlobalErrorBoundary';
 import { RouteErrorBoundary } from './RouteErrorBoundary';
 import SectorSkeleton from './SectorSkeleton';
+import Breadcrumb from './Breadcrumb';
 
 // Lazy Load Views for performance
 const Dashboard = lazy(() => import('./core/Dashboard'));
@@ -202,6 +203,7 @@ const SynapticRouter: React.FC = () => {
     return (
         <div id="main-content" className="flex-1 relative overflow-hidden flex flex-col perspective-2000">
             <Suspense fallback={<SectorSkeleton />}>
+                <Breadcrumb mode={mode} subPath={routeInfo.sub || undefined} />
                 {/* Fix: Changed mode from 'popLayout' to 'wait' to eliminate the multiple window overlap during sector shifts */}
                 <AnimatePresence mode="wait" initial={false}>
                     <motion.main
