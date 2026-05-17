@@ -1,0 +1,30 @@
+# Vercel deploys via git integration (build context = tracked files).
+# This guards CLI/source deploys from sweeping the giant local tree
+# (the working dir is multi-GB of local cruft; a `vercel --prod` once
+# tried to upload 5.1GB and aborted).
+
+node_modules
+.git
+.vercel
+.graveyard
+.prd-archive
+
+# Large/personal/generated binary assets — never deployed
+public/cinema-renders
+public/anchor-library
+public/anchor-library-index.json
+
+# Test + coverage + local artifacts
+coverage
+**/__tests__
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+*.log
+.DS_Store
+
+# Local session/workflow files
+SESSION_LOG.md
+CURRENT_TASK.md
+.claude
+.agent
