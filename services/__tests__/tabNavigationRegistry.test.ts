@@ -104,11 +104,12 @@ describe('tabNavigationRegistry', () => {
   describe('findTabsInSector', () => {
     it('returns all tabs for a given sector', () => {
       const tabs = findTabsInSector(AppMode.IMAGE_GEN);
-      expect(tabs.length).toBe(4);
+      expect(tabs.length).toBe(5);
       const ids = tabs.map(t => t.id);
       expect(ids).toContain('cinema-single');
       expect(ids).toContain('cinema-storyboard');
       expect(ids).toContain('cinema-video');
+      expect(ids).toContain('cinema-substrate');
       expect(ids).toContain('cinema-teaser');
     });
 

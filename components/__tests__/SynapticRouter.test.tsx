@@ -66,25 +66,19 @@ vi.mock('motion/react', () => ({
   AnimatePresence: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }));
 
-vi.mock('lucide-react', () => ({
-  Copy: () => <span>Copy</span>,
-  Eye: () => <span>Eye</span>,
-  Wand2: () => <span>Wand2</span>,
-  Terminal: () => <span>Terminal</span>,
-  Code: () => <span>Code</span>,
-  X: () => <span>X</span>,
-  Search: () => <span>Search</span>,
-  Activity: () => <span>Activity</span>,
-  Layers: () => <span>Layers</span>,
-  ArrowUpRight: () => <span>ArrowUpRight</span>,
-  Hash: () => <span>Hash</span>,
-  Database: () => <span>Database</span>,
-  GitBranch: () => <span>GitBranch</span>,
-  Loader2: (props: any) => <span data-testid="loader" className={props.className}>Loader2</span>,
-  Scan: () => <span>Scan</span>,
-  AlertTriangle: () => <span>AlertTriangle</span>,
-  RefreshCw: () => <span>RefreshCw</span>,
-}));
+// Spread the real lucide-react module so every icon (e.g. ChevronRight
+// from the breadcrumbs feature) resolves and a newly-used icon never
+// breaks this test again. Real icons are plain SVGs and render fine in
+// happy-dom. Only Loader2 is overridden to keep its spinner testid.
+vi.mock('lucide-react', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('lucide-react')>();
+  return {
+    ...actual,
+    Loader2: (props: any) => (
+      <span data-testid="loader" className={props.className}>Loader2</span>
+    ),
+  };
+});
 
 import SynapticRouter from '../SynapticRouter';
 import { AppMode } from '../../types';
