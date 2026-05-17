@@ -278,7 +278,7 @@ export async function interpretIntent(input: string) {
     const ai = getAI();
     // Using your requested cutting-edge model
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
+        model: MODEL_REGISTRY.gemini.image,
         contents: `Analyze user intent: "${input}". Output JSON {action: "NAVIGATE" | "FOCUS_ELEMENT" | "RESEARCH" | "EXECUTE", target?: string, parameters?: object, reasoning: string}.`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     }));
@@ -290,7 +290,7 @@ export async function interpretIntent(input: string) {
 export async function predictNextActions(mode: string, context: Record<string, unknown>, lastLog?: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Mode: ${mode}. Context: ${JSON.stringify(context)}. Last Log: ${lastLog}. Predict 3 strategic next actions. JSON [{id, label, command, iconName, reasoning}].`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     }));
@@ -300,7 +300,7 @@ export async function predictNextActions(mode: string, context: Record<string, u
 export async function performGlobalSearch(query: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Research: "${query}".`,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, tools: [{ googleSearch: {} }] }
     }));
@@ -345,7 +345,7 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
     // Try Gemini native image generation first (preserves face from reference)
     try {
         const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-            model: 'gemini-2.5-flash-image',
+            model: MODEL_REGISTRY.gemini.image,
             contents: { parts },
             config: {
                 responseModalities: ['IMAGE', 'TEXT'],
@@ -370,7 +370,7 @@ export async function generateArchitectureImage(prompt: string, aspectRatio: Asp
     if (reference) {
         try {
             const analysisResponse = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-                model: 'gemini-2.5-flash',
+                model: MODEL_REGISTRY.gemini.fast,
                 contents: { parts: [
                     { inlineData: reference.inlineData },
                     { text: "Analyze this person's face in extreme detail. Describe: exact face shape, eye color/shape/spacing, nose shape/size, lip fullness/shape, jawline, cheekbones, skin tone, hair color/style, any distinctive features (moles, dimples, etc). Be extremely specific - this will be used to recreate their exact likeness." }
@@ -402,7 +402,7 @@ export async function generateAvatar(role: string, name: string, gender: string 
     const ai = getAI();
     const prompt = `Hyper-photorealistic 8K headshot of a sophisticated, high-end professional ${gender === 'female' ? 'business woman' : 'business man'} named "${name}" acting in the role of "${role}". ${gender === 'female' ? 'She' : 'He'} is wearing a tailored modern suit, indistinguishable from reality, with physically correct lighting and cinematic optics. Dark, moody, premium aesthetic.`;
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
+        model: MODEL_REGISTRY.gemini.image,
         contents: [{ text: prompt }],
         config: { imageConfig: { aspectRatio: '1:1' } }
     }));
@@ -429,7 +429,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
 export async function analyzeVisualInput(data: FileData, context: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: { parts: [{ inlineData: data.inlineData }, { text: `Analyze stream in context of ${context}. Output JSON {classification, extracted_data, sentiment, suggested_sector, summary, action_items}.` }] },
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     }));
@@ -440,7 +440,7 @@ export async function classifyArtifact(data: FileData): Promise<Result<any>> {
     try {
         const ai = getAI();
         const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: MODEL_REGISTRY.gemini.fast,
             contents: { parts: [{ inlineData: data.inlineData }, { text: "Forensic deep scan. Output JSON {classification, ambiguityScore, entities, summary, structural_intelligence}." }] },
             config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
         }));
@@ -456,7 +456,7 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
     // or assume standard JSON output mode is sufficient for the cutting edge models
 
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: prompt,
         config: {
             systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
@@ -469,7 +469,7 @@ export async function generateStructuredWorkflow(files: FileData[], governance: 
 export async function analyzeSchematic(data: FileData) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: { parts: [{ inlineData: data.inlineData }, { text: "Schematic analysis. JSON {components: [{name, confidence}], summary}." }] },
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION, responseMimeType: 'application/json' }
     }));
@@ -479,7 +479,7 @@ export async function analyzeSchematic(data: FileData) {
 export async function researchComponents(query: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Research: "${query}". JSON array [{name, price, leadTime}].`,
         config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     }));
@@ -489,7 +489,7 @@ export async function researchComponents(query: string) {
 export async function generateXRayVariant(data: FileData) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: { parts: [{ inlineData: data.inlineData }, { text: "Thermal X-ray variant." }] },
     }));
     const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
@@ -499,7 +499,7 @@ export async function generateXRayVariant(data: FileData) {
 export async function generateIsometricSchematic(data: FileData) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: { parts: [{ inlineData: data.inlineData }, { text: "3D isometric view." }] },
     }));
     const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
@@ -509,7 +509,7 @@ export async function generateIsometricSchematic(data: FileData) {
 export async function getLiveSupplyChainData(componentName: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Supply for: "${componentName}". JSON {source, price, Bird's eye view}.`,
         config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     }));
@@ -529,7 +529,7 @@ export async function generateCode(prompt: string, lang: string, model: string =
 export async function validateSyntax(code: string, lang: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Syntax check for ${lang}. JSON array [{line, message}]. Source:\n${code}`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -539,7 +539,7 @@ export async function validateSyntax(code: string, lang: string) {
 export async function simulateAgentStep(workflow: TechnicalManifest, index: number, history: ProtocolStepResult[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Step: ${index}. History: ${JSON.stringify(history)}. JSON {output, agentThought}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -550,7 +550,7 @@ export async function generateMermaidDiagram(governance: string, files: FileData
     const ai = getAI();
     const prompt = `TASK: Synthesize Mermaid diagram. CONTEXT: ${JSON.stringify(contexts)}. STRICT Mermaid.js syntax only.`;
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: prompt,
         config: { systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION }
     }));
@@ -560,7 +560,7 @@ export async function generateMermaidDiagram(governance: string, files: FileData
 export async function generateHypotheses(facts: string[]): Promise<ScienceHypothesis[]> {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Hypotheses for: ${facts.join('\n')}. JSON array.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -570,7 +570,7 @@ export async function generateHypotheses(facts: string[]): Promise<ScienceHypoth
 export async function compressKnowledge(nodes: KnowledgeNode[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Compress lattice: ${JSON.stringify(nodes)}. JSON array.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -580,7 +580,7 @@ export async function compressKnowledge(nodes: KnowledgeNode[]) {
 export async function repairMermaidSyntax(code: string, error: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `REPAIR Mermaid logic: "${error}". Source: ${code}`,
     }));
     return response.text || code;
@@ -589,7 +589,7 @@ export async function repairMermaidSyntax(code: string, error: string) {
 export async function executeNeuralPolicy(mode: string, context: Record<string, unknown>, logs: string[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `AS AUTONOMIC HEALER: Analyze OS state for sector [${mode}]. Output JSON {level, message, suggestedPatch}.`,
         config: {
             systemInstruction: SOVEREIGN_SYSTEM_INSTRUCTION,
@@ -603,7 +603,7 @@ export async function evolveSystemArchitecture(code: string, lang: string, promp
     try {
         const ai = getAI();
         const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-            model: 'gemini-2.5-flash',
+            model: MODEL_REGISTRY.gemini.fast,
             contents: `Evolve: ${prompt}. Source: ${code}. JSON {code, reasoning, type, integrityScore}.`,
             config: { responseMimeType: 'application/json' }
         }));
@@ -615,7 +615,7 @@ export async function generateSpeech(text: string, voice: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
         // Using TTS model variant per docs
-        model: "gemini-2.5-flash-image",
+        model: MODEL_REGISTRY.gemini.image,
         contents: [{ parts: [{ text }] }],
         config: {
             responseModalities: [Modality.AUDIO],
@@ -629,7 +629,7 @@ export async function generateSpeech(text: string, voice: string) {
 export async function generateAudioOverview(files: FileData[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: { parts: [...files.map(f => ({ inlineData: f.inlineData })), { text: "Synthesize brief." }] },
     }));
     const transcript = response.text || "Brief complete.";
@@ -722,7 +722,7 @@ export async function runAgentReasoning(
     );
 
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         config: { systemInstruction: systemContext } as any,
         contents: `You have been delegated a task. Analyze it using your unique perspective and expertise.
 
@@ -742,7 +742,7 @@ Provide your analysis and recommendation. Be concise but thorough. Draw on your 
 export async function searchRealWorldOpportunities(domain: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Yield for: ${domain}. JSON array [{title, yield, risk, logic}].`,
         config: { tools: [{ googleSearch: {} }], responseMimeType: 'application/json' }
     }));
@@ -752,7 +752,7 @@ export async function searchRealWorldOpportunities(domain: string) {
 export async function assessInvestmentRisk(strategy: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Risk for: "${strategy}". JSON {riskScore, reasoning}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -765,7 +765,7 @@ interface DeploymentManifest { steps: string[]; requirements: string[]; summary:
 export async function generateHardwareDeploymentManifest(bom: BomItem[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Forge deployment manifest for components: ${JSON.stringify(bom)}. JSON object.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -777,7 +777,7 @@ interface InventoryItem { id: string; name: string; type: string; }
 export async function analyzeCrossSectorImpact(artifact: FileData, currentInventory: InventoryItem[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: { parts: [{ inlineData: artifact.inlineData }, { text: `Analyze cross-sector impact with inventory: ${JSON.stringify(currentInventory)}. JSON object.` }] },
         config: { responseMimeType: 'application/json' }
     }));
@@ -787,7 +787,7 @@ export async function analyzeCrossSectorImpact(artifact: FileData, currentInvent
 export async function generateStoryboardPlan(directive: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Forge storyboard plan for: ${directive}. Output JSON array [{index, scenePrompt, continuity, camera, lighting}].`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -799,7 +799,7 @@ interface ColorwayConfig { primary?: string; secondary?: string; accent?: string
 export async function constructCinematicPrompt(prompt: string, colorway: ColorwayConfig, hasChar: boolean, hasWorld: boolean, hasStyle: boolean, bibleNotes: string | undefined, preset: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Refine cinematic prompt: "${prompt}". Colorway: ${JSON.stringify(colorway)}. Refs: C:${hasChar}, W:${hasWorld}, S:${hasStyle}. Notes: ${bibleNotes}. Preset: ${preset}. Return raw string.`,
     }));
     return response.text || prompt;
@@ -808,7 +808,7 @@ export async function constructCinematicPrompt(prompt: string, colorway: Colorwa
 export async function analyzePowerDynamics(target: string, context: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Analyze power dynamics for: "${target}". Internal context: ${context}.`,
         config: {
             tools: [{ googleSearch: {} }],
@@ -821,7 +821,7 @@ export async function analyzePowerDynamics(target: string, context: string) {
 export async function transformArtifact(content: string | Record<string, unknown>, type: 'IMAGE' | 'CODE' | 'TEXT', instruction: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Transform this ${type} artifact. Instruction: ${instruction}. Content: ${content}`,
     }));
     return response.text || content;
@@ -830,7 +830,7 @@ export async function transformArtifact(content: string | Record<string, unknown
 export async function generateResearchPlan(query: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Forge research plan for: "${query}". JSON array of search strings.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -840,7 +840,7 @@ export async function generateResearchPlan(query: string) {
 export async function executeResearchQuery(query: string): Promise<FactChunk[]> {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Execute deep research: "${query}".`,
         config: {
             tools: [{ googleSearch: {} }],
@@ -853,7 +853,7 @@ export async function executeResearchQuery(query: string): Promise<FactChunk[]> 
 export async function compileResearchContext(findings: FactChunk[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Compile research findings into a technical summary: ${JSON.stringify(findings)}`,
     }));
     return response.text || "";
@@ -864,7 +864,7 @@ interface ResearchTaskSummary { id: string; title: string; findings?: string[]; 
 export async function synthesizeResearchReport(task: ResearchTaskSummary) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Synthesize full research report for task: ${JSON.stringify(task)}`,
     }));
     return response.text || "";
@@ -873,7 +873,7 @@ export async function synthesizeResearchReport(task: ResearchTaskSummary) {
 export async function simulateExperiment(hypothesis: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Simulate experiment for hypothesis: "${hypothesis}". JSON result.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -883,7 +883,7 @@ export async function simulateExperiment(hypothesis: string) {
 export async function generateTheory(hypotheses: ScienceHypothesis[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Synthesize unified theory from: ${JSON.stringify(hypotheses)}`,
     }));
     return response.text || "";
@@ -895,7 +895,7 @@ interface PARAStructure { projects?: string[]; areas?: string[]; resources?: str
 export async function smartOrganizeArtifact(artifact: OrganizableArtifact, existingStructure: PARAStructure) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Place artifact in optimal PARA folder. Artifact: ${JSON.stringify(artifact)}. Structure: ${JSON.stringify(existingStructure)}. JSON {folder}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -905,7 +905,7 @@ export async function smartOrganizeArtifact(artifact: OrganizableArtifact, exist
 export async function generateAutopoieticFramework(goal: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Forge autopoietic framework for: "${goal}".`,
     }));
     return response.text || "";
@@ -914,7 +914,7 @@ export async function generateAutopoieticFramework(goal: string) {
 export async function generateSystemArchitecture(prompt: string, type: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Construct system architecture topology for: "${prompt}". Type: ${type}. JSON {nodes, edges}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -927,7 +927,7 @@ interface GraphEdge { id?: string; source: string; target: string; label?: strin
 export async function calculateEntropy(nodes: GraphNode[], edges: GraphEdge[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Calculate system entropy for: ${JSON.stringify({ nodes, edges })}. JSON {score, reasoning}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -937,7 +937,7 @@ export async function calculateEntropy(nodes: GraphNode[], edges: GraphEdge[]) {
 export async function decomposeNode(nodeLabel: string, neighbors: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Decompose node: "${nodeLabel}" with neighbors: "${neighbors}". JSON {nodes, edges, optimizations}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -947,7 +947,7 @@ export async function decomposeNode(nodeLabel: string, neighbors: string) {
 export async function generateInfrastructureCode(summary: string, provider: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Forge IaC for: "${summary}" using ${provider}.`,
     }));
     return response.text || "";
@@ -956,7 +956,7 @@ export async function generateInfrastructureCode(summary: string, provider: stri
 export async function generateSingleNode(description: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Crystallize single node: "${description}". JSON {label, subtext, iconName, color}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -966,7 +966,7 @@ export async function generateSingleNode(description: string) {
 export async function calculateOptimalLayout(nodes: GraphNode[], edges: GraphEdge[]) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Calculate optimal graph layout for: ${JSON.stringify({ nodes, edges })}. JSON Record<nodeId, {x, y}>.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -976,7 +976,7 @@ export async function calculateOptimalLayout(nodes: GraphNode[], edges: GraphEdg
 export async function generateSwarmArchitecture(prompt: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Forge swarm architecture for: "${prompt}". JSON {nodes, edges}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -987,7 +987,7 @@ export async function generateProcessFromContext(artifacts: StoredArtifact[], ty
     const ai = getAI();
     const context = artifacts.map(a => a.analysis?.summary).join('\n');
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Context: ${context}. Type: ${type}. Prompt: ${prompt}. Forge process. JSON {title, nodes, edges}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -997,7 +997,7 @@ export async function generateProcessFromContext(artifacts: StoredArtifact[], ty
 export async function decomposeTaskToSubtasks(title: string, description: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Decompose task: "${title} - ${description}". JSON array of strings.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -1007,7 +1007,7 @@ export async function decomposeTaskToSubtasks(title: string, description: string
 export async function searchGroundedIntel(query: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Strategic intelligence for: "${query}".`,
         config: { tools: [{ googleSearch: {} }] }
     }));
@@ -1017,7 +1017,7 @@ export async function searchGroundedIntel(query: string) {
 export async function convergeStrategicLattices(nodes: GraphNode[], goal: string) {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Converge lattices: ${JSON.stringify(nodes)} for goal: "${goal}". JSON {nodes, coherence_index, unified_goal}.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -1030,7 +1030,7 @@ export async function convergeStrategicLattices(nodes: GraphNode[], goal: string
  * Generic text generation wrapper (alias for generateText)
  */
 export async function generate(prompt: string, systemInstruction?: string): Promise<string> {
-    return generateText(prompt, 'gemini-2.5-flash', systemInstruction);
+    return generateText(prompt, MODEL_REGISTRY.gemini.fast, systemInstruction);
 }
 
 /**
@@ -1040,7 +1040,7 @@ export async function generate(prompt: string, systemInstruction?: string): Prom
 export async function generateWithVision(
     prompt: string,
     images: Array<{ data: string; mimeType?: string }>,
-    model: string = 'gemini-2.5-flash',
+    model: string = MODEL_REGISTRY.gemini.fast,
     systemInstruction?: string
 ): Promise<string> {
     const ai = getAI();
@@ -1146,7 +1146,7 @@ export async function generateVideo(
 export async function generateCodeCompletion(prompt: string, language: string): Promise<string> {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Complete the following ${language} code. Return ONLY the code, no explanations:\n\n${prompt}`,
         config: { systemInstruction: `You are an expert ${language} developer. Output only valid ${language} code.` }
     }));
@@ -1159,7 +1159,7 @@ export async function generateCodeCompletion(prompt: string, language: string): 
 export async function predictSystemAnomalies(mode: string): Promise<{ anomalies: string[]; riskLevel: number; recommendations: string[] }> {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Analyze potential system anomalies for mode: "${mode}". Output JSON { anomalies: string[], riskLevel: number (0-100), recommendations: string[] }.`,
         config: { responseMimeType: 'application/json' }
     }));
@@ -1172,7 +1172,7 @@ export async function predictSystemAnomalies(mode: string): Promise<{ anomalies:
 export async function classifyIntent(input: string): Promise<{ intent: string; confidence: number; entities: Record<string, string> }> {
     const ai = getAI();
     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: MODEL_REGISTRY.gemini.fast,
         contents: `Classify the intent of: "${input}". Output JSON { intent: string, confidence: number (0-1), entities: Record<string, string> }.`,
         config: { responseMimeType: 'application/json' }
     }));

@@ -13,6 +13,7 @@ export const MODEL_REGISTRY = {
         fast: 'gemini-2.5-flash',
         deep: 'gemini-2.5-pro',
         live: 'gemini-2.5-flash-preview-native-audio-dialog',
+        image: 'gemini-2.5-flash-image',
     },
     claude: {
         fast: 'claude-haiku-4-5-20251001',
