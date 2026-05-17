@@ -36,3 +36,8 @@ coverage/
 supabase/.temp/
 .vercel
 .env*.local
+
+# Cinema pipeline — large/generated/personal binary assets (local + external storage only)
+public/cinema-renders/
+public/anchor-library/
+public/anchor-library-index.json
