@@ -8,8 +8,29 @@
 import type { CPBProvider, GenerateOptions, ImageInput } from '@metaventionsai/cpb-core';
 import { generateText, generateWithVision } from './geminiService';
 import { claudeService, type ClaudeContentBlock } from './claudeService';
+import { deepseekGenerate, hasDeepSeekKey } from './deepseekService';
 import { apiKeyService } from './apiKeyService';
 import { MODEL_REGISTRY } from './modelRegistry';
+
+/**
+ * DeepSeek Provider - Primary path (V4). Vision not supported.
+ */
+export const deepseekProvider: CPBProvider = {
+    name: 'deepseek',
+
+    isConfigured(): boolean {
+        return hasDeepSeekKey();
+    },
+
+    async generate(prompt: string, options?: GenerateOptions): Promise<string> {
+        const model = options?.model || MODEL_REGISTRY.deepseek.standard;
+        return deepseekGenerate(prompt, options?.systemPrompt, { model });
+    },
+
+    async generateWithVision(): Promise<string> {
+        throw new Error('DeepSeek does not support vision. Route vision tasks to Gemini or Claude.');
+    }
+};
 
 /**
  * Gemini Provider - Fast path (Flash) and balanced (Pro)
@@ -22,7 +43,7 @@ export const geminiProvider: CPBProvider = {
     },
 
     async generate(prompt: string, options?: GenerateOptions): Promise<string> {
-        const model = options?.model || 'gemini-2.0-flash';
+        const model = options?.model || 'gemini-2.5-flash';
         const systemPrompt = options?.systemPrompt;
 
         // Prepend system prompt if provided
@@ -38,7 +59,7 @@ export const geminiProvider: CPBProvider = {
         images: ImageInput[],
         options?: GenerateOptions
     ): Promise<string> {
-        const model = options?.model || 'gemini-2.0-flash';
+        const model = options?.model || 'gemini-2.5-flash';
 
         // Convert ImageInput to format expected by generateWithVision
         const imageData = images.map(img => ({
@@ -113,33 +134,39 @@ export const claudeProvider: CPBProvider = {
 };
 
 /**
- * Get the best available provider for a tier
+ * Get the best available provider for a tier.
+ * DeepSeek V4 is the primary across all tiers; Gemini/Claude are vision/legacy fallbacks.
  */
 export function getProviderForTier(tier: 'fast' | 'balanced' | 'deep'): CPBProvider {
-    // Prefer Claude for deep reasoning
+    // PRIMARY: DeepSeek V4 across every tier
+    if (deepseekProvider.isConfigured()) {
+        return deepseekProvider;
+    }
+
+    // Fallback: Claude for deep reasoning
     if (tier === 'deep' && claudeProvider.isConfigured()) {
         return claudeProvider;
     }
 
-    // Prefer Gemini for fast/balanced
+    // Fallback: Gemini for fast/balanced
     if (geminiProvider.isConfigured()) {
         return geminiProvider;
     }
 
-    // Fallback to Claude if Gemini not configured
+    // Fallback: Claude if Gemini missing
     if (claudeProvider.isConfigured()) {
         return claudeProvider;
     }
 
-    // Return Gemini anyway (will error when used if not configured)
+    // Last resort: return Gemini stub (will error when used if not configured)
     return geminiProvider;
 }
 
 /**
- * Default provider configuration for CPB
+ * Default provider configuration for CPB — DeepSeek V4 across the board.
  */
 export const defaultProviders = {
-    fast: geminiProvider,      // Gemini Flash for quick queries
-    balanced: geminiProvider,  // Gemini Pro for standard queries
-    deep: claudeProvider       // Claude Opus for deep reasoning
+    fast: deepseekProvider,
+    balanced: deepseekProvider,
+    deep: deepseekProvider,
 };

@@ -39,7 +39,7 @@ describe('Recursive Language Model Service', () => {
         it('should have sensible defaults', () => {
             expect(DEFAULT_RLM_CONFIG.maxIterations).toBe(20);
             expect(DEFAULT_RLM_CONFIG.maxOutputLength).toBe(500000);
-            expect(DEFAULT_RLM_CONFIG.rootModel).toBe('gemini-2.0-flash');
+            expect(DEFAULT_RLM_CONFIG.rootModel).toBe('gemini-2.5-flash');
             expect(DEFAULT_RLM_CONFIG.enableDQScoring).toBe(true);
         });
     });

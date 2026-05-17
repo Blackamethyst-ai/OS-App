@@ -105,7 +105,7 @@ const gemini = createGeminiProvider();
 const grounded = createGroundedGeminiProvider();
 ```
 
-Models: `gemini-2.0-flash-exp` (fast), `gemini-1.5-pro` (balanced/deep)
+Models: `gemini-2.5-flash-image` (fast), `gemini-2.5-pro` (balanced/deep)
 
 ### Grok (xAI)
 

@@ -91,8 +91,8 @@ export interface REPLNamespace {
 export const DEFAULT_RLM_CONFIG: RLMConfig = {
     maxIterations: 20,
     maxOutputLength: 500000,
-    rootModel: 'gemini-2.0-flash',      // Smart root model
-    subModel: 'gemini-2.0-flash',        // Same for now, could use cheaper
+    rootModel: 'gemini-2.5-flash',      // Smart root model
+    subModel: 'gemini-2.5-flash',        // Same for now, could use cheaper
     enableDQScoring: true,
     verbose: true,
     rootTemperature: 0.7,

@@ -164,7 +164,7 @@ export async function adaptiveConsensusEngine(
 
             const response: GenerateContentResponse = await retryGeminiRequest(() =>
                 ai.models.generateContent({
-                    model: 'gemini-2.0-flash',
+                    model: 'gemini-2.5-flash',
                     contents: `Task: ${task.instruction}. Input: ${task.isolated_input}.`,
                     config: {
                         temperature: 0.7 + (rounds * 0.03), // Slower drift for agent diversity

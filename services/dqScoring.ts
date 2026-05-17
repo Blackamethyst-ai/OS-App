@@ -103,7 +103,7 @@ export async function scoreDQWithLLM(
     try {
         const response: GenerateContentResponse = await retryGeminiRequest(() =>
             ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-2.5-flash',
                 contents: `You are a Decision Quality (DQ) scorer. Evaluate this output against the task.
 
 TASK INSTRUCTION: ${task.instruction}

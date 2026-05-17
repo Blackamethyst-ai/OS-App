@@ -229,7 +229,7 @@ Output JSON:
     "confidence": 0.0-1.0
 }`;
 
-            const response = await generateText(prompt, 'gemini-2.0-flash', 'You are an expert software architect.');
+            const response = await generateText(prompt, 'gemini-2.5-flash', 'You are an expert software architect.');
 
             try {
                 const parsed = JSON.parse(response);
@@ -265,7 +265,7 @@ Requirements:
 
 Output ONLY the code, no markdown fences.`;
 
-            const code = await generateText(codePrompt, 'gemini-2.0-flash', 'You are an expert React/TypeScript developer.');
+            const code = await generateText(codePrompt, 'gemini-2.5-flash', 'You are an expert React/TypeScript developer.');
 
             const evolution: EvolutionHypothesis = {
                 id: `evolution-${Date.now()}`,

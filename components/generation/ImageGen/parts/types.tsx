@@ -59,7 +59,7 @@ export interface ImageGenProps {
     style?: React.CSSProperties;
 }
 
-export type ActiveTab = 'SINGLE' | 'STORYBOARD' | 'VIDEO' | 'TEASER';
+export type ActiveTab = 'SINGLE' | 'STORYBOARD' | 'VIDEO' | 'SUBSTRATE' | 'TEASER';
 export type ViewLayer = 'NORMAL' | 'GRAIN' | 'DEPTH';
 export type RefType = 'CHAR' | 'SET' | 'STYLE';
 
@@ -104,6 +104,7 @@ export const IMAGEGEN_TABS = [
     { id: 'SINGLE' as const, label: 'Stills', iconName: 'Wand2' },
     { id: 'STORYBOARD' as const, label: 'Timeline', iconName: 'Clapperboard' },
     { id: 'VIDEO' as const, label: 'Motion', iconName: 'Video' },
+    { id: 'SUBSTRATE' as const, label: 'Substrate', iconName: 'Sparkles' },
     { id: 'TEASER' as const, label: 'Screening', iconName: 'MonitorPlay' }
 ] as const;
 

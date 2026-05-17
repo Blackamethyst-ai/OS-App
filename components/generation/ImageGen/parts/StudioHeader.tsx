@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { Aperture, Settings, Wand2, Clapperboard, Video, MonitorPlay } from 'lucide-react';
+import { Aperture, Settings, Wand2, Clapperboard, Video, MonitorPlay, Sparkles } from 'lucide-react';
 import { audio } from '../../../../services/audioService';
 import type { ActiveTab } from './types';
 
@@ -13,6 +13,7 @@ const TAB_ICONS = {
     SINGLE: Wand2,
     STORYBOARD: Clapperboard,
     VIDEO: Video,
+    SUBSTRATE: Sparkles,
     TEASER: MonitorPlay
 } as const;
 
@@ -20,6 +21,7 @@ const TABS = [
     { id: 'SINGLE' as const, label: 'Stills' },
     { id: 'STORYBOARD' as const, label: 'Timeline' },
     { id: 'VIDEO' as const, label: 'Motion' },
+    { id: 'SUBSTRATE' as const, label: 'Substrate' },
     { id: 'TEASER' as const, label: 'Screening' }
 ];
 

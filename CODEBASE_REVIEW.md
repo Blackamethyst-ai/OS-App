@@ -6,7 +6,7 @@
 The Voice system (`VoiceNexus` / `VoiceCore`) was in a fractured state but has been extensively repaired.
 - **Dissonance Fixed:** Echo loops resolved by delta processing.
 - **Awareness Restored:** "Sovereign" personality and "Runtime Context" injection added.
-- **Limits Removed:** Switched to `gemini-2.0-flash-exp` for unbounded rate limits.
+- **Limits Removed:** Switched to `gemini-2.5-flash-image` for unbounded rate limits.
 - **Conclusion:** This is now the strongest part of the stack.
 
 ## 2. Capability Fragmentation (Critical Finding)
@@ -35,8 +35,8 @@ The `store.ts` (Zustand) is well-structured using the Slice pattern.
 - **Persistence:** Uses `neuralVault` (likely IndexedDB via `idb`), which is excellent for performance.
 
 ## 5. Model Consistency
-- **Voice:** Uses `gemini-2.0-flash-exp` (Fixed).
-- **Agents:** Uses `gemini-2.0-flash`.
+- **Voice:** Uses `gemini-2.5-flash-image` (Fixed).
+- **Agents:** Uses `gemini-2.5-flash`.
 - **Consistency:** Good. Both point to SOTA fast models.
 
 ## Final Verdict

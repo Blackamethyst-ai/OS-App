@@ -12,6 +12,7 @@ import { SubsystemType, Priority } from '../types';
 // =============================================================================
 
 export type ModelProvider =
+  | 'deepseek'    // DeepSeek models (primary)
   | 'anthropic'   // Claude models
   | 'google'      // Gemini models
   | 'openai'      // GPT models

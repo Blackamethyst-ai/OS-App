@@ -48,9 +48,9 @@ function getModelForPath(path: CPBPath, forceModel?: ReasoningModel): { provider
     if (forceModel && forceModel !== 'auto') {
         switch (forceModel) {
             case 'gemini-flash':
-                return { provider: 'gemini', model: 'gemini-2.0-flash' };
-            case 'gemini-2.0-flash':
-                return { provider: 'gemini', model: 'gemini-2.0-flash' };
+                return { provider: 'gemini', model: 'gemini-2.5-flash' };
+            case 'gemini-2.5-flash':
+                return { provider: 'gemini', model: 'gemini-2.5-flash' };
             case 'claude-haiku':
                 return { provider: 'claude', model: MODEL_REGISTRY.claude.fast };
             case 'claude-sonnet':
@@ -66,31 +66,31 @@ function getModelForPath(path: CPBPath, forceModel?: ReasoningModel): { provider
             // ELITE: Even direct uses Sonnet for quality
             return claudeService.isConfigured()
                 ? { provider: 'claude', model: MODEL_REGISTRY.claude.standard }
-                : { provider: 'gemini', model: 'gemini-2.0-flash' };
+                : { provider: 'gemini', model: 'gemini-2.5-flash' };
         case 'rlm':
             // ELITE: RLM uses Sonnet for better compression quality
             return claudeService.isConfigured()
                 ? { provider: 'claude', model: MODEL_REGISTRY.claude.standard }
-                : { provider: 'gemini', model: 'gemini-2.0-flash' };
+                : { provider: 'gemini', model: 'gemini-2.5-flash' };
         case 'ace':
             // ELITE: ACE uses Opus for maximum reasoning depth
             return claudeService.isConfigured()
                 ? { provider: 'claude', model: MODEL_REGISTRY.claude.deep }
-                : { provider: 'gemini', model: 'gemini-2.0-flash' };
+                : { provider: 'gemini', model: 'gemini-2.5-flash' };
         case 'hybrid':
             // ELITE: Hybrid uses Opus for final synthesis
             return claudeService.isConfigured()
                 ? { provider: 'claude', model: MODEL_REGISTRY.claude.deep }
-                : { provider: 'gemini', model: 'gemini-2.0-flash' };
+                : { provider: 'gemini', model: 'gemini-2.5-flash' };
         case 'cascade':
             // ELITE: Cascade uses Opus with extended context
             return claudeService.isConfigured()
                 ? { provider: 'claude', model: MODEL_REGISTRY.claude.deep }
-                : { provider: 'gemini', model: 'gemini-2.0-flash' };
+                : { provider: 'gemini', model: 'gemini-2.5-flash' };
         default:
             return claudeService.isConfigured()
                 ? { provider: 'claude', model: MODEL_REGISTRY.claude.standard }
-                : { provider: 'gemini', model: 'gemini-2.0-flash' };
+                : { provider: 'gemini', model: 'gemini-2.5-flash' };
     }
 }
 
@@ -256,7 +256,7 @@ class CognitivePrecisionBridgeOrchestrator {
 
                 const response = await retryGeminiRequest(() =>
                     ai.models.generateContent({
-                        model: 'gemini-2.0-flash', // Flash supports vision
+                        model: 'gemini-2.5-flash', // Flash supports vision
                         contents: contents,
                         config: { temperature: 0.7 }
                     })
@@ -484,7 +484,7 @@ Please provide an improved response that addresses any quality gaps.`;
 
             const synthesisResponse = await retryGeminiRequest(() =>
                 ai.models.generateContent({
-                    model: 'gemini-2.0-flash',
+                    model: 'gemini-2.5-flash',
                     contents: synthesisPrompt,
                     config: { temperature: 0.5 }
                 })

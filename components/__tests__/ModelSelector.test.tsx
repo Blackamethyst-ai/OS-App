@@ -95,7 +95,7 @@ describe('ModelSelector', () => {
     const { container } = render(<ModelSelector />);
     const buttons = container.querySelectorAll('button');
     expect(buttons[0].getAttribute('title')).toBe('Local Ollama inference');
-    expect(buttons[1].getAttribute('title')).toBe('Gemini 1.5 Flash (Economy)');
+    expect(buttons[1].getAttribute('title')).toContain('DeepSeek V4');
   });
 
   it('renders icons for each tier', () => {

@@ -28,14 +28,14 @@ vi.mock('../providers/stt/browserSTT', () => ({
 vi.mock('../providers/reasoning/claudeReasoning', () => ({
     claudeReasoning: {
         isAvailable: () => mockClaudeReasoningIsAvailable(),
-        models: ['claude-3-opus', 'claude-3-sonnet'],
+        models: ['claude-opus-4-7', 'claude-sonnet-4-6'],
     },
 }));
 
 vi.mock('../providers/reasoning/geminiReasoning', () => ({
     geminiReasoning: {
         isAvailable: () => mockGeminiReasoningIsAvailable(),
-        models: ['gemini-2.0-flash', 'gemini-2.0-flash-lite'],
+        models: ['gemini-2.5-flash', 'gemini-2.5-flash-lite'],
     },
 }));
 
@@ -158,7 +158,7 @@ describe('VoiceNexus Health Check', () => {
 
             expect(health.name).toBe('claude-reasoning');
             expect(health.status).toBe('healthy');
-            expect(health.details?.models).toEqual(['claude-3-opus', 'claude-3-sonnet']);
+            expect(health.details?.models).toEqual(['claude-opus-4-7', 'claude-sonnet-4-6']);
         });
 
         it('should return unavailable when not configured', async () => {

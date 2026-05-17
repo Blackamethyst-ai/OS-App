@@ -86,7 +86,7 @@ The `llm_query()` function spawns recursive LLM calls:
 result = llm_query("Summarize the key findings:", context=chunk)
 ```
 
-These sub-calls use a smaller/cheaper model (e.g., gemini-2.0-flash) for cost efficiency while the root model orchestrates the exploration.
+These sub-calls use a smaller/cheaper model (e.g., gemini-2.5-flash) for cost efficiency while the root model orchestrates the exploration.
 
 ---
 
@@ -209,8 +209,8 @@ async function rlmEnhancedQuery(
 interface RLMConfig {
     maxIterations: number;      // Default: 20
     maxOutputLength: number;    // Default: 500000
-    rootModel: string;          // Default: 'gemini-2.0-flash'
-    subModel: string;           // Default: 'gemini-2.0-flash'
+    rootModel: string;          // Default: 'gemini-2.5-flash'
+    subModel: string;           // Default: 'gemini-2.5-flash'
     enableDQScoring: boolean;   // Default: true
     verbose: boolean;           // Default: true
     rootTemperature: number;    // Default: 0.7

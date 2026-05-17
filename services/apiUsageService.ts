@@ -20,8 +20,8 @@ export interface ApiUsageStats {
 
 // Gemini API limits (approximate - varies by tier)
 const RATE_LIMITS = {
-    'gemini-2.0-flash-exp': { rpm: 15, rpd: 1500 },
-    'gemini-2.0-flash': { rpm: 15, rpd: 1500 },
+    'gemini-2.5-flash-image': { rpm: 15, rpd: 1500 },
+    'gemini-2.5-flash': { rpm: 15, rpd: 1500 },
     'text-embedding-004': { rpm: 100, rpd: 10000 },
     'default': { rpm: 15, rpd: 1500 }
 };
@@ -118,9 +118,9 @@ class ApiUsageService {
 
     private normalizeModel(model: string): string {
         // Handle model name variations
-        if (model.includes('gemini-2.0-flash-exp')) return 'gemini-2.0-flash-exp';
-        if (model.includes('gemini-2.0-flash')) return 'gemini-2.0-flash';
-        if (model.includes('gemini-2.0-flash')) return 'gemini-2.0-flash';
+        if (model.includes('gemini-2.5-flash-image')) return 'gemini-2.5-flash-image';
+        if (model.includes('gemini-2.5-flash')) return 'gemini-2.5-flash';
+        if (model.includes('gemini-2.5-flash')) return 'gemini-2.5-flash';
         if (model.includes('embedding')) return 'text-embedding-004';
         return model;
     }

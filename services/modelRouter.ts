@@ -13,13 +13,14 @@ import { claudeService } from './claudeService';
 import { apiKeyService } from './apiKeyService';
 import { ollamaService } from './ollamaService';
 import { grokService } from './grokService';
+import { deepseekGenerate, hasDeepSeekKey } from './deepseekService';
 import { cpb, type CPBStatus, type CPBResult } from './cpbService';
 import { MODEL_REGISTRY } from './modelRegistry';
 import { ModelTier } from '../types';
 
 export interface RouterConfig {
     tier: ModelTier;
-    preferredProvider?: 'gemini' | 'claude' | 'grok';
+    preferredProvider?: 'deepseek' | 'gemini' | 'claude' | 'grok';
     requireVision?: boolean;
     /** Enable CPB orchestration for complex queries */
     useCPB?: boolean;
@@ -42,6 +43,7 @@ class ModelRouter {
         systemPrompt?: string
     ): Promise<string> {
 
+        const hasDeepSeek = hasDeepSeekKey();
         const hasGemini = apiKeyService.hasGeminiKey();
         const hasClaude = apiKeyService.getKey('claude');
         const hasGrok = apiKeyService.getKey('grok');
@@ -52,56 +54,84 @@ class ModelRouter {
             if (isLocalAvailable) {
                 return this.callOllama(prompt, systemPrompt);
             }
-            // Fallback if local requested but not available?
             logger.warn('Local AI requested but failed check, falling back to cloud', undefined, 'ModelRouter');
         }
 
-        // ELITE TIER: Opus-first routing for maximum quality
-
-        // 1. FAST tier - ELITE: Use Sonnet instead of Flash
-        if (config.tier === 'fast') {
-            if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.standard);
-            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
+        // VISION REQUIRED: skip DeepSeek (no vision support); use Gemini/Claude.
+        if (config.requireVision) {
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
         }
 
-        // 2. POWERFUL tier - ELITE: Use Opus for maximum reasoning
+        // EXPLICIT preferredProvider wins over DeepSeek-first default.
+        if (config.preferredProvider === 'gemini' && hasGemini) {
+            return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
+        }
+        if (config.preferredProvider === 'claude' && hasClaude) {
+            return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
+        }
+        if (config.preferredProvider === 'grok' && hasGrok) {
+            return this.callGrok(prompt, systemPrompt);
+        }
+
+        // PRIMARY: DeepSeek V4 first across every tier (cheapest + capable).
+        if (hasDeepSeek) {
+            return this.callDeepSeek(prompt, systemPrompt);
+        }
+
+        // FALLBACK CASCADE — preserved legacy behavior when DeepSeek key absent.
+
+        if (config.tier === 'fast') {
+            if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.standard);
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
+        }
+
         if (config.tier === 'powerful') {
             if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
             if (hasGrok) return this.callGrok(prompt, systemPrompt);
-            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
         }
 
-        // 3. CREATIVE tier - ELITE: Use Opus for creative depth
         if (config.tier === 'creative') {
             if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
             if (hasGrok) return this.callGrok(prompt, systemPrompt);
-            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
         }
 
-        // 4. BALANCED tier - ELITE: Default to Sonnet
         if (config.tier === 'balanced') {
             if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.standard);
-            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
         }
 
-        // 5. FALLBACK CASCADE & PREFERENCES
-        // ELITE: Preferred provider with Opus/Sonnet defaults
+        // Preferred-provider overrides (only reached if DeepSeek absent and tier didn't return)
         if (config.preferredProvider === 'claude' && hasClaude) {
             return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
         }
         if (config.preferredProvider === 'grok' && hasGrok) return this.callGrok(prompt, systemPrompt);
         if (config.preferredProvider === 'gemini' && hasGemini) {
-            return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
+            return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
         }
 
-        // ELITE: Ultimate Catch-all - Opus first, then Pro
+        // Ultimate catch-all
         if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
         if (hasGrok) return this.callGrok(prompt, systemPrompt);
-        if (hasGemini) {
-            return this.callGemini(prompt, systemPrompt, 'gemini-2.0-flash');
-        }
+        if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
 
         throw new Error('No capable AI models configured. Please add an API Key in settings.');
+    }
+
+    /**
+     * Call DeepSeek V4 via OpenAI-compatible chat completions.
+     */
+    private async callDeepSeek(prompt: string, systemPrompt?: string): Promise<string> {
+        try {
+            return await deepseekGenerate(prompt, systemPrompt, {
+                model: MODEL_REGISTRY.deepseek.standard,
+            });
+        } catch (e) {
+            logger.error('DeepSeek router error', e, 'ModelRouter');
+            throw e;
+        }
     }
 
     /**

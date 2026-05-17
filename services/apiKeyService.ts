@@ -9,6 +9,7 @@ import { GoogleGenAI } from '@google/genai';
 import { logger } from './logger';
 
 export interface ApiKeyConfig {
+    deepseek?: string;
     gemini?: string;
     claude?: string;
     grok?: string;
@@ -17,6 +18,8 @@ export interface ApiKeyConfig {
     deepgram?: string;
     priceapi?: string;
     infracost?: string;
+    fal?: string;
+    runway?: string;
 }
 
 const STORAGE_KEY = 'os_app_api_keys_encrypted';
@@ -171,10 +174,14 @@ class ApiKeyService {
     /**
      * Get API key for a provider (only works when unlocked)
      */
-    getKey(provider: 'gemini' | 'claude' | 'grok' | 'openai' | 'eleven_labs' | 'deepgram' | 'priceapi' | 'infracost'): string | undefined {
+    getKey(provider: keyof ApiKeyConfig): string | undefined {
         if (this.isUnlocked && this.keys[provider]) return this.keys[provider];
-        // Fallback to env vars for Gemini
+        // Env var fallbacks for dev
+        if (provider === 'deepseek') return import.meta.env.VITE_DEEPSEEK_API_KEY || undefined;
         if (provider === 'gemini') return import.meta.env.VITE_GEMINI_API_KEY || undefined;
+        if (provider === 'fal') return import.meta.env.VITE_FAL_API_KEY || undefined;
+        if (provider === 'runway') return import.meta.env.VITE_RUNWAY_API_KEY || undefined;
+        if (provider === 'openai') return import.meta.env.VITE_OPENAI_API_KEY || undefined;
         return undefined;
     }
 
@@ -189,7 +196,7 @@ class ApiKeyService {
     /**
      * Set API key for a provider
      */
-    async setKey(provider: 'gemini' | 'claude' | 'grok' | 'openai' | 'eleven_labs' | 'deepgram' | 'priceapi' | 'infracost', key: string) {
+    async setKey(provider: keyof ApiKeyConfig, key: string) {
         if (!this.isUnlocked) return;
 
         this.keys[provider] = key;
@@ -200,7 +207,7 @@ class ApiKeyService {
     /**
      * Remove API key for a provider
      */
-    async removeKey(provider: 'gemini' | 'claude' | 'grok' | 'openai' | 'eleven_labs' | 'deepgram' | 'priceapi' | 'infracost') {
+    async removeKey(provider: keyof ApiKeyConfig) {
         if (!this.isUnlocked) return;
 
         delete this.keys[provider];
@@ -213,7 +220,15 @@ class ApiKeyService {
      */
     hasAnyKey(): boolean {
         if (!this.isUnlocked) return false;
-        return !!(this.keys.gemini || this.keys.claude || this.keys.grok || this.keys.openai || this.keys.eleven_labs || this.keys.deepgram || this.keys.priceapi || this.keys.infracost);
+        return !!(this.keys.deepseek || this.keys.gemini || this.keys.claude || this.keys.grok || this.keys.openai || this.keys.eleven_labs || this.keys.deepgram || this.keys.priceapi || this.keys.infracost || this.keys.fal || this.keys.runway);
+    }
+
+    /**
+     * Check if fal key is configured (vault or env var) — substrate readiness check
+     */
+    hasFalKey(): boolean {
+        if (this.isUnlocked && this.keys.fal) return true;
+        return !!(import.meta.env.VITE_FAL_API_KEY);
     }
 
     /**
@@ -228,61 +243,20 @@ class ApiKeyService {
      * Get all configured keys (masked for display)
      */
     getKeyStatus(): { provider: string; configured: boolean; masked: string }[] {
-        if (!this.isUnlocked) {
-            return [
-                { provider: 'gemini', configured: false, masked: '' },
-                { provider: 'claude', configured: false, masked: '' },
-                { provider: 'grok', configured: false, masked: '' },
-                { provider: 'openai', configured: false, masked: '' },
-                { provider: 'eleven_labs', configured: false, masked: '' },
-                { provider: 'deepgram', configured: false, masked: '' },
-                { provider: 'priceapi', configured: false, masked: '' },
-                { provider: 'infracost', configured: false, masked: '' }
-            ];
-        }
-
-        return [
-            {
-                provider: 'gemini',
-                configured: !!this.keys.gemini,
-                masked: this.keys.gemini ? `${this.keys.gemini.slice(0, 6)}...${this.keys.gemini.slice(-4)}` : ''
-            },
-            {
-                provider: 'claude',
-                configured: !!this.keys.claude,
-                masked: this.keys.claude ? `${this.keys.claude.slice(0, 6)}...${this.keys.claude.slice(-4)}` : ''
-            },
-            {
-                provider: 'grok',
-                configured: !!this.keys.grok,
-                masked: this.keys.grok ? `${this.keys.grok.slice(0, 6)}...${this.keys.grok.slice(-4)}` : ''
-            },
-            {
-                provider: 'openai',
-                configured: !!this.keys.openai,
-                masked: this.keys.openai ? `${this.keys.openai.slice(0, 6)}...${this.keys.openai.slice(-4)}` : ''
-            },
-            {
-                provider: 'eleven_labs',
-                configured: !!this.keys.eleven_labs,
-                masked: this.keys.eleven_labs ? `${this.keys.eleven_labs.slice(0, 6)}...${this.keys.eleven_labs.slice(-4)}` : ''
-            },
-            {
-                provider: 'deepgram',
-                configured: !!this.keys.deepgram,
-                masked: this.keys.deepgram ? `${this.keys.deepgram.slice(0, 6)}...${this.keys.deepgram.slice(-4)}` : ''
-            },
-            {
-                provider: 'priceapi',
-                configured: !!this.keys.priceapi,
-                masked: this.keys.priceapi ? `${this.keys.priceapi.slice(0, 6)}...${this.keys.priceapi.slice(-4)}` : ''
-            },
-            {
-                provider: 'infracost',
-                configured: !!this.keys.infracost,
-                masked: this.keys.infracost ? `${this.keys.infracost.slice(0, 6)}...${this.keys.infracost.slice(-4)}` : ''
-            }
+        const providers: (keyof ApiKeyConfig)[] = [
+            'deepseek', 'gemini', 'claude', 'grok', 'openai',
+            'eleven_labs', 'deepgram', 'priceapi', 'infracost',
+            'fal', 'runway',
         ];
+        if (!this.isUnlocked) {
+            return providers.map(p => ({ provider: p, configured: false, masked: '' }));
+        }
+        const mask = (k?: string) => k ? `${k.slice(0, 6)}...${k.slice(-4)}` : '';
+        return providers.map(p => ({
+            provider: p,
+            configured: !!this.keys[p],
+            masked: mask(this.keys[p]),
+        }));
     }
 
     /**
@@ -344,7 +318,7 @@ class ApiKeyService {
 
             // Test with a minimal request
             await ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-2.5-flash',
                 contents: 'Hi'
             });
 
@@ -393,6 +367,26 @@ class ApiKeyService {
             if (response.status === 401 || response.status === 403) {
                 return { valid: false, error: 'Invalid API Key' };
             }
+            return { valid: false, error: `Validation failed: ${response.status}` };
+        } catch (e: any) {
+            return { valid: false, error: e.message || 'Validation failed' };
+        }
+    }
+
+    /**
+     * Validate DeepSeek API Key via models endpoint (OpenAI-compatible).
+     */
+    async validateDeepSeekKey(key: string): Promise<{ valid: boolean; error?: string }> {
+        try {
+            const baseUrl = import.meta.env.VITE_DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
+            const response = await fetch(`${baseUrl}/models`, {
+                method: 'GET',
+                headers: { 'Authorization': `Bearer ${key}` }
+            });
+
+            if (response.ok) return { valid: true };
+            if (response.status === 401) return { valid: false, error: 'Invalid API Key' };
+            if (response.status === 429) return { valid: true };
             return { valid: false, error: `Validation failed: ${response.status}` };
         } catch (e: any) {
             return { valid: false, error: e.message || 'Validation failed' };

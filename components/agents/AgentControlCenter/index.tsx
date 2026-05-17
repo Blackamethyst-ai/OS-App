@@ -97,7 +97,7 @@ const AgentControlCenter: React.FC = () => {
             const ai = getAI();
 
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-2.5-flash',
                 contents: `Ground current search: ${query}. Extract strategic technical context for autonomic buffer.`,
                 config: { tools: [{ googleSearch: {} }] }
             }));

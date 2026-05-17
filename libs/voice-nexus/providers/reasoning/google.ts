@@ -36,8 +36,8 @@ export interface GeminiReasoningOptions {
 /** Default model mappings for each tier */
 export const GEMINI_REASONING_MODELS = {
     fast: 'gemini-2.5-flash-preview-05-20',
-    balanced: 'gemini-2.0-flash',
-    deep: 'gemini-2.0-flash',
+    balanced: 'gemini-2.5-flash',
+    deep: 'gemini-2.5-flash',
 } as const;
 
 /** Voice-optimized system prompt */

@@ -33,7 +33,7 @@ const HoloProjector: React.FC = () => {
             const ai = getAI();
 
             let prompt = "Analyze this artifact in extreme technical detail. Identify key architectural features, potential optimizations, security vulnerabilities, and aesthetic patterns. Output a professional diagnostic report.";
-            const model = 'gemini-2.0-flash';
+            const model = 'gemini-2.5-flash';
             let content: any = null;
 
             if (holo.activeArtifact.type === 'IMAGE') {

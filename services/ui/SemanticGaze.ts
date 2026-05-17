@@ -34,7 +34,7 @@ type VLMProvider = 'claude' | 'gemini' | 'auto';
 const CONFIG = {
   provider: 'auto' as VLMProvider, // 'claude', 'gemini', or 'auto'
   claudeModel: MODEL_REGISTRY.claude.standard,
-  geminiModel: 'gemini-2.0-flash',
+  geminiModel: 'gemini-2.5-flash',
   analysisCooldownMs: 500, // Don't analyze more than 2x per second
   maxCacheSize: 50,
   screenshotQuality: 0.7, // JPEG quality for screenshots

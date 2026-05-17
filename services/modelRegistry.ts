@@ -4,6 +4,11 @@
  */
 
 export const MODEL_REGISTRY = {
+    deepseek: {
+        fast: 'deepseek-v4-flash',
+        standard: 'DeepSeekMetaventionsAI',
+        deep: 'DeepSeekMetaventionsAI',
+    },
     gemini: {
         fast: 'gemini-2.5-flash',
         deep: 'gemini-2.5-pro',
@@ -12,7 +17,7 @@ export const MODEL_REGISTRY = {
     claude: {
         fast: 'claude-haiku-4-5-20251001',
         standard: 'claude-sonnet-4-6',
-        deep: 'claude-opus-4-6',
+        deep: 'claude-opus-4-7',
     },
     grok: {
         fast: 'grok-3-mini',
@@ -20,6 +25,7 @@ export const MODEL_REGISTRY = {
     },
 } as const;
 
+export type DeepSeekModel = typeof MODEL_REGISTRY.deepseek[keyof typeof MODEL_REGISTRY.deepseek];
 export type GeminiModel = typeof MODEL_REGISTRY.gemini[keyof typeof MODEL_REGISTRY.gemini];
 export type ClaudeModel = typeof MODEL_REGISTRY.claude[keyof typeof MODEL_REGISTRY.claude];
 export type GrokModel = typeof MODEL_REGISTRY.grok[keyof typeof MODEL_REGISTRY.grok];

@@ -277,8 +277,8 @@ const CodeStudio: React.FC = () => {
                             onChange={(e) => setCodeStudioState({ model: e.target.value })}
                             className="flex-1 bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-[10px] font-mono text-gray-400 outline-none focus:border-[var(--amethyst-soft)] transition-all cursor-pointer hover:bg-[#1a1a1a]"
                         >
-                            <option value="gemini-2.0-flash">PRO_FORGE_V3</option>
-                            <option value="gemini-2.0-flash">FLASH_FORGE_V3</option>
+                            <option value="gemini-2.5-flash">PRO_FORGE_V3</option>
+                            <option value="gemini-2.5-flash">FLASH_FORGE_V3</option>
                         </select>
                         <div className="px-4 py-3 bg-[var(--plasma-green)]/5 border border-[var(--plasma-green)]/20 rounded-xl flex items-center gap-3">
                             <div className="w-1.5 h-1.5 rounded-full bg-[var(--plasma-green)] animate-pulse" />

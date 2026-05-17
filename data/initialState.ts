@@ -236,7 +236,7 @@ export const INITIAL_CODE_STUDIO: CodeStudioState = {
     prompt: '',
     generatedCode: '',
     language: 'typescript',
-    model: 'gemini-2.0-flash',
+    model: 'gemini-2.5-flash',
     isLoading: false,
     error: null,
     activeTab: 'IDE',

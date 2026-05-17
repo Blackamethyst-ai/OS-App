@@ -113,8 +113,8 @@ export const DEFAULT_CPB_CONFIG: CPBConfig = {
 
     rlmConfig: {
         maxIterations: 25,         // ELITE: Deeper decomposition
-        rootModel: 'gemini-2.0-flash',    // RLM uses Gemini API directly
-        subModel: 'gemini-2.0-flash'     // RLM uses Gemini API directly
+        rootModel: 'gemini-2.5-flash',    // RLM uses Gemini API directly
+        subModel: 'gemini-2.5-flash'     // RLM uses Gemini API directly
     },
     aceConfig: {
         maxRounds: 18,             // ELITE: More consensus rounds
@@ -237,7 +237,7 @@ export interface MultimodalContent {
  */
 export type ReasoningModel =
     | 'gemini-flash'      // Fast, good for simple tasks
-    | 'gemini-2.0-flash'        // Balanced Gemini
+    | 'gemini-2.5-flash'        // Balanced Gemini
     | 'claude-haiku'      // Fast Claude
     | 'claude-sonnet'     // Balanced Claude (default for balanced path)
     | 'claude-opus'       // Deep reasoning

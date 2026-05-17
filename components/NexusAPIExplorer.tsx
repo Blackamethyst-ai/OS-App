@@ -64,7 +64,7 @@ const NexusAPIExplorer: React.FC = () => {
             if (!(apiKeyService.hasGeminiKey())) { await promptSelectKey(); setIsSearchingLive(false); return; }
             const ai = getAI();
             const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-2.5-flash',
                 contents: `Deep technical API search: "${query}". Identify endpoints and capabilities. Output JSON array [{title, description, category}].`,
                 config: { responseMimeType: 'application/json', tools: [{ googleSearch: {} }] }
             }));
@@ -105,7 +105,7 @@ const NexusAPIExplorer: React.FC = () => {
             `;
 
             const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-2.5-flash',
                 contents: prompt,
                 config: { responseMimeType: 'application/json' }
             }));

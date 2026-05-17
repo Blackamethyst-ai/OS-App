@@ -55,17 +55,17 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
 
   taskModelPreferences: {
     // Code tasks → Claude excels
-    'code-generation': ['claude-opus-4-6', 'claude-sonnet-4-6', 'gpt-4o'],
-    'code-review': ['claude-opus-4-6', 'o1', 'gpt-4o'],
-    'debugging': ['claude-opus-4-6', 'claude-sonnet-4-6'],
+    'code-generation': ['claude-opus-4-7', 'claude-sonnet-4-6', 'gpt-4o'],
+    'code-review': ['claude-opus-4-7', 'o1', 'gpt-4o'],
+    'debugging': ['claude-opus-4-7', 'claude-sonnet-4-6'],
 
     // Reasoning → OpenAI o-series and Claude
-    'reasoning': ['o1', 'claude-opus-4-6', 'gemini-2.5-flash'],
+    'reasoning': ['o1', 'claude-opus-4-7', 'gemini-2.5-flash'],
     'math': ['gemini-2.5-flash', 'o1', 'o3-mini'],
-    'analysis': ['claude-opus-4-6', 'gemini-2.5-flash', 'gpt-4o'],
+    'analysis': ['claude-opus-4-7', 'gemini-2.5-flash', 'gpt-4o'],
 
     // Research → Long context models
-    'research': ['gemini-2.5-flash', 'claude-opus-4-6', 'claude-sonnet-4-6'],
+    'research': ['gemini-2.5-flash', 'claude-opus-4-7', 'claude-sonnet-4-6'],
     'summarization': ['gemini-2.5-flash', 'claude-sonnet-4-6'],
 
     // Real-time → Grok
@@ -73,12 +73,12 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
     'real-time': ['grok-3', 'gpt-4o'],
 
     // Vision → Best vision models
-    'image-analysis': ['gpt-4o', 'claude-opus-4-6', 'gemini-2.5-flash'],
-    'vision': ['gpt-4o', 'grok-3', 'claude-opus-4-6'],
+    'image-analysis': ['gpt-4o', 'claude-opus-4-7', 'gemini-2.5-flash'],
+    'vision': ['gpt-4o', 'grok-3', 'claude-opus-4-7'],
 
     // Creative → Claude
-    'creative': ['claude-opus-4-6', 'gpt-4o'],
-    'writing': ['claude-opus-4-6', 'claude-sonnet-4-6'],
+    'creative': ['claude-opus-4-7', 'gpt-4o'],
+    'writing': ['claude-opus-4-7', 'claude-sonnet-4-6'],
 
     // Quick tasks → Fast models
     'classification': ['claude-haiku-4-5-20251001', 'gpt-4o-mini', 'gemini-2.5-flash'],
@@ -87,7 +87,7 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
   },
 
   fallbackChain: [
-    'claude-opus-4-6',
+    'claude-opus-4-7',
     'claude-sonnet-4-6',
     'gpt-4o',
     'gemini-2.5-flash',
@@ -435,7 +435,7 @@ export class CostAwareRouter {
   }
 
   private createFallbackDecision(context: RoutingContext): RoutingDecision {
-    const fallback = this.config.fallbackChain[0] ?? 'claude-sonnet-4';
+    const fallback = this.config.fallbackChain[0] ?? 'claude-sonnet-4-6';
 
     return {
       modelId: fallback,

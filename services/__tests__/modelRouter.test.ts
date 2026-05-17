@@ -118,7 +118,7 @@ describe('ModelRouter', () => {
 
         const result = await modelRouter.generateContent('hello', { tier: 'fast' });
         expect(result).toBe('gemini-response');
-        expect(geminiService.generateText).toHaveBeenCalledWith('hello', 'gemini-2.0-flash', undefined);
+        expect(geminiService.generateText).toHaveBeenCalledWith('hello', 'gemini-2.5-flash', undefined);
       });
     });
 
@@ -131,7 +131,7 @@ describe('ModelRouter', () => {
         expect(claudeService.generateContent).toHaveBeenCalledWith(
           [{ role: 'user', content: 'hello' }],
           undefined,
-          'claude-opus-4-6'
+          'claude-opus-4-7'
         );
       });
 
@@ -157,7 +157,7 @@ describe('ModelRouter', () => {
         const result = await modelRouter.generateContent('hello', { tier: 'creative' });
         expect(result).toBe('claude-response');
         expect(claudeService.generateContent).toHaveBeenCalledWith(
-          expect.anything(), undefined, 'claude-opus-4-6'
+          expect.anything(), undefined, 'claude-opus-4-7'
         );
       });
     });
@@ -287,7 +287,7 @@ describe('ModelRouter', () => {
       mockApiKeyService.hasGeminiKey.mockReturnValue(true);
 
       await modelRouter.generateContent('hello', { tier: 'fast' }, 'Be concise');
-      expect(geminiService.generateText).toHaveBeenCalledWith('hello', 'gemini-2.0-flash', 'Be concise');
+      expect(geminiService.generateText).toHaveBeenCalledWith('hello', 'gemini-2.5-flash', 'Be concise');
     });
   });
 });

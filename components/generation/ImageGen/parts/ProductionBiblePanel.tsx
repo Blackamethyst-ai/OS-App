@@ -74,7 +74,7 @@ const ProductionBiblePanel: React.FC<ProductionBiblePanelProps> = ({
             parts.push({ text: "Synthesize a comprehensive Production Bible for this film series. Ensure extreme realism and consistent theme application. Output JSON {theme, atmosphere, visualLogic, narrativeArc, opticProfile, cinematicNotes[]}." });
 
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-2.5-flash',
                 contents: { parts },
                 config: {
                     responseMimeType: 'application/json',

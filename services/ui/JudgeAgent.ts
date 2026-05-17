@@ -22,7 +22,7 @@ import { logger } from '../logger';
 // CONFIGURATION
 // ============================================================================
 
-const JUDGE_MODEL = 'gemini-2.0-flash';
+const JUDGE_MODEL = 'gemini-2.5-flash';
 const EVALUATION_TIMEOUT_MS = 2000;
 const MAX_ITERATIONS = 3;
 

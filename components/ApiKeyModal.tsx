@@ -16,8 +16,9 @@ interface ApiKeyModalProps {
 type ModalView = 'create-vault' | 'unlock-vault' | 'manage-keys';
 
 const PROVIDERS = [
-    { id: 'gemini' as const, name: 'Gemini', color: '#4285F4', description: 'Google AI - Required for core features' },
-    { id: 'claude' as const, name: 'Claude', color: '#cc785c', description: 'Anthropic - Advanced reasoning' },
+    { id: 'deepseek' as const, name: 'DeepSeek V4', color: '#7c3aed', description: 'Primary LLM — Metaventions AI default' },
+    { id: 'gemini' as const, name: 'Gemini', color: '#4285F4', description: 'Google AI - Vision + multimodal fallback' },
+    { id: 'claude' as const, name: 'Claude', color: '#cc785c', description: 'Anthropic - Advanced reasoning fallback' },
     { id: 'openai' as const, name: 'OpenAI', color: '#10a37f', description: 'GPT models' },
     { id: 'grok' as const, name: 'Grok', color: '#1DA1F2', description: 'xAI reasoning models' },
     { id: 'eleven_labs' as const, name: 'ElevenLabs', color: '#1f2937', description: 'Neural Voice Synthesis (Creator)' },
@@ -32,7 +33,7 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
     const [passwordError, setPasswordError] = useState('');
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const [activeProvider, setActiveProvider] = useState<'gemini' | 'claude' | 'openai' | 'grok' | 'eleven_labs' | 'deepgram'>('gemini');
+    const [activeProvider, setActiveProvider] = useState<'deepseek' | 'gemini' | 'claude' | 'openai' | 'grok' | 'eleven_labs' | 'deepgram'>('deepseek');
     const [inputValue, setInputValue] = useState('');
     const [showKey, setShowKey] = useState(false);
     const [isValidating, setIsValidating] = useState(false);
@@ -139,7 +140,9 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
         let result: { valid: boolean; error?: string } | null = null;
 
         // Validate based on provider
-        if (activeProvider === 'gemini') {
+        if (activeProvider === 'deepseek') {
+            result = await apiKeyService.validateDeepSeekKey(inputValue);
+        } else if (activeProvider === 'gemini') {
             result = await apiKeyService.validateGeminiKey(inputValue);
         } else if (activeProvider === 'eleven_labs') {
             result = await apiKeyService.validateElevenLabsKey(inputValue);
@@ -475,6 +478,11 @@ const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => {
 
                 {/* Help Links */}
                 <div className="text-center pt-2">
+                    {activeProvider === 'deepseek' && (
+                        <a href="https://platform.deepseek.com/api_keys" target="_blank" rel="noopener noreferrer" className="text-[9px] text-[var(--amethyst)] hover:underline">
+                            Get a DeepSeek API key from platform.deepseek.com →
+                        </a>
+                    )}
                     {activeProvider === 'gemini' && (
                         <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-[9px] text-[var(--amethyst)] hover:underline">
                             Get a Gemini API key from Google AI Studio →

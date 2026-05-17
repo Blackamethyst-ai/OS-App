@@ -23,28 +23,28 @@ export const ModelSelector: React.FC = () => {
             label: 'Speed',
             icon: Zap,
             color: 'var(--plasma-green)', // Emerald
-            desc: 'Gemini 1.5 Flash (Economy)'
+            desc: 'DeepSeek V4 (primary) → Claude/Gemini fallback'
         },
         {
             id: 'balanced',
             label: 'Balanced',
             icon: Gauge,
             color: 'var(--azure-blue)', // Blue
-            desc: 'Optimal Performance/Cost'
+            desc: 'DeepSeek V4 (primary) → Claude Sonnet fallback'
         },
         {
             id: 'powerful',
             label: 'Power',
             icon: Brain,
             color: '#8b5cf6', // Violet
-            desc: 'Claude 3.5 / Gemini Pro'
+            desc: 'DeepSeek V4 (primary) → Claude Opus / Grok fallback'
         },
         {
             id: 'creative',
             label: 'Creative',
             icon: Sparkles,
             color: 'var(--amber)', // Amber
-            desc: 'Grok 2 / Gemini Pro / Opus'
+            desc: 'DeepSeek V4 (primary) → Opus / Grok / Gemini fallback'
         }
     ];
 

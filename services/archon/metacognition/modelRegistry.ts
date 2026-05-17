@@ -32,12 +32,32 @@ const createDefaultMetrics = (): ModelMetrics => ({
  */
 export const BUILT_IN_MODELS: ModelInfo[] = [
   // ==========================================================================
+  // DEEPSEEK (Primary — #1 default across all tiers)
+  // ==========================================================================
+  {
+    id: 'DeepSeekMetaventionsAI',
+    provider: 'deepseek',
+    name: 'DeepSeek V4 (Metaventions AI)',
+    tier: 'flagship',
+    capabilities: ['reasoning', 'coding', 'creative', 'analysis', 'tool-use', 'structured-output', 'math', 'long-context', 'multilingual'],
+    contextWindow: 128000,
+    maxOutputTokens: 8192,
+    supportsVision: false,
+    supportsTools: true,
+    supportsStreaming: true,
+    inputCostPer1M: 0.27,
+    outputCostPer1M: 1.10,
+    metrics: createDefaultMetrics(),
+    available: true,
+  },
+
+  // ==========================================================================
   // ANTHROPIC (Claude)
   // ==========================================================================
   {
-    id: 'claude-opus-4',
+    id: 'claude-opus-4-7',
     provider: 'anthropic',
-    name: 'Claude Opus 4',
+    name: 'Claude Opus 4.7',
     tier: 'flagship',
     capabilities: ['reasoning', 'coding', 'creative', 'analysis', 'tool-use', 'structured-output', 'math', 'long-context'],
     contextWindow: 200000,
@@ -51,9 +71,9 @@ export const BUILT_IN_MODELS: ModelInfo[] = [
     available: true,
   },
   {
-    id: 'claude-sonnet-4',
+    id: 'claude-sonnet-4-6',
     provider: 'anthropic',
-    name: 'Claude Sonnet 4',
+    name: 'Claude Sonnet 4.6',
     tier: 'standard',
     capabilities: ['reasoning', 'coding', 'creative', 'analysis', 'tool-use', 'structured-output', 'long-context'],
     contextWindow: 200000,
@@ -87,9 +107,9 @@ export const BUILT_IN_MODELS: ModelInfo[] = [
   // GOOGLE (Gemini)
   // ==========================================================================
   {
-    id: 'gemini-2.0-flash',
+    id: 'gemini-2.5-flash',
     provider: 'google',
-    name: 'Gemini 2.0 Flash',
+    name: 'Gemini 2.5 Flash',
     tier: 'standard',
     capabilities: ['reasoning', 'coding', 'analysis', 'vision', 'tool-use', 'fast-response', 'long-context'],
     contextWindow: 1000000,
@@ -103,27 +123,11 @@ export const BUILT_IN_MODELS: ModelInfo[] = [
     available: true,
   },
   {
-    id: 'gemini-2.0-flash-thinking',
+    id: 'gemini-2.5-pro',
     provider: 'google',
-    name: 'Gemini 2.0 Flash Thinking',
+    name: 'Gemini 2.5 Pro',
     tier: 'flagship',
-    capabilities: ['reasoning', 'coding', 'math', 'analysis', 'tool-use'],
-    contextWindow: 1000000,
-    maxOutputTokens: 8192,
-    supportsVision: true,
-    supportsTools: true,
-    supportsStreaming: true,
-    inputCostPer1M: 0.075,
-    outputCostPer1M: 0.30,
-    metrics: createDefaultMetrics(),
-    available: true,
-  },
-  {
-    id: 'gemini-2.0-flash',
-    provider: 'google',
-    name: 'Gemini 1.5 Pro',
-    tier: 'flagship',
-    capabilities: ['reasoning', 'coding', 'creative', 'analysis', 'vision', 'tool-use', 'long-context'],
+    capabilities: ['reasoning', 'coding', 'math', 'creative', 'analysis', 'vision', 'tool-use', 'long-context'],
     contextWindow: 2000000,
     maxOutputTokens: 8192,
     supportsVision: true,
@@ -131,6 +135,22 @@ export const BUILT_IN_MODELS: ModelInfo[] = [
     supportsStreaming: true,
     inputCostPer1M: 1.25,
     outputCostPer1M: 5.0,
+    metrics: createDefaultMetrics(),
+    available: true,
+  },
+  {
+    id: 'gemini-2.5-flash-lite',
+    provider: 'google',
+    name: 'Gemini 2.5 Flash Lite',
+    tier: 'fast',
+    capabilities: ['analysis', 'fast-response', 'long-context'],
+    contextWindow: 1000000,
+    maxOutputTokens: 8192,
+    supportsVision: true,
+    supportsTools: true,
+    supportsStreaming: true,
+    inputCostPer1M: 0.0375,
+    outputCostPer1M: 0.15,
     metrics: createDefaultMetrics(),
     available: true,
   },
@@ -209,7 +229,7 @@ export const BUILT_IN_MODELS: ModelInfo[] = [
   {
     id: 'grok-3',
     provider: 'xai',
-    name: 'Grok 2',
+    name: 'Grok 3',
     tier: 'flagship',
     capabilities: ['reasoning', 'coding', 'creative', 'analysis', 'vision'],
     contextWindow: 131072,
@@ -225,7 +245,7 @@ export const BUILT_IN_MODELS: ModelInfo[] = [
   {
     id: 'grok-3-vision',
     provider: 'xai',
-    name: 'Grok 2 Vision',
+    name: 'Grok 3 Vision',
     tier: 'flagship',
     capabilities: ['reasoning', 'vision', 'analysis'],
     contextWindow: 32768,
@@ -302,19 +322,20 @@ export class ModelRegistry {
 
   constructor(config?: Partial<ModelRegistryConfig>) {
     this.config = {
-      enabledProviders: config?.enabledProviders ?? ['anthropic', 'google', 'openai', 'xai'],
+      enabledProviders: config?.enabledProviders ?? ['deepseek', 'anthropic', 'google', 'openai', 'xai'],
       apiKeys: config?.apiKeys ?? {},
       defaultModels: config?.defaultModels ?? {
-        flagship: 'claude-opus-4',
-        standard: 'claude-sonnet-4',
-        fast: 'claude-haiku-4-5-20251001',
+        flagship: 'DeepSeekMetaventionsAI',
+        standard: 'DeepSeekMetaventionsAI',
+        fast: 'DeepSeekMetaventionsAI',
         local: 'llama-3.3-70b',
       },
       maxCostPerTask: config?.maxCostPerTask ?? 1.0,
       maxCostPerSession: config?.maxCostPerSession ?? 10.0,
       fallbackChain: config?.fallbackChain ?? [
-        'claude-sonnet-4',
-        'gemini-2.0-flash',
+        'DeepSeekMetaventionsAI',
+        'claude-sonnet-4-6',
+        'gemini-2.5-flash',
         'gpt-4o-mini',
       ],
     };

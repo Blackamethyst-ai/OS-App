@@ -38,6 +38,7 @@ vi.mock('../logger', () => ({
 import {
   geminiProvider,
   claudeProvider,
+  deepseekProvider,
   getProviderForTier,
   defaultProviders,
 } from '../cpbProviders';
@@ -65,7 +66,7 @@ describe('cpbProviders', () => {
     it('should call generateText with default model', async () => {
       mockGenerateText.mockResolvedValue('gemini response');
       const result = await geminiProvider.generate('hello');
-      expect(mockGenerateText).toHaveBeenCalledWith('hello', 'gemini-2.0-flash');
+      expect(mockGenerateText).toHaveBeenCalledWith('hello', 'gemini-2.5-flash');
       expect(result).toBe('gemini response');
     });
 
@@ -76,14 +77,14 @@ describe('cpbProviders', () => {
       });
       expect(mockGenerateText).toHaveBeenCalledWith(
         'Be helpful\n\nhello',
-        'gemini-2.0-flash'
+        'gemini-2.5-flash'
       );
     });
 
     it('should use custom model when specified', async () => {
       mockGenerateText.mockResolvedValue('response');
-      await geminiProvider.generate('hello', { model: 'gemini-2.0-pro' });
-      expect(mockGenerateText).toHaveBeenCalledWith('hello', 'gemini-2.0-pro');
+      await geminiProvider.generate('hello', { model: 'gemini-2.5-pro' });
+      expect(mockGenerateText).toHaveBeenCalledWith('hello', 'gemini-2.5-pro');
     });
 
     it('should call generateWithVision with image data', async () => {
@@ -95,7 +96,7 @@ describe('cpbProviders', () => {
       expect(mockGeminiGenerateWithVision).toHaveBeenCalledWith(
         'describe',
         [{ data: 'imgdata', mimeType: 'image/png' }],
-        'gemini-2.0-flash'
+        'gemini-2.5-flash'
       );
       expect(result).toBe('vision result');
     });
@@ -115,12 +116,12 @@ describe('cpbProviders', () => {
       mockClaudeGenerateContent.mockResolvedValue('claude response');
       const result = await claudeProvider.generate('hello', {
         systemPrompt: 'Be concise',
-        model: 'claude-opus-4-6',
+        model: 'claude-opus-4-7',
       });
       expect(mockClaudeGenerateContent).toHaveBeenCalledWith(
         [{ role: 'user', content: 'hello' }],
         'Be concise',
-        'claude-opus-4-6'
+        'claude-opus-4-7'
       );
       expect(result).toBe('claude response');
     });
@@ -172,14 +173,22 @@ describe('cpbProviders', () => {
   });
 
   describe('getProviderForTier', () => {
-    it('should return claudeProvider for "deep" when claude is configured', () => {
-      mockGetKey.mockReturnValue('claude-key');
+    it('should return deepseekProvider across all tiers when DeepSeek is configured', () => {
+      mockGetKey.mockReturnValue('deepseek-key');
+      expect(getProviderForTier('fast').name).toBe('deepseek');
+      expect(getProviderForTier('balanced').name).toBe('deepseek');
+      expect(getProviderForTier('deep').name).toBe('deepseek');
+    });
+
+    it('should fall back to claudeProvider for "deep" when DeepSeek absent and claude is configured', () => {
+      mockGetKey.mockImplementation((key: string) =>
+        key === 'claude' ? 'claude-key' : null
+      );
       const provider = getProviderForTier('deep');
       expect(provider.name).toBe('claude');
     });
 
-    it('should return geminiProvider for "fast" when gemini is configured', () => {
-      // gemini configured, claude not
+    it('should fall back to geminiProvider for "fast" when only gemini is configured', () => {
       mockGetKey.mockImplementation((key: string) =>
         key === 'gemini' ? 'gemini-key' : null
       );
@@ -187,7 +196,7 @@ describe('cpbProviders', () => {
       expect(provider.name).toBe('gemini');
     });
 
-    it('should return geminiProvider for "balanced" when gemini is configured', () => {
+    it('should fall back to geminiProvider for "balanced" when only gemini is configured', () => {
       mockGetKey.mockImplementation((key: string) =>
         key === 'gemini' ? 'gemini-key' : null
       );
@@ -195,8 +204,7 @@ describe('cpbProviders', () => {
       expect(provider.name).toBe('gemini');
     });
 
-    it('should fallback to claudeProvider when gemini is not configured', () => {
-      // Only claude configured
+    it('should fall back to claudeProvider when only claude is configured', () => {
       mockGetKey.mockImplementation((key: string) =>
         key === 'claude' ? 'claude-key' : null
       );
@@ -212,16 +220,16 @@ describe('cpbProviders', () => {
   });
 
   describe('defaultProviders', () => {
-    it('should map fast to geminiProvider', () => {
-      expect(defaultProviders.fast).toBe(geminiProvider);
+    it('should map fast to deepseekProvider (primary)', () => {
+      expect(defaultProviders.fast).toBe(deepseekProvider);
     });
 
-    it('should map balanced to geminiProvider', () => {
-      expect(defaultProviders.balanced).toBe(geminiProvider);
+    it('should map balanced to deepseekProvider (primary)', () => {
+      expect(defaultProviders.balanced).toBe(deepseekProvider);
     });
 
-    it('should map deep to claudeProvider', () => {
-      expect(defaultProviders.deep).toBe(claudeProvider);
+    it('should map deep to deepseekProvider (primary)', () => {
+      expect(defaultProviders.deep).toBe(deepseekProvider);
     });
   });
 });

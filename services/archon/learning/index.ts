@@ -16,7 +16,7 @@
  *   dqScore: 0.85,
  *   latencyMs: 5000,
  *   tokenCost: 15000,
- *   modelUsed: 'claude-opus-4',
+ *   modelUsed: 'claude-opus-4-7',
  *   subsystemsUsed: ['ace', 'kernel'],
  *   humanIntervention: false,
  * });

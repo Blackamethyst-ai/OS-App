@@ -124,7 +124,7 @@ const StoryboardPanel: React.FC<StoryboardPanelProps> = ({
             parts.push({ text: finalPrompt });
 
             const response: GenerateContentResponse = await retryGeminiRequest(() => ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-2.5-flash',
                 contents: { parts },
                 config: { imageConfig: { aspectRatio: '16:9' } }
             }));

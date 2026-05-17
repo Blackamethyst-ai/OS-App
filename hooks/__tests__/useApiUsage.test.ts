@@ -86,15 +86,15 @@ describe('useApiUsage', () => {
 
     it('should expose getRateLimitInfo that delegates to service', () => {
         const { result } = renderHook(() => useApiUsage());
-        const info = result.current.getRateLimitInfo('gemini-2.0-flash');
-        expect(mockGetRateLimitInfo).toHaveBeenCalledWith('gemini-2.0-flash');
+        const info = result.current.getRateLimitInfo('gemini-2.5-flash');
+        expect(mockGetRateLimitInfo).toHaveBeenCalledWith('gemini-2.5-flash');
         expect(info).toEqual({ rpm: 15, used: 0, isAtLimit: false });
     });
 
     it('should expose isRateLimited that delegates to service', () => {
         const { result } = renderHook(() => useApiUsage());
-        const limited = result.current.isRateLimited('gemini-2.0-flash');
-        expect(mockIsRateLimited).toHaveBeenCalledWith('gemini-2.0-flash');
+        const limited = result.current.isRateLimited('gemini-2.5-flash');
+        expect(mockIsRateLimited).toHaveBeenCalledWith('gemini-2.5-flash');
         expect(limited).toBe(false);
     });
 });

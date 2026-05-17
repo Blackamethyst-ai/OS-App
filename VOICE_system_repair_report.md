@@ -22,7 +22,7 @@ This report details the comprehensive scan, diagnosis, and repair of the Voice C
 ## 4. Connectivity Failure (Realtime)
 **Issue:** The Gemini Live (Realtime STT) was configured with an invalid/deprecated experimental Model ID (`gemini-2.5...`).
 **Impact:** Connection attempts failed silently, forcing a fallback to the lower-quality Browser STT.
-**Fix:** Updated the configuration to the stable `gemini-2.0-flash-exp` model, restoring high-speed, interruptible voice recognition.
+**Fix:** Updated the configuration to the stable `gemini-2.5-flash-image` model, restoring high-speed, interruptible voice recognition.
 
 ## 5. Context Blindness (Awareness)
 **Issue:** The `VoiceCore` had access to codebase awareness but wasn't passing it to the brain.

@@ -176,7 +176,16 @@ export const TAB_REGISTRY: TabDefinition[] = [
         tabKey: 'VIDEO',
         tabLabel: 'Video',
         aliases: ['video', 'animation', 'motion'],
-        description: 'Video generation mode'
+        description: 'Video generation mode (legacy Veo)'
+    },
+    {
+        id: 'cinema-substrate',
+        sectorMode: AppMode.IMAGE_GEN,
+        sectorLabel: 'Cinema',
+        tabKey: 'SUBSTRATE',
+        tabLabel: 'Substrate',
+        aliases: ['substrate', 'seedance', 'cinema studio', 'multi-provider', 'sovereign video', 'action scene'],
+        description: 'Seedance 2.0 substrate with multi-provider router (Veo / Sora / Kling / Runway escapes)'
     },
     {
         id: 'cinema-teaser',

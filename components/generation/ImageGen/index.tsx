@@ -19,6 +19,7 @@ import {
 } from './parts/types';
 import { VideoMode } from './parts/VideoMode';
 import { TeaserMode } from './parts/TeaserMode';
+import { CinemaStudio } from '../../CinemaStudio';
 import { StudioHeader } from './parts/StudioHeader';
 import { StudioFooter } from './parts/StudioFooter';
 import { SingleImageMode } from './parts/SingleImageMode';
@@ -503,7 +504,7 @@ async function extractCharacterAnchor(
     // Then parse the structured data from it
     const response = await retryGeminiRequest<GenerateContentResponse>(() =>
         ai.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.5-flash',
             contents: { parts },
             config: {
                 responseMimeType: 'application/json',
@@ -873,7 +874,7 @@ async function extractWorldAnchor(ai: GoogleGenAI, imageData: FileData): Promise
 
     const response = await retryGeminiRequest<GenerateContentResponse>(() =>
         ai.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.5-flash',
             contents: { parts }
         })
     );
@@ -892,7 +893,7 @@ async function extractStyleAnchor(ai: GoogleGenAI, imageData: FileData): Promise
 
     const response = await retryGeminiRequest<GenerateContentResponse>(() =>
         ai.models.generateContent({
-            model: 'gemini-2.0-flash',
+            model: 'gemini-2.5-flash',
             contents: { parts }
         })
     );
@@ -961,7 +962,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
     const imageGen = useAppStore(s => s.imageGen);
     const actions = useAppStore(s => s.actions);
 
-    const [activeTab, setActiveTab] = useState<'SINGLE' | 'STORYBOARD' | 'VIDEO' | 'TEASER'>('SINGLE');
+    const [activeTab, setActiveTab] = useState<'SINGLE' | 'STORYBOARD' | 'VIDEO' | 'SUBSTRATE' | 'TEASER'>('SINGLE');
 
     // Cinematic Production State
     const [productionBible, setProductionBible] = useState<ProductionBible | null>(null);
@@ -1124,7 +1125,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
             parts.push({ text: "Synthesize a comprehensive Production Bible for this film series. Ensure extreme realism and consistent theme application. Output JSON {theme, atmosphere, visualLogic, narrativeArc, opticProfile, cinematicNotes[]}." });
 
             const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-                model: 'gemini-2.0-flash',
+                model: 'gemini-2.5-flash',
                 contents: { parts },
                 config: {
                     responseMimeType: 'application/json',
@@ -1243,7 +1244,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                     parts.push({ text: basePrompt });
 
                     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-                        model: 'gemini-2.0-flash-exp',
+                        model: 'gemini-2.5-flash-image',
                         contents: { parts },
                         config: {
                             responseModalities: ['IMAGE', 'TEXT'],
@@ -1289,7 +1290,7 @@ const ImageGen: React.FC<ImageGenProps> = ({ className, style }) => {
                     analysisParts.push({ text: "Analyze these reference images for environment and style consistency. Describe lighting, color palette, textures, mood, composition, camera characteristics, and post-processing style in extreme detail." });
 
                     const analysis = await retryGeminiRequest(() => ai.models.generateContent({
-                        model: 'gemini-2.0-flash',
+                        model: 'gemini-2.5-flash',
                         contents: { parts: analysisParts }
                     }));
 
@@ -1428,7 +1429,7 @@ CRITICAL: Character appearance MUST match previous frames exactly.
                     parts.push({ text: finalPrompt });
 
                     const response = await retryGeminiRequest<GenerateContentResponse>(() => ai.models.generateContent({
-                        model: 'gemini-2.0-flash-exp',
+                        model: 'gemini-2.5-flash-image',
                         contents: { parts },
                         config: {
                             responseModalities: ['IMAGE', 'TEXT'],
@@ -1457,7 +1458,7 @@ CRITICAL: Character appearance MUST match previous frames exactly.
                     analysisParts.push({ text: `Describe these references to help generate frame ${idx + 1}: ${frame.scenePrompt}` });
 
                     const analysis = await retryGeminiRequest(() => ai.models.generateContent({
-                        model: 'gemini-2.0-flash',
+                        model: 'gemini-2.5-flash',
                         contents: { parts: analysisParts }
                     }));
                     if (analysis.text) finalPrompt += `\n\nREF_GUIDE: ${analysis.text}`;
@@ -1816,6 +1817,10 @@ ${videoPrompt}
                             videoUrl={videoUrl}
                             onGenerateVideo={handleVideoGenerate}
                         />
+                    )}
+
+                    {activeTab === 'SUBSTRATE' && (
+                        <CinemaStudio />
                     )}
 
                     {activeTab === 'TEASER' && (
