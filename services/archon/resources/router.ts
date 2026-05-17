@@ -13,6 +13,7 @@ import {
   ResourceConfig,
   DEFAULT_RESOURCE_CONFIG,
 } from './types';
+import { MODEL_REGISTRY } from '../../modelRegistry';
 import { Priority, ModelTier } from '../types';
 import {
   getMetaCognitionEngine,
@@ -60,20 +61,20 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
     'debugging': ['claude-opus-4-7', 'claude-sonnet-4-6'],
 
     // Reasoning → OpenAI o-series and Claude
-    'reasoning': ['o1', 'claude-opus-4-7', 'gemini-2.5-flash'],
-    'math': ['gemini-2.5-flash', 'o1', 'o3-mini'],
-    'analysis': ['claude-opus-4-7', 'gemini-2.5-flash', 'gpt-4o'],
+    'reasoning': ['o1', 'claude-opus-4-7', MODEL_REGISTRY.gemini.fast],
+    'math': [MODEL_REGISTRY.gemini.fast, 'o1', 'o3-mini'],
+    'analysis': ['claude-opus-4-7', MODEL_REGISTRY.gemini.fast, 'gpt-4o'],
 
     // Research → Long context models
-    'research': ['gemini-2.5-flash', 'claude-opus-4-7', 'claude-sonnet-4-6'],
-    'summarization': ['gemini-2.5-flash', 'claude-sonnet-4-6'],
+    'research': [MODEL_REGISTRY.gemini.fast, 'claude-opus-4-7', 'claude-sonnet-4-6'],
+    'summarization': [MODEL_REGISTRY.gemini.fast, 'claude-sonnet-4-6'],
 
     // Real-time → Grok
     'current-events': ['grok-3'],
     'real-time': ['grok-3', 'gpt-4o'],
 
     // Vision → Best vision models
-    'image-analysis': ['gpt-4o', 'claude-opus-4-7', 'gemini-2.5-flash'],
+    'image-analysis': ['gpt-4o', 'claude-opus-4-7', MODEL_REGISTRY.gemini.fast],
     'vision': ['gpt-4o', 'grok-3', 'claude-opus-4-7'],
 
     // Creative → Claude
@@ -81,8 +82,8 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
     'writing': ['claude-opus-4-7', 'claude-sonnet-4-6'],
 
     // Quick tasks → Fast models
-    'classification': ['claude-haiku-4-5-20251001', 'gpt-4o-mini', 'gemini-2.5-flash'],
-    'extraction': ['claude-haiku-4-5-20251001', 'gemini-2.5-flash'],
+    'classification': ['claude-haiku-4-5-20251001', 'gpt-4o-mini', MODEL_REGISTRY.gemini.fast],
+    'extraction': ['claude-haiku-4-5-20251001', MODEL_REGISTRY.gemini.fast],
     'validation': ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001'],
   },
 
@@ -90,7 +91,7 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
     'claude-opus-4-7',
     'claude-sonnet-4-6',
     'gpt-4o',
-    'gemini-2.5-flash',
+    MODEL_REGISTRY.gemini.fast,
     'claude-haiku-4-5-20251001',
   ],
 };

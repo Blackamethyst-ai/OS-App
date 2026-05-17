@@ -59,13 +59,13 @@ class ModelRouter {
 
         // VISION REQUIRED: skip DeepSeek (no vision support); use Gemini/Claude.
         if (config.requireVision) {
-            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, MODEL_REGISTRY.gemini.fast);
             if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
         }
 
         // EXPLICIT preferredProvider wins over DeepSeek-first default.
         if (config.preferredProvider === 'gemini' && hasGemini) {
-            return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
+            return this.callGemini(prompt, systemPrompt, MODEL_REGISTRY.gemini.fast);
         }
         if (config.preferredProvider === 'claude' && hasClaude) {
             return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
@@ -83,24 +83,24 @@ class ModelRouter {
 
         if (config.tier === 'fast') {
             if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.standard);
-            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, MODEL_REGISTRY.gemini.fast);
         }
 
         if (config.tier === 'powerful') {
             if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
             if (hasGrok) return this.callGrok(prompt, systemPrompt);
-            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, MODEL_REGISTRY.gemini.fast);
         }
 
         if (config.tier === 'creative') {
             if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
             if (hasGrok) return this.callGrok(prompt, systemPrompt);
-            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, MODEL_REGISTRY.gemini.fast);
         }
 
         if (config.tier === 'balanced') {
             if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.standard);
-            if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
+            if (hasGemini) return this.callGemini(prompt, systemPrompt, MODEL_REGISTRY.gemini.fast);
         }
 
         // Preferred-provider overrides (only reached if DeepSeek absent and tier didn't return)
@@ -109,13 +109,13 @@ class ModelRouter {
         }
         if (config.preferredProvider === 'grok' && hasGrok) return this.callGrok(prompt, systemPrompt);
         if (config.preferredProvider === 'gemini' && hasGemini) {
-            return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
+            return this.callGemini(prompt, systemPrompt, MODEL_REGISTRY.gemini.fast);
         }
 
         // Ultimate catch-all
         if (hasClaude) return this.callClaude(prompt, systemPrompt, MODEL_REGISTRY.claude.deep);
         if (hasGrok) return this.callGrok(prompt, systemPrompt);
-        if (hasGemini) return this.callGemini(prompt, systemPrompt, 'gemini-2.5-flash');
+        if (hasGemini) return this.callGemini(prompt, systemPrompt, MODEL_REGISTRY.gemini.fast);
 
         throw new Error('No capable AI models configured. Please add an API Key in settings.');
     }

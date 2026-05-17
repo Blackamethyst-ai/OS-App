@@ -16,7 +16,7 @@ import { join, extname } from 'node:path';
  * MODEL_REGISTRY, lower BASELINE to the new (smaller) number so the
  * ratchet tightens. Goal: BASELINE === 0.
  */
-const BASELINE = 93;
+const BASELINE = 65;
 
 // Source roots that ship to the runtime. Tests, type decls, the
 // registry itself, and node_modules are exempt.
