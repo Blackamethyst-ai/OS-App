@@ -41,3 +41,6 @@ supabase/.temp/
 public/cinema-renders/
 public/anchor-library/
 public/anchor-library-index.json
+
+# Local AI context — kept on disk, not published
+CLAUDE.md
