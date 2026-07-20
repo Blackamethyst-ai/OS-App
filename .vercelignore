@@ -28,3 +28,8 @@ SESSION_LOG.md
 CURRENT_TASK.md
 .claude
 .agent
+
+# Build output — Vercel builds remotely; never upload the local dist.
+# dist/ mirrors public/, so dist/anchor-library was 6.4GB and aborted the upload
+# even though public/anchor-library was already ignored. (2026-07-20)
+dist

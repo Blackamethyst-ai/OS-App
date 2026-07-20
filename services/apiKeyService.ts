@@ -175,22 +175,24 @@ class ApiKeyService {
      * Get API key for a provider (only works when unlocked)
      */
     getKey(provider: keyof ApiKeyConfig): string | undefined {
+        // BYO-key only. The vault is the sole key source.
+        //
+        // Do NOT reintroduce `import.meta.env.VITE_*` fallbacks here. Vite inlines every
+        // VITE_-prefixed variable into the public client bundle at build time, which
+        // publishes the operator's key to every visitor. That is what caused
+        // INC-2026-07-20-01 (see .security/INCIDENT-2026-07-20-gemini-key-exposure.md):
+        // a Gemini key was served from app.metaventionsai.com for ~145 days, harvested,
+        // and the GCP project was suspended for abuse.
         if (this.isUnlocked && this.keys[provider]) return this.keys[provider];
-        // Env var fallbacks for dev
-        if (provider === 'deepseek') return import.meta.env.VITE_DEEPSEEK_API_KEY || undefined;
-        if (provider === 'gemini') return import.meta.env.VITE_GEMINI_API_KEY || undefined;
-        if (provider === 'fal') return import.meta.env.VITE_FAL_API_KEY || undefined;
-        if (provider === 'runway') return import.meta.env.VITE_RUNWAY_API_KEY || undefined;
-        if (provider === 'openai') return import.meta.env.VITE_OPENAI_API_KEY || undefined;
         return undefined;
     }
 
     /**
-     * Get Gemini key (vault first, then env var fallback)
+     * Get Gemini key. Vault only — see getKey() for why there is no env fallback.
      */
     getGeminiKey(): string | undefined {
         if (this.isUnlocked && this.keys.gemini) return this.keys.gemini;
-        return import.meta.env.VITE_GEMINI_API_KEY || undefined;
+        return undefined;
     }
 
     /**
@@ -227,16 +229,14 @@ class ApiKeyService {
      * Check if fal key is configured (vault or env var) — substrate readiness check
      */
     hasFalKey(): boolean {
-        if (this.isUnlocked && this.keys.fal) return true;
-        return !!(import.meta.env.VITE_FAL_API_KEY);
+        return this.isUnlocked && !!this.keys.fal;
     }
 
     /**
-     * Check if Gemini key is configured (vault or env var)
+     * Check if Gemini key is configured. Vault only — no env fallback (INC-2026-07-20-01).
      */
     hasGeminiKey(): boolean {
-        if (this.isUnlocked && this.keys.gemini) return true;
-        return !!(import.meta.env.VITE_GEMINI_API_KEY);
+        return this.isUnlocked && !!this.keys.gemini;
     }
 
     /**

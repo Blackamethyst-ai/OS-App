@@ -15,8 +15,13 @@ interface Window {
 
 // Extend ImportMeta for Vite environment variables
 interface ImportMetaEnv {
-    readonly VITE_GEMINI_API_KEY?: string;
-    readonly GEMINI_API_KEY?: string;
+    // VITE_GEMINI_API_KEY / GEMINI_API_KEY are deliberately NOT declared.
+    // Vite inlines every VITE_-prefixed var into the public client bundle, so declaring
+    // them invites shipping an operator key to every visitor. That caused
+    // INC-2026-07-20-01: a key was served publicly for ~145 days, harvested, and the
+    // GCP project was suspended. Gemini keys now come from the vault only
+    // (services/apiKeyService.ts). Leaving these undeclared makes any reintroduction
+    // a TypeScript error rather than a silent leak.
     /** Deepgram API key for streaming STT */
     readonly VITE_DEEPGRAM_API_KEY?: string;
     /** ElevenLabs API key for TTS */

@@ -53,9 +53,9 @@ Avoid bullet points and formatting - speak naturally as responses will be conver
  * ```
  */
 export function createGeminiReasoning(options?: GeminiReasoningOptions): ReasoningProvider {
-    const apiKey = options?.apiKey ||
-        import.meta.env.VITE_GOOGLE_GENERATIVE_AI_API_KEY ||
-        import.meta.env.VITE_GEMINI_API_KEY;
+    // BYO-key only: caller supplies the key. No VITE_ env fallback — Vite inlines those
+    // into the public bundle (INC-2026-07-20-01).
+    const apiKey = options?.apiKey;
     const models = {
         ...GEMINI_REASONING_MODELS,
         ...options?.models,

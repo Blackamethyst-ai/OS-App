@@ -46,9 +46,10 @@ export const GEMINI_MODELS = {
  * ```
  */
 export function createGeminiProvider(options?: GeminiProviderOptions): CPBProvider {
-    const apiKey = options?.apiKey ||
-        import.meta.env.VITE_GOOGLE_GENERATIVE_AI_API_KEY ||
-        import.meta.env.VITE_GEMINI_API_KEY;
+    // BYO-key only: the caller supplies the key. No VITE_ env fallback — Vite inlines
+    // those into the public bundle, which published an operator key and got the GCP
+    // project suspended (INC-2026-07-20-01).
+    const apiKey = options?.apiKey;
     const defaultModel = options?.defaultModel || GEMINI_MODELS.fast;
 
     return {
@@ -143,9 +144,10 @@ export function createGeminiProvider(options?: GeminiProviderOptions): CPBProvid
  */
 export function createGroundedGeminiProvider(options?: GeminiProviderOptions): CPBProvider {
     const baseProvider = createGeminiProvider(options);
-    const apiKey = options?.apiKey ||
-        import.meta.env.VITE_GOOGLE_GENERATIVE_AI_API_KEY ||
-        import.meta.env.VITE_GEMINI_API_KEY;
+    // BYO-key only: the caller supplies the key. No VITE_ env fallback — Vite inlines
+    // those into the public bundle, which published an operator key and got the GCP
+    // project suspended (INC-2026-07-20-01).
+    const apiKey = options?.apiKey;
 
     return {
         ...baseProvider,

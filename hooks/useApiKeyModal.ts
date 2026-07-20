@@ -50,11 +50,11 @@ export const useApiKeyModal = (): UseApiKeyModalResult => {
         let warningTimer: ReturnType<typeof setTimeout> | null = null;
 
         const checkKey = async () => {
-            // Check if we have a key in Environment OR Vault
-            const hasEnvKey = !!(import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY);
+            // BYO-key only: the vault is the sole key source. No env check —
+            // a VITE_ key would be public in the bundle (INC-2026-07-20-01).
             const hasVaultKey = apiKeyService.hasGeminiKey();
 
-            if (!hasEnvKey && !hasVaultKey) {
+            if (!hasVaultKey) {
                 // No key found anywhere. Prompt the user.
                 warningTimer = setTimeout(() => {
                     actions.addLog('WARN', 'SECURITY: Neural Uplink Credentials missing.');

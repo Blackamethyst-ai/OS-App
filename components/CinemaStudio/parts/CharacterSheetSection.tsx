@@ -23,7 +23,7 @@ export const CharacterSheetSection: React.FC<{
     setProgress('Calling NanoBanana for 5-frame sheet...');
     try {
       const geminiKey = apiKeyService.getKey('gemini');
-      if (!geminiKey) throw new Error('Gemini API key required (vault or VITE_GEMINI_API_KEY)');
+      if (!geminiKey) throw new Error('Gemini API key required. Add it in Settings > API Keys.');
       const sheet = await generateCharacterSheet(DICO_FACE_ANCHOR, {
         apiKey: geminiKey,
         sharedStylePrompt: DICO_STYLE_LINE,

@@ -44,3 +44,10 @@ public/anchor-library-index.json
 
 # Local AI context — kept on disk, not published
 CLAUDE.md
+
+# Hardened 2026-07-20 after INC-2026-07-20-01: catch .env backups/copies too
+.env*
+!.env.example
+
+# Incident reports / appeal documents — local only, never publish (repo is public)
+.security/

@@ -99,7 +99,7 @@ export const SoulCastPanel: React.FC<SoulCastPanelProps> = ({ onApplyAnchors, on
       : (!geminiKey && falKey ? 'fal' : 'gemini');
 
     if (provider === 'gemini' && !geminiKey) {
-      setError('Gemini API key required (vault or VITE_GEMINI_API_KEY). Try the FAL button if Gemini cap is hit.');
+      setError('Gemini API key required. Add it in Settings > API Keys. Try the FAL button if Gemini cap is hit.');
       return;
     }
     if (provider === 'fal' && !falKey) {

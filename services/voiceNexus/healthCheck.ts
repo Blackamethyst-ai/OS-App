@@ -315,7 +315,7 @@ export async function checkVoiceSystemHealth(): Promise<VoiceSystemHealth> {
         recommendations.push('Configure Gemini API key or use a browser that supports Web Speech API');
     } else if (!geminiSTT.available) {
         issues.push('Gemini STT unavailable - using browser fallback (higher latency)');
-        recommendations.push('Configure VITE_GEMINI_API_KEY for better STT performance');
+        recommendations.push('Add a Gemini key in Settings > API Keys for better STT performance');
     }
 
     // Analyze Reasoning providers
