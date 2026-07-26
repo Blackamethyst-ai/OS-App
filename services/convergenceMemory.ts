@@ -69,10 +69,27 @@ function hashTask(task: AtomicTask): string {
 
 class ConvergenceMemoryService {
     private dbName = 'os_app_convergence_memory_v1';
-    private db: Promise<IDBPDatabase<ConvergenceMemorySchema>>;
+    private dbPromise: Promise<IDBPDatabase<ConvergenceMemorySchema>> | null = null;
 
-    constructor() {
-        this.db = this.initDB();
+    /**
+     * Opened lazily on first use, never in the constructor — see the matching
+     * note in services/persistenceService.ts. Opening during module evaluation
+     * turned a missing indexedDB into an unhandled rejection at import time.
+     */
+    private get db(): Promise<IDBPDatabase<ConvergenceMemorySchema>> {
+        if (!this.dbPromise) {
+            this.dbPromise = this.initDB().catch(err => {
+                // Drop the cached rejection so a later call can retry.
+                this.dbPromise = null;
+                throw new Error(
+                    `ConvergenceMemory: could not open IndexedDB ("${this.dbName}"). Pattern ` +
+                        `memory is unavailable — this is expected in private browsing, SSR, or a ` +
+                        `sandboxed context. Cause: ${err instanceof Error ? err.message : String(err)}`,
+                    { cause: err }
+                );
+            });
+        }
+        return this.dbPromise;
     }
 
     private async initDB() {

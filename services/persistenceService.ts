@@ -79,10 +79,33 @@ interface NeuralVaultSchema extends DBSchema {
 
 class NeuralVaultService {
   private dbName = 'structura_neural_vault_v2';
-  private db: Promise<IDBPDatabase<NeuralVaultSchema>>;
+  private dbPromise: Promise<IDBPDatabase<NeuralVaultSchema>> | null = null;
 
-  constructor() {
-    this.db = this.initDB();
+  /**
+   * Opened lazily on first use, never in the constructor.
+   *
+   * `neuralVault` is a module-level singleton and store.ts imports it, so
+   * opening in the constructor ran openDB() during module evaluation. In any
+   * environment without indexedDB — Safari private browsing, SSR, a sandboxed
+   * iframe, the test runner — that produced an unhandled rejection at import
+   * time, before a single caller could catch it. Deferring to first access
+   * means the failure surfaces at the call site that actually wanted the DB.
+   */
+  private get db(): Promise<IDBPDatabase<NeuralVaultSchema>> {
+    if (!this.dbPromise) {
+      this.dbPromise = this.initDB().catch(err => {
+        // Drop the cached rejection so a later call can retry: openDB failures
+        // are often transient (an upgrade blocked by another open tab).
+        this.dbPromise = null;
+        throw new Error(
+          `NeuralVault: could not open IndexedDB ("${this.dbName}"). Persistence is ` +
+            `unavailable — this is expected in private browsing, SSR, or a sandboxed ` +
+            `context. Cause: ${err instanceof Error ? err.message : String(err)}`,
+          { cause: err }
+        );
+      });
+    }
+    return this.dbPromise;
   }
 
   private async initDB() {
