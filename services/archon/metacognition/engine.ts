@@ -63,27 +63,27 @@ const DEFAULT_CONFIG: MetaCognitionConfig = {
   escalationEnabled: true,
   escalationPath: [
     // Performance-first: Start with best, fall back to alternatives
-    'claude-opus-4-7',              // Best overall reasoning + coding
+    'claude-opus-5',              // Best overall reasoning + coding
     'gemini-2.5-pro',  // Deep reasoning, massive context
     'o1',                         // OpenAI reasoning model
     'gpt-4o',                     // Strong all-around
     'gemini-2.5-flash',             // 2M context fallback
-    'claude-sonnet-4-6',            // Cost-effective quality
+    'claude-sonnet-5',            // Cost-effective quality
   ],
   taskRoutes: {
     // Route to best-in-class for each domain
-    'code-generation': 'claude-opus-4-7',          // Best coding
-    'code-review': 'claude-opus-4-7',              // Deep analysis
-    'architecture': 'claude-opus-4-7',             // Complex reasoning
+    'code-generation': 'claude-opus-5',          // Best coding
+    'code-review': 'claude-opus-5',              // Deep analysis
+    'architecture': 'claude-opus-5',             // Complex reasoning
     'research': 'gemini-2.5-flash',                // 2M context for deep research
     'current-events': 'grok-3',                  // Real-time knowledge
     'image-analysis': 'gpt-4o',                  // Strong vision
     'math': 'gemini-2.5-pro',         // Math reasoning
-    'creative': 'claude-opus-4-7',                 // Creative excellence
+    'creative': 'claude-opus-5',                 // Creative excellence
     'reasoning': 'o1',                           // Deep reasoning chains
-    'analysis': 'claude-opus-4-7',                 // Analytical tasks
+    'analysis': 'claude-opus-5',                 // Analytical tasks
     'long-context': 'gemini-2.5-flash',            // 2M context window
-    'fast-validation': 'claude-sonnet-4-6',        // Quick quality checks
+    'fast-validation': 'claude-sonnet-5',        // Quick quality checks
   },
   trackPerformance: true,
   adaptiveRouting: true,

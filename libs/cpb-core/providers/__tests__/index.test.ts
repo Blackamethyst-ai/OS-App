@@ -7,8 +7,8 @@ vi.mock('../anthropic', () => ({
     generate: vi.fn(async () => 'claude response'),
     isConfigured: vi.fn(() => false),
   })),
-  getClaudeModel: vi.fn(() => 'claude-opus-4-7'),
-  CLAUDE_MODELS: { deep: 'claude-opus-4-7' },
+  getClaudeModel: vi.fn(() => 'claude-opus-5'),
+  CLAUDE_MODELS: { deep: 'claude-opus-5' },
 }));
 
 vi.mock('../google', () => ({

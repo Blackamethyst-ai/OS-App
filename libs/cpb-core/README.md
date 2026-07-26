@@ -92,7 +92,7 @@ const claude = createClaudeProvider({
 });
 ```
 
-Models: `claude-3-5-haiku-20241022` (fast), `claude-sonnet-4-6` (balanced/deep)
+Models: `claude-3-5-haiku-20241022` (fast), `claude-sonnet-5` (balanced/deep)
 
 ### Gemini (Google)
 

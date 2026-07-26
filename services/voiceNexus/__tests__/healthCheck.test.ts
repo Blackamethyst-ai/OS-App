@@ -28,7 +28,7 @@ vi.mock('../providers/stt/browserSTT', () => ({
 vi.mock('../providers/reasoning/claudeReasoning', () => ({
     claudeReasoning: {
         isAvailable: () => mockClaudeReasoningIsAvailable(),
-        models: ['claude-opus-4-7', 'claude-sonnet-4-6'],
+        models: ['claude-opus-5', 'claude-sonnet-5'],
     },
 }));
 
@@ -158,7 +158,7 @@ describe('VoiceNexus Health Check', () => {
 
             expect(health.name).toBe('claude-reasoning');
             expect(health.status).toBe('healthy');
-            expect(health.details?.models).toEqual(['claude-opus-4-7', 'claude-sonnet-4-6']);
+            expect(health.details?.models).toEqual(['claude-opus-5', 'claude-sonnet-5']);
         });
 
         it('should return unavailable when not configured', async () => {

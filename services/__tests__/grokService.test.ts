@@ -128,11 +128,11 @@ describe('GrokService', () => {
         await grokService.generateContent(
             [{ role: 'user', content: 'test' }],
             undefined,
-            'grok-2'
+            'grok-3'
         );
 
         const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-        expect(body.model).toBe('grok-2');
+        expect(body.model).toBe('grok-3');
     });
 
     it('should return content from response choices', async () => {

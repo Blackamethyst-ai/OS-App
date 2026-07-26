@@ -104,7 +104,7 @@ const grounded = createGroundedGeminiReasoning();
 
 **Models:**
 - Gemini: `gemini-2.5-flash-image` (fast), `gemini-2.5-pro` (balanced/deep)
-- Claude: `claude-3-5-haiku-20241022` (fast), `claude-sonnet-4-6` (balanced/deep)
+- Claude: `claude-3-5-haiku-20241022` (fast), `claude-sonnet-5` (balanced/deep)
 
 ### Text-to-Speech (TTS)
 

@@ -17,8 +17,8 @@ export const MODEL_REGISTRY = {
     },
     claude: {
         fast: 'claude-haiku-4-5-20251001',
-        standard: 'claude-sonnet-4-6',
-        deep: 'claude-opus-4-7',
+        standard: 'claude-sonnet-5',
+        deep: 'claude-opus-5',
     },
     grok: {
         fast: 'grok-3-mini',

@@ -417,15 +417,15 @@ export class BudgetAllocator {
     // Performance-first: prefer flagship unless constrained
     if (this.config.preferQualityOverCost) {
       if (priority === 'critical' || priority === 'high') {
-        return 'claude-opus-4-7';
+        return 'claude-opus-5';
       }
-      return 'claude-sonnet-4-6';
+      return 'claude-sonnet-5';
     }
 
     // Cost-aware selection
     if (tokens < 1000) return 'claude-haiku-4-5-20251001';
-    if (tokens < 10000) return 'claude-sonnet-4-6';
-    return 'claude-opus-4-7';
+    if (tokens < 10000) return 'claude-sonnet-5';
+    return 'claude-opus-5';
   }
 
   private getModelTier(modelId: string): ModelTier {

@@ -42,7 +42,7 @@ const {
     mockClaudeReasoningIsAvailable: vi.fn<(...args: any[]) => any>(() => true),
     mockClaudeReasoningGenerate: vi.fn<(...args: any[]) => any>(async () => ({
         text: 'Claude response',
-        model: 'claude-sonnet-4-6',
+        model: 'claude-sonnet-5',
         latencyMs: 500,
     })),
     mockGeminiReasoningIsAvailable: vi.fn<(...args: any[]) => any>(() => true),
@@ -253,7 +253,7 @@ describe('VoiceNexusOrchestrator', () => {
         mockInterpretIntent.mockResolvedValue(null);
         mockClaudeReasoningGenerate.mockResolvedValue({
             text: 'Claude response',
-            model: 'claude-sonnet-4-6',
+            model: 'claude-sonnet-5',
             latencyMs: 500,
         });
         mockGeminiReasoningGenerate.mockResolvedValue({

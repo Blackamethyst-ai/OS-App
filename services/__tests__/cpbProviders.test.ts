@@ -116,12 +116,12 @@ describe('cpbProviders', () => {
       mockClaudeGenerateContent.mockResolvedValue('claude response');
       const result = await claudeProvider.generate('hello', {
         systemPrompt: 'Be concise',
-        model: 'claude-opus-4-7',
+        model: 'claude-opus-5',
       });
       expect(mockClaudeGenerateContent).toHaveBeenCalledWith(
         [{ role: 'user', content: 'hello' }],
         'Be concise',
-        'claude-opus-4-7'
+        'claude-opus-5'
       );
       expect(result).toBe('claude response');
     });
@@ -132,7 +132,7 @@ describe('cpbProviders', () => {
       expect(mockClaudeGenerateContent).toHaveBeenCalledWith(
         [{ role: 'user', content: 'hi' }],
         undefined,
-        'claude-sonnet-4-6'
+        'claude-sonnet-5'
       );
     });
 
@@ -166,7 +166,7 @@ describe('cpbProviders', () => {
           },
         ],
         'Be detailed',
-        'claude-sonnet-4-6'
+        'claude-sonnet-5'
       );
       expect(result).toBe('I see a cat');
     });

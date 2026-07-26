@@ -136,7 +136,7 @@ describe('Voice Nexus Types', () => {
                 provider: 'claude-opus',
                 knowledgeUsed: true,
                 latencyMs: 450,
-                model: 'claude-opus-4-7',
+                model: 'claude-opus-5',
             };
             expect(transcript.complexity).toBe(0.75);
             expect(transcript.provider).toBe('claude-opus');

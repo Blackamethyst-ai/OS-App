@@ -82,7 +82,7 @@ describe('ClaudeService', () => {
       await claudeService.generateContent(
         [{ role: 'user', content: 'Hi' }],
         'You are helpful',
-        'claude-sonnet-4-6'
+        'claude-sonnet-5'
       );
 
       expect(mockFetch).toHaveBeenCalledWith(
@@ -99,7 +99,7 @@ describe('ClaudeService', () => {
       );
 
       const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(body.model).toBe('claude-sonnet-4-6');
+      expect(body.model).toBe('claude-sonnet-5');
       expect(body.system).toBe('You are helpful');
       expect(body.max_tokens).toBe(4096);
       expect(body.temperature).toBe(0.7);
@@ -147,7 +147,7 @@ describe('ClaudeService', () => {
       await claudeService.generateContent([{ role: 'user', content: 'Hi' }]);
 
       const body = JSON.parse(mockFetch.mock.calls[0][1].body);
-      expect(body.model).toBe('claude-sonnet-4-6');
+      expect(body.model).toBe('claude-sonnet-5');
     });
   });
 

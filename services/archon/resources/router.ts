@@ -56,40 +56,40 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
 
   taskModelPreferences: {
     // Code tasks → Claude excels
-    'code-generation': ['claude-opus-4-7', 'claude-sonnet-4-6', 'gpt-4o'],
-    'code-review': ['claude-opus-4-7', 'o1', 'gpt-4o'],
-    'debugging': ['claude-opus-4-7', 'claude-sonnet-4-6'],
+    'code-generation': ['claude-opus-5', 'claude-sonnet-5', 'gpt-4o'],
+    'code-review': ['claude-opus-5', 'o1', 'gpt-4o'],
+    'debugging': ['claude-opus-5', 'claude-sonnet-5'],
 
     // Reasoning → OpenAI o-series and Claude
-    'reasoning': ['o1', 'claude-opus-4-7', MODEL_REGISTRY.gemini.fast],
+    'reasoning': ['o1', 'claude-opus-5', MODEL_REGISTRY.gemini.fast],
     'math': [MODEL_REGISTRY.gemini.fast, 'o1', 'o3-mini'],
-    'analysis': ['claude-opus-4-7', MODEL_REGISTRY.gemini.fast, 'gpt-4o'],
+    'analysis': ['claude-opus-5', MODEL_REGISTRY.gemini.fast, 'gpt-4o'],
 
     // Research → Long context models
-    'research': [MODEL_REGISTRY.gemini.fast, 'claude-opus-4-7', 'claude-sonnet-4-6'],
-    'summarization': [MODEL_REGISTRY.gemini.fast, 'claude-sonnet-4-6'],
+    'research': [MODEL_REGISTRY.gemini.fast, 'claude-opus-5', 'claude-sonnet-5'],
+    'summarization': [MODEL_REGISTRY.gemini.fast, 'claude-sonnet-5'],
 
     // Real-time → Grok
     'current-events': ['grok-3'],
     'real-time': ['grok-3', 'gpt-4o'],
 
     // Vision → Best vision models
-    'image-analysis': ['gpt-4o', 'claude-opus-4-7', MODEL_REGISTRY.gemini.fast],
-    'vision': ['gpt-4o', 'grok-3', 'claude-opus-4-7'],
+    'image-analysis': ['gpt-4o', 'claude-opus-5', MODEL_REGISTRY.gemini.fast],
+    'vision': ['gpt-4o', 'grok-3', 'claude-opus-5'],
 
     // Creative → Claude
-    'creative': ['claude-opus-4-7', 'gpt-4o'],
-    'writing': ['claude-opus-4-7', 'claude-sonnet-4-6'],
+    'creative': ['claude-opus-5', 'gpt-4o'],
+    'writing': ['claude-opus-5', 'claude-sonnet-5'],
 
     // Quick tasks → Fast models
     'classification': ['claude-haiku-4-5-20251001', 'gpt-4o-mini', MODEL_REGISTRY.gemini.fast],
     'extraction': ['claude-haiku-4-5-20251001', MODEL_REGISTRY.gemini.fast],
-    'validation': ['claude-sonnet-4-6', 'claude-haiku-4-5-20251001'],
+    'validation': ['claude-sonnet-5', 'claude-haiku-4-5-20251001'],
   },
 
   fallbackChain: [
-    'claude-opus-4-7',
-    'claude-sonnet-4-6',
+    'claude-opus-5',
+    'claude-sonnet-5',
     'gpt-4o',
     MODEL_REGISTRY.gemini.fast,
     'claude-haiku-4-5-20251001',
@@ -436,7 +436,7 @@ export class CostAwareRouter {
   }
 
   private createFallbackDecision(context: RoutingContext): RoutingDecision {
-    const fallback = this.config.fallbackChain[0] ?? 'claude-sonnet-4-6';
+    const fallback = this.config.fallbackChain[0] ?? 'claude-sonnet-5';
 
     return {
       modelId: fallback,

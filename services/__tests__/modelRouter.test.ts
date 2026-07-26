@@ -109,7 +109,7 @@ describe('ModelRouter', () => {
         expect(claudeService.generateContent).toHaveBeenCalledWith(
           [{ role: 'user', content: 'hello' }],
           undefined,
-          'claude-sonnet-4-6'
+          'claude-sonnet-5'
         );
       });
 
@@ -131,7 +131,7 @@ describe('ModelRouter', () => {
         expect(claudeService.generateContent).toHaveBeenCalledWith(
           [{ role: 'user', content: 'hello' }],
           undefined,
-          'claude-opus-4-7'
+          'claude-opus-5'
         );
       });
 
@@ -157,7 +157,7 @@ describe('ModelRouter', () => {
         const result = await modelRouter.generateContent('hello', { tier: 'creative' });
         expect(result).toBe('claude-response');
         expect(claudeService.generateContent).toHaveBeenCalledWith(
-          expect.anything(), undefined, 'claude-opus-4-7'
+          expect.anything(), undefined, 'claude-opus-5'
         );
       });
     });
@@ -168,7 +168,7 @@ describe('ModelRouter', () => {
 
         const result = await modelRouter.generateContent('hello', { tier: 'balanced' });
         expect(claudeService.generateContent).toHaveBeenCalledWith(
-          expect.anything(), undefined, 'claude-sonnet-4-6'
+          expect.anything(), undefined, 'claude-sonnet-5'
         );
         expect(result).toBe('claude-response');
       });
@@ -279,7 +279,7 @@ describe('ModelRouter', () => {
       expect(claudeService.generateContent).toHaveBeenCalledWith(
         [{ role: 'user', content: 'hello' }],
         'You are helpful',
-        'claude-sonnet-4-6'
+        'claude-sonnet-5'
       );
     });
 
