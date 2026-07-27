@@ -1,5 +1,5 @@
 
-import { useFlywheelStore, KnowledgeContext, ActionOutcome } from '../store/flywheelStore';
+import { useFlywheelStore, KnowledgeContext, ActionOutcome } from '../stores/flywheelStore';
 
 export const useFlywheel = (context: KnowledgeContext) => {
   const recordAction = useFlywheelStore((state) => state.recordAction);

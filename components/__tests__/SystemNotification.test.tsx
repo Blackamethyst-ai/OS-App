@@ -22,7 +22,7 @@ vi.mock('../../store', () => ({
   }),
 }));
 
-vi.mock('../../store/flywheelStore', () => ({
+vi.mock('../../stores/flywheelStore', () => ({
   useFlywheelStore: () => ({
     velocity: 15,
     confidenceScore: 0.6,

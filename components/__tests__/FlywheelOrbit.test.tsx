@@ -20,7 +20,7 @@ const mockFlywheelState = vi.hoisted(() => ({
   confidenceScore: 0.6,
 }));
 
-vi.mock('../../store/flywheelStore', () => ({
+vi.mock('../../stores/flywheelStore', () => ({
   useFlywheelStore: () => mockFlywheelState,
 }));
 

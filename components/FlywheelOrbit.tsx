@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useFlywheelStore } from '../store/flywheelStore';
+import { useFlywheelStore } from '../stores/flywheelStore';
 
 const FlywheelOrbit: React.FC = () => {
   const { velocity, confidenceScore } = useFlywheelStore();

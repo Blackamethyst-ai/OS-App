@@ -4,7 +4,7 @@ import { renderHook } from '@testing-library/react';
 
 const mockRecordAction = vi.hoisted(() => vi.fn());
 
-vi.mock('../../store/flywheelStore', () => ({
+vi.mock('../../stores/flywheelStore', () => ({
     useFlywheelStore: (selector: any) => selector({ recordAction: mockRecordAction }),
     KnowledgeContext: {},
     ActionOutcome: {},
