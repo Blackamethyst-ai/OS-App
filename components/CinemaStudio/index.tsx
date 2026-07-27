@@ -55,15 +55,23 @@ const ASPECTS: AspectRatio[] = ['16:9', '9:16', '1:1', '21:9'];
 
 function loadCreds(): ProviderCredentials {
   // apiKeyService.getKey() reads from encrypted vault first, env var fallback.
-  const env = import.meta.env as Record<string, string | undefined>;
+  //
+  // Each var is read as its own `import.meta.env.X` expression on purpose.
+  // Vite only static-replaces that exact form; binding the whole object
+  // (`const env = import.meta.env`) makes it serialise the ENTIRE env into
+  // the chunk instead. That is not theoretical — it shipped every VITE_ var
+  // in .env.local into dist/assets/ImageGen-*.js, including a live DeepSeek
+  // key and VITE_FAL_API_KEY that no code here even references, silently
+  // undoing the BYO-key-only lockdown. Never destructure or alias
+  // import.meta.env.
   return {
     fal: apiKeyService.getKey('fal'),
     openai: apiKeyService.getKey('openai'),
     runway: apiKeyService.getKey('runway'),
-    vertexProject: env.VITE_VERTEX_PROJECT,
-    vertexLocation: env.VITE_VERTEX_LOCATION,
-    vertexAccessToken: env.VITE_VERTEX_ACCESS_TOKEN,
-    replicate: env.VITE_REPLICATE_API_KEY,
+    vertexProject: import.meta.env.VITE_VERTEX_PROJECT,
+    vertexLocation: import.meta.env.VITE_VERTEX_LOCATION,
+    vertexAccessToken: import.meta.env.VITE_VERTEX_ACCESS_TOKEN,
+    replicate: import.meta.env.VITE_REPLICATE_API_KEY,
   };
 }
 
