@@ -22,6 +22,11 @@ import {
   TASK_PROFILES,
 } from './types';
 import { ModelRegistry, getModelRegistry } from './modelRegistry';
+import { MODEL_REGISTRY } from '../../modelRegistry';
+
+// Destructured for readability — the routing tables below are dense, and
+// MODEL_REGISTRY.claude.deep repeated 6x obscures the table structure.
+const { claude: CLAUDE, openai: OPENAI, gemini: GEMINI, grok: GROK } = MODEL_REGISTRY;
 import { ModelSelector, getModelSelector } from './selector';
 import { ContextPruner, getContextPruner } from './pruner';
 import { archonLog, generateId } from '../utils';
@@ -63,27 +68,27 @@ const DEFAULT_CONFIG: MetaCognitionConfig = {
   escalationEnabled: true,
   escalationPath: [
     // Performance-first: Start with best, fall back to alternatives
-    'claude-opus-5',              // Best overall reasoning + coding
-    'gemini-2.5-pro',  // Deep reasoning, massive context
-    'o1',                         // OpenAI reasoning model
-    'gpt-4o',                     // Strong all-around
-    'gemini-2.5-flash',             // 2M context fallback
-    'claude-sonnet-5',            // Cost-effective quality
+    CLAUDE.deep,              // Best overall reasoning + coding
+    GEMINI.deep,              // Deep reasoning, massive context
+    OPENAI.reasoning,         // OpenAI reasoning model
+    OPENAI.standard,          // Strong all-around
+    GEMINI.fast,              // Long-context fallback
+    CLAUDE.standard,          // Cost-effective quality
   ],
   taskRoutes: {
     // Route to best-in-class for each domain
-    'code-generation': 'claude-opus-5',          // Best coding
-    'code-review': 'claude-opus-5',              // Deep analysis
-    'architecture': 'claude-opus-5',             // Complex reasoning
-    'research': 'gemini-2.5-flash',                // 2M context for deep research
-    'current-events': 'grok-3',                  // Real-time knowledge
-    'image-analysis': 'gpt-4o',                  // Strong vision
-    'math': 'gemini-2.5-pro',         // Math reasoning
-    'creative': 'claude-opus-5',                 // Creative excellence
-    'reasoning': 'o1',                           // Deep reasoning chains
-    'analysis': 'claude-opus-5',                 // Analytical tasks
-    'long-context': 'gemini-2.5-flash',            // 2M context window
-    'fast-validation': 'claude-sonnet-5',        // Quick quality checks
+    'code-generation': CLAUDE.deep,       // Best coding
+    'code-review': CLAUDE.deep,           // Deep analysis
+    'architecture': CLAUDE.deep,          // Complex reasoning
+    'research': GEMINI.fast,              // Long context for deep research
+    'current-events': GROK.standard,      // Real-time knowledge
+    'image-analysis': OPENAI.standard,    // Strong vision
+    'math': GEMINI.deep,                  // Math reasoning
+    'creative': CLAUDE.deep,              // Creative excellence
+    'reasoning': OPENAI.reasoning,        // Deep reasoning chains
+    'analysis': CLAUDE.deep,              // Analytical tasks
+    'long-context': GEMINI.fast,          // Large context window
+    'fast-validation': CLAUDE.standard,   // Quick quality checks
   },
   trackPerformance: true,
   adaptiveRouting: true,

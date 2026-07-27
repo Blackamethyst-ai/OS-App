@@ -59,10 +59,10 @@ const RETIRED_IDS = [
 
 /** Per-provider debt ceilings. These may only ever be lowered. */
 const BASELINES: Record<string, number> = {
-  gemini: 65,
-  claude: 68,
-  openai: 28,
-  grok: 6,
+  gemini: 60,
+  claude: 37,
+  openai: 11,
+  grok: 2,
 };
 
 const PATTERNS: Record<string, RegExp> = {

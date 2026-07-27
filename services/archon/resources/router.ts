@@ -14,6 +14,10 @@ import {
   DEFAULT_RESOURCE_CONFIG,
 } from './types';
 import { MODEL_REGISTRY } from '../../modelRegistry';
+
+// Destructured for readability below — the routing tables are dense enough
+// that MODEL_REGISTRY.claude.deep repeated 8x obscures the table structure.
+const { claude: CLAUDE, openai: OPENAI, gemini: GEMINI, grok: GROK } = MODEL_REGISTRY;
 import { Priority, ModelTier } from '../types';
 import {
   getMetaCognitionEngine,
@@ -56,43 +60,43 @@ const DEFAULT_ROUTER_CONFIG: RouterConfig = {
 
   taskModelPreferences: {
     // Code tasks → Claude excels
-    'code-generation': ['claude-opus-5', 'claude-sonnet-5', 'gpt-4o'],
-    'code-review': ['claude-opus-5', 'o1', 'gpt-4o'],
-    'debugging': ['claude-opus-5', 'claude-sonnet-5'],
+    'code-generation': [CLAUDE.deep, CLAUDE.standard, OPENAI.standard],
+    'code-review': [CLAUDE.deep, OPENAI.reasoning, OPENAI.standard],
+    'debugging': [CLAUDE.deep, CLAUDE.standard],
 
     // Reasoning → OpenAI o-series and Claude
-    'reasoning': ['o1', 'claude-opus-5', MODEL_REGISTRY.gemini.fast],
-    'math': [MODEL_REGISTRY.gemini.fast, 'o1', 'o3-mini'],
-    'analysis': ['claude-opus-5', MODEL_REGISTRY.gemini.fast, 'gpt-4o'],
+    'reasoning': [OPENAI.reasoning, CLAUDE.deep, GEMINI.fast],
+    'math': [GEMINI.fast, OPENAI.reasoning, OPENAI.reasoningFast],
+    'analysis': [CLAUDE.deep, GEMINI.fast, OPENAI.standard],
 
     // Research → Long context models
-    'research': [MODEL_REGISTRY.gemini.fast, 'claude-opus-5', 'claude-sonnet-5'],
-    'summarization': [MODEL_REGISTRY.gemini.fast, 'claude-sonnet-5'],
+    'research': [GEMINI.fast, CLAUDE.deep, CLAUDE.standard],
+    'summarization': [GEMINI.fast, CLAUDE.standard],
 
     // Real-time → Grok
-    'current-events': ['grok-3'],
-    'real-time': ['grok-3', 'gpt-4o'],
+    'current-events': [GROK.standard],
+    'real-time': [GROK.standard, OPENAI.standard],
 
     // Vision → Best vision models
-    'image-analysis': ['gpt-4o', 'claude-opus-5', MODEL_REGISTRY.gemini.fast],
-    'vision': ['gpt-4o', 'grok-3', 'claude-opus-5'],
+    'image-analysis': [OPENAI.standard, CLAUDE.deep, GEMINI.fast],
+    'vision': [OPENAI.standard, GROK.standard, CLAUDE.deep],
 
     // Creative → Claude
-    'creative': ['claude-opus-5', 'gpt-4o'],
-    'writing': ['claude-opus-5', 'claude-sonnet-5'],
+    'creative': [CLAUDE.deep, OPENAI.standard],
+    'writing': [CLAUDE.deep, CLAUDE.standard],
 
     // Quick tasks → Fast models
-    'classification': ['claude-haiku-4-5-20251001', 'gpt-4o-mini', MODEL_REGISTRY.gemini.fast],
-    'extraction': ['claude-haiku-4-5-20251001', MODEL_REGISTRY.gemini.fast],
-    'validation': ['claude-sonnet-5', 'claude-haiku-4-5-20251001'],
+    'classification': [CLAUDE.fast, OPENAI.fast, GEMINI.fast],
+    'extraction': [CLAUDE.fast, GEMINI.fast],
+    'validation': [CLAUDE.standard, CLAUDE.fast],
   },
 
   fallbackChain: [
-    'claude-opus-5',
-    'claude-sonnet-5',
-    'gpt-4o',
-    MODEL_REGISTRY.gemini.fast,
-    'claude-haiku-4-5-20251001',
+    CLAUDE.deep,
+    CLAUDE.standard,
+    OPENAI.standard,
+    GEMINI.fast,
+    CLAUDE.fast,
   ],
 };
 
@@ -436,7 +440,7 @@ export class CostAwareRouter {
   }
 
   private createFallbackDecision(context: RoutingContext): RoutingDecision {
-    const fallback = this.config.fallbackChain[0] ?? 'claude-sonnet-5';
+    const fallback = this.config.fallbackChain[0] ?? CLAUDE.standard;
 
     return {
       modelId: fallback,
