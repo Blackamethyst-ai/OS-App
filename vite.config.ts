@@ -22,7 +22,7 @@ const LAZY_CHUNK_PATTERNS = [
   'vendor-recharts', 'vendor-redux', 'vendor-d3',
   'vendor-three', 'vendor-faceapi', 'vendor-tensorflow',
   'vendor-onnx', 'vendor-xyflow', 'vendor-katex',
-  'vendor-cytoscape',
+  'vendor-cytoscape', 'vendor-mermaid',
 ];
 
 export default defineConfig(({ mode }) => {
@@ -45,11 +45,15 @@ export default defineConfig(({ mode }) => {
         name: 'strip-importmap',
         transformIndexHtml(html, ctx) {
           if (ctx.bundle) {
-            // Production: keep only mermaid (externalized via rollupOptions)
-            return html.replace(
-              /<script type="importmap">[\s\S]*?<\/script>/,
-              `<script type="importmap">\n{"imports":{"mermaid":"https://esm.sh/mermaid@^11.12.2"}}\n</script>`
-            );
+            // Production resolves every dependency through the bundle, so the
+            // dev importmap is dropped entirely. It used to survive with a
+            // mermaid entry pointing at esm.sh — the one runtime dependency
+            // the lockfile did not pin, fetched from a third party into the
+            // app's own origin, at a floating ^11.12.2 that could and did
+            // differ from the 11.16.0 the app was built and typechecked
+            // against. It also broke every diagram offline, in an app that
+            // markets itself local-first. Mermaid is bundled now.
+            return html.replace(/<script type="importmap">[\s\S]*?<\/script>/, '');
           }
           return html;
         }
@@ -136,10 +140,17 @@ export default defineConfig(({ mode }) => {
           ],
         },
       }),
-      visualizer({
-        filename: 'dist/stats.html',
-        gzipSize: true,
-      }),
+      // Opt-in only: ANALYZE=1 npm run build
+      //
+      // This ran unconditionally and wrote a 2MB dist/stats.html that shipped
+      // with every deploy. It was live and publicly readable at
+      // /stats.html on production — a full interactive map of the internal
+      // module graph, listing every source file path, every dependency and
+      // their sizes. It was also being precached by the service worker, so
+      // every PWA install downloaded it.
+      ...(env.ANALYZE
+        ? [visualizer({ filename: 'dist/stats.html', gzipSize: true })]
+        : []),
     ],
     // Enable SPA support for deployments like Vercel
     appType: 'spa',
@@ -169,11 +180,7 @@ export default defineConfig(({ mode }) => {
         },
       }),
       rollupOptions: {
-        external: ['mermaid'],
         output: {
-          globals: {
-            mermaid: 'mermaid'
-          },
           manualChunks(id) {
             if (id.includes('node_modules')) {
               // Heavy ML/3D libs — lazy-loaded, separate chunks
@@ -188,6 +195,29 @@ export default defineConfig(({ mode }) => {
               if (id.includes('d3')) return 'vendor-d3';
               if (id.includes('@xyflow')) return 'vendor-xyflow';
               if (id.includes('katex')) return 'vendor-katex';
+              // Only reached via the lazy MermaidDiagram route, so its own
+              // chunk keeps it off the first-paint path.
+              //
+              // The transitive deps must be listed explicitly. Matching only
+              // 'mermaid' leaves langium/chevrotain/dagre/roughjs to fall
+              // through to Vite's automatic splitting, which lands them in
+              // chunks that ARE precached — quietly putting ~500KB of a lazy
+              // feature's dependencies back into the install payload.
+              if (
+                id.includes('mermaid') ||
+                id.includes('langium') ||
+                id.includes('chevrotain') ||
+                id.includes('dagre-d3-es') ||
+                id.includes('roughjs') ||
+                id.includes('khroma') ||
+                id.includes('dompurify') ||
+                id.includes('stylis') ||
+                id.includes('ts-dedent') ||
+                id.includes('@braintree/sanitize-url') ||
+                id.includes('@upsetjs') ||
+                id.includes('d3-sankey') ||
+                id.includes('@iconify/utils')
+              ) return 'vendor-mermaid';
 
               // Animation/UI libs
               if (id.includes('motion')) return 'vendor-motion';

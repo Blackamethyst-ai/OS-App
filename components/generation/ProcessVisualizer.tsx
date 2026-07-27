@@ -7,6 +7,11 @@ import {
     Handle, Position, getSmoothStepPath, useReactFlow,
     useNodesState, useEdgesState
 } from '@xyflow/react';
+// Bundled from the installed package rather than pulled from jsdelivr in
+// index.html. The CDN copy was unpinned (no version in the URL), render-
+// blocking on every page load including the ones that never open this view,
+// and unavailable offline in an app that markets itself local-first.
+import '@xyflow/react/dist/style.css';
 import {
     BrainCircuit, Activity, Zap, Workflow, Loader2, Sparkles,
     CheckCircle, Clock, RefreshCw, DraftingCompass,
