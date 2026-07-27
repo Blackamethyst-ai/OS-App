@@ -53,78 +53,82 @@ Nine commits, `fcba1d3..cd37493`.
 - **38 dependency advisories cleared** (2 critical, 20 high) across the root and
   three `libs/*` lockfiles.
 
-## Next, in priority order
+## Roadmap P1-P5: done
 
-### P1 — Pay down model-ID debt where it is densest
+All five items below were completed in the follow-up pass. Commits
+`c29a3d6..892dda5`.
 
-167 hardcoded model literals remain (`gemini` 65, `claude` 68, `openai` 28,
-`grok` 6). The ratchet stops growth but does not shrink it.
+**P1 — Model-ID debt, where it was densest.** `archon/resources/router.ts`
+(39 literals) and `archon/metacognition/engine.ts` (19) now read
+`MODEL_REGISTRY`. Required adding an `openai` block, whose absence was why
+gpt-4o/o1/o3-mini were hardcoded everywhere. Verified behaviour-preserving
+rather than assumed: all 10 tier->ID mappings resolve to the exact strings
+they replaced, and all 17 routing tables rebuild byte-identical.
+Debt **167 -> 110 (-34%)**; ratchet baselines tightened to the new floor.
 
-`services/archon/resources/router.ts` alone holds **39** (23 claude, 13 openai,
-3 grok) — roughly a quarter of all debt in one file, and it is the file whose
-correctness matters most, since it decides which model serves a request.
+**P2 — State sprawl.** `store/` (singular) is gone. It held a
+DEPRECATED re-export shim with zero importers — migration already complete,
+so it met the bar for deletion rather than the graveyard — plus
+`flywheelStore`, which moved to `stores/`. Two locations remain with a clear
+rule: `store.ts` owns app-wide slices, `stores/` holds satellite stores.
 
-```bash
-npx vitest run services/__tests__/modelIdSovereignty.test.ts   # current counts
-```
+**P3 — First paint.** Deferring `app-kernel`/`app-cpb` turned out to be a
+genuine architecture change, not a config tweak: both are entry-graph
+dependencies shared by ~30 chunks, so it means booting the shell and
+hydrating the kernel after. Deliberately not rushed. The bigger win was
+adjacent and safe — see PWA below.
 
-Migrate it to `MODEL_REGISTRY`, then lower `BASELINES` in the ratchet. Repeat
-for `archon/metacognition/engine.ts` (19) and `metacognition/modelRegistry.ts`
-(14). Effort: ~half a day for the top three files, which clears ~43% of debt.
+**P4 — CDN dependencies: eliminated.** Production HTML now references zero
+external hosts.
+- mermaid was `external` and loaded from esm.sh at a floating `^11.12.2`
+  while the app was built against the installed 11.16.0 — the one runtime
+  dependency the lockfile did not pin. Now bundled behind the already-lazy
+  MermaidDiagram route, with its transitive deps (langium, chevrotain,
+  dagre, roughjs) routed into the same chunk. Matching only `mermaid` left
+  them to automatic splitting, which put ~500KB back into the precache.
+- `@xyflow/react`'s stylesheet came from jsdelivr with **no version in the
+  URL at all**, render-blocking on every page load. It ships inside the
+  installed package; now imported there.
 
-### P2 — Reconcile the three state stores
+**P5 — Lint ratchet.** `no-explicit-any` (609) and `ban-ts-comment` (5) are
+still off in eslint.config.js but now held at a ceiling by
+`npm run lint:ratchet`, a separate CI step. Production code only — counting
+tests put mock doubles at the top (1328 vs 609) and buried the real debt.
 
-State is split across `store.ts` (~60 importers), `stores/useSystemMind.ts`
-(~20) and `store/` (`flywheelStore`, `systemMind`). Two directories differing
-only by an `s` is a trap — `store/systemMind.ts` and `stores/useSystemMind.ts`
-are different files with near-identical names.
+## Also fixed, found along the way
 
-Nothing is broken today, so this is a correctness *risk*, not a defect: the
-next person to add a slice has a coin-flip chance of putting it in the wrong
-place. Decide one owner per domain, move the rest, leave re-export shims.
-Effort: ~1 day. Do it before the next feature that touches global state.
+**`dist/stats.html` was live on production.** rollup-plugin-visualizer ran on
+every build and shipped a 2MB interactive map of the internal module graph —
+every source file path, every dependency, all sizes — publicly readable at
+`/stats.html` (confirmed HTTP 200, 1.5MB). It was precached too, so every PWA
+install downloaded it. Now opt-in behind `ANALYZE=1`.
 
-### P3 — Trim the eager first-paint bundle
+**The service worker was undoing the code splitting.** VitePWA had no
+workbox block, so the default glob precached every chunk: 7.2MB on install,
+including three (860KB), face-api (652KB) and onnx (396KB) for users who
+never opened 3D or biometrics. The build was already curating a lazy-chunk
+list for `modulePreload` while the SW quietly ignored it; both now read one
+hoisted `LAZY_CHUNK_PATTERNS`. Those chunks moved to CacheFirst runtime
+caching, which is safe because chunk filenames are content-hashed.
 
-~1.4 MB loads before first paint, of which **760 KB is application logic** —
-`app-kernel` (396 KB) and `app-cpb` (364 KB). The heavy vendor libs (three
-860 KB, face-api 652 KB, onnx 396 KB) are already correctly lazy, so the win
-here is in our own code, not dependencies.
+Precache **7270 KiB -> 3371 KiB (-54%)**.
 
-```bash
-npx vite build && grep -oE '(src|href)="/assets/[^"]+\.js"' dist/index.html
-```
+## Next
 
-The kernel and CPB orchestrator are unlikely to all be needed at first paint.
-Route-split them behind the first interaction that actually needs them.
+**Route-split the kernel and CPB** (the real P3). ~760KB of application logic
+still loads before first paint. This needs a boot sequence — render the
+shell, hydrate the kernel after — not a chunking change. Size it properly
+before starting.
 
-### P4 — Decide the mermaid CDN dependency
+**Keep lowering the ratchets.** Four model-ID baselines (gemini 60, claude
+37, openai 11, grok 2) and two lint ceilings (609, 5). Both fail when a count
+*drops* without the baseline following, so they surface their own progress.
+Remaining model-ID debt is concentrated in `geminiService.ts`,
+`apiUsageService.ts` and `components/generation/ImageGen/`.
 
-`vite.config.ts` externalizes `mermaid` and `index.html` loads it from
-`https://esm.sh/mermaid@^11.12.2` via importmap. Two consequences worth an
-explicit decision rather than drift:
-
-- **Offline/PWA:** the service worker precaches 91 local entries, but mermaid
-  is not one of them. Diagrams break offline — in an app that markets itself as
-  local-first.
-- **Supply chain:** a floating `^11.12.2` range from a third-party CDN executes
-  in the app's origin. This is the one runtime dependency not pinned by the
-  lockfile.
-
-Either bundle it (adds ~500 KB to a lazy chunk, keeps the offline story) or
-keep the CDN and pin an exact version with SRI. Bundling is the recommendation
-given the local-first positioning.
-
-### P5 — Ratchet the disabled lint rules
-
-`eslint.config.js` turns off `@typescript-eslint/no-explicit-any` and
-`no-unused-vars` wholesale, which is why 401 `as any` casts and 14
-`@ts-ignore`/`@ts-expect-error` sit unflagged. Flipping them on now would
-produce noise nobody reads.
-
-Apply the pattern that already works here: a counting ratchet like
-`modelIdSovereignty.test.ts`, baselined at today's numbers, that may only go
-down. Same shape, same enforcement, no big-bang cleanup.
+**Decide on `libs/graph-reasoning-engine`.** It has a tracked lockfile and
+its own node_modules but nothing in the app imports it. Either it is a
+product or it is dead weight carrying its own vulnerability surface.
 
 ## Conventions worth keeping
 
