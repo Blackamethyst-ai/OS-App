@@ -5,6 +5,26 @@ import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { visualizer } from 'rollup-plugin-visualizer';
 
+/**
+ * Chunks that must never load until something actually needs them.
+ *
+ * Used twice, and the two uses have to agree: they are stripped from the
+ * modulepreload graph in index.html, AND excluded from the service worker's
+ * precache. Getting only the first half right is what happened before — the
+ * preload list was carefully curated while the SW, having no workbox config,
+ * fell back to precaching everything and pulled all 7.2MB down on install.
+ * That silently undid the code splitting for exactly the users the PWA is
+ * meant to serve.
+ *
+ * These are still cached, just on demand — see runtimeCaching below.
+ */
+const LAZY_CHUNK_PATTERNS = [
+  'vendor-recharts', 'vendor-redux', 'vendor-d3',
+  'vendor-three', 'vendor-faceapi', 'vendor-tensorflow',
+  'vendor-onnx', 'vendor-xyflow', 'vendor-katex',
+  'vendor-cytoscape',
+];
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, '.', '');
   // Resolve @ to the current working directory
@@ -37,6 +57,52 @@ export default defineConfig(({ mode }) => {
       VitePWA({
         registerType: 'autoUpdate',
         includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'robots.txt'],
+        workbox: {
+          // Precache the app shell only. Without this block the default glob
+          // swept up every chunk and every face-api model weight — 91 entries,
+          // 7.2MB downloaded on install before the user had done anything.
+          // Icons are matched at the root only, not recursively: a recursive
+          // png glob also swallows public/anchor-library/seed/, which is
+          // gitignored local reference photos running to tens of MB.
+          globPatterns: ['**/*.{js,css,html,webmanifest}', '*.{svg,png,ico}'],
+          globIgnores: [
+            '**/node_modules/**/*',
+            'sw.js',
+            'workbox-*.js',
+            // Local-only reference imagery; never part of a deploy.
+            'anchor-library/**/*',
+            // Deliberately lazy — fetched and cached on first real use.
+            ...LAZY_CHUNK_PATTERNS.map(p => `**/assets/${p}*.js`),
+            // face-api weights: ~13MB of shards nobody needs unless they
+            // open the biometric panel. Runtime-cached below.
+            'models/**/*',
+          ],
+          runtimeCaching: [
+            {
+              // Content-hashed chunk filenames, so CacheFirst is safe:
+              // a changed build produces a new URL rather than stale content.
+              urlPattern: ({ url, sameOrigin }) =>
+                sameOrigin && url.pathname.startsWith('/assets/'),
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'lazy-chunks',
+                expiration: { maxEntries: 80, maxAgeSeconds: 60 * 60 * 24 * 30 },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+            {
+              // Biometric model weights — large, immutable, rarely used.
+              urlPattern: ({ url, sameOrigin }) =>
+                sameOrigin && url.pathname.startsWith('/models/'),
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'face-models',
+                expiration: { maxEntries: 30, maxAgeSeconds: 60 * 60 * 24 * 90 },
+                cacheableResponse: { statuses: [0, 200] },
+              },
+            },
+          ],
+        },
         manifest: {
           name: 'Metaventions AI',
           short_name: 'Metaventions',
@@ -90,14 +156,8 @@ export default defineConfig(({ mode }) => {
       // They are code-split into separate chunks and should only load on demand.
       modulePreload: {
         resolveDependencies: (filename, deps, { hostId, hostType }) => {
-          const lazyChunkPatterns = [
-            'vendor-recharts', 'vendor-redux', 'vendor-d3',
-            'vendor-three', 'vendor-faceapi', 'vendor-tensorflow',
-            'vendor-onnx', 'vendor-xyflow', 'vendor-katex',
-            'vendor-cytoscape',
-          ];
           return deps.filter(dep =>
-            !lazyChunkPatterns.some(pattern => dep.includes(pattern))
+            !LAZY_CHUNK_PATTERNS.some(pattern => dep.includes(pattern))
           );
         },
       },
