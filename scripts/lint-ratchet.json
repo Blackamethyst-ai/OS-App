@@ -1,0 +1,5 @@
+{
+  "_comment": "Ceilings for rules disabled in eslint.config.js. These may only ever be LOWERED. See scripts/lint-ratchet.mjs. Goal is 0, at which point the rules become 'error' and the ratchet is deleted.",
+  "@typescript-eslint/no-explicit-any": 609,
+  "@typescript-eslint/ban-ts-comment": 5
+}

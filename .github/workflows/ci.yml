@@ -27,5 +27,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      # Ceilings for the rules eslint.config.js disables globally
+      # (no-explicit-any, ban-ts-comment). Fails if a count rises, and also
+      # if one falls — a stale ceiling silently stops ratcheting.
+      - name: Type-safety ratchet
+        run: npm run lint:ratchet
+
       - name: Test
         run: npm run test:run

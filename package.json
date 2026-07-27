@@ -9,6 +9,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "lint:ratchet": "node scripts/lint-ratchet.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "preview": "vite preview",
     "preflight": "node scripts/preflight-public.mjs",
